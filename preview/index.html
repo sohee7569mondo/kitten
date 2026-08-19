@@ -4,21 +4,22 @@
    STELLAR SAJU — 홈(페이지 ID 62)  BUILD: v7  (2026-08-19)
   ══════════════════════════════════════════════════════════════════
    ▸ 넣는 곳 : 페이지 62 편집 → 우측 상단 ⋮ → "코드 편집기" → 전체 지우고 이거 통째로 붙여넣기
-   ▸ 페이지 설정 : 우측 사이드바 → 페이지 → 템플릿 → "Blank" 선택 (워프 헤더/푸터 제거)
+   ▸ 테마 헤더/푸터 : 이 테마엔 선택 가능한 페이지 템플릿이 없어서, 아래 CSS가 대신 숨깁니다.
    ▸ 저장 후 : 호스팅 → 성능(Performance) → "캐시 비우기(Clear cache)" 꼭 누르기
 
-   [이미지 주소] 아래 img src 8곳. 미디어 라이브러리에 올린 뒤 실제 주소로 맞추세요.
-                업로드 달이 2026년 8월이 아니면 /2026/08/ 부분만 바꾸면 됩니다.
-   [여섯 개의 문] 지금은 판매 페이지가 없어서 "준비중" 뱃지 상태입니다.
-                페이지가 생기면 해당 카드의  <div class="door-card">  를
-                <a class="door-card" href="/주소/">  로,  </div> 를 </a> 로 바꾸세요.
+   [이미지] 미디어 라이브러리 업로드 완료. 워드프레스가 파일명의 하이픈을 지우므로
+           stellar-door-arcana.webp 는 stellardoorarcana.webp 로 올라갑니다. 주소는 맞춰놨습니다.
+           혹시 이미지가 안 뜨면 사진 대신 한자 글리프가 보입니다(깨진 아이콘은 안 뜹니다).
+   [여섯 개의 문] 상세페이지 주소(/door-career/ 등)는 이미 걸어놨고,
+                아직 페이지가 없어서 "준비중" 뱃지 + 클릭 잠금 상태입니다.
+                페이지를 만든 뒤  class="door-card is-soon"  에서 is-soon 만 지우면 열립니다.
 -->
 
 <style id="stellar-home-css">
 /* ── 0. 워드프레스 껍데기 정리 ───────────────────────────────── */
 html{scroll-behavior:smooth;}
 body{background:#0D0A1A;}
-/* "Blank" 템플릿을 못 쓸 때만 아래 3줄이 헤더/푸터를 숨깁니다 */
+/* 이 테마엔 "Blank" 템플릿이 없어서, 아래 4줄이 테마 헤더/푸터를 숨깁니다 */
 body.page-id-62 .wp-site-blocks > header.wp-block-template-part,
 body.page-id-62 .wp-site-blocks > footer.wp-block-template-part{display:none !important;}
 body.page-id-62 .entry-content,
@@ -91,8 +92,11 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
   border-bottom:1px solid var(--line);}
 #stellar-home .sh-header nav{max-width:1120px; margin:0 auto; padding:18px 28px;
   display:flex !important; align-items:center; justify-content:space-between;}
-#stellar-home .brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel',serif;
+#stellar-home .brand{display:flex; align-items:center; gap:11px; font-family:'Cinzel',serif;
   font-weight:600; font-size:1.05rem; letter-spacing:.06em; color:var(--gold);}
+#stellar-home .brand-mark{width:32px; height:32px; flex:0 0 auto; border-radius:50%; overflow:hidden;
+  border:1px solid var(--gold-soft); box-shadow:0 0 16px rgba(140,101,214,.5);}
+#stellar-home .brand-mark img{width:100%; height:100%; object-fit:cover;}
 #stellar-home .navlinks{display:flex !important; gap:32px; font-size:.85rem; color:var(--ink-soft);}
 #stellar-home .navlinks a:hover{color:var(--gold);}
 @media(max-width:860px){ #stellar-home .navlinks{display:none !important;} }
@@ -254,6 +258,7 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
   margin-left:auto; margin-right:auto; position:relative;}
 #stellar-home .final-cta .btn{margin-top:32px; position:relative;}
 #stellar-home .sh-footer{padding:70px 28px 44px; text-align:center; position:relative; z-index:1;}
+#stellar-home .foot-logo{width:280px; max-width:74%; height:auto; margin:0 auto; border-radius:6px;}
 #stellar-home .foot-brand{font-family:'Cinzel',serif; color:var(--gold); letter-spacing:.08em; font-size:1rem;}
 #stellar-home .sh-footer .fine{margin-top:14px; font-size:.76rem; color:var(--ink-dim);}
 #stellar-home .build-stamp{margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:.66rem;
@@ -269,6 +274,7 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
 }
 </style>
 
+<link rel="icon" href="./brand/mark.jpg" sizes="any">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -278,7 +284,10 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
 
   <header class="sh-header">
     <nav>
-      <div class="brand">&#10022; STELLAR SAJU</div>
+      <div class="brand">
+        <span class="brand-mark"><img src="./brand/mark.jpg" alt="" width="100" height="100"></span>
+        STELLAR SAJU
+      </div>
       <div class="navlinks">
         <a href="#freebies">무료 운세</a>
         <a href="#doors">여섯 개의 문</a>
@@ -515,7 +524,7 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
   </section>
 
   <footer class="sh-footer">
-    <div class="foot-brand">&#10022; STELLAR SAJU</div>
+    <img class="foot-logo" src="./brand/logo.jpg" alt="스텔라사주" width="339" height="156" loading="lazy">
     <div class="fine mono">&copy; STELLAR SAJU &middot; 이 콘텐츠는 재미를 위한 참고용입니다</div>
     <div class="build-stamp">BUILD v7 &middot; 2026-08-19</div>
   </footer>
@@ -528,6 +537,18 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
   // 자바스크립트가 살아있을 때만 등장 효과를 켭니다.
   // (막히면 .js-on 이 안 붙어서 내용이 그냥 다 보입니다 — 빈 화면 방지)
   root.classList.add('js-on');
+
+  // 이미지가 아직 안 올라갔거나 주소가 틀리면 '깨진 그림' 아이콘 대신
+  // 뒤에 있는 한자 글리프가 그대로 보이게 합니다.
+  function hideBroken(img){
+    var box = img.closest('.hero-portrait, .final-portrait');
+    (box || img).style.display = 'none';
+  }
+  root.querySelectorAll('img').forEach(function(img){
+    if(img.complete && img.naturalWidth === 0) hideBroken(img);
+    img.addEventListener('error', function(){ hideBroken(img); });
+  });
+
   var targets = root.querySelectorAll('.reveal');
   if(!('IntersectionObserver' in window)){
     for(var i=0;i<targets.length;i++) targets[i].classList.add('in');
