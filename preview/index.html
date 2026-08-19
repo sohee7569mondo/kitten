@@ -1,0 +1,552 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>스텔라사주 홈 미리보기</title>
+<style>body{margin:0;font-family:sans-serif}.wp-site-blocks>header.wp-block-template-part,.wp-site-blocks>footer.wp-block-template-part{background:#fff;color:#000;padding:20px;text-align:center}.entry-content{max-width:650px;margin:0 auto;padding:2rem 0}.entry-content>*{max-width:650px;margin-left:auto;margin-right:auto}</style></head>
+<body class="page-id-62"><div class="wp-site-blocks"><header class="wp-block-template-part">THEME HEADER (숨겨져야 정상)</header><main><div class="entry-content">
+<!--
+  ══════════════════════════════════════════════════════════════════
+   STELLAR SAJU — 홈(페이지 ID 62)  BUILD: v6  (2026-08-19)
+  ══════════════════════════════════════════════════════════════════
+   ▸ 넣는 곳 : 페이지 62 편집 → 우측 상단 ⋮ → "코드 편집기" → 전체 지우고 이거 통째로 붙여넣기
+   ▸ 페이지 설정 : 우측 사이드바 → 페이지 → 템플릿 → "Blank" 선택 (워프 헤더/푸터 제거)
+   ▸ 저장 후 : 호스팅 → 성능(Performance) → "캐시 비우기(Clear cache)" 꼭 누르기
+
+   [이미지 주소] 아래 img src 8곳. 미디어 라이브러리에 올린 뒤 실제 주소로 맞추세요.
+                업로드 달이 2026년 8월이 아니면 /2026/08/ 부분만 바꾸면 됩니다.
+   [여섯 개의 문] 지금은 판매 페이지가 없어서 "준비중" 뱃지 상태입니다.
+                페이지가 생기면 해당 카드의  <div class="door-card">  를
+                <a class="door-card" href="/주소/">  로,  </div> 를 </a> 로 바꾸세요.
+-->
+
+<style id="stellar-home-css">
+/* ── 0. 워드프레스 껍데기 정리 ───────────────────────────────── */
+html{scroll-behavior:smooth;}
+body{background:#0D0A1A;}
+/* "Blank" 템플릿을 못 쓸 때만 아래 3줄이 헤더/푸터를 숨깁니다 */
+body.page-id-62 .wp-site-blocks > header.wp-block-template-part,
+body.page-id-62 .wp-site-blocks > footer.wp-block-template-part{display:none !important;}
+body.page-id-62 .entry-content,
+body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:0 !important;}
+
+/* 로그인 상태의 관리자 바(32px)만큼 상단 메뉴를 내려줍니다 */
+body.admin-bar #stellar-home .sh-header{top:32px;}
+@media(max-width:782px){ body.admin-bar #stellar-home .sh-header{top:46px;} }
+
+/* ── 1. 전체 폭으로 펼치기 (테마 폭 제한 무력화) ─────────────── */
+#stellar-home{
+  max-width:none !important; width:auto !important;
+  margin-left:calc(50% - 50vw) !important;
+  margin-right:calc(50% - 50vw) !important;
+  padding:0 !important;
+  position:relative; z-index:0; overflow-x:clip;
+  background:transparent;
+
+  --void:#0D0A1A; --void-deep:#070512;
+  --nebula:#1C1533; --nebula-soft:#251C42;
+  --purple:#6C4FA8; --purple-glow:rgba(140,101,214,.35);
+  --gold:#D4AF6A; --gold-soft:#C9A66B;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.5);
+  --line:rgba(212,175,106,.18);
+
+  color:var(--star);
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:300; line-height:1.75; font-size:16px;
+  /* 한글이 단어 중간에서 끊기지 않게 (예: "기다/립니다" 방지) */
+  word-break:keep-all; overflow-wrap:break-word;
+}
+
+/* ── 2. 리셋 (전부 #stellar-home 안쪽에만 적용) ──────────────── */
+#stellar-home *{margin:0; padding:0; box-sizing:border-box;}
+#stellar-home h1,#stellar-home h2,#stellar-home h3{
+  font-family:'Noto Serif KR',serif; color:var(--star); font-weight:700; letter-spacing:normal;}
+#stellar-home a{color:inherit; text-decoration:none;}
+#stellar-home img{display:block; max-width:100%; height:auto;}
+#stellar-home ::selection{background:var(--gold); color:var(--void);}
+#stellar-home .display{font-family:'Cinzel',serif;}
+#stellar-home .mono{font-family:'IBM Plex Mono',monospace;}
+#stellar-home .wrap{max-width:1120px; margin:0 auto; padding:0 28px;}
+#stellar-home .sh-section{padding:120px 0; position:relative; z-index:1;}
+@media(max-width:700px){ #stellar-home .sh-section{padding:76px 0;} #stellar-home .wrap{padding:0 20px;} }
+
+/* ── 3. 별 배경 ─────────────────────────────────────────────── */
+#stellar-home .stars{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(1.5px 1.5px at 10% 20%, rgba(255,255,255,.9), transparent),
+    radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1.5px 1.5px at 60% 65%, rgba(255,255,255,.8), transparent),
+    radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1.5px 1.5px at 90% 50%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1px 1px at 45% 30%, rgba(255,255,255,.5), transparent),
+    radial-gradient(1.5px 1.5px at 15% 55%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1px 1px at 70% 85%, rgba(255,255,255,.5), transparent),
+    var(--void);
+}
+
+/* ── 4. 스크롤 등장 효과 ─────────────────────────────────────
+   중요: 기본값은 "보임". 자바스크립트가 막히거나 실패해도 내용이 사라지지 않습니다. */
+#stellar-home .js-on .reveal{opacity:0; transform:translateY(24px); transition:opacity .9s ease, transform .9s ease;}
+#stellar-home .js-on .reveal.in{opacity:1; transform:translateY(0);}
+
+/* ── 5. 상단 메뉴 ───────────────────────────────────────────── */
+#stellar-home .sh-header{
+  position:fixed; top:0; left:0; right:0; z-index:60;
+  background:rgba(13,10,26,.82); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);}
+#stellar-home .sh-header nav{max-width:1120px; margin:0 auto; padding:18px 28px;
+  display:flex !important; align-items:center; justify-content:space-between;}
+#stellar-home .brand{display:flex; align-items:center; gap:10px; font-family:'Cinzel',serif;
+  font-weight:600; font-size:1.05rem; letter-spacing:.06em; color:var(--gold);}
+#stellar-home .navlinks{display:flex !important; gap:32px; font-size:.85rem; color:var(--ink-soft);}
+#stellar-home .navlinks a:hover{color:var(--gold);}
+@media(max-width:860px){ #stellar-home .navlinks{display:none !important;} }
+
+/* ── 6. 히어로 ──────────────────────────────────────────────── */
+#stellar-home .hero{
+  min-height:100vh; min-height:100svh; position:relative; z-index:1;
+  display:flex; align-items:flex-end; justify-content:center;
+  overflow:hidden; isolation:isolate;}
+#stellar-home .hero-figure{
+  position:absolute; top:0; left:50%; height:100%; width:auto; max-width:none;
+  transform:translateX(-50%); z-index:1; opacity:.4;
+  -webkit-mask-image:linear-gradient(to bottom, transparent 0%, black 14%, black 72%, transparent 96%),
+                     linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+  -webkit-mask-composite:source-in;
+          mask-image:linear-gradient(to bottom, transparent 0%, black 14%, black 72%, transparent 96%),
+                     linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+          mask-composite:intersect;
+  animation:sh-figureFade 1.8s ease 1.2s backwards;}
+@keyframes sh-figureFade{ from{opacity:0;} to{opacity:.4;} }
+#stellar-home .hero::after{
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 100%, rgba(7,5,18,.95) 0%, rgba(7,5,18,.55) 45%, transparent 75%);}
+#stellar-home .hero-portrait{
+  width:118px; height:118px; margin:0 auto 26px; border-radius:50%; overflow:hidden;
+  border:2px solid var(--gold-soft); box-shadow:0 0 50px var(--purple-glow);
+  animation:sh-fadeUp 1s ease 1.9s backwards;}
+#stellar-home .hero-portrait img{width:100%; height:100%; object-fit:cover; object-position:center 15%;}
+
+#stellar-home .gate-leaf{
+  position:absolute; top:0; bottom:0; width:52%; z-index:5;
+  background:linear-gradient(160deg, var(--nebula-soft), var(--void-deep));
+  border:1px solid var(--line);}
+#stellar-home .gate-leaf::before{content:''; position:absolute; inset:18px; border:1px solid rgba(212,175,106,.35);}
+#stellar-home .gate-leaf::after{content:'\2726'; position:absolute; top:50%; color:var(--gold);
+  font-size:1.6rem; transform:translateY(-50%); opacity:.7;}
+#stellar-home .gate-left{left:0;  transform:translateX(-102%); animation:sh-openLeft  1.4s cubic-bezier(.6,0,.2,1) .3s backwards;}
+#stellar-home .gate-left::after{right:26px;}
+#stellar-home .gate-right{right:0; transform:translateX(102%);  animation:sh-openRight 1.4s cubic-bezier(.6,0,.2,1) .3s backwards;}
+#stellar-home .gate-right::after{left:26px;}
+@keyframes sh-openLeft { from{transform:translateX(0);} to{transform:translateX(-102%);} }
+@keyframes sh-openRight{ from{transform:translateX(0);} to{transform:translateX(102%);} }
+
+#stellar-home .hero-content{position:relative; z-index:2; text-align:center; max-width:780px;
+  padding:0 28px 116px; animation:sh-fadeUp 1s ease 1.6s backwards;}
+@keyframes sh-fadeUp{ from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
+#stellar-home .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:.72rem; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--gold); margin-bottom:20px;}
+#stellar-home .hero h1{font-size:clamp(1.65rem,4.2vw,2.95rem); line-height:1.45; text-shadow:0 4px 30px rgba(7,5,18,.9);}
+#stellar-home .hero h1 em{font-style:normal; color:var(--gold);}
+#stellar-home .hero p{margin-top:22px; color:var(--ink-soft); font-size:1rem; text-shadow:0 2px 16px rgba(7,5,18,.9);}
+#stellar-home .hero-note{margin-top:44px; font-family:'IBM Plex Mono',monospace; font-size:.76rem;
+  color:var(--ink-dim); display:flex; align-items:center; justify-content:center; gap:10px;}
+#stellar-home .hero-note .dash{width:22px; height:1px; background:var(--line);}
+#stellar-home .scroll-hint{position:absolute; bottom:34px; left:50%; transform:translateX(-50%); z-index:3;
+  font-family:'IBM Plex Mono',monospace; font-size:.68rem; color:var(--ink-dim); text-align:center;
+  animation:sh-fadeUp 1s ease 2s backwards;}
+#stellar-home .scroll-hint .arrow{margin-top:8px; animation:sh-bob 1.8s ease-in-out infinite;}
+@keyframes sh-bob{0%,100%{transform:translateY(0);} 50%{transform:translateY(6px);}}
+
+/* ── 7. 버튼 ────────────────────────────────────────────────── */
+#stellar-home .btn{padding:15px 28px; border-radius:2px; font-size:.9rem; font-weight:500;
+  display:inline-flex; align-items:center; gap:8px; transition:transform .2s ease, filter .2s ease;
+  cursor:pointer; border:none;}
+#stellar-home .btn-primary{background:linear-gradient(135deg, var(--gold), #B98A47); color:var(--void-deep);
+  font-weight:700; box-shadow:0 14px 30px -12px rgba(212,175,106,.45);}
+#stellar-home .btn-primary:hover{transform:translateY(-2px);}
+#stellar-home .btn-ghost{border:1px solid var(--gold-soft); color:var(--gold-soft); background:transparent;}
+#stellar-home .btn-ghost:hover{background:rgba(212,175,106,.1);}
+
+/* ── 8. 섹션 머리말 ─────────────────────────────────────────── */
+#stellar-home .kicker{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--gold); margin-bottom:16px;}
+#stellar-home .sec-head{max-width:640px; margin-bottom:60px;}
+#stellar-home .sec-head.center{margin-left:auto; margin-right:auto; text-align:center;}
+#stellar-home .sec-head h2{font-size:clamp(1.5rem,3.2vw,2.2rem); line-height:1.4;}
+#stellar-home .sec-head p{margin-top:16px; color:var(--ink-soft); font-size:.98rem;}
+
+/* ── 9. 무료 운세 ───────────────────────────────────────────── */
+#stellar-home .free-grid{display:grid !important; grid-template-columns:repeat(3,1fr) !important; gap:16px;}
+@media(max-width:860px){ #stellar-home .free-grid{grid-template-columns:repeat(2,1fr) !important;} }
+@media(max-width:480px){ #stellar-home .free-grid{grid-template-columns:1fr !important;} }
+#stellar-home .free-card{background:var(--nebula); border:1px solid var(--line); border-radius:8px;
+  padding:30px 20px; text-align:center; transition:border-color .25s ease, transform .25s ease;
+  display:block; cursor:pointer;}
+#stellar-home .free-card:hover{border-color:var(--gold-soft); transform:translateY(-4px);}
+#stellar-home .free-tag{font-family:'IBM Plex Mono',monospace; font-size:.64rem; letter-spacing:.1em;
+  color:var(--gold); text-transform:uppercase;}
+#stellar-home .free-main{margin-top:16px; color:var(--star); font-size:1.7rem; font-family:'Cinzel',serif;}
+#stellar-home .free-sub{margin-top:12px; font-size:.9rem; color:var(--star); font-family:'Noto Serif KR',serif;}
+
+/* ── 10. 여섯 개의 문 ───────────────────────────────────────── */
+#stellar-home .door-grid{display:grid !important; grid-template-columns:repeat(3,1fr) !important; gap:18px;}
+@media(max-width:900px){ #stellar-home .door-grid{grid-template-columns:repeat(2,1fr) !important;} }
+@media(max-width:560px){ #stellar-home .door-grid{grid-template-columns:1fr !important;} }
+#stellar-home .door-card{position:relative; border-radius:6px; overflow:hidden; border:1px solid var(--line);
+  background:var(--nebula); display:block;
+  transition:transform .35s ease, box-shadow .35s ease, border-color .35s ease;}
+#stellar-home a.door-card{cursor:pointer;}
+#stellar-home a.door-card:hover{transform:translateY(-8px); box-shadow:0 30px 60px -20px var(--purple-glow);
+  border-color:var(--gold-soft);}
+#stellar-home .door-card .imgwrap{position:relative; aspect-ratio:2/3; overflow:hidden;}
+#stellar-home .door-card .imgwrap::before{content:''; position:absolute; inset:0; z-index:1;
+  background:radial-gradient(circle at 50% 42%, rgba(212,175,106,.14), transparent 60%), var(--nebula-soft);}
+#stellar-home .door-card img{position:absolute; inset:0; z-index:2; width:100%; height:100%;
+  object-fit:cover; object-position:center 12%; transition:transform .5s ease;}
+#stellar-home a.door-card:hover img{transform:scale(1.06);}
+#stellar-home .door-card .imgwrap::after{content:''; position:absolute; inset:0; z-index:3;
+  background:linear-gradient(to top, rgba(13,10,26,.96) 0%, rgba(13,10,26,.2) 55%, transparent 78%);}
+#stellar-home .door-card .glyph{position:absolute; inset:0; z-index:1; display:flex; align-items:center;
+  justify-content:center; font-family:'Noto Serif KR',serif; font-size:3.4rem; color:var(--gold-soft); opacity:.5;}
+#stellar-home .door-card .price-badge{position:absolute; top:12px; right:12px; z-index:4;
+  background:rgba(13,10,26,.75); border:1px solid var(--gold-soft); border-radius:20px; padding:5px 12px;
+  font-family:'IBM Plex Mono',monospace; font-size:.62rem; color:var(--gold);}
+#stellar-home .door-card .info{position:absolute; left:0; right:0; bottom:0; padding:18px 16px; z-index:4;}
+#stellar-home .door-card .theme{font-family:'IBM Plex Mono',monospace; font-size:.62rem; letter-spacing:.1em;
+  color:var(--gold); text-transform:uppercase;}
+#stellar-home .door-card .titlekr{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.05rem; margin-top:6px;}
+#stellar-home .door-card .titleen{font-family:'Cinzel',serif; font-size:.66rem; letter-spacing:.08em;
+  color:var(--ink-dim); margin-top:3px;}
+#stellar-home .door-card .desc{margin-top:8px; font-size:.78rem; color:var(--ink-soft);}
+
+/* ── 11. 스타운세 배너 ──────────────────────────────────────── */
+#stellar-home .star-banner{display:flex !important; align-items:center; justify-content:space-between;
+  gap:24px; flex-wrap:wrap;
+  background:linear-gradient(135deg, rgba(212,175,106,.08), var(--nebula));
+  border:1px solid var(--line); border-radius:8px; padding:44px 40px;}
+#stellar-home .star-banner h3{font-size:1.3rem;}
+#stellar-home .star-banner p{margin-top:8px; color:var(--ink-soft); font-size:.92rem;}
+
+/* ── 12. 철학 30/50/20 ──────────────────────────────────────── */
+#stellar-home .phil-grid{display:grid !important; grid-template-columns:repeat(3,1fr) !important; gap:20px;}
+@media(max-width:760px){ #stellar-home .phil-grid{grid-template-columns:1fr !important;} }
+#stellar-home .phil-card{background:var(--nebula); border:1px solid var(--line); border-radius:8px;
+  padding:34px 30px; text-align:center;}
+#stellar-home .phil-num{font-family:'Cinzel',serif; font-size:2.6rem; color:var(--gold); line-height:1.2;}
+#stellar-home .phil-num span{font-size:1.2rem; color:var(--ink-dim); margin-left:2px;}
+#stellar-home .phil-label{margin-top:10px; font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.05rem;}
+#stellar-home .phil-en{margin-top:4px; font-family:'IBM Plex Mono',monospace; font-size:.66rem;
+  letter-spacing:.1em; color:var(--ink-dim); text-transform:uppercase;}
+#stellar-home .phil-desc{margin-top:14px; font-size:.86rem; color:var(--ink-soft);}
+#stellar-home .phil-quote{margin-top:44px; text-align:center; font-family:'Noto Serif KR',serif;
+  font-size:1.15rem; color:var(--star); max-width:540px; margin-left:auto; margin-right:auto; line-height:1.8;}
+#stellar-home .phil-quote span{color:var(--gold);}
+
+/* ── 13. 마무리 CTA + 푸터 ──────────────────────────────────── */
+#stellar-home .final-cta{text-align:center; background:linear-gradient(160deg, var(--nebula-soft), var(--void));
+  border:1px solid var(--line); border-radius:8px; padding:90px 28px; position:relative; overflow:hidden;}
+#stellar-home .final-cta::before{content:''; position:absolute; top:-40%; left:50%; transform:translateX(-50%);
+  width:600px; height:600px; background:radial-gradient(circle, var(--purple-glow), transparent 65%); pointer-events:none;}
+#stellar-home .final-portrait{width:96px; height:96px; margin:0 auto 24px; border-radius:50%; overflow:hidden;
+  border:2px solid var(--gold-soft); position:relative;}
+#stellar-home .final-portrait img{width:100%; height:100%; object-fit:cover; object-position:center 15%;}
+#stellar-home .final-cta h2{font-size:clamp(1.5rem,3.2vw,2.1rem); position:relative;}
+#stellar-home .final-cta p{margin-top:16px; color:var(--ink-soft); max-width:460px;
+  margin-left:auto; margin-right:auto; position:relative;}
+#stellar-home .final-cta .btn{margin-top:32px; position:relative;}
+#stellar-home .sh-footer{padding:70px 28px 44px; text-align:center; position:relative; z-index:1;}
+#stellar-home .foot-brand{font-family:'Cinzel',serif; color:var(--gold); letter-spacing:.08em; font-size:1rem;}
+#stellar-home .sh-footer .fine{margin-top:14px; font-size:.76rem; color:var(--ink-dim);}
+#stellar-home .build-stamp{margin-top:10px; font-family:'IBM Plex Mono',monospace; font-size:.66rem;
+  color:rgba(242,236,224,.28); letter-spacing:.08em;}
+
+/* ── 14. 모션 최소화 설정을 켠 사용자 ───────────────────────── */
+@media(prefers-reduced-motion:reduce){
+  #stellar-home *,#stellar-home *::before,#stellar-home *::after{
+    animation:none !important; transition:none !important;}
+  #stellar-home .gate-leaf{display:none !important;}
+  #stellar-home .hero-figure{opacity:.4 !important;}
+  #stellar-home .js-on .reveal{opacity:1 !important; transform:none !important;}
+}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<div id="stellar-home">
+  <div class="stars"></div>
+
+  <header class="sh-header">
+    <nav>
+      <div class="brand">&#10022; STELLAR SAJU</div>
+      <div class="navlinks">
+        <a href="#freebies">무료 운세</a>
+        <a href="#doors">여섯 개의 문</a>
+        <a href="/weekly-summary/">이번주 사주 총평</a>
+        <a href="#philosophy">철학</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ░░ 히어로 ░░ -->
+  <section class="hero">
+    <img class="hero-figure" src="../assets/optimized/stellar-hero-figure.webp" alt="명성의 신" width="900" height="1340" fetchpriority="high">
+    <div class="gate-leaf gate-left" aria-hidden="true"></div>
+    <div class="gate-leaf gate-right" aria-hidden="true"></div>
+    <div class="hero-content">
+      <div class="eyebrow">STELLAR SAJU &middot; 星命</div>
+      <div class="hero-portrait">
+        <img src="../assets/optimized/stellar-portrait.webp" alt="명성의 신" width="420" height="625">
+      </div>
+      <h1>운명의 문 앞에서,<br><em>명성의 신</em>이 당신을 기다립니다</h1>
+      <p>여섯 가디언이 각자의 문 너머에서 당신의 사주를 풀어냅니다.</p>
+      <div class="hero-note"><span class="dash"></span> SIX GUARDIANS &middot; ONE DESTINY <span class="dash"></span></div>
+    </div>
+    <div class="scroll-hint">SCROLL<div class="arrow">&darr;</div></div>
+  </section>
+
+  <!-- ░░ 무료 운세 (실제로 살아있는 6개 페이지) ░░ -->
+  <section class="sh-section" id="freebies">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <div class="kicker">Free This Week</div>
+        <h2>심심풀이로 먼저 즐겨보세요</h2>
+        <p>해설 없이 가볍게, 매주 갱신돼요.</p>
+      </div>
+      <div class="free-grid reveal">
+        <a href="/saju/" class="free-card">
+          <div class="free-tag">Free</div>
+          <div class="free-main">命</div>
+          <div class="free-sub">나의 사주풀이</div>
+        </a>
+        <a href="/lotto/" class="free-card">
+          <div class="free-tag">Free</div>
+          <div class="free-main">財</div>
+          <div class="free-sub">이번주 로또 번호 추첨</div>
+        </a>
+        <a href="/zodiac/" class="free-card">
+          <div class="free-tag">Free</div>
+          <div class="free-main">★</div>
+          <div class="free-sub">이번주 별자리 운세</div>
+        </a>
+        <a href="/zodiac-year/" class="free-card">
+          <div class="free-tag">Free</div>
+          <div class="free-main">支</div>
+          <div class="free-sub">이번주 띠별운세</div>
+        </a>
+        <a href="/weekly-summary/" class="free-card">
+          <div class="free-tag">Free</div>
+          <div class="free-main">評</div>
+          <div class="free-sub">이번주 사주 총평</div>
+        </a>
+        <a href="/oracle/" class="free-card">
+          <div class="free-tag">Free &middot; 하루 3회</div>
+          <div class="free-main">冊</div>
+          <div class="free-sub">운명의 책</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ 여섯 개의 문 ░░
+       판매 페이지가 생기면 각 카드의
+         <div class="door-card">  →  <a class="door-card" href="/주소/">
+         </div>(카드 닫는 태그) →  </a>
+       로 바꾸고, 그 카드의 price-badge 줄을 지우거나 가격으로 바꾸세요. -->
+  <section class="sh-section" id="doors">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <div class="kicker">Six Guardians, Six Doors</div>
+        <h2>궁금한 문을 열어보세요</h2>
+        <p>각 문 너머에는 그 영역을 지키는 가디언이 있어요.</p>
+      </div>
+      <div class="door-grid reveal">
+
+        <div class="door-card">
+          <div class="imgwrap">
+            <div class="glyph">職</div>
+            <img loading="lazy" decoding="async" width="640" height="953" alt="직성의 신"
+                 src="../assets/optimized/stellar-door-architect.webp">
+            <span class="price-badge">준비중</span>
+            <div class="info">
+              <div class="theme">THE ARCHITECT</div>
+              <div class="titlekr">직성의 신</div>
+              <div class="titleen">Career &amp; Wealth</div>
+              <div class="desc">일과 돈 — 진로·이직·사업·재물</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="door-card">
+          <div class="imgwrap">
+            <div class="glyph">戀</div>
+            <img loading="lazy" decoding="async" width="640" height="953" alt="연성의 신"
+                 src="../assets/optimized/stellar-door-lovers.webp">
+            <span class="price-badge">준비중</span>
+            <div class="info">
+              <div class="theme">THE LOVERS</div>
+              <div class="titlekr">연성의 신</div>
+              <div class="titleen">Love &amp; Marriage</div>
+              <div class="desc">연애·재회·결혼</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="door-card">
+          <div class="imgwrap">
+            <div class="glyph">康</div>
+            <img loading="lazy" decoding="async" width="640" height="953" alt="강성의 신"
+                 src="../assets/optimized/stellar-door-nurturer.webp">
+            <span class="price-badge">준비중</span>
+            <div class="info">
+              <div class="theme">THE NURTURER</div>
+              <div class="titlekr">강성의 신</div>
+              <div class="titleen">Health &amp; Family</div>
+              <div class="desc">건강·체질·가족·육친</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="door-card">
+          <div class="imgwrap">
+            <div class="glyph">歲</div>
+            <img loading="lazy" decoding="async" width="640" height="953" alt="세성의 신"
+                 src="../assets/optimized/stellar-door-seasons.webp">
+            <span class="price-badge">준비중</span>
+            <div class="info">
+              <div class="theme">THE SEASONS</div>
+              <div class="titlekr">세성의 신</div>
+              <div class="titleen">Fortune Over Time</div>
+              <div class="desc">대운·평생흐름·신년운세</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="door-card">
+          <div class="imgwrap">
+            <div class="glyph">星</div>
+            <img loading="lazy" decoding="async" width="640" height="953" alt="성좌의 신"
+                 src="../assets/optimized/stellar-door-astraios.webp">
+            <span class="price-badge">준비중</span>
+            <div class="info">
+              <div class="theme">ASTRAIOS</div>
+              <div class="titlekr">성좌의 신</div>
+              <div class="titleen">Western Astrology</div>
+              <div class="desc">별자리로 보는 서양 점성술</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="door-card">
+          <div class="imgwrap">
+            <div class="glyph">&#9790;</div>
+            <img loading="lazy" decoding="async" width="640" height="953" alt="아르카나"
+                 src="../assets/optimized/stellar-door-arcana.webp">
+            <span class="price-badge">준비중</span>
+            <div class="info">
+              <div class="theme">ARCANA</div>
+              <div class="titlekr">아르카나</div>
+              <div class="titleen">Tarot</div>
+              <div class="desc">질문 하나, 카드 한 장의 답</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ 스타운세 배너 ░░
+       /stars/ 페이지는 아직 없습니다. 만들거나, 이 <section> 통째로 지우세요. -->
+  <section class="sh-section" id="stars">
+    <div class="wrap">
+      <div class="star-banner reveal">
+        <div>
+          <h3>&#10022; 이번주 스타운세</h3>
+          <p>요즘 화제인 그 배우, 그 아이돌의 사주는 어떨까요? 궁금한 사람은 직접 검색도 가능해요.</p>
+        </div>
+        <a href="/stars/" class="btn btn-primary">스타운세 보러가기 &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ 철학 ░░ -->
+  <section class="sh-section" id="philosophy">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <div class="kicker">Stellar Saju's Belief</div>
+        <h2>스텔라사주가 생각하는 운명</h2>
+      </div>
+      <div class="phil-grid reveal">
+        <div class="phil-card">
+          <div class="phil-num">30<span>%</span></div>
+          <div class="phil-label">사주</div>
+          <div class="phil-en">Fate</div>
+          <div class="phil-desc">타고난 기질과 흐름. 당신이라는 사람의 밑그림이에요.</div>
+        </div>
+        <div class="phil-card">
+          <div class="phil-num">50<span>%</span></div>
+          <div class="phil-label">노력</div>
+          <div class="phil-en">Effort</div>
+          <div class="phil-desc">오늘 당신이 내리는 선택. 사주를 알수록 더 정확하게 쓸 수 있는 힘이에요.</div>
+        </div>
+        <div class="phil-card">
+          <div class="phil-num">20<span>%</span></div>
+          <div class="phil-label">인연</div>
+          <div class="phil-en">Connection</div>
+          <div class="phil-desc">만나는 사람과 타이밍. 애써도 안 되는 부분을 인정하는 겸손함이에요.</div>
+        </div>
+      </div>
+      <div class="phil-quote reveal">사주는 당신을 가두는 벽이 아니라, <span>지도</span>예요.<br>나머지는 당신이 걸어가는 길이고요.</div>
+    </div>
+  </section>
+
+  <!-- ░░ 마무리 ░░ -->
+  <section class="sh-section" id="cta">
+    <div class="wrap">
+      <div class="final-cta reveal">
+        <div class="final-portrait">
+          <img src="../assets/optimized/stellar-portrait.webp" alt="" width="420" height="625" loading="lazy">
+        </div>
+        <h2>문은 언제나 열려 있어요</h2>
+        <p>준비되셨을 때, 궁금한 문을 하나씩 열어보세요.</p>
+        <a href="#doors" class="btn btn-ghost">여섯 개의 문 보기 &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="sh-footer">
+    <div class="foot-brand">&#10022; STELLAR SAJU</div>
+    <div class="fine mono">&copy; STELLAR SAJU &middot; 이 콘텐츠는 재미를 위한 참고용입니다</div>
+    <div class="build-stamp">BUILD v6 &middot; 2026-08-19</div>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var root = document.getElementById('stellar-home');
+  if(!root) return;
+  // 자바스크립트가 살아있을 때만 등장 효과를 켭니다.
+  // (막히면 .js-on 이 안 붙어서 내용이 그냥 다 보입니다 — 빈 화면 방지)
+  root.classList.add('js-on');
+  var targets = root.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){
+    for(var i=0;i<targets.length;i++) targets[i].classList.add('in');
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {threshold:.15});
+  targets.forEach(function(el){ io.observe(el); });
+  // 안전장치: 3초 안에 관찰이 안 걸린 요소는 그냥 보여줍니다.
+  setTimeout(function(){
+    root.querySelectorAll('.reveal:not(.in)').forEach(function(el){
+      var r = el.getBoundingClientRect();
+      if(r.top < window.innerHeight) el.classList.add('in');
+    });
+  }, 3000);
+})();
+</script>
+
+</div></main><footer class="wp-block-template-part">THEME FOOTER (숨겨져야 정상)</footer></div></body></html>
