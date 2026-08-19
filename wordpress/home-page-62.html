@@ -1,24 +1,24 @@
 <!-- wp:html -->
 <!--
   ══════════════════════════════════════════════════════════════════
-   STELLAR SAJU — 홈(페이지 ID 62)  BUILD: v6  (2026-08-19)
+   STELLAR SAJU — 홈(페이지 ID 62)  BUILD: v7  (2026-08-19)
   ══════════════════════════════════════════════════════════════════
    ▸ 넣는 곳 : 페이지 62 편집 → 우측 상단 ⋮ → "코드 편집기" → 전체 지우고 이거 통째로 붙여넣기
-   ▸ 페이지 설정 : 우측 사이드바 → 페이지 → 템플릿 → "Blank" 선택 (워프 헤더/푸터 제거)
+   ▸ 테마 헤더/푸터 : 이 테마엔 선택 가능한 페이지 템플릿이 없어서, 아래 CSS가 대신 숨깁니다.
    ▸ 저장 후 : 호스팅 → 성능(Performance) → "캐시 비우기(Clear cache)" 꼭 누르기
 
    [이미지 주소] 아래 img src 8곳. 미디어 라이브러리에 올린 뒤 실제 주소로 맞추세요.
                 업로드 달이 2026년 8월이 아니면 /2026/08/ 부분만 바꾸면 됩니다.
-   [여섯 개의 문] 지금은 판매 페이지가 없어서 "준비중" 뱃지 상태입니다.
-                페이지가 생기면 해당 카드의  <div class="door-card">  를
-                <a class="door-card" href="/주소/">  로,  </div> 를 </a> 로 바꾸세요.
+   [여섯 개의 문] 상세페이지 주소(/door-career/ 등)는 이미 걸어놨고,
+                아직 페이지가 없어서 "준비중" 뱃지 + 클릭 잠금 상태입니다.
+                페이지를 만든 뒤  class="door-card is-soon"  에서 is-soon 만 지우면 열립니다.
 -->
 
 <style id="stellar-home-css">
 /* ── 0. 워드프레스 껍데기 정리 ───────────────────────────────── */
 html{scroll-behavior:smooth;}
 body{background:#0D0A1A;}
-/* "Blank" 템플릿을 못 쓸 때만 아래 3줄이 헤더/푸터를 숨깁니다 */
+/* 이 테마엔 "Blank" 템플릿이 없어서, 아래 4줄이 테마 헤더/푸터를 숨깁니다 */
 body.page-id-62 .wp-site-blocks > header.wp-block-template-part,
 body.page-id-62 .wp-site-blocks > footer.wp-block-template-part{display:none !important;}
 body.page-id-62 .entry-content,
@@ -172,7 +172,7 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
 #stellar-home .sec-head p{margin-top:16px; color:var(--ink-soft); font-size:.98rem;}
 
 /* ── 9. 무료 운세 ───────────────────────────────────────────── */
-#stellar-home .free-grid{display:grid !important; grid-template-columns:repeat(4,1fr) !important; gap:16px;}
+#stellar-home .free-grid{display:grid !important; grid-template-columns:repeat(3,1fr) !important; gap:16px;}
 @media(max-width:860px){ #stellar-home .free-grid{grid-template-columns:repeat(2,1fr) !important;} }
 @media(max-width:480px){ #stellar-home .free-grid{grid-template-columns:1fr !important;} }
 #stellar-home .free-card{background:var(--nebula); border:1px solid var(--line); border-radius:8px;
@@ -333,6 +333,16 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
           <div class="free-tag">Free &middot; 무제한</div>
           <div class="free-main">冊</div>
           <div class="free-sub">운명의 책</div>
+        </a>
+        <a href="/zodiac-year/" class="free-card">
+          <div class="free-tag">Free</div>
+          <div class="free-main">支</div>
+          <div class="free-sub">이번주 띠별운세</div>
+        </a>
+        <a href="/weekly-summary/" class="free-card">
+          <div class="free-tag">Free</div>
+          <div class="free-main">評</div>
+          <div class="free-sub">이번주 사주 총평</div>
         </a>
       </div>
     </div>
@@ -507,7 +517,7 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
   <footer class="sh-footer">
     <div class="foot-brand">&#10022; STELLAR SAJU</div>
     <div class="fine mono">&copy; STELLAR SAJU &middot; 이 콘텐츠는 재미를 위한 참고용입니다</div>
-    <div class="build-stamp">BUILD v6 &middot; 2026-08-19</div>
+    <div class="build-stamp">BUILD v7 &middot; 2026-08-19</div>
   </footer>
 </div>
 
