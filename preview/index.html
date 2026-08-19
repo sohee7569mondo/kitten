@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>스텔라사주 홈 미리보기</title>
 <style>body{margin:0;font-family:sans-serif}.wp-site-blocks>header.wp-block-template-part,.wp-site-blocks>footer.wp-block-template-part{background:#fff;color:#000;padding:20px;text-align:center}.entry-content{max-width:650px;margin:0 auto;padding:2rem 0}.entry-content>*{max-width:650px;margin-left:auto;margin-right:auto}</style></head>
-<body class="page-id-62"><div class="wp-site-blocks"><header class="wp-block-template-part">THEME HEADER (숨겨져야 정상)</header><main><div class="entry-content">
+<body class="page-id-62"><div class="wp-site-blocks"><header class="wp-block-template-part">THEME HEADER</header><main><div class="entry-content">
 <!--
   ══════════════════════════════════════════════════════════════════
    STELLAR SAJU — 홈(페이지 ID 62)  BUILD: v6  (2026-08-19)
@@ -174,7 +174,7 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
 #stellar-home .sec-head p{margin-top:16px; color:var(--ink-soft); font-size:.98rem;}
 
 /* ── 9. 무료 운세 ───────────────────────────────────────────── */
-#stellar-home .free-grid{display:grid !important; grid-template-columns:repeat(3,1fr) !important; gap:16px;}
+#stellar-home .free-grid{display:grid !important; grid-template-columns:repeat(4,1fr) !important; gap:16px;}
 @media(max-width:860px){ #stellar-home .free-grid{grid-template-columns:repeat(2,1fr) !important;} }
 @media(max-width:480px){ #stellar-home .free-grid{grid-template-columns:1fr !important;} }
 #stellar-home .free-card{background:var(--nebula); border:1px solid var(--line); border-radius:8px;
@@ -194,6 +194,9 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
   background:var(--nebula); display:block;
   transition:transform .35s ease, box-shadow .35s ease, border-color .35s ease;}
 #stellar-home a.door-card{cursor:pointer;}
+/* 상세페이지가 아직 없는 문: '준비중' 뱃지 + 클릭 잠금.
+   페이지를 만들면 그 카드의 class 에서 is-soon 만 지우면 바로 열립니다. */
+#stellar-home a.door-card.is-soon{pointer-events:none;}
 #stellar-home a.door-card:hover{transform:translateY(-8px); box-shadow:0 30px 60px -20px var(--purple-glow);
   border-color:var(--gold-soft);}
 #stellar-home .door-card .imgwrap{position:relative; aspect-ratio:2/3; overflow:hidden;}
@@ -281,7 +284,7 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
       <div class="navlinks">
         <a href="#freebies">무료 운세</a>
         <a href="#doors">여섯 개의 문</a>
-        <a href="/weekly-summary/">이번주 사주 총평</a>
+        <a href="#stars">이번주 스타운세</a>
         <a href="#philosophy">철학</a>
       </div>
     </nav>
@@ -321,25 +324,15 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
         <a href="/lotto/" class="free-card">
           <div class="free-tag">Free</div>
           <div class="free-main">財</div>
-          <div class="free-sub">이번주 로또 번호 추첨</div>
+          <div class="free-sub">이번주 로또 추첨</div>
         </a>
         <a href="/zodiac/" class="free-card">
           <div class="free-tag">Free</div>
           <div class="free-main">★</div>
           <div class="free-sub">이번주 별자리 운세</div>
         </a>
-        <a href="/zodiac-year/" class="free-card">
-          <div class="free-tag">Free</div>
-          <div class="free-main">支</div>
-          <div class="free-sub">이번주 띠별운세</div>
-        </a>
-        <a href="/weekly-summary/" class="free-card">
-          <div class="free-tag">Free</div>
-          <div class="free-main">評</div>
-          <div class="free-sub">이번주 사주 총평</div>
-        </a>
         <a href="/oracle/" class="free-card">
-          <div class="free-tag">Free &middot; 하루 3회</div>
+          <div class="free-tag">Free &middot; 무제한</div>
           <div class="free-main">冊</div>
           <div class="free-sub">운명의 책</div>
         </a>
@@ -347,11 +340,10 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
     </div>
   </section>
 
-  <!-- ░░ 여섯 개의 문 ░░
-       판매 페이지가 생기면 각 카드의
-         <div class="door-card">  →  <a class="door-card" href="/주소/">
-         </div>(카드 닫는 태그) →  </a>
-       로 바꾸고, 그 카드의 price-badge 줄을 지우거나 가격으로 바꾸세요. -->
+  <!-- ░░ 여섯 개의 문 → 가디언 상세페이지 ░░
+       상세페이지 주소는 이미 걸어놨습니다. 페이지를 만든 뒤
+         class="door-card is-soon"  →  class="door-card"
+       로 바꾸고 그 카드의 price-badge 줄을 지우면 링크가 열립니다. -->
   <section class="sh-section" id="doors">
     <div class="wrap">
       <div class="sec-head center reveal">
@@ -361,7 +353,7 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
       </div>
       <div class="door-grid reveal">
 
-        <div class="door-card">
+        <a class="door-card is-soon" href="/door-career/">
           <div class="imgwrap">
             <div class="glyph">職</div>
             <img loading="lazy" decoding="async" width="640" height="953" alt="직성의 신"
@@ -374,9 +366,9 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
               <div class="desc">일과 돈 — 진로·이직·사업·재물</div>
             </div>
           </div>
-        </div>
+        </a>
 
-        <div class="door-card">
+        <a class="door-card is-soon" href="/door-love/">
           <div class="imgwrap">
             <div class="glyph">戀</div>
             <img loading="lazy" decoding="async" width="640" height="953" alt="연성의 신"
@@ -389,9 +381,9 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
               <div class="desc">연애·재회·결혼</div>
             </div>
           </div>
-        </div>
+        </a>
 
-        <div class="door-card">
+        <a class="door-card is-soon" href="/door-health/">
           <div class="imgwrap">
             <div class="glyph">康</div>
             <img loading="lazy" decoding="async" width="640" height="953" alt="강성의 신"
@@ -404,9 +396,9 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
               <div class="desc">건강·체질·가족·육친</div>
             </div>
           </div>
-        </div>
+        </a>
 
-        <div class="door-card">
+        <a class="door-card is-soon" href="/door-fortune/">
           <div class="imgwrap">
             <div class="glyph">歲</div>
             <img loading="lazy" decoding="async" width="640" height="953" alt="세성의 신"
@@ -419,9 +411,9 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
               <div class="desc">대운·평생흐름·신년운세</div>
             </div>
           </div>
-        </div>
+        </a>
 
-        <div class="door-card">
+        <a class="door-card is-soon" href="/door-astro/">
           <div class="imgwrap">
             <div class="glyph">星</div>
             <img loading="lazy" decoding="async" width="640" height="953" alt="성좌의 신"
@@ -434,9 +426,9 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
               <div class="desc">별자리로 보는 서양 점성술</div>
             </div>
           </div>
-        </div>
+        </a>
 
-        <div class="door-card">
+        <a class="door-card is-soon" href="/door-tarot/">
           <div class="imgwrap">
             <div class="glyph">&#9790;</div>
             <img loading="lazy" decoding="async" width="640" height="953" alt="아르카나"
@@ -449,7 +441,7 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
               <div class="desc">질문 하나, 카드 한 장의 답</div>
             </div>
           </div>
-        </div>
+        </a>
 
       </div>
     </div>
@@ -549,4 +541,4 @@ body.admin-bar #stellar-home .sh-header{top:32px;}
 })();
 </script>
 
-</div></main><footer class="wp-block-template-part">THEME FOOTER (숨겨져야 정상)</footer></div></body></html>
+</div></main><footer class="wp-block-template-part">THEME FOOTER</footer></div></body></html>
