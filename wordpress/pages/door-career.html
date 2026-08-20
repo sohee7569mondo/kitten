@@ -30,7 +30,7 @@
   position:relative; z-index:0; overflow-x:clip;
   color:var(--star); text-align:left;
   font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-  font-weight:300; line-height:1.75; font-size:16px;
+  font-weight:400; line-height:1.85; font-size:17.5px;
   word-break:keep-all; overflow-wrap:break-word;
 }
 #ssg *{margin:0; padding:0; box-sizing:border-box;}
@@ -62,19 +62,19 @@
 #ssg .g-portrait::after{content:''; position:absolute; inset:0;
   background:linear-gradient(to top, var(--nebula) 2%, rgba(28,21,51,.1) 55%, transparent 80%);}
 #ssg .g-body{padding:4px 26px 28px;}
-#ssg .g-theme{font-family:'IBM Plex Mono',monospace; font-size:.62rem; letter-spacing:.14em;
+#ssg .g-theme{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.14em;
   text-transform:uppercase; color:var(--g-accent);}
 #ssg .g-name{margin-top:7px; font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.5rem;}
 #ssg .g-en{margin-top:3px; font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:.1em; color:var(--ink-dim);}
-#ssg .g-greet{margin-top:20px; padding:18px 18px; border-radius:9px;
+#ssg .g-greet{margin-top:20px; padding:20px 20px; border-radius:9px;
   background:rgba(212,175,106,.07); border-left:2px solid var(--g-accent);
-  font-family:'Noto Serif KR',serif; font-size:.98rem; line-height:1.85; color:var(--star);}
-#ssg .g-intro{margin-top:18px; font-size:.89rem; color:var(--ink-soft); line-height:1.9;}
+  font-family:'Noto Serif KR',serif; font-size:1.08rem; line-height:1.9; color:var(--star);}
+#ssg .g-intro{margin-top:18px; font-size:.97rem; color:var(--ink-soft); line-height:1.9;}
 #ssg .g-method{margin-top:20px; padding:16px 18px; border:1px solid var(--line);
   border-radius:8px; background:rgba(212,175,106,.045);}
-#ssg .g-method-t{font-family:'IBM Plex Mono',monospace; font-size:.6rem; letter-spacing:.18em;
+#ssg .g-method-t{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.18em;
   text-transform:uppercase; color:var(--g-accent); margin-bottom:9px;}
-#ssg .g-method p{font-size:.82rem; color:var(--ink-soft); line-height:1.85;}
+#ssg .g-method p{font-size:.9rem; color:var(--ink-soft); line-height:1.85;}
 #ssg .g-method b{color:var(--star); font-weight:700;}
 
 /* 오른쪽 — 단계 */
@@ -87,8 +87,8 @@
 #ssg .sample-k{font-family:'IBM Plex Mono',monospace; font-size:.58rem; letter-spacing:.2em;
   text-transform:uppercase; color:#BCADEA;}
 #ssg .sample-t{margin-top:7px; font-family:'Noto Serif KR',serif; font-weight:700;
-  font-size:.98rem; color:var(--star);}
-#ssg .sample-d{margin-top:4px; font-size:.76rem; color:var(--ink-dim);}
+  font-size:1.06rem; color:var(--star);}
+#ssg .sample-d{margin-top:5px; font-size:.84rem; color:var(--ink-dim);}
 #ssg .lack{margin-top:12px; font-size:.85rem; color:#E5A0A0; text-align:center; display:none;}
 #ssg .lack.show{display:block;}
 #ssg .lack a{color:var(--gold); border-bottom:1px solid var(--gold); padding-bottom:2px;}
@@ -96,20 +96,20 @@
   padding:30px 30px 28px; margin-bottom:18px;}
 @media(max-width:700px){ #ssg .step{padding:24px 18px 22px;} }
 #ssg .step-head{display:flex !important; align-items:baseline; gap:11px; margin-bottom:20px;}
-#ssg .step-no{font-family:'IBM Plex Mono',monospace; font-size:.62rem; letter-spacing:.12em;
+#ssg .step-no{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.12em;
   color:var(--void-deep); background:var(--g-accent); padding:4px 9px; border-radius:20px; flex:0 0 auto;}
-#ssg .step-title{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.08rem;}
-#ssg .step-sub{margin-left:auto; font-size:.74rem; color:var(--ink-dim); flex:0 0 auto;}
+#ssg .step-title{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.18rem;}
+#ssg .step-sub{margin-left:auto; font-size:.82rem; color:var(--ink-dim); flex:0 0 auto;}
 
 /* 입력 */
 #ssg .frow{display:grid !important; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
 @media(max-width:560px){ #ssg .frow{grid-template-columns:1fr;} }
 #ssg .frow.one{grid-template-columns:1fr;}
-#ssg .f .note{font-size:.7rem; color:var(--ink-dim); line-height:1.6;}
+#ssg .f .note{font-size:.78rem; color:var(--ink-dim); line-height:1.6;}
 #ssg .f{display:flex; flex-direction:column; gap:7px;}
-#ssg .f label{font-family:'IBM Plex Mono',monospace; font-size:.66rem; color:var(--ink-dim); letter-spacing:.04em;}
+#ssg .f label{font-family:'IBM Plex Mono',monospace; font-size:.76rem; color:var(--ink-dim); letter-spacing:.04em;}
 #ssg .f input,#ssg .f select{background:var(--void-deep); border:1px solid var(--line); color:var(--star);
-  padding:13px 14px; border-radius:5px; font-family:inherit; font-size:.93rem; width:100%;
+  padding:14px 15px; border-radius:5px; font-family:inherit; font-size:1rem; width:100%;
   transition:border-color .2s ease;}
 #ssg .f input:focus,#ssg .f select:focus{outline:none; border-color:var(--g-accent);}
 #ssg .f select:disabled{opacity:.4;}
@@ -119,7 +119,7 @@
   color:var(--ink-soft); font-size:.86rem; transition:background .2s ease, color .2s ease;}
 #ssg .cal-switch button.on{background:var(--g-accent); color:var(--void-deep); font-weight:700;}
 #ssg .chk{display:flex !important; align-items:flex-start; gap:9px; margin-top:12px;
-  font-size:.84rem; color:var(--ink-soft); cursor:pointer; line-height:1.7;}
+  font-size:.92rem; color:var(--ink-soft); cursor:pointer; line-height:1.7;}
 #ssg .chk input{accent-color:var(--gold); width:16px; height:16px; flex:0 0 auto; margin-top:4px;}
 #ssg .chk.hide{display:none !important;}
 
@@ -130,16 +130,16 @@
 #ssg.has-saved .only-member{display:block;}
 
 #ssg .saved{background:var(--void-deep); border:1px solid var(--line); border-radius:9px; padding:20px 22px;}
-#ssg .saved-row{display:flex !important; gap:12px; font-size:.9rem; margin-top:8px;}
+#ssg .saved-row{display:flex !important; gap:12px; font-size:.98rem; margin-top:8px;}
 #ssg .saved-row:first-child{margin-top:0;}
-#ssg .saved-k{flex:0 0 92px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace; font-size:.7rem; padding-top:3px;}
+#ssg .saved-k{flex:0 0 100px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace; font-size:.78rem; padding-top:3px;}
 #ssg .saved-v{color:var(--star);}
 #ssg .saved-edit{display:inline-block; margin-top:16px; font-size:.78rem; color:var(--g-accent);
   border-bottom:1px solid var(--g-accent); padding-bottom:2px;}
 
 /* 가입 안내 */
 #ssg .signup-note{margin-top:18px; padding:18px 20px; border-radius:9px;
-  background:rgba(140,101,214,.09); border:1px solid rgba(140,101,214,.25); font-size:.85rem;
+  background:rgba(140,101,214,.09); border:1px solid rgba(140,101,214,.25); font-size:.93rem;
   color:var(--ink-soft); line-height:1.85;}
 #ssg .signup-note b{color:var(--star); font-weight:700;}
 
@@ -149,7 +149,7 @@
 #ssg .topic{position:relative;}
 #ssg .topic input{position:absolute; opacity:0; width:0; height:0;}
 #ssg .topic span{display:block; padding:15px 10px; border-radius:8px; text-align:center;
-  background:var(--void-deep); border:1px solid var(--line); font-size:.9rem; color:var(--ink-soft);
+  background:var(--void-deep); border:1px solid var(--line); font-size:.99rem; color:var(--ink-soft);
   cursor:pointer; transition:border-color .2s ease, color .2s ease, background .2s ease;}
 #ssg .topic input:checked + span{border-color:var(--g-accent); color:var(--star);
   background:rgba(212,175,106,.1); font-weight:500;}
@@ -161,16 +161,16 @@
   transition:border-color .2s ease;}
 #ssg .deep:has(input:checked){border-color:var(--g-accent); background:rgba(212,175,106,.08);}
 #ssg .deep input{accent-color:var(--gold); width:17px; height:17px; flex:0 0 auto; margin-top:3px;}
-#ssg .deep-t{font-size:.9rem; color:var(--star); display:block;}
-#ssg .deep-d{margin-top:3px; font-size:.78rem; color:var(--ink-dim); display:block;}
+#ssg .deep-t{font-size:.99rem; color:var(--star); display:block;}
+#ssg .deep-d{margin-top:5px; font-size:.87rem; color:var(--ink-dim); display:block;}
 #ssg .deep-p{margin-left:auto; flex:0 0 auto; font-family:'IBM Plex Mono',monospace;
-  font-size:.7rem; color:var(--g-accent); white-space:nowrap; padding-top:3px;}
+  font-size:.78rem; color:var(--g-accent); white-space:nowrap; padding-top:3px;}
 #ssg .deep.maxed{opacity:.4; cursor:not-allowed;}
 
 /* 한 줄 질문 */
 #ssg .oneline{position:relative;}
 #ssg .oneline input{width:100%; background:var(--void-deep); border:1px solid var(--line); color:var(--star);
-  padding:15px 78px 15px 16px; border-radius:6px; font-family:inherit; font-size:.95rem;
+  padding:16px 80px 16px 16px; border-radius:6px; font-family:inherit; font-size:1.02rem;
   transition:border-color .2s ease;}
 #ssg .oneline input:focus{outline:none; border-color:var(--g-accent);}
 #ssg .oneline input::placeholder{color:var(--ink-dim);}
@@ -178,22 +178,22 @@
   font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-dim); pointer-events:none;}
 #ssg .counter.full{color:var(--gold);}
 #ssg .memo{width:100%; margin-top:12px; background:var(--void-deep); border:1px solid var(--line);
-  color:var(--star); padding:14px 16px; border-radius:6px; font-family:inherit; font-size:.9rem;
+  color:var(--star); padding:15px 16px; border-radius:6px; font-family:inherit; font-size:.98rem;
   min-height:88px; resize:vertical;}
 #ssg .memo:focus{outline:none; border-color:var(--g-accent);}
-#ssg .hint{margin-top:10px; font-size:.78rem; color:var(--ink-dim); line-height:1.8;}
+#ssg .hint{margin-top:12px; font-size:.88rem; color:var(--ink-dim); line-height:1.85;}
 
 /* 결제 */
 #ssg .bill{background:linear-gradient(160deg, var(--nebula-soft), var(--nebula));
   border:1px solid var(--g-accent); border-radius:14px; padding:28px 30px;}
 @media(max-width:700px){ #ssg .bill{padding:22px 18px;} }
 #ssg .bline{display:flex !important; justify-content:space-between; gap:14px;
-  font-size:.9rem; color:var(--ink-soft); padding:9px 0;}
+  font-size:.98rem; color:var(--ink-soft); padding:9px 0;}
 #ssg .bline.off{display:none !important;}
 #ssg .bline b{color:var(--star); font-weight:400;}
 #ssg .btotal{display:flex !important; justify-content:space-between; align-items:baseline;
   margin-top:14px; padding-top:18px; border-top:1px solid var(--line);}
-#ssg .btotal-k{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.02rem;}
+#ssg .btotal-k{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.12rem;}
 #ssg .btotal-v{font-family:'IBM Plex Mono',monospace; font-size:1.7rem; color:var(--gold); font-weight:700;}
 #ssg .btotal-v small{font-size:.82rem; color:var(--ink-soft); font-weight:400; margin-left:5px;}
 #ssg .balance{margin-top:12px; font-size:.8rem; color:var(--ink-dim); text-align:right;}
@@ -204,17 +204,21 @@
   box-shadow:0 16px 34px -14px rgba(212,175,106,.55); transition:transform .2s ease, opacity .2s ease;}
 #ssg .go:hover{transform:translateY(-2px);}
 #ssg .go:disabled{opacity:.4; cursor:default; transform:none;}
-#ssg .msg{margin-top:14px; font-size:.85rem; text-align:center; line-height:1.8; display:none;}
+#ssg .msg{margin-top:14px; font-size:.93rem; text-align:center; line-height:1.8; display:none;}
 #ssg .msg.show{display:block;}
 #ssg .msg.err{color:#E5A0A0;}
 #ssg .msg.ok{color:#9AD1A5;}
-#ssg .fineprint{margin-top:16px; font-size:.74rem; color:var(--ink-dim); line-height:1.8; text-align:center;}
+#ssg .fineprint{margin-top:16px; font-size:.8rem; color:var(--ink-dim); line-height:1.85; text-align:center;}
+#ssg .trial-note{margin-top:18px; padding:15px 18px; border-radius:8px; text-align:center;
+  background:rgba(154,209,165,.1); border:1px solid rgba(154,209,165,.32);
+  font-size:.95rem; color:#BFE3C7; line-height:1.8;}
+#ssg .trial-note b{color:#DDF3E2;}
 
 /* 모바일에서 입력칸을 누를 때 화면이 확대되지 않게 —
    iOS 사파리는 글자 16px 미만 입력칸에 포커스가 가면 자동으로 줌인합니다. */
 @media(max-width:900px){
   #ssg .f input, #ssg .f select,
-  #ssg .oneline input, #ssg .memo{font-size:16px !important;}
+  #ssg .oneline input, #ssg .memo{font-size:17px !important;}
 }
 
 @media(prefers-reduced-motion:reduce){
@@ -404,15 +408,17 @@
           <div class="bline off" id="lineDeep"><b>심화 질문 <span id="deepN">0</span>개</b><span id="pDeep">0구슬</span></div>
           <div class="btotal">
             <div class="btotal-k">합계</div>
-            <div class="btotal-v"><span id="total">5</span><small>구슬</small></div>
+            <div class="btotal-v"><span id="total">0</span><small>구슬</small></div>
           </div>
           <div class="balance only-member">내 잔액 <span id="balance">—</span>구슬</div>
 
           <button type="button" class="go" id="goBtn">직성의 신에게 물어보기 →</button>
           <div class="lack" id="lack"></div>
           <div class="msg" id="msg"></div>
-          <div class="fineprint">풀이는 PDF 전자책으로 발행되어 마이페이지에서 다운로드하실 수 있어요.<br>
-            구슬은 충전일로부터 1년간 사용하실 수 있습니다.<br>
+          <div class="trial-note">지금은 <b>체험판 기간</b>이라 구슬을 받지 않습니다.
+            열네 쪽짜리 전자책까지 전부 무료로 보실 수 있어요.</div>
+          <div class="fineprint">풀이는 화면에서 바로 펼쳐지고 PDF 로도 저장하실 수 있습니다.<br>
+            정식 발행 뒤에는 구슬을 쓰며, 구슬은 충전일로부터 1년간 유효합니다.<br>
             본 콘텐츠는 전통 사주명리학에 기반한 오락적 콘텐츠입니다.</div>
         </section>
 
@@ -441,7 +447,10 @@
 
   var U = window.STELLA_USER || null;
 
-  var PRICE={base:5, oneline:5, deep:5};
+  /* 체험판 기간입니다. 구슬을 받지 않습니다.
+     정식으로 열 때 TRIAL 을 false 로 바꾸면 아래 값이 그대로 살아납니다. */
+  var TRIAL=true;
+  var PRICE = TRIAL ? {base:0, oneline:0, deep:0} : {base:5, oneline:5, deep:5};
   var MAX_DEEP=2;
 
   var oneline=$('oneline'), counter=$('counter');
@@ -454,12 +463,12 @@
     var total = PRICE.base + (hasOne?PRICE.oneline:0) + chosen.length*PRICE.deep;
 
     $('lineOne').classList.toggle('off', !hasOne);
-    $('pOne').textContent  = PRICE.oneline+'구슬';
+    $('pOne').textContent  = TRIAL ? '무료' : PRICE.oneline+'구슬';
     $('lineDeep').classList.toggle('off', chosen.length===0);
     $('deepN').textContent = chosen.length;
-    $('pDeep').textContent = (chosen.length*PRICE.deep)+'구슬';
-    $('pBase').textContent = PRICE.base+'구슬';
-    $('total').textContent = total;
+    $('pDeep').textContent = TRIAL ? '무료' : (chosen.length*PRICE.deep)+'구슬';
+    $('pBase').textContent = TRIAL ? '무료' : PRICE.base+'구슬';
+    $('total').textContent = TRIAL ? '0' : total;
 
     [].slice.call(document.querySelectorAll('.deep-c')).forEach(function(c){
       var lock=false;
@@ -474,6 +483,12 @@
   /* 버튼 상태 — 비회원 / 잔액 부족 / 충분 */
   function paint(total){
     var btn=$('goBtn'), lack=$('lack');
+    if(TRIAL){
+      btn.disabled=false;
+      btn.textContent='체험판으로 풀이 받기 · 무료 →';
+      lack.classList.remove('show');
+      return;
+    }
     if(!U){
       btn.disabled=false;
       btn.textContent='가입하고 시작하기 →';

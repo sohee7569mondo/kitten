@@ -1,0 +1,1382 @@
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 나의 전자책  (/reading-book/)   BUILD: K1
+
+  넣으신 생년월일시로 그 자리에서 책을 만듭니다. 서버 없이 브라우저에서 돕니다.
+  글은 지어내지 않습니다. 일간·십성·오행·대운에서만 문장이 나오므로
+  생년월일시가 다르면 반드시 다른 책이 나옵니다.
+
+  [읽어오는 값]
+    localStorage.stella_demo    — 가디언 페이지에서 넣은 주문
+    localStorage.stella_answers — 질문 화면에서 고른 답
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&amp;family=Cinzel:wght@400;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+
+#ssb{
+  --void:#0B0817;
+  --page:#14102A;
+  --page-edge:#1D1740;
+  --gold:#D4AF6A;
+  --gold-lite:#EBD3A0;
+  --speak:#9A86D8;
+  --speak-lite:#BCADEA;
+  --star:#F2ECE0;
+  --soft:rgba(242,236,224,.72);
+  --dim:rgba(242,236,224,.44);
+  --rule:rgba(212,175,106,.20);
+  --rule-s:rgba(154,134,216,.28);
+  --serif:'Gowun Batang','Nanum Myeongjo',serif;
+  --latin:'Cinzel',serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+
+#ssb *{box-sizing:border-box;}
+#ssb{
+  margin:0;
+  background:var(--void);
+  color:var(--star);
+  font-family:var(--serif);
+  font-size:18.5px;
+  line-height:2.0;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+#ssb .book{
+  max-width:820px;
+  margin:0 auto;
+  padding:56px 20px 120px;
+  display:flex;
+  flex-direction:column;
+  gap:26px;
+}
+
+/* ── 낱장 ─────────────────────────────── */
+#ssb .page{
+  position:relative;
+  background:var(--page);
+  border:1px solid var(--rule);
+  border-radius:2px;
+  padding:64px 62px 76px;
+  box-shadow:0 24px 60px -30px rgba(0,0,0,.9);
+}
+#ssb .page::before{
+  content:'';
+  position:absolute; left:0; top:0; bottom:0; width:3px;
+  background:var(--gold);
+  opacity:.55;
+}
+#ssb .page[data-part="two"]::before{background:var(--speak);}
+#ssb .page[data-part="cover"]::before{display:none;}
+@media(max-width:640px){ #ssb .page{padding:40px 26px 56px;}}
+
+/* ── 낱장 크기를 하나로 ─────────────── */
+#ssb .page{min-height:clamp(560px, 138vw, 1100px);}
+#ssb .cover, #ssb .close, #ssb .farewell{display:flex; flex-direction:column; justify-content:center;}
+#ssb .folio{
+  position:absolute; left:0; right:0; bottom:26px;
+  text-align:center;
+  font-family:var(--mono); font-size:.7rem; letter-spacing:.28em;
+  color:var(--dim);
+}
+#ssb .eyebrow{
+  font-family:var(--mono);
+  font-size:.72rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--gold);
+  margin:0 0 30px;
+}
+#ssb .page[data-part="two"] .eyebrow{color:var(--speak-lite);}
+
+#ssb h2{
+  font-family:var(--serif); font-weight:700;
+  font-size:1.72rem; line-height:1.45; text-wrap:balance;
+  margin:0 0 8px; color:var(--star);
+}
+#ssb h3{
+  font-family:var(--serif); font-weight:700;
+  font-size:1.15rem; line-height:1.6; text-wrap:balance;
+  margin:38px 0 2px; color:var(--gold-lite);
+}
+#ssb .page[data-part="two"] h3{color:var(--speak-lite);}
+#ssb h3:first-of-type{margin-top:26px;}
+#ssb .dek{margin:0 0 4px; color:var(--dim); font-size:.94rem; line-height:1.85;}
+#ssb p{margin:14px 0 0; color:var(--soft);}
+#ssb p.lead{color:var(--star); font-size:1.12rem;}
+#ssb strong{color:var(--star); font-weight:700;}
+#ssb em{font-style:normal; color:var(--gold-lite);}
+#ssb .page[data-part="two"] em{color:var(--speak-lite);}
+#ssb hr{border:0; border-top:1px solid var(--rule); margin:34px 0 0;}
+
+/* ── 표지 ─────────────────────────────── */
+#ssb .cover{text-align:center; padding:96px 62px 104px;}
+#ssb .cover .mark{
+  font-family:var(--latin); font-size:.7rem; letter-spacing:.4em;
+  color:var(--gold); margin-bottom:52px;
+}
+#ssb .cover h1{
+  font-family:var(--serif); font-weight:700;
+  font-size:2.35rem; line-height:1.5; margin:0; text-wrap:balance;
+}
+#ssb .cover .sub{
+  font-family:var(--latin); font-size:.76rem; letter-spacing:.22em;
+  color:var(--dim); margin-top:20px;
+}
+#ssb .cover .rule{width:44px; height:1px; background:var(--gold); margin:44px auto;}
+#ssb .cover dl{
+  display:grid; grid-template-columns:auto auto; gap:11px 22px;
+  justify-content:center; margin:0; font-size:.94rem;
+}
+#ssb .cover dt{font-family:var(--mono); font-size:.74rem; color:var(--dim); text-align:right; padding-top:3px;}
+#ssb .cover dd{margin:0; color:var(--soft); text-align:left;}
+
+/* ── 가디언 육성 ───────────────────────── */
+#ssb .voice{
+  margin:30px 0 0; padding:26px 28px;
+  background:rgba(212,175,106,.055);
+  border-left:2px solid var(--gold);
+}
+#ssb .voice p{margin:0; color:var(--star); font-size:1.08rem;}
+#ssb .voice p + p{margin-top:13px;}
+#ssb .voice .who{
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.2em;
+  color:var(--gold); margin-bottom:14px;
+}
+
+/* ── 원국표 ───────────────────────────── */
+#ssb .chart{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+  margin-top:26px; background:var(--rule); border:1px solid var(--rule);
+}
+#ssb .chart div{background:var(--page-edge); padding:20px 8px; text-align:center;}
+#ssb .chart .col-h{
+  background:var(--page); font-family:var(--mono);
+  font-size:.7rem; letter-spacing:.16em; color:var(--dim); padding:11px 8px;
+}
+#ssb .chart .han{font-size:1.85rem; line-height:1.3; color:var(--gold-lite);}
+#ssb .chart .kor{font-size:.8rem; color:var(--dim); margin-top:5px;}
+#ssb .chart .sip{font-family:var(--mono); font-size:.72rem; color:var(--soft); margin-top:9px;}
+
+/* ── 오행 저울 ─────────────────────────── */
+#ssb .scale{margin-top:26px; display:flex; flex-direction:column; gap:11px;}
+#ssb .el{display:grid; grid-template-columns:2.6rem 1fr 3.4rem; align-items:center; gap:14px;}
+#ssb .el-n{font-size:.96rem; color:var(--soft);}
+#ssb .el-bar{height:20px; background:rgba(255,255,255,.045); position:relative;}
+#ssb .el-bar span{position:absolute; inset:0 auto 0 0; background:var(--gold); opacity:.78;}
+#ssb .el-v{font-family:var(--mono); font-size:.82rem; color:var(--soft); text-align:right;
+      font-variant-numeric:tabular-nums;}
+#ssb .el.zero .el-bar{border:1px dashed rgba(242,236,224,.26); background:none;}
+#ssb .el.zero .el-n, #ssb .el.zero .el-v{color:var(--dim);}
+#ssb .el-note{font-family:var(--mono); font-size:.6rem; color:var(--dim); letter-spacing:.1em; margin-top:2px;}
+
+/* ── 경계 알림 ─────────────────────────── */
+#ssb .alert{
+  margin-top:28px; padding:24px 26px;
+  border:1px solid var(--rule); background:rgba(212,175,106,.045);
+}
+#ssb .alert .tag{
+  font-family:var(--mono); font-size:.7rem; letter-spacing:.2em;
+  color:var(--gold); margin-bottom:12px;
+}
+#ssb .alert p{margin-top:0; font-size:.97rem;}
+#ssb .alert p + p{margin-top:11px;}
+
+/* ── 표 ───────────────────────────────── */
+#ssb .tw{overflow-x:auto; margin-top:26px;}
+#ssb table{border-collapse:collapse; width:100%; font-size:.93rem; min-width:460px;}
+#ssb th, #ssb td{padding:11px 12px; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top;}
+#ssb th{font-family:var(--mono); font-size:.72rem; letter-spacing:.12em;
+   color:var(--dim); font-weight:400; text-transform:uppercase; white-space:nowrap;}
+#ssb td{color:var(--soft);}
+#ssb td.k{font-family:var(--mono); color:var(--gold-lite); white-space:nowrap;
+     font-variant-numeric:tabular-nums;}
+#ssb tr.now td{background:rgba(212,175,106,.09);}
+#ssb tr.now td.k{color:var(--gold); font-weight:500;}
+#ssb td .mini{display:block; font-size:.84rem; color:var(--dim); margin-top:3px;}
+
+/* ── 답변 목록 ─────────────────────────── */
+#ssb .answers{margin-top:26px; display:flex; flex-direction:column; gap:0;}
+#ssb .ans{display:grid; grid-template-columns:1fr auto; gap:16px; align-items:baseline;
+     padding:13px 0; border-bottom:1px solid var(--rule-s);}
+#ssb .ans-q{font-size:.94rem; color:var(--dim);}
+#ssb .ans-a{font-size:1.02rem; color:var(--speak-lite); text-align:right;}
+
+/* ── 사분면 ───────────────────────────── */
+#ssb .quad{margin-top:26px;}
+#ssb .quad-grid{display:grid; grid-template-columns:auto 1fr 1fr; gap:1px; background:var(--rule-s);}
+#ssb .quad-grid > *{background:var(--page-edge); padding:18px 16px; font-size:.92rem; color:var(--soft);}
+#ssb .quad-grid .hd{background:var(--page); font-family:var(--mono); font-size:.7rem;
+               letter-spacing:.1em; color:var(--dim); line-height:1.7;}
+#ssb .quad-grid .you{background:rgba(154,134,216,.16); color:var(--star);}
+#ssb .quad-grid .you b{display:block; font-family:var(--mono); font-size:.58rem;
+                  letter-spacing:.2em; color:var(--speak-lite); margin-bottom:6px;}
+
+/* ── 타로 자리 ─────────────────────────── */
+#ssb .cards{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:30px;}
+#ssb .card{
+  aspect-ratio:2/3.4; border:1px dashed var(--rule); border-radius:3px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:10px; text-align:center; padding:14px;
+}
+#ssb .card .num{font-family:var(--latin); font-size:1.5rem; color:var(--gold); opacity:.5;}
+#ssb .card .lb{font-size:.88rem; color:var(--dim); line-height:1.7;}
+@media(max-width:520px){ #ssb .cards{grid-template-columns:1fr;} #ssb .card{aspect-ratio:3/1.5;}}
+
+/* ── 마무리 ───────────────────────────── */
+#ssb .close{text-align:center; padding:88px 62px;}
+#ssb .farewell{text-align:center; padding:62px 62px 88px;}
+#ssb .fw-portrait{
+  width:190px; height:190px; margin:0 auto; border-radius:50%;
+  overflow:hidden; border:1px solid var(--rule); position:relative;
+}
+#ssb .fw-portrait img{width:100%; height:100%; object-fit:cover; object-position:center 16%; display:block;}
+#ssb .fw-portrait::after{
+  content:''; position:absolute; inset:0; border-radius:50%;
+  box-shadow:inset 0 -34px 44px -22px var(--page);
+}
+#ssb .fw-name{margin-top:22px; font-family:var(--serif); font-weight:700; font-size:1.28rem; color:var(--star);}
+#ssb .fw-en{margin-top:5px; font-family:var(--latin); font-size:.62rem; letter-spacing:.28em; color:var(--gold);}
+#ssb .fw-words{max-width:31em; margin:40px auto 0; text-align:left;}
+#ssb .fw-words p{margin-top:18px; color:var(--soft); font-size:1.02rem;}
+#ssb .fw-words p:first-child{margin-top:0;}
+#ssb .fw-words .fw-last{
+  margin-top:34px; padding-top:26px; border-top:1px solid var(--rule);
+  font-family:var(--serif); font-size:1.24rem; line-height:1.95;
+  color:var(--gold-lite); text-align:center;
+}
+#ssb .close .sig{font-family:var(--serif); font-weight:700; font-size:1.1rem; color:var(--gold-lite); margin-top:34px;}
+#ssb .fine{margin-top:40px; font-size:.8rem; color:var(--dim); line-height:1.9;}
+
+@media(prefers-reduced-motion:reduce){ #ssb *{animation:none !important; transition:none !important;}}
+#ssb{
+  max-width:none !important; width:auto !important;
+  margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
+  padding:0 !important;
+  position:relative; z-index:0; overflow-x:clip;
+}
+#ssb .book{padding:32px 20px 120px;}
+#ssb .bk-bar{
+  position:sticky; top:76px; z-index:5;
+  max-width:820px; margin:0 auto 22px;
+  display:flex !important; align-items:center; gap:14px;
+  padding:13px 18px;
+  background:rgba(11,8,23,.92);
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+  border:1px solid var(--rule);
+}
+body.admin-bar #ssb .bk-bar{top:108px;}
+@media(max-width:781px){ #ssb .bk-bar{top:64px;} }
+#ssb .bk-t{font-family:var(--mono); font-size:.64rem; letter-spacing:.12em; color:var(--dim);}
+#ssb .bk-t b{color:var(--gold); font-weight:400;}
+#ssb .bk-alt{font-family:var(--mono); font-size:.74rem; letter-spacing:.08em;
+  color:var(--speak-lite); border-bottom:1px solid var(--speak); padding-bottom:2px; white-space:nowrap;}
+#ssb .bk-alt:hover{color:var(--star);}
+#ssb .bk-n{margin-left:auto; font-family:var(--mono); font-size:.74rem; color:var(--dim);
+  font-variant-numeric:tabular-nums; white-space:nowrap;}
+#ssb .bk-go{
+  font-family:var(--mono); font-size:.76rem; letter-spacing:.08em;
+  padding:9px 14px; cursor:pointer; white-space:nowrap;
+  background:var(--gold); color:#0B0817; border:0; font-weight:500;
+}
+#ssb .bk-go:hover{background:var(--gold-lite);}
+#ssb .bk-go:focus-visible{outline:2px solid var(--gold-lite); outline-offset:2px;}
+@media(max-width:620px){ #ssb .bk-t{display:none;} }
+
+@media print{
+  #ss-nav, #ss-nav-spacer, #ss-footer,
+  header.wp-block-template-part, footer.wp-block-template-part,
+  #wpadminbar{display:none !important;}
+  html, body{background:#0B0817 !important;}
+  #ssb{margin:0 !important;}
+  #ssb .bk-bar{display:none !important;}
+  #ssb .book{max-width:none; padding:0; gap:0;}
+  #ssb .page{
+    break-after:page; page-break-after:always;
+    box-shadow:none; border:0; border-radius:0;
+    min-height:0 !important; height:auto !important;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  #ssb .page:last-child{break-after:auto; page-break-after:auto;}
+}
+</style>
+<div id="ssb">
+  <div class="bk-bar">
+    <div class="bk-t"><b id="bkTitle">나의 풀이</b></div>
+    <a class="bk-alt" href="/reading-ready/">← 자료 다시 보기</a>
+    <div class="bk-n" id="bkN">— 쪽</div>
+    <button type="button" class="bk-go" id="bkPrint">PDF 로 저장</button>
+  </div>
+
+  <div class="book" id="bkBook">
+    <div class="page cover" id="bkEmpty" style="display:none">
+      <div class="mark">STELLA SAJU</div>
+      <h1>아직 넣으신<br>정보가 없어요</h1>
+      <div class="rule"></div>
+      <p class="dek" style="text-align:center">여섯 개의 문 가운데 하나를 골라 생년월일시를 넣어주시면<br>이 자리에 당신의 책이 만들어집니다.</p>
+      <p style="text-align:center; margin-top:34px;"><a class="bk-alt" href="/door-career/">직성의 신에게 가기 →</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══ 계산기 ═══ */
+/* ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 브라우저에서 도는 사주 계산기
+   ───────────────────────────────────────────────────────────────
+   생년월일시와 태어난 곳을 넣으면 아래를 돌려줍니다.
+     · 진태양시 (경도 보정 + 균시차)
+     · 절기 (태양 황경 기준)
+     · 사주 원국 네 기둥
+     · 오행 비율
+     · 대운 (양남음녀 순행 / 음남양녀 역행)
+     · 태양 별자리 · 상승궁 · 천정
+   서버 없이 도는 순수 계산이라 회원가입 전에도 쓸 수 있습니다.
+   ═══════════════════════════════════════════════════════════════ */
+(function(root){
+  'use strict';
+
+  var GAN_H=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  var GAN_L=['갑','을','병','정','무','기','경','신','임','계'];
+  var JI_H =['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var JI_L =['자','축','인','묘','진','사','오','미','신','유','술','해'];
+  var GAN_EL=['목','목','화','화','토','토','금','금','수','수'];
+  var JI_EL =['수','토','목','목','토','화','화','토','금','금','토','수'];
+  var JI_ANIMAL=['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
+  var ELEMENTS=['목','화','토','금','수'];
+
+  /* 12절(節). 월지가 바뀌는 지점입니다. 중기(中氣)는 월주를 가르지 않아 뺐습니다.
+     month 는 그 절기가 실제로 떨어지는 양력 달입니다 (모두 4~9일 사이). */
+  var TERMS=[
+    {deg:285, name:'소한', ji:1,  month:1},
+    {deg:315, name:'입춘', ji:2,  month:2},
+    {deg:345, name:'경칩', ji:3,  month:3},
+    {deg:15,  name:'청명', ji:4,  month:4},
+    {deg:45,  name:'입하', ji:5,  month:5},
+    {deg:75,  name:'망종', ji:6,  month:6},
+    {deg:105, name:'소서', ji:7,  month:7},
+    {deg:135, name:'입추', ji:8,  month:8},
+    {deg:165, name:'백로', ji:9,  month:9},
+    {deg:195, name:'한로', ji:10, month:10},
+    {deg:225, name:'입동', ji:11, month:11},
+    {deg:255, name:'대설', ji:0,  month:12}
+  ];
+
+  var SIGNS=['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리',
+             '천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
+
+
+  /* 태어난 곳 → 경도·위도.
+     진태양시는 경도로 갈립니다. 서울과 부산은 8분쯤 차이가 나서
+     시 경계에 걸린 분은 시주가 바뀔 수 있습니다.
+     동·읍 단위까지는 필요 없습니다 (5초 차이). */
+  var CITIES={
+    '서울':[126.978,37.567], '인천':[126.705,37.456], '수원':[127.029,37.264],
+    '성남':[127.127,37.420], '고양':[126.832,37.658], '용인':[127.178,37.241],
+    '부천':[126.766,37.504], '안산':[126.831,37.322], '안양':[126.957,37.394],
+    '남양주':[127.216,37.636], '화성':[126.832,37.199], '평택':[127.113,36.992],
+    '의정부':[127.034,37.738], '파주':[126.780,37.760], '김포':[126.716,37.615],
+    '광명':[126.865,37.479], '이천':[127.435,37.272], '양주':[127.046,37.785],
+    '춘천':[127.730,37.881], '원주':[127.920,37.342], '강릉':[128.896,37.752],
+    '속초':[128.591,38.207], '동해':[129.114,37.525],
+    '대전':[127.385,36.350], '세종':[127.289,36.480], '천안':[127.115,36.815],
+    '청주':[127.489,36.642], '충주':[127.930,36.991], '아산':[126.980,36.790],
+    '공주':[127.119,36.447], '서산':[126.450,36.785], '제천':[128.191,37.133],
+    '대구':[128.601,35.872], '포항':[129.365,36.019], '경주':[129.225,35.856],
+    '구미':[128.344,36.120], '안동':[128.729,36.568], '김천':[128.114,36.140],
+    '경산':[128.741,35.825], '영주':[128.624,36.806],
+    '부산':[129.075,35.180], '울산':[129.311,35.539], '창원':[128.682,35.228],
+    '진주':[128.108,35.180], '김해':[128.882,35.229], '통영':[128.433,34.854],
+    '거제':[128.621,34.880], '양산':[129.037,35.335], '사천':[128.064,35.004],
+    '광주':[126.852,35.160], '전주':[127.148,35.824], '목포':[126.392,34.812],
+    '여수':[127.662,34.760], '순천':[127.487,34.951], '군산':[126.737,35.968],
+    '익산':[126.958,35.948], '나주':[126.711,35.016], '정읍':[126.856,35.570],
+    '제주':[126.532,33.499], '서귀포':[126.566,33.254],
+    '평양':[125.738,39.039], '개성':[126.556,37.971], '함흥':[127.536,39.918]
+  };
+  /* 나라별 대표 좌표와 표준시 — 도시를 못 찾았을 때 씁니다 */
+  var COUNTRIES={
+    '대한민국':[126.978,37.567,9], '일본':[139.692,35.690,9], '중국':[116.407,39.904,8],
+    '미국':[-74.006,40.713,-5], '캐나다':[-79.383,43.653,-5], '호주':[151.209,-33.868,10],
+    '영국':[-0.128,51.507,0], '기타':[126.978,37.567,9]
+  };
+
+  /* 도시 이름을 받아 좌표를 찾습니다. 못 찾으면 나라 대표 좌표로. */
+  function locate(city, country){
+    var name=(city||'').replace(/\s/g,'');
+    var keys=Object.keys(CITIES);
+    for(var i=0;i<keys.length;i++){
+      if(name.indexOf(keys[i])>=0){
+        return { lon:CITIES[keys[i]][0], lat:CITIES[keys[i]][1], tz:9,
+                 matched:keys[i], exact:true };
+      }
+    }
+    var c=COUNTRIES[country] || COUNTRIES['대한민국'];
+    return { lon:c[0], lat:c[1], tz:c[2], matched:(country||'대한민국'), exact:false };
+  }
+
+  /* ── 기본 도구 ───────────────────────────────────────────── */
+  function jd(y,m,d,h,mi){
+    h=h||0; mi=mi||0;
+    if(m<=2){ y-=1; m+=12; }
+    var A=Math.floor(y/100), B=2-A+Math.floor(A/4);
+    return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))
+           +d+B-1524.5+(h+mi/60)/24;
+  }
+
+  function sunLon(j){          // 겉보기 황경(도)
+    var T=(j-2451545.0)/36525.0;
+    var L0=(280.46646+36000.76983*T+0.0003032*T*T)%360;
+    var M =(357.52911+35999.05029*T-0.0001537*T*T)%360;
+    var Mr=M*Math.PI/180;
+    var C =(1.914602-0.004817*T-0.000014*T*T)*Math.sin(Mr)
+          +(0.019993-0.000101*T)*Math.sin(2*Mr)+0.000289*Math.sin(3*Mr);
+    var om=125.04-1934.136*T;
+    return (L0+C-0.00569-0.00478*Math.sin(om*Math.PI/180)+720)%360;
+  }
+
+  /* 태양 황경이 deg 가 되는 순간(UT 기준 JD).
+     절기는 늘 그 달 4~9일 사이에 떨어지므로 창을 좁게 잡습니다. */
+  function findTerm(deg, year, month){
+    var lo=jd(year,month,1)-5, hi=jd(year,month,1)+15;
+    function f(t){ var d=(sunLon(t)-deg+360)%360; return d>180 ? d-360 : d; }
+    for(var i=0;i<60;i++){
+      var mid=(lo+hi)/2;
+      if(f(lo)*f(mid)<=0){ hi=mid; } else { lo=mid; }
+    }
+    return (lo+hi)/2;
+  }
+
+  /* 한 해의 열두 절기를 시각 순으로 */
+  var termCache={};
+  function termsOfYear(y){
+    if(termCache[y]) return termCache[y];
+    var list=TERMS.map(function(t){
+      return { jd:findTerm(t.deg, y, t.month), name:t.name, ji:t.ji, deg:t.deg };
+    }).sort(function(a,b){ return a.jd-b.jd; });
+    termCache[y]=list;
+    return list;
+  }
+  /* 앞뒤 해까지 이어 붙인 절기 목록 */
+  function termsAround(y){
+    return termsOfYear(y-1).concat(termsOfYear(y), termsOfYear(y+1));
+  }
+
+  /* 균시차(분) */
+  function eqOfTime(j){
+    var T=(j-2451545.0)/36525.0;
+    var L0=(280.46646+36000.76983*T)%360;
+    var M =(357.52911+35999.05029*T)%360;
+    var e =0.016708634-0.000042037*T;
+    var eps=23.439291-0.0130042*T;
+    var y=Math.pow(Math.tan(eps/2*Math.PI/180),2);
+    var Mr=M*Math.PI/180, L0r=L0*Math.PI/180;
+    var E=y*Math.sin(2*L0r)-2*e*Math.sin(Mr)+4*e*y*Math.sin(Mr)*Math.cos(2*L0r)
+         -0.5*y*y*Math.sin(4*L0r)-1.25*e*e*Math.sin(2*Mr);
+    return E*180/Math.PI*4;
+  }
+
+  function pad(n){ return (n<10?'0':'')+n; }
+
+  /* ── 본체 ────────────────────────────────────────────────── */
+  /* opts = {year, month, day, hour, minute, sex:'M'|'F',
+             lon, lat, tz}  (tz 는 표준시 오프셋, 한국은 9) */
+  function compute(opts){
+    var y=opts.year, mo=opts.month, d=opts.day;
+    /* 워드프레스가 script 안의 논리연산자 두 개짜리 기호를 망가뜨려서, if 를 겹쳐 씁니다 */
+    var hourKnown = true;
+    if(opts.hour===null){ hourKnown=false; }
+    if(opts.hour===undefined){ hourKnown=false; }
+    var h = hourKnown ? opts.hour : 12;
+    var mi= opts.minute || 0;
+    var lon=126.978; if(opts.lon!==undefined){ if(opts.lon!==null){ lon=opts.lon; } }
+    var lat=37.5665; if(opts.lat!==undefined){ if(opts.lat!==null){ lat=opts.lat; } }
+    var tz=9; if(opts.tz!==undefined){ if(opts.tz!==null){ tz=opts.tz; } }
+
+    var jdUT = jd(y,mo,d,h-tz,mi);
+
+    /* 1) 진태양시 */
+    var lonCorr=(lon-tz*15)*4;          // 표준자오선과의 경도차 (분)
+    var eot=eqOfTime(jdUT);
+    var clockMin=h*60+mi;
+    var trueMin=clockMin+lonCorr+eot;
+    var dayShift=0;
+    while(trueMin<0){ trueMin+=1440; dayShift-=1; }
+    while(trueMin>=1440){ trueMin-=1440; dayShift+=1; }
+    /* 보여줄 때 쓸 분 단위. 먼저 반올림해야 02:60 같은 표기가 안 나옵니다. */
+    var showMin=Math.round(trueMin);
+    if(showMin>=1440){ showMin-=1440; }
+
+    /* 2) 절기 — 태어난 순간이 어느 절 안에 있는지 */
+    var jdLocal=jd(y,mo,d,h-tz,mi);
+    var around=termsAround(y);
+    var found=null;
+    for(var i=0;i<around.length;i++){
+      if(around[i].jd<=jdLocal){ found=around[i]; } else { break; }
+    }
+    var monthJi = found ? found.ji : 2;
+    var termName= found ? found.name : '입춘';
+
+    /* 3) 연주 — 입춘을 새해로 봅니다 */
+    var ipchun=findTerm(315, y, 2);
+    var sajuYear = (jdLocal < ipchun) ? y-1 : y;
+    var yg=((sajuYear-4)%10+10)%10;
+    var yz=((sajuYear-4)%12+12)%12;
+
+    /* 4) 월주 — 오호둔(五虎遁): 연간에 따라 인월의 천간이 정해집니다 */
+    var startGan=[2,4,6,8,0][yg%5];      // 갑기→丙, 을경→戊, 병신→庚, 정임→壬, 무계→甲
+    var fromTiger=((monthJi-2)%12+12)%12;      // 인월(寅)에서 몇 달째인지
+    var mg=((startGan+fromTiger)%10+10)%10;
+    var mz=monthJi;
+
+    /* 5) 일주 — 1900-01-01(KST) 을 갑술일로 잡습니다.
+          자시(23시)부터 다음 날로 넘기는 만세력 방식을 씁니다. */
+    var dayNo=Math.round(jd(y,mo,d)-jd(1900,1,1))+dayShift;
+    if(trueMin>=23*60){ dayNo+=1; }
+    var dg=((dayNo)%10+10)%10;
+    var dz=((dayNo+10)%12+12)%12;
+
+    /* 6) 시주 — 오자둔(五子遁) */
+    var hz=null, hg=null;
+    if(hourKnown){
+      hz=Math.floor(((trueMin+60)%1440)/120);   // 23~01 이 자시
+      hg=((dg%5)*2+hz)%10;
+    }
+
+    /* 7) 오행 — 최대잔여법으로 반올림해 합이 100 이 되게 맞춥니다 */
+    var gans=[yg,mg,dg], jis=[yz,mz,dz];
+    if(hourKnown){ gans.push(hg); jis.push(hz); }
+    var cnt={}; ELEMENTS.forEach(function(e){ cnt[e]=0; });
+    gans.forEach(function(g){ cnt[GAN_EL[g]]++; });
+    jis.forEach(function(z){ cnt[JI_EL[z]]++; });
+    var totalChars=gans.length+jis.length;
+    var raw=ELEMENTS.map(function(e){ return {el:e, n:cnt[e], exact:cnt[e]/totalChars*100}; });
+    var floors=raw.map(function(r){ return Math.floor(r.exact); });
+    var rest=100-floors.reduce(function(a,b){return a+b;},0);
+    var order=raw.map(function(r,i){ return {i:i, frac:r.exact-Math.floor(r.exact)}; })
+                 .sort(function(a,b){ return b.frac-a.frac; });
+    for(var k=0;k<rest;k++){ floors[order[k%5].i]+=1; }
+    var five=raw.map(function(r,i){ return {element:r.el, count:r.n, percent:floors[i]}; });
+
+    /* 8) 대운 — 양남음녀는 순행, 음남양녀는 역행 */
+    var yangYear=(yg%2===0);
+    var male=(opts.sex==='M');
+    var forward = (yangYear===male);
+    var luckJd, luckDays;
+    if(forward){
+      luckJd=nextTermJd(jdLocal, y);  luckDays=luckJd-jdLocal;
+    } else {
+      luckJd=prevTermJd(jdLocal, y);  luckDays=jdLocal-luckJd;
+    }
+    var startAge=luckDays/3;
+    var luck=[];
+    for(var n=1;n<=8;n++){
+      var lg=((mg+(forward?n:-n))%10+10)%10;
+      var lz=((mz+(forward?n:-n))%12+12)%12;
+      var a0=startAge+(n-1)*10;
+      luck.push({ from:Math.round(a0*10)/10, to:Math.round((a0+10)*10)/10,
+                  fromYear:y+Math.floor(a0), toYear:y+Math.floor(a0)+10,
+                  gan:lg, ji:lz, han:GAN_H[lg]+JI_H[lz], kor:GAN_L[lg]+JI_L[lz] });
+    }
+
+    /* 9) 별 — 태양 · 상승궁 · 천정 */
+    var sun=sunLon(jdUT);
+    var T=(jdUT-2451545.0)/36525.0;
+    var eps=(23.439291-0.0130042*T)*Math.PI/180;
+    var d0=jdUT-2451545.0;
+    var gmst=((280.46061837+360.98564736629*d0)%360+360)%360;
+    var lst=((gmst+lon)%360+360)%360;
+    var ramc=lst*Math.PI/180, phir=lat*Math.PI/180;
+    var mc=(Math.atan2(Math.sin(ramc), Math.cos(ramc)*Math.cos(eps))*180/Math.PI+360)%360;
+    var asc=(Math.atan2(Math.cos(ramc),
+             -(Math.sin(eps)*Math.tan(phir)+Math.cos(eps)*Math.sin(ramc)))*180/Math.PI+360)%360;
+
+    /* 경계에 걸린 분께는 알려드려야 합니다 */
+    var warnings=[];
+    if(found){
+      var minsFromTerm=(jdLocal-found.jd)*1440;
+      if(minsFromTerm<180){
+        warnings.push('태어나신 시각이 ' + found.name + ' 로 넘어온 지 ' +
+          Math.round(minsFromTerm) + '분밖에 안 됩니다. 절기 계산에 몇 분의 오차가 있을 수 있어 ' +
+          '월주가 앞 달로 바뀔 가능성이 있습니다.');
+      }
+      var nextJd=nextTermJd(jdLocal, y);
+      if(nextJd!==null){
+        var minsToTerm=(nextJd-jdLocal)*1440;
+        if(minsToTerm<180){
+          warnings.push('태어나신 시각이 다음 절기까지 ' + Math.round(minsToTerm) +
+            '분 남은 자리입니다. 월주가 다음 달로 바뀔 가능성이 있습니다.');
+        }
+      }
+    }
+    if(hourKnown){
+      var intoHour=((trueMin+60)%1440)%120;
+      if(intoHour<10 || intoHour>110){
+        warnings.push('진태양시가 시주 경계에 붙어 있습니다. 태어난 시각이 10분만 달라도 시주가 바뀝니다.');
+      }
+    }
+    if(!hourKnown){
+      warnings.push('태어난 시간을 모르셔서 시주는 세우지 않았습니다. ' +
+        '시주가 빠지면 하루의 결이 흐려지고, 특히 자식·말년 자리를 읽기 어렵습니다.');
+    }
+
+    return {
+      warnings: warnings,
+      trueSolar:{
+        clock: pad(h)+':'+pad(mi),
+        lonCorrection: Math.round(lonCorr*10)/10,
+        equationOfTime: Math.round(eot*10)/10,
+        time: pad(Math.floor(showMin/60))+':'+pad(showMin%60),
+        dayShift: dayShift
+      },
+      term:{ name:termName, monthJi:monthJi },
+      sajuYear: sajuYear,
+      pillars:{
+        year:{ gan:yg, ji:yz, han:GAN_H[yg]+JI_H[yz], kor:GAN_L[yg]+JI_L[yz] },
+        month:{ gan:mg, ji:mz, han:GAN_H[mg]+JI_H[mz], kor:GAN_L[mg]+JI_L[mz] },
+        day:{ gan:dg, ji:dz, han:GAN_H[dg]+JI_H[dz], kor:GAN_L[dg]+JI_L[dz] },
+        hour: hourKnown ? { gan:hg, ji:hz, han:GAN_H[hg]+JI_H[hz], kor:GAN_L[hg]+JI_L[hz] } : null
+      },
+      dayMaster:{ gan:dg, han:GAN_H[dg], kor:GAN_L[dg], element:GAN_EL[dg],
+                  yin: (dg%2===1) },
+      animal: JI_ANIMAL[yz],
+      five: five,
+      luck:{ forward:forward, startAge:Math.round(startAge*10)/10, list:luck },
+      stars:{
+        sun: signOf(sun), sunDeg: Math.round(sun*10)/10,
+        ascendant: signOf(asc), ascDeg: Math.round(asc*10)/10,
+        midheaven: signOf(mc), mcDeg: Math.round(mc*10)/10
+      }
+    };
+  }
+
+  function signOf(x){
+    return { name:SIGNS[Math.floor(x/30)], degree:Math.round((x%30)*10)/10 };
+  }
+
+  /* 출생 시각 바로 다음 절기 */
+  function nextTermJd(jdLocal, y){
+    var list=termsAround(y);
+    for(var i=0;i<list.length;i++){ if(list[i].jd>jdLocal) return list[i].jd; }
+    return null;
+  }
+  /* 출생 시각 바로 앞 절기 */
+  function prevTermJd(jdLocal, y){
+    var list=termsAround(y), best=null;
+    for(var i=0;i<list.length;i++){ if(list[i].jd<=jdLocal){ best=list[i].jd; } else { break; } }
+    return best;
+  }
+
+  root.StellaSaju={ compute:compute, locate:locate, CITIES:CITIES, GAN_H:GAN_H, JI_H:JI_H,
+                    GAN_L:GAN_L, JI_L:JI_L, ELEMENTS:ELEMENTS,
+                    terms:termsOfYear, sunLon:sunLon, jd:jd };
+})(typeof window!=='undefined' ? window : globalThis);
+/* ═══ 풀이 엔진 ═══ */
+/* ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 풀이 엔진
+   ───────────────────────────────────────────────────────────────
+   stella-saju.js 가 계산한 원국을 받아 "글"로 바꿉니다.
+   지어낸 문장을 섞지 않습니다. 모든 문단은 아래 셋 중 하나에서 나옵니다.
+     · 일간이 무엇인가        (열 개 중 하나)
+     · 십성이 어떻게 놓였나   (여덟 글자에서 세어낸 값)
+     · 오행이 어디로 기울었나 (같은 여덟 글자)
+   그래서 생년월일시가 다르면 반드시 다른 글이 나옵니다.
+   ═══════════════════════════════════════════════════════════════ */
+(function(root){
+  'use strict';
+
+  var GAN_EL=['목','목','화','화','토','토','금','금','수','수'];
+  var JI_EL =['수','토','목','목','토','화','화','토','금','금','토','수'];
+  var GAN_YIN=[0,1,0,1,0,1,0,1,0,1];          // 0 양 · 1 음
+  var JI_YIN =[0,1,0,1,0,1,0,1,0,1,0,1];
+
+  var SAENG={'목':'화','화':'토','토':'금','금':'수','수':'목'};  // 상생
+  var GEUK ={'목':'토','토':'수','수':'화','화':'금','금':'목'};  // 상극
+
+
+  /* ── 조사 ───────────────────────────────────────────────
+     받침이 있으면 앞말, 없으면 뒷말을 붙입니다.
+     "토이 두텁습니다" 같은 문장이 나오지 않게 하는 장치입니다. */
+  function hasBatchim(word){
+    if(!word) return false;
+    var ch=word.charCodeAt(word.length-1);
+    if(ch<0xAC00) return false;
+    if(ch>0xD7A3) return false;
+    return ((ch-0xAC00)%28)!==0;
+  }
+  /* josa('토','이','가') → '토가' */
+  function josa(word, withB, withoutB){
+    return word + (hasBatchim(word) ? withB : withoutB);
+  }
+  /* 여러 낱말을 '와/과'로 잇습니다 */
+  function joinWa(list, wrapL, wrapR){
+    wrapL=wrapL||''; wrapR=wrapR||'';
+    if(!list.length) return '';
+    var out=wrapL+list[0]+wrapR;
+    for(var i=1;i<list.length;i++){
+      out += josa(list[i-1],'과','와') === (list[i-1]+'과') ? '과 ' : '와 ';
+      out += wrapL+list[i]+wrapR;
+    }
+    return out;
+  }
+
+  /* ── 십성 ─────────────────────────────────────────────────
+     일간을 기준으로 다른 글자가 어떤 관계에 서는지. */
+  function sipsung(dayEl, dayYin, el, yin){
+    var same=(dayYin===yin);
+    if(el===dayEl)          return same ? '비견' : '겁재';
+    if(SAENG[dayEl]===el)   return same ? '식신' : '상관';
+    if(GEUK[dayEl]===el)    return same ? '편재' : '정재';
+    if(GEUK[el]===dayEl)    return same ? '편관' : '정관';
+    if(SAENG[el]===dayEl)   return same ? '편인' : '정인';
+    return '';
+  }
+
+  var GROUP={
+    '비견':'비겁','겁재':'비겁',
+    '식신':'식상','상관':'식상',
+    '편재':'재성','정재':'재성',
+    '편관':'관성','정관':'관성',
+    '편인':'인성','정인':'인성'
+  };
+
+  /* ── 일간 열 개 ───────────────────────────────────────── */
+  var DAY={
+    '甲':{ kor:'갑목', image:'큰 나무',
+      what:'곧게 위로 뻗는 나무입니다. 굽히는 법을 잘 모르고, 한번 방향을 정하면 그쪽으로만 자랍니다.',
+      good:'앞장서는 일, 처음 여는 일, 이름을 걸고 하는 일에서 힘이 납니다. 사람들은 이 사람을 기준 삼아 줄을 섭니다.',
+      care:'꺾이면 다시 서기까지 오래 걸립니다. 굽힐 줄 아는 사람 하나를 곁에 두는 것이 평생의 보험입니다.' },
+    '乙':{ kor:'을목', image:'덩굴과 풀',
+      what:'낮게 자라며 감아 오르는 풀입니다. 부러지지 않고 휘어서 살아남습니다.',
+      good:'남의 판에 들어가 자기 자리를 만드는 데 능합니다. 버티는 힘이 세고, 끝까지 남아 있는 쪽입니다.',
+      care:'기댈 것이 없으면 방향을 잃습니다. 무엇에 감아 오를지를 고르는 것이 이 사람의 가장 큰 결정입니다.' },
+    '丙':{ kor:'병화', image:'한낮의 해',
+      what:'가리지 않고 비추는 빛입니다. 숨기지 못하고, 숨길 생각도 없습니다.',
+      good:'사람을 끌어모으고 분위기를 데웁니다. 앞에 나서는 자리에서 제일 자기다워집니다.',
+      care:'너무 밝아서 그늘을 못 봅니다. 조용한 사람이 무엇을 참고 있는지 놓치기 쉽습니다.' },
+    '丁':{ kor:'정화', image:'등불',
+      what:'작지만 꺼지지 않는 불입니다. 어두울수록 제 몫을 합니다.',
+      good:'한 사람 한 사람을 깊게 살핍니다. 세밀한 일, 오래 지켜야 하는 일에 맞습니다.',
+      care:'제 몸을 태워 밝힙니다. 다 주고 나서 텅 비는 일이 반복되면 몸이 먼저 신호를 보냅니다.' },
+    '戊':{ kor:'무토', image:'너른 땅',
+      what:'움직이지 않는 흙입니다. 무엇이 올라와도 받아냅니다.',
+      good:'믿음을 삽니다. 오래 걸리는 일, 사람을 담아야 하는 일에서 진가가 납니다.',
+      care:'너무 안 움직여서 때를 놓칩니다. 결심하고도 한 계절을 더 앉아 있는 버릇이 있습니다.' },
+    '己':{ kor:'기토', image:'밭흙',
+      what:'무언가를 길러내는 흙입니다. 자기가 나서기보다 남을 자라게 합니다.',
+      good:'조율과 살림에 능합니다. 여럿 사이에 서서 아귀를 맞추는 자리에서 없어서는 안 될 사람이 됩니다.',
+      care:'다 받아주다 보면 자기 밭이 헐거워집니다. 거절을 배우는 것이 이 사람의 숙제입니다.' },
+    '庚':{ kor:'경금', image:'다듬지 않은 쇠',
+      what:'단단하고 날이 선 쇠입니다. 옳고 그름이 분명합니다.',
+      good:'끊어내야 할 때 끊습니다. 판을 정리하고 규칙을 세우는 일에서 강합니다.',
+      care:'말이 칼이 됩니다. 맞는 말을 했는데 사람이 떠나는 일을 여러 번 겪습니다.' },
+    '辛':{ kor:'신금', image:'다듬은 보석',
+      what:'깎이고 닦인 금속입니다. 흠이 보이는 걸 견디지 못합니다.',
+      good:'감각과 완성도로 먹고삽니다. 마무리를 맡기면 다른 사람보다 한 단계 위로 올려놓습니다.',
+      care:'자기 흠에 가장 가혹합니다. 남이 이미 잊은 실수를 혼자 몇 년을 들고 갑니다.' },
+    '壬':{ kor:'임수', image:'큰 물',
+      what:'멀리 흐르는 물입니다. 한 자리에 고이지 않습니다.',
+      good:'넓게 보고 멀리 잡습니다. 여러 갈래를 한꺼번에 굴리는 데 능합니다.',
+      care:'깊이가 얕아질 수 있습니다. 벌여둔 것 중 무엇을 끝낼지 정하지 않으면 아무것도 안 남습니다.' },
+    '癸':{ kor:'계수', image:'이슬과 실개천',
+      what:'가늘고 스며드는 물입니다. 소리 없이 안으로 들어갑니다.',
+      good:'남이 못 본 결을 봅니다. 생각을 오래 품어 한 번에 내놓는 쪽입니다.',
+      care:'속으로만 흐릅니다. 말하지 않은 서운함이 쌓이면 어느 날 통째로 돌아섭니다.' }
+  };
+
+  /* ── 십성 열 개 ───────────────────────────────────────── */
+  var SIP={
+    '비견':{ t:'비견 · 나와 같은 자리',
+      d:'나와 같은 무게의 사람이 곁에 있는 자리입니다. 동료가 되기도 하고 경쟁자가 되기도 합니다. 남 밑에 오래 있기 어렵습니다.' },
+    '겁재':{ t:'겁재 · 나를 밀어내는 같은 편',
+      d:'같은 것을 두고 다투는 자리입니다. 추진력이 세지만, 손에 쥔 것이 남에게 새어나가기도 쉽습니다. 돈 문제는 반드시 문서로 남겨야 합니다.' },
+    '식신':{ t:'식신 · 내가 내놓는 것',
+      d:'가진 것을 밖으로 풀어내는 자리입니다. 먹고사는 재주가 여기서 나옵니다. 서두르지 않고 오래 하는 쪽에 복이 붙습니다.' },
+    '상관':{ t:'상관 · 판을 흔드는 재능',
+      d:'남이 안 하던 방식을 찾아내는 자리입니다. 재능이 크지만 규칙과 자주 부딪칩니다. 윗사람과의 마찰이 늘 과제로 남습니다.' },
+    '편재':{ t:'편재 · 크게 들어오고 크게 나가는 돈',
+      d:'움직이는 돈의 자리입니다. 기회를 알아보는 눈이 밝고, 씀씀이도 그만큼 큽니다. 목돈이 들어올 때 반을 묶어두는 습관이 평생을 가릅니다.' },
+    '정재':{ t:'정재 · 꼬박꼬박 쌓이는 돈',
+      d:'정해진 몫이 정해진 때에 들어오는 자리입니다. 크게 터지지는 않아도 새지 않습니다. 착실함이 이 사람의 재산입니다.' },
+    '편관':{ t:'편관 · 나를 몰아붙이는 힘',
+      d:'압박과 책임의 자리입니다. 궁지에 몰릴수록 오히려 일이 됩니다. 다만 몸이 먼저 상하기 쉬워 쉬는 시기를 스스로 정해야 합니다.' },
+    '정관':{ t:'정관 · 지켜야 할 자리',
+      d:'규범과 직책의 자리입니다. 맡기면 끝까지 합니다. 조직 안에서 신뢰를 얻지만, 틀을 벗어나야 할 때 한 박자 늦습니다.' },
+    '편인':{ t:'편인 · 한쪽으로 깊은 공부',
+      d:'남들이 안 파는 데를 파고드는 자리입니다. 독특한 전문성이 생기지만, 시작한 것을 끝맺지 않고 다음으로 넘어가기도 합니다.' },
+    '정인':{ t:'정인 · 받아들이고 배우는 힘',
+      d:'배우고 기대는 자리입니다. 귀인이 붙고 문서운이 좋습니다. 다만 받는 데 익숙해지면 스스로 벌어야 할 때를 미룹니다.' }
+  };
+
+  /* ── 오행이 넘칠 때와 없을 때 ───────────────────────────── */
+  var EL_MUCH={
+    '목':'뻗으려는 힘이 넘칩니다. 계획이 자꾸 커지고, 하던 일이 끝나기 전에 다음 것이 시작됩니다.',
+    '화':'드러내는 기운이 넘칩니다. 열이 빨리 오르고 빨리 식습니다. 말이 앞서 나가 수습할 일이 생깁니다.',
+    '토':'버티는 힘이 넘칩니다. 좀처럼 안 움직여서 안전하지만, 기회가 지나간 뒤에 결심하는 일이 잦습니다.',
+    '금':'끊는 힘이 넘칩니다. 기준이 분명해 흔들리지 않지만, 사람에게도 같은 잣대를 들이대 상처를 남깁니다.',
+    '수':'흐르는 기운이 넘칩니다. 생각이 많고 밤이 깁니다. 결정을 미루다 때를 놓치는 것이 유일한 약점입니다.'
+  };
+  var EL_NONE={
+    '목':'뻗어나가는 기운이 없습니다. 새로 시작하는 일 앞에서 유난히 오래 망설입니다. 시작을 대신 밀어줄 사람이 곁에 있어야 합니다.',
+    '화':'드러내는 기운이 없습니다. 속으로 다 하고도 밖으로 내보이지 못해 몫을 덜 가져갑니다. 표현은 재능이 아니라 습관으로 만들어야 합니다.',
+    '토':'중심을 잡아주는 기운이 없습니다. 흔들릴 때 붙잡아줄 자리가 안에 없어, 사람이나 장소에 기대게 됩니다.',
+    '금':'끊어내는 기운이 없습니다. 아니라는 걸 알면서도 정리하지 못해 오래 끌고 갑니다. 마감과 규칙을 밖에서 빌려와야 합니다.',
+    '수':'품어 두는 기운이 없습니다. 쉬는 법을 몰라 계속 태우다가 어느 날 한꺼번에 주저앉습니다. 쉬는 시간을 일정처럼 잡아야 합니다.'
+  };
+
+  /* ── 하늘 ─────────────────────────────────────────────── */
+  var SUN={
+    '양자리':'먼저 뛰어드는 사람','황소자리':'끝까지 쥐고 있는 사람','쌍둥이자리':'말과 정보로 사는 사람',
+    '게자리':'품고 지키는 사람','사자자리':'무대를 필요로 하는 사람','처녀자리':'다듬어야 직성이 풀리는 사람',
+    '천칭자리':'균형을 맞추는 사람','전갈자리':'끝까지 파고드는 사람','사수자리':'멀리 나가려는 사람',
+    '염소자리':'쌓아 올리는 사람','물병자리':'남과 다르게 보는 사람','물고기자리':'스며들어 함께 느끼는 사람'
+  };
+  var ASC={
+    '양자리':'첫인상이 빠르고 직선적입니다','황소자리':'첫인상이 느긋하고 단단합니다','쌍둥이자리':'첫인상이 가볍고 재빠릅니다',
+    '게자리':'첫인상이 조심스럽고 다정합니다','사자자리':'첫인상이 크고 환합니다','처녀자리':'첫인상이 단정하고 깐깐합니다',
+    '천칭자리':'첫인상이 부드럽고 예의 바릅니다','전갈자리':'첫인상이 조용하고 속을 알기 어렵습니다','사수자리':'첫인상이 활달하고 솔직합니다',
+    '염소자리':'첫인상이 어른스럽고 무겁습니다','물병자리':'첫인상이 독특하고 거리감이 있습니다','물고기자리':'첫인상이 흐릿하고 부드럽습니다'
+  };
+  var MC={
+    '양자리':'앞장서는 자리','황소자리':'값을 만드는 자리','쌍둥이자리':'전하고 잇는 자리',
+    '게자리':'돌보는 자리','사자자리':'보이는 자리','처녀자리':'고치고 다듬는 자리',
+    '천칭자리':'중재하는 자리','전갈자리':'파헤치는 자리','사수자리':'넓히는 자리',
+    '염소자리':'책임지는 자리','물병자리':'바꾸는 자리','물고기자리':'품는 자리'
+  };
+
+  /* ── 다섯 축 ───────────────────────────────────────────
+     질문의 답과 사주를 맞대보기 위한 저울입니다.
+     각 축은 십성 묶음으로만 계산합니다. */
+  var AXES={
+    risk:  { A:'안정', B:'변화',
+             a:['정관','정재','정인'], b:['상관','편재','편관','겁재'],
+             sayA:'정해진 틀 안에서 안전하게 가는 구조',
+             sayB:'판을 흔들며 나아가는 구조' },
+    make:  { A:'정답', B:'창조',
+             a:['정관','정인','편인'], b:['식신','상관'],
+             sayA:'있는 답을 정확히 지키는 구조',
+             sayB:'없던 답을 만들어내는 구조' },
+    solo:  { A:'혼자', B:'함께',
+             a:['정인','편인','식신'], b:['비견','겁재','정재','편재'],
+             sayA:'혼자 파고들 때 힘이 나는 구조',
+             sayB:'사람 사이에서 굴러갈 때 힘이 나는 구조' },
+    form:  { A:'실물', B:'무형',
+             a:['정재','편재','식신'], b:['정인','편인','상관'],
+             sayA:'손에 잡히는 것을 다룰 때 맞는 구조',
+             sayB:'보이지 않는 것을 다룰 때 맞는 구조' },
+    many:  { A:'하나', B:'여럿',
+             a:['정관','정재','정인','식신','비견'], b:['편관','편재','편인','상관','겁재'],
+             sayA:'하나를 깊게 파는 구조',
+             sayB:'여러 개를 동시에 굴리는 구조' }
+  };
+
+  /* ── 본체 ─────────────────────────────────────────────── */
+  function interpret(chart){
+    var p=chart.pillars;
+    var dayHan=p.day.han.charAt(0);
+    var dayEl=chart.dayMaster.element;
+    var dayYin=chart.dayMaster.yin ? 1 : 0;
+
+    /* 일간을 뺀 일곱 글자의 십성 */
+    var slots=[
+      {k:'연간', el:GAN_EL[p.year.gan],  yin:GAN_YIN[p.year.gan],  han:p.year.han.charAt(0)},
+      {k:'연지', el:JI_EL[p.year.ji],    yin:JI_YIN[p.year.ji],    han:p.year.han.charAt(1)},
+      {k:'월간', el:GAN_EL[p.month.gan], yin:GAN_YIN[p.month.gan], han:p.month.han.charAt(0)},
+      {k:'월지', el:JI_EL[p.month.ji],   yin:JI_YIN[p.month.ji],   han:p.month.han.charAt(1)},
+      {k:'일지', el:JI_EL[p.day.ji],     yin:JI_YIN[p.day.ji],     han:p.day.han.charAt(1)}
+    ];
+    if(p.hour){
+      slots.push({k:'시간', el:GAN_EL[p.hour.gan], yin:GAN_YIN[p.hour.gan], han:p.hour.han.charAt(0)});
+      slots.push({k:'시지', el:JI_EL[p.hour.ji],   yin:JI_YIN[p.hour.ji],   han:p.hour.han.charAt(1)});
+    }
+    slots.forEach(function(s){ s.sip=sipsung(dayEl, dayYin, s.el, s.yin); });
+
+    var count={}, gcount={};
+    slots.forEach(function(s){
+      count[s.sip]=(count[s.sip]||0)+1;
+      var g=GROUP[s.sip];
+      gcount[g]=(gcount[g]||0)+1;
+    });
+
+    /* 가장 두꺼운 십성 두 개 */
+    var ranked=Object.keys(count).map(function(k){ return {sip:k, n:count[k]}; })
+      .sort(function(a,b){ return b.n-a.n; });
+
+    /* 축 계산 */
+    var axis={};
+    Object.keys(AXES).forEach(function(key){
+      var A=AXES[key], sa=0, sb=0;
+      A.a.forEach(function(s){ sa+=(count[s]||0); });
+      A.b.forEach(function(s){ sb+=(count[s]||0); });
+      var lean='';
+      if(sa>sb) lean='A';
+      if(sb>sa) lean='B';
+      axis[key]={ a:sa, b:sb, lean:lean,
+                  say: lean==='A' ? A.sayA : (lean==='B' ? A.sayB : '어느 쪽으로도 크게 기울지 않은 구조'),
+                  name: lean==='A' ? A.A : (lean==='B' ? A.B : '가운데') };
+    });
+
+    var most=chart.five.slice().sort(function(a,b){ return b.count-a.count; })[0];
+    var empty=chart.five.filter(function(f){ return f.count===0; });
+
+    return {
+      day: DAY[dayHan] || DAY['甲'],
+      dayHan: dayHan,
+      slots: slots,
+      count: count,
+      groups: gcount,
+      top: ranked.slice(0,2),
+      sipText: SIP,
+      axis: axis,
+      mostEl: most,
+      mostElText: EL_MUCH[most.element],
+      emptyEls: empty.map(function(e){ return e.element; }),
+      emptyElText: empty.map(function(e){ return EL_NONE[e.element]; }),
+      sun: SUN[chart.stars.sun.name] || '',
+      asc: ASC[chart.stars.ascendant.name] || '',
+      mc:  MC[chart.stars.midheaven.name] || ''
+    };
+  }
+
+  root.StellaRead={ interpret:interpret, SIP:SIP, DAY:DAY, AXES:AXES,
+                    josa:josa, joinWa:joinWa, hasBatchim:hasBatchim };
+})(typeof window!=='undefined' ? window : globalThis);
+/* ═══ 가디언의 목소리 ═══ */
+/* ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 가디언의 목소리
+   가디언마다 같은 사주를 자기 주제의 언어로 옮깁니다.
+   lens 는 십성 묶음(비겁·식상·재성·관성·인성)을 그 주제로 번역한 문장입니다.
+   ═══════════════════════════════════════════════════════════════ */
+(function(root){
+  'use strict';
+
+  var GUIDE={
+
+  'door-career':{
+    name:'직성의 신', en:'THE ARCHITECT', face:'stellardoorarchitect-small.jpg',
+    subject:'일과 돈',
+    open:[
+      '일과 돈은 재능의 문제가 아니라 자리의 문제입니다. 같은 사람이 어느 자리에 서느냐에 따라 유능해지기도 하고 무능해지기도 해요. 저는 그 자리를 찾아드리는 신입니다.',
+      '그래서 저는 "무엇이 될 수 있다"는 말을 하지 않습니다. 대신 "어디에 서면 힘이 덜 든다"를 말합니다. 힘이 덜 드는 자리에 오래 서 있는 사람이 결국 멀리 갑니다.'
+    ],
+    lens:{
+      '비겁':'남 밑에서 오래 버티기 어려운 자리입니다. 지시받는 일보다 맡아서 하는 일이 맞습니다. 동업은 신중하게 — 같은 것을 원하는 사람이 곁에 붙습니다.',
+      '식상':'만들어 내놓는 일이 맞습니다. 기획·제작·콘텐츠처럼 결과물이 눈에 보이는 쪽입니다. 시키는 대로만 하는 자리에서는 재능이 갈 곳을 잃습니다.',
+      '재성':'돈이 움직이는 자리에 붙어 있어야 합니다. 영업·유통·자산처럼 숫자가 도는 쪽입니다. 결과로 평가받는 구조를 두려워하지 않는 사람입니다.',
+      '관성':'조직과 직책이 맞는 자리입니다. 규칙이 있는 곳에서 오히려 실력이 삽니다. 다만 자기 이름으로 나설 때가 오면 한 박자 늦습니다.',
+      '인성':'배우고 가르치는 일, 자격과 문서가 힘이 되는 일이 맞습니다. 준비 기간이 길어도 결국 그 준비가 자산이 됩니다.'
+    },
+    close:'일은 결국 자기 결을 견디는 일입니다. 남이 쉽게 하는 걸 내가 어렵게 한다면, 그건 내가 부족해서가 아니라 그 자리가 내 자리가 아니어서인 경우가 훨씬 많습니다.',
+    last:'서두르지 마세요. 다만 방향은 오늘 정하세요. 방향만 맞으면 느린 걸음도 결국 닿습니다.'
+  },
+
+  'door-love':{
+    name:'연성의 신', en:'THE LOVERS', face:'stellardoorlovers-small.jpg',
+    subject:'사랑과 인연',
+    open:[
+      '사랑은 마음의 문제 같지만, 저는 다르게 봅니다. 사랑은 습관의 문제예요. 어떤 사람에게 끌리는지, 다투면 어떻게 하는지, 그건 태어날 때부터 몸에 새겨져 있습니다.',
+      '그래서 저는 "그 사람이 당신을 사랑한다"는 말을 하지 않습니다. 그건 제가 알 수 없어요. 대신 당신이 사랑을 어떻게 하는 사람인지, 그 방식이 어디서 자꾸 걸리는지를 말합니다.'
+    ],
+    lens:{
+      '비겁':'상대와 대등하려는 마음이 강합니다. 기대는 관계보다 나란히 서는 관계에서 편안합니다. 다만 지지 않으려다 져야 할 순간을 놓칩니다.',
+      '식상':'주고 표현하는 쪽입니다. 마음이 생기면 숨기지 못합니다. 많이 주고 나서 돌아오는 게 적을 때 크게 무너집니다.',
+      '재성':'상대를 잘 챙기고 현실적으로 돌봅니다. 사랑을 행동으로 증명하려 합니다. 말로 확인받고 싶어하는 상대와는 어긋나기 쉽습니다.',
+      '관성':'관계에 틀을 두고 싶어합니다. 확실한 사이, 정해진 약속이 있어야 마음이 놓입니다. 애매한 관계를 오래 견디지 못합니다.',
+      '인성':'받는 데 익숙한 자리입니다. 돌봐주는 사람에게 끌립니다. 다만 기대다가 어느 순간 상대가 지치는 것을 못 보고 지나칩니다.'
+    },
+    close:'인연은 만나는 것보다 견디는 것이 어렵습니다. 그리고 견디지 말아야 할 인연을 견디는 데 힘을 다 쓰면, 정작 견딜 만한 인연이 왔을 때 남은 힘이 없습니다.',
+    last:'붙잡을지 놓을지 모르겠다면, 그 사람과 있을 때의 당신이 마음에 드는지를 보세요. 답은 상대가 아니라 거기에 있습니다.'
+  },
+
+  'door-health':{
+    name:'강성의 신', en:'THE NURTURER', face:'stellardoornurturer-small.jpg',
+    subject:'건강과 가족',
+    open:[
+      '몸은 거짓말을 하지 않습니다. 마음은 괜찮다고 하는데 몸이 먼저 주저앉는 일이 있죠. 저는 그 몸이 어느 계절에 약해지는지를 읽는 신입니다.',
+      '분명히 해둘 것이 있습니다. 저는 의사가 아닙니다. 병을 짚어내지 않고 치료를 권하지도 않습니다. 다만 타고난 기운이 어디로 기울어 있는지, 그래서 어느 자리를 조심해야 하는지를 말합니다. 아픈 곳은 반드시 병원에서 확인하세요.'
+    ],
+    lens:{
+      '비겁':'스스로 밀어붙이는 힘이 셉니다. 아파도 참고 넘기는 쪽이라 늦게 발견합니다. 정기검진을 일정으로 못 박아 두어야 하는 유형입니다.',
+      '식상':'기운을 밖으로 많이 씁니다. 말하고 움직이고 만드느라 소진이 빠릅니다. 잘 먹는 것보다 잘 쉬는 것이 이 사람에겐 더 급합니다.',
+      '재성':'몸을 도구처럼 씁니다. 일이 있으면 몸은 나중입니다. 허리·어깨처럼 쓰는 자리부터 먼저 신호가 옵니다.',
+      '관성':'책임이 몸을 누릅니다. 압박이 오면 잠부터 무너집니다. 긴장을 푸는 방법을 따로 배워두지 않으면 오래 갑니다.',
+      '인성':'생각이 많아 안으로 쌓입니다. 소화기와 마음이 함께 움직입니다. 머리를 비우는 시간이 곧 치료입니다.'
+    },
+    close:'가족은 가장 가까운 짐이자 가장 큰 힘입니다. 누구를 짊어지고 있는지 알아야, 그 무게를 나눌 자리도 보입니다.',
+    last:'몸이 보내는 신호를 미루지 마세요. 오래 미룬 신호는 나중에 훨씬 큰 소리로 돌아옵니다.'
+  },
+
+  'door-fortune':{
+    name:'세성의 신', en:'THE SEASONS', face:'stellardoorseasons-small.jpg',
+    subject:'흐름과 시기',
+    open:[
+      '인생에도 계절이 있습니다. 봄에 거두려 하면 아무것도 없고, 가을에 씨를 뿌리면 얼어 죽습니다. 저는 지금이 어느 계절인지를 알려주는 신입니다.',
+      '길하다 흉하다는 말은 잘 쓰지 않습니다. 계절에 좋고 나쁨이 없듯이요. 다만 겨울에 해야 할 일과 여름에 해야 할 일이 다를 뿐입니다.'
+    ],
+    lens:{
+      '비겁':'스스로 판을 여는 시기에 강합니다. 남이 만든 흐름에 올라타는 것보다 직접 시작할 때 운이 붙습니다.',
+      '식상':'만들어 내놓는 시기에 강합니다. 준비만 하는 해에는 답답하고, 무언가 세상에 내보내는 해에 풀립니다.',
+      '재성':'거두는 시기에 강합니다. 결과가 숫자로 나오는 해에 힘이 납니다. 다만 그 시기 전에 벌여둔 것이 있어야 거둘 것이 생깁니다.',
+      '관성':'맡는 시기에 강합니다. 자리가 주어지고 책임이 늘어나는 해에 오히려 안정됩니다.',
+      '인성':'배우고 물러나는 시기에 강합니다. 겉으로는 아무 일 없어 보이는 해가 사실은 가장 중요한 해입니다.'
+    },
+    close:'큰 결정은 계절을 보고 하세요. 같은 결정도 봄에 하면 살고 겨울에 하면 얼어붙습니다.',
+    last:'지금이 답답하다면, 그건 겨울이라서일 수 있습니다. 겨울에 할 일은 버티는 것이지 뛰는 것이 아닙니다.'
+  },
+
+  'door-astro':{
+    name:'성좌의 신', en:'ASTRAIOS', face:'stellardoorastraios-small.jpg',
+    subject:'별자리',
+    open:[
+      '당신이 태어나던 순간, 하늘은 딱 한 번 그 모양이었습니다. 다시는 같은 모양이 되지 않아요. 저는 그 하늘을 다시 펼쳐 보이는 신입니다.',
+      '태양 별자리 하나로 사람을 나누지 않습니다. 그건 열두 서랍에 팔십억 명을 넣는 일이니까요. 상승궁과 천정까지 겹쳐야 비로소 한 사람이 나옵니다.'
+    ],
+    lens:{
+      '비겁':'스스로 서려는 힘이 하늘에서도 같은 방향을 가리킵니다. 동양과 서양이 같은 말을 하는 자리입니다.',
+      '식상':'표현하려는 기운이 강합니다. 별자리에서도 목소리를 내는 자리에 무게가 실립니다.',
+      '재성':'현실을 다루는 힘이 강합니다. 하늘에서도 손에 잡히는 것을 만드는 쪽으로 기울어 있습니다.',
+      '관성':'구조와 책임을 받아들이는 힘이 강합니다. 사회에서 자리를 얻는 방식이 여기서 갈립니다.',
+      '인성':'받아들이고 배우는 힘이 강합니다. 안으로 쌓아 두었다가 한 번에 내놓는 사람입니다.'
+    },
+    close:'하늘은 명령하지 않습니다. 다만 어느 쪽이 덜 힘든지를 알려줄 뿐입니다. 그 방향을 알고 가는 것과 모르고 가는 것은 십 년이 지나면 아주 다른 자리에 데려다 놓습니다.',
+    last:'당신이 왜 그렇게 생겨먹었는지 오늘 알았다면, 이제 그걸 흠으로 여기지 않아도 됩니다.'
+  },
+
+  'door-tarot':{
+    name:'아르카나', en:'ARCANA', face:'stellardoorarcana-small.jpg',
+    subject:'오늘의 선택',
+    open:[
+      '사주는 태어날 때 정해진 것을 읽고, 카드는 오늘의 것을 읽습니다. 저는 그 둘을 겹쳐 보는 자리에 있습니다.',
+      '한 가지는 미리 말해둘게요. 저는 듣고 싶은 말을 골라주지 않습니다. 같은 질문을 내일 다시 물으면 다른 답이 나올 수도 있어요. 오늘의 기운은 오늘 것이니까요.'
+    ],
+    lens:{
+      '비겁':'스스로 정해야 풀리는 사람입니다. 여럿에게 물을수록 오히려 결정이 늦어집니다.',
+      '식상':'움직이면서 답을 찾는 사람입니다. 앉아서 재는 시간이 길어질수록 답이 흐려집니다.',
+      '재성':'실익을 따져야 마음이 놓입니다. 숫자로 적어 놓고 보면 답이 빨리 나옵니다.',
+      '관성':'책임이 걸린 쪽으로 기울게 되어 있습니다. 옳은 선택과 편한 선택 사이에서 늘 옳은 쪽을 고릅니다.',
+      '인성':'조금 더 알아야 움직입니다. 다만 다 알고 나서 움직이려 하면 이번 건은 지나갑니다.'
+    },
+    close:'선택에 정답이 있는 경우는 드뭅니다. 다만 나중에 후회가 덜 남는 쪽은 대개 정해져 있습니다.',
+    last:'답을 이미 알고 계셨죠. 저는 그걸 소리 내어 말해드린 것뿐입니다.'
+  }
+
+  };
+
+  root.StellaGuide=GUIDE;
+})(typeof window!=='undefined' ? window : globalThis);
+
+(function(){
+  var root=document.getElementById('ssb'); if(!root) return;
+  var $=function(id){ return document.getElementById(id); };
+  var S=window.StellaSaju, R=window.StellaRead, G=window.StellaGuide;
+
+  function read(k){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch(e){ return null; } }
+  var order=read('stella_demo'), answers=read('stella_answers')||{};
+  var profile = order ? order.profile : null;
+
+  if(!profile){ $('bkEmpty').style.display='flex'; $('bkN').textContent=''; return; }
+
+  var slug = order.guardian_slug || 'door-career';
+  var g = G[slug] || G['door-career'];
+  var loc = S.locate(profile.city, profile.country);
+  var chart = S.compute({ year:profile.year, month:profile.month, day:profile.day,
+    hour:profile.hour, minute:profile.minute||0, sex:profile.sex,
+    lon:loc.lon, lat:loc.lat, tz:loc.tz });
+  var it = R.interpret(chart);
+
+  var name = profile.name || '손님';
+  var topic = order.topic || g.subject;
+  var pages=[], n=0;
+  function two(x){ return (x<10?'0':'')+x; }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function page(html, kind, part){
+    n++;
+    var cls='page' + (kind ? ' '+kind : '');
+    var attr = part ? ' data-part="'+part+'"' : '';
+    var folio = (kind==='cover') ? '' : '<div class="folio">'+two(n)+'</div>';
+    pages.push('<div class="'+cls+'"'+attr+'>'+html+folio+'</div>');
+  }
+
+  /* ── 01 표지 ─────────────────────────────────────────── */
+  var bornLine = profile.year+'년 '+profile.month+'월 '+profile.day+'일';
+  if(profile.calendar==='lunar'){ bornLine='음력 '+bornLine; }
+  var knowsHour=true;
+  if(profile.hour===null){ knowsHour=false; }
+  if(profile.hour===undefined){ knowsHour=false; }
+  if(knowsHour){ bornLine += ' ' + two(profile.hour)+':'+two(profile.minute||0); }
+  else { bornLine += ' (시간 모름)'; }
+
+  page(
+    '<div class="mark">STELLA SAJU</div>'+
+    '<h1>'+esc(name)+'님의<br>'+esc(topic)+'</h1>'+
+    '<div class="sub">'+g.en+'</div>'+
+    '<div class="rule"></div>'+
+    '<dl>'+
+      '<dt>가디언</dt><dd>'+g.name+'</dd>'+
+      '<dt>생년월일시</dt><dd>'+esc(bornLine)+'</dd>'+
+      '<dt>태어난 곳</dt><dd>'+esc(profile.city||'')+'</dd>'+
+      '<dt>사주 원국</dt><dd>'+chart.pillars.year.han+' '+chart.pillars.month.han+' '+
+        chart.pillars.day.han+' '+(chart.pillars.hour?chart.pillars.hour.han:'—')+'</dd>'+
+    '</dl>', 'cover', 'cover');
+
+  /* ── 02 여는 글 ──────────────────────────────────────── */
+  page(
+    '<p class="eyebrow">여는 글</p>'+
+    '<h2>'+g.name+'이 '+esc(topic)+'에 대해</h2>'+
+    '<div class="voice"><div class="who">'+g.name+'</div>'+
+      g.open.map(function(p){ return '<p>'+p+'</p>'; }).join('')+
+    '</div>'+
+    '<p>이 책은 두 부분으로 나뉩니다. <em>1부</em>는 당신이 아무 말도 하기 전에, 오직 태어난 시각만 보고 쓴 것입니다. '+
+    '<em>2부</em>는 당신이 답해주신 일곱 가지를 읽고 다시 쓴 것입니다.</p>'+
+    '<p>그렇게 나눈 이유가 있습니다. 그래야 제가 별을 읽은 것인지 당신 말을 옮겨 적은 것인지, '+
+    '당신이 직접 판단하실 수 있으니까요. 그리고 두 쪽이 어긋나는 자리가 있다면 — 그 자리도 숨기지 않고 적었습니다.</p>');
+
+  /* ── 03 시각을 바로잡다 ──────────────────────────────── */
+  var ts=chart.trueSolar;
+  page(
+    '<p class="eyebrow">근거 하나</p>'+
+    '<h2>시각을 먼저 바로잡습니다</h2>'+
+    '<p class="dek">시계가 가리킨 시각과, 해가 실제로 그 자리에 있던 시각은 다릅니다</p>'+
+    '<p>사주는 시계를 보지 않고 해를 봅니다. 우리나라 표준시는 동경 135도를 기준으로 하는데 '+
+    '국토는 그보다 서쪽에 있어서, 시계가 늘 조금 앞서 갑니다. 여기에 지구 궤도가 타원이라 생기는 '+
+    '<em>균시차</em>까지 더해야 태어난 진짜 시각이 나옵니다.</p>'+
+    '<div class="tw"><table><tbody>'+
+      '<tr><td class="k">시계 시각</td><td>'+ts.clock+'</td></tr>'+
+      '<tr><td class="k">경도 보정</td><td>'+(ts.lonCorrection>0?'+':'')+ts.lonCorrection+'분 &nbsp;<span class="mini">'+
+        (loc.exact?loc.matched:(profile.city||'출생지'))+' 기준</span></td></tr>'+
+      '<tr><td class="k">균시차</td><td>'+(ts.equationOfTime>0?'+':'')+ts.equationOfTime+'분</td></tr>'+
+      '<tr class="now"><td class="k">진태양시</td><td>'+ts.time+
+        (chart.pillars.hour?' &nbsp;<span class="mini">이 시각이 시주를 정합니다</span>':'')+'</td></tr>'+
+    '</tbody></table></div>'+
+    '<p>또 하나. 사주에서 한 해는 1월 1일이 아니라 <em>입춘</em>에 바뀌고, 한 달은 절기에 바뀝니다. '+
+    '태어나신 때는 <em>'+chart.term.name+'</em>이 지난 뒤라, 사주로 세는 해는 <em>'+chart.sajuYear+'년</em>입니다.</p>'+
+    (chart.warnings.length ?
+      '<div class="alert"><div class="tag">알려드릴 것</div>'+
+      chart.warnings.map(function(w){ return '<p>'+w+'</p>'; }).join('')+'</div>' : ''));
+
+  /* ── 04 원국 ─────────────────────────────────────────── */
+  var P=chart.pillars;
+  function col(k, pil, sipTop, sipBot){
+    if(!pil){ return '<div class="col-h">'+k+'</div>'; }
+    return '<div class="col-h">'+k+'</div>';
+  }
+  var heads=['연주','월주','일주','시주'];
+  var cols=[P.year,P.month,P.day,P.hour];
+  var sipMap={};
+  it.slots.forEach(function(s){ sipMap[s.k]=s.sip; });
+  var sipTop=[sipMap['연간'],sipMap['월간'],'나 자신',sipMap['시간']];
+  var sipBot=[sipMap['연지'],sipMap['월지'],sipMap['일지'],sipMap['시지']];
+
+  page(
+    '<p class="eyebrow">근거 둘</p>'+
+    '<h2>여덟 글자</h2>'+
+    '<p class="dek">가운데 일간이 이 사람이고, 나머지 일곱은 모두 그 한 글자와의 관계입니다</p>'+
+    '<div class="chart">'+
+      heads.map(function(h){ return '<div class="col-h">'+h+'</div>'; }).join('')+
+      cols.map(function(c,i){
+        if(!c){ return '<div><div class="han" style="opacity:.25">—</div><div class="kor">시간 모름</div></div>'; }
+        return '<div><div class="han">'+c.han+'</div><div class="kor">'+c.kor+'</div>'+
+          '<div class="sip">'+(sipTop[i]||'')+'<br>'+(sipBot[i]||'')+'</div></div>';
+      }).join('')+
+    '</div>'+
+    '<h3>일간 '+it.dayHan+' — '+it.day.image+'</h3>'+
+    '<p>'+it.day.what+'</p>'+
+    '<p>'+it.day.good+'</p>'+
+    '<p>'+it.day.care+'</p>');
+
+  /* ── 05 오행 ─────────────────────────────────────────── */
+  page(
+    '<p class="eyebrow">근거 셋</p>'+
+    '<h2>기운의 저울</h2>'+
+    '<p class="dek">여덟 글자를 오행으로 나눠 세었습니다</p>'+
+    '<div class="scale">'+
+      chart.five.map(function(f){
+        return '<div class="el'+(f.count===0?' zero':'')+'">'+
+          '<div class="el-n">'+f.element+'</div>'+
+          '<div class="el-bar"><span style="width:'+f.percent+'%"></span></div>'+
+          '<div class="el-v">'+f.percent+'%</div></div>';
+      }).join('')+
+    '</div>'+
+    '<h3>'+R.josa(it.mostEl.element,'이','가')+' 가장 두텁습니다</h3>'+
+    '<p>'+it.mostElText+'</p>'+
+    (it.emptyEls.length ?
+      '<h3>'+R.josa(it.emptyEls.join('·'),'은','는')+' 한 글자도 없습니다</h3>'+
+      it.emptyElText.map(function(t){ return '<p>'+t+'</p>'; }).join('')+
+      '<p>없는 기운은 약점이 아닙니다. 평생 그쪽을 채우려 애쓰게 되는 자리일 뿐입니다. '+
+      '그래서 없는 기운을 가진 사람에게 마음이 갑니다.</p>'
+      : '<h3>빈 자리가 없습니다</h3><p>다섯 기운이 모두 들어 있어 한쪽으로 크게 무너지지 않습니다. '+
+        '대신 어느 하나가 압도적으로 강하지도 않아, 결정적인 순간에 스스로를 밀어붙일 힘을 따로 만들어야 합니다.</p>'));
+
+  /* ── 06 대운 ─────────────────────────────────────────── */
+  var age = 2026 - profile.year + 1;
+  var lk = chart.luck;
+  var nowIdx=-1;
+  lk.list.forEach(function(l,i){ if(age>=l.from){ if(age<l.to){ nowIdx=i; } } });
+  page(
+    '<p class="eyebrow">근거 넷</p>'+
+    '<h2>십 년마다 바뀌는 판</h2>'+
+    '<p class="dek">연간이 '+(chart.pillars.year.gan%2===0?'양':'음')+'이고 '+
+      (profile.sex==='M'?'남성':'여성')+'이라 대운은 '+(lk.forward?'순행':'역행')+'합니다</p>'+
+    '<div class="tw"><table>'+
+      '<thead><tr><th>나이</th><th>간지</th><th>해</th></tr></thead><tbody>'+
+      lk.list.map(function(l,i){
+        return '<tr'+(i===nowIdx?' class="now"':'')+'><td class="k">'+l.from+'~'+l.to+'</td>'+
+          '<td>'+l.han+'</td><td>'+l.fromYear+'~'+l.toYear+(i===nowIdx?' · 지금 여기':'')+'</td></tr>';
+      }).join('')+
+    '</tbody></table></div>'+
+    (nowIdx>=0 ?
+      '<p>지금은 <em>'+lk.list[nowIdx].han+'</em> 대운 한가운데입니다. '+
+      '앞으로 '+Math.max(0, Math.round(lk.list[nowIdx].to-age))+'년쯤 이 판이 이어지고, '+
+      '그다음 <em>'+(lk.list[nowIdx+1]?lk.list[nowIdx+1].han:'다음')+'</em> 대운으로 넘어갑니다.</p>'
+      : '<p>대운이 시작되기 전이거나 표의 범위를 넘어선 나이입니다.</p>')+
+    '<p>대운은 운이 좋아지고 나빠지는 표가 아닙니다. <em>판이 바뀌는 시점</em>의 표입니다. '+
+    '같은 사람이 같은 일을 해도, 판이 바뀌면 결과가 달라집니다.</p>');
+
+  /* ── 07 하늘 ─────────────────────────────────────────── */
+  var st=chart.stars;
+  page(
+    '<p class="eyebrow">근거 다섯</p>'+
+    '<h2>태어나던 밤의 하늘</h2>'+
+    '<p class="dek">같은 사람을 서양의 언어로 한 번 더 읽습니다</p>'+
+    '<div class="tw"><table><tbody>'+
+      '<tr><td class="k">태양</td><td>'+st.sun.name+' '+st.sun.degree+'도<span class="mini">'+it.sun+'</span></td></tr>'+
+      '<tr><td class="k">상승궁</td><td>'+st.ascendant.name+' '+st.ascendant.degree+'도<span class="mini">'+it.asc+'</span></td></tr>'+
+      '<tr><td class="k">천정</td><td>'+st.midheaven.name+' '+st.midheaven.degree+'도<span class="mini">사회에서는 '+it.mc+'</span></td></tr>'+
+    '</tbody></table></div>'+
+    '<p>태양은 이 사람이 무엇을 하려는 사람인지, 상승궁은 남들 눈에 어떻게 비치는지, '+
+    '천정은 사회에서 어느 자리에 서는지를 말합니다.</p>'+
+    '<p>사주가 흙의 언어라면 별자리는 빛의 언어입니다. 둘이 같은 곳을 가리킬 때, '+
+    '그 지점은 웬만해선 틀리지 않습니다.</p>');
+
+  /* ── 08 1부 · 묻기 전에 ─────────────────────────────── */
+  var topSip = it.top.map(function(t){ return t.sip; });
+  page(
+    '<p class="eyebrow">1부 · 묻기 전에 읽은 것</p>'+
+    '<h2>당신이 아무 말도 하기 전에</h2>'+
+    '<p class="dek">여기까지는 태어난 시각 하나만 보고 쓴 것입니다</p>'+
+    '<p>일곱 글자를 일간과의 관계로 세어보니, '+R.joinWa(topSip,'<em>','</em>')+'이 가장 두껍습니다. '+
+    '이 두 자리가 이 사람의 뼈대입니다.</p>'+
+    topSip.map(function(s){
+      var d=it.sipText[s]; if(!d) return '';
+      return '<h3>'+d.t+' · '+it.count[s]+'개</h3><p>'+d.d+'</p>';
+    }).join(''), null, 'one');
+
+  /* ── 09 1부 · 주제로 옮기면 ─────────────────────────── */
+  var groupRank=Object.keys(it.groups).map(function(k){ return {g:k, n:it.groups[k]}; })
+    .sort(function(a,b){ return b.n-a.n; });
+  page(
+    '<p class="eyebrow">1부 · 묻기 전에 읽은 것</p>'+
+    '<h2>'+esc(topic)+'으로 옮기면</h2>'+
+    '<p class="dek">같은 여덟 글자를 '+g.name+'의 언어로 다시 읽습니다</p>'+
+    groupRank.slice(0,3).map(function(r){
+      var txt=g.lens[r.g]; if(!txt) return '';
+      return '<h3>'+r.g+'이 '+r.n+'자리</h3><p>'+txt+'</p>';
+    }).join('')+
+    '<hr>'+
+    '<p>정리하면 — 이 사람은 <em>'+it.axis.solo.say+'</em>이고, <em>'+it.axis.form.say+'</em>이며, '+
+    '<em>'+it.axis.many.say+'</em>입니다. 여기까지가 제가 묻기 전에 읽은 전부입니다.</p>', null, 'one');
+
+  /* ── 10 2부 · 답을 듣고 ─────────────────────────────── */
+  var QAXIS = window.STELLA_QAXIS || {};
+  var qKeys=Object.keys(answers);
+  var rows=qKeys.map(function(k){
+    return '<div class="ans"><div class="ans-q">'+esc(k)+'</div><div class="ans-a">'+esc(answers[k])+'</div></div>';
+  }).join('');
+
+  page(
+    '<p class="eyebrow">2부 · 답을 듣고 다시 읽은 것</p>'+
+    '<h2>당신이 답해주신 것</h2>'+
+    '<p class="dek">이제 이 답들을 위의 사주와 맞대어 봅니다</p>'+
+    (rows ? '<div class="answers">'+rows+'</div>'
+          : '<p>이번에는 질문에 답하지 않고 오셨네요. 그래서 2부는 짧습니다 — '+
+            '사주가 말한 것만 남습니다.</p>')+
+    '<p>여기서 중요한 것 하나. 저는 <em>결론을 당신의 답에서 꺼내지 않습니다.</em> '+
+    '결론은 위의 여덟 글자에서만 나옵니다. 답해주신 것은 그 결론을 당신이 쓰는 말로 바꾸는 데에만 씁니다. '+
+    '그래야 "내가 한 말을 그대로 돌려받았다"는 일이 생기지 않으니까요.</p>', null, 'two');
+
+  /* ── 11 어긋나는 자리 ───────────────────────────────── */
+  page(
+    '<p class="eyebrow">어긋나는 자리</p>'+
+    '<h2>맞지 않는 곳도 적어둡니다</h2>'+
+    '<p class="dek">이 장이 없는 풀이는 믿지 마세요</p>'+
+    '<p>사주가 가리키는 쪽과 지금 살고 계신 쪽이 늘 같지는 않습니다. '+
+    '다르다고 해서 사주가 틀린 것도, 당신이 틀린 것도 아닙니다. '+
+    '다만 <em>그 어긋난 만큼 힘이 더 든다</em>는 뜻입니다.</p>'+
+    '<div class="quad"><div class="quad-grid">'+
+      '<div class="hd">저울</div><div class="hd">사주가 가리키는 쪽</div><div class="hd">기울기</div>'+
+      [['solo','혼자냐 함께냐'],['form','실물이냐 무형이냐'],['many','하나냐 여럿이냐'],
+       ['risk','안정이냐 변화냐'],['make','정답이냐 창조냐']].map(function(a){
+        var A=it.axis[a[0]];
+        return '<div class="hd">'+a[1]+'</div>'+
+               '<div>'+A.name+'</div>'+
+               '<div>'+A.a+' 대 '+A.b+'</div>';
+      }).join('')+
+    '</div></div>'+
+    '<p>기울기가 <em>비슷할수록</em> 그 축은 상황에 따라 달라집니다. '+
+    '한쪽으로 크게 기운 축이 이 사람의 진짜 성질이고, 그 축을 거스르는 자리에 오래 서 있으면 지칩니다.</p>');
+
+  /* ── 12 타로 ─────────────────────────────────────────── */
+  page(
+    '<p class="eyebrow">마지막에 놓는 세 장</p>'+
+    '<h2>오늘의 카드</h2>'+
+    '<p class="dek">사주는 태어날 때 정해진 것을, 카드는 오늘의 것을 읽습니다</p>'+
+    '<div class="cards">'+
+      [['I','지금 서 있는 자리'],['II','넘어야 할 것'],['III','그 너머']].map(function(c){
+        return '<div class="card"><div class="num">'+c[0]+'</div><div class="lb">'+c[1]+'</div></div>';
+      }).join('')+
+    '</div>'+
+    '<p>세 장을 뽑아주셨습니다. 카드의 뜻풀이는 발행이 열리면 이 자리에 들어갑니다. '+
+    '지금은 자리만 잡아두었습니다.</p>');
+
+  /* ── 13 맺음말 ───────────────────────────────────────── */
+  page(
+    '<p class="eyebrow">맺음말</p>'+
+    '<h2>'+esc(name)+'님께</h2>'+
+    '<p class="lead">'+g.close+'</p>'+
+    '<div class="sig">— '+g.name+'</div>', 'close');
+
+  /* ── 14 배웅 ─────────────────────────────────────────── */
+  page(
+    '<div class="fw-portrait"><img src="https://stellasaju.com/wp-content/uploads/2026/08/'+g.face+'" '+
+      'alt="'+g.name+'" width="1408" height="1408"></div>'+
+    '<div class="fw-name">'+g.name+'</div>'+
+    '<div class="fw-en">'+g.en+'</div>'+
+    '<div class="fw-words">'+
+      '<p>여기까지 읽어주셔서 고맙습니다. 이 여덟 글자는 '+esc(name)+'님 것이고, '+
+      '앞으로도 바뀌지 않습니다. 바뀌는 건 그걸 가지고 무엇을 하느냐뿐이에요.</p>'+
+      '<p>풀이는 길을 정해주지 않습니다. 다만 어느 쪽이 오르막이고 어느 쪽이 내리막인지를 알려줄 뿐입니다. '+
+      '오르막을 가더라도, 오르막인 줄 알고 가면 덜 억울합니다.</p>'+
+      '<div class="fw-last">'+g.last+'</div>'+
+    '</div>'+
+    '<p class="fine">본 콘텐츠는 전통 사주명리학과 서양점성술에 기반한 오락적 콘텐츠이며,<br>'+
+    '의료 · 법률 · 투자에 관한 조언이 아닙니다.</p>', 'farewell');
+
+  $('bkBook').innerHTML = pages.join('');
+  $('bkTitle').textContent = g.name + ' · ' + topic;
+  $('bkN').textContent = n + '쪽';
+  $('bkPrint').addEventListener('click', function(){ window.print(); });
+
+  /* 낱장 크기를 하나로 맞춥니다.
+     내용이 짧은 장이 있으면 책이 아니라 전단지처럼 보입니다.
+     가장 긴 장을 재서 나머지를 거기에 맞춥니다. */
+  var sheets=[].slice.call(document.querySelectorAll('#ssb .page'));
+  function evenOut(){
+    sheets.forEach(function(el){ el.style.minHeight=''; });
+    var tall=0;
+    sheets.forEach(function(el){
+      var h=el.getBoundingClientRect().height;
+      if(h>tall){ tall=h; }
+    });
+    tall=Math.ceil(tall);
+    sheets.forEach(function(el){ el.style.minHeight=tall+'px'; });
+  }
+  evenOut();
+  var t=null;
+  window.addEventListener('resize', function(){
+    if(t){ clearTimeout(t); }
+    t=setTimeout(evenOut, 180);
+  });
+})();
+</script>
+<!-- /wp:html -->
