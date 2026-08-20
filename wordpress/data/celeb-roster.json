@@ -1,0 +1,24 @@
+{
+  "_읽어주세요": [
+    "공개적으로 확인 가능한 생년월일만 씁니다.",
+    "birth 가 비어 있으면 페이지는 '출생정보 확인 중'으로 표시하고 사주를 세우지 않습니다.",
+    "확인되지 않은 날짜를 추정해서 채우지 마세요. 틀린 생년월일은 그 사람에게 실제 피해가 됩니다.",
+    "hour 는 대부분 알려져 있지 않습니다. 모르면 null 로 두면 시주 없이 여섯 글자로만 봅니다.",
+    "status: pending(검토 대기) | approved(공개) | rejected(비공개)",
+    "source 에 어디서 확인했는지 적어두면 나중에 다시 확인하기 쉽습니다."
+  ],
+  "people": [
+    {"name":"김혜수","role":"배우","birth":null,"hour":null,"status":"pending","source":""},
+    {"name":"박보검","role":"배우","birth":null,"hour":null,"status":"pending","source":""},
+    {"name":"박서준","role":"배우","birth":null,"hour":null,"status":"pending","source":""},
+    {"name":"손예진","role":"배우","birth":null,"hour":null,"status":"pending","source":""},
+    {"name":"송강호","role":"배우","birth":null,"hour":null,"status":"pending","source":""},
+    {"name":"아이유","role":"가수","birth":null,"hour":null,"status":"pending","source":""},
+    {"name":"유재석","role":"방송인","birth":null,"hour":null,"status":"pending","source":""},
+    {"name":"이병헌","role":"배우","birth":null,"hour":null,"status":"pending","source":""},
+    {"name":"이영애","role":"배우","birth":null,"hour":null,"status":"pending","source":""},
+    {"name":"전지현","role":"배우","birth":null,"hour":null,"status":"pending","source":""},
+    {"name":"차은우","role":"배우","birth":null,"hour":null,"status":"pending","source":""},
+    {"name":"황정민","role":"배우","birth":null,"hour":null,"status":"pending","source":""}
+  ]
+}
