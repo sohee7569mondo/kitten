@@ -340,6 +340,27 @@
   var TOTAL = QS.length + 2;   /* 질문 + 타로 + 발행 */
   var at=0, answers={}, cards=[];
 
+  /* ── 카드 순서 ─────────────────────────────────────────
+     스물두 장(메이저 아르카나)을 섞어둡니다. 섞는 순서는 생년월일시와
+     오늘 날짜로 정해집니다. 그래서 같은 분이 같은 날 다시 오시면 같은 카드가,
+     날이 바뀌면 다른 카드가 나옵니다 — 아르카나가 말한 그대로입니다. */
+  var DECKSEQ=(function(){
+    var P=(ORDER && ORDER.profile) ? ORDER.profile : {};
+    var now=new Date();
+    var seed = (P.year||0)*10007 + (P.month||0)*331 + (P.day||0)*97
+             + (P.hour||0)*13 + (P.minute||0)*7
+             + now.getFullYear()*1103 + (now.getMonth()+1)*37 + now.getDate()*3 + 11;
+    var s = seed % 2147483647;
+    if(s<=0){ s += 2147483646; }
+    function rnd(){ s=(s*16807)%2147483647; return (s-1)/2147483646; }
+    var a=[]; for(var i=0;i<22;i++){ a.push(i); }
+    for(var j=a.length-1;j>0;j--){
+      var k=Math.floor(rnd()*(j+1));
+      var tmp=a[j]; a[j]=a[k]; a[k]=tmp;
+    }
+    return a;
+  })();
+
   function fill(n){ $('qFill').style.width = Math.round(n/TOTAL*100) + '%'; }
   function show(id){
     ['sc0','scQ','scT','scW'].forEach(function(s){ $(s).classList.remove('on'); });
@@ -401,7 +422,7 @@
       var ang=(i-(DECK-1)/2)*6.4;
       var lift=Math.abs(i-(DECK-1)/2)*2.2;
       c.style.transform='rotate('+ang+'deg) translateY('+lift+'px)';
-      c.dataset.ang=ang; c.dataset.lift=lift;
+      c.dataset.ang=ang; c.dataset.lift=lift; c.dataset.i=i;
       c.addEventListener('click', function(e){ take(e.currentTarget); });
       box.appendChild(c);
     }
@@ -411,7 +432,7 @@
     if(cards.length>=3) return;
     if(el.classList.contains('gone')) return;
     var n=cards.length;
-    cards.push(1);
+    cards.push(DECKSEQ[Number(el.dataset.i)||0]);
     el.style.transform='rotate('+el.dataset.ang+'deg) translateY(-190px) scale(.85)';
     el.classList.add('gone');
 
@@ -477,6 +498,8 @@
     }, 1100);
 
     try{ localStorage.setItem('stella_answers', JSON.stringify(answers)); }catch(err){}
+    /* 뽑으신 세 장. 전자책 마지막 장에서 이 번호로 카드를 찾습니다. */
+    try{ localStorage.setItem('stella_cards', JSON.stringify(cards)); }catch(err){}
 
     /* 서버 응답을 안전하게 읽습니다.
        기능이 아직 없으면 워드프레스가 JSON 이 아니라 HTML 오류 페이지를 주기도 합니다. */

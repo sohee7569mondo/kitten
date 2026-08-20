@@ -213,15 +213,25 @@
                   letter-spacing:.2em; color:var(--speak-lite); margin-bottom:6px;}
 
 /* ── 타로 자리 ─────────────────────────── */
-#ssb .cards{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:30px;}
+#ssb .cards{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:26px;}
 #ssb .card{
-  aspect-ratio:2/3.4; border:1px dashed var(--rule); border-radius:3px;
+  aspect-ratio:2/3.2; border:1px solid var(--rule); border-radius:3px;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:10px; text-align:center; padding:14px;
+  gap:7px; text-align:center; padding:14px 10px;
+  background:linear-gradient(180deg, rgba(212,175,106,.05), rgba(212,175,106,0));
 }
-#ssb .card .num{font-family:var(--latin); font-size:1.5rem; color:var(--gold); opacity:.5;}
-#ssb .card .lb{font-size:.88rem; color:var(--dim); line-height:1.7;}
-@media(max-width:520px){ #ssb .cards{grid-template-columns:1fr;} #ssb .card{aspect-ratio:3/1.5;}}
+#ssb .card.blank{border-style:dashed; background:none;}
+#ssb .card .num{font-family:var(--latin); font-size:1.15rem; letter-spacing:.06em; color:var(--gold); opacity:.8;}
+#ssb .card .ko{font-size:1rem; color:var(--star); line-height:1.4;}
+#ssb .card .en{font-family:var(--latin); font-size:.58rem; letter-spacing:.16em; color:var(--dim);}
+#ssb .card .lb{font-size:.8rem; color:var(--dim); line-height:1.6; margin-top:2px;}
+@media(max-width:520px){ #ssb .cards{grid-template-columns:1fr;} #ssb .card{aspect-ratio:auto; min-height:112px;}}
+
+#ssb .tread{margin-top:26px;}
+#ssb .tread .row{padding:16px 0; border-top:1px solid var(--rule);}
+#ssb .tread .pos{font-family:var(--latin); font-size:.62rem; letter-spacing:.18em; color:var(--gold); opacity:.85; margin-bottom:7px;}
+#ssb .tread .nm{font-size:.95rem; color:var(--star); margin-bottom:7px;}
+#ssb .tread p{margin:0; font-size:.95rem; color:var(--soft); line-height:1.85;}
 
 /* ── 마무리 ───────────────────────────── */
 #ssb .close{text-align:center; padding:88px 62px;}
@@ -246,6 +256,16 @@
   color:var(--gold-lite); text-align:center;
 }
 #ssb .close .sig{font-family:var(--serif); font-weight:700; font-size:1.1rem; color:var(--gold-lite); margin-top:34px;}
+#ssb .keep{margin-top:30px; counter-reset:keep;}
+#ssb .keep .k{
+  position:relative; padding:16px 0 16px 42px; border-top:1px solid var(--rule); counter-increment:keep;
+}
+#ssb .keep .k::before{
+  content:counter(keep); position:absolute; left:0; top:16px;
+  font-family:var(--latin); font-size:.9rem; color:var(--gold); opacity:.7;
+}
+#ssb .keep .k .kt{font-size:.98rem; color:var(--star); margin-bottom:6px;}
+#ssb .keep .k p{margin:0; font-size:.95rem; color:var(--soft); line-height:1.85;}
 #ssb .fine{margin-top:40px; font-size:.8rem; color:var(--dim); line-height:1.9;}
 
 @media(prefers-reduced-motion:reduce){ #ssb *{animation:none !important; transition:none !important;}}
@@ -1063,15 +1083,115 @@ body.admin-bar #ssb .bk-bar{top:108px;}
   };
 
   root.StellaGuide=GUIDE;
+
+  /* ═══════════════════════════════════════════════════════════════
+     메이저 아르카나 스물두 장
+     질문 화면에서 뽑으신 카드의 번호가 여기로 옵니다.
+     자리마다 읽는 법이 다릅니다 —
+       I  지금 서 있는 자리 · II 넘어야 할 것 · III 그 너머
+     ═══════════════════════════════════════════════════════════════ */
+  var TAROT=[
+    {n:'0',    ko:'바보',            en:'THE FOOL',
+     now:'아직 아무것도 정해지지 않은 자리에 서 계십니다. 경험이 없다는 건 흠이 아니라 지금은 그냥 사실입니다.',
+     over:'준비가 다 끝나기를 기다리는 마음입니다. 전부 갖추고 출발한 사람은 없습니다.',
+     then:'아무것도 모르고 시작한 일이 결국 가장 멀리 데려다 놓습니다.'},
+    {n:'I',    ko:'마법사',          en:'THE MAGICIAN',
+     now:'가진 것으로 무언가를 만들 수 있는 자리입니다. 재료는 이미 손에 있습니다.',
+     over:'재료를 모으기만 하고 쓰지 않는 습관입니다. 쓰지 않는 재료는 없는 것과 같습니다.',
+     then:'스스로 판을 여는 쪽으로 갑니다. 남이 열어준 판에 올라타는 시기는 지나갑니다.'},
+    {n:'II',   ko:'여사제',          en:'THE HIGH PRIESTESS',
+     now:'겉은 조용한데 안에서는 이미 답이 자라고 있는 자리입니다.',
+     over:'알면서도 모르는 척하고 있는 것입니다. 말하지 않은 것이 가장 무겁습니다.',
+     then:'소리 내어 말하는 순간 풀립니다. 그 전까지는 아무도 모릅니다.'},
+    {n:'III',  ko:'여황제',          en:'THE EMPRESS',
+     now:'무언가를 기르고 있는 자리입니다. 사람이든 일이든 아직 다 자라지 않았습니다.',
+     over:'다 내주고 나서 서운해지는 마음입니다. 준 만큼 돌려받자고 시작한 일이 아니었잖아요.',
+     then:'기른 것이 스스로 걸어갑니다. 그때 손을 놓는 것이 마지막 할 일입니다.'},
+    {n:'IV',   ko:'황제',            en:'THE EMPEROR',
+     now:'틀을 세워야 하는 자리입니다. 지금은 마음보다 규칙이 먼저 필요합니다.',
+     over:'전부 내 손에 쥐려는 마음입니다. 쥔 만큼 그대로 무게가 됩니다.',
+     then:'자리가 생깁니다. 다만 자리에는 늘 책임이 같이 옵니다.'},
+    {n:'V',    ko:'교황',            en:'THE HIEROPHANT',
+     now:'먼저 간 사람의 방식을 배우고 있는 자리입니다.',
+     over:'남이 정해준 답을 한 번도 의심하지 않는 습관입니다.',
+     then:'배운 것을 자기 말로 바꾸어 쓰게 됩니다. 그때부터가 진짜 실력입니다.'},
+    {n:'VI',   ko:'연인',            en:'THE LOVERS',
+     now:'둘 중 하나를 골라야 하는 자리입니다. 둘 다 갖는 길은 이번에는 없습니다.',
+     over:'고르지 않고 미루는 것입니다. 미루는 것도 이미 고르는 것입니다.',
+     then:'고른 쪽이 옳아서가 아니라, 골랐기 때문에 그쪽이 길이 됩니다.'},
+    {n:'VII',  ko:'전차',            en:'THE CHARIOT',
+     now:'이미 달리고 있는 자리입니다. 멈추기 어려운 속도예요.',
+     over:'방향은 확인하지 않고 속도만 올리는 것입니다.',
+     then:'밀어붙인 만큼 갑니다. 다만 도착할 곳이 원하던 곳인지는 지금 정해집니다.'},
+    {n:'VIII', ko:'힘',              en:'STRENGTH',
+     now:'힘으로 누르지 않고 버티고 계신 자리입니다.',
+     over:'참는 것과 삭이는 것을 구분하지 못하는 것입니다. 삭인 것은 사라지지 않고 쌓입니다.',
+     then:'억지로 이기지 않고 끝까지 남습니다. 그게 이기는 것입니다.'},
+    {n:'IX',   ko:'은둔자',          en:'THE HERMIT',
+     now:'혼자 있어야 하는 자리입니다. 지금 외로운 건 잘못된 게 아닙니다.',
+     over:'혼자가 편해져서 아무도 들이지 않게 되는 것입니다.',
+     then:'혼자 정리한 것을 들고 다시 사람들 사이로 나가게 됩니다.'},
+    {n:'X',    ko:'운명의 수레바퀴',  en:'WHEEL OF FORTUNE',
+     now:'내 손으로 어쩔 수 없는 것이 움직이고 있는 자리입니다.',
+     over:'전부 내 탓이라고 여기는 마음입니다. 이번 건은 아닙니다.',
+     then:'판이 한 바퀴 돕니다. 지금 아래에 계신다면 올라갑니다.'},
+    {n:'XI',   ko:'정의',            en:'JUSTICE',
+     now:'셈을 맞춰야 하는 자리입니다. 미뤄둔 계산서가 하나 있습니다.',
+     over:'어느 쪽도 서운하지 않게 하려는 마음입니다. 그런 답은 이번에 없습니다.',
+     then:'치른 만큼 정확히 돌아옵니다. 더도 덜도 아닙니다.'},
+    {n:'XII',  ko:'매달린 사람',      en:'THE HANGED MAN',
+     now:'아무것도 진행되지 않는 자리입니다. 멈춘 게 아니라 매달려 있는 것입니다.',
+     over:'거꾸로 매달린 채로 똑바로 보려는 것입니다. 이번에는 시선을 바꾸셔야 합니다.',
+     then:'기다린 시간이 헛되지 않습니다. 다만 지금은 그게 안 보일 뿐입니다.'},
+    {n:'XIII', ko:'죽음',            en:'DEATH',
+     now:'무언가 하나가 끝나는 자리입니다. 무서운 뜻이 아니라, 정말 끝난다는 뜻입니다.',
+     over:'이미 끝난 것을 붙잡고 있는 손입니다.',
+     then:'끝낸 자리에서만 다음 것이 시작됩니다. 자리를 비우셔야 들어옵니다.'},
+    {n:'XIV',  ko:'절제',            en:'TEMPERANCE',
+     now:'섞고 조절해야 하는 자리입니다. 한쪽으로 몰면 무너집니다.',
+     over:'조급함입니다. 지금은 한 번에 되는 일이 하나도 없습니다.',
+     then:'천천히 맞춘 것이 제일 오래 갑니다.'},
+    {n:'XV',   ko:'악마',            en:'THE DEVIL',
+     now:'알면서도 못 놓고 있는 것이 있는 자리입니다.',
+     over:'"이건 어쩔 수 없다"는 말입니다. 대부분은 어쩔 수 있습니다.',
+     then:'묶인 줄이 생각보다 헐겁습니다. 한 번 당겨보시면 압니다.'},
+    {n:'XVI',  ko:'탑',              en:'THE TOWER',
+     now:'갑자기 무너진 자리, 혹은 곧 무너질 자리입니다.',
+     over:'무너지지 않게 버티려는 힘입니다. 이번에는 버티는 쪽이 더 아픕니다.',
+     then:'무너지고 나서 남은 것이 진짜입니다. 그건 다시 안 무너집니다.'},
+    {n:'XVII', ko:'별',              en:'THE STAR',
+     now:'크게 앓고 난 뒤의 자리입니다. 조용하지만 분명히 나아지고 있습니다.',
+     over:'다시 기대하기가 무서운 마음입니다.',
+     then:'멀지만 분명한 쪽으로 갑니다. 서두르지 않으셔도 닿습니다.'},
+    {n:'XVIII',ko:'달',              en:'THE MOON',
+     now:'확실한 것이 하나도 없는 자리입니다. 헷갈리는 게 정상입니다.',
+     over:'아직 안 보이는데 결론부터 내려는 것입니다.',
+     then:'날이 밝으면 별일 아니었던 것으로 드러납니다.'},
+    {n:'XIX',  ko:'태양',            en:'THE SUN',
+     now:'숨길 것 없이 다 드러나 있는 자리입니다.',
+     over:'잘될 때 방심하는 것입니다.',
+     then:'분명하게 좋아집니다. 이건 돌려서 말하지 않겠습니다.'},
+    {n:'XX',   ko:'심판',            en:'JUDGEMENT',
+     now:'지난 것을 한 번 불러 세우는 자리입니다.',
+     over:'다시 꺼내기 싫은 마음입니다. 덮어둔 것은 없어진 것이 아닙니다.',
+     then:'정리하고 나면 같은 일이 되풀이되지 않습니다.'},
+    {n:'XXI',  ko:'세계',            en:'THE WORLD',
+     now:'한 바퀴가 거의 다 돌아온 자리입니다.',
+     over:'마지막 한 걸음을 남겨두고 딴 데를 보는 것입니다.',
+     then:'끝납니다. 그리고 그다음은 완전히 다른 이야기가 시작됩니다.'}
+  ];
+  root.StellaTarot=TAROT;
 })(typeof window!=='undefined' ? window : globalThis);
 
 (function(){
   var root=document.getElementById('ssb'); if(!root) return;
   var $=function(id){ return document.getElementById(id); };
-  var S=window.StellaSaju, R=window.StellaRead, G=window.StellaGuide;
+  var S=window.StellaSaju, R=window.StellaRead, G=window.StellaGuide, T=window.StellaTarot||[];
 
   function read(k){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch(e){ return null; } }
   var order=read('stella_demo'), answers=read('stella_answers')||{};
+  var picked=read('stella_cards');
+  if(!(picked instanceof Array)){ picked=[]; }
   var profile = order ? order.profile : null;
 
   if(!profile){ $('bkEmpty').style.display='flex'; $('bkN').textContent=''; return; }
@@ -1399,38 +1519,143 @@ body.admin-bar #ssb .bk-bar{top:108px;}
      "어느 쪽으로 얼마나 기울었는지" 를 "그래서 어떤 자리가 힘든지" 로 옮겨 적습니다. */
 
   /* 질문 화면에서 고르신 답이 어느 쪽이었는지 되짚습니다.
-     직성의 신은 다섯 문항이 다섯 저울과 하나씩 맞아떨어집니다. */
+     저울(축)마다 어느 문항이 그 저울을 재는지 적어둡니다.
+     q 는 질문 화면에서 쓰는 키, a 는 A 쪽(안정·정답·혼자·실물·하나) 답,
+     b 는 B 쪽(변화·창조·함께·무형·여럿) 답입니다.
+     가디언마다 문항이 다르므로 저울 이름과 문항 키가 같지 않습니다.
+     저울과 정직하게 맞아떨어지는 문항만 넣었습니다 — 억지로 끼워 맞추면
+     "어긋났다"는 말이 근거 없는 말이 되니까요. 없는 축은 비교를 건너뜁니다. */
   var PICKS={
     'door-career':{
-      risk:['결과가 예상되는 편이 좋다','예상 못 할수록 재미있다'],
-      make:['정해진 답을 정확히 맞히고 싶다','없던 답을 내가 만들고 싶다'],
-      solo:['혼자 몰입하는 게 편하다','사람들과 굴러가는 게 좋다'],
-      form:['손에 잡히는 걸 만들고 싶다','눈에 안 보이는 걸 다루고 싶다'],
-      many:['하나를 깊게 파고 싶다','여러 개를 동시에 굴리고 싶다']
+      risk:{q:'risk', a:'결과가 예상되는 편이 좋다',        b:'예상 못 할수록 재미있다'},
+      make:{q:'make', a:'정해진 답을 정확히 맞히고 싶다',    b:'없던 답을 내가 만들고 싶다'},
+      solo:{q:'solo', a:'혼자 몰입하는 게 편하다',          b:'사람들과 굴러가는 게 좋다'},
+      form:{q:'form', a:'손에 잡히는 걸 만들고 싶다',        b:'눈에 안 보이는 걸 다루고 싶다'},
+      many:{q:'many', a:'하나를 깊게 파고 싶다',            b:'여러 개를 동시에 굴리고 싶다'}
+    },
+    'door-love':{
+      risk:{q:'spark',    a:'오래 보다가 서서히 든다',   b:'처음 본 순간 알아본다'},
+      make:{q:'type',     a:'나를 편하게 해주는 사람',   b:'나를 자꾸 흔드는 사람'},
+      solo:{q:'fight',    a:'혼자 삭인 뒤에 말한다',     b:'바로 붙잡고 풀어야 한다'},
+      form:{q:'say',      a:'해주는 걸로 느낀다',        b:'말로 다 해줘야 안다'},
+      many:{q:'together', a:'매일 붙어 있고 싶다',       b:'각자 시간이 있어야 한다'}
+    },
+    'door-health':{
+      risk:{q:'rhythm', a:'규칙적으로 사는 편이다', b:'몰아서 하고 몰아서 쉰다'},
+      solo:{q:'family', a:'짊어지는 쪽이다',       b:'기대는 쪽이다'},
+      form:{q:'rest',   a:'몸을 움직여야 풀린다',   b:'푹 자고 아무것도 안 한다'}
+    },
+    'door-fortune':{
+      risk:{q:'change', a:'천천히 준비해서 옮긴다',   b:'일단 저지르고 맞춰간다'},
+      make:{q:'decide', a:'따져보고 숫자로 정한다',   b:'느낌이 오는 쪽으로 간다'},
+      many:{q:'plan',   a:'몇 년 앞을 그려두는 편이다', b:'그때그때 정하는 편이다'}
+    },
+    'door-astro':{
+      risk:{q:'first', a:'상대가 오길 기다린다',      b:'먼저 말을 거는 편이다'},
+      make:{q:'move',  a:'논리가 맞아떨어질 때',      b:'분위기가 맞아떨어질 때'},
+      solo:{q:'alone', a:'꼭 있어야 한다',            b:'없어도 괜찮다'},
+      form:{q:'story', a:'현실에 발 붙은 이야기',      b:'신화나 상상 같은 이야기'},
+      many:{q:'mask',  a:'거의 비슷한 편이다',        b:'많이 다른 것 같다'}
+    },
+    'door-tarot':{
+      risk:{q:'fear', a:'해보고 잘못되는 것',   b:'안 해보고 후회하는 것'},
+      make:{q:'gut',  a:'오래 재보고 정한다',   b:'직감이 오면 바로 간다'},
+      solo:{q:'talk', a:'아무에게도 말 안 했다', b:'여러 사람에게 물어봤다'}
     }
   };
   function pickedSide(key){
-    var set=PICKS[slug]; if(!set){ return ''; }
-    var pair=set[key];   if(!pair){ return ''; }
-    var v=answers[key];  if(!v){ return ''; }
-    if(v===pair[0]){ return 'A'; }
-    if(v===pair[1]){ return 'B'; }
+    var set=PICKS[slug];  if(!set){ return ''; }
+    var m=set[key];       if(!m){ return ''; }
+    var v=answers[m.q];   if(!v){ return ''; }
+    if(v===m.a){ return 'A'; }
+    if(v===m.b){ return 'B'; }
     return '';
   }
 
-  /* 그 축을 거스르는 자리가 구체적으로 어떤 자리인지 */
-  var AGAINST={
-    solo:{ A:'사람들 사이에서 하루 종일 말을 맞춰야 하는 자리',
-           B:'혼자 방에서 처음부터 끝까지 다 끝내야 하는 자리' },
-    form:{ A:'눈에 보이지 않는 것만 종일 다루는 자리',
-           B:'정해진 물건을 똑같이 반복해서 만드는 자리' },
-    many:{ A:'여러 건을 동시에 굴려야 하는 자리',
-           B:'한 가지만 몇 년씩 붙잡고 있어야 하는 자리' },
-    risk:{ A:'달마다 판이 바뀌는 자리',
-           B:'정해진 절차만 그대로 반복하는 자리' },
-    make:{ A:'답이 없는 것을 처음부터 만들어야 하는 자리',
-           B:'남이 정한 답을 그대로 지켜야 하는 자리' }
+  /* 그 축을 거스르는 상황이 구체적으로 어떤 것인지 — 가디언마다 말이 다릅니다.
+     A 는 사주가 A 쪽으로 기울었을 때 거스르는 상황, B 는 그 반대입니다.
+     문장은 "…가 오래 이어지면" 으로 이어붙일 수 있게 명사구로 끝냅니다. */
+  var AGAINST_ALL={
+    'door-career':{
+      cost:'같은 일을 해도 남보다 힘이 더 듭니다',
+      solo:{ A:'사람들 사이에서 하루 종일 말을 맞춰야 하는 자리',
+             B:'혼자 방에서 처음부터 끝까지 다 끝내야 하는 자리' },
+      form:{ A:'눈에 보이지 않는 것만 종일 다루는 자리',
+             B:'정해진 물건을 똑같이 반복해서 만드는 자리' },
+      many:{ A:'여러 건을 동시에 굴려야 하는 자리',
+             B:'한 가지만 몇 년씩 붙잡고 있어야 하는 자리' },
+      risk:{ A:'달마다 판이 바뀌는 자리',
+             B:'정해진 절차만 그대로 반복하는 자리' },
+      make:{ A:'답이 없는 것을 처음부터 만들어야 하는 자리',
+             B:'남이 정한 답을 그대로 지켜야 하는 자리' }
+    },
+    'door-love':{
+      cost:'같은 사랑을 해도 마음이 남보다 빨리 닳습니다',
+      solo:{ A:'한순간도 혼자 두지 않는 관계',
+             B:'각자 알아서 지내고 말은 거의 없는 관계' },
+      form:{ A:'말로만 확인하고 끝나는 관계',
+             B:'챙겨주기만 하고 마음 이야기는 안 하는 관계' },
+      many:{ A:'여러 갈래를 동시에 열어두는 관계',
+             B:'한 사람만 몇 년씩 바라보는 관계' },
+      risk:{ A:'만날 때마다 판이 뒤집히는 관계',
+             B:'아무 일도 일어나지 않는 관계' },
+      make:{ A:'매번 없던 답을 새로 정해야 하는 관계',
+             B:'정해진 대로만 굴러가는 관계' }
+    },
+    'door-health':{
+      cost:'같은 하루를 살아도 몸이 남보다 빨리 지칩니다',
+      solo:{ A:'하루 종일 사람에 둘러싸여 있는 생활',
+             B:'아무와도 말하지 않고 혼자 버티는 생활' },
+      form:{ A:'몸은 안 쓰고 머리만 쓰는 생활',
+             B:'몸만 쓰고 마음은 돌보지 않는 생활' },
+      many:{ A:'여러 일을 한꺼번에 떠안는 생활',
+             B:'한 가지만 몇 년씩 붙들고 있는 생활' },
+      risk:{ A:'일정이 매번 바뀌는 생활',
+             B:'똑같은 하루가 끝없이 반복되는 생활' },
+      make:{ A:'답 없는 문제를 계속 떠맡는 생활',
+             B:'남이 정해준 대로만 따라야 하는 생활' }
+    },
+    'door-fortune':{
+      cost:'같은 시기를 지나도 남보다 크게 흔들립니다',
+      solo:{ A:'남의 판에 올라타서 끌려가는 시기',
+             B:'혼자 다 정하고 혼자 책임져야 하는 시기' },
+      form:{ A:'결과가 눈에 보이지 않는 일에만 매달리는 시기',
+             B:'눈앞의 것만 처리하다 끝나는 시기' },
+      many:{ A:'여러 건을 동시에 벌여놓는 시기',
+             B:'한 가지만 붙들고 몇 년을 보내는 시기' },
+      risk:{ A:'해마다 판이 뒤집히는 시기',
+             B:'아무것도 바뀌지 않는 시기' },
+      make:{ A:'가본 적 없는 길을 새로 내야 하는 시기',
+             B:'정해진 절차만 지키며 보내는 시기' }
+    },
+    'door-astro':{
+      cost:'같은 자리에 있어도 남보다 빨리 지칩니다',
+      solo:{ A:'늘 사람들 한가운데 서 있어야 하는 자리',
+             B:'아무도 나를 찾지 않는 자리' },
+      form:{ A:'보이지 않는 이야기만 오래 다루는 자리',
+             B:'눈에 보이는 것만 계속 다루는 자리' },
+      many:{ A:'여러 얼굴을 동시에 써야 하는 자리',
+             B:'한 가지 모습으로만 살아야 하는 자리' },
+      risk:{ A:'매번 다른 사람을 새로 만나야 하는 자리',
+             B:'늘 같은 사람만 보는 자리' },
+      make:{ A:'없던 것을 계속 지어내야 하는 자리',
+             B:'정해진 배역만 연기해야 하는 자리' }
+    },
+    'door-tarot':{
+      cost:'같은 결정을 내려도 후회가 남보다 오래 남습니다',
+      solo:{ A:'여러 사람의 말을 다 듣고 정해야 하는 결정',
+             B:'아무에게도 묻지 못하고 혼자 정해야 하는 결정' },
+      form:{ A:'숫자로는 확인할 수 없는 결정',
+             B:'마음은 빼고 계산만으로 해야 하는 결정' },
+      many:{ A:'여러 갈래를 한꺼번에 정해야 하는 결정',
+             B:'하나만 붙들고 오래 끌어야 하는 결정' },
+      risk:{ A:'판이 계속 바뀌는 중에 내려야 하는 결정',
+             B:'아무것도 바뀌지 않는데 계속 미뤄야 하는 결정' },
+      make:{ A:'답이 없는 것을 스스로 만들어야 하는 결정',
+             B:'남이 정해준 답을 그대로 따라야 하는 결정' }
+    }
   };
+  var AGAINST = AGAINST_ALL[slug] || AGAINST_ALL['door-career'];
   /* 기울기의 크기를 말로 */
   function tiltWord(d){
     if(d>=4){ return '아주 크게'; }
@@ -1455,8 +1680,9 @@ body.admin-bar #ssb .bk-bar{top:108px;}
     } else {
       out+='<p>사주는 <em>'+A.name+'</em> 쪽으로 '+tiltWord(d)+' 기울어 있습니다 — '+
            A.a+' 대 '+A.b+'. '+A.say+'입니다.</p>';
-      out+='<p>그래서 <em>'+AGAINST[key][A.lean]+'</em>에 오래 서 계시면, '+
-           '같은 일을 해도 남보다 힘이 더 듭니다. 게을러서가 아니라 '+
+      var bad=AGAINST[key][A.lean];
+      out+='<p>그래서 <em>'+bad+'</em>'+(R.hasBatchim(bad)?'이':'가')+' 오래 이어지면, '+
+           AGAINST.cost+'. 게을러서가 아니라 '+
            '결을 거슬러 밀고 있어서입니다. '+
            (d>=3 ? '기울기가 큰 편이라 이 차이는 시간이 지나도 잘 줄지 않습니다.'
                  : '기울기가 아주 크지는 않아서, 버틸 만한 정도로 지나갈 수도 있습니다.')+'</p>';
@@ -1504,20 +1730,141 @@ body.admin-bar #ssb .bk-bar{top:108px;}
     '중요한 건 <em>어긋난 자리를 고치는 것이 아니라 알고 있는 것</em>입니다. '+
     '알고 있으면 "내가 부족한가" 대신 "여기는 원래 나한테 두 배로 드는 자리지" 하고 넘어갈 수 있으니까요.</p>', null, 'two');
 
-  /* ── 12 타로 ─────────────────────────────────────────── */
-  page(
-    '<p class="eyebrow">마지막에 놓는 세 장</p>'+
-    '<h2>오늘의 카드</h2>'+
-    '<p class="dek">사주는 태어날 때 정해진 것을, 카드는 오늘의 것을 읽습니다</p>'+
-    '<div class="cards">'+
-      [['I','지금 서 있는 자리'],['II','넘어야 할 것'],['III','그 너머']].map(function(c){
-        return '<div class="card"><div class="num">'+c[0]+'</div><div class="lb">'+c[1]+'</div></div>';
-      }).join('')+
-    '</div>'+
-    '<p>세 장을 뽑아주셨습니다. 카드의 뜻풀이는 발행이 열리면 이 자리에 들어갑니다. '+
-    '지금은 자리만 잡아두었습니다.</p>');
+  /* ── 12 타로 ───────────────────────────────────────────
+     질문 화면에서 뽑으신 세 장을 번호로 받아 여기서 폅니다.
+     섞는 순서는 생년월일시와 그날 날짜로 정해지므로,
+     같은 날 다시 오시면 같은 카드가, 날이 바뀌면 다른 카드가 나옵니다. */
+  var SLOTS=[
+    {rn:'I',   pos:'지금 서 있는 자리', key:'now'},
+    {rn:'II',  pos:'넘어야 할 것',      key:'over'},
+    {rn:'III', pos:'그 너머',           key:'then'}
+  ];
+  function ga(w){ return R.hasBatchim(w) ? '이' : '가'; }
+  var drew=[];
+  SLOTS.forEach(function(sl, i){
+    var idx=picked[i];
+    var c=(typeof idx==='number' && T[idx]) ? T[idx] : null;
+    drew.push(c);
+  });
+  var haveCards = drew.filter(function(c){ return !!c; }).length===3;
+
+  var faceRow='<div class="cards">'+SLOTS.map(function(sl,i){
+    var c=drew[i];
+    if(!c){
+      return '<div class="card blank"><div class="num">'+sl.rn+'</div>'+
+             '<div class="lb">'+sl.pos+'</div></div>';
+    }
+    return '<div class="card"><div class="num">'+sl.rn+'</div>'+
+           '<div class="ko">'+esc(c.ko)+'</div>'+
+           '<div class="en">'+esc(c.en)+'</div>'+
+           '<div class="lb">'+sl.pos+'</div></div>';
+  }).join('')+'</div>';
+
+  if(haveCards){
+    page(
+      '<p class="eyebrow">마지막에 놓는 세 장</p>'+
+      '<h2>오늘의 카드</h2>'+
+      '<p class="dek">사주는 태어날 때 정해진 것을, 카드는 오늘의 것을 읽습니다</p>'+
+      faceRow+
+      '<p>여기까지는 태어난 시각으로 읽은 것이라 평생 바뀌지 않습니다. '+
+      '이 세 장만 다릅니다. 오늘 이 자리에서 뽑으신 것이라 오늘 것이에요. '+
+      '내일 다시 오시면 다른 장이 나옵니다.</p>');
+
+    page(
+      '<p class="eyebrow">마지막에 놓는 세 장</p>'+
+      '<h2>세 장이 하는 말</h2>'+
+      '<div class="tread">'+SLOTS.map(function(sl,i){
+        var c=drew[i];
+        return '<div class="row">'+
+               '<div class="pos">'+sl.rn+' · '+sl.pos+'</div>'+
+               '<div class="nm">'+esc(c.ko)+' <span style="opacity:.5">'+esc(c.en)+'</span></div>'+
+               '<p>'+esc(c[sl.key])+'</p>'+
+               '</div>';
+      }).join('')+'</div>'+
+      '<hr>'+
+      '<p>카드는 앞의 여덟 글자를 뒤집지 않습니다. 사주가 <em>'+topLean()+'</em> 쪽으로 기울어 있다는 것은 '+
+      '오늘 무슨 카드가 나오든 그대로예요. 카드는 그 기울기를 오늘 어떻게 쓰실지만 말합니다.</p>'+
+      (order.oneline
+        ? '<p>물으신 것 — <em>'+esc(order.oneline)+'</em> — 에 이 세 장을 대보시면, '+
+          '<em>'+esc(drew[0].ko)+'</em>'+ga(drew[0].ko)+' 지금 서 계신 자리, '+
+          '<em>'+esc(drew[1].ko)+'</em>'+ga(drew[1].ko)+' 걸려 있는 것, '+
+          '<em>'+esc(drew[2].ko)+'</em>'+ga(drew[2].ko)+' 그걸 넘었을 때 오는 자리입니다.</p>'
+        : ''), null, 'two');
+  } else {
+    page(
+      '<p class="eyebrow">마지막에 놓는 세 장</p>'+
+      '<h2>오늘의 카드</h2>'+
+      '<p class="dek">사주는 태어날 때 정해진 것을, 카드는 오늘의 것을 읽습니다</p>'+
+      faceRow+
+      '<p>이번에는 카드를 뽑지 않고 오셨습니다. 질문 화면 마지막에서 세 장을 뽑으시면 '+
+      '이 자리에 카드와 뜻풀이가 들어갑니다. 사주 풀이는 카드 없이도 그대로 나옵니다.</p>');
+  }
 
   /* ── 13 맺음말 ───────────────────────────────────────── */
+  /* 맺음말은 새로 지어내는 자리가 아니라 앞에서 이미 나온 것을 세 개로 줄이는 자리입니다.
+     그래서 여기 문장은 전부 앞 장에서 계산된 값에서만 나옵니다. */
+  var gapKeys=[];
+  ['solo','form','many','risk','make'].forEach(function(k){
+    var A=it.axis[k]; if(!A){ return; }
+    if(!A.lean){ return; }
+    var side=pickedSide(k);
+    if(side){ if(side!==A.lean){ gapKeys.push(k); } }
+  });
+  var AXNAME={ solo:'혼자냐 함께냐', form:'실물이냐 무형이냐', many:'하나냐 여럿이냐',
+               risk:'안정이냐 변화냐', make:'정답이냐 창조냐' };
+  var leanKey=(function(){
+    var best='', bd=-1;
+    ['solo','form','many','risk','make'].forEach(function(k){
+      var A=it.axis[k]; if(!A){ return; }
+      var d=Math.abs(A.a-A.b);
+      if(d>bd){ bd=d; best=k; }
+    });
+    return best;
+  })();
+  var leanAxis = leanKey ? it.axis[leanKey] : null;
+
+  var keep='<div class="keep">';
+  keep+='<div class="k"><div class="kt">결은 '+(leanAxis&&leanAxis.lean ? leanAxis.name+' 쪽입니다' : '어느 쪽으로도 크게 기울지 않았습니다')+'</div>'+
+        '<p>'+(leanAxis&&leanAxis.lean
+          ? '여덟 글자에서 가장 크게 기운 저울이 '+AXNAME[leanKey]+'였고, '+leanAxis.say+'로 나왔습니다. '+
+            '고르실 일이 생기면 이 쪽을 기본값으로 두세요. 반대쪽으로 갈 때는 그만큼 힘을 더 쓸 각오를 하시면 됩니다.'
+          : '다섯 저울이 고르게 나왔습니다. 어느 쪽이든 갈 수 있다는 뜻이라 좋기도 하지만, '+
+            '남이 정해주는 대로 흘러가기도 쉽습니다. 기준은 스스로 정하셔야 합니다.')+'</p></div>';
+
+  var COUNTW=['','한','두','세','네','다섯'];
+  keep+='<div class="k"><div class="kt">'+(gapKeys.length
+          ? '어긋난 자리가 '+(COUNTW[gapKeys.length]||gapKeys.length)+' 군데 있었습니다'
+          : '어긋난 자리는 없었습니다')+'</div>'+
+        '<p>'+(gapKeys.length
+          ? gapKeys.map(function(k){ return AXNAME[k]; }).join(', ')+' — 여기서 사주가 가리키는 쪽과 '+
+            '답해주신 쪽이 달랐습니다. 고치라는 뜻이 아닙니다. 이 자리에서 유난히 힘이 든다면 '+
+            '<em>원래 두 배로 드는 자리</em>라는 걸 기억하시면 됩니다.'
+          : '답해주신 것이 사주가 가리키는 쪽과 모두 같았습니다. 스스로를 꽤 정확히 알고 계신다는 뜻이에요. '+
+            '지금 하고 계신 판단을 크게 의심하지 않으셔도 됩니다.')+'</p></div>';
+
+  keep+='<div class="k"><div class="kt">'+(nowIdx>=0
+          ? '지금 판은 '+lk.list[nowIdx].han+' 대운입니다'
+          : '대운의 판은 아직 시작 전입니다')+'</div>'+
+        '<p>'+(nowIdx>=0
+          ? '앞으로 '+Math.max(0, Math.round(lk.list[nowIdx].to-age))+'년쯤 이 판이 이어집니다. '+
+            '큰 결정은 판이 바뀌는 시점을 하나 알고 내리는 것과 모르고 내리는 것이 아주 다릅니다.'
+          : '아직 첫 대운에 들어서기 전입니다. 지금은 판보다 타고난 결이 훨씬 크게 작용하는 시기예요.')+'</p></div>';
+  keep+='</div>';
+
+  page(
+    '<p class="eyebrow">맺음말</p>'+
+    '<h2>세 가지만 기억하세요</h2>'+
+    '<p class="dek">이 책에서 나온 것을 셋으로 줄이면 이렇습니다</p>'+
+    '<p>여기 적은 셋은 새로 지어낸 말이 아닙니다. 앞 장에서 이미 계산되어 나온 것을 '+
+    '가장 짧게 줄인 것뿐이에요. 다른 건 다 잊으셔도 이 셋만 남으면 충분합니다.</p>'+
+    keep+
+    (answers.mind
+      ? '<hr>'+
+        '<p>요즘 마음에 걸린다고 하신 것은 <em>'+esc(answers.mind)+'</em>였습니다. '+
+        '이게 이 셋 가운데 어디에 걸려 있는지부터 보세요. '+
+        '대개는 두 번째 — 어긋난 자리 — 에 걸려 있습니다.</p>'
+      : ''), null, 'two');
+
   page(
     '<p class="eyebrow">맺음말</p>'+
     '<h2>'+esc(name)+'님께</h2>'+
