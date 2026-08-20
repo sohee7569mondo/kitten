@@ -611,6 +611,7 @@ function stella_rest_me( WP_REST_Request $req ) {
 		'balance'  => stella_orb_balance( $uid ),
 		'expires'  => $exp ? wp_date( 'Y-m-d', $exp ) : '',
 		'trial'    => (bool) STELLA_TRIAL,
+		'needs_email' => (bool) get_user_meta( $uid, 'stella_needs_email', true ),
 		'prices'   => array(
 			'base'    => (int) STELLA_PRICE_BASE,
 			'oneline' => (int) STELLA_PRICE_ONELINE,
@@ -640,11 +641,21 @@ function stella_rest_signup( WP_REST_Request $req ) {
 	$email = isset( $profile['email'] ) ? sanitize_email( $profile['email'] ) : '';
 	$name  = isset( $profile['name'] )  ? sanitize_text_field( $profile['name'] ) : '';
 
-	if ( ! is_email( $email ) ) {
-		return new WP_Error( 'stella_email', '이메일을 정확히 적어주세요.', array( 'status' => 400 ) );
-	}
 	if ( $name === '' ) {
 		return new WP_Error( 'stella_name', '이름을 적어주세요.', array( 'status' => 400 ) );
+	}
+
+	/* 이메일은 선택입니다 — 가디언 폼에도 '선택'이라고 적혀 있습니다.
+	   안 적어주시면 임시 주소로 계정을 만들고, 나중에 마이페이지에서 받습니다.
+	   (여기서 막아버리면 이메일을 안 적은 분은 가입이 조용히 실패합니다) */
+	$hasEmail = is_email( $email );
+	if ( ! $hasEmail ) {
+		if ( $email !== '' ) {
+			return new WP_Error( 'stella_email', '이메일을 정확히 적어주세요.', array( 'status' => 400 ) );
+		}
+		$host  = wp_parse_url( home_url(), PHP_URL_HOST );
+		$host  = $host ? $host : 'stellasaju.com';
+		$email = 'guest-' . wp_generate_password( 12, false, false ) . '@' . $host;
 	}
 
 	$y = isset( $profile['year'] )  ? (int) $profile['year']  : 0;
@@ -655,8 +666,8 @@ function stella_rest_signup( WP_REST_Request $req ) {
 		return new WP_Error( 'stella_birth', '생년월일을 다시 확인해주세요.', array( 'status' => 400 ) );
 	}
 
-	/* 이미 가입된 이메일이면 새로 만들지 않습니다 */
-	$existing = get_user_by( 'email', $email );
+	/* 이미 가입된 이메일이면 새로 만들지 않습니다 (임시 주소는 검사하지 않습니다) */
+	$existing = $hasEmail ? get_user_by( 'email', $email ) : false;
 	if ( $existing ) {
 		if ( ! is_user_logged_in() ) {
 			return new WP_Error(
@@ -687,7 +698,11 @@ function stella_rest_signup( WP_REST_Request $req ) {
 		if ( stella_event_orbs() > 0 ) {
 			stella_orb_add( $uid, stella_event_orbs(), '오픈 기념' );
 		}
-		stella_send_welcome( $uid, $name );
+		if ( $hasEmail ) {
+			stella_send_welcome( $uid, $name );
+		} else {
+			update_user_meta( $uid, 'stella_needs_email', 1 );
+		}
 	}
 
 	/* 사주 정보 저장 */
@@ -724,6 +739,7 @@ function stella_rest_signup( WP_REST_Request $req ) {
 		'balance' => $placed['balance'],
 		'needed'  => $placed['price'],
 		'next'    => $placed['next'],
+		'needs_email' => ! $hasEmail,
 	) );
 }
 
