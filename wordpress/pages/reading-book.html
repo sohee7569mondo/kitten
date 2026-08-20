@@ -1098,6 +1098,20 @@ body.admin-bar #ssb .bk-bar{top:108px;}
     pages.push('<div class="'+cls+'"'+attr+'>'+html+folio+'</div>');
   }
 
+  /* 다섯 저울 가운데 가장 크게 기운 것의 이름 */
+  function topLean(){
+    var best=null, bd=-1;
+    ['solo','form','many','risk','make'].forEach(function(k){
+      var A=it.axis[k];
+      if(!A){ return; }
+      var d=Math.abs(A.a-A.b);
+      if(d>bd){ bd=d; best=A; }
+    });
+    if(!best){ return '가운데'; }
+    if(!best.lean){ return '어느 쪽으로도 크게 기울지 않은 구조'; }
+    return best.name;
+  }
+
   /* ── 01 표지 ─────────────────────────────────────────── */
   var bornLine = profile.year+'년 '+profile.month+'월 '+profile.day+'일';
   if(profile.calendar==='lunar'){ bornLine='음력 '+bornLine; }
@@ -1139,8 +1153,9 @@ body.admin-bar #ssb .bk-bar{top:108px;}
     '<h2>시각을 먼저 바로잡습니다</h2>'+
     '<p class="dek">시계가 가리킨 시각과, 해가 실제로 그 자리에 있던 시각은 다릅니다</p>'+
     '<p>사주는 시계를 보지 않고 해를 봅니다. 우리나라 표준시는 동경 135도를 기준으로 하는데 '+
-    '국토는 그보다 서쪽에 있어서, 시계가 늘 조금 앞서 갑니다. 여기에 지구 궤도가 타원이라 생기는 '+
-    '<em>균시차</em>까지 더해야 태어난 진짜 시각이 나옵니다.</p>'+
+    '국토는 그보다 서쪽에 있어서, 시계가 늘 조금 앞서 갑니다. 여기에 하나가 더 붙습니다 — '+
+    '지구가 해를 도는 길이 정확한 동그라미가 아니라 살짝 찌그러진 타원이라, 하루 길이가 계절마다 몇 분씩 '+
+    '늘었다 줄었다 합니다. 이 차이를 <em>균시차</em>라고 해요. 둘을 다 더해야 태어난 진짜 시각이 나옵니다.</p>'+
     '<div class="tw"><table><tbody>'+
       '<tr><td class="k">시계 시각</td><td>'+ts.clock+'</td></tr>'+
       '<tr><td class="k">경도 보정</td><td>'+(ts.lonCorrection>0?'+':'')+ts.lonCorrection+'분 &nbsp;<span class="mini">'+
@@ -1157,10 +1172,6 @@ body.admin-bar #ssb .bk-bar{top:108px;}
 
   /* ── 04 원국 ─────────────────────────────────────────── */
   var P=chart.pillars;
-  function col(k, pil, sipTop, sipBot){
-    if(!pil){ return '<div class="col-h">'+k+'</div>'; }
-    return '<div class="col-h">'+k+'</div>';
-  }
   var heads=['연주','월주','일주','시주'];
   var cols=[P.year,P.month,P.day,P.hour];
   var sipMap={};
@@ -1171,7 +1182,11 @@ body.admin-bar #ssb .bk-bar{top:108px;}
   page(
     '<p class="eyebrow">근거 둘</p>'+
     '<h2>여덟 글자</h2>'+
-    '<p class="dek">가운데 일간이 이 사람이고, 나머지 일곱은 모두 그 한 글자와의 관계입니다</p>'+
+    '<p class="dek">태어나신 해 · 달 · 날 · 시를 옛 글자로 각각 두 자씩 옮겨 적은 것, '+
+    '그 여덟 자가 사주입니다</p>'+
+    '<p>위칸을 천간, 아래칸을 지지라고 부릅니다. 넷씩 두 줄, 모두 여덟 자예요. '+
+    '이 가운데 <em>일주의 위칸 한 글자</em>가 이 사람 자신이고, 나머지 일곱 자는 '+
+    '모두 그 한 글자와 어떤 사이인지로 읽습니다.</p>'+
     '<div class="chart">'+
       heads.map(function(h){ return '<div class="col-h">'+h+'</div>'; }).join('')+
       cols.map(function(c,i){
@@ -1278,10 +1293,33 @@ body.admin-bar #ssb .bk-bar{top:108px;}
     '<em>'+it.axis.many.say+'</em>입니다. 여기까지가 제가 묻기 전에 읽은 전부입니다.</p>', null, 'one');
 
   /* ── 10 2부 · 답을 듣고 ─────────────────────────────── */
-  var QAXIS = window.STELLA_QAXIS || {};
+  /* 질문 화면이 저장한 열쇠말(risk, mind …)을 사람이 읽는 말로 바꿔줍니다.
+     여섯 가디언의 질문이 모두 들어 있습니다. 없는 열쇠말은 그냥 건너뜁니다. */
+  var QLABEL={
+    risk:'결과가 예상되는 편이 좋은지',        make:'정해진 답과 없던 답, 어느 쪽인지',
+    solo:'혼자가 편한지 여럿이 좋은지',        form:'손에 잡히는 것과 보이지 않는 것',
+    many:'하나를 깊게, 여럿을 동시에',
+    spark:'마음이 생기는 속도',                fight:'다툰 뒤에 하는 것',
+    together:'같이 있는 시간',                 type:'더 끌리는 상대',
+    say:'마음을 표현하는 방식',
+    rest:'지칠 때 쉬는 법',                    where:'몸이 먼저 티 나는 곳',
+    season:'더 힘든 계절',                     rhythm:'생활의 리듬',
+    family:'가족 안에서 나의 자리',
+    change:'변화를 받아들이는 법',             wait:'때를 기다리는 힘',
+    decide:'결정하는 방식',                    past:'지난 십 년',
+    plan:'인생 계획을 세우는 법',
+    mask:'남들이 보는 나와 진짜 나',           first:'처음 보는 자리에서',
+    move:'마음이 움직이는 쪽',                 alone:'혼자만의 시간',
+    story:'끌리는 이야기',
+    truth:'듣고 싶은 답의 온도',               gut:'직감과 계산',
+    lean:'마음이 이미 정한 것',                talk:'누구와 상의했는지',
+    fear:'가장 무서운 것',
+    mind:'요즘 가장 마음에 걸리는 것',         want1y:'1년 안에 바라는 것'
+  };
   var qKeys=Object.keys(answers);
   var rows=qKeys.map(function(k){
-    return '<div class="ans"><div class="ans-q">'+esc(k)+'</div><div class="ans-a">'+esc(answers[k])+'</div></div>';
+    var label = QLABEL[k] || k;
+    return '<div class="ans"><div class="ans-q">'+esc(label)+'</div><div class="ans-a">'+esc(answers[k])+'</div></div>';
   }).join('');
 
   page(
@@ -1295,26 +1333,176 @@ body.admin-bar #ssb .bk-bar{top:108px;}
     '결론은 위의 여덟 글자에서만 나옵니다. 답해주신 것은 그 결론을 당신이 쓰는 말로 바꾸는 데에만 씁니다. '+
     '그래야 "내가 한 말을 그대로 돌려받았다"는 일이 생기지 않으니까요.</p>', null, 'two');
 
-  /* ── 11 어긋나는 자리 ───────────────────────────────── */
+  /* ── 10-2 적어주신 말 ─────────────────────────────────
+     한 줄 질문·메모·지금의 나 를 책이 한 번도 안 쓰면
+     "내가 적은 건 어디 갔지?" 가 됩니다. 그대로 옮겨 적고,
+     적어주신 계획을 앞의 다섯 저울에 하나씩 대봅니다. */
+  var W = order.work || {};
+  var saidRows=[];
+  if(order.oneline){ saidRows.push(['한 줄로 물으신 것', order.oneline]); }
+  if(W.job){        saidRows.push(['지금의 나', W.job]); }
+  if(W.years){      saidRows.push(['해온 기간', W.years]); }
+  if(W.want){       saidRows.push(['바라는 것', W.want]); }
+  if(order.memo){   saidRows.push(['더 하신 말', order.memo]); }
+  if(order.deeps){ if(order.deeps.length){ saidRows.push(['더 깊이 보기', order.deeps.join(' · ')]); } }
+
+  if(saidRows.length){
+    /* 적어주신 계획이 나와 맞는지 스스로 재보실 수 있게, 저울마다 질문 하나씩 */
+    var FIT={
+      solo:'그 일은 하루의 대부분을 혼자 보내나요, 사람들과 보내나요?',
+      form:'그 일이 다루는 것은 손에 잡히나요, 눈에 안 보이나요?',
+      many:'한 가지를 몇 년 파는 일인가요, 여러 건을 동시에 굴리는 일인가요?',
+      risk:'판이 자주 바뀌는 일인가요, 정해진 절차를 지키는 일인가요?',
+      make:'정답이 있는 일인가요, 없던 것을 만들어야 하는 일인가요?'
+    };
+    var FITKEY=[['solo','혼자냐 함께냐'],['form','실물이냐 무형이냐'],['many','하나냐 여럿이냐'],
+                ['risk','안정이냐 변화냐'],['make','정답이냐 창조냐']];
+    var target = W.want || W.job || order.oneline || '';
+
+    page(
+      '<p class="eyebrow">2부 · 답을 듣고 다시 읽은 것</p>'+
+      '<h2>적어주신 말</h2>'+
+      '<p class="dek">고쳐 쓰지 않고 그대로 옮겨 둡니다</p>'+
+      '<div class="answers">'+
+        saidRows.map(function(r){
+          return '<div class="ans"><div class="ans-q">'+esc(r[0])+'</div>'+
+                 '<div class="ans-a">'+esc(r[1])+'</div></div>';
+        }).join('')+
+      '</div>'+
+      (target
+        ? '<p>적어주신 <em>'+esc(target)+'</em>'+(R.hasBatchim(target)?'을':'를')+' 앞의 저울에 하나씩 대보시면 됩니다. '+
+          '제가 그 일을 대신 겪어볼 수는 없으니, 재는 자는 드리고 재는 건 '+esc(name)+'님이 하시는 편이 정확합니다.</p>'+
+          '<div class="quad"><div class="quad-grid">'+
+            '<div class="hd">저울</div><div class="hd">이렇게 물어보세요</div><div class="hd">사주가 선 쪽</div>'+
+            FITKEY.map(function(f){
+              var A=it.axis[f[0]];
+              return '<div class="hd">'+f[1]+'</div>'+
+                     '<div>'+FIT[f[0]]+'</div>'+
+                     '<div class="you"><b>사주</b>'+(A.lean ? A.name : '가운데')+'</div>';
+            }).join('')+
+          '</div></div>'+
+          '<p>다섯 줄 가운데 <em>사주가 선 쪽과 반대로 답하게 되는 줄</em>이 몇 개인지 세어보세요. '+
+          '하나둘이면 보통이고, 셋 이상이면 그 일 자체가 아니라 <em>그 일을 하는 방식</em>을 '+
+          '바꿔야 오래 갑니다. 같은 전공, 같은 직업 안에도 혼자 하는 자리와 같이 하는 자리가 따로 있으니까요.</p>'
+        : '<p>이 말들은 결론을 바꾸지 않습니다. 결론은 여덟 글자에서만 나옵니다. '+
+          '다만 그 결론을 '+esc(name)+'님이 쓰는 말로 옮기는 데 씁니다.</p>')+
+      (order.oneline
+        ? '<hr><p>물으신 것 — <em>'+esc(order.oneline)+'</em> — 에 대해서는, '+
+          '앞의 1부와 2부가 이미 답의 재료를 다 꺼내 놓았습니다. '+
+          '가장 크게 기운 저울이 <em>'+esc(topLean())+'</em> 쪽이니, '+
+          '그쪽으로 답하시는 게 몸이 덜 상합니다.</p>'
+        : ''), null, 'two');
+  }
+
+  /* ── 11 어긋나는 자리 ─────────────────────────────────
+     기울기를 숫자로만 보여주면 아무 말도 하지 않은 것과 같습니다.
+     "어느 쪽으로 얼마나 기울었는지" 를 "그래서 어떤 자리가 힘든지" 로 옮겨 적습니다. */
+
+  /* 질문 화면에서 고르신 답이 어느 쪽이었는지 되짚습니다.
+     직성의 신은 다섯 문항이 다섯 저울과 하나씩 맞아떨어집니다. */
+  var PICKS={
+    'door-career':{
+      risk:['결과가 예상되는 편이 좋다','예상 못 할수록 재미있다'],
+      make:['정해진 답을 정확히 맞히고 싶다','없던 답을 내가 만들고 싶다'],
+      solo:['혼자 몰입하는 게 편하다','사람들과 굴러가는 게 좋다'],
+      form:['손에 잡히는 걸 만들고 싶다','눈에 안 보이는 걸 다루고 싶다'],
+      many:['하나를 깊게 파고 싶다','여러 개를 동시에 굴리고 싶다']
+    }
+  };
+  function pickedSide(key){
+    var set=PICKS[slug]; if(!set){ return ''; }
+    var pair=set[key];   if(!pair){ return ''; }
+    var v=answers[key];  if(!v){ return ''; }
+    if(v===pair[0]){ return 'A'; }
+    if(v===pair[1]){ return 'B'; }
+    return '';
+  }
+
+  /* 그 축을 거스르는 자리가 구체적으로 어떤 자리인지 */
+  var AGAINST={
+    solo:{ A:'사람들 사이에서 하루 종일 말을 맞춰야 하는 자리',
+           B:'혼자 방에서 처음부터 끝까지 다 끝내야 하는 자리' },
+    form:{ A:'눈에 보이지 않는 것만 종일 다루는 자리',
+           B:'정해진 물건을 똑같이 반복해서 만드는 자리' },
+    many:{ A:'여러 건을 동시에 굴려야 하는 자리',
+           B:'한 가지만 몇 년씩 붙잡고 있어야 하는 자리' },
+    risk:{ A:'달마다 판이 바뀌는 자리',
+           B:'정해진 절차만 그대로 반복하는 자리' },
+    make:{ A:'답이 없는 것을 처음부터 만들어야 하는 자리',
+           B:'남이 정한 답을 그대로 지켜야 하는 자리' }
+  };
+  /* 기울기의 크기를 말로 */
+  function tiltWord(d){
+    if(d>=4){ return '아주 크게'; }
+    if(d===3){ return '크게'; }
+    if(d===2){ return '뚜렷하게'; }
+    return '조금';
+  }
+  function otherName(key, side){
+    var A=R.AXES[key];
+    return side==='A' ? A.A : A.B;
+  }
+
+  function gapBlock(key, title){
+    var A=it.axis[key];
+    var d=Math.abs(A.a-A.b);
+    var out='<h3>'+title+'</h3>';
+
+    if(!A.lean){
+      out+='<p>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — '+A.a+' 대 '+A.b+'. '+
+           '이 축은 그때그때 상황에 맞추셔도 크게 무리가 없습니다. '+
+           '반대로 말하면, 여기서는 남들이 부러워할 만큼 유연하실 수 있어요.</p>';
+    } else {
+      out+='<p>사주는 <em>'+A.name+'</em> 쪽으로 '+tiltWord(d)+' 기울어 있습니다 — '+
+           A.a+' 대 '+A.b+'. '+A.say+'입니다.</p>';
+      out+='<p>그래서 <em>'+AGAINST[key][A.lean]+'</em>에 오래 서 계시면, '+
+           '같은 일을 해도 남보다 힘이 더 듭니다. 게을러서가 아니라 '+
+           '결을 거슬러 밀고 있어서입니다. '+
+           (d>=3 ? '기울기가 큰 편이라 이 차이는 시간이 지나도 잘 줄지 않습니다.'
+                 : '기울기가 아주 크지는 않아서, 버틸 만한 정도로 지나갈 수도 있습니다.')+'</p>';
+    }
+
+    var side=pickedSide(key);
+    if(side){
+      if(A.lean){
+        if(side===A.lean){
+          out+='<p>답해주신 것도 같은 쪽이었습니다. <em>여기는 어긋나지 않습니다</em> — '+
+               '이 저울에서는 마음 놓고 가셔도 됩니다.</p>';
+        } else {
+          out+='<p>그런데 답해주실 때는 <em>'+otherName(key, side)+'</em> 쪽을 고르셨습니다. '+
+               '<em>여기가 어긋나는 자리입니다.</em> 타고난 결은 '+A.name+' 쪽인데 '+
+               '지금은 '+otherName(key, side)+' 쪽으로 살고 계시다는 뜻이니, '+
+               '요즘 유난히 힘드셨다면 그건 당신 탓이 아닙니다.</p>';
+        }
+      } else {
+        out+='<p>답해주신 것은 <em>'+otherName(key, side)+'</em> 쪽이었습니다. '+
+             '사주가 평평하니 이 축은 고르신 대로 가셔도 됩니다.</p>';
+      }
+    }
+    return out;
+  }
+
   page(
     '<p class="eyebrow">어긋나는 자리</p>'+
     '<h2>맞지 않는 곳도 적어둡니다</h2>'+
     '<p class="dek">이 장이 없는 풀이는 믿지 마세요</p>'+
     '<p>사주가 가리키는 쪽과 지금 살고 계신 쪽이 늘 같지는 않습니다. '+
     '다르다고 해서 사주가 틀린 것도, 당신이 틀린 것도 아닙니다. '+
-    '다만 <em>그 어긋난 만큼 힘이 더 든다</em>는 뜻입니다.</p>'+
-    '<div class="quad"><div class="quad-grid">'+
-      '<div class="hd">저울</div><div class="hd">사주가 가리키는 쪽</div><div class="hd">기울기</div>'+
-      [['solo','혼자냐 함께냐'],['form','실물이냐 무형이냐'],['many','하나냐 여럿이냐'],
-       ['risk','안정이냐 변화냐'],['make','정답이냐 창조냐']].map(function(a){
-        var A=it.axis[a[0]];
-        return '<div class="hd">'+a[1]+'</div>'+
-               '<div>'+A.name+'</div>'+
-               '<div>'+A.a+' 대 '+A.b+'</div>';
-      }).join('')+
-    '</div></div>'+
-    '<p>기울기가 <em>비슷할수록</em> 그 축은 상황에 따라 달라집니다. '+
-    '한쪽으로 크게 기운 축이 이 사람의 진짜 성질이고, 그 축을 거스르는 자리에 오래 서 있으면 지칩니다.</p>');
+    '다만 <em>그 어긋난 만큼 힘이 더 든다</em>는 뜻입니다. '+
+    '저울을 하나씩 보겠습니다. 숫자는 여덟 글자 가운데 몇 자가 그쪽 편인지입니다.</p>'+
+    gapBlock('solo','혼자냐, 함께냐')+
+    gapBlock('form','실물이냐, 무형이냐'), null, 'two');
+
+  page(
+    '<p class="eyebrow">어긋나는 자리</p>'+
+    '<h2>남은 저울 셋</h2>'+
+    gapBlock('many','하나냐, 여럿이냐')+
+    gapBlock('risk','안정이냐, 변화냐')+
+    gapBlock('make','정답이냐, 창조냐')+
+    '<hr>'+
+    '<p>다섯 저울이 전부 맞는 사람은 없습니다. 하나나 둘쯤 어긋나 있는 게 보통이에요. '+
+    '중요한 건 <em>어긋난 자리를 고치는 것이 아니라 알고 있는 것</em>입니다. '+
+    '알고 있으면 "내가 부족한가" 대신 "여기는 원래 나한테 두 배로 드는 자리지" 하고 넘어갈 수 있으니까요.</p>', null, 'two');
 
   /* ── 12 타로 ─────────────────────────────────────────── */
   page(
@@ -1337,14 +1525,21 @@ body.admin-bar #ssb .bk-bar{top:108px;}
     '<div class="sig">— '+g.name+'</div>', 'close');
 
   /* ── 14 배웅 ─────────────────────────────────────────── */
+  /* 마지막 장에서 '여덟 글자'라고만 하면 무슨 말인지 다시 헷갈립니다.
+     그 자리에서 실제 글자를 같이 보여줍니다. 시간을 모르시면 여섯 자입니다. */
+  var eightChars = chart.pillars.year.han + ' ' + chart.pillars.month.han + ' ' + chart.pillars.day.han;
+  if(chart.pillars.hour){ eightChars += ' ' + chart.pillars.hour.han; }
+
   page(
     '<div class="fw-portrait"><img src="https://stellasaju.com/wp-content/uploads/2026/08/'+g.face+'" '+
       'alt="'+g.name+'" width="1408" height="1408"></div>'+
     '<div class="fw-name">'+g.name+'</div>'+
     '<div class="fw-en">'+g.en+'</div>'+
     '<div class="fw-words">'+
-      '<p>여기까지 읽어주셔서 고맙습니다. 이 여덟 글자는 '+esc(name)+'님 것이고, '+
-      '앞으로도 바뀌지 않습니다. 바뀌는 건 그걸 가지고 무엇을 하느냐뿐이에요.</p>'+
+      '<p>여기까지 읽어주셔서 고맙습니다. 맨 앞에서 세운 여덟 글자 — '+
+      '태어나신 해 · 달 · 날 · 시를 두 자씩 옮겨 적은 <em>'+eightChars+'</em> — 는 '+
+      esc(name)+'님 것이고, 앞으로도 바뀌지 않습니다. '+
+      '바뀌는 건 그걸 가지고 무엇을 하느냐뿐이에요.</p>'+
       '<p>풀이는 길을 정해주지 않습니다. 다만 어느 쪽이 오르막이고 어느 쪽이 내리막인지를 알려줄 뿐입니다. '+
       '오르막을 가더라도, 오르막인 줄 알고 가면 덜 억울합니다.</p>'+
       '<div class="fw-last">'+g.last+'</div>'+
@@ -1362,6 +1557,9 @@ body.admin-bar #ssb .bk-bar{top:108px;}
      가장 긴 장을 재서 나머지를 거기에 맞춥니다. */
   var sheets=[].slice.call(document.querySelectorAll('#ssb .page'));
   function evenOut(){
+    /* 재는 동안 낱장 높이를 잠깐 풀어야 하는데, 그 순간 문서가 확 줄어듭니다.
+       그대로 두면 읽던 자리가 앞쪽으로 튕기므로 스크롤 위치를 붙잡아 뒀다 되돌립니다. */
+    var keep = window.pageYOffset || document.documentElement.scrollTop || 0;
     sheets.forEach(function(el){ el.style.minHeight=''; });
     var tall=0;
     sheets.forEach(function(el){
@@ -1370,10 +1568,18 @@ body.admin-bar #ssb .bk-bar{top:108px;}
     });
     tall=Math.ceil(tall);
     sheets.forEach(function(el){ el.style.minHeight=tall+'px'; });
+    if(keep>0){ window.scrollTo(0, keep); }
   }
   evenOut();
+
+  /* 모바일에서 스크롤하면 주소창이 접혔다 펴지면서 resize 가 옵니다.
+     그때는 높이만 바뀌고 가로폭은 그대로입니다. 그 김에 낱장을 다시 재면
+     읽던 자리가 앞 장으로 튕기므로, 가로폭이 실제로 바뀔 때만 다시 잽니다. */
+  var lastW = window.innerWidth;
   var t=null;
   window.addEventListener('resize', function(){
+    if(window.innerWidth===lastW){ return; }
+    lastW = window.innerWidth;
     if(t){ clearTimeout(t); }
     t=setTimeout(evenOut, 180);
   });
