@@ -1,0 +1,716 @@
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 자료를 다 세웠습니다  (/reading-ready/)
+  BUILD: R1
+
+  질문까지 마친 분에게 '당신의 진짜 사주'를 보여주는 화면입니다.
+  브라우저 안에서 직접 계산합니다. 서버가 없어도 돕니다.
+
+  [읽어오는 값]
+    localStorage.stella_demo    — 가디언 페이지에서 넣은 주문(생년월일시 포함)
+    localStorage.stella_answers — 질문 화면에서 고른 답
+-->
+<style>
+#ssr{
+  --void:#0D0A1A; --void-deep:#070512;
+  --nebula:#1C1533; --nebula-soft:#251C42;
+  --gold:#D4AF6A; --gold-soft:#C9A66B;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.46);
+  --line:rgba(212,175,106,.18);
+  --wood:#8FBF8F; --fire:#E0907F; --earth:#D6B570; --metal:#B9C2CC; --water:#8AA8D8;
+
+  max-width:none !important; width:auto !important;
+  margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
+  padding:0 !important;
+  position:relative; z-index:0; overflow-x:clip;
+  color:var(--star); text-align:left; background:var(--void);
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:300; line-height:1.75; font-size:16px;
+  word-break:keep-all; overflow-wrap:break-word;
+}
+#ssr *{margin:0; padding:0; box-sizing:border-box;}
+#ssr h1,#ssr h2,#ssr h3{font-family:'Noto Serif KR',serif; color:var(--star); font-weight:700;}
+#ssr a{color:inherit; text-decoration:none;}
+#ssr .wrap{max-width:940px; margin:0 auto; padding:60px 26px 110px;}
+@media(max-width:700px){ #ssr .wrap{padding:38px 18px 80px;} }
+
+#ssr .kicker{font-family:'IBM Plex Mono',monospace; font-size:.62rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--gold);}
+#ssr h1{margin-top:12px; font-size:1.85rem; line-height:1.45;}
+@media(max-width:700px){ #ssr h1{font-size:1.4rem;} }
+#ssr .lede{margin-top:16px; font-size:.95rem; color:var(--ink-soft); line-height:1.9;}
+
+#ssr .card{background:var(--nebula); border:1px solid var(--line); border-radius:14px;
+  padding:28px 30px; margin-top:20px;}
+@media(max-width:700px){ #ssr .card{padding:22px 18px;} }
+#ssr .card h2{font-size:1.05rem; display:flex; align-items:baseline; gap:10px;}
+#ssr .num{font-family:'IBM Plex Mono',monospace; font-size:.6rem; letter-spacing:.12em;
+  color:var(--void-deep); background:var(--gold); padding:4px 9px; border-radius:20px;}
+#ssr .card .why{margin-top:12px; font-size:.82rem; color:var(--ink-dim); line-height:1.85;}
+
+/* 진태양시 계산 줄 */
+#ssr .calc{margin-top:18px; font-family:'IBM Plex Mono',monospace; font-size:.84rem;}
+#ssr .calc div{display:flex; justify-content:space-between; gap:14px; padding:9px 0;
+  border-bottom:1px dashed rgba(212,175,106,.14); color:var(--ink-soft);}
+#ssr .calc div:last-child{border-bottom:0; color:var(--star); font-weight:700;
+  border-top:1px solid var(--line); margin-top:4px; padding-top:13px;}
+
+/* 사주 네 기둥 */
+#ssr .pillars{display:grid !important; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:20px;}
+@media(max-width:560px){ #ssr .pillars{grid-template-columns:repeat(2,1fr);} }
+#ssr .pil{background:var(--void-deep); border:1px solid var(--line); border-radius:10px;
+  padding:16px 10px; text-align:center;}
+#ssr .pil.day{border-color:var(--gold);}
+#ssr .pil-k{font-family:'IBM Plex Mono',monospace; font-size:.6rem; letter-spacing:.1em;
+  color:var(--ink-dim);}
+#ssr .pil-h{margin-top:9px; font-family:'Noto Serif KR',serif; font-size:1.9rem; line-height:1.2;
+  color:var(--star);}
+#ssr .pil-l{margin-top:5px; font-size:.76rem; color:var(--ink-dim);}
+#ssr .pil.day .pil-h{color:var(--gold);}
+
+/* 오행 막대 */
+#ssr .bars{margin-top:20px;}
+#ssr .bar{display:flex !important; align-items:center; gap:12px; margin-top:11px; font-size:.85rem;}
+#ssr .bar-k{flex:0 0 54px; color:var(--ink-soft);}
+#ssr .bar-t{flex:1; height:12px; border-radius:7px; background:var(--void-deep); overflow:hidden;}
+#ssr .bar-f{height:100%; border-radius:7px;}
+#ssr .bar-v{flex:0 0 74px; text-align:right; font-family:'IBM Plex Mono',monospace;
+  font-size:.78rem; color:var(--ink-dim);}
+#ssr .el-목 .bar-f{background:var(--wood);}  #ssr .el-화 .bar-f{background:var(--fire);}
+#ssr .el-토 .bar-f{background:var(--earth);} #ssr .el-금 .bar-f{background:var(--metal);}
+#ssr .el-수 .bar-f{background:var(--water);}
+
+/* 표 */
+#ssr table{width:100%; border-collapse:collapse; margin-top:18px; font-size:.86rem;}
+#ssr th,#ssr td{padding:11px 10px; text-align:left; border-bottom:1px solid rgba(212,175,106,.12);}
+#ssr th{font-family:'IBM Plex Mono',monospace; font-size:.64rem; letter-spacing:.08em;
+  color:var(--ink-dim); font-weight:400;}
+#ssr td{color:var(--ink-soft);}
+#ssr td.han{font-family:'Noto Serif KR',serif; font-size:1.05rem; color:var(--gold); width:64px;}
+#ssr tr.now td{background:rgba(212,175,106,.08); color:var(--star);}
+#ssr .tscroll{overflow-x:auto;}
+
+/* 별 */
+#ssr .stars3{display:grid !important; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:20px;}
+@media(max-width:560px){ #ssr .stars3{grid-template-columns:1fr;} }
+#ssr .st{background:var(--void-deep); border:1px solid var(--line); border-radius:10px; padding:16px 16px;}
+#ssr .st-k{font-family:'IBM Plex Mono',monospace; font-size:.6rem; letter-spacing:.1em; color:var(--ink-dim);}
+#ssr .st-v{margin-top:7px; font-family:'Noto Serif KR',serif; font-size:1.05rem; color:var(--star);}
+#ssr .st-d{margin-top:3px; font-size:.75rem; color:var(--ink-dim);}
+
+/* 접수 내역 */
+#ssr dl{margin-top:16px;}
+#ssr dl div{display:flex !important; gap:14px; padding:10px 0;
+  border-bottom:1px solid rgba(212,175,106,.1); font-size:.88rem;}
+#ssr dt{flex:0 0 108px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace; font-size:.68rem; padding-top:4px;}
+#ssr dd{color:var(--star);}
+
+#ssr .warn{margin-top:18px; padding:16px 18px; border-radius:9px;
+  background:rgba(229,160,160,.08); border:1px solid rgba(229,160,160,.28);
+  font-size:.83rem; color:#E9BFBF; line-height:1.85;}
+#ssr .warn p+p{margin-top:8px;}
+
+#ssr .next{margin-top:26px; padding:26px 28px; border-radius:14px;
+  background:linear-gradient(160deg, var(--nebula-soft), var(--nebula));
+  border:1px solid var(--gold);}
+#ssr .next h2{font-size:1.05rem;}
+#ssr .next p{margin-top:12px; font-size:.89rem; color:var(--ink-soft); line-height:1.9;}
+#ssr .btns{display:grid !important; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;}
+@media(max-width:560px){ #ssr .btns{grid-template-columns:1fr;} }
+#ssr .btn{display:block; padding:15px 18px; border-radius:6px; text-align:center; font-size:.9rem;}
+#ssr .btn.gold{background:linear-gradient(135deg, var(--gold), #B98A47); color:var(--void-deep); font-weight:700;}
+#ssr .btn.ghost{border:1px solid var(--line); color:var(--ink-soft);}
+#ssr .btn.ghost small{display:block; margin-top:3px; font-size:.72rem; color:var(--ink-dim);}
+
+#ssr .empty{text-align:center; padding:70px 20px;}
+#ssr .empty p{margin-top:14px; color:var(--ink-soft); font-size:.92rem;}
+#ssr .hide{display:none !important;}
+</style>
+
+<div id="ssr">
+  <div class="wrap">
+
+    <div id="rEmpty" class="empty hide">
+      <div class="kicker">Stella Saju</div>
+      <h1>아직 넣으신 정보가 없어요</h1>
+      <p>여섯 개의 문 가운데 하나를 골라 생년월일시를 넣어주시면<br>여기에서 사주 원국을 세워드립니다.</p>
+      <div class="btns" style="max-width:420px; margin:26px auto 0;">
+        <a class="btn gold" href="/door-career/">직성의 신에게 가기 →</a>
+        <a class="btn ghost" href="/">홈으로</a>
+      </div>
+    </div>
+
+    <div id="rBody" class="hide">
+      <div class="kicker" id="rKicker">Stella Saju</div>
+      <h1 id="rTitle">자료를 다 세웠습니다</h1>
+      <p class="lede" id="rLede"></p>
+
+      <div class="warn hide" id="rWarn"></div>
+
+      <section class="card">
+        <h2><span class="num">01</span> 태어난 시각을 바로잡습니다</h2>
+        <p class="why">사주는 시계가 가리키는 시각이 아니라 <b>해가 실제로 그 자리에 있던 시각</b>으로 봅니다.
+          우리나라 표준시는 동경 135도를 기준으로 하는데 국토는 그보다 서쪽에 있어서, 그만큼 시계가 앞서 갑니다.
+          여기에 지구 궤도가 타원이라 생기는 <b>균시차</b>를 더해야 진짜 시각이 나옵니다.</p>
+        <div class="calc" id="rCalc"></div>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">02</span> 사주 원국 — 네 개의 기둥</h2>
+        <p class="why" id="rTermWhy"></p>
+        <div class="pillars" id="rPillars"></div>
+        <p class="why" id="rDayWhy"></p>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">03</span> 타고난 기운의 비율</h2>
+        <p class="why">여덟 글자를 오행으로 나눠 세었습니다. 많은 기운은 넘치기 쉽고,
+          없는 기운은 평생 그리워하며 찾아다니게 됩니다. 풀이는 이 치우침에서 시작합니다.</p>
+        <div class="bars" id="rBars"></div>
+        <p class="why" id="rFiveWhy"></p>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">04</span> 십 년마다 바뀌는 판 — 대운</h2>
+        <p class="why" id="rLuckWhy"></p>
+        <div class="tscroll">
+          <table id="rLuck">
+            <thead><tr><th>나이</th><th>간지</th><th>해</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">05</span> 태어나던 밤의 하늘</h2>
+        <p class="why">같은 사람을 서양의 언어로 한 번 더 읽습니다.
+          태양 별자리는 무엇을 하려는 사람인지, 상승궁은 남들에게 어떻게 보이는지,
+          천정은 사회에서 어느 자리에 서는지를 말해줍니다.</p>
+        <div class="stars3" id="rStars"></div>
+      </section>
+
+      <section class="card">
+        <h2><span class="num">06</span> 접수 내역</h2>
+        <dl id="rOrder"></dl>
+      </section>
+
+      <div class="next">
+        <h2>여기까지가 <b>근거</b>입니다</h2>
+        <p>지금 보신 것은 지어낸 이야기가 아니라 태어나신 순간의 하늘을 그대로 계산한 값입니다.
+          가디언은 이 자료 위에 풀이를 씁니다 — 묻기 전에 읽은 것을 먼저 적고,
+          방금 답해주신 것과 맞춰본 뒤, 어긋나는 자리까지 숨기지 않고 적어 한 권으로 묶습니다.</p>
+        <p id="rNextNote"></p>
+        <div class="btns">
+          <a class="btn gold" href="/reading-sample/">전자책이 어떻게 나오는지 보기 →</a>
+          <a class="btn ghost" href="/">홈으로<small>다른 문도 열어보실 수 있어요</small></a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══ 사주 계산기 — 여기부터 ═══ */
+/* ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 브라우저에서 도는 사주 계산기
+   ───────────────────────────────────────────────────────────────
+   생년월일시와 태어난 곳을 넣으면 아래를 돌려줍니다.
+     · 진태양시 (경도 보정 + 균시차)
+     · 절기 (태양 황경 기준)
+     · 사주 원국 네 기둥
+     · 오행 비율
+     · 대운 (양남음녀 순행 / 음남양녀 역행)
+     · 태양 별자리 · 상승궁 · 천정
+   서버 없이 도는 순수 계산이라 회원가입 전에도 쓸 수 있습니다.
+   ═══════════════════════════════════════════════════════════════ */
+(function(root){
+  'use strict';
+
+  var GAN_H=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  var GAN_L=['갑','을','병','정','무','기','경','신','임','계'];
+  var JI_H =['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var JI_L =['자','축','인','묘','진','사','오','미','신','유','술','해'];
+  var GAN_EL=['목','목','화','화','토','토','금','금','수','수'];
+  var JI_EL =['수','토','목','목','토','화','화','토','금','금','토','수'];
+  var JI_ANIMAL=['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
+  var ELEMENTS=['목','화','토','금','수'];
+
+  /* 12절(節). 월지가 바뀌는 지점입니다. 중기(中氣)는 월주를 가르지 않아 뺐습니다.
+     month 는 그 절기가 실제로 떨어지는 양력 달입니다 (모두 4~9일 사이). */
+  var TERMS=[
+    {deg:285, name:'소한', ji:1,  month:1},
+    {deg:315, name:'입춘', ji:2,  month:2},
+    {deg:345, name:'경칩', ji:3,  month:3},
+    {deg:15,  name:'청명', ji:4,  month:4},
+    {deg:45,  name:'입하', ji:5,  month:5},
+    {deg:75,  name:'망종', ji:6,  month:6},
+    {deg:105, name:'소서', ji:7,  month:7},
+    {deg:135, name:'입추', ji:8,  month:8},
+    {deg:165, name:'백로', ji:9,  month:9},
+    {deg:195, name:'한로', ji:10, month:10},
+    {deg:225, name:'입동', ji:11, month:11},
+    {deg:255, name:'대설', ji:0,  month:12}
+  ];
+
+  var SIGNS=['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리',
+             '천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
+
+
+  /* 태어난 곳 → 경도·위도.
+     진태양시는 경도로 갈립니다. 서울과 부산은 8분쯤 차이가 나서
+     시 경계에 걸린 분은 시주가 바뀔 수 있습니다.
+     동·읍 단위까지는 필요 없습니다 (5초 차이). */
+  var CITIES={
+    '서울':[126.978,37.567], '인천':[126.705,37.456], '수원':[127.029,37.264],
+    '성남':[127.127,37.420], '고양':[126.832,37.658], '용인':[127.178,37.241],
+    '부천':[126.766,37.504], '안산':[126.831,37.322], '안양':[126.957,37.394],
+    '남양주':[127.216,37.636], '화성':[126.832,37.199], '평택':[127.113,36.992],
+    '의정부':[127.034,37.738], '파주':[126.780,37.760], '김포':[126.716,37.615],
+    '광명':[126.865,37.479], '이천':[127.435,37.272], '양주':[127.046,37.785],
+    '춘천':[127.730,37.881], '원주':[127.920,37.342], '강릉':[128.896,37.752],
+    '속초':[128.591,38.207], '동해':[129.114,37.525],
+    '대전':[127.385,36.350], '세종':[127.289,36.480], '천안':[127.115,36.815],
+    '청주':[127.489,36.642], '충주':[127.930,36.991], '아산':[126.980,36.790],
+    '공주':[127.119,36.447], '서산':[126.450,36.785], '제천':[128.191,37.133],
+    '대구':[128.601,35.872], '포항':[129.365,36.019], '경주':[129.225,35.856],
+    '구미':[128.344,36.120], '안동':[128.729,36.568], '김천':[128.114,36.140],
+    '경산':[128.741,35.825], '영주':[128.624,36.806],
+    '부산':[129.075,35.180], '울산':[129.311,35.539], '창원':[128.682,35.228],
+    '진주':[128.108,35.180], '김해':[128.882,35.229], '통영':[128.433,34.854],
+    '거제':[128.621,34.880], '양산':[129.037,35.335], '사천':[128.064,35.004],
+    '광주':[126.852,35.160], '전주':[127.148,35.824], '목포':[126.392,34.812],
+    '여수':[127.662,34.760], '순천':[127.487,34.951], '군산':[126.737,35.968],
+    '익산':[126.958,35.948], '나주':[126.711,35.016], '정읍':[126.856,35.570],
+    '제주':[126.532,33.499], '서귀포':[126.566,33.254],
+    '평양':[125.738,39.039], '개성':[126.556,37.971], '함흥':[127.536,39.918]
+  };
+  /* 나라별 대표 좌표와 표준시 — 도시를 못 찾았을 때 씁니다 */
+  var COUNTRIES={
+    '대한민국':[126.978,37.567,9], '일본':[139.692,35.690,9], '중국':[116.407,39.904,8],
+    '미국':[-74.006,40.713,-5], '캐나다':[-79.383,43.653,-5], '호주':[151.209,-33.868,10],
+    '영국':[-0.128,51.507,0], '기타':[126.978,37.567,9]
+  };
+
+  /* 도시 이름을 받아 좌표를 찾습니다. 못 찾으면 나라 대표 좌표로. */
+  function locate(city, country){
+    var name=(city||'').replace(/\s/g,'');
+    var keys=Object.keys(CITIES);
+    for(var i=0;i<keys.length;i++){
+      if(name.indexOf(keys[i])>=0){
+        return { lon:CITIES[keys[i]][0], lat:CITIES[keys[i]][1], tz:9,
+                 matched:keys[i], exact:true };
+      }
+    }
+    var c=COUNTRIES[country] || COUNTRIES['대한민국'];
+    return { lon:c[0], lat:c[1], tz:c[2], matched:(country||'대한민국'), exact:false };
+  }
+
+  /* ── 기본 도구 ───────────────────────────────────────────── */
+  function jd(y,m,d,h,mi){
+    h=h||0; mi=mi||0;
+    if(m<=2){ y-=1; m+=12; }
+    var A=Math.floor(y/100), B=2-A+Math.floor(A/4);
+    return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))
+           +d+B-1524.5+(h+mi/60)/24;
+  }
+
+  function sunLon(j){          // 겉보기 황경(도)
+    var T=(j-2451545.0)/36525.0;
+    var L0=(280.46646+36000.76983*T+0.0003032*T*T)%360;
+    var M =(357.52911+35999.05029*T-0.0001537*T*T)%360;
+    var Mr=M*Math.PI/180;
+    var C =(1.914602-0.004817*T-0.000014*T*T)*Math.sin(Mr)
+          +(0.019993-0.000101*T)*Math.sin(2*Mr)+0.000289*Math.sin(3*Mr);
+    var om=125.04-1934.136*T;
+    return (L0+C-0.00569-0.00478*Math.sin(om*Math.PI/180)+720)%360;
+  }
+
+  /* 태양 황경이 deg 가 되는 순간(UT 기준 JD).
+     절기는 늘 그 달 4~9일 사이에 떨어지므로 창을 좁게 잡습니다. */
+  function findTerm(deg, year, month){
+    var lo=jd(year,month,1)-5, hi=jd(year,month,1)+15;
+    function f(t){ var d=(sunLon(t)-deg+360)%360; return d>180 ? d-360 : d; }
+    for(var i=0;i<60;i++){
+      var mid=(lo+hi)/2;
+      if(f(lo)*f(mid)<=0){ hi=mid; } else { lo=mid; }
+    }
+    return (lo+hi)/2;
+  }
+
+  /* 한 해의 열두 절기를 시각 순으로 */
+  var termCache={};
+  function termsOfYear(y){
+    if(termCache[y]) return termCache[y];
+    var list=TERMS.map(function(t){
+      return { jd:findTerm(t.deg, y, t.month), name:t.name, ji:t.ji, deg:t.deg };
+    }).sort(function(a,b){ return a.jd-b.jd; });
+    termCache[y]=list;
+    return list;
+  }
+  /* 앞뒤 해까지 이어 붙인 절기 목록 */
+  function termsAround(y){
+    return termsOfYear(y-1).concat(termsOfYear(y), termsOfYear(y+1));
+  }
+
+  /* 균시차(분) */
+  function eqOfTime(j){
+    var T=(j-2451545.0)/36525.0;
+    var L0=(280.46646+36000.76983*T)%360;
+    var M =(357.52911+35999.05029*T)%360;
+    var e =0.016708634-0.000042037*T;
+    var eps=23.439291-0.0130042*T;
+    var y=Math.pow(Math.tan(eps/2*Math.PI/180),2);
+    var Mr=M*Math.PI/180, L0r=L0*Math.PI/180;
+    var E=y*Math.sin(2*L0r)-2*e*Math.sin(Mr)+4*e*y*Math.sin(Mr)*Math.cos(2*L0r)
+         -0.5*y*y*Math.sin(4*L0r)-1.25*e*e*Math.sin(2*Mr);
+    return E*180/Math.PI*4;
+  }
+
+  function pad(n){ return (n<10?'0':'')+n; }
+
+  /* ── 본체 ────────────────────────────────────────────────── */
+  /* opts = {year, month, day, hour, minute, sex:'M'|'F',
+             lon, lat, tz}  (tz 는 표준시 오프셋, 한국은 9) */
+  function compute(opts){
+    var y=opts.year, mo=opts.month, d=opts.day;
+    /* 워드프레스가 script 안의 논리연산자 두 개짜리 기호를 망가뜨려서, if 를 겹쳐 씁니다 */
+    var hourKnown = true;
+    if(opts.hour===null){ hourKnown=false; }
+    if(opts.hour===undefined){ hourKnown=false; }
+    var h = hourKnown ? opts.hour : 12;
+    var mi= opts.minute || 0;
+    var lon=126.978; if(opts.lon!==undefined){ if(opts.lon!==null){ lon=opts.lon; } }
+    var lat=37.5665; if(opts.lat!==undefined){ if(opts.lat!==null){ lat=opts.lat; } }
+    var tz=9; if(opts.tz!==undefined){ if(opts.tz!==null){ tz=opts.tz; } }
+
+    var jdUT = jd(y,mo,d,h-tz,mi);
+
+    /* 1) 진태양시 */
+    var lonCorr=(lon-tz*15)*4;          // 표준자오선과의 경도차 (분)
+    var eot=eqOfTime(jdUT);
+    var clockMin=h*60+mi;
+    var trueMin=clockMin+lonCorr+eot;
+    var dayShift=0;
+    while(trueMin<0){ trueMin+=1440; dayShift-=1; }
+    while(trueMin>=1440){ trueMin-=1440; dayShift+=1; }
+    /* 보여줄 때 쓸 분 단위. 먼저 반올림해야 02:60 같은 표기가 안 나옵니다. */
+    var showMin=Math.round(trueMin);
+    if(showMin>=1440){ showMin-=1440; }
+
+    /* 2) 절기 — 태어난 순간이 어느 절 안에 있는지 */
+    var jdLocal=jd(y,mo,d,h-tz,mi);
+    var around=termsAround(y);
+    var found=null;
+    for(var i=0;i<around.length;i++){
+      if(around[i].jd<=jdLocal){ found=around[i]; } else { break; }
+    }
+    var monthJi = found ? found.ji : 2;
+    var termName= found ? found.name : '입춘';
+
+    /* 3) 연주 — 입춘을 새해로 봅니다 */
+    var ipchun=findTerm(315, y, 2);
+    var sajuYear = (jdLocal < ipchun) ? y-1 : y;
+    var yg=((sajuYear-4)%10+10)%10;
+    var yz=((sajuYear-4)%12+12)%12;
+
+    /* 4) 월주 — 오호둔(五虎遁): 연간에 따라 인월의 천간이 정해집니다 */
+    var startGan=[2,4,6,8,0][yg%5];      // 갑기→丙, 을경→戊, 병신→庚, 정임→壬, 무계→甲
+    var fromTiger=((monthJi-2)%12+12)%12;      // 인월(寅)에서 몇 달째인지
+    var mg=((startGan+fromTiger)%10+10)%10;
+    var mz=monthJi;
+
+    /* 5) 일주 — 1900-01-01(KST) 을 갑술일로 잡습니다.
+          자시(23시)부터 다음 날로 넘기는 만세력 방식을 씁니다. */
+    var dayNo=Math.round(jd(y,mo,d)-jd(1900,1,1))+dayShift;
+    if(trueMin>=23*60){ dayNo+=1; }
+    var dg=((dayNo)%10+10)%10;
+    var dz=((dayNo+10)%12+12)%12;
+
+    /* 6) 시주 — 오자둔(五子遁) */
+    var hz=null, hg=null;
+    if(hourKnown){
+      hz=Math.floor(((trueMin+60)%1440)/120);   // 23~01 이 자시
+      hg=((dg%5)*2+hz)%10;
+    }
+
+    /* 7) 오행 — 최대잔여법으로 반올림해 합이 100 이 되게 맞춥니다 */
+    var gans=[yg,mg,dg], jis=[yz,mz,dz];
+    if(hourKnown){ gans.push(hg); jis.push(hz); }
+    var cnt={}; ELEMENTS.forEach(function(e){ cnt[e]=0; });
+    gans.forEach(function(g){ cnt[GAN_EL[g]]++; });
+    jis.forEach(function(z){ cnt[JI_EL[z]]++; });
+    var totalChars=gans.length+jis.length;
+    var raw=ELEMENTS.map(function(e){ return {el:e, n:cnt[e], exact:cnt[e]/totalChars*100}; });
+    var floors=raw.map(function(r){ return Math.floor(r.exact); });
+    var rest=100-floors.reduce(function(a,b){return a+b;},0);
+    var order=raw.map(function(r,i){ return {i:i, frac:r.exact-Math.floor(r.exact)}; })
+                 .sort(function(a,b){ return b.frac-a.frac; });
+    for(var k=0;k<rest;k++){ floors[order[k%5].i]+=1; }
+    var five=raw.map(function(r,i){ return {element:r.el, count:r.n, percent:floors[i]}; });
+
+    /* 8) 대운 — 양남음녀는 순행, 음남양녀는 역행 */
+    var yangYear=(yg%2===0);
+    var male=(opts.sex==='M');
+    var forward = (yangYear===male);
+    var luckJd, luckDays;
+    if(forward){
+      luckJd=nextTermJd(jdLocal, y);  luckDays=luckJd-jdLocal;
+    } else {
+      luckJd=prevTermJd(jdLocal, y);  luckDays=jdLocal-luckJd;
+    }
+    var startAge=luckDays/3;
+    var luck=[];
+    for(var n=1;n<=8;n++){
+      var lg=((mg+(forward?n:-n))%10+10)%10;
+      var lz=((mz+(forward?n:-n))%12+12)%12;
+      var a0=startAge+(n-1)*10;
+      luck.push({ from:Math.round(a0*10)/10, to:Math.round((a0+10)*10)/10,
+                  fromYear:y+Math.floor(a0), toYear:y+Math.floor(a0)+10,
+                  gan:lg, ji:lz, han:GAN_H[lg]+JI_H[lz], kor:GAN_L[lg]+JI_L[lz] });
+    }
+
+    /* 9) 별 — 태양 · 상승궁 · 천정 */
+    var sun=sunLon(jdUT);
+    var T=(jdUT-2451545.0)/36525.0;
+    var eps=(23.439291-0.0130042*T)*Math.PI/180;
+    var d0=jdUT-2451545.0;
+    var gmst=((280.46061837+360.98564736629*d0)%360+360)%360;
+    var lst=((gmst+lon)%360+360)%360;
+    var ramc=lst*Math.PI/180, phir=lat*Math.PI/180;
+    var mc=(Math.atan2(Math.sin(ramc), Math.cos(ramc)*Math.cos(eps))*180/Math.PI+360)%360;
+    var asc=(Math.atan2(Math.cos(ramc),
+             -(Math.sin(eps)*Math.tan(phir)+Math.cos(eps)*Math.sin(ramc)))*180/Math.PI+360)%360;
+
+    /* 경계에 걸린 분께는 알려드려야 합니다 */
+    var warnings=[];
+    if(found){
+      var minsFromTerm=(jdLocal-found.jd)*1440;
+      if(minsFromTerm<180){
+        warnings.push('태어나신 시각이 ' + found.name + ' 로 넘어온 지 ' +
+          Math.round(minsFromTerm) + '분밖에 안 됩니다. 절기 계산에 몇 분의 오차가 있을 수 있어 ' +
+          '월주가 앞 달로 바뀔 가능성이 있습니다.');
+      }
+      var nextJd=nextTermJd(jdLocal, y);
+      if(nextJd!==null){
+        var minsToTerm=(nextJd-jdLocal)*1440;
+        if(minsToTerm<180){
+          warnings.push('태어나신 시각이 다음 절기까지 ' + Math.round(minsToTerm) +
+            '분 남은 자리입니다. 월주가 다음 달로 바뀔 가능성이 있습니다.');
+        }
+      }
+    }
+    if(hourKnown){
+      var intoHour=((trueMin+60)%1440)%120;
+      if(intoHour<10 || intoHour>110){
+        warnings.push('진태양시가 시주 경계에 붙어 있습니다. 태어난 시각이 10분만 달라도 시주가 바뀝니다.');
+      }
+    }
+    if(!hourKnown){
+      warnings.push('태어난 시간을 모르셔서 시주는 세우지 않았습니다. ' +
+        '시주가 빠지면 하루의 결이 흐려지고, 특히 자식·말년 자리를 읽기 어렵습니다.');
+    }
+
+    return {
+      warnings: warnings,
+      trueSolar:{
+        clock: pad(h)+':'+pad(mi),
+        lonCorrection: Math.round(lonCorr*10)/10,
+        equationOfTime: Math.round(eot*10)/10,
+        time: pad(Math.floor(showMin/60))+':'+pad(showMin%60),
+        dayShift: dayShift
+      },
+      term:{ name:termName, monthJi:monthJi },
+      sajuYear: sajuYear,
+      pillars:{
+        year:{ gan:yg, ji:yz, han:GAN_H[yg]+JI_H[yz], kor:GAN_L[yg]+JI_L[yz] },
+        month:{ gan:mg, ji:mz, han:GAN_H[mg]+JI_H[mz], kor:GAN_L[mg]+JI_L[mz] },
+        day:{ gan:dg, ji:dz, han:GAN_H[dg]+JI_H[dz], kor:GAN_L[dg]+JI_L[dz] },
+        hour: hourKnown ? { gan:hg, ji:hz, han:GAN_H[hg]+JI_H[hz], kor:GAN_L[hg]+JI_L[hz] } : null
+      },
+      dayMaster:{ gan:dg, han:GAN_H[dg], kor:GAN_L[dg], element:GAN_EL[dg],
+                  yin: (dg%2===1) },
+      animal: JI_ANIMAL[yz],
+      five: five,
+      luck:{ forward:forward, startAge:Math.round(startAge*10)/10, list:luck },
+      stars:{
+        sun: signOf(sun), sunDeg: Math.round(sun*10)/10,
+        ascendant: signOf(asc), ascDeg: Math.round(asc*10)/10,
+        midheaven: signOf(mc), mcDeg: Math.round(mc*10)/10
+      }
+    };
+  }
+
+  function signOf(x){
+    return { name:SIGNS[Math.floor(x/30)], degree:Math.round((x%30)*10)/10 };
+  }
+
+  /* 출생 시각 바로 다음 절기 */
+  function nextTermJd(jdLocal, y){
+    var list=termsAround(y);
+    for(var i=0;i<list.length;i++){ if(list[i].jd>jdLocal) return list[i].jd; }
+    return null;
+  }
+  /* 출생 시각 바로 앞 절기 */
+  function prevTermJd(jdLocal, y){
+    var list=termsAround(y), best=null;
+    for(var i=0;i<list.length;i++){ if(list[i].jd<=jdLocal){ best=list[i].jd; } else { break; } }
+    return best;
+  }
+
+  root.StellaSaju={ compute:compute, locate:locate, CITIES:CITIES, GAN_H:GAN_H, JI_H:JI_H,
+                    GAN_L:GAN_L, JI_L:JI_L, ELEMENTS:ELEMENTS,
+                    terms:termsOfYear, sunLon:sunLon, jd:jd };
+})(typeof window!=='undefined' ? window : globalThis);
+/* ═══ 사주 계산기 — 여기까지 ═══ */
+
+(function(){
+  var root=document.getElementById('ssr'); if(!root) return;
+  var $=function(id){ return document.getElementById(id); };
+  var S=window.StellaSaju;
+
+  function read(key){
+    try{ var v=localStorage.getItem(key); return v ? JSON.parse(v) : null; }
+    catch(err){ return null; }
+  }
+  var order=read('stella_demo');
+  var answers=read('stella_answers');
+
+  var profile = order ? order.profile : null;
+  if(!profile){ $('rEmpty').classList.remove('hide'); return; }
+  $('rBody').classList.remove('hide');
+
+  var loc=S.locate(profile.city, profile.country);
+  var chart=S.compute({
+    year:profile.year, month:profile.month, day:profile.day,
+    hour:profile.hour, minute:profile.minute || 0, sex:profile.sex, lon:loc.lon, lat:loc.lat, tz:loc.tz
+  });
+
+  /* 진태양시가 어느 시진에 드는지 이름을 붙여줍니다 */
+  var SIJIN=['자시','축시','인시','묘시','진시','사시',
+             '오시','미시','신시','유시','술시','해시'];
+  function two(n){ return (n<10?'0':'')+n; }
+
+  var name=profile.name || '손님';
+  $('rKicker').textContent = (order.guardian || 'Stella Saju') + ' · 자료 정리 완료';
+  $('rTitle').innerHTML = name + '님의 여덟 글자를<br>모두 세웠습니다';
+
+  var born = profile.year+'년 '+profile.month+'월 '+profile.day+'일';
+  if(profile.calendar==='lunar'){ born='음력 '+born; }
+  var knowsHour = true;
+  if(profile.hour===null){ knowsHour=false; }
+  if(profile.hour===undefined){ knowsHour=false; }
+  if(knowsHour){ born += ' ' + two(profile.hour) + ':' + two(profile.minute||0); }
+  else { born += ' (시간 모름)'; }
+  $('rLede').innerHTML = born + ' · ' + (profile.city||'') + '<br>' +
+    '아래는 지어낸 말이 하나도 없는, 계산으로만 나온 값입니다.';
+
+  if(chart.warnings.length){
+    $('rWarn').classList.remove('hide');
+    $('rWarn').innerHTML = chart.warnings.map(function(w){ return '<p>'+w+'</p>'; }).join('');
+  }
+
+  /* 01 진태양시 */
+  var ts=chart.trueSolar;
+  var rows=[['시계로 본 시각', ts.clock]];
+  rows.push([(loc.exact ? loc.matched : (profile.city||'출생지')) + ' 경도 보정',
+             (ts.lonCorrection>0?'+':'') + ts.lonCorrection + '분']);
+  rows.push(['균시차 보정', (ts.equationOfTime>0?'+':'') + ts.equationOfTime + '분']);
+  var sijinName='';
+  if(chart.pillars.hour){
+    sijinName = ' · ' + SIJIN[chart.pillars.hour.ji] + '(' + chart.pillars.hour.han[1] + ')';
+  }
+  rows.push(['진태양시', ts.time + sijinName]);
+  $('rCalc').innerHTML = rows.map(function(r){
+    return '<div><span>'+r[0]+'</span><span>'+r[1]+'</span></div>'; }).join('');
+
+  /* 02 원국 */
+  var p=chart.pillars;
+  var pilRows=[['연주 · 뿌리',p.year],['월주 · 부모와 일',p.month],
+               ['일주 · 나',p.day],['시주 · 자식과 말년',p.hour]];
+  $('rPillars').innerHTML = pilRows.map(function(r,i){
+    if(!r[1]){ return '<div class="pil"><div class="pil-k">'+r[0]+
+      '</div><div class="pil-h" style="color:rgba(242,236,224,.2)">—</div>'+
+      '<div class="pil-l">시간을 몰라요</div></div>'; }
+    return '<div class="pil'+(i===2?' day':'')+'"><div class="pil-k">'+r[0]+'</div>'+
+      '<div class="pil-h">'+r[1].han+'</div><div class="pil-l">'+r[1].kor+'</div></div>';
+  }).join('');
+
+  $('rTermWhy').innerHTML = '태어나신 때는 <b>'+chart.term.name+'</b> 이 지난 뒤였습니다. ' +
+    '사주에서 한 해는 1월 1일이 아니라 <b>입춘</b>에 바뀌고, 한 달은 절기에 바뀝니다. ' +
+    '그래서 이분의 사주 연도는 <b>'+chart.sajuYear+'년</b>, 띠는 <b>'+chart.animal+'띠</b>입니다.';
+
+  var dm=chart.dayMaster;
+  $('rDayWhy').innerHTML = '가운데 금빛 기둥이 <b>일간 '+dm.han+'('+dm.kor+')</b> — 이 사람 자신입니다. ' +
+    '오행으로는 <b>'+dm.element+'</b>의 기운이고, ' + (dm.yin?'음(陰)':'양(陽)') + '에 속합니다. ' +
+    '나머지 일곱 글자는 모두 이 한 글자와의 관계로 읽습니다.';
+
+  /* 03 오행 */
+  $('rBars').innerHTML = chart.five.map(function(f){
+    return '<div class="bar el-'+f.element+'"><div class="bar-k">'+f.element+'</div>'+
+      '<div class="bar-t"><div class="bar-f" style="width:'+f.percent+'%"></div></div>'+
+      '<div class="bar-v">'+f.count+'글자 '+f.percent+'%</div></div>';
+  }).join('');
+
+  var most=chart.five.slice().sort(function(a,b){ return b.percent-a.percent; })[0];
+  var none=chart.five.filter(function(f){ return f.count===0; }).map(function(f){ return f.element; });
+  var fw='여덟 글자 가운데 <b>'+most.element+'</b> 의 기운이 가장 두텁습니다.';
+  if(none.length){ fw += ' 반대로 <b>'+none.join('·')+'</b> 은 한 글자도 없습니다 — ' +
+    '없는 기운은 약점이 아니라, 평생 그쪽을 채우려 애쓰게 되는 자리입니다.'; }
+  else { fw += ' 없는 기운은 없어서, 어느 한쪽으로 크게 무너지지는 않는 구조입니다.'; }
+  $('rFiveWhy').innerHTML = fw;
+
+  /* 04 대운 */
+  var lk=chart.luck;
+  $('rLuckWhy').innerHTML = '연간이 <b>' + (chart.pillars.year.han[0]) + '</b>('
+    + ((chart.pillars.year.gan%2===0)?'양':'음') + '), 성별이 <b>'
+    + (profile.sex==='M'?'남성':'여성') + '</b> 이라 대운은 <b>' + (lk.forward?'순행':'역행')
+    + '</b> 합니다. 절기까지의 거리를 셋으로 나눈 <b>' + lk.startAge
+    + '세</b>부터 십 년씩 판이 바뀝니다.';
+
+  var thisYear=2026;
+  var age=thisYear-profile.year+1;
+  var tb=$('rLuck').querySelector('tbody');
+  tb.innerHTML = lk.list.map(function(l){
+    var now=false;
+    if(age>=l.from){ if(age<l.to){ now=true; } }
+    return '<tr'+(now?' class="now"':'')+'><td>'+l.from+'~'+l.to+'세</td>'+
+      '<td class="han">'+l.han+'</td><td>'+l.fromYear+'~'+l.toYear+
+      (now?' · 지금 여기':'')+'</td></tr>';
+  }).join('');
+
+  /* 05 별 */
+  var st=chart.stars;
+  $('rStars').innerHTML =
+    '<div class="st"><div class="st-k">SUN · 태양</div><div class="st-v">'+st.sun.name+
+      '</div><div class="st-d">'+st.sun.degree+'도 · 무엇을 하려는 사람인가</div></div>' +
+    '<div class="st"><div class="st-k">ASC · 상승궁</div><div class="st-v">'+st.ascendant.name+
+      '</div><div class="st-d">'+st.ascendant.degree+'도 · 남들 눈에 비치는 첫인상</div></div>' +
+    '<div class="st"><div class="st-k">MC · 천정</div><div class="st-v">'+st.midheaven.name+
+      '</div><div class="st-d">'+st.midheaven.degree+'도 · 사회에서 서는 자리</div></div>';
+
+  /* 06 접수 내역 */
+  var od=[];
+  od.push(['가디언', order.guardian || '—']);
+  od.push(['고른 주제', order.topic || '—']);
+  if(order.oneline){ od.push(['한 줄 질문', order.oneline]); }
+  if(order.deeps){ if(order.deeps.length){ od.push(['더 깊이 보기', order.deeps.join(' · ')]); } }
+  if(order.work){
+    if(order.work.job){  od.push(['지금의 나', order.work.job]); }
+    if(order.work.want){ od.push(['바라는 것', order.work.want]); }
+  }
+  if(answers){
+    var picked=[];
+    for(var k in answers){ if(answers[k]){ picked.push(answers[k]); } }
+    if(picked.length){ od.push(['질문에 답한 것', picked.length+'개 · '+picked.slice(0,3).join(' / ')+(picked.length>3?' …':'')]); }
+  }
+  od.push(['쓰는 구슬', (order.orbs||5)+'구슬']);
+  $('rOrder').innerHTML = od.map(function(r){
+    return '<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>'; }).join('');
+
+  $('rNextNote').innerHTML = '아직 결제와 회원가입이 열리지 않아, 지금은 <b>여기까지가 무료로 보시는 부분</b>입니다. ' +
+    '아래 전자책은 <b>다른 분의 사례로 만든 예시</b>예요 — ' + name + '님의 값이 아니라, ' +
+    '책이 어떤 모양으로 나오는지 보시라고 붙여둔 것입니다.';
+})();
+</script>
+<!-- /wp:html -->

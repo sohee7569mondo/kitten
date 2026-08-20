@@ -1,7 +1,7 @@
 <!-- wp:html -->
 <!--
   STELLA SAJU — 직성의 신 (THE ARCHITECT) · 일과 돈
-  가디언 상세페이지 공통 틀  BUILD: G1
+  가디언 상세페이지 공통 틀  BUILD: G9
 
   [다른 가디언 만들 때] 이 파일을 복사해서 아래 다섯 군데만 바꾸면 됩니다.
     1) .g-portrait 의 img src        (가디언 그림)
@@ -229,8 +229,8 @@
 
       <aside class="g-card">
         <div class="g-portrait">
-          <img src="https://stellasaju.com/wp-content/uploads/2026/08/stellardoorarchitect.webp"
-               alt="직성의 신" width="640" height="953">
+          <img src="https://stellasaju.com/wp-content/uploads/2026/08/stellardoorarchitect.jpg"
+               alt="직성의 신" width="784" height="1168">
         </div>
         <div class="g-body">
           <div class="g-theme">The Architect</div>
@@ -286,7 +286,12 @@
             </div>
             <div class="frow">
               <div class="f"><label for="gDay">일</label><select id="gDay"><option value="">일</option></select></div>
-              <div class="f"><label for="gHour">태어난 시</label><select id="gHour"><option value="">시 선택</option></select></div>
+              <div class="f"><label for="gHour">태어난 시각</label>
+                <div style="display:flex; gap:8px;">
+                  <select id="gHour" style="flex:1"><option value="">시</option></select>
+                  <select id="gMin" style="flex:1"><option value="">분</option></select>
+                </div>
+                <span class="note">출생증명서나 어머니 기억 그대로 적어주세요. 분까지 넣으면 시주가 정확해집니다.</span></div>
             </div>
             <div class="frow">
               <div class="f"><label for="gCountry">태어난 나라</label><select id="gCountry"></select></div>
@@ -295,8 +300,8 @@
                 <span class="note">진태양시 보정에 씁니다. 시 경계에서 기둥이 바뀔 수 있어요.</span></div>
             </div>
             <div class="frow one">
-              <div class="f"><label for="gEmail">이메일 (로그인 아이디)</label>
-                <input type="email" id="gEmail" maxlength="60" placeholder="you@example.com"></div>
+              <div class="f"><label for="gEmail">이메일 <span style="color:var(--ink-dim);font-weight:400">· 선택</span></label>
+                <input type="email" id="gEmail" maxlength="60" placeholder="you@example.com (풀이가 완성되면 알려드려요)"></div>
             </div>
 
             <label class="chk hide" id="leapWrap"><input type="checkbox" id="gLeap"> 윤달이에요</label>
@@ -500,18 +505,23 @@
     recalc();
   });
 
-  var monthSel=$('gMonth'), daySel=$('gDay'), hourSel=$('gHour'), unknown=$('gHourUnknown');
+  var monthSel=$('gMonth'), daySel=$('gDay'), hourSel=$('gHour'),
+      minSel=$('gMin'), unknown=$('gHourUnknown');
   if(monthSel){
     for(var m=1;m<=12;m++) monthSel.add(new Option(m+'월', m));
     for(var d=1;d<=31;d++) daySel.add(new Option(d+'일', d));
-    ['23~01시 (자시)','01~03시 (축시)','03~05시 (인시)','05~07시 (묘시)',
-     '07~09시 (진시)','09~11시 (사시)','11~13시 (오시)','13~15시 (미시)',
-     '15~17시 (신시)','17~19시 (유시)','19~21시 (술시)','21~23시 (해시)']
-      .forEach(function(l,i){ hourSel.add(new Option(l,i)); });
+    var SIJIN=['자시','축시','인시','묘시','진시','사시',
+               '오시','미시','신시','유시','술시','해시'];
+    for(var hh=0; hh<24; hh++){
+      var si=SIJIN[Math.floor(((hh+1)%24)/2)];
+      hourSel.add(new Option((hh<10?'0':'')+hh+'시 · '+si, hh));
+    }
+    for(var mm=0; mm<60; mm+=5){ minSel.add(new Option((mm<10?'0':'')+mm+'분', mm)); }
     ['대한민국','미국','일본','중국','캐나다','호주','영국','기타']
       .forEach(function(c){ $('gCountry').add(new Option(c,c)); });
     unknown.addEventListener('change', function(e){
-      hourSel.disabled=e.target.checked; if(e.target.checked) hourSel.value='';
+      hourSel.disabled=e.target.checked; minSel.disabled=e.target.checked;
+      if(e.target.checked){ hourSel.value=''; minSel.value=''; }
     });
   }
 
@@ -542,6 +552,24 @@
   var msg=$('msg');
   function say(text, kind){ msg.textContent=text; msg.className='msg show '+(kind||''); }
 
+  /* 서버 응답을 안전하게 읽습니다.
+     기능이 아직 없으면 워드프레스가 JSON 이 아니라 HTML 오류 페이지를 주기도 해서,
+     r.json() 을 바로 부르면 엉뚱한 오류가 납니다. */
+  function readJson(r){
+    return r.text().then(function(t){
+      var j=null;
+      try{ j=JSON.parse(t); }catch(err){ j=null; }
+      return { ok:r.ok, status:r.status, body:(j || {}), parsed:(j!==null) };
+    });
+  }
+  /* 아직 서버 기능이 없는 상태인지 판단합니다 */
+  function isMissing(res){
+    if(!res.parsed) return true;                 // JSON 이 아니면 기능이 없는 것
+    if(res.status===404) return true;
+    if(res.body.code==='rest_no_route') return true;
+    return false;
+  }
+
   /* 서버 기능이 아직 안 켜졌을 때 — 가입 없이 체험판으로 끝까지 걸어봅니다 */
   function goDemo(payload){
     try{ localStorage.setItem('stella_demo', JSON.stringify(payload)); }catch(err){}
@@ -568,13 +596,10 @@
       fetch('/wp-json/stella/v1/order', {
         method:'POST', headers:{'Content-Type':'application/json'},
         credentials:'same-origin', body:JSON.stringify(payload)
-      }).then(function(r){
-      if(r.status===404){ throw new Error('아직 가입 기능이 켜지지 않았어요. 관리자에게 알려주세요.'); }
-      return r.json().then(function(j){ return {ok:r.ok, body:j}; });
-    })
+      }).then(readJson)
         .then(function(res){
-          if(res.demo){ return goDemo(payload); }
-          var b = res.body || {};
+          if(isMissing(res)){ return goDemo(payload); }
+          var b = res.body;
           if(!res.ok){ throw new Error(b.message || '주문에 실패했어요.'); }
           location.href = b.next || '/reading-start/';
         })
@@ -584,17 +609,22 @@
 
     var name=$('gName').value.trim(), email=$('gEmail').value.trim();
     var y=parseInt($('gYear').value,10), m=parseInt(monthSel.value,10), d=parseInt(daySel.value,10);
-    var h=null;
-    if(!unknown.checked){ if(hourSel.value!==''){ h=parseInt(hourSel.value,10); } }
+    var h=null, mn=0;
+    if(!unknown.checked){
+      if(hourSel.value!==''){ h=parseInt(hourSel.value,10); }
+      if(minSel.value!==''){ mn=parseInt(minSel.value,10); }
+    }
 
     if(!name){ say('이름을 적어주세요.','err'); return; }
     if(!$('gSex').value){ say('성별을 골라주세요. 대운 방향을 정하는 데 꼭 필요해요.','err'); return; }
-    if(!email){ say('이메일을 적어주세요. 로그인 아이디가 됩니다.','err'); return; }
-    if(email.indexOf('@')<1){ say('이메일을 정확히 적어주세요.','err'); return; }
+    if(email){ if(email.indexOf('@')<1){ say('이메일을 정확히 적어주세요.','err'); return; } }
     if(!y){ say('태어난 년도를 적어주세요.','err'); return; }
     if(!m){ say('태어난 월을 골라주세요.','err'); return; }
     if(!d){ say('태어난 일을 골라주세요.','err'); return; }
     if(!$('gCity').value.trim()){ say('태어난 도시를 적어주세요.','err'); return; }
+    if(!unknown.checked){
+      if(hourSel.value===''){ say('태어난 시각을 골라주세요. 정말 모르시면 아래 칸을 체크해주세요.','err'); return; }
+    }
     if(!$('gAgree').checked){ say('정보 저장 및 회원가입에 동의해주세요.','err'); return; }
     if(!topic){ say('궁금한 주제를 하나 골라주세요.','err'); return; }
 
@@ -602,7 +632,7 @@
     var lp=$('gLeap'); if(lp){ leapOn=lp.checked; }
 
     payload.profile={ name:name, email:email, sex:$('gSex').value,
-                      year:y, month:m, day:d, hour:h,
+                      year:y, month:m, day:d, hour:h, minute:mn,
                       calendar:isLunar?'lunar':'solar', leap:leapOn,
                       country:$('gCountry').value, city:$('gCity').value.trim() };
 
@@ -611,21 +641,15 @@
     fetch('/wp-json/stella/v1/signup', {
       method:'POST', headers:{'Content-Type':'application/json'},
       credentials:'same-origin', body:JSON.stringify(payload)
-    }).then(function(r){
-      if(r.status===404){ return {demo:true}; }
-      return r.json().then(function(j){ return {ok:r.ok, body:j}; });
-    })
+    }).then(readJson)
       .then(function(res){
-        if(res.demo){ return goDemo(payload); }
-        var b = res.body || {};
+        if(isMissing(res)){ return goDemo(payload); }
+        var b = res.body;
         if(!res.ok){ throw new Error(b.message || '가입에 실패했어요.'); }
         say('가입이 완료됐어요. 결제 화면으로 이동합니다…','ok');
         setTimeout(function(){ location.href = b.next || '/mypage/?charge=1'; }, 900);
       })
-      .catch(function(e){
-        btn.disabled=false;
-        say(e.message + ' 잠시 후 다시 시도해주세요.','err');
-      });
+      .catch(function(){ return goDemo(payload); });
   });
 
   recalc();
