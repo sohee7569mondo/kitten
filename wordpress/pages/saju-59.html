@@ -1,0 +1,239 @@
+<!-- wp:html -->
+<!--
+  ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 나의 사주풀이 (페이지 ID 59)  BUILD: S2
+  ═══════════════════════════════════════════════════════════════
+   상단 메뉴/푸터는 테마 템플릿 파트에 있습니다. 여기엔 본문만 있습니다.
+   모든 CSS 는 #ssp 안으로 묶여 있어 다른 페이지에 영향을 주지 않습니다.
+-->
+<style id="ssp-saju-css">
+#ssp{
+  --void:#0D0A1A; --void-deep:#070512;
+  --nebula:#1C1533; --nebula-soft:#251C42;
+  --purple-glow:rgba(140,101,214,.35);
+  --gold:#D4AF6A; --gold-soft:#C9A66B; --gold-lite:#E8CD96;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.46);
+  --line:rgba(212,175,106,.18);
+
+  max-width:none !important; width:auto !important;
+  margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
+  padding:0 !important;
+  position:relative; z-index:0; overflow-x:clip;
+  color:var(--star); text-align:center;
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:300; line-height:1.75; font-size:16px;
+  word-break:keep-all; overflow-wrap:break-word;
+}
+#ssp *{margin:0; padding:0; box-sizing:border-box;}
+#ssp h1,#ssp h2{font-family:'Noto Serif KR',serif; color:var(--star); font-weight:700; letter-spacing:normal;}
+#ssp a{color:inherit; text-decoration:none;}
+#ssp button{font:inherit;}
+
+#ssp .ssp-stars{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.9), transparent),
+    radial-gradient(1px 1px at 82% 12%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1.5px 1.5px at 62% 62%, rgba(255,255,255,.8), transparent),
+    radial-gradient(1px 1px at 28% 78%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1.5px 1.5px at 90% 52%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1px 1px at 45% 32%, rgba(255,255,255,.5), transparent),
+    var(--void);
+}
+#ssp .ssp-inner{position:relative; z-index:1; max-width:940px; margin:0 auto; padding:76px 24px 110px;}
+@media(max-width:700px){ #ssp .ssp-inner{padding:48px 18px 80px;} }
+
+#ssp .ssp-kicker{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--gold); margin-bottom:16px;}
+#ssp h1{font-size:clamp(1.8rem,4.6vw,2.8rem); line-height:1.35;}
+#ssp .ssp-lead{margin:18px auto 0; color:var(--ink-soft); font-size:1rem; max-width:560px;}
+
+/* ── 입력 카드 ──────────────────────────────────────────── */
+#ssp .stage{
+  margin:52px auto 0; max-width:680px; padding:48px 40px 40px; border-radius:14px; text-align:left;
+  background:radial-gradient(ellipse at 50% 0%, rgba(140,101,214,.14), transparent 62%), var(--nebula);
+  border:1px solid var(--line); box-shadow:0 40px 90px -50px rgba(0,0,0,.9);
+}
+@media(max-width:700px){ #ssp .stage{padding:32px 20px 30px; margin-top:36px; border-radius:12px;} }
+
+#ssp .field-row{display:grid !important; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+@media(max-width:520px){ #ssp .field-row{grid-template-columns:1fr;} }
+#ssp .field{display:flex; flex-direction:column; gap:7px;}
+#ssp .field label{font-family:'IBM Plex Mono',monospace; font-size:.68rem; color:var(--ink-dim); letter-spacing:.04em;}
+#ssp .field input,#ssp .field select{
+  background:var(--void-deep); border:1px solid var(--line); color:var(--star);
+  padding:14px 15px; border-radius:5px; font-family:inherit; font-size:.95rem; width:100%;
+  transition:border-color .2s ease;
+}
+#ssp .field input:focus,#ssp .field select:focus{outline:none; border-color:var(--gold-soft);}
+#ssp .field select:disabled{opacity:.4;}
+#ssp .unknown{display:flex !important; align-items:center; gap:9px; margin-top:6px;
+  font-size:.85rem; color:var(--ink-soft); cursor:pointer;}
+#ssp .unknown input{accent-color:var(--gold); width:16px; height:16px;}
+
+#ssp .btn{
+  width:100%; margin-top:26px; padding:17px 30px; border-radius:3px; border:none; cursor:pointer;
+  font-size:.98rem; font-weight:700; color:var(--void-deep);
+  background:linear-gradient(135deg, var(--gold), #B98A47);
+  box-shadow:0 16px 34px -14px rgba(212,175,106,.55);
+  transition:transform .2s ease;
+}
+#ssp .btn:hover{transform:translateY(-2px);}
+#ssp .err{margin-top:14px; font-size:.85rem; color:#E5A0A0; text-align:center; display:none;}
+#ssp .err.show{display:block;}
+
+/* ── 결과 ───────────────────────────────────────────────── */
+#ssp .result{margin-top:40px; display:none; text-align:center;}
+#ssp .result.show{display:block; animation:ssp-rise .55s ease backwards;}
+@keyframes ssp-rise{ from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:none;} }
+#ssp .pillars{display:grid !important; grid-template-columns:repeat(4,1fr); gap:14px;}
+@media(max-width:560px){ #ssp .pillars{grid-template-columns:repeat(2,1fr);} }
+#ssp .pillar{background:var(--void-deep); border:1px solid var(--line); border-radius:9px;
+  padding:24px 10px; animation:ssp-rise .5s ease backwards;}
+#ssp .pillar .p-label{font-family:'IBM Plex Mono',monospace; font-size:.6rem; color:var(--ink-dim); letter-spacing:.1em;}
+#ssp .pillar .p-hanja{margin-top:12px; font-family:'Noto Serif KR',serif; font-size:2rem; color:var(--gold); line-height:1.2;}
+#ssp .pillar .p-kr{margin-top:6px; font-size:.8rem; color:var(--ink-soft);}
+#ssp .pillar.unknown-p .p-hanja{color:var(--ink-dim); font-size:1.1rem;}
+#ssp .element-line{margin-top:26px; padding:22px 20px; border-radius:9px;
+  background:rgba(212,175,106,.07); border:1px solid var(--line);
+  font-family:'Noto Serif KR',serif; font-size:1.05rem;}
+#ssp .element-line span{color:var(--gold);}
+#ssp .disclaimer{margin-top:18px; font-size:.74rem; color:var(--ink-dim); line-height:1.7;}
+
+#ssp .upsell{margin:46px auto 0; max-width:560px; padding:28px 24px;
+  border:1px solid var(--line); border-radius:10px;}
+#ssp .upsell p{font-size:.92rem; color:var(--ink-soft);}
+#ssp .upsell a{display:inline-block; margin-top:14px; font-family:'IBM Plex Mono',monospace;
+  font-size:.82rem; color:var(--gold); border-bottom:1px solid var(--gold-soft); padding-bottom:3px;}
+#ssp .upsell a:hover{color:var(--gold-lite);}
+
+@media(prefers-reduced-motion:reduce){
+  #ssp *,#ssp *::before,#ssp *::after{animation:none !important; transition:none !important;}
+}
+</style>
+
+<div id="ssp">
+  <div class="ssp-stars" aria-hidden="true"></div>
+  <div class="ssp-inner">
+
+    <div class="ssp-kicker">Free &middot; 심심풀이</div>
+    <h1>나의 사주풀이</h1>
+    <p class="ssp-lead">생년월일시를 넣으면 당신의 사주 네 기둥(년주·월주·일주·시주)을 보여드려요.<br>해설 없이 글자만 확인하는 용도예요.</p>
+
+    <div class="stage">
+      <div class="field-row">
+        <div class="field">
+          <label for="sYear">태어난 년도</label>
+          <input type="number" id="sYear" placeholder="1990" min="1900" max="2026" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="sMonth">태어난 월</label>
+          <select id="sMonth"><option value="">월 선택</option></select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="sDay">태어난 일</label>
+          <select id="sDay"><option value="">일 선택</option></select>
+        </div>
+        <div class="field">
+          <label for="sHour">태어난 시</label>
+          <select id="sHour"><option value="">시 선택</option></select>
+        </div>
+      </div>
+      <label class="unknown"><input type="checkbox" id="sHourUnknown"> 태어난 시간을 몰라요</label>
+
+      <button type="button" class="btn" id="sajuBtn">나의 사주 보기 &rarr;</button>
+      <div class="err" id="sajuErr">년 · 월 · 일을 모두 골라주세요.</div>
+
+      <div class="result" id="sajuResult">
+        <div class="pillars" id="pillars"></div>
+        <div class="element-line" id="elementLine"></div>
+        <div class="disclaimer">양력 기준 간이 계산이에요. 절기·음력 보정은 포함되지 않아 실제 사주와 조금 다를 수 있어요.</div>
+      </div>
+    </div>
+
+    <div class="upsell">
+      <p>이 네 글자가 무슨 뜻인지, 성격·직업·연애까지 궁금하다면?</p>
+      <a href="/#doors">여섯 개의 문 열어보기 &rarr;</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var monthSel=$('sMonth'), daySel=$('sDay'), hourSel=$('sHour'), unknown=$('sHourUnknown');
+  if(!monthSel) return;
+
+  for(var m=1;m<=12;m++) monthSel.add(new Option(m+'월', m));
+  for(var d=1;d<=31;d++) daySel.add(new Option(d+'일', d));
+  var hourLabels=['23~01시 (자시)','01~03시 (축시)','03~05시 (인시)','05~07시 (묘시)',
+                  '07~09시 (진시)','09~11시 (사시)','11~13시 (오시)','13~15시 (미시)',
+                  '15~17시 (신시)','17~19시 (유시)','19~21시 (술시)','21~23시 (해시)'];
+  hourLabels.forEach(function(label,i){ hourSel.add(new Option(label, i)); });
+
+  unknown.addEventListener('change', function(e){
+    hourSel.disabled = e.target.checked;
+    if(e.target.checked) hourSel.value = '';
+  });
+
+  var stemsKr=['갑','을','병','정','무','기','경','신','임','계'];
+  var stemsHan=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  var branchesKr=['자','축','인','묘','진','사','오','미','신','유','술','해'];
+  var branchesHan=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var stemElement=['목','목','화','화','토','토','금','금','수','수'];
+  var elHan={'목':'木','화':'火','토':'土','금':'金','수':'水'};
+
+  function yearPillar(y){
+    return {stemIdx:((y-4)%10+10)%10, branchIdx:((y-4)%12+12)%12};
+  }
+  function dayPillar(y,m,d){
+    var anchor=Date.UTC(1900,0,31);                 // 갑진일 기준
+    var diff=Math.round((Date.UTC(y,m-1,d)-anchor)/86400000);
+    return {stemIdx:((diff%10)+10)%10, branchIdx:((diff+4)%12+12)%12};
+  }
+  function monthPillar(m, yearStemIdx){
+    var branchIdx=(m+1)%12;                          // 1월≈인월 근사
+    var firstStem=((yearStemIdx%5)*2+2)%10;
+    return {stemIdx:(firstStem+(m-1))%10, branchIdx:branchIdx};
+  }
+  function hourPillar(hIdx, dayStemIdx){
+    if(hIdx === null || isNaN(hIdx)) return null;
+    var firstStem=((dayStemIdx%5)*2)%10;
+    return {stemIdx:(firstStem+hIdx)%10, branchIdx:hIdx};
+  }
+  function card(label, p, i){
+    var delay = 'style="animation-delay:'+(i*90)+'ms"';
+    if(!p) return '<div class="pillar unknown-p" '+delay+'><div class="p-label">'+label+'</div>'
+                 + '<div class="p-hanja">모름</div><div class="p-kr">시간 미입력</div></div>';
+    return '<div class="pillar" '+delay+'><div class="p-label">'+label+'</div>'
+         + '<div class="p-hanja">'+stemsHan[p.stemIdx]+branchesHan[p.branchIdx]+'</div>'
+         + '<div class="p-kr">'+stemsKr[p.stemIdx]+branchesKr[p.branchIdx]+'</div></div>';
+  }
+
+  $('sajuBtn').addEventListener('click', function(){
+    var y=parseInt($('sYear').value,10), m=parseInt(monthSel.value,10), d=parseInt(daySel.value,10);
+    var hIdx = unknown.checked || hourSel.value === '' ? null : parseInt(hourSel.value,10);
+    var err=$('sajuErr');
+
+    if(!y || !m || !d){ err.classList.add('show'); return; }
+    err.classList.remove('show');
+
+    var yp=yearPillar(y), dp=dayPillar(y,m,d), mp=monthPillar(m, yp.stemIdx), hp=hourPillar(hIdx, dp.stemIdx);
+    $('pillars').innerHTML = card('시주 HOUR',hp,0) + card('일주 DAY',dp,1)
+                           + card('월주 MONTH',mp,2) + card('년주 YEAR',yp,3);
+
+    var el = stemElement[dp.stemIdx];
+    $('elementLine').innerHTML = '당신의 일간(나를 나타내는 글자)은 <span>'
+      + stemsKr[dp.stemIdx] + '(' + stemsHan[dp.stemIdx] + ')</span> — <span>'
+      + el + '(' + elHan[el] + ')</span>의 기운이에요.';
+
+    var r=$('sajuResult');
+    r.classList.add('show');
+    r.scrollIntoView({behavior:'smooth', block:'center'});
+  });
+})();
+</script>
+<!-- /wp:html -->

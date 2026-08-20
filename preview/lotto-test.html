@@ -1,0 +1,616 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>lotto</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"><style>body{margin:0;background:#0D0A1A}.entry-content{max-width:650px;margin:0 auto}.entry-content>*{max-width:650px;margin-left:auto;margin-right:auto}</style></head><body class="page-id-79"><div class="wp-site-blocks"><header class="wp-block-template-part">
+<!--
+  ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 사이트 공통 헤더  (테마 헤더 템플릿 파트)
+  ═══════════════════════════════════════════════════════════════
+   외모 편집기 → 패턴 → 템플릿 파트 → 헤더 에서 수정합니다.
+   여기에 있으면 모든 페이지에 자동으로 붙습니다.
+
+   [메뉴 추가/수정] 아래 .ssnav-drop 안의 <a> 를 넣고 빼면 됩니다.
+   [준비중 표시] class="soon" 을 붙이면 흐리게 + 클릭 잠금 + '준비중' 뱃지.
+                페이지를 만들면 class="soon" 만 지우면 열립니다.
+-->
+<style id="ss-nav-css">
+/* 서브페이지들이 header{} nav{} 같은 전역 선택자를 쓰고 있어서,
+   바깥 껍데기를 먼저 중립화한 뒤 #ss-nav 로 다시 그립니다. */
+body .wp-site-blocks > header.wp-block-template-part{
+  position:static !important; background:none !important; border:0 !important;
+  padding:0 !important; margin:0 !important; max-width:none !important; width:auto !important;
+}
+
+#ss-nav{
+  --void:#0D0A1A; --void-deep:#070512;
+  --nebula:#1C1533; --nebula-soft:#251C42;
+  --gold:#D4AF6A; --gold-soft:#C9A66B;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.42);
+  --line:rgba(212,175,106,.18);
+  --nav-h:76px;
+
+  position:fixed; top:0; left:0; right:0; z-index:9000;
+  background:rgba(13,10,26,.9); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:400; line-height:1.6; word-break:keep-all;
+}
+/* 로그인 상태의 관리자 바(32px, 좁은 화면 46px)만큼 메뉴를 내려줍니다 */
+body.admin-bar #ss-nav{top:32px;}
+@media(max-width:782px){ body.admin-bar #ss-nav{top:46px;} }
+
+#ss-nav *{box-sizing:border-box;}
+#ss-nav a{text-decoration:none; color:inherit;}
+#ss-nav button{font:inherit; background:none; border:0; cursor:pointer; color:inherit;}
+
+/* 고정 헤더가 내용을 가리지 않게 밀어주는 빈 칸 (홈에서는 0).
+   #ss-nav 의 형제라서 CSS 변수를 못 물려받으므로 높이를 직접 씁니다. */
+#ss-nav-spacer{height:76px;}
+body.page-id-62 #ss-nav-spacer{display:none;}
+
+#ss-nav .ssnav-inner{
+  max-width:1180px !important; margin:0 auto !important; padding:0 26px !important;
+  height:76px; display:flex !important; align-items:center; justify-content:space-between; gap:20px;
+}
+
+/* ── 로고 ───────────────────────────────────────────────── */
+#ss-nav .ssnav-logo{display:flex; align-items:center; flex:0 0 auto;}
+#ss-nav .ssnav-logo img{display:block; height:48px; width:auto; max-width:none; border-radius:5px;}
+#ss-nav .ssnav-logo .fallback{font-family:'Cinzel',serif; font-weight:600; font-size:1.05rem;
+  letter-spacing:.06em; color:var(--gold); display:none;}
+
+/* ── 데스크톱 메뉴 ──────────────────────────────────────── */
+#ss-nav .ssnav-menu{display:flex !important; align-items:center; gap:6px; max-width:none !important;
+  margin:0 !important; padding:0 !important;}
+#ss-nav .ssnav-item{position:relative;}
+#ss-nav .ssnav-top{
+  display:inline-flex; align-items:center; gap:6px; padding:10px 14px; border-radius:4px;
+  font-size:.9rem; color:var(--star); white-space:nowrap; transition:color .2s ease, background .2s ease;
+}
+#ss-nav .ssnav-top:hover,
+#ss-nav .ssnav-item.open .ssnav-top{color:var(--gold); background:rgba(212,175,106,.08);}
+#ss-nav .ssnav-top .caret{font-size:.62rem; color:var(--gold-soft); transition:transform .2s ease;}
+#ss-nav .ssnav-item.open .ssnav-top .caret{transform:rotate(180deg);}
+
+#ss-nav .ssnav-drop{
+  position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%) translateY(-6px);
+  min-width:250px; padding:8px; border-radius:8px;
+  background:#171130; border:1px solid var(--line); box-shadow:0 24px 50px -18px rgba(0,0,0,.85);
+  opacity:0; visibility:hidden; pointer-events:none; transition:opacity .18s ease, transform .18s ease;
+}
+#ss-nav .ssnav-item.open .ssnav-drop{opacity:1; visibility:visible; pointer-events:auto;
+  transform:translateX(-50%) translateY(0);}
+#ss-nav .ssnav-drop a{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:11px 14px; border-radius:5px; font-size:.88rem; color:var(--ink-soft);
+  transition:color .18s ease, background .18s ease;
+}
+#ss-nav .ssnav-drop a:hover{color:var(--star); background:rgba(212,175,106,.1);}
+#ss-nav .ssnav-drop .sub{font-size:.74rem; color:var(--ink-dim);}
+
+/* 아직 페이지가 없는 항목 */
+#ss-nav .soon{pointer-events:none; opacity:.45;}
+#ss-nav .soon::after{
+  content:'준비중'; flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:.6rem;
+  color:var(--gold); border:1px solid var(--gold-soft); border-radius:20px; padding:2px 8px;
+}
+
+/* ── 모바일 ─────────────────────────────────────────────── */
+#ss-nav .ssnav-burger{display:none; flex-direction:column; gap:5px; padding:10px; flex:0 0 auto;}
+#ss-nav .ssnav-burger span{display:block; width:22px; height:2px; background:var(--gold);
+  border-radius:2px; transition:transform .25s ease, opacity .25s ease;}
+#ss-nav.mobile-open .ssnav-burger span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+#ss-nav.mobile-open .ssnav-burger span:nth-child(2){opacity:0;}
+#ss-nav.mobile-open .ssnav-burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+@media(max-width:900px){
+  #ss-nav{--nav-h:64px;}
+  #ss-nav-spacer{height:64px;}
+  #ss-nav .ssnav-inner{height:64px; padding:0 18px !important;}
+  #ss-nav .ssnav-logo img{height:38px;}
+  #ss-nav .ssnav-burger{display:flex;}
+  /* 주의: #ss-nav 에 backdrop-filter 가 걸려 있어서 그 안의 position:fixed 는
+     화면이 아니라 #ss-nav 를 기준으로 잡힙니다. 그래서 absolute + 높이 계산을 씁니다. */
+  #ss-nav .ssnav-menu{
+    position:absolute; top:100%; left:0; right:0; z-index:9001;
+    height:calc(100vh - 64px); height:calc(100dvh - 64px);
+    display:block !important; overflow-y:auto; padding:10px 18px 60px !important;
+    background:var(--void); border-top:1px solid var(--line);
+    transform:translateY(-8px); opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .22s ease, transform .22s ease;
+  }
+  #ss-nav.mobile-open .ssnav-menu{opacity:1; visibility:visible; pointer-events:auto; transform:none;}
+  #ss-nav .ssnav-item{border-bottom:1px solid rgba(212,175,106,.1);}
+  #ss-nav .ssnav-top{width:100%; justify-content:space-between; padding:18px 4px; font-size:1rem;}
+  /* 모바일에서는 접기/펴기 없이 전부 펼쳐 보여줍니다 */
+  #ss-nav .ssnav-drop{
+    position:static; transform:none; opacity:1; visibility:visible; pointer-events:auto;
+    min-width:0; background:none; border:0; box-shadow:none; padding:0 0 14px 4px;
+  }
+  #ss-nav .ssnav-drop a{padding:12px 10px; font-size:.92rem;}
+  #ss-nav .ssnav-top .caret{display:none;}
+  #ss-nav .soon{pointer-events:none;}
+}
+
+/* 서브페이지가 각자 갖고 있는 옛 헤더(✦ STELLAR SAJU + ← 홈으로)를 숨깁니다.
+   각 페이지 코드에서 <header> 블록을 지우면 이 줄은 필요 없어집니다. */
+.entry-content > header,
+.wp-block-post-content > header,
+.entry-content > div > header{display:none !important;}
+</style>
+
+<link rel="icon" href="./brand/mark.jpg" sizes="any">
+
+<div id="ss-nav">
+  <div class="ssnav-inner">
+    <a class="ssnav-logo" href="/" aria-label="스텔라사주 홈">
+      <img src="./brand/logo.jpg"
+           alt="스텔라사주" width="339" height="156">
+      <span class="fallback">STELLA SAJU</span>
+    </a>
+
+    <nav class="ssnav-menu" aria-label="주메뉴">
+
+      <div class="ssnav-item">
+        <button type="button" class="ssnav-top" aria-expanded="false">무료 운세 <span class="caret">&#9662;</span></button>
+        <div class="ssnav-drop">
+          <a href="/saju/">나의 사주풀이</a>
+          <a href="/lotto/">이번주 로또 추첨</a>
+          <a href="/zodiac/">이번주 별자리 운세</a>
+          <a href="/zodiac-year/">이번주 띠별운세</a>
+          <a href="/weekly-summary/">이번주 사주 총평</a>
+          <a href="/oracle/">운명의 책 <span class="sub">하루 무제한</span></a>
+        </div>
+      </div>
+
+      <div class="ssnav-item">
+        <button type="button" class="ssnav-top" aria-expanded="false">여섯 개의 문 <span class="caret">&#9662;</span></button>
+        <div class="ssnav-drop">
+          <a class="soon" href="/door-career/">직성의 신 <span class="sub">일과 돈</span></a>
+          <a class="soon" href="/door-love/">연성의 신 <span class="sub">사랑</span></a>
+          <a class="soon" href="/door-health/">강성의 신 <span class="sub">건강</span></a>
+          <a class="soon" href="/door-fortune/">세성의 신 <span class="sub">흐름</span></a>
+          <a class="soon" href="/door-astro/">성좌의 신 <span class="sub">별자리</span></a>
+          <a class="soon" href="/door-tarot/">아르카나 <span class="sub">타로</span></a>
+        </div>
+      </div>
+
+      <div class="ssnav-item">
+        <button type="button" class="ssnav-top" aria-expanded="false">나의 인생길잡이 <span class="caret">&#9662;</span></button>
+        <div class="ssnav-drop">
+          <a class="soon" href="/guide/">책 소개</a>
+          <a class="soon" href="/guide/#preview">목차 미리보기</a>
+          <a class="soon" href="/guide/#buy">구매하기</a>
+        </div>
+      </div>
+
+      <div class="ssnav-item">
+        <a class="ssnav-top soon" href="/stars/">이번주 스타운세</a>
+      </div>
+
+    </nav>
+
+    <button type="button" class="ssnav-burger" aria-label="메뉴 열기" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
+<div id="ss-nav-spacer"></div>
+
+<script>
+(function(){
+  var nav = document.getElementById('ss-nav');
+  if(!nav) return;
+
+  // 로고 이미지가 없으면 글자 브랜드로 대체
+  var logo = nav.querySelector('.ssnav-logo img');
+  if(logo){
+    var swap = function(){
+      logo.style.display='none';
+      var f = nav.querySelector('.ssnav-logo .fallback');
+      if(f) f.style.display='block';
+    };
+    if(logo.complete && logo.naturalWidth === 0) swap();
+    logo.addEventListener('error', swap);
+  }
+
+  var items = [].slice.call(nav.querySelectorAll('.ssnav-item'));
+  var isMobile = function(){ return window.matchMedia('(max-width:900px)').matches; };
+
+  function closeAll(except){
+    items.forEach(function(it){
+      if(it === except) return;
+      it.classList.remove('open');
+      var b = it.querySelector('.ssnav-top');
+      if(b && b.tagName === 'BUTTON') b.setAttribute('aria-expanded','false');
+    });
+  }
+
+  // 드롭다운은 hover 가 아니라 클릭으로 엽니다 (터치 기기에는 hover 가 없습니다)
+  items.forEach(function(it){
+    var btn = it.querySelector('button.ssnav-top');
+    if(!btn) return;
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      if(isMobile()) return;            // 모바일에선 전부 펼쳐져 있음
+      var willOpen = !it.classList.contains('open');
+      closeAll(it);
+      it.classList.toggle('open', willOpen);
+      btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    });
+  });
+
+  // 바깥 클릭 / ESC 로 닫기
+  document.addEventListener('click', function(e){ if(!nav.contains(e.target)) closeAll(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ closeAll(); nav.classList.remove('mobile-open'); }
+  });
+
+  // 모바일 햄버거
+  var burger = nav.querySelector('.ssnav-burger');
+  if(burger){
+    burger.addEventListener('click', function(e){
+      e.stopPropagation();
+      var open = nav.classList.toggle('mobile-open');
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      burger.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+    });
+  }
+  // 메뉴에서 링크를 고르면 닫기
+  nav.querySelectorAll('.ssnav-drop a, a.ssnav-top').forEach(function(a){
+    a.addEventListener('click', function(){
+      nav.classList.remove('mobile-open');
+      document.documentElement.style.overflow = '';
+      closeAll();
+    });
+  });
+  // 화면을 키우면 모바일 상태 해제
+  window.addEventListener('resize', function(){
+    if(!isMobile() && nav.classList.contains('mobile-open')){
+      nav.classList.remove('mobile-open');
+      document.documentElement.style.overflow = '';
+    }
+  });
+})();
+</script>
+
+</header><main class="wp-block-group"><div class="entry-content">
+<!--
+  ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 이번주 로또 추첨 (페이지 ID 79)  BUILD: L2
+  ═══════════════════════════════════════════════════════════════
+   상단 메뉴/푸터는 테마 템플릿 파트에 있습니다. 여기엔 본문만 있습니다.
+   모든 CSS 는 #ssp 안으로 묶여 있어 다른 페이지에 영향을 주지 않습니다.
+-->
+<style id="ssp-lotto-css">
+#ssp{
+  --void:#0D0A1A; --void-deep:#070512;
+  --nebula:#1C1533; --nebula-soft:#251C42;
+  --purple-glow:rgba(140,101,214,.35);
+  --gold:#D4AF6A; --gold-soft:#C9A66B; --gold-lite:#E8CD96;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.46);
+  --line:rgba(212,175,106,.18);
+
+  /* 테마 폭 제한을 벗어나 화면 전체를 씁니다 */
+  max-width:none !important; width:auto !important;
+  margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
+  padding:0 !important;
+  position:relative; z-index:0; overflow-x:clip;
+  color:var(--star); text-align:center;
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:300; line-height:1.75; font-size:16px;
+  word-break:keep-all; overflow-wrap:break-word;
+}
+#ssp *{margin:0; padding:0; box-sizing:border-box;}
+#ssp h1,#ssp h2{font-family:'Noto Serif KR',serif; color:var(--star); font-weight:700; letter-spacing:normal;}
+#ssp a{color:inherit; text-decoration:none;}
+#ssp button{font:inherit;}
+
+#ssp .ssp-stars{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.9), transparent),
+    radial-gradient(1px 1px at 82% 12%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1.5px 1.5px at 62% 62%, rgba(255,255,255,.8), transparent),
+    radial-gradient(1px 1px at 28% 78%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1.5px 1.5px at 90% 52%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1px 1px at 45% 32%, rgba(255,255,255,.5), transparent),
+    var(--void);
+}
+#ssp .ssp-inner{position:relative; z-index:1; max-width:940px; margin:0 auto; padding:76px 24px 110px;}
+@media(max-width:700px){ #ssp .ssp-inner{padding:48px 18px 80px;} }
+
+/* ── 머리말 ─────────────────────────────────────────────── */
+#ssp .ssp-kicker{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--gold); margin-bottom:16px;}
+#ssp h1{font-size:clamp(1.8rem,4.6vw,2.8rem); line-height:1.35;}
+#ssp .ssp-lead{margin:18px auto 0; color:var(--ink-soft); font-size:1rem; max-width:520px;}
+
+/* ── 추첨 무대 ──────────────────────────────────────────── */
+#ssp .stage{
+  margin:56px auto 0; max-width:760px; padding:56px 32px 44px; border-radius:14px;
+  background:radial-gradient(ellipse at 50% 0%, rgba(140,101,214,.14), transparent 62%), var(--nebula);
+  border:1px solid var(--line); box-shadow:0 40px 90px -50px rgba(0,0,0,.9);
+}
+@media(max-width:700px){ #ssp .stage{padding:36px 18px 32px; margin-top:38px; border-radius:12px;} }
+
+#ssp .wheel-wrap{position:relative; width:340px; height:340px; margin:0 auto;}
+@media(max-width:560px){ #ssp .wheel-wrap{width:250px; height:250px;} }
+
+#ssp .wheel-pointer{
+  position:absolute; top:-14px; left:50%; transform:translateX(-50%); z-index:5;
+  width:0; height:0; border-left:13px solid transparent; border-right:13px solid transparent;
+  border-top:20px solid var(--gold);
+  filter:drop-shadow(0 3px 8px rgba(0,0,0,.7));
+}
+#ssp .wheel{
+  position:absolute; inset:0; border-radius:50%;
+  background:radial-gradient(circle at 34% 28%, rgba(212,175,106,.13), var(--void-deep) 68%);
+  border:2px solid var(--gold-soft);
+  box-shadow:inset 0 0 46px rgba(0,0,0,.72), 0 0 60px -14px var(--purple-glow);
+}
+#ssp .wheel-face{position:absolute; inset:0; will-change:transform;}
+#ssp .wheel-num{
+  position:absolute; top:50%; left:50%; width:26px; height:26px; margin:-13px 0 0 -13px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'IBM Plex Mono',monospace; font-size:.66rem; font-weight:500;
+  color:var(--ink-soft); transition:color .2s ease;
+}
+@media(max-width:560px){ #ssp .wheel-num{font-size:.56rem; width:22px; height:22px; margin:-11px 0 0 -11px;} }
+#ssp .wheel-num.hit{color:var(--void-deep); font-weight:700;}
+#ssp .wheel-num.hit::before{
+  content:''; position:absolute; inset:-2px; border-radius:50%; z-index:-1;
+  background:linear-gradient(135deg, var(--gold-lite), var(--gold-soft));
+}
+#ssp .wheel-hub{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:76px; height:76px; border-radius:50%; z-index:4;
+  background:linear-gradient(160deg, var(--nebula-soft), var(--void-deep));
+  border:1px solid var(--gold-soft);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--gold); font-size:1.5rem;
+  box-shadow:0 6px 20px rgba(0,0,0,.6);
+}
+@media(max-width:560px){ #ssp .wheel-hub{width:58px; height:58px; font-size:1.2rem;} }
+
+/* ── 뽑힌 번호 ──────────────────────────────────────────── */
+#ssp .balls{display:flex !important; justify-content:center; align-items:center; gap:12px;
+  flex-wrap:wrap; min-height:66px; margin-top:38px;}
+#ssp .ball{
+  width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:1.15rem; color:var(--void-deep);
+  background:linear-gradient(135deg, var(--gold), var(--gold-lite));
+  box-shadow:0 12px 26px -10px var(--purple-glow), inset 0 -3px 8px rgba(0,0,0,.18);
+  animation:ssp-pop .45s cubic-bezier(.2,1.5,.4,1) backwards;
+}
+@media(max-width:560px){ #ssp .ball{width:46px; height:46px; font-size:1rem; gap:8px;} }
+@keyframes ssp-pop{ from{opacity:0; transform:translateY(-26px) scale(.4);} to{opacity:1; transform:none;} }
+#ssp .balls .hint{color:var(--ink-dim); font-size:.88rem;}
+
+#ssp .btn{
+  margin-top:34px; padding:16px 36px; border-radius:3px; border:none; cursor:pointer;
+  font-size:.95rem; font-weight:700; color:var(--void-deep);
+  background:linear-gradient(135deg, var(--gold), #B98A47);
+  box-shadow:0 16px 34px -14px rgba(212,175,106,.55);
+  transition:transform .2s ease, opacity .2s ease;
+}
+#ssp .btn:hover{transform:translateY(-2px);}
+#ssp .btn:disabled{opacity:.45; cursor:default; transform:none;}
+#ssp .note{margin-top:22px; font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-dim);}
+
+/* ── 다음 단계 유도 ─────────────────────────────────────── */
+#ssp .upsell{margin:46px auto 0; max-width:560px; padding:28px 24px;
+  border:1px solid var(--line); border-radius:10px;}
+#ssp .upsell p{font-size:.92rem; color:var(--ink-soft);}
+#ssp .upsell a{display:inline-block; margin-top:14px; font-family:'IBM Plex Mono',monospace;
+  font-size:.82rem; color:var(--gold); border-bottom:1px solid var(--gold-soft); padding-bottom:3px;}
+#ssp .upsell a:hover{color:var(--gold-lite);}
+
+@media(prefers-reduced-motion:reduce){
+  #ssp *,#ssp *::before,#ssp *::after{animation:none !important; transition:none !important;}
+}
+</style>
+
+<div id="ssp">
+  <div class="ssp-stars" aria-hidden="true"></div>
+  <div class="ssp-inner">
+
+    <div class="ssp-kicker">Free &middot; 심심풀이</div>
+    <h1>이번주 로또 추첨</h1>
+    <p class="ssp-lead">명성의 신이 돌리는 운명의 원판이에요.<br>버튼을 누를 때마다 새로 뽑혀요 — 재미로만 봐주세요.</p>
+
+    <div class="stage">
+      <div class="wheel-wrap">
+        <div class="wheel-pointer" aria-hidden="true"></div>
+        <div class="wheel">
+          <div class="wheel-face" id="wheelFace"></div>
+          <div class="wheel-hub" aria-hidden="true">&#10022;</div>
+        </div>
+      </div>
+
+      <div class="balls" id="balls" aria-live="polite">
+        <span class="hint">버튼을 눌러 번호를 뽑아보세요</span>
+      </div>
+
+      <button type="button" class="btn" id="drawBtn">번호 뽑기 &rarr;</button>
+      <div class="note">본 번호는 참고용이며 당첨을 보장하지 않습니다</div>
+    </div>
+
+    <div class="upsell">
+      <p>번호 말고, 올해 나의 재물 흐름이 궁금하다면?</p>
+      <a href="/#doors">여섯 개의 문 열어보기 &rarr;</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var face = document.getElementById('wheelFace');
+  var btn  = document.getElementById('drawBtn');
+  var tray = document.getElementById('balls');
+  if(!face || !btn || !tray) return;
+
+  var TOTAL = 45, STEP = 360/TOTAL;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // 원판 테두리에 1~45 배치
+  var radius = (face.clientWidth || 340)/2 - 24;
+  var nums = [];
+  for(var i=0;i<TOTAL;i++){
+    var el = document.createElement('div');
+    el.className = 'wheel-num';
+    el.textContent = i+1;
+    var a = (i*STEP - 90) * Math.PI/180;      // 12시 방향부터 시계방향
+    el.style.transform = 'translate(' + (radius*Math.cos(a)).toFixed(1) + 'px,'
+                                      + (radius*Math.sin(a)).toFixed(1) + 'px)';
+    face.appendChild(el);
+    nums.push(el);
+  }
+  // 화면 폭이 바뀌면 반지름 다시 계산
+  window.addEventListener('resize', function(){
+    var r = (face.clientWidth || 340)/2 - 24;
+    if(Math.abs(r - radius) < 2) return;
+    radius = r;
+    nums.forEach(function(el,i){
+      var a = (i*STEP - 90) * Math.PI/180;
+      el.style.transform = 'translate(' + (radius*Math.cos(a)).toFixed(1) + 'px,'
+                                        + (radius*Math.sin(a)).toFixed(1) + 'px)';
+    });
+  });
+
+  function pickSix(){
+    var s = new Set();
+    while(s.size < 6) s.add(Math.floor(Math.random()*TOTAL)+1);
+    return Array.from(s).sort(function(a,b){ return a-b; });
+  }
+  function addBall(n, delay){
+    var b = document.createElement('div');
+    b.className = 'ball';
+    b.textContent = n;
+    b.style.animationDelay = delay + 'ms';
+    tray.appendChild(b);
+  }
+  function markHit(n){
+    nums.forEach(function(el){ el.classList.remove('hit'); });
+    if(n) nums[n-1].classList.add('hit');
+  }
+
+  var angle = 0, spinning = false;
+
+  btn.addEventListener('click', function(){
+    if(spinning) return;
+    var picked = pickSix();
+
+    if(reduce){                                  // 모션 최소화 설정이면 바로 결과만
+      tray.innerHTML = '';
+      picked.forEach(function(n){ addBall(n, 0); });
+      markHit(picked[picked.length-1]);
+      return;
+    }
+
+    spinning = true;
+    btn.disabled = true;
+    tray.innerHTML = '';
+    markHit(null);
+
+    // 마지막 번호가 12시 바늘 아래에 멈추도록 목표 각도를 계산합니다
+    var last = picked[picked.length-1];
+    var landing = -((last-1)*STEP);
+    var target = angle + 360*5 + (((landing - angle) % 360) + 360) % 360;
+    var start = angle, dist = target - start;
+    var DUR = 3200, t0 = null;
+
+    // 돌아가는 동안 0.32초 간격으로 공이 하나씩 떨어집니다
+    picked.forEach(function(n,i){
+      setTimeout(function(){ addBall(n, 0); }, 700 + i*320);
+    });
+
+    function ease(x){ return 1 - Math.pow(1-x, 3); }   // 빠르게 돌다 서서히 멈춤
+    function frame(ts){
+      if(t0 === null) t0 = ts;
+      var p = Math.min((ts - t0)/DUR, 1);
+      angle = start + dist*ease(p);
+      face.style.transform = 'rotate(' + angle + 'deg)';
+      if(p < 1){ requestAnimationFrame(frame); }
+      else {
+        angle = ((target % 360) + 360) % 360;
+        face.style.transform = 'rotate(' + angle + 'deg)';
+        markHit(last);
+        spinning = false;
+        btn.disabled = false;
+        btn.textContent = '다시 뽑기 →';
+      }
+    }
+    requestAnimationFrame(frame);
+  });
+})();
+</script>
+
+</div></main><footer class="wp-block-template-part">
+<!--
+  ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 사이트 공통 푸터  (테마 푸터 템플릿 파트)
+  ═══════════════════════════════════════════════════════════════
+-->
+<style id="ss-foot-css">
+body .wp-site-blocks > footer.wp-block-template-part{
+  background:none !important; border:0 !important; padding:0 !important; margin:0 !important;
+  max-width:none !important; width:auto !important;
+}
+#ss-footer{
+  --gold:#D4AF6A; --gold-soft:#C9A66B;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.42);
+  --line:rgba(212,175,106,.18);
+  background:#0D0A1A; border-top:1px solid var(--line);
+  padding:60px 24px 44px !important; text-align:center; position:relative; z-index:1;
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:300; line-height:1.7; word-break:keep-all;
+}
+#ss-footer *{box-sizing:border-box;}
+#ss-footer a{color:inherit; text-decoration:none;}
+#ss-footer .ssf-logo{width:250px; max-width:70%; height:auto; margin:0 auto 22px; display:block; border-radius:6px;}
+#ss-footer .ssf-fallback{display:none; font-family:'Cinzel',serif; color:var(--gold);
+  letter-spacing:.08em; font-size:1rem; margin-bottom:22px;}
+#ss-footer .ssf-links{display:flex !important; flex-wrap:wrap; justify-content:center; gap:8px 22px;
+  margin-bottom:20px; font-size:.84rem; color:var(--ink-soft); max-width:640px;
+  margin-left:auto; margin-right:auto;}
+#ss-footer .ssf-links a:hover{color:var(--gold);}
+#ss-footer .ssf-fine{font-family:'IBM Plex Mono',monospace; font-size:.74rem; color:var(--ink-dim);}
+#ss-footer .ssf-fine .sep{margin:0 8px; opacity:.5;}
+</style>
+
+<div id="ss-footer">
+  <a href="/" aria-label="스텔라사주 홈">
+    <img class="ssf-logo" src="./brand/logo.jpg"
+         alt="스텔라사주" width="339" height="156" loading="lazy">
+  </a>
+  <div class="ssf-fallback">&#10022; STELLA SAJU</div>
+
+  <div class="ssf-links">
+    <a href="/saju/">나의 사주풀이</a>
+    <a href="/lotto/">이번주 로또 추첨</a>
+    <a href="/zodiac/">이번주 별자리 운세</a>
+    <a href="/zodiac-year/">이번주 띠별운세</a>
+    <a href="/weekly-summary/">이번주 사주 총평</a>
+    <a href="/oracle/">운명의 책</a>
+  </div>
+
+  <div class="ssf-fine">
+    &copy; STELLA SAJU <span class="sep">&middot;</span> 이 콘텐츠는 재미를 위한 참고용입니다
+  </div>
+</div>
+
+<script>
+(function(){
+  var img = document.querySelector('#ss-footer .ssf-logo');
+  if(!img) return;
+  var swap = function(){
+    img.style.display='none';
+    var f = document.querySelector('#ss-footer .ssf-fallback');
+    if(f) f.style.display='block';
+  };
+  if(img.complete && img.naturalWidth === 0) swap();
+  img.addEventListener('error', swap);
+})();
+</script>
+
+</footer></div></body></html>
