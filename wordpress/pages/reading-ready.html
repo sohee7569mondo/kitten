@@ -805,10 +805,12 @@
   if(!profile){ $('rEmpty').classList.remove('hide'); return; }
   $('rBody').classList.remove('hide');
 
-  var loc=S.locate(profile.city, profile.country);
+  /* 태어난 날짜까지 넘겨야 그날의 서머타임과 그때의 표준시를 셈합니다 */
+  var loc=S.locate(profile.city, profile.country, profile.year, profile.month, profile.day);
   var chart=S.compute({
     year:profile.year, month:profile.month, day:profile.day,
-    hour:profile.hour, minute:profile.minute || 0, sex:profile.sex, lon:loc.lon, lat:loc.lat, tz:loc.tz
+    hour:profile.hour, minute:profile.minute || 0, sex:profile.sex,
+    lon:loc.lon, lat:loc.lat, tz:loc.tz, zone:loc.zone, dst:loc.dst
   });
 
   /* 진태양시가 어느 시진에 드는지 이름을 붙여줍니다 */
@@ -817,8 +819,26 @@
   function two(n){ return (n<10?'0':'')+n; }
 
   var name=profile.name || '손님';
+
+  /* 여덟 글자라고만 하면 처음 오신 분은 무슨 말인지 모르십니다.
+     그래서 실제로 어떤 글자인지 늘 같이 적어드립니다. */
+  function eightHan(){
+    var q=chart.pillars;
+    var t=q.year.han+' '+q.month.han+' '+q.day.han;
+    if(q.hour){ t+=' '+q.hour.han; }
+    return t;
+  }
+  function eightKor(){
+    var q=chart.pillars;
+    var t=q.year.kor+' '+q.month.kor+' '+q.day.kor;
+    if(q.hour){ t+=' '+q.hour.kor; }
+    return t;
+  }
+  var glyphCount = chart.pillars.hour ? '여덟' : '여섯';
   $('rKicker').textContent = (order.guardian || 'Stella Saju') + ' · 자료 정리 완료';
-  $('rTitle').innerHTML = name + '님의 여덟 글자를<br>모두 세웠습니다';
+  $('rTitle').innerHTML = name + '님의 ' + glyphCount + ' 글자<br>' +
+    '<span style="letter-spacing:.14em">' + eightHan() + '</span><br>' +
+    '모두 세웠습니다';
 
   var born = profile.year+'년 '+profile.month+'월 '+profile.day+'일';
   if(profile.calendar==='lunar'){ born='음력 '+born; }
@@ -828,6 +848,8 @@
   if(knowsHour){ born += ' ' + two(profile.hour) + ':' + two(profile.minute||0); }
   else { born += ' (시간 모름)'; }
   $('rLede').innerHTML = born + ' · ' + (profile.city||'') + '<br>' +
+    '<b>' + eightHan() + '</b> (' + eightKor() + ') — 태어난 해와 달과 날' +
+    (chart.pillars.hour ? '과 시각' : '') + '을 옛 글자로 옮긴 것이 이 ' + glyphCount + ' 글자입니다.<br>' +
     '아래는 지어낸 말이 하나도 없는, 계산으로만 나온 값입니다.';
 
   if(chart.warnings.length){
@@ -902,7 +924,8 @@
 
   var most=chart.five.slice().sort(function(a,b){ return b.percent-a.percent; })[0];
   var none=chart.five.filter(function(f){ return f.count===0; }).map(function(f){ return f.element; });
-  var fw='여덟 글자 가운데 <b>'+most.element+'</b>의 기운이 가장 강합니다.';
+  var fw=glyphCount+' 글자('+eightHan()+') 가운데 <b>'+most.element+
+         '</b>의 기운이 가장 강합니다.';
   function batchim(w){ var c=w.charCodeAt(w.length-1);
     if(c<0xAC00) return false; if(c>0xD7A3) return false; return ((c-0xAC00)%28)!==0; }
   if(none.length){ var nj=none.join('·');
@@ -961,7 +984,7 @@
     return '<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>'; }).join('');
 
   $('rNextNote').innerHTML = '아직 결제가 열리지 않아 지금은 <b>시험판</b>입니다. ' +
-    '그래도 ' + name + '님의 여덟 글자로 만든 <b>열여덟 쪽짜리 책</b>을 끝까지 읽으실 수 있어요. ' +
+    '그래도 ' + name + '님의 ' + glyphCount + ' 글자(' + eightHan() + ')로 만든 <b>열여덟 쪽짜리 책</b>을 끝까지 읽으실 수 있어요. ' +
     '아래 왼쪽 단추를 누르시면 바로 펼쳐집니다. PDF 로도 저장하실 수 있습니다.';
 })();
 </script>

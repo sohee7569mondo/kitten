@@ -1,0 +1,157 @@
+<!-- wp:html -->
+<script>
+/* ═══ 태어난 도시 고르기 ═══
+   나라를 고르면 그 나라 주요 도시가 목록으로 뜹니다.
+   목록에 없는 곳은 '직접 입력'을 골라 적으시면 됩니다.
+
+   원래 칸(#gCity)은 그대로 두고 값만 넣어줍니다.
+   그래야 아래쪽 가입 코드를 하나도 건드리지 않습니다. */
+(function(){
+  function start(){
+    /* 올려둔 페이지에 옛 문구나 깨진 글자가 남아 있으면 되돌립니다.
+       이 파일들에는 이미 바른 글자로 적혀 있어, 여기 표는 라이브에서만 일을 합니다. */
+    var FIX=[
+      ['열네 쪽짜리','열여덟 쪽짜리'],
+      ['지쳌 누운','지쳐 누운'],
+      ['두터우고','두텁고'],
+      ['길흥','길흉'],
+      ['거둔 때인지','거둘 때인지'],
+      ['뺚를 정리하고','빚을 정리하고'],
+      ['곉으로 보이는','겉으로 보이는']
+    ];
+    function swap(t){
+      var i;
+      for(i=0;i<FIX.length;i++){
+        if(t.indexOf(FIX[i][0])>=0){ t=t.split(FIX[i][0]).join(FIX[i][1]); }
+      }
+      return t;
+    }
+    function mend(box){
+      if(!box){ return; }
+      var walk=document.createTreeWalker(box, NodeFilter.SHOW_TEXT, null, false);
+      var node, was;
+      while((node=walk.nextNode())){
+        was=node.nodeValue;
+        if(swap(was)!==was){ node.nodeValue=swap(was); }
+      }
+      var fields=box.querySelectorAll('input,textarea'), k, ph;
+      for(k=0;k<fields.length;k++){
+        ph=fields[k].placeholder;
+        if(ph){ if(swap(ph)!==ph){ fields[k].placeholder=swap(ph); } }
+      }
+    }
+    mend(document.getElementById('ssg'));
+
+    var sel=document.getElementById('gCountry');
+    var txt=document.getElementById('gCity');
+    if(!sel){ return; }
+    if(!txt){ return; }
+    if(document.getElementById('gCitySel')){ return; }
+
+    /* 나라와 그 나라 주요 도시.
+       여기 적힌 이름은 계산기가 경도·표준시·서머타임을 아는 곳들입니다. */
+    var PLACES=[
+      ['대한민국', ['서울','인천','수원','성남','고양','용인','부천','안산','안양','남양주',
+                  '화성','평택','의정부','파주','김포','광명','이천','양주',
+                  '춘천','원주','강릉','속초','동해',
+                  '대전','세종','천안','청주','충주','아산','공주','서산','제천',
+                  '대구','포항','경주','구미','안동','김천','경산','영주',
+                  '부산','울산','창원','진주','김해','통영','거제','양산','사천',
+                  '광주','전주','목포','여수','순천','군산','익산','나주','정읍',
+                  '제주','서귀포','평양','개성','함흥']],
+      ['미국',   ['로스앤젤레스','샌프란시스코','샌디에이고','새너제이','시애틀','포틀랜드',
+                  '라스베이거스','피닉스','덴버','솔트레이크시티','시카고','댈러스','휴스턴',
+                  '오스틴','애틀랜타','뉴욕','뉴저지','필라델피아','보스턴','워싱턴',
+                  '마이애미','올랜도','호놀룰루','앵커리지']],
+      ['캐나다', ['밴쿠버','빅토리아','캘거리','에드먼턴','위니펙','토론토','오타와','몬트리올']],
+      ['일본',   ['도쿄','요코하마','오사카','교토','나고야','후쿠오카','삿포로','오키나와']],
+      ['중국',   ['베이징','상하이','칭다오','선양','옌볜','광저우']],
+      ['홍콩·대만', ['홍콩','타이베이']],
+      ['싱가포르', ['싱가포르']],
+      ['필리핀', ['마닐라']],
+      ['베트남', ['하노이','호치민']],
+      ['태국',   ['방콕']],
+      ['인도네시아', ['자카르타']],
+      ['인도',   ['델리']],
+      ['아랍에미리트', ['두바이']],
+      ['호주',   ['시드니','멜버른','브리즈번','퍼스']],
+      ['뉴질랜드', ['오클랜드']],
+      ['영국',   ['런던']],
+      ['아일랜드', ['더블린']],
+      ['프랑스', ['파리']],
+      ['독일',   ['베를린','프랑크푸르트','뮌헨']],
+      ['네덜란드', ['암스테르담']],
+      ['벨기에', ['브뤼셀']],
+      ['스위스', ['취리히']],
+      ['오스트리아', ['빈']],
+      ['이탈리아', ['로마','밀라노']],
+      ['스페인', ['마드리드','바르셀로나']],
+      ['체코',   ['프라하']],
+      ['스웨덴', ['스톡홀름']],
+      ['러시아', ['모스크바']],
+      ['브라질', ['상파울루']],
+      ['아르헨티나', ['부에노스아이레스']],
+      ['멕시코', ['멕시코시티']],
+      ['이집트', ['카이로']],
+      ['남아프리카공화국', ['요하네스버그']],
+      ['기타',   []]
+    ];
+
+    function citiesOf(country){
+      for(var i=0;i<PLACES.length;i++){
+        if(PLACES[i][0]===country){ return PLACES[i][1]; }
+      }
+      return [];
+    }
+
+    /* 나라 목록을 다시 깝니다 (고르셨던 나라가 있으면 그대로 둡니다) */
+    var was=sel.value;
+    sel.innerHTML='';
+    for(var i=0;i<PLACES.length;i++){
+      sel.add(new Option(PLACES[i][0], PLACES[i][0]));
+    }
+    sel.value=was;
+    if(!sel.value){ sel.value=PLACES[0][0]; }
+
+    /* 도시 고르는 칸을 원래 칸 앞에 끼워 넣습니다 */
+    var pick=document.createElement('select');
+    pick.id='gCitySel';
+    txt.parentNode.insertBefore(pick, txt);
+
+    txt.placeholder='도시 이름을 적어주세요';
+    txt.style.marginTop='8px';
+
+    function fill(){
+      var list=citiesOf(sel.value);
+      pick.innerHTML='';
+      for(var k=0;k<list.length;k++){ pick.add(new Option(list[k], list[k])); }
+      pick.add(new Option('목록에 없어요 · 직접 입력', '__etc'));
+      if(list.length){ pick.value=list[0]; } else { pick.value='__etc'; }
+      apply();
+    }
+
+    function apply(){
+      if(pick.value==='__etc'){
+        txt.style.display='';
+        txt.value='';
+      } else {
+        txt.style.display='none';
+        txt.value=pick.value;
+      }
+    }
+
+    sel.addEventListener('change', fill);
+    pick.addEventListener('change', function(){
+      apply();
+      if(pick.value==='__etc'){ txt.focus(); }
+    });
+
+    fill();
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+})();
+</script>
+<!-- /wp:html -->
