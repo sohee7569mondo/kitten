@@ -60,7 +60,7 @@ def deeps(g):
         rows.append(
 '            <label class="deep"><input type="checkbox" class="deep-c" value="%s">\n'
 '              <span><span class="deep-t">%s</span><span class="deep-d">%s</span></span>\n'
-'              <span class="deep-p">+5구슬</span></label>' % (title, title, desc))
+'              <span class="deep-p">체험판 무료</span></label>' % (title, title, desc))
     return '<div id="deeps">\n' + '\n'.join(rows) + '\n          </div>'
 
 def build(master, g):
