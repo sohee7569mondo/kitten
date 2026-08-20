@@ -260,10 +260,10 @@
              '천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
 
 
-  /* 태어난 곳 → 경도·위도.
-     진태양시는 경도로 갈립니다. 서울과 부산은 8분쯤 차이가 나서
+  /* 태어난 곳 → 경도 · 위도 · 표준시 · 서머타임.
+     진태양시는 경도로 갈립니다. 서울과 부산도 8분쯤 차이가 나서
      시 경계에 걸린 분은 시주가 바뀔 수 있습니다.
-     동·읍 단위까지는 필요 없습니다 (5초 차이). */
+     해외에서 태어나신 분은 그 나라 표준시와 서머타임까지 봐야 맞습니다. */
   var CITIES={
     '서울':[126.978,37.567], '인천':[126.705,37.456], '수원':[127.029,37.264],
     '성남':[127.127,37.420], '고양':[126.832,37.658], '용인':[127.178,37.241],
@@ -288,25 +288,214 @@
     '제주':[126.532,33.499], '서귀포':[126.566,33.254],
     '평양':[125.738,39.039], '개성':[126.556,37.971], '함흥':[127.536,39.918]
   };
-  /* 나라별 대표 좌표와 표준시 — 도시를 못 찾았을 때 씁니다 */
-  var COUNTRIES={
-    '대한민국':[126.978,37.567,9], '일본':[139.692,35.690,9], '중국':[116.407,39.904,8],
-    '미국':[-74.006,40.713,-5], '캐나다':[-79.383,43.653,-5], '호주':[151.209,-33.868,10],
-    '영국':[-0.128,51.507,0], '기타':[126.978,37.567,9]
+
+  /* 해외 — [경도, 위도, 표준시, 서머타임 규칙]
+     규칙 : 'na' 북미 · 'eu' 유럽 · 'au' 호주 남동부 · '' 없음 */
+  var WORLD={
+    /* 캐나다 */
+    '밴쿠버':[-123.121,49.283,-8,'na'], '빅토리아':[-123.365,48.428,-8,'na'],
+    '캘거리':[-114.071,51.045,-7,'na'], '에드먼턴':[-113.491,53.546,-7,'na'],
+    '위니펙':[-97.138,49.895,-6,'na'],  '토론토':[-79.383,43.653,-5,'na'],
+    '오타와':[-75.697,45.421,-5,'na'],  '몬트리올':[-73.568,45.502,-5,'na'],
+    /* 미국 서부 */
+    '로스앤젤레스':[-118.243,34.052,-8,'na'], 'LA':[-118.243,34.052,-8,'na'],
+    '샌프란시스코':[-122.419,37.775,-8,'na'], '샌디에이고':[-117.161,32.716,-8,'na'],
+    '새너제이':[-121.887,37.339,-8,'na'],     '시애틀':[-122.332,47.606,-8,'na'],
+    '포틀랜드':[-122.676,45.512,-8,'na'],     '라스베이거스':[-115.139,36.170,-8,'na'],
+    '피닉스':[-112.074,33.448,-7,''],         '덴버':[-104.991,39.739,-7,'na'],
+    '솔트레이크시티':[-111.891,40.761,-7,'na'],
+    /* 미국 중부·동부 */
+    '시카고':[-87.630,41.878,-6,'na'],  '댈러스':[-96.797,32.777,-6,'na'],
+    '휴스턴':[-95.370,29.760,-6,'na'],  '오스틴':[-97.743,30.267,-6,'na'],
+    '애틀랜타':[-84.388,33.749,-5,'na'],'뉴욕':[-74.006,40.713,-5,'na'],
+    '뉴저지':[-74.406,40.058,-5,'na'],  '필라델피아':[-75.165,39.953,-5,'na'],
+    '보스턴':[-71.059,42.360,-5,'na'],  '워싱턴':[-77.037,38.907,-5,'na'],
+    '마이애미':[-80.192,25.762,-5,'na'],'올랜도':[-81.379,28.538,-5,'na'],
+    '호놀룰루':[-157.858,21.307,-10,''], '하와이':[-157.858,21.307,-10,''],
+    '앵커리지':[-149.900,61.218,-9,'na'],
+    /* 아시아 */
+    '도쿄':[139.692,35.690,9,''],   '요코하마':[139.638,35.444,9,''],
+    '오사카':[135.502,34.694,9,''], '교토':[135.768,35.012,9,''],
+    '나고야':[136.907,35.181,9,''], '후쿠오카':[130.402,33.590,9,''],
+    '삿포로':[141.355,43.062,9,''], '오키나와':[127.681,26.212,9,''],
+    '베이징':[116.407,39.904,8,''], '상하이':[121.474,31.230,8,''],
+    '칭다오':[120.383,36.067,8,''], '선양':[123.432,41.805,8,''],
+    '옌볜':[129.514,42.905,8,''],   '광저우':[113.264,23.129,8,''],
+    '홍콩':[114.169,22.319,8,''],   '타이베이':[121.566,25.033,8,''],
+    '싱가포르':[103.820,1.352,8,''],'방콕':[100.501,13.756,7,''],
+    '하노이':[105.834,21.028,7,''], '호치민':[106.660,10.823,7,''],
+    '마닐라':[120.984,14.599,8,''], '자카르타':[106.845,-6.208,7,''],
+    '델리':[77.209,28.614,5.5,''],  '두바이':[55.271,25.205,4,''],
+    /* 오세아니아 */
+    '시드니':[151.209,-33.868,10,'au'],  '멜버른':[144.946,-37.840,10,'au'],
+    '브리즈번':[153.026,-27.470,10,''],  '퍼스':[115.861,-31.950,8,''],
+    '오클랜드':[174.763,-36.848,12,'au'],
+    /* 유럽 */
+    '런던':[-0.128,51.507,0,'eu'],      '더블린':[-6.260,53.350,0,'eu'],
+    '파리':[2.352,48.857,1,'eu'],       '베를린':[13.405,52.520,1,'eu'],
+    '프랑크푸르트':[8.682,50.111,1,'eu'],'뮌헨':[11.582,48.135,1,'eu'],
+    '암스테르담':[4.904,52.367,1,'eu'], '브뤼셀':[4.352,50.847,1,'eu'],
+    '취리히':[8.542,47.377,1,'eu'],     '빈':[16.373,48.208,1,'eu'],
+    '로마':[12.496,41.903,1,'eu'],      '밀라노':[9.190,45.464,1,'eu'],
+    '마드리드':[-3.704,40.417,1,'eu'],  '바르셀로나':[2.173,41.385,1,'eu'],
+    '프라하':[14.438,50.076,1,'eu'],    '스톡홀름':[18.069,59.329,1,'eu'],
+    '모스크바':[37.618,55.756,3,''],
+    /* 남미·아프리카 */
+    '상파울루':[-46.633,-23.551,-3,''], '부에노스아이레스':[-58.382,-34.604,-3,''],
+    '멕시코시티':[-99.133,19.433,-6,''],'카이로':[31.236,30.044,2,''],
+    '요하네스버그':[28.034,-26.205,2,'']
   };
 
-  /* 도시 이름을 받아 좌표를 찾습니다. 못 찾으면 나라 대표 좌표로. */
-  function locate(city, country){
-    var name=(city||'').replace(/\s/g,'');
-    var keys=Object.keys(CITIES);
-    for(var i=0;i<keys.length;i++){
-      if(name.indexOf(keys[i])>=0){
-        return { lon:CITIES[keys[i]][0], lat:CITIES[keys[i]][1], tz:9,
-                 matched:keys[i], exact:true };
+  /* 도시를 못 찾았을 때 쓰는 나라 대표 도시 */
+  var COUNTRY_CITY={
+    '대한민국':'서울', '미국':'로스앤젤레스', '캐나다':'토론토', '일본':'도쿄',
+    '중국':'베이징', '호주':'시드니', '영국':'런던', '뉴질랜드':'오클랜드',
+    '독일':'베를린', '프랑스':'파리', '싱가포르':'싱가포르', '필리핀':'마닐라',
+    '베트남':'호치민', '태국':'방콕', '기타':'서울'
+  };
+
+  /* ── 서머타임과 옛 표준시 ─────────────────────────────── */
+  function ymd(y,m,d){ return y*10000+m*100+d; }
+
+  /* 그 달 n번째 일요일 */
+  function nthSun(y,m,n){
+    var first=new Date(Date.UTC(y,m-1,1)).getUTCDay();      // 0=일
+    var day=1+((7-first)%7)+(n-1)*7;
+    return day;
+  }
+  /* 그 달 마지막 일요일 */
+  function lastSun(y,m){
+    var last=new Date(Date.UTC(y,m,0)).getUTCDate();
+    var dow=new Date(Date.UTC(y,m-1,last)).getUTCDay();
+    return last-dow;
+  }
+
+  /* 한국이 서머타임을 쓴 해와 기간 (표준시 자료 기준) */
+  var KR_DST=[
+    [19480601,19480913],[19490403,19490911],[19500401,19500910],[19510506,19510909],
+    [19550505,19550909],[19560520,19560930],[19570505,19570922],[19580504,19580921],
+    [19590504,19590920],[19600501,19600918],
+    [19870510,19871011],[19880508,19881009]
+  ];
+
+  /* 한국 표준시는 두 번 바뀌었습니다 (동경 135도 ↔ 127.5도) */
+  function koreaTz(y,mo,d){
+    var t=ymd(y,mo,d);
+    if(t < 19120101){ return 8.5; }
+    if(t < 19540321){ return 9; }
+    if(t < 19610810){ return 8.5; }
+    return 9;
+  }
+
+  /* 서머타임이면 60(분), 아니면 0 */
+  function dstMinutes(zone, y, mo, d){
+    var t=ymd(y,mo,d);
+    var i;
+
+    if(zone==='kr'){
+      for(i=0;i<KR_DST.length;i++){
+        if(t>=KR_DST[i][0]){ if(t<KR_DST[i][1]){ return 60; } }
+      }
+      return 0;
+    }
+
+    if(zone==='na'){                                  /* 미국 · 캐나다 */
+      if(y>=2007){
+        if(t>=ymd(y,3,nthSun(y,3,2))){ if(t<ymd(y,11,nthSun(y,11,1))){ return 60; } }
+        return 0;
+      }
+      if(y>=1987){
+        if(t>=ymd(y,4,nthSun(y,4,1))){ if(t<ymd(y,10,lastSun(y,10))){ return 60; } }
+        return 0;
+      }
+      if(y>=1976){
+        if(t>=ymd(y,4,lastSun(y,4))){ if(t<ymd(y,10,lastSun(y,10))){ return 60; } }
+        return 0;
+      }
+      return 0;
+    }
+
+    if(zone==='eu'){                                  /* 유럽 */
+      if(y>=1996){
+        if(t>=ymd(y,3,lastSun(y,3))){ if(t<ymd(y,10,lastSun(y,10))){ return 60; } }
+        return 0;
+      }
+      if(y>=1981){
+        if(t>=ymd(y,3,lastSun(y,3))){ if(t<ymd(y,9,lastSun(y,9))){ return 60; } }
+        return 0;
+      }
+      return 0;
+    }
+
+    if(zone==='au'){                                  /* 호주 남동부 · 뉴질랜드 (남반구) */
+      if(y>=2008){
+        if(t>=ymd(y,10,nthSun(y,10,1))){ return 60; }
+        if(t<ymd(y,4,nthSun(y,4,1))){ return 60; }
+        return 0;
+      }
+      if(y>=1972){
+        if(t>=ymd(y,10,lastSun(y,10))){ return 60; }
+        if(t<ymd(y,3,lastSun(y,3))){ return 60; }
+        return 0;
+      }
+      return 0;
+    }
+
+    return 0;
+  }
+
+  /* 옛 방식으로 부르는 화면을 위해 — 경도만 보고 어느 곳이었는지 되찾습니다.
+     locate() 가 이 표에서 꺼낸 값이라 소수점까지 그대로 맞습니다. */
+  function zoneOfLon(lon, tz){
+    var keys=Object.keys(WORLD), i, w;
+    for(i=0;i<keys.length;i++){
+      w=WORLD[keys[i]];
+      if(w[0]===lon){ if(w[2]===tz){ return w[3]; } }
+    }
+    keys=Object.keys(CITIES);
+    for(i=0;i<keys.length;i++){
+      if(CITIES[keys[i]][0]===lon){ return 'kr'; }
+    }
+    return '';
+  }
+
+  /* 도시 이름을 받아 좌표를 찾습니다. 못 찾으면 나라 대표 도시로.
+     태어난 날짜를 같이 주시면 그날의 서머타임까지 셈해 돌려줍니다. */
+  function locate(city, country, y, mo, d){
+    var name=(city||'').replace(/\s/g,'').toUpperCase();
+    var raw =(city||'').replace(/\s/g,'');
+    var keys, i;
+
+    /* 1) 해외 도시를 먼저 봅니다 (이름이 길어 더 정확합니다) */
+    keys=Object.keys(WORLD);
+    for(i=0;i<keys.length;i++){
+      if(raw.indexOf(keys[i])>=0 || name.indexOf(keys[i].toUpperCase())>=0){
+        var w=WORLD[keys[i]];
+        return { lon:w[0], lat:w[1], tz:w[2], zone:w[3],
+                 dst:dstMinutes(w[3],y,mo,d), matched:keys[i], exact:true, korea:false };
       }
     }
-    var c=COUNTRIES[country] || COUNTRIES['대한민국'];
-    return { lon:c[0], lat:c[1], tz:c[2], matched:(country||'대한민국'), exact:false };
+
+    /* 2) 국내 도시 */
+    keys=Object.keys(CITIES);
+    for(i=0;i<keys.length;i++){
+      if(raw.indexOf(keys[i])>=0){
+        return { lon:CITIES[keys[i]][0], lat:CITIES[keys[i]][1],
+                 tz:koreaTz(y,mo,d), zone:'kr', dst:dstMinutes('kr',y,mo,d),
+                 matched:keys[i], exact:true, korea:true };
+      }
+    }
+
+    /* 3) 못 찾으면 나라 대표 도시 */
+    var cc = COUNTRY_CITY[country] || '서울';
+    if(CITIES[cc]){
+      return { lon:CITIES[cc][0], lat:CITIES[cc][1],
+               tz:koreaTz(y,mo,d), zone:'kr', dst:dstMinutes('kr',y,mo,d),
+               matched:cc, exact:false, korea:true };
+    }
+    var g=WORLD[cc];
+    return { lon:g[0], lat:g[1], tz:g[2], zone:g[3],
+             dst:dstMinutes(g[3],y,mo,d), matched:cc, exact:false, korea:false };
   }
 
   /* ── 기본 도구 ───────────────────────────────────────────── */
@@ -387,13 +576,27 @@
     var lat=37.5665; if(opts.lat!==undefined){ if(opts.lat!==null){ lat=opts.lat; } }
     var tz=9; if(opts.tz!==undefined){ if(opts.tz!==null){ tz=opts.tz; } }
 
-    var jdUT = jd(y,mo,d,h-tz,mi);
+    /* 어느 시간대 규칙을 쓰는 곳인지 — 안 알려주면 경도로 되찾습니다 */
+    var zone=''; if(opts.zone){ zone=opts.zone; }
+    if(zone===''){ zone=zoneOfLon(lon, tz); }
+
+    /* 우리나라 표준시는 1954~1961 사이에 동경 127.5도였습니다 */
+    if(zone==='kr'){ tz=koreaTz(y,mo,d); }
+
+    /* 서머타임을 쓰던 날이면 시계가 한 시간 앞서 있었습니다 */
+    var dstMin=0;
+    if(opts.dst!==undefined){ if(opts.dst!==null){ dstMin=opts.dst; } }
+    else { dstMin=dstMinutes(zone, y, mo, d); }
+
+    var clockMin=h*60+mi;
+    var stdMin=clockMin-dstMin;        // 시계에서 서머타임을 벗긴 표준시
+
+    var jdUT = jd(y,mo,d) + stdMin/1440 - tz/24;
 
     /* 1) 진태양시 */
     var lonCorr=(lon-tz*15)*4;          // 표준자오선과의 경도차 (분)
     var eot=eqOfTime(jdUT);
-    var clockMin=h*60+mi;
-    var trueMin=clockMin+lonCorr+eot;
+    var trueMin=stdMin+lonCorr+eot;
     var dayShift=0;
     while(trueMin<0){ trueMin+=1440; dayShift-=1; }
     while(trueMin>=1440){ trueMin-=1440; dayShift+=1; }
@@ -402,7 +605,7 @@
     if(showMin>=1440){ showMin-=1440; }
 
     /* 2) 절기 — 태어난 순간이 어느 절 안에 있는지 */
-    var jdLocal=jd(y,mo,d,h-tz,mi);
+    var jdLocal=jdUT;
     var around=termsAround(y);
     var found=null;
     for(var i=0;i<around.length;i++){
@@ -509,15 +712,26 @@
         warnings.push('진태양시가 시주 경계에 붙어 있습니다. 태어난 시각이 10분만 달라도 시주가 바뀝니다.');
       }
     }
+    if(dstMin>0){
+      warnings.push('태어나신 날은 서머타임(일광절약시간)을 쓰던 기간입니다. ' +
+        '그때 시계는 실제 해보다 한 시간 앞서 있었기 때문에, 한 시간을 빼고 세웠습니다.');
+    }
+    if(tz===8.5){
+      warnings.push('1954년 3월부터 1961년 8월까지 우리나라 표준시는 동경 127.5도 기준이었습니다. ' +
+        '지금 기준과 30분이 다르므로 그때 기준으로 세웠습니다.');
+    }
     if(!hourKnown){
       warnings.push('태어난 시간을 모르셔서 시주는 세우지 않았습니다. ' +
         '시주가 빠지면 하루의 결이 흐려지고, 특히 자식·말년 자리를 읽기 어렵습니다.');
     }
 
-    return {
+    var out = {
       warnings: warnings,
       trueSolar:{
         clock: pad(h)+':'+pad(mi),
+        tz: tz,
+        zone: zone,
+        dst: dstMin,
         lonCorrection: Math.round(lonCorr*10)/10,
         equationOfTime: Math.round(eot*10)/10,
         time: pad(Math.floor(showMin/60))+':'+pad(showMin%60),
@@ -542,7 +756,13 @@
         midheaven: signOf(mc), mcDeg: Math.round(mc*10)/10
       }
     };
+    LAST = out;
+    return out;
   }
+
+  /* 마지막으로 세운 사주 — 화면이 문구를 고를 때 씁니다 */
+  var LAST = null;
+  function lastChart(){ return LAST; }
 
   function signOf(x){
     return { name:SIGNS[Math.floor(x/30)], degree:Math.round((x%30)*10)/10 };
@@ -561,7 +781,9 @@
     return best;
   }
 
-  root.StellaSaju={ compute:compute, locate:locate, CITIES:CITIES, GAN_H:GAN_H, JI_H:JI_H,
+  root.StellaSaju={ compute:compute, locate:locate, lastChart:lastChart,
+                    CITIES:CITIES, WORLD:WORLD,
+                    koreaTz:koreaTz, dstMinutes:dstMinutes, GAN_H:GAN_H, JI_H:JI_H,
                     GAN_L:GAN_L, JI_L:JI_L, ELEMENTS:ELEMENTS,
                     terms:termsOfYear, sunLon:sunLon, jd:jd };
 })(typeof window!=='undefined' ? window : globalThis);
@@ -623,9 +845,32 @@
   if(chart.pillars.hour){
     sijinName = ' · ' + SIJIN[chart.pillars.hour.ji] + '(' + chart.pillars.hour.han[1] + ')';
   }
+  if(ts.dst){ rows.push(['서머타임 되돌림', '-60분']); }
   rows.push(['진태양시', ts.time + sijinName]);
   $('rCalc').innerHTML = rows.map(function(r){
     return '<div><span>'+r[0]+'</span><span>'+r[1]+'</span></div>'; }).join('');
+
+  /* 01 의 설명은 태어난 곳에 맞춰 바꿉니다.
+     국내에서 태어나신 분께는 원래 문구(동경 135도 이야기)가 그대로 맞습니다. */
+  if(ts.zone!=='kr'){
+    var box=$('rCalc');
+    var why=box ? box.parentNode.querySelector('.why') : null;
+    if(why){
+      var meri=ts.tz*15;
+      var side=(meri<0) ? ('서경 '+Math.abs(meri)+'도') : ('동경 '+meri+'도');
+      var gap=ts.lonCorrection;
+      var dir=(gap<0) ? '늦게' : '이르게';
+      var place=profile.city || '태어나신 곳';
+      why.innerHTML =
+        '사주는 <b>시계를 보지 않고 해를 봅니다.</b> 시계는 넓은 땅이 함께 쓰라고 만든 약속이라, ' +
+        '태어나신 그 자리에서 해가 한가운데 뜨는 진짜 정오와는 어긋나요.<br>' +
+        '<b>' + place + '</b>의 시계는 ' + side + '를 기준으로 맞춰져 있고, ' +
+        '그 자리에서 해는 시계보다 <b>' + Math.abs(gap) + '분 ' + dir + '</b> 움직입니다.<br>' +
+        '여기에 하나가 더 붙습니다. 지구가 해를 도는 길이 정확한 동그라미가 아니라 살짝 찌그러진 타원이라, ' +
+        '하루의 길이가 계절마다 몇 분씩 늘었다 줄었다 합니다. 이 차이를 <b>균시차</b>라고 해요. ' +
+        '이 둘을 시계 시각에 더하고 빼야 비로소 <b>태어나신 진짜 시각</b>이 나옵니다.';
+    }
+  }
 
   /* 02 원국 */
   var p=chart.pillars;
