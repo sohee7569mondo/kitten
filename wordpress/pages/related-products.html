@@ -1,0 +1,144 @@
+<!-- wp:html -->
+<!--
+  관련 제품 비교 페이지 (쿠팡 파트너스)
+  워드프레스: [+] → "사용자 정의 HTML" 블록 → 이 파일 전체 붙여넣기
+  (파일 첫 줄의 wp:html 주석과 마지막 줄의 /wp:html 주석까지 같이 넣어야
+   클래식 블록이 아닌 Custom HTML 블록으로 들어갑니다)
+
+  붙여넣은 뒤 할 일
+  1. 이미지경로1~4.jpg → 미디어 라이브러리에 올린 실제 주소로 교체
+  2. 쿠팡링크1~4 → 쿠팡 파트너스에서 받은 실제 링크로 교체
+  3. 워드프레스 글 제목 칸에도 "[광고] " 를 맨 앞에 붙이기
+     (이 파일 안의 h1 만 고치면 검색결과·목록에는 [광고] 가 안 보입니다)
+  4. 23·28·30번 글의 "관련 제품 보러가기" CTA 를 이 페이지 주소로 연결
+
+  ── 쿠팡 파트너스 표기 규칙 (반드시 지킬 것) ─────────────────
+  O 제목 맨 앞에 [광고]
+  O 문구는 본문 "첫 부분" — 태그·링크·이미지보다 먼저
+  O 확정형으로 "…수수료를 제공받습니다."
+  X 조건부·불확정 표현 ("제공받을 수 있습니다", "제공받을 수도 있습니다")
+  X 태그·링크·이미지 다음에 문구를 쓰는 것
+  X 흐린 회색 작은 글씨로 눈에 안 띄게 두는 것
+  ────────────────────────────────────────────────
+-->
+
+<style>
+.st-wrap { font-family: 'Noto Sans KR', "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; max-width: 700px; margin: 2rem auto; color: #2b1830; line-height: 1.75; }
+.st-badge { display: inline-block; font-size: 12px; font-weight: 700; color: #8e3b8f; background: #f4ecf7; padding: 5px 12px; border-radius: 999px; margin-bottom: 14px; }
+.st-wrap h1 { font-size: 28px; line-height: 1.4; margin: 0 0 8px; color: #2b1830; }
+.st-wrap h1 .st-ad { color: #d23b3b; }
+.st-lede { font-size: 16px; color: #6b5570; margin: 0 0 20px; }
+.st-disclosure { font-size: 15px; font-weight: 700; color: #d23b3b; background: #fff5f5; border: 1px solid #f3c7c7; border-radius: 8px; padding: 14px 16px; margin: 0 0 26px; line-height: 1.6; }
+.st-wrap h2 { font-size: 21px; margin: 40px 0 14px; color: #5b2a6e; position: relative; padding-left: 16px; }
+.st-wrap h2::before { content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 4px; background: #8e3b8f; border-radius: 3px; }
+.st-wrap p { font-size: 15.5px; color: #3c2c40; margin: 0 0 16px; }
+.st-table { width: 100%; border-collapse: collapse; margin: 16px 0 28px; font-size: 13.5px; background: #fff; border-radius: 12px; overflow: hidden; }
+.st-table th, .st-table td { padding: 11px 12px; text-align: left; border-bottom: 1px solid #e6d9ec; }
+.st-table th { background: #5b2a6e; color: #fff; font-size: 12.5px; }
+.st-table tr.st-best td { background: #faf6fc; font-weight: 700; color: #5b2a6e; }
+.st-card { border: 1px solid #e6d9ec; border-radius: 16px; padding: 22px; margin: 20px 0; background: #fff; }
+.st-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+.st-card-title { font-size: 17px; font-weight: 700; color: #2b1830; }
+.st-tag { display: inline-block; font-size: 11px; font-weight: 700; color: #fff; background: #8e3b8f; padding: 3px 10px; border-radius: 999px; }
+.st-card img { width: 100%; border-radius: 12px; margin-bottom: 14px; display: block; }
+.st-card p { margin-bottom: 10px; }
+.st-buy { display: inline-block; background: #5b2a6e; color: #fff; font-weight: 700; font-size: 13.5px; padding: 10px 20px; border-radius: 999px; text-decoration: none; margin-top: 6px; }
+.st-pick { border: 2px solid #8e3b8f; }
+.st-cta { margin-top: 44px; padding: 26px; text-align: center; background: linear-gradient(135deg, #5b2a6e 0%, #8e3b8f 100%); border-radius: 16px; }
+.st-cta p { color: #f4ecf7; font-size: 14px; margin: 0 0 12px; }
+.st-cta a { display: inline-block; background: #fff; color: #5b2a6e; font-weight: 700; font-size: 15px; padding: 11px 26px; border-radius: 999px; text-decoration: none; }
+</style>
+
+<div class="st-wrap">
+
+  <h1><span class="st-ad">[광고]</span> 소분·보관에 유용한 생활용품 BEST 4 비교</h1>
+
+  <!-- 표기 문구는 본문 맨 앞 · 확정형 · 태그/링크/이미지보다 먼저 (위치를 옮기지 마세요) -->
+  <p class="st-disclosure">*이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>
+
+  <span class="st-badge">제품 리뷰</span>
+  <p class="st-lede">간식·재료를 미리 나눠두면 식습관 관리가 훨씬 쉬워지더라고요.</p>
+
+  <p>바쁜 일상 속에서 건강관리를 이어가려면 '미리 준비해두는 습관'이 큰 역할을 하더라고요. 소분·보관에 참고할 만한 용품 4가지를 비교해봤어요.</p>
+
+  <h2>한눈에 비교</h2>
+  <table class="st-table">
+    <tbody><tr><th>제품</th><th>이럴 때 좋아요</th><th>가격대</th><th>추천도</th></tr>
+    <tr class="st-best">
+      <td>투명 소분 용기 세트 ★</td>
+      <td>간식·식재료 소분 보관</td>
+      <td>1~3만원대</td>
+      <td>★★★★★</td>
+    </tr>
+    <tr>
+      <td>견과류 보관함</td>
+      <td>여러 종류 견과류 정리</td>
+      <td>1~2만원대</td>
+      <td>★★★★☆</td>
+    </tr>
+    <tr>
+      <td>밀프렙 용기 세트</td>
+      <td>한 끼 식사 미리 준비</td>
+      <td>2~5만원대</td>
+      <td>★★★★★</td>
+    </tr>
+    <tr>
+      <td>지퍼백/실리콘백</td>
+      <td>휴대용 소분, 냉동보관</td>
+      <td>5천~1만원대</td>
+      <td>★★★★☆</td>
+    </tr>
+  </tbody></table>
+
+  <h2>제품별로 자세히 볼게요</h2>
+
+  <div class="st-card st-pick">
+    <div class="st-card-top">
+      <span class="st-card-title">1. 투명 소분 용기 세트</span>
+      <span class="st-tag">범용성 1위</span>
+    </div>
+    <img src="이미지경로1.jpg" alt="투명 소분 용기 세트">
+    <p>크기별로 여러 개 구성된 세트가 활용도가 가장 높았어요. 투명해서 내용물이 한눈에 보이니 과식 방지에도 도움이 되고, 간식부터 밑반찬까지 두루 쓸 수 있어요.</p>
+    <a class="st-buy" href="쿠팡링크1" rel="nofollow sponsored noopener" target="_blank">쿠팡에서 보기 →</a>
+  </div>
+
+  <div class="st-card">
+    <div class="st-card-top">
+      <span class="st-card-title">2. 견과류 보관함</span>
+      <span class="st-tag">간식 정리</span>
+    </div>
+    <img src="이미지경로2.jpg" alt="견과류 보관함">
+    <p>여러 종류의 견과류를 칸별로 나눠 보관할 수 있는 제품이에요. 밀폐력이 좋은 제품을 고르면 신선도 유지에도 참고가 됩니다.</p>
+    <a class="st-buy" href="쿠팡링크2" rel="nofollow sponsored noopener" target="_blank">쿠팡에서 보기 →</a>
+  </div>
+
+  <div class="st-card">
+    <div class="st-card-top">
+      <span class="st-card-title">3. 밀프렙 용기 세트</span>
+      <span class="st-tag">주말 준비용</span>
+    </div>
+    <img src="이미지경로3.jpg" alt="밀프렙 용기 세트">
+    <p>주말에 며칠 치 식사를 미리 준비해두는 분들에게 특히 참고할 만해요. 칸막이가 있는 제품은 반찬 구성을 나눠 담기 편했어요.</p>
+    <a class="st-buy" href="쿠팡링크3" rel="nofollow sponsored noopener" target="_blank">쿠팡에서 보기 →</a>
+  </div>
+
+  <div class="st-card">
+    <div class="st-card-top">
+      <span class="st-card-title">4. 지퍼백/실리콘백</span>
+      <span class="st-tag">휴대·냉동용</span>
+    </div>
+    <img src="이미지경로4.jpg" alt="실리콘 지퍼백">
+    <p>냉동 보관이나 외출 시 간단하게 챙길 때 참고할 만해요. 일회용 지퍼백 대신 세척해서 재사용 가능한 실리콘 재질을 고르면 좀 더 오래 활용할 수 있어요.</p>
+    <a class="st-buy" href="쿠팡링크4" rel="nofollow sponsored noopener" target="_blank">쿠팡에서 보기 →</a>
+  </div>
+
+  <h2>정리하면</h2>
+  <p>하나만 먼저 고른다면 <strong>투명 소분 용기 세트</strong>를 추천해요. 간식, 밑반찬, 밀프렙까지 두루 활용할 수 있어서 범용성이 가장 좋았어요.</p>
+
+  <div class="st-cta">
+    <p>더 많은 건강 생활습관 정보가 궁금하다면</p>
+    <a href="https://health.kitteninthesox.com/category/%ea%b1%b4%ea%b0%95%ed%95%9c-%ec%83%9d%ed%99%9c/">건강 상식 더 보러가기 →</a>
+  </div>
+
+</div>
+<!-- /wp:html -->
