@@ -1,4 +1,292 @@
-<!-- wp:html -->
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"><style>body{margin:0;background:#0D0A1A}.entry-content{max-width:650px;margin:0 auto}.entry-content>*{max-width:650px;margin-left:auto;margin-right:auto}</style></head><body class="page-id-59"><div class="wp-site-blocks"><header class="wp-block-template-part">
+<!--
+  ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 사이트 공통 헤더  (테마 헤더 템플릿 파트)
+  ═══════════════════════════════════════════════════════════════
+   외모 편집기 → 패턴 → 템플릿 파트 → 헤더 에서 수정합니다.
+   여기에 있으면 모든 페이지에 자동으로 붙습니다.
+
+   [메뉴 추가/수정] 아래 .ssnav-drop 안의 <a> 를 넣고 빼면 됩니다.
+   [준비중 표시] class="soon" 을 붙이면 흐리게 + 클릭 잠금 + '준비중' 뱃지.
+                페이지를 만들면 class="soon" 만 지우면 열립니다.
+-->
+<style id="ss-nav-css">
+/* 서브페이지들이 header{} nav{} 같은 전역 선택자를 쓰고 있어서,
+   바깥 껍데기를 먼저 중립화한 뒤 #ss-nav 로 다시 그립니다.
+   특히 backdrop-filter / filter / transform 은 그 안의 position:fixed 를
+   '화면'이 아니라 '그 요소'에 가두기 때문에 반드시 꺼야 합니다. */
+body header.wp-block-template-part{
+  position:static !important; background:none !important; border:0 !important;
+  padding:0 !important; margin:0 !important; max-width:none !important; width:auto !important;
+  z-index:auto !important; box-shadow:none !important; overflow:visible !important;
+  -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+  filter:none !important; transform:none !important; perspective:none !important;
+  contain:none !important; will-change:auto !important; isolation:auto !important;
+}
+
+#ss-nav{
+  --void:#0D0A1A; --void-deep:#070512;
+  --nebula:#1C1533; --nebula-soft:#251C42;
+  --gold:#D4AF6A; --gold-soft:#C9A66B;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.42);
+  --line:rgba(212,175,106,.18);
+  --nav-h:76px;
+
+  position:fixed; top:0; left:0; right:0; z-index:9000;
+  background:rgba(13,10,26,.9); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:400; line-height:1.6; word-break:keep-all;
+}
+/* 로그인 상태의 관리자 바(32px, 좁은 화면 46px)만큼 메뉴를 내려줍니다 */
+body.admin-bar #ss-nav{top:32px;}
+@media(max-width:782px){ body.admin-bar #ss-nav{top:46px;} }
+
+#ss-nav *{box-sizing:border-box;}
+#ss-nav a{text-decoration:none; color:inherit;}
+#ss-nav button{font:inherit; background:none; border:0; cursor:pointer; color:inherit;}
+
+/* 고정 헤더가 내용을 가리지 않게 밀어주는 빈 칸 (홈에서는 0).
+   #ss-nav 의 형제라서 CSS 변수를 못 물려받으므로 높이를 직접 씁니다. */
+#ss-nav-spacer{height:76px;}
+body.page-id-62 #ss-nav-spacer{display:none;}
+
+#ss-nav .ssnav-inner{
+  max-width:1180px !important; margin:0 auto !important; padding:0 26px !important;
+  height:76px; display:flex !important; align-items:center; justify-content:space-between; gap:20px;
+}
+
+/* ── 로고 ───────────────────────────────────────────────── */
+#ss-nav .ssnav-logo{display:flex; align-items:center; flex:0 0 auto;}
+#ss-nav .ssnav-logo img{display:block; height:48px; width:auto; max-width:none; border-radius:5px;}
+#ss-nav .ssnav-logo .fallback{font-family:'Cinzel',serif; font-weight:600; font-size:1.05rem;
+  letter-spacing:.06em; color:var(--gold); display:none;}
+
+/* ── 데스크톱 메뉴 ──────────────────────────────────────── */
+#ss-nav .ssnav-menu{display:flex !important; align-items:center; gap:6px; max-width:none !important;
+  margin:0 !important; padding:0 !important;}
+#ss-nav .ssnav-item{position:relative;}
+#ss-nav .ssnav-top{
+  display:inline-flex; align-items:center; gap:6px; padding:10px 14px; border-radius:4px;
+  font-size:.9rem; color:var(--star); white-space:nowrap; transition:color .2s ease, background .2s ease;
+}
+#ss-nav .ssnav-top:hover,
+#ss-nav .ssnav-item.open .ssnav-top{color:var(--gold); background:rgba(212,175,106,.08);}
+#ss-nav .ssnav-top .caret{font-size:.62rem; color:var(--gold-soft); transition:transform .2s ease;}
+#ss-nav .ssnav-item.open .ssnav-top .caret{transform:rotate(180deg);}
+
+#ss-nav .ssnav-drop{
+  position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%) translateY(-6px);
+  min-width:250px; padding:8px; border-radius:8px;
+  background:#171130; border:1px solid var(--line); box-shadow:0 24px 50px -18px rgba(0,0,0,.85);
+  opacity:0; visibility:hidden; pointer-events:none; transition:opacity .18s ease, transform .18s ease;
+}
+#ss-nav .ssnav-item.open .ssnav-drop{opacity:1; visibility:visible; pointer-events:auto;
+  transform:translateX(-50%) translateY(0);}
+#ss-nav .ssnav-drop a{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:11px 14px; border-radius:5px; font-size:.88rem; color:var(--ink-soft);
+  transition:color .18s ease, background .18s ease;
+}
+#ss-nav .ssnav-drop a:hover{color:var(--star); background:rgba(212,175,106,.1);}
+#ss-nav .ssnav-drop .sub{font-size:.74rem; color:var(--ink-dim);}
+
+/* 아직 페이지가 없는 항목 */
+#ss-nav .soon{pointer-events:none; opacity:.45;}
+#ss-nav .soon::after{
+  content:'준비중'; flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:.6rem;
+  color:var(--gold); border:1px solid var(--gold-soft); border-radius:20px; padding:2px 8px;
+}
+
+/* ── 모바일 ─────────────────────────────────────────────── */
+#ss-nav .ssnav-burger{display:none; flex-direction:column; gap:5px; padding:10px; flex:0 0 auto;}
+#ss-nav .ssnav-burger span{display:block; width:22px; height:2px; background:var(--gold);
+  border-radius:2px; transition:transform .25s ease, opacity .25s ease;}
+#ss-nav.mobile-open .ssnav-burger span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+#ss-nav.mobile-open .ssnav-burger span:nth-child(2){opacity:0;}
+#ss-nav.mobile-open .ssnav-burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+@media(max-width:900px){
+  #ss-nav{--nav-h:64px;}
+  #ss-nav-spacer{height:64px;}
+  #ss-nav .ssnav-inner{height:64px; padding:0 18px !important;}
+  #ss-nav .ssnav-logo img{height:38px;}
+  #ss-nav .ssnav-burger{display:flex;}
+  /* 주의: #ss-nav 에 backdrop-filter 가 걸려 있어서 그 안의 position:fixed 는
+     화면이 아니라 #ss-nav 를 기준으로 잡힙니다. 그래서 absolute + 높이 계산을 씁니다. */
+  #ss-nav .ssnav-menu{
+    position:absolute; top:100%; left:0; right:0; z-index:9001;
+    height:calc(100vh - 64px); height:calc(100dvh - 64px);
+    display:block !important; overflow-y:auto; padding:10px 18px 60px !important;
+    background:var(--void); border-top:1px solid var(--line);
+    transform:translateY(-8px); opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .22s ease, transform .22s ease;
+  }
+  #ss-nav.mobile-open .ssnav-menu{opacity:1; visibility:visible; pointer-events:auto; transform:none;}
+  #ss-nav .ssnav-item{border-bottom:1px solid rgba(212,175,106,.1);}
+  #ss-nav .ssnav-top{width:100%; justify-content:space-between; padding:18px 4px; font-size:1rem;}
+  /* 모바일에서는 접기/펴기 없이 전부 펼쳐 보여줍니다 */
+  #ss-nav .ssnav-drop{
+    position:static; transform:none; opacity:1; visibility:visible; pointer-events:auto;
+    min-width:0; background:none; border:0; box-shadow:none; padding:0 0 14px 4px;
+  }
+  #ss-nav .ssnav-drop a{padding:12px 10px; font-size:.92rem;}
+  #ss-nav .ssnav-top .caret{display:none;}
+  #ss-nav .soon{pointer-events:none;}
+}
+
+/* 서브페이지가 각자 갖고 있는 옛 헤더(✦ STELLAR SAJU + ← 홈으로)를 숨깁니다.
+   각 페이지 코드에서 <header> 블록을 지우면 이 줄은 필요 없어집니다. */
+.entry-content > header,
+.wp-block-post-content > header,
+.entry-content > div > header{display:none !important;}
+</style>
+
+<link rel="icon" href="./brand/mark.jpg" sizes="any">
+
+<div id="ss-nav">
+  <div class="ssnav-inner">
+    <a class="ssnav-logo" href="/" aria-label="스텔라사주 홈">
+      <img src="./brand/logo.jpg"
+           alt="스텔라사주" width="339" height="156">
+      <span class="fallback">STELLA SAJU</span>
+    </a>
+
+    <nav class="ssnav-menu" aria-label="주메뉴">
+
+      <div class="ssnav-item">
+        <button type="button" class="ssnav-top" aria-expanded="false">무료 운세 <span class="caret">&#9662;</span></button>
+        <div class="ssnav-drop">
+          <a href="/saju/">나의 사주풀이</a>
+          <a href="/lotto/">이번주 로또 추첨</a>
+          <a href="/zodiac/">이번주 별자리 운세</a>
+          <a href="/zodiac-year/">이번주 띠별운세</a>
+          <a href="/weekly-summary/">이번주 사주 총평</a>
+          <a href="/oracle/">운명의 책 <span class="sub">하루 무제한</span></a>
+        </div>
+      </div>
+
+      <div class="ssnav-item">
+        <button type="button" class="ssnav-top" aria-expanded="false">여섯 개의 문 <span class="caret">&#9662;</span></button>
+        <div class="ssnav-drop">
+          <a class="soon" href="/door-career/">직성의 신 <span class="sub">일과 돈</span></a>
+          <a class="soon" href="/door-love/">연성의 신 <span class="sub">사랑</span></a>
+          <a class="soon" href="/door-health/">강성의 신 <span class="sub">건강</span></a>
+          <a class="soon" href="/door-fortune/">세성의 신 <span class="sub">흐름</span></a>
+          <a class="soon" href="/door-astro/">성좌의 신 <span class="sub">별자리</span></a>
+          <a class="soon" href="/door-tarot/">아르카나 <span class="sub">타로</span></a>
+        </div>
+      </div>
+
+      <div class="ssnav-item">
+        <button type="button" class="ssnav-top" aria-expanded="false">나의 인생길잡이 <span class="caret">&#9662;</span></button>
+        <div class="ssnav-drop">
+          <a class="soon" href="/guide/">책 소개</a>
+          <a class="soon" href="/guide/#preview">목차 미리보기</a>
+          <a class="soon" href="/guide/#buy">구매하기</a>
+        </div>
+      </div>
+
+      <div class="ssnav-item">
+        <a class="ssnav-top soon" href="/stars/">이번주 스타운세</a>
+      </div>
+
+    </nav>
+
+    <button type="button" class="ssnav-burger" aria-label="메뉴 열기" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
+<div id="ss-nav-spacer"></div>
+
+<script>
+(function(){
+  var nav = document.getElementById('ss-nav');
+  if(!nav) return;
+
+  // 메뉴를 body 바로 아래로 옮깁니다.
+  // 서브페이지 CSS 가 바깥 <header> 에 backdrop-filter/transform 을 걸면
+  // 그 안의 position:fixed 기준이 화면이 아니라 그 요소가 되어버려
+  // 드롭다운이 페이지 내용에 가려집니다. 조상을 없애면 그 위험이 사라집니다.
+  if(nav.parentNode !== document.body){
+    document.body.insertBefore(nav, document.body.firstChild);
+  }
+
+  // 로고 이미지가 없으면 글자 브랜드로 대체
+  var logo = nav.querySelector('.ssnav-logo img');
+  if(logo){
+    var swap = function(){
+      logo.style.display='none';
+      var f = nav.querySelector('.ssnav-logo .fallback');
+      if(f) f.style.display='block';
+    };
+    if(logo.complete && logo.naturalWidth === 0) swap();
+    logo.addEventListener('error', swap);
+  }
+
+  var items = [].slice.call(nav.querySelectorAll('.ssnav-item'));
+  var isMobile = function(){ return window.matchMedia('(max-width:900px)').matches; };
+
+  function closeAll(except){
+    items.forEach(function(it){
+      if(it === except) return;
+      it.classList.remove('open');
+      var b = it.querySelector('.ssnav-top');
+      if(b && b.tagName === 'BUTTON') b.setAttribute('aria-expanded','false');
+    });
+  }
+
+  // 드롭다운은 hover 가 아니라 클릭으로 엽니다 (터치 기기에는 hover 가 없습니다)
+  items.forEach(function(it){
+    var btn = it.querySelector('button.ssnav-top');
+    if(!btn) return;
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      if(isMobile()) return;            // 모바일에선 전부 펼쳐져 있음
+      var willOpen = !it.classList.contains('open');
+      closeAll(it);
+      it.classList.toggle('open', willOpen);
+      btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    });
+  });
+
+  // 바깥 클릭 / ESC 로 닫기
+  document.addEventListener('click', function(e){ if(!nav.contains(e.target)) closeAll(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ closeAll(); nav.classList.remove('mobile-open'); }
+  });
+
+  // 모바일 햄버거
+  var burger = nav.querySelector('.ssnav-burger');
+  if(burger){
+    burger.addEventListener('click', function(e){
+      e.stopPropagation();
+      var open = nav.classList.toggle('mobile-open');
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      burger.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+    });
+  }
+  // 메뉴에서 링크를 고르면 닫기
+  nav.querySelectorAll('.ssnav-drop a, a.ssnav-top').forEach(function(a){
+    a.addEventListener('click', function(){
+      nav.classList.remove('mobile-open');
+      document.documentElement.style.overflow = '';
+      closeAll();
+    });
+  });
+  // 화면을 키우면 모바일 상태 해제
+  window.addEventListener('resize', function(){
+    if(!isMobile() && nav.classList.contains('mobile-open')){
+      nav.classList.remove('mobile-open');
+      document.documentElement.style.overflow = '';
+    }
+  });
+})();
+</script>
+
+</header><main class="wp-block-group"><div class="entry-content">
 <!--
   STELLA SAJU — 나의 사주풀이 (페이지 ID 59)   BUILD: S3
 
@@ -366,4 +654,5 @@
   });
 })();
 </script>
-<!-- /wp:html -->
+
+</div></main></div></body></html>

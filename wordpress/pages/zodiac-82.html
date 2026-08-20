@@ -1,0 +1,215 @@
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 이번주 별자리 운세 (페이지 ID 82)   BUILD: Z3
+
+  상단 메뉴/푸터는 테마 템플릿 파트에 있습니다. 여기엔 본문만 있습니다.
+  모든 CSS 는 #ssp 안으로 묶여 있어 다른 페이지에 영향을 주지 않습니다.
+-->
+<style>
+#ssp{
+  --void:#0D0A1A; --void-deep:#070512;
+  --nebula:#1C1533; --nebula-soft:#251C42;
+  --purple-glow:rgba(140,101,214,.35);
+  --gold:#D4AF6A; --gold-soft:#C9A66B; --gold-lite:#E8CD96;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.46);
+  --line:rgba(212,175,106,.18);
+
+  max-width:none !important; width:auto !important;
+  margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
+  padding:0 !important;
+  position:relative; z-index:0; overflow-x:clip;
+  color:var(--star); text-align:center;
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:300; line-height:1.75; font-size:16px;
+  word-break:keep-all; overflow-wrap:break-word;
+}
+#ssp *{margin:0; padding:0; box-sizing:border-box;}
+#ssp h1,#ssp h2,#ssp h3{font-family:'Noto Serif KR',serif; color:var(--star); font-weight:700; letter-spacing:normal;}
+#ssp a{color:inherit; text-decoration:none;}
+#ssp button{font:inherit;}
+
+#ssp .ssp-stars{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.9), transparent),
+    radial-gradient(1px 1px at 82% 12%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1.5px 1.5px at 62% 62%, rgba(255,255,255,.8), transparent),
+    radial-gradient(1px 1px at 28% 78%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1.5px 1.5px at 90% 52%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1px 1px at 45% 32%, rgba(255,255,255,.5), transparent),
+    var(--void);
+}
+#ssp .ssp-inner{position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:76px 24px 110px;}
+@media(max-width:700px){ #ssp .ssp-inner{padding:48px 18px 80px;} }
+
+#ssp .ssp-kicker{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--gold); margin-bottom:16px;}
+#ssp h1{font-size:clamp(1.8rem,4.6vw,2.8rem); line-height:1.35;}
+#ssp .ssp-lead{margin:18px auto 0; color:var(--ink-soft); font-size:1rem; max-width:560px;}
+
+#ssp .upsell{margin:52px auto 0; max-width:560px; padding:28px 24px;
+  border:1px solid var(--line); border-radius:10px;}
+#ssp .upsell p{font-size:.92rem; color:var(--ink-soft);}
+#ssp .upsell a{display:inline-block; margin-top:14px; font-family:'IBM Plex Mono',monospace;
+  font-size:.82rem; color:var(--gold); border-bottom:1px solid var(--gold-soft); padding-bottom:3px;}
+#ssp .upsell a:hover{color:var(--gold-lite);}
+@media(prefers-reduced-motion:reduce){
+  #ssp *,#ssp *::before,#ssp *::after{animation:none !important; transition:none !important;}
+}
+
+#ssp .zgrid{display:grid !important; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:52px; text-align:left;}
+@media(max-width:900px){ #ssp .zgrid{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:600px){ #ssp .zgrid{grid-template-columns:1fr;} }
+#ssp .zcard{background:var(--nebula); border:1px solid var(--line); border-radius:12px; padding:26px 24px;
+  position:relative; overflow:hidden; transition:border-color .25s ease, transform .25s ease;}
+#ssp .zcard::before{content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(to right, var(--zc), transparent);}
+#ssp .zcard:hover{border-color:var(--gold-soft); transform:translateY(-3px);}
+#ssp .zhead{display:flex !important; align-items:center; gap:14px;}
+#ssp .zsym{width:52px; height:52px; flex:0 0 auto; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:1.7rem; color:var(--zc);
+  background:var(--void-deep); border:1px solid var(--zc);}
+#ssp .zname{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.1rem;}
+#ssp .zdate{margin-top:3px; font-family:'IBM Plex Mono',monospace; font-size:.62rem; color:var(--ink-dim);}
+#ssp .ztext{margin-top:16px; font-size:.87rem; color:var(--ink-soft); line-height:1.85;}
+#ssp .zlucky{margin-top:18px; padding-top:15px; border-top:1px solid var(--line); display:flex !important; gap:20px;}
+#ssp .znum,#ssp .zcol{flex:1;}
+#ssp .znum::before,#ssp .zcol::before{
+  display:block; font-family:'IBM Plex Mono',monospace; font-size:.58rem; color:var(--ink-dim);
+  letter-spacing:.08em; margin-bottom:5px;}
+#ssp .znum::before{content:'행운의 숫자';}
+#ssp .zcol::before{content:'행운의 컬러';}
+#ssp .zval{font-size:.88rem; color:var(--star);
+  display:flex !important; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace;}
+#ssp .zdot{width:13px; height:13px; border-radius:50%; flex:0 0 auto; border:1px solid rgba(255,255,255,.25);}
+
+</style>
+
+<div id="ssp">
+  <div class="ssp-stars" aria-hidden="true"></div>
+  <div class="ssp-inner">
+
+    <div class="ssp-kicker">Free &middot; 이번주</div>
+    <h1>이번주 별자리 운세</h1>
+    <p class="ssp-lead">성좌의 신이 열두 별자리의 이번주 흐름을 짧게 짚어드려요.</p>
+
+    <div class="zgrid">
+      <div class="zcard" style="--zc:#E85D5D">
+        <div class="zhead"><div class="zsym">♈</div>
+          <div><div class="zname">양자리</div><div class="zdate">3.21-4.19</div></div></div>
+        <p class="ztext">추진력이 살아나는 한 주예요. 미뤄둔 일을 먼저 시작해보세요. 다만 성급하게 밀어붙이면 주변과 부딪힐 수 있으니, 속도보다 방향을 한 번 더 점검하는 게 좋아요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">7</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#E85D5D"></span>레드</div></div>
+        </div>
+      </div>
+      <div class="zcard" style="--zc:#7CB579">
+        <div class="zhead"><div class="zsym">♉</div>
+          <div><div class="zname">황소자리</div><div class="zdate">4.20-5.20</div></div></div>
+        <p class="ztext">서두르지 않아도 괜찮은 시기예요. 꾸준함이 이번주 무기가 돼요. 재정 쪽으로 작은 결정을 내리기 좋은 타이밍이니, 미뤄둔 지출 계획을 정리해보세요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">14</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#7CB579"></span>그린</div></div>
+        </div>
+      </div>
+      <div class="zcard" style="--zc:#E8C85D">
+        <div class="zhead"><div class="zsym">♊</div>
+          <div><div class="zname">쌍둥이자리</div><div class="zdate">5.21-6.21</div></div></div>
+        <p class="ztext">대화에서 좋은 기회가 열려요. 먼저 말을 걸어보세요. 새로운 정보가 들어오는 주라, 평소 관심 있던 분야 소식을 챙겨보면 뜻밖의 힌트를 얻을 수 있어요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">5</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#E8C85D"></span>옐로우</div></div>
+        </div>
+      </div>
+      <div class="zcard" style="--zc:#B0C4E8">
+        <div class="zhead"><div class="zsym">♋</div>
+          <div><div class="zname">게자리</div><div class="zdate">6.22-7.22</div></div></div>
+        <p class="ztext">집과 가족 쪽에 마음이 쓰이는 한 주예요. 무리한 약속은 피하고, 익숙한 공간에서 재충전하는 시간을 가지면 컨디션이 빠르게 회복돼요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">2</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#B0C4E8"></span>실버블루</div></div>
+        </div>
+      </div>
+      <div class="zcard" style="--zc:#E8A85D">
+        <div class="zhead"><div class="zsym">♌</div>
+          <div><div class="zname">사자자리</div><div class="zdate">7.23-8.22</div></div></div>
+        <p class="ztext">이번주 흐름이 가장 좋은 별자리예요. 나서도 좋은 타이밍이니 미뤄뒀던 제안이나 도전을 이번주에 꺼내보세요. 주변의 지지를 받기 쉬운 시기예요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">19</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#E8A85D"></span>골드</div></div>
+        </div>
+      </div>
+      <div class="zcard" style="--zc:#8FBFAE">
+        <div class="zhead"><div class="zsym">♍</div>
+          <div><div class="zname">처녀자리</div><div class="zdate">8.23-9.22</div></div></div>
+        <p class="ztext">디테일을 챙기는 게 빛을 발하는 주예요. 정리정돈부터 시작해보세요. 업무나 서류 쪽에서 꼼꼼함이 좋은 평가로 이어질 수 있어요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">11</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#8FBFAE"></span>세이지그린</div></div>
+        </div>
+      </div>
+      <div class="zcard" style="--zc:#D9B8E8">
+        <div class="zhead"><div class="zsym">♎</div>
+          <div><div class="zname">천칭자리</div><div class="zdate">9.23-10.22</div></div></div>
+        <p class="ztext">균형을 찾는 한 주예요. 중요한 결정은 조금 미뤄도 괜찮아요. 사람 사이의 갈등이 있었다면 이번주에 자연스럽게 풀릴 기회가 와요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">6</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#D9B8E8"></span>라벤더</div></div>
+        </div>
+      </div>
+      <div class="zcard" style="--zc:#8B3A5E">
+        <div class="zhead"><div class="zsym">♏</div>
+          <div><div class="zname">전갈자리</div><div class="zdate">10.23-11.21</div></div></div>
+        <p class="ztext">직감이 유독 날카로운 시기예요. 촉이 오는 대로 움직여도 좋아요. 다만 감정이 격해지기 쉬우니 중요한 말은 하루 묵혀서 하는 게 안전해요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">9</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#8B3A5E"></span>버건디</div></div>
+        </div>
+      </div>
+      <div class="zcard" style="--zc:#5D8FE8">
+        <div class="zhead"><div class="zsym">♐</div>
+          <div><div class="zname">사수자리</div><div class="zdate">11.22-12.21</div></div></div>
+        <p class="ztext">멀리 보는 계획을 세우기 좋은 때예요. 여행이나 배움처럼 시야를 넓히는 일에 마음이 끌린다면 이번주에 알아보는 걸 추천해요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">23</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#5D8FE8"></span>블루</div></div>
+        </div>
+      </div>
+      <div class="zcard" style="--zc:#8A8A96">
+        <div class="zhead"><div class="zsym">♑</div>
+          <div><div class="zname">염소자리</div><div class="zdate">12.22-1.19</div></div></div>
+        <p class="ztext">묵묵히 쌓아온 게 티가 나기 시작해요. 성과가 바로 눈에 보이지 않아도 방향은 맞으니 페이스를 유지하세요. 재물운도 서서히 안정돼요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">8</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#8A8A96"></span>차콜</div></div>
+        </div>
+      </div>
+      <div class="zcard" style="--zc:#5DC8E8">
+        <div class="zhead"><div class="zsym">♒</div>
+          <div><div class="zname">물병자리</div><div class="zdate">1.20-2.18</div></div></div>
+        <p class="ztext">새로운 사람, 새로운 정보가 도움이 되는 시기예요. 낯선 모임이나 온라인 커뮤니티에서 좋은 인연이나 아이디어를 얻을 수 있어요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">16</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#5DC8E8"></span>터콰이즈</div></div>
+        </div>
+      </div>
+      <div class="zcard" style="--zc:#A8D9D9">
+        <div class="zhead"><div class="zsym">♓</div>
+          <div><div class="zname">물고기자리</div><div class="zdate">2.19-3.20</div></div></div>
+        <p class="ztext">감성이 예민해지는 시기예요. 혼자만의 시간을 확보하면 좋은 아이디어가 떠올라요. 다만 즉흥적인 지출은 며칠 뒤 후회로 이어질 수 있어요.</p>
+        <div class="zlucky">
+          <div class="znum"><div class="zval">3</div></div>
+          <div class="zcol"><div class="zval"><span class="zdot" style="background:#A8D9D9"></span>민트</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="upsell">
+      <p>별자리 말고, 내 사주의 흐름도 궁금하다면?</p>
+      <a href="/saju/">나의 사주풀이 보러가기 &rarr;</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- /wp:html -->
