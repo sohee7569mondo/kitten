@@ -1,0 +1,191 @@
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 마이페이지 · 회원 부분 (페이지 185 의 두 번째 블록)
+  BUILD: M1
+
+  첫 번째 블록은 브라우저 저장소만 읽습니다. 이 블록이 서버에 물어봐서
+  회원이면 진짜 값으로 덮어씁니다.
+
+    GET  /wp-json/stella/v1/me       잔액 · 만료일 · 사용내역 · 주문 · 내 책
+    POST /wp-json/stella/v1/profile  정보 고치기를 서버에도 저장
+    POST /wp-json/stella/v1/email    이메일 없이 가입한 분에게 나중에 받기
+
+  회원이 아니거나 서버가 응답하지 않으면 아무것도 건드리지 않습니다.
+  (첫 번째 블록이 그리던 화면이 그대로 남습니다)
+-->
+<style>
+#ssm .srv{margin-top:14px;}
+#ssm .srv .line{display:flex !important; justify-content:space-between; gap:14px;
+  padding:11px 0; border-bottom:1px solid rgba(212,175,106,.1); font-size:.92rem;}
+#ssm .srv .line:last-child{border-bottom:0;}
+#ssm .srv .line .a{color:rgba(242,236,224,.72);}
+#ssm .srv .line .b{color:#F2ECE0; font-family:'IBM Plex Mono',monospace; font-size:.86rem; flex:0 0 auto;}
+#ssm .srv .line .b.minus{color:#E0907F;}
+#ssm .srv .line .b.plus{color:#9AD1A5;}
+#ssm .srv .none{font-size:.9rem; color:rgba(242,236,224,.46); padding:8px 0;}
+#ssm .exp{margin-top:10px; font-size:.84rem; color:rgba(242,236,224,.46);}
+#ssm .askmail{margin-top:16px; padding:18px 20px; border-radius:10px;
+  background:rgba(140,101,214,.1); border:1px solid rgba(140,101,214,.3);}
+#ssm .askmail p{font-size:.92rem; color:rgba(242,236,224,.72); line-height:1.85;}
+#ssm .askmail .box{display:flex !important; gap:8px; margin-top:12px; flex-wrap:wrap;}
+#ssm .askmail input{flex:1 1 200px; background:#070512; border:1px solid rgba(212,175,106,.18);
+  color:#F2ECE0; padding:13px 14px; border-radius:6px; font-family:inherit; font-size:17px;}
+#ssm .askmail input:focus{outline:none; border-color:#D4AF6A;}
+#ssm .askmail .say{margin-top:10px; font-size:.86rem; display:none;}
+#ssm .askmail .say.on{display:block;}
+#ssm .askmail .say.err{color:#E5A0A0;}
+#ssm .askmail .say.ok{color:#9AD1A5;}
+#ssm .books a{display:block; padding:14px 16px; border-radius:9px; margin-top:9px;
+  background:#070512; border:1px solid rgba(212,175,106,.18); color:#F2ECE0;
+  text-decoration:none; font-size:.94rem; transition:border-color .2s ease;}
+#ssm .books a:hover{border-color:#D4AF6A;}
+#ssm .books a small{display:block; margin-top:4px; font-size:.78rem;
+  color:rgba(242,236,224,.46); font-family:'IBM Plex Mono',monospace;}
+</style>
+
+<script>
+(function(){
+  var root=document.getElementById('ssm'); if(!root) return;
+
+  function esc(s){ return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function section(title, sub, inner){
+    var s=document.createElement('section');
+    s.innerHTML='<h2>'+esc(title)+'</h2>'
+      + (sub ? '<p class="sub">'+esc(sub)+'</p>' : '')
+      + inner;
+    return s;
+  }
+
+  /* 구슬 칸을 찾아 그 뒤에 새 칸을 붙입니다 */
+  function orbSection(){
+    var n=document.getElementById('oNum');
+    if(!n){ return null; }
+    var s=n;
+    while(s){ if(s.tagName==='SECTION'){ return s; } s=s.parentNode; }
+    return null;
+  }
+
+  function paintMe(me){
+    /* 1 — 구슬 잔액 */
+    var num=document.getElementById('oNum'), txt=document.getElementById('oTxt');
+    if(num){ num.textContent=String(me.balance); }
+    if(txt){
+      txt.textContent = me.trial
+        ? '지금은 체험판이라 모든 문이 무료입니다. 받으신 구슬은 그대로 남아 있어요.'
+        : '풀이 한 편에 '+me.prices.base+'구슬, 인생길잡이 종합본은 '+me.prices.full+'구슬입니다.';
+    }
+    var host=orbSection();
+    if(!host){ return; }
+
+    if(me.expires){
+      var e=document.createElement('div');
+      e.className='exp';
+      e.textContent='가장 먼저 사라지는 구슬 : '+me.expires+' 까지';
+      host.appendChild(e);
+    }
+
+    /* 2 — 이메일이 없는 분께 */
+    if(me.needs_email){
+      var w=document.createElement('div');
+      w.className='askmail';
+      w.innerHTML='<p><b>이메일을 넣어두시겠어요?</b><br>'
+        + '지금은 이 브라우저에만 계정이 묶여 있어요. 이메일을 넣어두시면 '
+        + '폰이나 다른 컴퓨터에서도 구슬과 보시던 책을 그대로 이어보실 수 있습니다.</p>'
+        + '<div class="box"><input type="email" id="mMail" placeholder="you@example.com">'
+        + '<button type="button" class="btn" id="mMailGo">저장</button></div>'
+        + '<div class="say" id="mMailSay"></div>';
+      host.appendChild(w);
+
+      document.getElementById('mMailGo').addEventListener('click', function(){
+        var v=document.getElementById('mMail').value.trim();
+        var say=document.getElementById('mMailSay');
+        function tell(t,k){ say.textContent=t; say.className='say on '+k; }
+        if(v.indexOf('@')<1){ tell('이메일을 정확히 적어주세요.','err'); return; }
+        tell('저장하고 있어요…','');
+        fetch('/wp-json/stella/v1/email', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          credentials:'same-origin', body:JSON.stringify({email:v})
+        }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+          .then(function(res){
+            if(!res.ok){ tell(res.j.message || '저장하지 못했어요.','err'); return; }
+            tell('저장했어요. 환영 메일을 보내드렸습니다.','ok');
+          })
+          .catch(function(){ tell('저장하지 못했어요. 잠시 후 다시 시도해주세요.','err'); });
+      });
+    }
+
+    /* 3 — 구슬 내역 */
+    var rows='';
+    if(me.log){ if(me.log.length){
+      for(var i=me.log.length-1;i>=0;i--){
+        var it=me.log[i], n2=Number(it.n)||0;
+        rows+='<div class="line"><span class="a">'+esc(it.date)+' · '+esc(it.why||'사용')+'</span>'
+           +  '<span class="b '+(n2<0?'minus':'plus')+'">'+(n2>0?'+':'')+n2+'</span></div>';
+      }
+    } }
+    if(!rows){ rows='<div class="none">아직 쓰신 내역이 없어요.</div>'; }
+    host.parentNode.insertBefore(
+      section('구슬 내역','넣어드린 구슬은 그날로부터 1년간 쓰실 수 있어요.',
+              '<div class="card srv">'+rows+'</div>'),
+      host.nextSibling);
+
+    /* 4 — 내가 받은 풀이 */
+    var books='';
+    if(me.readings){ if(me.readings.length){
+      for(var k=0;k<me.readings.length;k++){
+        var b=me.readings[k];
+        var href=b.link || b.url || '';
+        books+='<a href="'+esc(href)+'">'+esc(b.title||'풀이')
+            +  '<small>'+esc(b.date||'')+'</small></a>';
+      }
+    } }
+    if(books){
+      host.parentNode.insertBefore(
+        section('받으신 풀이','다시 펼쳐보실 수 있어요.','<div class="books">'+books+'</div>'),
+        host.nextSibling);
+    }
+  }
+
+  /* 정보 고치기를 서버에도 남깁니다 */
+  function hookSave(){
+    var btn=document.getElementById('mSave');
+    if(!btn){ return; }
+    btn.addEventListener('click', function(){
+      function val(id){ var e=document.getElementById(id); return e ? e.value.trim() : ''; }
+      function n(id){ var v=val(id); return v==='' ? null : parseInt(v,10); }
+      var p={ name:val('fName'), sex:val('fSex'), city:val('fCity'),
+              calendar:val('fCal'), country:'대한민국',
+              year:n('fYear'), month:n('fMonth'), day:n('fDay'),
+              hour:n('fHour'), minute:(n('fMin')===null?0:n('fMin')) };
+      if(!p.year){ return; }
+      if(!p.month){ return; }
+      if(!p.day){ return; }
+      fetch('/wp-json/stella/v1/profile', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        credentials:'same-origin', body:JSON.stringify({profile:p})
+      }).catch(function(){});
+    });
+  }
+
+  function start(){
+    hookSave();
+    fetch('/wp-json/stella/v1/me', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(me){
+        if(!me){ return; }
+        if(!me.member){ return; }
+        paintMe(me);
+      })
+      .catch(function(){});   /* 서버가 없으면 조용히 넘어갑니다 */
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+</script>
+<!-- /wp:html -->

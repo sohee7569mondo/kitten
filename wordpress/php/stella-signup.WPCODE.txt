@@ -326,7 +326,7 @@ function stella_reading_save( $uid, $order, $html, $facts = array(), $status = '
 
 /** 이 회원이 볼 수 있는 책 목록 (마이페이지용) */
 function stella_reading_list( $uid ) {
-	return get_posts( array(
+	$posts = get_posts( array(
 		'post_type'   => 'stella_reading',
 		'post_status' => array( 'private', 'draft' ),
 		'author'      => $uid,
@@ -334,6 +334,19 @@ function stella_reading_list( $uid ) {
 		'orderby'     => 'date',
 		'order'       => 'DESC',
 	) );
+
+	/* 화면이 쓰는 값만 골라서 넘깁니다 (글 전체를 통째로 보내지 않습니다) */
+	$out = array();
+	foreach ( $posts as $p ) {
+		$out[] = array(
+			'id'    => $p->ID,
+			'title' => get_the_title( $p ),
+			'date'  => wp_date( 'Y-m-d', strtotime( $p->post_date ) ),
+			'link'  => get_permalink( $p ),
+			'ready' => ( $p->post_status === 'private' ),
+		);
+	}
+	return $out;
 }
 
 /** 남의 책은 못 엽니다 */
@@ -559,7 +572,81 @@ add_action( 'rest_api_init', function () {
 		'permission_callback' => '__return_true',
 		'callback'            => 'stella_rest_me',
 	) );
+
+	register_rest_route( 'stella/v1', '/profile', array(
+		'methods'             => 'POST',
+		'permission_callback' => '__return_true',
+		'callback'            => 'stella_rest_profile',
+	) );
+
+	register_rest_route( 'stella/v1', '/email', array(
+		'methods'             => 'POST',
+		'permission_callback' => '__return_true',
+		'callback'            => 'stella_rest_email',
+	) );
 } );
+
+/** 마이페이지에서 사주 정보를 고쳤을 때 — 서버에도 남깁니다 */
+function stella_rest_profile( WP_REST_Request $req ) {
+	if ( ! is_user_logged_in() ) {
+		return new WP_Error( 'stella_need_login', '로그인이 필요해요.', array( 'status' => 401 ) );
+	}
+	$uid  = get_current_user_id();
+	$body = (array) $req->get_json_params();
+	$p    = isset( $body['profile'] ) ? (array) $body['profile'] : $body;
+
+	$y = isset( $p['year'] )  ? (int) $p['year']  : 0;
+	$m = isset( $p['month'] ) ? (int) $p['month'] : 0;
+	$d = isset( $p['day'] )   ? (int) $p['day']   : 0;
+	if ( $y < 1900 || $y > 2049 || $m < 1 || $m > 12 || $d < 1 || $d > 31 ) {
+		return new WP_Error( 'stella_birth', '생년월일을 다시 확인해주세요.', array( 'status' => 400 ) );
+	}
+	if ( trim( (string) ( isset( $p['name'] ) ? $p['name'] : '' ) ) === '' ) {
+		return new WP_Error( 'stella_name', '이름을 적어주세요.', array( 'status' => 400 ) );
+	}
+
+	stella_save_profile( $uid, $p );
+	if ( isset( $body['work'] ) ) {
+		stella_save_work( $uid, $body['work'] );
+	}
+
+	return rest_ensure_response( array( 'ok' => true, 'profile' => stella_profile_of( $uid ) ) );
+}
+
+/**
+ * 이메일 없이 가입하신 분이 나중에 넣어주실 때.
+ * 넣어주시면 그때 환영 메일을 보내고, 다른 기기에서 계정을 되찾을 길이 생깁니다.
+ */
+function stella_rest_email( WP_REST_Request $req ) {
+	if ( ! is_user_logged_in() ) {
+		return new WP_Error( 'stella_need_login', '로그인이 필요해요.', array( 'status' => 401 ) );
+	}
+	$uid   = get_current_user_id();
+	$body  = (array) $req->get_json_params();
+	$email = isset( $body['email'] ) ? sanitize_email( $body['email'] ) : '';
+
+	if ( ! is_email( $email ) ) {
+		return new WP_Error( 'stella_email', '이메일을 정확히 적어주세요.', array( 'status' => 400 ) );
+	}
+
+	$taken = get_user_by( 'email', $email );
+	if ( $taken ) {
+		if ( (int) $taken->ID !== $uid ) {
+			return new WP_Error( 'stella_email_taken', '이미 다른 분이 쓰고 계신 이메일이에요.', array( 'status' => 409 ) );
+		}
+		return rest_ensure_response( array( 'ok' => true, 'email' => $email ) );
+	}
+
+	$done = wp_update_user( array( 'ID' => $uid, 'user_email' => $email ) );
+	if ( is_wp_error( $done ) ) {
+		return new WP_Error( 'stella_email_save', '저장하지 못했어요. 잠시 후 다시 시도해주세요.', array( 'status' => 500 ) );
+	}
+
+	delete_user_meta( $uid, 'stella_needs_email' );
+	stella_send_welcome( $uid, (string) get_user_meta( $uid, 'stella_name', true ) );
+
+	return rest_ensure_response( array( 'ok' => true, 'email' => $email ) );
+}
 
 /** 이미 가입하신 분이 다시 주문할 때 */
 function stella_rest_order( WP_REST_Request $req ) {
@@ -907,3 +994,107 @@ add_action( 'wp_head', function () {
 			. '})();</script>' . "\n";
 	}
 }, 5 );
+
+
+/* ---------------------------------------------------------------
+ * 7. 관리자 화면 — 회원 구슬 손보기
+ *    사용자 → 회원 한 명 열기 → 맨 아래 '스텔라사주 구슬' 칸.
+ *    준 기록과 뺀 기록이 그대로 남고, 준 구슬도 1년 뒤에 사라집니다.
+ * --------------------------------------------------------------- */
+
+function stella_admin_orb_box( $user ) {
+	if ( ! current_user_can( 'edit_users' ) ) {
+		return;
+	}
+	$uid     = $user->ID;
+	$balance = stella_orb_balance( $uid );
+	$exp     = stella_orb_next_expiry( $uid );
+	$log     = get_user_meta( $uid, 'stella_orb_log', true );
+	$log     = is_array( $log ) ? array_slice( $log, -10 ) : array();
+	?>
+	<h2>스텔라사주 구슬</h2>
+	<table class="form-table" role="presentation">
+		<tr>
+			<th>지금 잔액</th>
+			<td>
+				<strong style="font-size:1.4em"><?php echo (int) $balance; ?></strong> 구슬
+				<?php if ( $exp ) : ?>
+					<p class="description">가장 먼저 사라지는 구슬 : <?php echo esc_html( wp_date( 'Y-m-d', $exp ) ); ?> 까지</p>
+				<?php endif; ?>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="stella_orb_delta">구슬 주기 / 빼기</label></th>
+			<td>
+				<input type="number" name="stella_orb_delta" id="stella_orb_delta" value="" class="small-text" step="1">
+				<input type="text" name="stella_orb_why" value="" class="regular-text" placeholder="사유 (예: 이벤트 당첨, 환불)">
+				<p class="description">
+					양수를 넣으면 <b>줍니다</b> (오늘부터 1년짜리 묶음이 새로 생깁니다).
+					음수를 넣으면 <b>뺍니다</b> (먼저 사라질 구슬부터 빠집니다).
+					비워두면 아무 일도 일어나지 않습니다.
+				</p>
+			</td>
+		</tr>
+		<?php if ( $log ) : ?>
+		<tr>
+			<th>최근 내역</th>
+			<td>
+				<ul style="margin:0">
+				<?php foreach ( array_reverse( $log ) as $row ) : ?>
+					<li>
+						<code><?php echo esc_html( wp_date( 'Y-m-d', (int) $row['at'] ) ); ?></code>
+						<?php echo ( (int) $row['n'] > 0 ? '+' : '' ) . (int) $row['n']; ?>
+						<?php echo esc_html( $row['why'] ); ?>
+					</li>
+				<?php endforeach; ?>
+				</ul>
+			</td>
+		</tr>
+		<?php endif; ?>
+	</table>
+	<?php
+}
+add_action( 'show_user_profile', 'stella_admin_orb_box' );
+add_action( 'edit_user_profile', 'stella_admin_orb_box' );
+
+function stella_admin_orb_save( $uid ) {
+	if ( ! current_user_can( 'edit_users' ) ) {
+		return;
+	}
+	if ( ! isset( $_POST['stella_orb_delta'] ) ) {
+		return;
+	}
+	$delta = trim( wp_unslash( $_POST['stella_orb_delta'] ) );
+	if ( $delta === '' ) {
+		return;                       // 비워뒀으면 건드리지 않습니다
+	}
+	$delta = (int) $delta;
+	if ( $delta === 0 ) {
+		return;
+	}
+	$why = isset( $_POST['stella_orb_why'] )
+		? sanitize_text_field( wp_unslash( $_POST['stella_orb_why'] ) ) : '';
+	if ( $why === '' ) {
+		$why = ( $delta > 0 ) ? '관리자 지급' : '관리자 차감';
+	}
+
+	if ( $delta > 0 ) {
+		stella_orb_add( $uid, $delta, $why );
+	} else {
+		stella_orb_spend( $uid, abs( $delta ), $why );
+	}
+}
+add_action( 'personal_options_update', 'stella_admin_orb_save' );
+add_action( 'edit_user_profile_update', 'stella_admin_orb_save' );
+
+/* 사용자 목록에 잔액 칸 하나 */
+add_filter( 'manage_users_columns', function ( $cols ) {
+	$cols['stella_orbs'] = '구슬';
+	return $cols;
+} );
+add_filter( 'manage_users_custom_column', function ( $out, $col, $uid ) {
+	if ( $col === 'stella_orbs' ) {
+		return (string) stella_orb_balance( $uid );
+	}
+	return $out;
+}, 10, 3 );
