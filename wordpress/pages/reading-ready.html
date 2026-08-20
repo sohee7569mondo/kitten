@@ -707,7 +707,8 @@
     for(var k in answers){ if(answers[k]){ picked.push(answers[k]); } }
     if(picked.length){ od.push(['질문에 답한 것', picked.length+'개 · '+picked.slice(0,3).join(' / ')+(picked.length>3?' …':'')]); }
   }
-  od.push(['쓰는 구슬', (order.orbs||5)+'구슬']);
+  var orbs = (order.orbs===0 || order.orbs) ? order.orbs : 0;
+  od.push(['쓰는 구슬', orbs===0 ? '체험판 · 무료' : orbs+'구슬']);
   $('rOrder').innerHTML = od.map(function(r){
     return '<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>'; }).join('');
 
