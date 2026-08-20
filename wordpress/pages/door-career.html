@@ -126,8 +126,8 @@
 /* 로그인 분기 — 워드프레스가 body 에 붙이는 logged-in 클래스로 갈립니다 */
 #ssg .only-guest{display:block;}
 #ssg .only-member{display:none;}
-body.logged-in #ssg .only-guest{display:none;}
-body.logged-in #ssg .only-member{display:block;}
+#ssg.has-saved .only-guest{display:none;}
+#ssg.has-saved .only-member{display:block;}
 
 #ssg .saved{background:var(--void-deep); border:1px solid var(--line); border-radius:9px; padding:20px 22px;}
 #ssg .saved-row{display:flex !important; gap:12px; font-size:.9rem; margin-top:8px;}
@@ -517,6 +517,10 @@ body.logged-in #ssg .only-member{display:block;}
       $('leapWrap').classList.remove('hide'); });
   }
 
+  var hasSaved = false;
+  if(U){ if(U.birth){ hasSaved = true; } }
+  if(hasSaved){ root.classList.add('has-saved'); }
+
   if(U){
     if($('mName'))  $('mName').textContent  = U.name  || '—';
     if($('mBirth')) $('mBirth').textContent = U.birth || '—';
@@ -542,13 +546,16 @@ body.logged-in #ssg .only-member{display:block;}
                   work:{ job:$('gJob').value.trim(), years:$('gYears').value,
                          want:$('gWant').value.trim() } };
 
-    if(U){
+    if(hasSaved){
       if(!topic){ say('궁금한 주제를 하나 골라주세요.','err'); return; }
       var mb=$('goBtn'); mb.disabled=true; say('구슬을 쓰고 있어요…','');
       fetch('/wp-json/stella/v1/order', {
         method:'POST', headers:{'Content-Type':'application/json'},
         credentials:'same-origin', body:JSON.stringify(payload)
-      }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, body:j}; }); })
+      }).then(function(r){
+      if(r.status===404){ throw new Error('아직 가입 기능이 켜지지 않았어요. 관리자에게 알려주세요.'); }
+      return r.json().then(function(j){ return {ok:r.ok, body:j}; });
+    })
         .then(function(res){
           var b = res.body || {};
           if(!res.ok){ throw new Error(b.message || '주문에 실패했어요.'); }
@@ -587,7 +594,10 @@ body.logged-in #ssg .only-member{display:block;}
     fetch('/wp-json/stella/v1/signup', {
       method:'POST', headers:{'Content-Type':'application/json'},
       credentials:'same-origin', body:JSON.stringify(payload)
-    }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, body:j}; }); })
+    }).then(function(r){
+      if(r.status===404){ throw new Error('아직 가입 기능이 켜지지 않았어요. 관리자에게 알려주세요.'); }
+      return r.json().then(function(j){ return {ok:r.ok, body:j}; });
+    })
       .then(function(res){
         var b = res.body || {};
         if(!res.ok){ throw new Error(b.message || '가입에 실패했어요.'); }

@@ -116,8 +116,8 @@
 /* 로그인 분기 — 워드프레스가 body 에 붙이는 logged-in 클래스로 갈립니다 */
 #ssg .only-guest{display:block;}
 #ssg .only-member{display:none;}
-body.logged-in #ssg .only-guest{display:none;}
-body.logged-in #ssg .only-member{display:block;}
+#ssg.has-saved .only-guest{display:none;}
+#ssg.has-saved .only-member{display:block;}
 
 #ssg .saved{background:var(--void-deep); border:1px solid var(--line); border-radius:9px; padding:20px 22px;}
 #ssg .saved-row{display:flex !important; gap:12px; font-size:.9rem; margin-top:8px;}
@@ -224,7 +224,7 @@ body.logged-in #ssg .only-member{display:block;}
           <p class="g-intro">아르카나는 지금 이 순간의 기운을 카드로 비추어 하나의 질문에 하나의 답을 주는 가디언이에요. 사주가 태어날 때 정해진 것을 읽는다면, 아르카나는 오늘의 것을 읽습니다. 그래서 같은 사람이 같은 질문을 다시 물으면 다른 답이 나오기도 해요. 지금 당장 정해야 하는 일이 있을 때, 아르카나의 문을 여세요.</p>
           <div class="g-method">
             <div class="g-method-t">이렇게 읽습니다</div>
-            <p>아르카나는 <b>타로</b>로 오늘의 기운을 비추고, <b>전통 사주명리학</b>으로 그 답이 당신의 타고난 결과 어디서 만나는지를, <b>서양점성술</b>로 지금 하늘이 어느 쪽을 밀고 있는지를 함께 봅니다. 세 체계가 같은 곳을 가리키는 지점 — 거기가 풀이의 돈대가 됩니다.</p>
+            <p>아르카나는 <b>타로</b>로 오늘의 기운을 비추고, <b>전통 사주명리학</b>으로 그 답이 당신의 타고난 결과 어디서 만나는지를, <b>서양점성술</b>로 지금 하늘이 어느 쪽을 밀고 있는지를 함께 봅니다. 세 체계가 같은 곳을 가리키는 지점 — 거기가 풀이의 뼈대가 됩니다.</p>
           </div>
         </div>
       </aside>
@@ -468,6 +468,10 @@ body.logged-in #ssg .only-member{display:block;}
       $('leapWrap').classList.remove('hide'); });
   }
 
+  var hasSaved = false;
+  if(U){ if(U.birth){ hasSaved = true; } }
+  if(hasSaved){ root.classList.add('has-saved'); }
+
   if(U){
     if($('mName'))  $('mName').textContent  = U.name  || '—';
     if($('mBirth')) $('mBirth').textContent = U.birth || '—';
@@ -493,7 +497,7 @@ body.logged-in #ssg .only-member{display:block;}
                   work:{ job:$('gJob').value.trim(), years:$('gYears').value,
                          want:$('gWant').value.trim() } };
 
-    if(U){
+    if(hasSaved){
       say('아직 준비 중인 문이에요. 곧 열립니다.', 'err');
       return;
     }
@@ -527,7 +531,10 @@ body.logged-in #ssg .only-member{display:block;}
     fetch('/wp-json/stella/v1/signup', {
       method:'POST', headers:{'Content-Type':'application/json'},
       credentials:'same-origin', body:JSON.stringify(payload)
-    }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, body:j}; }); })
+    }).then(function(r){
+      if(r.status===404){ throw new Error('아직 가입 기능이 켜지지 않았어요. 관리자에게 알려주세요.'); }
+      return r.json().then(function(j){ return {ok:r.ok, body:j}; });
+    })
       .then(function(res){
         var b = res.body || {};
         if(!res.ok){ throw new Error(b.message || '가입에 실패했어요.'); }

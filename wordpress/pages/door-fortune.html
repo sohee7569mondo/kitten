@@ -116,8 +116,8 @@
 /* 로그인 분기 — 워드프레스가 body 에 붙이는 logged-in 클래스로 갈립니다 */
 #ssg .only-guest{display:block;}
 #ssg .only-member{display:none;}
-body.logged-in #ssg .only-guest{display:none;}
-body.logged-in #ssg .only-member{display:block;}
+#ssg.has-saved .only-guest{display:none;}
+#ssg.has-saved .only-member{display:block;}
 
 #ssg .saved{background:var(--void-deep); border:1px solid var(--line); border-radius:9px; padding:20px 22px;}
 #ssg .saved-row{display:flex !important; gap:12px; font-size:.9rem; margin-top:8px;}
@@ -224,7 +224,7 @@ body.logged-in #ssg .only-member{display:block;}
           <p class="g-intro">세성의 신은 십 년 단위로 바뀌는 대운과 해마다 도는 세운을 읽어 인생 전체의 지도를 그리는 가디언이에요. 한 해의 길흉을 점치기보다 언제가 씨 뿌릴 때이고 언제가 거둘 때인지를 봅니다. 무언가를 결정하기 전에, 지금이 그 일을 하기 좋은 계절인지 세성의 신에게 먼저 물어보세요.</p>
           <div class="g-method">
             <div class="g-method-t">이렇게 읽습니다</div>
-            <p>세성의 신은 <b>전통 사주명리학</b>으로 대운과 세운의 흐름을 읽고, <b>서양점성술</b>로 지나가는 별들이 어느 자리를 건드리는지를, <b>수비학</b>으로 당신이 어느 해에 한 바퀴를 도는지를 함께 봅니다. 세 체계가 같은 곳을 가리키는 지점 — 거기가 풀이의 돈대가 됩니다.</p>
+            <p>세성의 신은 <b>전통 사주명리학</b>으로 대운과 세운의 흐름을 읽고, <b>서양점성술</b>로 지나가는 별들이 어느 자리를 건드리는지를, <b>수비학</b>으로 당신이 어느 해에 한 바퀴를 도는지를 함께 봅니다. 세 체계가 같은 곳을 가리키는 지점 — 거기가 풀이의 뼈대가 됩니다.</p>
           </div>
         </div>
       </aside>
@@ -468,6 +468,10 @@ body.logged-in #ssg .only-member{display:block;}
       $('leapWrap').classList.remove('hide'); });
   }
 
+  var hasSaved = false;
+  if(U){ if(U.birth){ hasSaved = true; } }
+  if(hasSaved){ root.classList.add('has-saved'); }
+
   if(U){
     if($('mName'))  $('mName').textContent  = U.name  || '—';
     if($('mBirth')) $('mBirth').textContent = U.birth || '—';
@@ -493,7 +497,7 @@ body.logged-in #ssg .only-member{display:block;}
                   work:{ job:$('gJob').value.trim(), years:$('gYears').value,
                          want:$('gWant').value.trim() } };
 
-    if(U){
+    if(hasSaved){
       say('아직 준비 중인 문이에요. 곧 열립니다.', 'err');
       return;
     }
@@ -527,7 +531,10 @@ body.logged-in #ssg .only-member{display:block;}
     fetch('/wp-json/stella/v1/signup', {
       method:'POST', headers:{'Content-Type':'application/json'},
       credentials:'same-origin', body:JSON.stringify(payload)
-    }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, body:j}; }); })
+    }).then(function(r){
+      if(r.status===404){ throw new Error('아직 가입 기능이 켜지지 않았어요. 관리자에게 알려주세요.'); }
+      return r.json().then(function(j){ return {ok:r.ok, body:j}; });
+    })
       .then(function(res){
         var b = res.body || {};
         if(!res.ok){ throw new Error(b.message || '가입에 실패했어요.'); }
