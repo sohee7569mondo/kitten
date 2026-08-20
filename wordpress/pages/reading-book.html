@@ -1183,6 +1183,203 @@ body.admin-bar #ssb .bk-bar{top:108px;}
   root.StellaTarot=TAROT;
 })(typeof window!=='undefined' ? window : globalThis);
 
+/* ═══ 샘플 모드 ═══ */
+/* ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 샘플 책
+   /reading-book/?demo=door-love 처럼 열면 지어낸 예시 한 사람의 책이 그려집니다.
+   여섯 가디언이 각각 어떤 책을 쓰는지, 정보를 넣지 않고도 볼 수 있게 하는 자리입니다.
+
+   [어떻게 끼워 넣는가]
+   아래 렌더러는 넣으신 주문을 localStorage 에서 읽습니다. 렌더러를 고치지 않고
+   샘플을 보여주기 위해, demo 값이 있을 때에만 getItem 이 샘플을 돌려주도록 덮어씁니다.
+   쓰기(setItem)는 건드리지 않으므로 넣으신 정보는 그대로 남습니다.
+   demo 값이 없으면 이 블록은 아무 일도 하지 않습니다.
+
+   [주의] 여기 사람들은 실제 인물이 아니라 지어낸 예시입니다.
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+  if(typeof window==='undefined'){ return; }
+  if(!window.localStorage){ return; }
+
+  var DEMOS={
+    'door-career':{
+      order:{ guardian:'직성의 신', guardian_slug:'door-career', topic:'직업운',
+        oneline:'지금 회사에 계속 있어도 될까요?', memo:'', deeps:[], orbs:0,
+        work:{ job:'5년차 개발자', years:'1~3년', want:'팀을 옮기고 싶어요' },
+        profile:{ name:'서준', email:'', sex:'M', year:1994, month:3, day:8,
+          hour:14, minute:40, calendar:'solar', leap:false, country:'대한민국', city:'서울' } },
+      answers:{ risk:'결과가 예상되는 편이 좋다', make:'없던 답을 내가 만들고 싶다',
+        solo:'혼자 몰입하는 게 편하다', form:'눈에 안 보이는 걸 다루고 싶다',
+        many:'하나를 깊게 파고 싶다', mind:'이 일이 안 맞는 것 같다', want1y:'이직' },
+      cards:[7, 12, 17]
+    },
+    'door-love':{
+      order:{ guardian:'연성의 신', guardian_slug:'door-love', topic:'연애운',
+        oneline:'이 사람과 이어질 수 있을까요?', memo:'', deeps:[], orbs:0,
+        work:{ job:'3년째 연애 중', years:'1~3년', want:'이 사람과 결혼까지' },
+        profile:{ name:'하은', email:'', sex:'F', year:1996, month:7, day:22,
+          hour:9, minute:15, calendar:'solar', leap:false, country:'대한민국', city:'부산' } },
+      answers:{ spark:'처음 본 순간 알아본다', fight:'바로 붙잡고 풀어야 한다',
+        together:'각자 시간이 있어야 한다', type:'나를 편하게 해주는 사람',
+        say:'말로 다 해줘야 안다', mind:'확신이 안 선다', want1y:'이 사람과 결혼' },
+      cards:[6, 15, 19]
+    },
+    'door-health':{
+      order:{ guardian:'강성의 신', guardian_slug:'door-health', topic:'건강운',
+        oneline:'요즘 왜 이렇게 지칠까요?', memo:'', deeps:[], orbs:0,
+        work:{ job:'교대 근무 간호사', years:'4~9년', want:'체력을 되찾고 싶어요' },
+        profile:{ name:'민재', email:'', sex:'M', year:1988, month:11, day:30,
+          hour:22, minute:5, calendar:'solar', leap:false, country:'대한민국', city:'대구' } },
+      answers:{ rest:'몸을 움직여야 풀린다', where:'위 · 장 같은 속부터 온다',
+        season:'추위를 많이 탄다', rhythm:'몰아서 하고 몰아서 쉰다',
+        family:'짊어지는 쪽이다', mind:'늘 피곤하다', want1y:'체력 되찾기' },
+      cards:[8, 14, 17]
+    },
+    'door-fortune':{
+      order:{ guardian:'세성의 신', guardian_slug:'door-fortune', topic:'시기운',
+        oneline:'올해 옮겨도 되는 해인가요?', memo:'', deeps:[], orbs:0,
+        work:{ job:'작은 가게를 합니다', years:'4~9년', want:'자리를 옮기기' },
+        profile:{ name:'지우', email:'', sex:'F', year:1991, month:5, day:3,
+          hour:6, minute:50, calendar:'solar', leap:false, country:'대한민국', city:'인천' } },
+      answers:{ change:'일단 저지르고 맞춰간다', wait:'맞는 때까지 기다린다',
+        decide:'따져보고 숫자로 정한다', past:'크게 흔들린 적이 있었다',
+        plan:'그때그때 정하는 편이다', mind:'이직 · 진로', want1y:'새로 시작하기' },
+      cards:[10, 16, 21]
+    },
+    'door-astro':{
+      order:{ guardian:'성좌의 신', guardian_slug:'door-astro', topic:'별자리',
+        oneline:'저는 어떤 사람인가요?', memo:'', deeps:[], orbs:0,
+        work:{ job:'대학생', years:'아직 시작 전', want:'나를 좀 알고 싶어요' },
+        profile:{ name:'은설', email:'', sex:'F', year:2001, month:9, day:17,
+          hour:18, minute:25, calendar:'solar', leap:false, country:'대한민국', city:'서울' } },
+      answers:{ mask:'많이 다른 것 같다', first:'상대가 오길 기다린다',
+        move:'분위기가 맞아떨어질 때', alone:'꼭 있어야 한다',
+        story:'신화나 상상 같은 이야기', mind:'내가 어떤 사람인지', want1y:'나를 좀 알고 싶다' },
+      cards:[2, 18, 19]
+    },
+    'door-tarot':{
+      order:{ guardian:'아르카나', guardian_slug:'door-tarot', topic:'오늘의 선택',
+        oneline:'지금 그만두는 게 맞을까요?', memo:'', deeps:[], orbs:0,
+        work:{ job:'', years:'', want:'' },
+        profile:{ name:'태윤', email:'', sex:'M', year:1999, month:1, day:11,
+          hour:11, minute:35, calendar:'solar', leap:false, country:'대한민국', city:'광주' } },
+      answers:{ truth:'그래도 사실대로 듣고 싶다', gut:'직감이 오면 바로 간다',
+        lean:'이미 답을 정해둔 것 같다', talk:'아무에게도 말 안 했다',
+        fear:'안 해보고 후회하는 것', mind:'떠날지 남을지', want1y:'이번 주 안에' },
+      cards:[13, 15, 21]
+    },
+
+    /* ── 가디언마다 두 번째 주제 ─────────────────────────
+       같은 문이라도 주제가 다르면 책의 결이 달라집니다.
+       구조가 어떻게 잡히는지 보시라고 하나씩 더 두었습니다. */
+    'door-career-2':{
+      order:{ guardian:'직성의 신', guardian_slug:'door-career', topic:'재물운',
+        oneline:'집을 사는 게 맞을까요?', memo:'', deeps:[], orbs:0,
+        work:{ job:'프리랜서 디자이너', years:'10년 이상', want:'내 집 마련' },
+        profile:{ name:'명주', email:'', sex:'F', year:1985, month:12, day:19,
+          hour:3, minute:20, calendar:'solar', leap:false, country:'대한민국', city:'대전' } },
+      answers:{ risk:'예상 못 할수록 재미있다', make:'정해진 답을 정확히 맞히고 싶다',
+        solo:'사람들과 굴러가는 게 좋다', form:'손에 잡히는 걸 만들고 싶다',
+        many:'여러 개를 동시에 굴리고 싶다', mind:'돈이 부족하다', want1y:'지금 일을 키우기' },
+      cards:[3, 11, 21]
+    },
+    'door-love-2':{
+      order:{ guardian:'연성의 신', guardian_slug:'door-love', topic:'결혼운',
+        oneline:'올해 결혼해도 괜찮을까요?', memo:'', deeps:[], orbs:0,
+        work:{ job:'결혼 이야기가 오가는 중', years:'4~9년', want:'좋은 때에 하고 싶어요' },
+        profile:{ name:'도윤', email:'', sex:'M', year:1993, month:4, day:6,
+          hour:20, minute:10, calendar:'solar', leap:false, country:'대한민국', city:'성남' } },
+      answers:{ spark:'오래 보다가 서서히 든다', fight:'혼자 삭인 뒤에 말한다',
+        together:'매일 붙어 있고 싶다', type:'나를 자꾸 흔드는 사람',
+        say:'해주는 걸로 느낀다', mind:'마음이 나만 큰 것 같다', want1y:'이 사람과 결혼' },
+      cards:[4, 14, 20]
+    },
+    'door-health-2':{
+      order:{ guardian:'강성의 신', guardian_slug:'door-health', topic:'가족운',
+        oneline:'부모님 건강이 걱정입니다', memo:'', deeps:[], orbs:0,
+        work:{ job:'두 아이의 엄마', years:'10년 이상', want:'다들 무탈했으면' },
+        profile:{ name:'수아', email:'', sex:'F', year:1979, month:6, day:25,
+          hour:5, minute:45, calendar:'solar', leap:false, country:'대한민국', city:'청주' } },
+      answers:{ rest:'푹 자고 아무것도 안 한다', where:'목 · 어깨 · 허리처럼 뻐근해진다',
+        season:'더위를 많이 탄다', rhythm:'규칙적으로 사는 편이다',
+        family:'기대는 쪽이다', mind:'마음이 자꾸 가라앉는다', want1y:'부모님이 건강하시기' },
+      cards:[3, 9, 17]
+    },
+    'door-fortune-2':{
+      order:{ guardian:'세성의 신', guardian_slug:'door-fortune', topic:'대운',
+        oneline:'지금이 벌일 때인가요?', memo:'', deeps:[], orbs:0,
+        work:{ job:'이십 년 넘게 한 일이 있습니다', years:'10년 이상', want:'마지막으로 한 번' },
+        profile:{ name:'현우', email:'', sex:'M', year:1975, month:10, day:8,
+          hour:16, minute:30, calendar:'solar', leap:false, country:'대한민국', city:'창원' } },
+      answers:{ change:'천천히 준비해서 옮긴다', wait:'기다리는 게 더 답답하다',
+        decide:'느낌이 오는 쪽으로 간다', past:'대체로 잔잔하게 흘러왔다',
+        plan:'몇 년 앞을 그려두는 편이다', mind:'돈 들어갈 큰일', want1y:'지금 것을 지키기' },
+      cards:[1, 16, 19]
+    },
+    'door-astro-2':{
+      order:{ guardian:'성좌의 신', guardian_slug:'door-astro', topic:'별자리와 사주',
+        oneline:'남들이 보는 저와 진짜 저는 다른가요?', memo:'', deeps:[], orbs:0,
+        work:{ job:'첫 직장 1년차', years:'1년 미만', want:'제 자리를 찾고 싶어요' },
+        profile:{ name:'라온', email:'', sex:'F', year:2004, month:2, day:29,
+          hour:13, minute:5, calendar:'solar', leap:false, country:'대한민국', city:'수원' } },
+      answers:{ mask:'거의 비슷한 편이다', first:'먼저 말을 거는 편이다',
+        move:'논리가 맞아떨어질 때', alone:'없어도 괜찮다',
+        story:'현실에 발 붙은 이야기', mind:'어떤 일이 맞는지', want1y:'자리를 옮기고 싶다' },
+      cards:[0, 11, 19]
+    },
+    'door-tarot-2':{
+      order:{ guardian:'아르카나', guardian_slug:'door-tarot', topic:'오늘의 선택',
+        oneline:'오늘 먼저 연락해도 될까요?', memo:'', deeps:[], orbs:0,
+        work:{ job:'', years:'', want:'' },
+        profile:{ name:'지훈', email:'', sex:'M', year:1997, month:8, day:14,
+          hour:0, minute:40, calendar:'solar', leap:false, country:'대한민국', city:'전주' } },
+      answers:{ truth:'부드럽게 돌려서 듣고 싶다', gut:'오래 재보고 정한다',
+        lean:'정말 모르겠다', talk:'여러 사람에게 물어봤다',
+        fear:'해보고 잘못되는 것', mind:'사람에 관한 것', want1y:'오늘 안에' },
+      cards:[2, 15, 18]
+    }
+  };
+
+  /* 주소에서 demo 값을 꺼냅니다 */
+  var q=String(location.search||'');
+  var i=q.indexOf('demo=');
+  if(i<0){ return; }
+  var slug=q.slice(i+5);
+  var amp=slug.indexOf('&');
+  if(amp>=0){ slug=slug.slice(0,amp); }
+  try{ slug=decodeURIComponent(slug); }catch(e){ return; }
+  if(!DEMOS[slug]){ return; }
+
+  var dm=DEMOS[slug];
+  var canned={
+    stella_demo:   JSON.stringify(dm.order),
+    stella_answers:JSON.stringify(dm.answers),
+    stella_cards:  JSON.stringify(dm.cards)
+  };
+  var orig=window.localStorage.getItem.bind(window.localStorage);
+  window.localStorage.getItem=function(k){
+    if(Object.prototype.hasOwnProperty.call(canned,k)){ return canned[k]; }
+    return orig(k);
+  };
+
+  /* 남의 책이라는 것을 화면 위에 분명히 해둡니다 */
+  window.addEventListener('DOMContentLoaded', function(){
+    var bar=document.querySelector('#ssb .bk-bar');
+    if(!bar){ return; }
+    var tag=document.createElement('div');
+    tag.className='bk-demo';
+    tag.textContent='샘플';
+    tag.style.cssText='font-family:IBM Plex Mono,monospace; font-size:.6rem; letter-spacing:.18em;'
+      + 'color:#0B0817; background:#BCADEA; padding:4px 9px; border-radius:20px; flex:0 0 auto;';
+    bar.insertBefore(tag, bar.firstChild);
+    var alt=bar.querySelector('.bk-alt');
+    if(alt){
+      alt.setAttribute('href','/door-career/');
+      alt.textContent='내 사주로 받아보기 →';
+    }
+  });
+})();
+
 (function(){
   var root=document.getElementById('ssb'); if(!root) return;
   var $=function(id){ return document.getElementById(id); };
