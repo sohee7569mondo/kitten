@@ -78,6 +78,20 @@
 #ssg .g-method b{color:var(--star); font-weight:700;}
 
 /* 오른쪽 — 단계 */
+#ssg .samples{display:grid !important; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;}
+@media(max-width:560px){ #ssg .samples{grid-template-columns:1fr;} }
+#ssg .sample{display:block; padding:18px 20px; border-radius:12px;
+  background:linear-gradient(150deg, rgba(140,101,214,.16), rgba(28,21,51,.9));
+  border:1px solid rgba(140,101,214,.34); transition:border-color .2s ease, transform .2s ease;}
+#ssg .sample:hover{border-color:#9A86D8; transform:translateY(-2px);}
+#ssg .sample-k{font-family:'IBM Plex Mono',monospace; font-size:.58rem; letter-spacing:.2em;
+  text-transform:uppercase; color:#BCADEA;}
+#ssg .sample-t{margin-top:7px; font-family:'Noto Serif KR',serif; font-weight:700;
+  font-size:.98rem; color:var(--star);}
+#ssg .sample-d{margin-top:4px; font-size:.76rem; color:var(--ink-dim);}
+#ssg .lack{margin-top:12px; font-size:.85rem; color:#E5A0A0; text-align:center; display:none;}
+#ssg .lack.show{display:block;}
+#ssg .lack a{color:var(--gold); border-bottom:1px solid var(--gold); padding-bottom:2px;}
 #ssg .step{background:var(--nebula); border:1px solid var(--line); border-radius:14px;
   padding:30px 30px 28px; margin-bottom:18px;}
 @media(max-width:700px){ #ssg .step{padding:24px 18px 22px;} }
@@ -228,6 +242,19 @@ body.logged-in #ssg .only-member{display:block;}
       </aside>
 
       <div>
+
+        <div class="samples">
+          <a class="sample" href="/reading-sample/">
+            <div class="sample-k">Sample &middot; 15p</div>
+            <div class="sample-t">직업운 전자책 미리보기</div>
+            <div class="sample-d">실제로 발행되는 책을 그대로 보실 수 있어요 →</div>
+          </a>
+          <a class="sample" href="/reading-wealth/">
+            <div class="sample-k">Sample &middot; 17p</div>
+            <div class="sample-t">재물운 전자책 미리보기</div>
+            <div class="sample-d">주식과 부동산, 어느 쪽이 맞는지 →</div>
+          </a>
+        </div>
 
         <section class="step">
           <div class="step-head">
@@ -382,6 +409,7 @@ body.logged-in #ssg .only-member{display:block;}
           <div class="balance only-member">내 잔액 <span id="balance">—</span>구슬</div>
 
           <button type="button" class="go" id="goBtn">직성의 신에게 물어보기 →</button>
+          <div class="lack" id="lack"></div>
           <div class="msg" id="msg"></div>
           <div class="fineprint">풀이는 PDF 전자책으로 발행되어 마이페이지에서 다운로드하실 수 있어요.<br>
             구슬은 충전일로부터 1년간 사용하실 수 있습니다.<br>
@@ -397,6 +425,8 @@ body.logged-in #ssg .only-member{display:block;}
 (function(){
   var root=document.getElementById('ssg'); if(!root) return;
   var $=function(id){return document.getElementById(id);};
+
+  var U = window.STELLA_USER || null;
 
   var PRICE={base:5, oneline:5, deep:5};
   var MAX_DEEP=2;
@@ -424,8 +454,33 @@ body.logged-in #ssg .only-member{display:block;}
       c.parentNode.classList.toggle('maxed', lock);
       c.disabled = lock;
     });
+    paint(total);
     return total;
   }
+
+  /* 버튼 상태 — 비회원 / 잔액 부족 / 충분 */
+  function paint(total){
+    var btn=$('goBtn'), lack=$('lack');
+    if(!U){
+      btn.disabled=false;
+      btn.textContent='가입하고 시작하기 →';
+      lack.classList.remove('show');
+      return;
+    }
+    var have = (U.balance!=null) ? U.balance : 0;
+    if(have < total){
+      btn.disabled=true;
+      btn.textContent='구슬이 모자라요';
+      lack.innerHTML='구슬 <b>'+(total-have)+'개</b>가 더 필요해요 · '
+        + '<a href="/mypage/?charge=1">구슬 충전하기</a>';
+      lack.classList.add('show');
+      return;
+    }
+    btn.disabled=false;
+    btn.textContent='운세 보기 ('+total+'구슬 사용) →';
+    lack.classList.remove('show');
+  }
+
   root.addEventListener('change', function(e){
     var t=e.target; if(!t) return;
     if((''+t.className).indexOf('deep-c')>=0) recalc();
@@ -462,7 +517,6 @@ body.logged-in #ssg .only-member{display:block;}
       $('leapWrap').classList.remove('hide'); });
   }
 
-  var U = window.STELLA_USER || null;
   if(U){
     if($('mName'))  $('mName').textContent  = U.name  || '—';
     if($('mBirth')) $('mBirth').textContent = U.birth || '—';
@@ -489,7 +543,18 @@ body.logged-in #ssg .only-member{display:block;}
                          want:$('gWant').value.trim() } };
 
     if(U){
-      say('결제 연결은 아직 준비 중이에요. 구슬 ' + total + '개가 필요합니다.', 'err');
+      if(!topic){ say('궁금한 주제를 하나 골라주세요.','err'); return; }
+      var mb=$('goBtn'); mb.disabled=true; say('구슬을 쓰고 있어요…','');
+      fetch('/wp-json/stella/v1/order', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        credentials:'same-origin', body:JSON.stringify(payload)
+      }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, body:j}; }); })
+        .then(function(res){
+          var b = res.body || {};
+          if(!res.ok){ throw new Error(b.message || '주문에 실패했어요.'); }
+          location.href = b.next || '/reading-start/';
+        })
+        .catch(function(e){ mb.disabled=false; say(e.message,'err'); });
       return;
     }
 
@@ -527,7 +592,7 @@ body.logged-in #ssg .only-member{display:block;}
         var b = res.body || {};
         if(!res.ok){ throw new Error(b.message || '가입에 실패했어요.'); }
         say('가입이 완료됐어요. 결제 화면으로 이동합니다…','ok');
-        setTimeout(function(){ location.href = b.next || '/mypage/'; }, 900);
+        setTimeout(function(){ location.href = b.next || '/mypage/?charge=1'; }, 900);
       })
       .catch(function(e){
         btn.disabled=false;
