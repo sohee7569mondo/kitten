@@ -1617,7 +1617,7 @@ body.admin-bar #ssb .bk-bar{top:108px;}
 
   var slug = order.guardian_slug || 'door-career';
   var g = G[slug] || G['door-career'];
-  var loc = S.locate(profile.city, profile.country);
+  var loc = S.locate(profile.city, profile.country, profile.year, profile.month, profile.day);
   var chart = S.compute({ year:profile.year, month:profile.month, day:profile.day,
     hour:profile.hour, minute:profile.minute||0, sex:profile.sex,
     lon:loc.lon, lat:loc.lat, tz:loc.tz });
@@ -1687,12 +1687,30 @@ body.admin-bar #ssb .bk-bar{top:108px;}
 
   /* ── 03 시각을 바로잡다 ──────────────────────────────── */
   var ts=chart.trueSolar;
+
+  /* 설명은 태어난 곳에 맞춰야 합니다.
+     밴쿠버에서 태어난 분께 동경 135도 이야기를 하면 앞뒤가 맞지 않으니까요. */
+  var meridian = ts.tz*15;
+  var meridianName = (meridian<0) ? ('서경 '+Math.abs(meridian)+'도')
+                   : ((meridian>0) ? ('동경 '+meridian+'도') : '본초자오선');
+  var placeName = loc.exact ? loc.matched : (profile.city || '태어나신 곳');
+  var clockWhy;
+  if(ts.zone==='kr'){
+    clockWhy = '우리나라 표준시는 <em>'+meridianName+'</em>를 기준으로 하는데 '+
+      (ts.lonCorrection<0 ? '국토는 그보다 서쪽에 있어서, 시계가 늘 조금 앞서 갑니다.'
+                          : '국토는 그보다 동쪽에 있어서, 시계가 늘 조금 뒤처져 갑니다.');
+  } else {
+    clockWhy = '시계는 넓은 땅이 함께 쓰라고 만든 약속이라, 태어나신 그 자리에서 해가 '+
+      '한가운데 뜨는 진짜 정오와는 어긋납니다. <em>'+esc(placeName)+'</em>의 시계는 '+
+      '<em>'+meridianName+'</em> 기준으로 맞춰져 있어서, 그 자리에서 해는 시계보다 '+
+      Math.abs(ts.lonCorrection)+'분 '+(ts.lonCorrection<0?'늦게':'이르게')+' 움직입니다.';
+  }
+
   page(
     '<p class="eyebrow">근거 하나</p>'+
     '<h2>시각을 먼저 바로잡습니다</h2>'+
     '<p class="dek">시계가 가리킨 시각과, 해가 실제로 그 자리에 있던 시각은 다릅니다</p>'+
-    '<p>사주는 시계를 보지 않고 해를 봅니다. 우리나라 표준시는 동경 135도를 기준으로 하는데 '+
-    '국토는 그보다 서쪽에 있어서, 시계가 늘 조금 앞서 갑니다. 여기에 하나가 더 붙습니다 — '+
+    '<p>사주는 시계를 보지 않고 해를 봅니다. '+clockWhy+' 여기에 하나가 더 붙습니다 — '+
     '지구가 해를 도는 길이 정확한 동그라미가 아니라 살짝 찌그러진 타원이라, 하루 길이가 계절마다 몇 분씩 '+
     '늘었다 줄었다 합니다. 이 차이를 <em>균시차</em>라고 해요. 둘을 다 더해야 태어난 진짜 시각이 나옵니다.</p>'+
     '<div class="tw"><table><tbody>'+
