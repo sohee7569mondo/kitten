@@ -311,6 +311,7 @@ function stella_rest_signup( WP_REST_Request $req ) {
 
 	/* 사주 정보 저장 */
 	stella_save_profile( $uid, $profile );
+	stella_save_work( $uid, isset( $body['work'] ) ? $body['work'] : array() );
 
 	/* 주문 내용 임시 보관 — 결제 붙이면 여기서 이어집니다 */
 	$order = array(
@@ -337,6 +338,10 @@ function stella_rest_signup( WP_REST_Request $req ) {
 	return rest_ensure_response( array(
 		'ok'      => true,
 		'user_id' => $uid,
+		'sex'     => (string) get_user_meta( $uid, 'stella_sex', true ),
+		'job'     => (string) get_user_meta( $uid, 'stella_job', true ),
+		'years'   => (string) get_user_meta( $uid, 'stella_years', true ),
+		'want'    => (string) get_user_meta( $uid, 'stella_want', true ),
 		'balance' => stella_orb_balance( $uid ),
 		'needed'  => $order['orbs'],
 		'next'    => home_url( '/mypage/?order=new' ),
@@ -358,7 +363,10 @@ function stella_unique_login( $email ) {
 function stella_save_profile( $uid, $profile ) {
 	$hour = isset( $profile['hour'] ) && $profile['hour'] !== null ? (int) $profile['hour'] : -1;
 
+	$sex = ( isset( $profile['sex'] ) && $profile['sex'] === 'M' ) ? 'M' : 'F';
+
 	update_user_meta( $uid, 'stella_name',     sanitize_text_field( $profile['name'] ) );
+	update_user_meta( $uid, 'stella_sex',      $sex );   // 대운 방향(양남음녀 순행)에 필요
 	update_user_meta( $uid, 'stella_year',     (int) $profile['year'] );
 	update_user_meta( $uid, 'stella_month',    (int) $profile['month'] );
 	update_user_meta( $uid, 'stella_day',      (int) $profile['day'] );
@@ -367,6 +375,16 @@ function stella_save_profile( $uid, $profile ) {
 	update_user_meta( $uid, 'stella_leap',     ! empty( $profile['leap'] ) ? 1 : 0 );
 	update_user_meta( $uid, 'stella_country',  isset( $profile['country'] ) ? sanitize_text_field( $profile['country'] ) : '' );
 	update_user_meta( $uid, 'stella_city',     isset( $profile['city'] ) ? sanitize_text_field( $profile['city'] ) : '' );
+}
+
+/** 지금 하는 일 / 하고 싶은 일 — 풀이를 고객의 언어로 옮기는 데만 씁니다. */
+function stella_save_work( $uid, $work ) {
+	if ( ! is_array( $work ) ) {
+		return;
+	}
+	update_user_meta( $uid, 'stella_job',   isset( $work['job'] )   ? mb_substr( sanitize_text_field( $work['job'] ), 0, 40 ) : '' );
+	update_user_meta( $uid, 'stella_years', isset( $work['years'] ) ? sanitize_text_field( $work['years'] ) : '' );
+	update_user_meta( $uid, 'stella_want',  isset( $work['want'] )  ? mb_substr( sanitize_text_field( $work['want'] ), 0, 40 ) : '' );
 }
 
 function stella_send_welcome( $uid, $name ) {

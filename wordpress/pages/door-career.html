@@ -84,6 +84,8 @@
 /* 입력 */
 #ssg .frow{display:grid !important; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
 @media(max-width:560px){ #ssg .frow{grid-template-columns:1fr;} }
+#ssg .frow.one{grid-template-columns:1fr;}
+#ssg .f .note{font-size:.7rem; color:var(--ink-dim); line-height:1.6;}
 #ssg .f{display:flex; flex-direction:column; gap:7px;}
 #ssg .f label{font-family:'IBM Plex Mono',monospace; font-size:.66rem; color:var(--ink-dim); letter-spacing:.04em;}
 #ssg .f input,#ssg .f select{background:var(--void-deep); border:1px solid var(--line); color:var(--star);
@@ -238,20 +240,26 @@ body.logged-in #ssg .only-member{display:block;}
             <div class="frow">
               <div class="f"><label for="gName">이름</label>
                 <input type="text" id="gName" maxlength="20" placeholder="홍길동"></div>
+              <div class="f"><label for="gSex">성별</label>
+                <select id="gSex"><option value="">고르기</option><option value="F">여성</option><option value="M">남성</option></select>
+                <span class="note">대운(10년 운) 방향이 성별에 따라 반대로 갑니다.</span></div>
+            </div>
+            <div class="frow">
               <div class="f"><label for="gYear">태어난 년도</label>
                 <input type="number" id="gYear" min="1900" max="2049" placeholder="1990" inputmode="numeric"></div>
-            </div>
-            <div class="frow">
               <div class="f"><label for="gMonth">월</label><select id="gMonth"><option value="">월</option></select></div>
+            </div>
+            <div class="frow">
               <div class="f"><label for="gDay">일</label><select id="gDay"><option value="">일</option></select></div>
-            </div>
-            <div class="frow">
               <div class="f"><label for="gHour">태어난 시</label><select id="gHour"><option value="">시 선택</option></select></div>
-              <div class="f"><label for="gCountry">태어난 나라</label><select id="gCountry"></select></div>
             </div>
             <div class="frow">
+              <div class="f"><label for="gCountry">태어난 나라</label><select id="gCountry"></select></div>
               <div class="f"><label for="gCity">태어난 도시</label>
-                <input type="text" id="gCity" maxlength="30" placeholder="서울"></div>
+                <input type="text" id="gCity" maxlength="30" placeholder="서울">
+                <span class="note">진태양시 보정에 씁니다. 시 경계에서 기둥이 바뀔 수 있어요.</span></div>
+            </div>
+            <div class="frow one">
               <div class="f"><label for="gEmail">이메일 (로그인 아이디)</label>
                 <input type="email" id="gEmail" maxlength="60" placeholder="you@example.com"></div>
             </div>
@@ -274,6 +282,35 @@ body.logged-in #ssg .only-member{display:block;}
         <section class="step">
           <div class="step-head">
             <span class="step-no">STEP 2</span>
+            <span class="step-title">지금의 나</span>
+            <span class="step-sub">선택</span>
+          </div>
+          <div class="frow">
+            <div class="f"><label for="gJob">지금 하는 일</label>
+              <input type="text" id="gJob" maxlength="40" placeholder="예: 그래픽 디자이너 / 카페 운영 / 취업 준비 중"></div>
+            <div class="f"><label for="gYears">이 일을 해온 기간</label>
+              <select id="gYears">
+                <option value="">고르기</option>
+                <option value="준비 중">아직 시작 전 · 준비 중</option>
+                <option value="1~3년">1~3년</option>
+                <option value="4~9년">4~9년</option>
+                <option value="10~19년">10~19년</option>
+                <option value="20년 이상">20년 이상</option>
+                <option value="쉬는 중">지금은 쉬는 중</option>
+              </select></div>
+          </div>
+          <div class="frow one">
+            <div class="f"><label for="gWant">앞으로 하고 싶은 일</label>
+              <input type="text" id="gWant" maxlength="40" placeholder="예: 온라인으로 내 브랜드 만들기"></div>
+          </div>
+          <p class="hint">사주가 말하는 결론은 이 칸과 상관없이 똑같이 나옵니다.
+            다만 적어주시면 그 결론을 <b>지금 하시는 일의 언어로 바꿔서</b> 설명해드려요.
+            비워두셔도 풀이는 그대로 나옵니다.</p>
+        </section>
+
+        <section class="step">
+          <div class="step-head">
+            <span class="step-no">STEP 3</span>
             <span class="step-title">무엇이 궁금하세요?</span>
             <span class="step-sub">하나만 골라주세요</span>
           </div>
@@ -289,7 +326,7 @@ body.logged-in #ssg .only-member{display:block;}
 
         <section class="step">
           <div class="step-head">
-            <span class="step-no">STEP 3</span>
+            <span class="step-no">STEP 4</span>
             <span class="step-title">한 줄로 더 물어보기</span>
             <span class="step-sub">선택</span>
           </div>
@@ -304,7 +341,7 @@ body.logged-in #ssg .only-member{display:block;}
 
         <section class="step">
           <div class="step-head">
-            <span class="step-no">STEP 4</span>
+            <span class="step-no">STEP 5</span>
             <span class="step-title">더 깊이 보기</span>
             <span class="step-sub">최대 2개</span>
           </div>
@@ -344,16 +381,13 @@ body.logged-in #ssg .only-member{display:block;}
 </div>
 
 <script>
-/* 주의 — 워드프레스가 저장할 때 스크립트 안의 앰퍼샌드 두 개를 엔티티로 바꿔버립니다.
-   그래서 이 파일에서는 그 연산자를 쓰지 않고 if 문으로 풀어 씁니다. */
 (function(){
   var root=document.getElementById('ssg'); if(!root) return;
   var $=function(id){return document.getElementById(id);};
 
-  var PRICE={base:5, oneline:5, deep:5};   /* 구슬 — 여기 한 곳만 고치면 됩니다 */
+  var PRICE={base:5, oneline:5, deep:5};
   var MAX_DEEP=2;
 
-  /* 구슬 계산 */
   var oneline=$('oneline'), counter=$('counter');
   function chosenDeeps(){
     return [].slice.call(document.querySelectorAll('.deep-c')).filter(function(c){return c.checked;});
@@ -390,7 +424,6 @@ body.logged-in #ssg .only-member{display:block;}
     recalc();
   });
 
-  /* 날짜 입력 */
   var monthSel=$('gMonth'), daySel=$('gDay'), hourSel=$('gHour'), unknown=$('gHourUnknown');
   if(monthSel){
     for(var m=1;m<=12;m++) monthSel.add(new Option(m+'월', m));
@@ -406,7 +439,6 @@ body.logged-in #ssg .only-member{display:block;}
     });
   }
 
-  /* 양력 / 음력 */
   var isLunar=false;
   if($('calSolar')){
     $('calSolar').addEventListener('click', function(){ isLunar=false;
@@ -417,16 +449,17 @@ body.logged-in #ssg .only-member{display:block;}
       $('leapWrap').classList.remove('hide'); });
   }
 
-  /* 로그인한 회원 정보 — WPCode 스니펫이 window.STELLA_USER 를 심어줍니다 */
   var U = window.STELLA_USER || null;
   if(U){
     if($('mName'))  $('mName').textContent  = U.name  || '—';
     if($('mBirth')) $('mBirth').textContent = U.birth || '—';
     if($('mPlace')) $('mPlace').textContent = U.place || '—';
     if($('balance')) $('balance').textContent = (U.balance!=null ? U.balance : '—');
+    if(U.job)   $('gJob').value   = U.job;
+    if(U.years) $('gYears').value = U.years;
+    if(U.want)  $('gWant').value  = U.want;
   }
 
-  /* 보내기 */
   var msg=$('msg');
   function say(text, kind){ msg.textContent=text; msg.className='msg show '+(kind||''); }
 
@@ -438,7 +471,9 @@ body.logged-in #ssg .only-member{display:block;}
 
     var payload={ guardian:'직성의 신', guardian_slug:'door-career',
                   topic:topic, oneline:oneline.value.trim(), memo:$('memo').value.trim(),
-                  deeps:deeps, orbs:total };
+                  deeps:deeps, orbs:total,
+                  work:{ job:$('gJob').value.trim(), years:$('gYears').value,
+                         want:$('gWant').value.trim() } };
 
     if(U){
       say('결제 연결은 아직 준비 중이에요. 구슬 ' + total + '개가 필요합니다.', 'err');
@@ -451,6 +486,7 @@ body.logged-in #ssg .only-member{display:block;}
     if(!unknown.checked){ if(hourSel.value!==''){ h=parseInt(hourSel.value,10); } }
 
     if(!name){ say('이름을 적어주세요.','err'); return; }
+    if(!$('gSex').value){ say('성별을 골라주세요. 대운 방향을 정하는 데 꼭 필요해요.','err'); return; }
     if(!email){ say('이메일을 적어주세요. 로그인 아이디가 됩니다.','err'); return; }
     if(email.indexOf('@')<1){ say('이메일을 정확히 적어주세요.','err'); return; }
     if(!y){ say('태어난 년도를 적어주세요.','err'); return; }
@@ -463,7 +499,8 @@ body.logged-in #ssg .only-member{display:block;}
     var leapOn=false;
     var lp=$('gLeap'); if(lp){ leapOn=lp.checked; }
 
-    payload.profile={ name:name, email:email, year:y, month:m, day:d, hour:h,
+    payload.profile={ name:name, email:email, sex:$('gSex').value,
+                      year:y, month:m, day:d, hour:h,
                       calendar:isLunar?'lunar':'solar', leap:leapOn,
                       country:$('gCountry').value, city:$('gCity').value.trim() };
 
