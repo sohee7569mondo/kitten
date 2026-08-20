@@ -1,9 +1,18 @@
 <!-- wp:html -->
 <!--
-  STELLA SAJU — 이번주 띠별운세 (페이지 ID 92)   BUILD: A2
+  STELLA SAJU — 이번주 띠별운세 (페이지 ID 92)   BUILD: B1
 
-  상단 메뉴/푸터는 테마 템플릿 파트에 있습니다. 여기엔 본문만 있습니다.
-  모든 CSS 는 #ssp 안으로 묶여 있어 다른 페이지에 영향을 주지 않습니다.
+  달라진 점
+    · 고정 문구 한 줄 → 그 주의 간지(干支)로 계산해서 매주 바뀝니다.
+    · 띠마다 흐름 3~4줄 + 잘 맞는 띠 + 조심할 띠 + 행운의 색 + 행운의 물건.
+    · 태어난 해를 넣으면 내 띠 카드를 찾아 표시해 줍니다.
+
+  계산 방식
+    · 그 주 월요일의 일주(日柱)를 세워 '이번주 간지'로 씁니다.
+      (1900-01-01 = 갑술일 기준. 사주 계산기와 같은 기준입니다.)
+    · 내 띠의 지지와 이번주 지지의 관계로 흐름을 고릅니다.
+        같음(비화) / 삼합 / 육합 / 충 / 해 / 무관
+    · 주가 바뀌면 지지가 7칸씩 움직여 열두 주에 한 바퀴 돕니다.
 -->
 <style>
 #ssp{
@@ -13,6 +22,7 @@
   --gold:#D4AF6A; --gold-soft:#C9A66B; --gold-lite:#E8CD96;
   --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.46);
   --line:rgba(212,175,106,.18);
+  --wood:#8FBF8F; --fire:#E0907F; --earth:#D6B570; --metal:#B9C2CC; --water:#8AA8D8;
 
   max-width:none !important; width:auto !important;
   margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
@@ -39,36 +49,73 @@
     radial-gradient(1px 1px at 45% 32%, rgba(255,255,255,.5), transparent),
     var(--void);
 }
-#ssp .ssp-inner{position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:76px 24px 110px;}
+#ssp .ssp-inner{position:relative; z-index:1; max-width:1120px; margin:0 auto; padding:76px 24px 110px;}
 @media(max-width:700px){ #ssp .ssp-inner{padding:48px 18px 80px;} }
 
 #ssp .ssp-kicker{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.22em;
   text-transform:uppercase; color:var(--gold); margin-bottom:16px;}
 #ssp h1{font-size:clamp(1.8rem,4.6vw,2.8rem); line-height:1.35;}
-#ssp .ssp-lead{margin:18px auto 0; color:var(--ink-soft); font-size:1rem; max-width:560px;}
+#ssp .ssp-lead{margin:18px auto 0; color:var(--ink-soft); font-size:1rem; max-width:600px;}
 
-#ssp .upsell{margin:52px auto 0; max-width:560px; padding:28px 24px;
+/* 이번주 간지 머리판 */
+#ssp .weekbox{margin:34px auto 0; max-width:600px; padding:22px 24px; border-radius:12px;
+  background:linear-gradient(160deg, var(--nebula-soft), var(--nebula)); border:1px solid var(--gold);}
+#ssp .weekbox .wk{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.16em; color:var(--gold);}
+#ssp .weekbox .gz{margin-top:10px; font-family:'Noto Serif KR',serif; font-size:2rem; color:var(--star); line-height:1.2;}
+#ssp .weekbox .gzk{margin-top:6px; font-size:.9rem; color:var(--ink-soft);}
+#ssp .weekbox .say{margin-top:14px; padding-top:14px; border-top:1px dashed rgba(212,175,106,.2);
+  font-size:.92rem; color:var(--ink-soft); line-height:1.9;}
+
+/* 내 띠 찾기 */
+#ssp .finder{margin:22px auto 0; max-width:600px; display:flex !important; flex-wrap:wrap;
+  gap:9px; justify-content:center; align-items:center;}
+#ssp .finder label{font-size:.9rem; color:var(--ink-soft);}
+#ssp .finder input{width:130px; padding:12px 14px; border-radius:6px; text-align:center;
+  background:var(--void-deep); border:1px solid var(--line); color:var(--star);
+  font-family:'IBM Plex Mono',monospace; font-size:17px;}
+#ssp .finder button{padding:12px 20px; border-radius:6px; border:0; cursor:pointer; font-weight:700;
+  background:linear-gradient(135deg, var(--gold), #B98A47); color:var(--void-deep);}
+#ssp .finder .hint{flex:1 0 100%; font-size:.8rem; color:var(--ink-dim);}
+
+#ssp .agrid{display:grid !important; grid-template-columns:repeat(3,1fr); gap:15px; margin-top:44px; text-align:left;}
+@media(max-width:940px){ #ssp .agrid{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:600px){ #ssp .agrid{grid-template-columns:1fr;} }
+#ssp .acard{background:var(--nebula); border:1px solid var(--line); border-radius:12px; padding:24px 22px;
+  transition:border-color .25s ease, transform .25s ease, box-shadow .25s ease;}
+#ssp .acard:hover{border-color:var(--gold-soft); transform:translateY(-3px);}
+#ssp .acard.mine{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold), 0 26px 50px -22px var(--purple-glow);}
+#ssp .ahead{display:flex !important; align-items:center; gap:12px;}
+#ssp .asym{width:52px; height:52px; flex:0 0 52px; border-radius:50%; display:flex !important;
+  align-items:center; justify-content:center; font-size:1.6rem;
+  background:var(--void-deep); border:1px solid var(--line);}
+#ssp .aname{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.08rem;}
+#ssp .ayears{margin-top:3px; font-family:'IBM Plex Mono',monospace; font-size:.68rem; color:var(--ink-dim);}
+#ssp .arel{margin-top:14px; display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:.64rem;
+  letter-spacing:.1em; padding:4px 10px; border-radius:20px;
+  color:var(--void-deep); background:var(--gold-soft);}
+#ssp .arel.warn{background:#E0907F;}
+#ssp .arel.calm{background:#B9C2CC;}
+#ssp .atext{margin-top:12px; font-size:.9rem; color:var(--ink-soft); line-height:1.95;}
+#ssp .atext + .atext{margin-top:9px;}
+#ssp .amine{margin-top:12px; font-size:.86rem; color:var(--gold-lite); line-height:1.9;}
+
+#ssp .arows{margin-top:16px; padding-top:14px; border-top:1px dashed rgba(212,175,106,.16);}
+#ssp .arow{display:flex !important; gap:12px; padding:7px 0; font-size:.84rem; align-items:flex-start;}
+#ssp .arow dt{flex:0 0 84px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace; font-size:.7rem; padding-top:3px;}
+#ssp .arow dd{flex:1; color:var(--star);}
+#ssp .swatch{display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px;
+  vertical-align:-1px; border:1px solid rgba(242,236,224,.25);}
+
+#ssp .upsell{margin:52px auto 0; max-width:600px; padding:28px 24px;
   border:1px solid var(--line); border-radius:10px;}
 #ssp .upsell p{font-size:.92rem; color:var(--ink-soft);}
 #ssp .upsell a{display:inline-block; margin-top:14px; font-family:'IBM Plex Mono',monospace;
   font-size:.82rem; color:var(--gold); border-bottom:1px solid var(--gold-soft); padding-bottom:3px;}
 #ssp .upsell a:hover{color:var(--gold-lite);}
+#ssp .fine{margin:26px auto 0; max-width:600px; font-size:.78rem; color:var(--ink-dim); line-height:1.9;}
 @media(prefers-reduced-motion:reduce){
   #ssp *,#ssp *::before,#ssp *::after{animation:none !important; transition:none !important;}
 }
-
-#ssp .agrid{display:grid !important; grid-template-columns:repeat(4,1fr); gap:15px; margin-top:52px; text-align:left;}
-@media(max-width:960px){ #ssp .agrid{grid-template-columns:repeat(3,1fr);} }
-@media(max-width:680px){ #ssp .agrid{grid-template-columns:repeat(2,1fr);} }
-@media(max-width:430px){ #ssp .agrid{grid-template-columns:1fr;} }
-#ssp .acard{background:var(--nebula); border:1px solid var(--line); border-radius:12px; padding:24px 20px;
-  transition:border-color .25s ease, transform .25s ease;}
-#ssp .acard:hover{border-color:var(--gold-soft); transform:translateY(-3px);}
-#ssp .asym{width:54px; height:54px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-  font-size:1.7rem; background:var(--void-deep); border:1px solid var(--line);}
-#ssp .aname{margin-top:14px; font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.05rem;}
-#ssp .atext{margin-top:9px; font-size:.85rem; color:var(--ink-soft); line-height:1.8;}
-
 </style>
 
 <div id="ssp">
@@ -77,29 +124,223 @@
 
     <div class="ssp-kicker">Free &middot; 이번주</div>
     <h1>이번주 띠별운세</h1>
-    <p class="ssp-lead">열두 띠, 이번주 흐름을 짧게 짚어드려요.</p>
+    <p class="ssp-lead">이번주 하늘의 간지를 세우고, 열두 띠가 그 기운과 어떻게 만나는지 하나씩 짚었습니다.</p>
 
-    <div class="agrid">
-      <div class="acard"><div class="asym">🐭</div><div class="aname">쥐띠</div><p class="atext">새로운 정보가 들어오는 주예요. 귀 기울이면 좋은 힌트가 있어요.</p></div>
-      <div class="acard"><div class="asym">🐮</div><div class="aname">소띠</div><p class="atext">묵묵히 해온 일이 자리 잡는 시기예요.</p></div>
-      <div class="acard"><div class="asym">🐯</div><div class="aname">범띠</div><p class="atext">이번주 흐름이 좋아요. 나서도 괜찮은 타이밍입니다.</p></div>
-      <div class="acard"><div class="asym">🐰</div><div class="aname">토끼띠</div><p class="atext">사람과의 관계에서 좋은 기운이 따라요.</p></div>
-      <div class="acard"><div class="asym">🐲</div><div class="aname">용띠</div><p class="atext">추진력이 살아나는 주. 미뤄둔 일을 시작해보세요.</p></div>
-      <div class="acard"><div class="asym">🐍</div><div class="aname">뱀띠</div><p class="atext">직감이 날카로워지는 시기예요.</p></div>
-      <div class="acard"><div class="asym">🐴</div><div class="aname">말띠</div><p class="atext">활동적으로 움직이기 좋은 한 주입니다.</p></div>
-      <div class="acard"><div class="asym">🐐</div><div class="aname">양띠</div><p class="atext">마음의 여유가 필요한 시기, 무리하지 마세요.</p></div>
-      <div class="acard"><div class="asym">🐵</div><div class="aname">원숭이띠</div><p class="atext">재치와 순발력이 빛나는 주예요.</p></div>
-      <div class="acard"><div class="asym">🐓</div><div class="aname">닭띠</div><p class="atext">정리와 계획에 좋은 흐름이에요.</p></div>
-      <div class="acard"><div class="asym">🐶</div><div class="aname">개띠</div><p class="atext">신뢰가 쌓이는 시기, 곁에 있는 사람을 챙기세요.</p></div>
-      <div class="acard"><div class="asym">🐷</div><div class="aname">돼지띠</div><p class="atext">재물운이 서서히 좋아지는 흐름이에요.</p></div>
+    <div class="weekbox">
+      <div class="wk" id="zWeek">THIS WEEK</div>
+      <div class="gz" id="zGz">&mdash;</div>
+      <div class="gzk" id="zGzk"></div>
+      <p class="say" id="zSay"></p>
     </div>
+
+    <div class="finder">
+      <label for="zYear">태어난 해</label>
+      <input id="zYear" type="number" inputmode="numeric" placeholder="1994" min="1900" max="2030">
+      <button type="button" id="zFind">내 띠 찾기</button>
+      <div class="hint">1월~2월 초에 태어나신 분은 사주로 보면 앞 띠일 수 있어요.</div>
+    </div>
+
+    <div class="agrid" id="zGrid"></div>
 
     <div class="upsell">
-      <p>띠 말고, 내 사주 네 기둥이 궁금하다면?</p>
-      <a href="/saju/">나의 사주풀이 보러가기 &rarr;</a>
+      <p>띠는 여덟 글자 가운데 하나일 뿐이에요. 나머지 일곱 글자가 궁금하다면?</p>
+      <a href="/door-career/">내 사주 원국 세워보기 &rarr;</a>
     </div>
+
+    <p class="fine">이 콘텐츠는 전통 명리의 지지 관계(삼합·육합·충·해)를 바탕으로 만든 재미용 참고 자료입니다.
+      실제 일의 결과를 보장하지 않습니다.</p>
 
   </div>
 </div>
 
+<script>
+(function(){
+  var root=document.getElementById('ssp'); if(!root) return;
+
+  var JI_H=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var GAN_H=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  var GAN_K=['갑','을','병','정','무','기','경','신','임','계'];
+  var JI_K =['자','축','인','묘','진','사','오','미','신','유','술','해'];
+  var ANIMAL=['쥐','소','범','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
+  var EMOJI =['🐭','🐮','🐯','🐰','🐲','🐍','🐴','🐐','🐵','🐓','🐶','🐷'];
+  var JI_EL =['수','토','목','목','토','화','화','토','금','금','토','수'];
+
+  /* 오행별 색 · 물건 · 성질 */
+  var EL={
+    '목':{ hex:'#8FBF8F', han:'木', color:'초록 · 연두', things:['작은 화분','나무 손잡이 필기구','초록빛 노트'],
+           week:'자라려는 기운이라, 새로 시작한 일에 힘이 붙습니다.',
+           own:'한번 마음먹으면 위로 뻗는 힘이 있습니다. 대신 꺾이면 오래 아파합니다.' },
+    '화':{ hex:'#E0907F', han:'火', color:'빨강 · 주황', things:['향초','붉은 실 팔찌','따뜻한 색 조명'],
+           week:'드러내는 기운이라, 말과 표정이 평소보다 멀리 갑니다.',
+           own:'빨리 달아오르고 빨리 식습니다. 솔직해서 오해가 적은 대신, 말이 늘 한 발 앞섭니다.' },
+    '토':{ hex:'#D6B570', han:'土', color:'노랑 · 황토', things:['도자기 컵','흙빛 스카프','작은 돌 오브제'],
+           week:'품는 기운이라, 벌여둔 것을 자리에 앉히기 좋습니다.',
+           own:'쉽게 흔들리지 않습니다. 대신 한번 자리를 잡으면 옮기는 데 시간이 오래 걸립니다.' },
+    '금':{ hex:'#B9C2CC', han:'金', color:'흰색 · 은색', things:['금속 열쇠고리','은반지','흰 손수건'],
+           week:'끊는 기운이라, 정리하고 매듭짓는 일이 잘 됩니다.',
+           own:'맺고 끊는 것이 분명합니다. 대신 정 없다는 말을 듣기도 합니다.' },
+    '수':{ hex:'#8AA8D8', han:'水', color:'검정 · 남색', things:['유리병','파란 우산','물을 담은 텀블러'],
+           week:'스며드는 기운이라, 생각이 깊어지고 사람을 잘 읽게 됩니다.',
+           own:'상황을 읽는 눈이 빠릅니다. 대신 생각이 길어져 시작이 늦습니다.' }
+  };
+
+  /* 받침이 있으면 '은', 없으면 '는' */
+  function eunNeun(w){
+    var c=w.charCodeAt(w.length-1);
+    if(c<0xAC00){ return '는'; }
+    if(c>0xD7A3){ return '는'; }
+    return (((c-0xAC00)%28)!==0) ? '은' : '는';
+  }
+
+  /* 오행 상생: 수→목→화→토→금→수 */
+  var GEN={'수':'목','목':'화','화':'토','토':'금','금':'수'};
+  function motherOf(el){ for(var k in GEN){ if(GEN[k]===el) return k; } return el; }
+
+  /* 지지 관계 */
+  function relOf(z,w){
+    if(z===w) return 'same';
+    var d=((z-w)%12+12)%12;
+    if(d===6) return 'chung';
+    if(d===4 || d===8) return 'samhap';
+    if(((z+w)%12)===1) return 'yukhap';
+    if(((z+w)%12)===7) return 'hae';
+    return 'plain';
+  }
+  var REL={
+    same:{ tag:'비화 · 같은 기운', cls:'',
+      t1:'이번주 하늘의 기운이 이 띠와 같은 결로 들어옵니다. 힘이 두 배로 실리는 대신, 같은 성질끼리 겹쳐서 고집도 같이 세집니다.',
+      t2:'밀어붙일 일이 있다면 이번주가 그 주입니다. 다만 사람과 부딪히는 자리는 한 박자만 늦추세요. 내 말이 맞는데도 지는 상황이 생깁니다.' },
+    samhap:{ tag:'삼합 · 손이 맞는 주', cls:'',
+      t1:'이번주 기운과 삼합(三合)으로 묶입니다. 혼자 하던 일에 사람이 붙고, 막혀 있던 연락이 먼저 옵니다.',
+      t2:'부탁할 일이 있다면 이번주에 꺼내세요. 거절당할 확률이 가장 낮은 자리입니다. 소개·면접·계약처럼 남의 손을 빌리는 일에 특히 좋습니다.' },
+    yukhap:{ tag:'육합 · 붙잡아 주는 주', cls:'',
+      t1:'이번주 기운과 육합(六合)으로 만납니다. 크게 뻗기보다 안으로 단단해지는 흐름이에요.',
+      t2:'새로 벌이는 것보다, 이미 있는 관계와 이미 시작한 일을 손보기에 좋습니다. 미뤄둔 정리·수리·재계약이 이번주에 쉽게 풀립니다.' },
+    chung:{ tag:'충 · 흔들리는 주', cls:'warn',
+      t1:'이번주 기운과 정면으로 부딪힙니다. 충(沖)은 나쁜 게 아니라 흔드는 것이라, 붙어 있던 게 떨어지고 미뤄둔 게 터져 나옵니다.',
+      t2:'큰돈이 오가는 결정과 감정이 실린 대화는 다음주로 미루세요. 대신 버릴 것을 버리기에는 일 년 중 가장 좋은 주입니다. 이동·이사·정리에는 오히려 힘이 실립니다.' },
+    hae:{ tag:'해 · 어긋나는 주', cls:'warn',
+      t1:'이번주 기운과 살짝 어긋납니다. 크게 무너지지는 않는데, 말이 한 번씩 헛돌고 일정이 자꾸 밀립니다.',
+      t2:'약속은 한 번 더 확인하고, 중요한 말은 글로 남겨두세요. 오해가 생기면 바로 풀지 말고 하루 지나 꺼내는 편이 훨씬 낫습니다.' },
+    plain:{ tag:'무관 · 잔잔한 주', cls:'calm',
+      t1:'이번주 기운과 특별히 얽히지 않습니다. 크게 밀어주지도, 막아서지도 않는 잔잔한 한 주예요.',
+      t2:'이런 주에는 흐름을 기다리기보다 내가 정한 속도로 가는 편이 낫습니다. 체력·공부·저축처럼 쌓이는 일에 붙여두면 그대로 남습니다.' }
+  };
+
+  /* 삼합 · 육합 · 충 상대 띠 */
+  function samhapOf(z){ return [ (z+4)%12, (z+8)%12 ]; }
+  function yukhapOf(z){ return ((1-z)%12+12)%12; }
+  function chungOf(z){ return (z+6)%12; }
+
+  /* ── 이번주 월요일의 일주(日柱) ── */
+  function jdn(y,m,d){
+    if(m<=2){ y-=1; m+=12; }
+    var A=Math.floor(y/100), B=2-A+Math.floor(A/4);
+    return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524;
+  }
+  var now=new Date();
+  var dow=now.getDay();
+  var back=(dow===0)?6:(dow-1);
+  var mon=new Date(now.getFullYear(), now.getMonth(), now.getDate()-back);
+  var sun=new Date(mon.getFullYear(), mon.getMonth(), mon.getDate()+6);
+  var dayNo=jdn(mon.getFullYear(), mon.getMonth()+1, mon.getDate()) - jdn(1900,1,1);
+  var wg=((dayNo)%10+10)%10;
+  var wz=((dayNo+10)%12+12)%12;
+  var wEl=JI_EL[wz];
+
+  document.getElementById('zWeek').textContent =
+    (mon.getMonth()+1)+'월 '+mon.getDate()+'일 ~ '+(sun.getMonth()+1)+'월 '+sun.getDate()+'일';
+  document.getElementById('zGz').textContent = GAN_H[wg]+JI_H[wz];
+  document.getElementById('zGzk').textContent =
+    GAN_K[wg]+JI_K[wz]+' · '+ANIMAL[wz]+'의 자리 · '+wEl+'('+EL[wEl].han+')의 주';
+  document.getElementById('zSay').textContent =
+    '이번주는 ' + JI_K[wz] + '(' + JI_H[wz] + ')의 기운이 판을 잡습니다. ' +
+    wEl + '(' + EL[wEl].han + ')' + eunNeun(wEl) + ' ' + EL[wEl].week +
+    ' 아래에서 내 띠가 이 기운과 어떻게 만나는지 보세요.';
+
+  /* ── 열두 장 그리기 ── */
+  function yearsOf(z){
+    var out=[];
+    for(var y=1948; y<=2020; y++){
+      if(((y-4)%12+12)%12===z){ out.push(y); }
+    }
+    return out;
+  }
+
+  var grid=document.getElementById('zGrid');
+  var html='';
+  for(var z=0; z<12; z++){
+    var rel=relOf(z, wz);
+    var R=REL[rel];
+    var myEl=JI_EL[z];
+    var luckEl = (GEN[wEl]===myEl) ? wEl : motherOf(myEl);
+    var thing = EL[luckEl].things[ (dayNo + z) % EL[luckEl].things.length ];
+
+    /* 잘 맞는 띠: 삼합 두 띠 + 육합 한 띠 가운데 이번주 몫으로 하나 */
+    var mates=samhapOf(z).concat([yukhapOf(z)]);
+    var mate = mates[ ((dayNo + z) % 3 + 3) % 3 ];
+    var foe  = chungOf(z);
+
+    html += '<div class="acard" data-z="'+z+'" id="zc'+z+'">'
+      + '<div class="ahead"><div class="asym">'+EMOJI[z]+'</div>'
+      + '<div><div class="aname">'+ANIMAL[z]+'띠 <span style="color:rgba(242,236,224,.4); font-size:.8rem">'+JI_H[z]+'</span></div>'
+      + '<div class="ayears">'+yearsOf(z).join(' · ')+'</div></div></div>'
+      + '<div class="arel '+R.cls+'">'+R.tag+'</div>'
+      + '<p class="atext">'+R.t1+'</p>'
+      + '<p class="atext">'+R.t2+'</p>'
+      + '<p class="atext">'+ANIMAL[z]+'띠는 본래 '+myEl+'('+EL[myEl].han+')의 자리입니다. '+EL[myEl].own+'</p>'
+      + '<dl class="arows">'
+      + '<div class="arow"><dt>잘 맞는 띠</dt><dd>'+ANIMAL[mate]+'띠</dd></div>'
+      + '<div class="arow"><dt>조심할 띠</dt><dd>'+ANIMAL[foe]+'띠 <span style="color:rgba(242,236,224,.46)">· 부딪히면 크게 부딪힙니다</span></dd></div>'
+      + '<div class="arow"><dt>행운의 색</dt><dd><span class="swatch" style="background:'+EL[luckEl].hex+'"></span>'+EL[luckEl].color+'</dd></div>'
+      + '<div class="arow"><dt>행운의 물건</dt><dd>'+thing+'</dd></div>'
+      + '</dl>'
+      + '<p class="amine" style="display:none">지금 보고 계신 띠예요.</p>'
+      + '</div>';
+  }
+  grid.innerHTML = html;
+
+  /* ── 내 띠 찾기 ── */
+  var input=document.getElementById('zYear');
+  var btn=document.getElementById('zFind');
+  function findMine(){
+    var y=parseInt(input.value,10);
+    if(!y){ return; }
+    if(y<1900){ return; }
+    if(y>2030){ return; }
+    var z=((y-4)%12+12)%12;
+    var cards=grid.querySelectorAll('.acard');
+    for(var i=0;i<cards.length;i++){
+      cards[i].classList.remove('mine');
+      var m=cards[i].querySelector('.amine');
+      if(m){ m.style.display='none'; }
+    }
+    var card=document.getElementById('zc'+z);
+    if(!card){ return; }
+    card.classList.add('mine');
+    var mine=card.querySelector('.amine');
+    if(mine){
+      mine.textContent = y+'년생 · '+ANIMAL[z]+'띠. 지금 보고 계신 띠예요.';
+      mine.style.display='block';
+    }
+    card.scrollIntoView({behavior:'smooth', block:'center'});
+    try{ localStorage.setItem('stella_zodiac_year', String(y)); }catch(e){}
+  }
+  btn.addEventListener('click', findMine);
+  input.addEventListener('keydown', function(e){ if(e.key==='Enter'){ findMine(); } });
+
+  /* 지난번에 넣으신 해가 있으면 바로 찾아둡니다 */
+  try{
+    var saved=localStorage.getItem('stella_zodiac_year');
+    if(saved){ input.value=saved; findMine(); }
+    else{
+      var demo=localStorage.getItem('stella_demo');
+      if(demo){
+        var o=JSON.parse(demo);
+        if(o){ if(o.profile){ if(o.profile.year){ input.value=o.profile.year; findMine(); } } }
+      }
+    }
+  }catch(e){}
+})();
+</script>
 <!-- /wp:html -->

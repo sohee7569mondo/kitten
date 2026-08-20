@@ -90,6 +90,8 @@ body.page-id-62 #ss-nav-spacer{display:none;}
 }
 #ss-nav .ssnav-drop a:hover{color:var(--star); background:rgba(212,175,106,.1);}
 #ss-nav .ssnav-drop .sub{font-size:.74rem; color:var(--ink-dim);}
+/* 샘플 전자책처럼 항목이 많은 드롭다운은 화면을 넘지 않게 스크롤 */
+#ss-nav .ssnav-drop.tall{max-height:72vh; overflow-y:auto;}
 
 /* 아직 페이지가 없는 항목 */
 #ss-nav .soon{pointer-events:none; opacity:.45;}
@@ -189,34 +191,50 @@ body.page-id-62 #ss-nav-spacer{display:none;}
       <div class="ssnav-item">
         <button type="button" class="ssnav-top" aria-expanded="false">여섯 개의 문 <span class="caret">&#9662;</span></button>
         <div class="ssnav-drop">
-          <a class="now" href="/door-career/">직성의 신 <span class="sub">일과 돈</span></a>
-          <a class="soon" href="/door-love/">연성의 신 <span class="sub">사랑</span></a>
-          <a class="soon" href="/door-health/">강성의 신 <span class="sub">건강</span></a>
-          <a class="soon" href="/door-fortune/">세성의 신 <span class="sub">흐름</span></a>
-          <a class="soon" href="/door-astro/">성좌의 신 <span class="sub">별자리</span></a>
-          <a class="soon" href="/door-tarot/">아르카나 <span class="sub">타로</span></a>
+          <a href="/door-career/">직성의 신 <span class="sub">일과 돈</span></a>
+          <a href="/door-love/">연성의 신 <span class="sub">사랑</span></a>
+          <a href="/door-health/">강성의 신 <span class="sub">건강</span></a>
+          <a href="/door-fortune/">세성의 신 <span class="sub">흐름</span></a>
+          <a href="/door-astro/">성좌의 신 <span class="sub">별자리</span></a>
+          <a href="/door-tarot/">아르카나 <span class="sub">타로</span></a>
         </div>
       </div>
 
       <div class="ssnav-item">
         <button type="button" class="ssnav-top" aria-expanded="false">샘플 전자책 <span class="caret">&#9662;</span></button>
-        <div class="ssnav-drop">
-          <a class="now" href="/reading-sample/">직업운 <span class="sub">15쪽</span></a>
-          <a class="now" href="/reading-wealth/">재물운 <span class="sub">17쪽</span></a>
+        <div class="ssnav-drop tall">
+          <a href="/reading-book/?demo=door-career">직업운 <span class="sub">서준 · 1994</span></a>
+          <a href="/reading-book/?demo=door-career-2">재물운 <span class="sub">명주 · 1985</span></a>
+          <a href="/reading-book/?demo=door-love">연애운 <span class="sub">하은 · 1996</span></a>
+          <a href="/reading-book/?demo=door-love-2">결혼운 <span class="sub">도윤 · 1993</span></a>
+          <a href="/reading-book/?demo=door-health">건강운 <span class="sub">민재 · 1988</span></a>
+          <a href="/reading-book/?demo=door-health-2">가족운 <span class="sub">수아 · 1979</span></a>
+          <a href="/reading-book/?demo=door-fortune">시기운 <span class="sub">지우 · 1991</span></a>
+          <a href="/reading-book/?demo=door-fortune-2">대운 <span class="sub">현우 · 1975</span></a>
+          <a href="/reading-book/?demo=door-astro">별자리 <span class="sub">은설 · 2001</span></a>
+          <a href="/reading-book/?demo=door-astro-2">별자리와 사주 <span class="sub">라온 · 2004</span></a>
+          <a href="/reading-book/?demo=door-tarot">오늘의 선택 <span class="sub">태윤 · 1999</span></a>
+          <a href="/reading-book/?demo=door-tarot-2">타로 세 장 <span class="sub">지훈 · 1997</span></a>
+          <a href="/reading-sample/">완성본 · 직업운 <span class="sub">15쪽</span></a>
+          <a href="/reading-wealth/">완성본 · 재물운 <span class="sub">17쪽</span></a>
         </div>
       </div>
 
       <div class="ssnav-item">
         <button type="button" class="ssnav-top" aria-expanded="false">나의 인생길잡이 <span class="caret">&#9662;</span></button>
         <div class="ssnav-drop">
-          <a class="soon" href="/guide/">책 소개</a>
-          <a class="soon" href="/guide/#preview">목차 미리보기</a>
-          <a class="soon" href="/guide/#buy">구매하기</a>
+          <a href="/guide/">책 소개</a>
+          <a href="/guide/#preview">목차 미리보기</a>
+          <a href="/guide/#buy">구매하기</a>
         </div>
       </div>
 
       <div class="ssnav-item">
-        <a class="ssnav-top soon" href="/stars/">이번주 스타운세</a>
+        <a class="ssnav-top" href="/stars/">이번주 스타운세</a>
+      </div>
+
+      <div class="ssnav-item">
+        <a class="ssnav-top" href="/mypage/">마이페이지</a>
       </div>
 
     </nav>
@@ -307,7 +325,8 @@ body.page-id-62 #ss-nav-spacer{display:none;}
   // ── 홈 화면의 '직성의 문' 카드 열기 ─────────────────────────
   // 홈(페이지 62) 코드 안에 class="door-card is-soon" 으로 잠겨 있습니다.
   // 홈을 다시 쓸 때 그 HTML 에서 is-soon 을 직접 지우고, 이 블록은 지우세요.
-  var homeOpen = ['/door-career/'];
+  var homeOpen = ['/door-career/','/door-love/','/door-health/',
+                  '/door-fortune/','/door-astro/','/door-tarot/'];
   homeOpen.forEach(function(href){
     var card = document.querySelector('#stellar-home a.door-card[href="' + href + '"]');
     if(!card) return;

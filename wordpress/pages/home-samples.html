@@ -1,0 +1,191 @@
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 홈에 붙는 샘플 전자책 12권 (페이지 62의 두 번째 블록)
+  BUILD: S1
+
+  이 블록은 페이지 맨 끝에 들어가지만, 아래 스크립트가 스스로
+  '여섯 개의 문'(#doors) 바로 뒤로 자리를 옮깁니다.
+  옮기기 전까지는 숨어 있어서 화면이 튀지 않습니다.
+-->
+<style>
+#ss-samples{
+  --void:#0D0A1A; --void-deep:#070512; --nebula:#1C1533;
+  --gold:#D4AF6A; --star:#F2ECE0;
+  --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.46);
+  --line:rgba(212,175,106,.18);
+  padding:96px 0; background:var(--void); color:var(--star);
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  word-break:keep-all; overflow-wrap:break-word;
+}
+@media(max-width:700px){ #ss-samples{padding:64px 0;} }
+#ss-samples *{box-sizing:border-box;}
+#ss-samples a{text-decoration:none; color:inherit;}
+#ss-samples .wrap{max-width:1180px; margin:0 auto; padding:0 26px;}
+@media(max-width:700px){ #ss-samples .wrap{padding:0 18px;} }
+
+#ss-samples .head{text-align:center; margin-bottom:40px;}
+#ss-samples .kicker{font-family:'IBM Plex Mono',monospace; font-size:.72rem;
+  letter-spacing:.22em; text-transform:uppercase; color:var(--gold);}
+#ss-samples h2{font-family:'Noto Serif KR',serif; font-weight:700;
+  font-size:2rem; line-height:1.4; margin:14px 0 0; color:var(--star);}
+@media(max-width:700px){ #ss-samples h2{font-size:1.5rem;} }
+#ss-samples .head p{margin:14px 0 0; font-size:1rem; color:var(--ink-soft); line-height:1.9;}
+
+#ss-samples .grid{
+  display:grid !important; grid-template-columns:repeat(4,1fr); gap:14px;}
+@media(max-width:980px){ #ss-samples .grid{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:520px){ #ss-samples .grid{grid-template-columns:1fr;} }
+
+#ss-samples .bk{
+  display:block; background:var(--nebula); border:1px solid var(--line);
+  border-radius:13px; padding:20px 20px 18px;
+  transition:border-color .2s ease, transform .2s ease, background .2s ease;}
+#ss-samples .bk:hover{border-color:var(--gold); transform:translateY(-3px);
+  background:#241B41;}
+#ss-samples .bk .g{font-family:'IBM Plex Mono',monospace; font-size:.66rem;
+  letter-spacing:.16em; color:var(--gold);}
+#ss-samples .bk .t{margin-top:10px; font-family:'Noto Serif KR',serif;
+  font-size:1.16rem; font-weight:700; line-height:1.4; color:var(--star);}
+#ss-samples .bk .w{margin-top:9px; font-size:.86rem; color:var(--ink-dim); line-height:1.75;}
+#ss-samples .bk .m{margin-top:14px; padding-top:12px; border-top:1px dashed rgba(212,175,106,.16);
+  display:flex !important; justify-content:space-between; align-items:center; gap:10px;
+  font-family:'IBM Plex Mono',monospace; font-size:.7rem; color:var(--ink-dim);}
+#ss-samples .bk .m b{color:var(--gold); font-weight:500;}
+
+#ss-samples .foot{margin-top:26px; text-align:center;
+  font-size:.9rem; color:var(--ink-dim); line-height:1.9;}
+#ss-samples .foot a.more{display:inline-block; margin-top:16px; padding:15px 30px;
+  border-radius:6px; font-size:.98rem; font-weight:700;
+  background:linear-gradient(135deg, var(--gold), #B98A47); color:var(--void-deep);}
+#ss-samples .foot .long{margin-top:14px; font-size:.88rem;}
+#ss-samples .foot .long a{color:var(--gold); border-bottom:1px solid rgba(212,175,106,.4);}
+</style>
+
+<section id="ss-samples" style="display:none">
+  <div class="wrap">
+    <div class="head">
+      <div class="kicker">Twelve Sample Books</div>
+      <h2>여섯 가디언이 쓴 책,<br>열두 권을 그대로 열어보세요</h2>
+      <p>가디언마다 두 권씩. 결제도 회원가입도 없이 첫 장부터 끝 장까지 읽으실 수 있어요.<br>
+         모두 <b>가상의 인물</b>이지만, 사주 원국과 대운은 실제로 계산해서 뽑은 값입니다.</p>
+    </div>
+
+    <div class="grid">
+
+      <a class="bk" href="/reading-book/?demo=door-career">
+        <div class="g">THE ARCHITECT</div>
+        <div class="t">직업운</div>
+        <div class="w">지금 하는 일이 내 결에 맞는지 묻는 사람</div>
+        <div class="m"><span>서준 &middot; 1994 서울</span><b>18쪽</b></div>
+      </a>
+
+      <a class="bk" href="/reading-book/?demo=door-career-2">
+        <div class="g">THE ARCHITECT</div>
+        <div class="t">재물운</div>
+        <div class="w">모으는 힘과 쓰는 힘 가운데 무엇이 센지</div>
+        <div class="m"><span>명주 &middot; 1985 대전</span><b>18쪽</b></div>
+      </a>
+
+      <a class="bk" href="/reading-book/?demo=door-love">
+        <div class="g">THE LOVER</div>
+        <div class="t">연애운</div>
+        <div class="w">마음이 켜지는 자리와 식는 자리</div>
+        <div class="m"><span>하은 &middot; 1996 부산</span><b>18쪽</b></div>
+      </a>
+
+      <a class="bk" href="/reading-book/?demo=door-love-2">
+        <div class="g">THE LOVER</div>
+        <div class="t">결혼운</div>
+        <div class="w">오래 같이 있으려면 무엇을 접어야 하는지</div>
+        <div class="m"><span>도윤 &middot; 1993 성남</span><b>18쪽</b></div>
+      </a>
+
+      <a class="bk" href="/reading-book/?demo=door-health">
+        <div class="g">THE HEALER</div>
+        <div class="t">건강운</div>
+        <div class="w">몸이 먼저 무너지는 자리와 회복하는 결</div>
+        <div class="m"><span>민재 &middot; 1988 대구</span><b>18쪽</b></div>
+      </a>
+
+      <a class="bk" href="/reading-book/?demo=door-health-2">
+        <div class="g">THE HEALER</div>
+        <div class="t">가족운</div>
+        <div class="w">기대는 자리와 짊어지는 자리</div>
+        <div class="m"><span>수아 &middot; 1979 청주</span><b>18쪽</b></div>
+      </a>
+
+      <a class="bk" href="/reading-book/?demo=door-fortune">
+        <div class="g">THE ORACLE</div>
+        <div class="t">시기운</div>
+        <div class="w">지금이 밀 때인지 기다릴 때인지</div>
+        <div class="m"><span>지우 &middot; 1991 인천</span><b>18쪽</b></div>
+      </a>
+
+      <a class="bk" href="/reading-book/?demo=door-fortune-2">
+        <div class="g">THE ORACLE</div>
+        <div class="t">대운</div>
+        <div class="w">십 년마다 바뀌는 판이 어디로 흘러가는지</div>
+        <div class="m"><span>현우 &middot; 1975 창원</span><b>18쪽</b></div>
+      </a>
+
+      <a class="bk" href="/reading-book/?demo=door-astro">
+        <div class="g">THE STARGAZER</div>
+        <div class="t">별자리</div>
+        <div class="w">태양과 상승궁으로 다시 읽은 나</div>
+        <div class="m"><span>은설 &middot; 2001 서울</span><b>18쪽</b></div>
+      </a>
+
+      <a class="bk" href="/reading-book/?demo=door-astro-2">
+        <div class="g">THE STARGAZER</div>
+        <div class="t">별자리와 사주</div>
+        <div class="w">동양과 서양이 같은 말을 하는 자리</div>
+        <div class="m"><span>라온 &middot; 2004 수원</span><b>18쪽</b></div>
+      </a>
+
+      <a class="bk" href="/reading-book/?demo=door-tarot">
+        <div class="g">THE ARCANA</div>
+        <div class="t">오늘의 선택</div>
+        <div class="w">뽑은 카드 세 장을 사주 위에 겹쳐 읽기</div>
+        <div class="m"><span>태윤 &middot; 1999 광주</span><b>18쪽</b></div>
+      </a>
+
+      <a class="bk" href="/reading-book/?demo=door-tarot-2">
+        <div class="g">THE ARCANA</div>
+        <div class="t">타로 세 장</div>
+        <div class="w">밤 열두 시 반, 자시 경계에 태어난 사람</div>
+        <div class="m"><span>지훈 &middot; 1997 전주</span><b>18쪽</b></div>
+      </a>
+
+    </div>
+
+    <div class="foot">
+      <p>마음에 드는 책이 있으셨다면, 같은 방식으로 내 여덟 글자를 세워드릴게요.</p>
+      <a class="more" href="/door-career/">내 사주로 받아보기 &rarr;</a>
+      <div class="long">더 긴 완성본도 있어요 &middot;
+        <a href="/reading-sample/">직업운 15쪽</a> &middot;
+        <a href="/reading-wealth/">재물운 17쪽</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  /* 블록은 문서 맨 끝에 들어옵니다. '여섯 개의 문' 바로 뒤로 옮긴 뒤 보여줍니다. */
+  function place(){
+    var sec=document.getElementById('ss-samples');
+    if(!sec){ return; }
+    var doors=document.getElementById('doors');
+    if(doors){
+      if(doors.parentNode){ doors.parentNode.insertBefore(sec, doors.nextSibling); }
+    }
+    sec.style.display='';
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', place);
+  } else {
+    place();
+  }
+})();
+</script>
+<!-- /wp:html -->

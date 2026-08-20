@@ -1,7 +1,7 @@
 <!-- wp:html -->
 <!--
   STELLA SAJU — 자료를 다 세웠습니다  (/reading-ready/)
-  BUILD: R1
+  BUILD: R3
 
   질문까지 마친 분에게 '당신의 진짜 사주'를 보여주는 화면입니다.
   브라우저 안에서 직접 계산합니다. 서버가 없어도 돕니다.
@@ -239,7 +239,7 @@
   var JI_ANIMAL=['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
   var ELEMENTS=['목','화','토','금','수'];
 
-  /* 12절(節). 월지가 바뀌는 지점입니다. 중기(中氣)는 월주를 가르지 않아 뺐습니다.
+  /* 12절(節). 월지가 바뀌는 지점입니다. 중기(中氣)는 월주를 가르지 않아 제외했습니다.
      month 는 그 절기가 실제로 떨어지는 양력 달입니다 (모두 4~9일 사이). */
   var TERMS=[
     {deg:285, name:'소한', ji:1,  month:1},
@@ -657,7 +657,7 @@
 
   var most=chart.five.slice().sort(function(a,b){ return b.percent-a.percent; })[0];
   var none=chart.five.filter(function(f){ return f.count===0; }).map(function(f){ return f.element; });
-  var fw='여덟 글자 가운데 <b>'+most.element+'</b>의 기운이 가장 두텁습니다.';
+  var fw='여덟 글자 가운데 <b>'+most.element+'</b>의 기운이 가장 강합니다.';
   function batchim(w){ var c=w.charCodeAt(w.length-1);
     if(c<0xAC00) return false; if(c>0xD7A3) return false; return ((c-0xAC00)%28)!==0; }
   if(none.length){ var nj=none.join('·');
@@ -716,7 +716,7 @@
     return '<div><dt>'+r[0]+'</dt><dd>'+r[1]+'</dd></div>'; }).join('');
 
   $('rNextNote').innerHTML = '아직 결제가 열리지 않아 지금은 <b>시험판</b>입니다. ' +
-    '그래도 ' + name + '님의 여덟 글자로 만든 <b>열네 쪽짜리 책</b>을 끝까지 읽으실 수 있어요. ' +
+    '그래도 ' + name + '님의 여덟 글자로 만든 <b>열여덟 쪽짜리 책</b>을 끝까지 읽으실 수 있어요. ' +
     '아래 왼쪽 단추를 누르시면 바로 펼쳐집니다. PDF 로도 저장하실 수 있습니다.';
 })();
 </script>
