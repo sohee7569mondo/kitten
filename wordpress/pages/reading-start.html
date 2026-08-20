@@ -1,0 +1,365 @@
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 가디언 질문 + 타로 (결제 후 화면)   BUILD: Q1
+  흐름: 인트로 → 취향 5문항 → 상황 2문항 → 타로 3장 → 발행
+  모든 스타일은 #ssq 안으로 스코프.
+  주의: script 안에서 앰퍼샌드 두 개 연산자를 쓰지 마세요. 워드프레스가 엔티티로 바꿉니다.
+-->
+<style>
+#ssq{
+  --void:#0D0A1A; --void-deep:#070512;
+  --nebula:#1C1533; --nebula-soft:#251C42;
+  --gold:#D4AF6A; --gold-soft:#C9A66B; --gold-lite:#E8CD96;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.46);
+  --line:rgba(212,175,106,.18);
+
+  max-width:none !important; width:auto !important;
+  margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
+  padding:0 !important;
+  position:relative; z-index:0; overflow-x:clip;
+  color:var(--star); text-align:center;
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:300; line-height:1.8; font-size:16px;
+  word-break:keep-all; overflow-wrap:break-word;
+  min-height:82vh;
+}
+#ssq *{margin:0; padding:0; box-sizing:border-box;}
+#ssq h1,#ssq h2{font-family:'Noto Serif KR',serif; font-weight:700; letter-spacing:normal; text-wrap:balance;}
+#ssq button{font:inherit; cursor:pointer;}
+
+#ssq .q-stars{position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.9), transparent),
+    radial-gradient(1px 1px at 82% 12%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1.5px 1.5px at 62% 62%, rgba(255,255,255,.8), transparent),
+    radial-gradient(1px 1px at 28% 78%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1.5px 1.5px at 90% 52%, rgba(255,255,255,.7), transparent),
+    var(--void);}
+#ssq .q-inner{position:relative; z-index:1; max-width:720px; margin:0 auto; padding:56px 24px 100px;}
+@media(max-width:700px){ #ssq .q-inner{padding:36px 18px 72px;} }
+
+/* ── 진행 막대 ─────────────────────────── */
+#ssq .q-bar{height:2px; background:rgba(212,175,106,.14); margin-bottom:44px; position:relative;}
+#ssq .q-bar i{position:absolute; left:0; top:0; bottom:0; background:var(--gold);
+  width:0%; transition:width .45s cubic-bezier(.4,0,.2,1);}
+#ssq .q-step{font-family:'IBM Plex Mono',monospace; font-size:.62rem; letter-spacing:.2em;
+  color:var(--ink-dim); margin-bottom:10px;}
+
+/* ── 화면 전환 ─────────────────────────── */
+#ssq .scene{display:none;}
+#ssq .scene.on{display:block; animation:qfade .5s ease both;}
+@keyframes qfade{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+
+/* ── 인트로 ────────────────────────────── */
+#ssq .g-face{width:132px; height:132px; margin:0 auto 26px; border-radius:50%;
+  overflow:hidden; border:1px solid var(--line); position:relative;}
+#ssq .g-face img{width:100%; height:100%; object-fit:cover; object-position:center 16%; display:block;}
+#ssq .g-who{font-family:'IBM Plex Mono',monospace; font-size:.62rem; letter-spacing:.24em;
+  color:var(--gold); margin-bottom:16px;}
+#ssq .q-say{font-family:'Noto Serif KR',serif; font-size:1.14rem; line-height:2.1; color:var(--star);
+  max-width:30em; margin:0 auto;}
+#ssq .q-say + .q-say{margin-top:20px;}
+#ssq .q-note{margin-top:32px; font-size:.84rem; color:var(--ink-dim); line-height:1.9;}
+
+/* ── 질문 ──────────────────────────────── */
+#ssq h2{font-size:clamp(1.25rem,3.4vw,1.6rem); line-height:1.6; margin-bottom:10px;}
+#ssq .q-sub{font-size:.86rem; color:var(--ink-dim); margin-bottom:34px;}
+
+#ssq .pair{display:grid !important; grid-template-columns:1fr 1fr; gap:14px; max-width:600px; margin:0 auto;}
+@media(max-width:560px){ #ssq .pair{grid-template-columns:1fr;} }
+#ssq .pick{
+  background:var(--nebula); border:1px solid var(--line); border-radius:12px;
+  padding:34px 22px; color:var(--ink-soft); font-size:1rem; line-height:1.75;
+  transition:border-color .2s ease, background .2s ease, transform .2s ease, color .2s ease;
+  min-height:132px; display:flex; align-items:center; justify-content:center; text-align:center;
+}
+#ssq .pick:hover{border-color:var(--gold-soft); color:var(--star); transform:translateY(-3px);}
+#ssq .pick.on{border-color:var(--gold); background:rgba(212,175,106,.12); color:var(--star); font-weight:500;}
+#ssq .pick:focus-visible{outline:2px solid var(--gold-lite); outline-offset:3px;}
+
+#ssq .list{display:flex !important; flex-direction:column; gap:10px; max-width:520px; margin:0 auto;}
+#ssq .one{
+  background:var(--nebula); border:1px solid var(--line); border-radius:9px;
+  padding:17px 22px; color:var(--ink-soft); font-size:.95rem; text-align:left;
+  transition:border-color .2s ease, background .2s ease, color .2s ease;
+}
+#ssq .one:hover{border-color:var(--gold-soft); color:var(--star);}
+#ssq .one.on{border-color:var(--gold); background:rgba(212,175,106,.12); color:var(--star);}
+#ssq .one:focus-visible{outline:2px solid var(--gold-lite); outline-offset:3px;}
+
+/* ── 타로 ──────────────────────────────── */
+#ssq .slots{display:flex !important; justify-content:center; gap:14px; margin:0 auto 40px;}
+#ssq .slot{
+  width:82px; height:130px; border:1px dashed var(--line); border-radius:6px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px;
+  color:var(--ink-dim); font-size:.68rem; line-height:1.5; padding:8px; text-align:center;
+  transition:border-color .3s ease, background .3s ease;
+}
+#ssq .slot.full{
+  border:1px solid var(--gold); border-style:solid;
+  background:linear-gradient(160deg,#2A2050,#171130);
+  color:var(--gold-lite);
+}
+#ssq .slot .rn{font-family:'Cinzel',serif; font-size:1.1rem; color:var(--gold); opacity:.65;}
+@media(max-width:480px){ #ssq .slot{width:64px; height:102px;} }
+
+#ssq .deck{
+  position:relative; height:210px; margin:0 auto; max-width:640px;
+}
+#ssq .back{
+  position:absolute; left:50%; top:14px;
+  width:78px; height:124px; margin-left:-39px;
+  border-radius:6px; border:1px solid rgba(212,175,106,.4);
+  background:
+    repeating-linear-gradient(45deg, rgba(212,175,106,.10) 0 5px, transparent 5px 10px),
+    linear-gradient(160deg,#241B48,#140F2C);
+  cursor:pointer;
+  transition:transform .35s cubic-bezier(.4,0,.2,1), opacity .35s ease, border-color .2s ease;
+  transform-origin:50% 210px;
+}
+#ssq .back::after{
+  content:'\2726'; position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  color:rgba(212,175,106,.5); font-size:1.2rem;
+}
+#ssq .back:hover{border-color:var(--gold);}
+#ssq .back.gone{opacity:0; pointer-events:none;}
+@media(max-width:560px){ #ssq .deck{height:180px;} #ssq .back{width:58px; height:92px; margin-left:-29px; transform-origin:50% 178px;} }
+
+/* ── 버튼 ──────────────────────────────── */
+#ssq .go{
+  margin-top:40px; padding:17px 46px; border-radius:4px; border:none;
+  font-size:1rem; font-weight:700; color:var(--void-deep);
+  background:linear-gradient(135deg, var(--gold), #B98A47);
+  box-shadow:0 16px 34px -14px rgba(212,175,106,.55);
+  transition:transform .2s ease, opacity .2s ease;
+}
+#ssq .go:hover{transform:translateY(-2px);}
+#ssq .go:disabled{opacity:.35; cursor:default; transform:none;}
+#ssq .back-link{display:block; margin:22px auto 0; background:none; border:0;
+  font-size:.8rem; color:var(--ink-dim); text-decoration:underline; text-underline-offset:3px;}
+#ssq .back-link:hover{color:var(--ink-soft);}
+
+/* ── 발행 중 ───────────────────────────── */
+#ssq .writing{padding:40px 0 20px;}
+#ssq .quill{width:44px; height:44px; margin:0 auto 30px; border-radius:50%;
+  border:1px solid var(--line); border-top-color:var(--gold); animation:qspin 1.1s linear infinite;}
+@keyframes qspin{to{transform:rotate(360deg);}}
+#ssq .writing .line{font-size:.9rem; color:var(--ink-dim); margin-top:9px;}
+#ssq .writing .line.done{color:var(--gold-lite);}
+
+@media(prefers-reduced-motion:reduce){
+  #ssq *,#ssq *::before,#ssq *::after{animation:none !important; transition:none !important;}
+}
+</style>
+
+<div id="ssq">
+  <div class="q-stars" aria-hidden="true"></div>
+  <div class="q-inner">
+
+    <div class="q-bar"><i id="qFill"></i></div>
+    <div class="q-step" id="qStep">직성의 신</div>
+
+    <!-- 인트로 -->
+    <section class="scene on" id="sc0">
+      <div class="g-face">
+        <img src="https://stellasaju.com/wp-content/uploads/2026/08/stellardoorarchitect.webp"
+             alt="직성의 신" width="640" height="953">
+      </div>
+      <div class="g-who">직성의 신</div>
+      <p class="q-say">당신을 살펴보기 전에, 몇 가지만 물을게요.</p>
+      <p class="q-say">답을 듣기 전에 내가 먼저 읽은 것과, 답을 듣고 다시 읽은 것 — <b>두 가지를 나란히 적어 드리겠습니다.</b> 그래야 내가 별을 읽은 것인지 당신 말을 옮긴 것인지, 당신이 직접 판단할 수 있으니까요.</p>
+      <p class="q-note">맞고 틀리고가 없는 질문입니다. 굳이 한쪽을 고르자면 어느 쪽인지만 알려주세요.<br>일곱 문항, 2분이면 끝납니다.</p>
+      <button type="button" class="go" id="qGo">시작할게요 →</button>
+    </section>
+
+    <!-- 질문 화면 (내용은 스크립트가 채웁니다) -->
+    <section class="scene" id="scQ">
+      <h2 id="qTitle"></h2>
+      <p class="q-sub" id="qSub"></p>
+      <div id="qBody"></div>
+      <button type="button" class="back-link" id="qPrev">← 이전 질문</button>
+    </section>
+
+    <!-- 타로 -->
+    <section class="scene" id="scT">
+      <h2>마지막으로, 세 장을 뽑아주세요</h2>
+      <p class="q-sub">사주는 태어날 때 정해진 것을 읽고, 카드는 오늘의 것을 읽습니다.</p>
+
+      <div class="slots">
+        <div class="slot" id="sl0"><span class="rn">I</span><span>지금 서 있는 자리</span></div>
+        <div class="slot" id="sl1"><span class="rn">II</span><span>넘어야 할 것</span></div>
+        <div class="slot" id="sl2"><span class="rn">III</span><span>그 너머</span></div>
+      </div>
+
+      <div class="deck" id="qDeck"></div>
+      <p class="q-sub" style="margin-top:20px;" id="qPickMsg">카드를 눌러 세 장을 고르세요</p>
+      <button type="button" class="go" id="qDone" disabled>직성의 신에게 보내기 →</button>
+    </section>
+
+    <!-- 발행 중 -->
+    <section class="scene" id="scW">
+      <div class="writing">
+        <div class="quill"></div>
+        <h2>직성의 신이 쓰고 있습니다</h2>
+        <p class="q-sub" style="margin-top:14px;">잠시만 기다려주세요. 다 쓰이면 알려드릴게요.</p>
+        <div id="qLog"></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var root=document.getElementById('ssq'); if(!root) return;
+  var $=function(id){ return document.getElementById(id); };
+
+  /* ══ 질문 ══ 다른 가디언은 이 배열만 바꾸면 됩니다 ══ */
+  var QS=[
+    {t:'결과가 어느 쪽이면 좋으세요?', s:'취향 1 / 5', k:'risk',
+     a:'결과가 예상되는 편이 좋다', b:'예상 못 할수록 재미있다'},
+    {t:'답은 어느 쪽을 고르시겠어요?', s:'취향 2 / 5', k:'make',
+     a:'정해진 답을 정확히 맞히고 싶다', b:'없던 답을 내가 만들고 싶다'},
+    {t:'일할 때 어느 쪽이 편하세요?', s:'취향 3 / 5', k:'solo',
+     a:'혼자 몰입하는 게 편하다', b:'사람들과 굴러가는 게 좋다'},
+    {t:'다루고 싶은 건 어느 쪽인가요?', s:'취향 4 / 5', k:'form',
+     a:'손에 잡히는 걸 만들고 싶다', b:'눈에 안 보이는 걸 다루고 싶다'},
+    {t:'하나와 여럿, 어느 쪽이세요?', s:'취향 5 / 5', k:'many',
+     a:'하나를 깊게 파고 싶다', b:'여러 개를 동시에 굴리고 싶다'},
+    {t:'요즘 가장 자주 드는 생각은?', s:'지금의 마음 1 / 2', k:'mind', list:[
+      '돈이 부족하다','이 일이 안 맞는 것 같다','사람이 힘들다',
+      '앞이 안 보인다','시작할 용기가 없다','지금은 괜찮은데 앞이 궁금하다']},
+    {t:'1년 안에 달라졌으면 하는 것은?', s:'지금의 마음 2 / 2', k:'want1y', list:[
+      '이직','창업 · 독립','지금 일을 키우기','새 기술 배우기','특별히 없음']}
+  ];
+
+  var TOTAL = QS.length + 2;   /* 질문 + 타로 + 발행 */
+  var at=0, answers={}, cards=[];
+
+  function fill(n){ $('qFill').style.width = Math.round(n/TOTAL*100) + '%'; }
+  function show(id){
+    ['sc0','scQ','scT','scW'].forEach(function(s){ $(s).classList.remove('on'); });
+    $(id).classList.add('on');
+    window.scrollTo({top:0, behavior:'auto'});
+  }
+
+  /* ── 질문 그리기 ── */
+  function draw(){
+    var q=QS[at];
+    $('qStep').textContent = '직성의 신';
+    $('qTitle').textContent = q.t;
+    $('qSub').textContent = q.s;
+    $('qPrev').style.visibility = at===0 ? 'hidden' : 'visible';
+
+    var box=$('qBody'); box.innerHTML='';
+    if(q.list){
+      var wrap=document.createElement('div'); wrap.className='list';
+      q.list.forEach(function(txt){
+        var b=document.createElement('button');
+        b.type='button'; b.className='one'; b.textContent=txt;
+        if(answers[q.k]===txt) b.classList.add('on');
+        b.addEventListener('click', function(){ answers[q.k]=txt; next(); });
+        wrap.appendChild(b);
+      });
+      box.appendChild(wrap);
+    } else {
+      var pair=document.createElement('div'); pair.className='pair';
+      [['a',q.a],['b',q.b]].forEach(function(pv){
+        var b=document.createElement('button');
+        b.type='button'; b.className='pick'; b.textContent=pv[1];
+        if(answers[q.k]===pv[1]) b.classList.add('on');
+        b.addEventListener('click', function(){ answers[q.k]=pv[1]; next(); });
+        pair.appendChild(b);
+      });
+      box.appendChild(pair);
+    }
+    fill(at);
+  }
+
+  function next(){
+    setTimeout(function(){
+      at++;
+      if(at < QS.length){ draw(); return; }
+      show('scT'); $('qStep').textContent='마지막 · 카드'; fill(QS.length);
+    }, 260);
+  }
+  $('qPrev').addEventListener('click', function(){ if(at>0){ at--; draw(); } });
+  $('qGo').addEventListener('click', function(){ show('scQ'); draw(); });
+
+  /* ── 타로 부채꼴 ── */
+  var DECK=12;
+  (function deck(){
+    var box=$('qDeck');
+    for(var i=0;i<DECK;i++){
+      var c=document.createElement('button');
+      c.type='button'; c.className='back';
+      c.setAttribute('aria-label', (i+1)+'번째 카드');
+      var ang=(i-(DECK-1)/2)*6.4;
+      var lift=Math.abs(i-(DECK-1)/2)*2.2;
+      c.style.transform='rotate('+ang+'deg) translateY('+lift+'px)';
+      c.dataset.ang=ang; c.dataset.lift=lift;
+      c.addEventListener('click', function(e){ take(e.currentTarget); });
+      box.appendChild(c);
+    }
+  })();
+
+  function take(el){
+    if(cards.length>=3) return;
+    if(el.classList.contains('gone')) return;
+    var n=cards.length;
+    cards.push(1);
+    el.style.transform='rotate('+el.dataset.ang+'deg) translateY(-190px) scale(.85)';
+    el.classList.add('gone');
+
+    var slot=$('sl'+n);
+    slot.classList.add('full');
+    slot.innerHTML='<span class="rn">'+['I','II','III'][n]+'</span><span>뽑았습니다</span>';
+
+    if(cards.length===3){
+      $('qDone').disabled=false;
+      $('qPickMsg').textContent='세 장을 다 뽑으셨어요.';
+    } else {
+      $('qPickMsg').textContent='앞으로 '+(3-cards.length)+'장';
+    }
+  }
+
+  /* ── 보내기 ── */
+  var LOG=['사주 원국을 세우고 있습니다','대운과 세운을 계산하고 있습니다',
+           '별의 자리를 겹쳐 보고 있습니다','묻기 전에 읽은 것을 적고 있습니다',
+           '당신의 답과 맞춰보고 있습니다','카드를 마지막 장에 놓고 있습니다'];
+
+  $('qDone').addEventListener('click', function(){
+    show('scW'); $('qStep').textContent='발행'; fill(TOTAL);
+
+    var log=$('qLog'), i=0;
+    var tick=setInterval(function(){
+      if(i>=LOG.length){ clearInterval(tick); return; }
+      var p=document.createElement('p');
+      p.className='line'; p.textContent=LOG[i];
+      log.appendChild(p);
+      if(i>0) log.children[i-1].classList.add('done');
+      i++;
+    }, 1100);
+
+    fetch('/wp-json/stella/v1/reading', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body:JSON.stringify({ answers:answers, cards:cards.length })
+    }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, body:j}; }); })
+      .then(function(res){
+        var b = res.body || {};
+        if(!res.ok){ throw new Error(b.message || '발행에 실패했어요.'); }
+        setTimeout(function(){ location.href = b.next || '/mypage/'; }, 1200);
+      })
+      .catch(function(e){
+        clearInterval(tick);
+        log.innerHTML = '<p class="line" style="color:#E5A0A0">' + e.message +
+          ' 마이페이지에서 다시 시도하실 수 있어요.</p>';
+      });
+  });
+
+  fill(0);
+})();
+</script>
+<!-- /wp:html -->
