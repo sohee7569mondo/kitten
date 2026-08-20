@@ -211,6 +211,26 @@ td .mini{display:block; font-size:.76rem; color:var(--dim); margin-top:3px;}
 
 /* ── 마무리 ───────────────────────────── */
 .close{text-align:center; padding:88px 62px;}
+.farewell{text-align:center; padding:62px 62px 88px;}
+.fw-portrait{
+  width:190px; height:190px; margin:0 auto; border-radius:50%;
+  overflow:hidden; border:1px solid var(--rule); position:relative;
+}
+.fw-portrait img{width:100%; height:100%; object-fit:cover; object-position:center 16%; display:block;}
+.fw-portrait::after{
+  content:''; position:absolute; inset:0; border-radius:50%;
+  box-shadow:inset 0 -34px 44px -22px var(--page);
+}
+.fw-name{margin-top:22px; font-family:var(--serif); font-weight:700; font-size:1.28rem; color:var(--star);}
+.fw-en{margin-top:5px; font-family:var(--latin); font-size:.62rem; letter-spacing:.28em; color:var(--gold);}
+.fw-words{max-width:31em; margin:40px auto 0; text-align:left;}
+.fw-words p{margin-top:18px; color:var(--soft);}
+.fw-words p:first-child{margin-top:0;}
+.fw-words .fw-last{
+  margin-top:34px; padding-top:26px; border-top:1px solid var(--rule);
+  font-family:var(--serif); font-size:1.14rem; line-height:1.9;
+  color:var(--gold-lite); text-align:center;
+}
 .close .sig{font-family:var(--serif); font-weight:700; font-size:1.1rem; color:var(--gold-lite); margin-top:34px;}
 .fine{margin-top:40px; font-size:.72rem; color:var(--dim); line-height:1.9;}
 
@@ -549,6 +569,26 @@ td .mini{display:block; font-size:.76rem; color:var(--dim); margin-top:3px;}
     <p class="lead" style="max-width:34em; margin:0 auto;">당신의 사주에는 문이 없었습니다.<br>그래서 오래 걸렸습니다.</p>
     <p style="max-width:34em; margin:22px auto 0;">그런데 없던 문이 서른다섯에 열리기 시작해서, 앞으로 스무 해를 더 열려 있습니다. 창고에 쌓아둔 것이 많은 사람에게 문이 열리는 건, 문만 있고 넣어둔 게 없는 사람에게 문이 열리는 것과 전혀 다른 일입니다.</p>
     <p style="max-width:34em; margin:22px auto 0;">서두르지 않으셔도 됩니다. 다만 순서는 지키세요. 만들고, 그다음에 파십시오.</p>
+    <div class="folio">14</div>
+  </article>
+
+  <!-- ══ 배웅 ══ -->
+  <article class="page farewell" data-part="one">
+    <div class="fw-portrait">
+      <img src="https://stellasaju.com/wp-content/uploads/2026/08/stellardoorarchitect.webp"
+           alt="직성의 신" width="640" height="953">
+    </div>
+    <div class="fw-name">직성의 신</div>
+    <div class="fw-en">THE ARCHITECT</div>
+
+    <div class="fw-words">
+      <p>마지막으로 한마디만 남기겠습니다.</p>
+      <p>스무 해 동안 당신이 만들어온 것들을, 당신은 아마 여러 번 하찮게 여겼을 겁니다. 값으로 돌아오지 않았으니까요. <strong>그건 당신 탓이 아니었습니다.</strong> 문이 없었을 뿐입니다.</p>
+      <p>이제 그 문이 열립니다. 그러니 아까워하지 마세요. 창고에 있는 것을 꺼내 세상에 내놓으십시오. 당장 팔리지 않아도 내놓으십시오. 앞으로 몇 해는 그게 일입니다.</p>
+      <p>밭은 한 해 쉬어도 사라지지 않습니다. 다만 씨를 뿌리지 않으면 아무것도 자라지 않아요.</p>
+      <p class="fw-last">부지런하시되, 조급하지 마십시오.<br>당신의 때는 이미 와 있습니다.</p>
+    </div>
+
     <div class="sig">— 직성의 신</div>
 
     <p class="fine">
@@ -557,6 +597,7 @@ td .mini{display:block; font-size:.76rem; color:var(--dim); margin-top:3px;}
       진태양시 보정 적용 &middot; 절기는 태양 황경 기준으로 계산 &middot; 대운은 양남음녀 순행 원칙에 따름<br>
       STELLA SAJU &middot; stellasaju.com
     </p>
+    <div class="folio">15</div>
   </article>
 
 </div>

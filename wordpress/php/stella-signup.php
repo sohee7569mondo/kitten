@@ -234,6 +234,105 @@ add_action( 'stella_daily_orbs', function () {
 
 
 /* ---------------------------------------------------------------
+ * 3-2. 발행한 전자책 보관 — 커스텀 글 타입 stella_reading
+ *
+ *   책 한 권은 글 한 편으로 저장합니다. 회원정보(user meta)에 넣으면
+ *   그 회원이 어느 페이지를 열든 매번 책 전체를 메모리에 올리게 되어
+ *   사이트가 느려집니다. 글로 두면 목록·검색·정렬·검수가 전부 공짜입니다.
+ *
+ *   post_content  본문 (LONGTEXT — 분량 제한 사실상 없음)
+ *   post_author   주문한 회원
+ *   post_status   draft = 검수 대기 / private = 발행 완료(본인만 열람)
+ *   post_meta     계산 결과(원국·대운·오행)와 주문 내역을 JSON 으로
+ * --------------------------------------------------------------- */
+
+add_action( 'init', function () {
+	register_post_type( 'stella_reading', array(
+		'labels'          => array(
+			'name'          => '발행한 풀이',
+			'singular_name' => '풀이',
+		),
+		'public'          => false,
+		'show_ui'         => true,          // 관리자 화면에서 검수
+		'show_in_menu'    => true,
+		'menu_icon'       => 'dashicons-book-alt',
+		'supports'        => array( 'title', 'editor', 'author', 'custom-fields' ),
+		'capability_type' => 'post',
+		'map_meta_cap'    => true,
+	) );
+} );
+
+/**
+ * 풀이 한 권을 저장합니다.
+ *
+ * @param int    $uid      회원 ID
+ * @param array  $order    주문 내역 (가디언·주제·한 줄 질문·심화·구슬)
+ * @param string $html     책 본문 HTML
+ * @param array  $facts    계산 결과 (원국·대운·오행 등)
+ * @param string $status   'draft'(검수 대기) 또는 'private'(발행 완료)
+ * @return int|WP_Error    글 ID
+ */
+function stella_reading_save( $uid, $order, $html, $facts = array(), $status = 'draft' ) {
+	$title = sprintf(
+		'%s · %s — %s',
+		isset( $order['guardian'] ) ? $order['guardian'] : '풀이',
+		isset( $order['topic'] ) ? $order['topic'] : '',
+		get_user_meta( $uid, 'stella_name', true )
+	);
+
+	$id = wp_insert_post( array(
+		'post_type'    => 'stella_reading',
+		'post_status'  => $status,
+		'post_author'  => $uid,
+		'post_title'   => $title,
+		'post_content' => $html,          // wp_kses 를 태우지 않습니다 — 내부 생성물
+	), true );
+
+	if ( is_wp_error( $id ) ) {
+		return $id;
+	}
+
+	update_post_meta( $id, 'stella_order', wp_json_encode( $order ) );
+	update_post_meta( $id, 'stella_facts', wp_json_encode( $facts ) );
+	update_post_meta( $id, 'stella_slug',  isset( $order['slug'] ) ? sanitize_title( $order['slug'] ) : '' );
+
+	return $id;
+}
+
+/** 이 회원이 볼 수 있는 책 목록 (마이페이지용) */
+function stella_reading_list( $uid ) {
+	return get_posts( array(
+		'post_type'   => 'stella_reading',
+		'post_status' => array( 'private', 'draft' ),
+		'author'      => $uid,
+		'numberposts' => 50,
+		'orderby'     => 'date',
+		'order'       => 'DESC',
+	) );
+}
+
+/** 남의 책은 못 엽니다 */
+add_action( 'template_redirect', function () {
+	if ( ! is_singular( 'stella_reading' ) ) {
+		return;
+	}
+	$post = get_queried_object();
+	if ( ! $post ) {
+		return;
+	}
+	$uid = get_current_user_id();
+	if ( $uid === (int) $post->post_author ) {
+		return;
+	}
+	if ( current_user_can( 'edit_others_posts' ) ) {
+		return;
+	}
+	wp_safe_redirect( home_url( '/mypage/' ) );
+	exit;
+} );
+
+
+/* ---------------------------------------------------------------
  * 4. 회원가입 REST 엔드포인트
  * --------------------------------------------------------------- */
 
