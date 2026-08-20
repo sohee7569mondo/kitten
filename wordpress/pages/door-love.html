@@ -200,6 +200,13 @@
 #ssg .msg.ok{color:#9AD1A5;}
 #ssg .fineprint{margin-top:16px; font-size:.74rem; color:var(--ink-dim); line-height:1.8; text-align:center;}
 
+/* 모바일에서 입력칸을 누를 때 화면이 확대되지 않게 —
+   iOS 사파리는 글자 16px 미만 입력칸에 포커스가 가면 자동으로 줌인합니다. */
+@media(max-width:900px){
+  #ssg .f input, #ssg .f select,
+  #ssg .oneline input, #ssg .memo{font-size:16px !important;}
+}
+
 @media(prefers-reduced-motion:reduce){
   #ssg *,#ssg *::before,#ssg *::after{animation:none !important; transition:none !important;}
 }

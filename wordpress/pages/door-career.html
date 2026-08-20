@@ -210,6 +210,13 @@
 #ssg .msg.ok{color:#9AD1A5;}
 #ssg .fineprint{margin-top:16px; font-size:.74rem; color:var(--ink-dim); line-height:1.8; text-align:center;}
 
+/* 모바일에서 입력칸을 누를 때 화면이 확대되지 않게 —
+   iOS 사파리는 글자 16px 미만 입력칸에 포커스가 가면 자동으로 줌인합니다. */
+@media(max-width:900px){
+  #ssg .f input, #ssg .f select,
+  #ssg .oneline input, #ssg .memo{font-size:16px !important;}
+}
+
 @media(prefers-reduced-motion:reduce){
   #ssg *,#ssg *::before,#ssg *::after{animation:none !important; transition:none !important;}
 }
@@ -243,18 +250,6 @@
 
       <div>
 
-        <div class="samples">
-          <a class="sample" href="/reading-sample/">
-            <div class="sample-k">Sample &middot; 15p</div>
-            <div class="sample-t">직업운 전자책 미리보기</div>
-            <div class="sample-d">실제로 발행되는 책을 그대로 보실 수 있어요 →</div>
-          </a>
-          <a class="sample" href="/reading-wealth/">
-            <div class="sample-k">Sample &middot; 17p</div>
-            <div class="sample-t">재물운 전자책 미리보기</div>
-            <div class="sample-d">주식과 부동산, 어느 쪽이 맞는지 →</div>
-          </a>
-        </div>
 
         <section class="step">
           <div class="step-head">
@@ -415,6 +410,19 @@
             구슬은 충전일로부터 1년간 사용하실 수 있습니다.<br>
             본 콘텐츠는 전통 사주명리학에 기반한 오락적 콘텐츠입니다.</div>
         </section>
+
+        <div class="samples">
+          <a class="sample" href="/reading-sample/">
+            <div class="sample-k">Sample &middot; 15p</div>
+            <div class="sample-t">직업운 전자책 미리보기</div>
+            <div class="sample-d">실제로 발행되는 책을 그대로 보실 수 있어요 →</div>
+          </a>
+          <a class="sample" href="/reading-wealth/">
+            <div class="sample-k">Sample &middot; 17p</div>
+            <div class="sample-t">재물운 전자책 미리보기</div>
+            <div class="sample-d">주식과 부동산, 어느 쪽이 맞는지 →</div>
+          </a>
+        </div>
 
       </div>
     </div>
