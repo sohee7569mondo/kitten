@@ -1,6 +1,6 @@
 <!-- wp:html -->
 <!--
-  STELLA SAJU — 전자책 뷰어 (샘플: 직성의 신 · 일과 돈)   BUILD: B1
+  STELLA SAJU — 전자책 뷰어 (직성의 신 · 일과 돈)   BUILD: B2
   본문 스타일은 전부 #ssb 안으로 묶여 있어 다른 페이지에 영향을 주지 않습니다.
   인쇄하면 낱장이 실제 페이지로 잘립니다.
   주의: script 안에서 앰퍼샌드 두 개 연산자를 쓰지 마세요. 워드프레스가 엔티티로 바꿉니다.
@@ -67,6 +67,9 @@
 #ssb .page[data-part="cover"]::before{display:none;}
 @media(max-width:640px){ #ssb .page{padding:40px 26px 56px;}}
 
+/* ── 낱장 크기를 하나로 ─────────────── */
+#ssb .page{min-height:clamp(560px, 138vw, 1100px);}
+#ssb .cover, #ssb .close, #ssb .farewell{display:flex; flex-direction:column; justify-content:center;}
 #ssb .folio{
   position:absolute; left:0; right:0; bottom:26px;
   text-align:center;
@@ -217,6 +220,26 @@
 
 /* ── 마무리 ───────────────────────────── */
 #ssb .close{text-align:center; padding:88px 62px;}
+#ssb .farewell{text-align:center; padding:62px 62px 88px;}
+#ssb .fw-portrait{
+  width:190px; height:190px; margin:0 auto; border-radius:50%;
+  overflow:hidden; border:1px solid var(--rule); position:relative;
+}
+#ssb .fw-portrait img{width:100%; height:100%; object-fit:cover; object-position:center 16%; display:block;}
+#ssb .fw-portrait::after{
+  content:''; position:absolute; inset:0; border-radius:50%;
+  box-shadow:inset 0 -34px 44px -22px var(--page);
+}
+#ssb .fw-name{margin-top:22px; font-family:var(--serif); font-weight:700; font-size:1.28rem; color:var(--star);}
+#ssb .fw-en{margin-top:5px; font-family:var(--latin); font-size:.62rem; letter-spacing:.28em; color:var(--gold);}
+#ssb .fw-words{max-width:31em; margin:40px auto 0; text-align:left;}
+#ssb .fw-words p{margin-top:18px; color:var(--soft);}
+#ssb .fw-words p:first-child{margin-top:0;}
+#ssb .fw-words .fw-last{
+  margin-top:34px; padding-top:26px; border-top:1px solid var(--rule);
+  font-family:var(--serif); font-size:1.14rem; line-height:1.9;
+  color:var(--gold-lite); text-align:center;
+}
 #ssb .close .sig{font-family:var(--serif); font-weight:700; font-size:1.1rem; color:var(--gold-lite); margin-top:34px;}
 #ssb .fine{margin-top:40px; font-size:.72rem; color:var(--dim); line-height:1.9;}
 
@@ -228,11 +251,10 @@
   position:relative; z-index:0; overflow-x:clip;
 }
 #ssb .book{padding:32px 20px 120px;}
-
 #ssb .bk-bar{
   position:sticky; top:76px; z-index:5;
   max-width:820px; margin:0 auto 22px;
-  display:flex !important; align-items:center; gap:16px;
+  display:flex !important; align-items:center; gap:14px;
   padding:13px 18px;
   background:rgba(11,8,23,.92);
   -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
@@ -240,17 +262,21 @@
 }
 body.admin-bar #ssb .bk-bar{top:108px;}
 @media(max-width:781px){ #ssb .bk-bar{top:64px;} }
-#ssb .bk-t{font-family:var(--mono); font-size:.66rem; letter-spacing:.14em; color:var(--dim);}
+#ssb .bk-t{font-family:var(--mono); font-size:.64rem; letter-spacing:.12em; color:var(--dim);}
 #ssb .bk-t b{color:var(--gold); font-weight:400;}
-#ssb .bk-n{margin-left:auto; font-family:var(--mono); font-size:.66rem; color:var(--dim);
+#ssb .bk-alt{font-family:var(--mono); font-size:.64rem; letter-spacing:.08em;
+  color:var(--speak-lite); border-bottom:1px solid var(--speak); padding-bottom:2px; white-space:nowrap;}
+#ssb .bk-alt:hover{color:var(--star);}
+#ssb .bk-n{margin-left:auto; font-family:var(--mono); font-size:.64rem; color:var(--dim);
   font-variant-numeric:tabular-nums; white-space:nowrap;}
 #ssb .bk-go{
-  font-family:var(--mono); font-size:.68rem; letter-spacing:.1em;
-  padding:9px 15px; cursor:pointer; white-space:nowrap;
+  font-family:var(--mono); font-size:.66rem; letter-spacing:.08em;
+  padding:9px 14px; cursor:pointer; white-space:nowrap;
   background:var(--gold); color:#0B0817; border:0; font-weight:500;
 }
 #ssb .bk-go:hover{background:var(--gold-lite);}
 #ssb .bk-go:focus-visible{outline:2px solid var(--gold-lite); outline-offset:2px;}
+@media(max-width:620px){ #ssb .bk-t{display:none;} }
 
 @media print{
   #ss-nav, #ss-nav-spacer, #ss-footer,
@@ -263,7 +289,6 @@ body.admin-bar #ssb .bk-bar{top:108px;}
   #ssb .page{
     break-after:page; page-break-after:always;
     box-shadow:none; border:0; border-radius:0;
-    min-height:96vh;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
   #ssb .page:last-child{break-after:auto; page-break-after:auto;}
@@ -273,7 +298,8 @@ body.admin-bar #ssb .bk-bar{top:108px;}
 <div id="ssb">
   <div class="bk-bar">
     <div class="bk-t"><b>직성의 신 · 일과 돈</b> &nbsp;SAMPLE</div>
-    <div class="bk-n" id="bkN">1 / 13</div>
+    <a class="bk-alt" href="/reading-wealth/">재물운 보기 →</a>
+    <div class="bk-n" id="bkN">1 / 15</div>
     <button type="button" class="bk-go" id="bkPrint">PDF로 저장</button>
   </div>
   <div class="book">
@@ -603,6 +629,26 @@ body.admin-bar #ssb .bk-bar{top:108px;}
     <p class="lead" style="max-width:34em; margin:0 auto;">당신의 사주에는 문이 없었습니다.<br>그래서 오래 걸렸습니다.</p>
     <p style="max-width:34em; margin:22px auto 0;">그런데 없던 문이 서른다섯에 열리기 시작해서, 앞으로 스무 해를 더 열려 있습니다. 창고에 쌓아둔 것이 많은 사람에게 문이 열리는 건, 문만 있고 넣어둔 게 없는 사람에게 문이 열리는 것과 전혀 다른 일입니다.</p>
     <p style="max-width:34em; margin:22px auto 0;">서두르지 않으셔도 됩니다. 다만 순서는 지키세요. 만들고, 그다음에 파십시오.</p>
+    <div class="folio">14</div>
+  </article>
+
+  <!-- ══ 배웅 ══ -->
+  <article class="page farewell" data-part="one">
+    <div class="fw-portrait">
+      <img src="https://stellasaju.com/wp-content/uploads/2026/08/stellardoorarchitect.webp"
+           alt="직성의 신" width="640" height="953">
+    </div>
+    <div class="fw-name">직성의 신</div>
+    <div class="fw-en">THE ARCHITECT</div>
+
+    <div class="fw-words">
+      <p>마지막으로 한마디만 남기겠습니다.</p>
+      <p>스무 해 동안 당신이 만들어온 것들을, 당신은 아마 여러 번 하찮게 여겼을 겁니다. 값으로 돌아오지 않았으니까요. <strong>그건 당신 탓이 아니었습니다.</strong> 문이 없었을 뿐입니다.</p>
+      <p>이제 그 문이 열립니다. 그러니 아까워하지 마세요. 창고에 있는 것을 꺼내 세상에 내놓으십시오. 당장 팔리지 않아도 내놓으십시오. 앞으로 몇 해는 그게 일입니다.</p>
+      <p>밭은 한 해 쉬어도 사라지지 않습니다. 다만 씨를 뿌리지 않으면 아무것도 자라지 않아요.</p>
+      <p class="fw-last">부지런하시되, 조급하지 마십시오.<br>당신의 때는 이미 와 있습니다.</p>
+    </div>
+
     <div class="sig">— 직성의 신</div>
 
     <p class="fine">
@@ -611,22 +657,21 @@ body.admin-bar #ssb .bk-bar{top:108px;}
       진태양시 보정 적용 &middot; 절기는 태양 황경 기준으로 계산 &middot; 대운은 양남음녀 순행 원칙에 따름<br>
       STELLA SAJU &middot; stellasaju.com
     </p>
+    <div class="folio">15</div>
   </article>
 
 </div>
+
 </div>
 
 <script>
 (function(){
   var root=document.getElementById('ssb'); if(!root) return;
-
   var btn=document.getElementById('bkPrint');
   if(btn){ btn.addEventListener('click', function(){ window.print(); }); }
-
   var pages=[].slice.call(root.querySelectorAll('.page'));
   var out=document.getElementById('bkN');
   if(out){ out.textContent = '1 / ' + pages.length; }
-
   if(window.IntersectionObserver){
     var io=new IntersectionObserver(function(rows){
       rows.forEach(function(r){
