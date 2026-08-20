@@ -61,6 +61,9 @@ body{
 .page[data-part="cover"]::before{display:none;}
 @media(max-width:640px){ .page{padding:40px 26px 56px;} }
 
+/* ── 낱장 크기를 하나로 ─────────────── */
+.page{min-height:clamp(560px, 138vw, 1100px);}
+.cover, .close, .farewell{display:flex; flex-direction:column; justify-content:center;}
 .folio{
   position:absolute; left:0; right:0; bottom:26px;
   text-align:center;

@@ -1,0 +1,699 @@
+<title>돈이 들어오는 네 개의 문</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Cinzel:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --void:#0B0817;
+  --page:#14102A;
+  --page-edge:#1D1740;
+  --gold:#D4AF6A;
+  --gold-lite:#EBD3A0;
+  --speak:#9A86D8;
+  --speak-lite:#BCADEA;
+  --star:#F2ECE0;
+  --soft:rgba(242,236,224,.72);
+  --dim:rgba(242,236,224,.44);
+  --rule:rgba(212,175,106,.20);
+  --rule-s:rgba(154,134,216,.28);
+  --serif:'Gowun Batang','Nanum Myeongjo',serif;
+  --latin:'Cinzel',serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--void);
+  color:var(--star);
+  font-family:var(--serif);
+  font-size:16.5px;
+  line-height:1.95;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+.book{
+  max-width:820px;
+  margin:0 auto;
+  padding:56px 20px 120px;
+  display:flex;
+  flex-direction:column;
+  gap:26px;
+}
+
+/* ── 낱장 ─────────────────────────────── */
+.page{
+  position:relative;
+  background:var(--page);
+  border:1px solid var(--rule);
+  border-radius:2px;
+  padding:64px 62px 76px;
+  box-shadow:0 24px 60px -30px rgba(0,0,0,.9);
+}
+.page::before{
+  content:'';
+  position:absolute; left:0; top:0; bottom:0; width:3px;
+  background:var(--gold);
+  opacity:.55;
+}
+.page[data-part="two"]::before{background:var(--speak);}
+.page[data-part="cover"]::before{display:none;}
+@media(max-width:640px){ .page{padding:40px 26px 56px;} }
+
+/* ── 낱장 크기를 하나로 ─────────────── */
+.page{min-height:clamp(560px, 138vw, 1100px);}
+.cover, .close, .farewell{display:flex; flex-direction:column; justify-content:center;}
+.folio{
+  position:absolute; left:0; right:0; bottom:26px;
+  text-align:center;
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.28em;
+  color:var(--dim);
+}
+.eyebrow{
+  font-family:var(--mono);
+  font-size:.6rem; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--gold);
+  margin:0 0 30px;
+}
+.page[data-part="two"] .eyebrow{color:var(--speak-lite);}
+
+h2{
+  font-family:var(--serif); font-weight:700;
+  font-size:1.62rem; line-height:1.45; text-wrap:balance;
+  margin:0 0 8px; color:var(--star);
+}
+h3{
+  font-family:var(--serif); font-weight:700;
+  font-size:1.06rem; line-height:1.6; text-wrap:balance;
+  margin:38px 0 2px; color:var(--gold-lite);
+}
+.page[data-part="two"] h3{color:var(--speak-lite);}
+h3:first-of-type{margin-top:26px;}
+.dek{margin:0 0 4px; color:var(--dim); font-size:.86rem; line-height:1.8;}
+p{margin:14px 0 0; color:var(--soft);}
+p.lead{color:var(--star); font-size:1.02rem;}
+strong{color:var(--star); font-weight:700;}
+em{font-style:normal; color:var(--gold-lite);}
+.page[data-part="two"] em{color:var(--speak-lite);}
+hr{border:0; border-top:1px solid var(--rule); margin:34px 0 0;}
+
+/* ── 표지 ─────────────────────────────── */
+.cover{text-align:center; padding:96px 62px 104px;}
+.cover .mark{
+  font-family:var(--latin); font-size:.7rem; letter-spacing:.4em;
+  color:var(--gold); margin-bottom:52px;
+}
+.cover h1{
+  font-family:var(--serif); font-weight:700;
+  font-size:2.35rem; line-height:1.5; margin:0; text-wrap:balance;
+}
+.cover .sub{
+  font-family:var(--latin); font-size:.76rem; letter-spacing:.22em;
+  color:var(--dim); margin-top:20px;
+}
+.cover .rule{width:44px; height:1px; background:var(--gold); margin:44px auto;}
+.cover dl{
+  display:grid; grid-template-columns:auto auto; gap:9px 22px;
+  justify-content:center; margin:0; font-size:.84rem;
+}
+.cover dt{font-family:var(--mono); font-size:.66rem; color:var(--dim); text-align:right; padding-top:3px;}
+.cover dd{margin:0; color:var(--soft); text-align:left;}
+
+/* ── 가디언 육성 ───────────────────────── */
+.voice{
+  margin:30px 0 0; padding:26px 28px;
+  background:rgba(212,175,106,.055);
+  border-left:2px solid var(--gold);
+}
+.voice p{margin:0; color:var(--star); font-size:1.01rem;}
+.voice p + p{margin-top:13px;}
+.voice .who{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.2em;
+  color:var(--gold); margin-bottom:14px;
+}
+
+/* ── 원국표 ───────────────────────────── */
+.chart{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+  margin-top:26px; background:var(--rule); border:1px solid var(--rule);
+}
+.chart div{background:var(--page-edge); padding:20px 8px; text-align:center;}
+.chart .col-h{
+  background:var(--page); font-family:var(--mono);
+  font-size:.6rem; letter-spacing:.16em; color:var(--dim); padding:11px 8px;
+}
+.chart .han{font-size:1.85rem; line-height:1.3; color:var(--gold-lite);}
+.chart .kor{font-size:.72rem; color:var(--dim); margin-top:5px;}
+.chart .sip{font-family:var(--mono); font-size:.62rem; color:var(--soft); margin-top:9px;}
+
+/* ── 오행 저울 ─────────────────────────── */
+.scale{margin-top:26px; display:flex; flex-direction:column; gap:11px;}
+.el{display:grid; grid-template-columns:2.6rem 1fr 3.4rem; align-items:center; gap:14px;}
+.el-n{font-size:.88rem; color:var(--soft);}
+.el-bar{height:20px; background:rgba(255,255,255,.045); position:relative;}
+.el-bar span{position:absolute; inset:0 auto 0 0; background:var(--gold); opacity:.78;}
+.el-v{font-family:var(--mono); font-size:.74rem; color:var(--soft); text-align:right;
+      font-variant-numeric:tabular-nums;}
+.el.zero .el-bar{border:1px dashed rgba(242,236,224,.26); background:none;}
+.el.zero .el-n,.el.zero .el-v{color:var(--dim);}
+.el-note{font-family:var(--mono); font-size:.6rem; color:var(--dim); letter-spacing:.1em; margin-top:2px;}
+
+/* ── 경계 알림 ─────────────────────────── */
+.alert{
+  margin-top:28px; padding:24px 26px;
+  border:1px solid var(--rule); background:rgba(212,175,106,.045);
+}
+.alert .tag{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.2em;
+  color:var(--gold); margin-bottom:12px;
+}
+.alert p{margin-top:0; font-size:.9rem;}
+.alert p + p{margin-top:11px;}
+
+/* ── 표 ───────────────────────────────── */
+.tw{overflow-x:auto; margin-top:26px;}
+table{border-collapse:collapse; width:100%; font-size:.85rem; min-width:460px;}
+th,td{padding:11px 12px; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top;}
+th{font-family:var(--mono); font-size:.62rem; letter-spacing:.12em;
+   color:var(--dim); font-weight:400; text-transform:uppercase; white-space:nowrap;}
+td{color:var(--soft);}
+td.k{font-family:var(--mono); color:var(--gold-lite); white-space:nowrap;
+     font-variant-numeric:tabular-nums;}
+tr.now td{background:rgba(212,175,106,.09);}
+tr.now td.k{color:var(--gold); font-weight:500;}
+td .mini{display:block; font-size:.76rem; color:var(--dim); margin-top:3px;}
+
+/* ── 답변 목록 ─────────────────────────── */
+.answers{margin-top:26px; display:flex; flex-direction:column; gap:0;}
+.ans{display:grid; grid-template-columns:1fr auto; gap:16px; align-items:baseline;
+     padding:13px 0; border-bottom:1px solid var(--rule-s);}
+.ans-q{font-size:.86rem; color:var(--dim);}
+.ans-a{font-size:.94rem; color:var(--speak-lite); text-align:right;}
+
+/* ── 사분면 ───────────────────────────── */
+.quad{margin-top:26px;}
+.quad-grid{display:grid; grid-template-columns:auto 1fr 1fr; gap:1px; background:var(--rule-s);}
+.quad-grid > *{background:var(--page-edge); padding:18px 16px; font-size:.83rem; color:var(--soft);}
+.quad-grid .hd{background:var(--page); font-family:var(--mono); font-size:.6rem;
+               letter-spacing:.1em; color:var(--dim); line-height:1.7;}
+.quad-grid .you{background:rgba(154,134,216,.16); color:var(--star);}
+.quad-grid .you b{display:block; font-family:var(--mono); font-size:.58rem;
+                  letter-spacing:.2em; color:var(--speak-lite); margin-bottom:6px;}
+
+/* ── 타로 자리 ─────────────────────────── */
+.cards{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:30px;}
+.card{
+  aspect-ratio:2/3.4; border:1px dashed var(--rule); border-radius:3px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:10px; text-align:center; padding:14px;
+}
+.card .num{font-family:var(--latin); font-size:1.5rem; color:var(--gold); opacity:.5;}
+.card .lb{font-size:.8rem; color:var(--dim); line-height:1.7;}
+@media(max-width:520px){ .cards{grid-template-columns:1fr;} .card{aspect-ratio:3/1.5;} }
+
+/* ── 마무리 ───────────────────────────── */
+.close{text-align:center; padding:88px 62px;}
+.farewell{text-align:center; padding:62px 62px 88px;}
+.fw-portrait{
+  width:190px; height:190px; margin:0 auto; border-radius:50%;
+  overflow:hidden; border:1px solid var(--rule); position:relative;
+}
+.fw-portrait img{width:100%; height:100%; object-fit:cover; object-position:center 16%; display:block;}
+.fw-portrait::after{
+  content:''; position:absolute; inset:0; border-radius:50%;
+  box-shadow:inset 0 -34px 44px -22px var(--page);
+}
+.fw-name{margin-top:22px; font-family:var(--serif); font-weight:700; font-size:1.28rem; color:var(--star);}
+.fw-en{margin-top:5px; font-family:var(--latin); font-size:.62rem; letter-spacing:.28em; color:var(--gold);}
+.fw-words{max-width:31em; margin:40px auto 0; text-align:left;}
+.fw-words p{margin-top:18px; color:var(--soft);}
+.fw-words p:first-child{margin-top:0;}
+.fw-words .fw-last{
+  margin-top:34px; padding-top:26px; border-top:1px solid var(--rule);
+  font-family:var(--serif); font-size:1.14rem; line-height:1.9;
+  color:var(--gold-lite); text-align:center;
+}
+.close .sig{font-family:var(--serif); font-weight:700; font-size:1.1rem; color:var(--gold-lite); margin-top:34px;}
+.fine{margin-top:40px; font-size:.72rem; color:var(--dim); line-height:1.9;}
+
+@media print{
+  body{background:#fff;}
+  .book{max-width:none; padding:0; gap:0;}
+  .page{break-after:page; box-shadow:none; border:0; border-radius:0;}
+}
+@media(prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important;} }
+
+/* ── 재물운 전용 ─────────────────────── */
+.gate{display:flex; flex-direction:column; gap:1px; margin-top:26px; background:var(--rule);
+  border:1px solid var(--rule);}
+.gate-row{background:var(--page-edge); padding:18px 20px; display:grid;
+  grid-template-columns:auto 1fr auto; gap:16px; align-items:baseline;}
+.gate-n{font-family:var(--latin); font-size:.9rem; color:var(--gold); opacity:.6;}
+.gate-t{font-size:.95rem; color:var(--star);}
+.gate-t small{display:block; font-size:.78rem; color:var(--dim); margin-top:4px; font-family:var(--serif);}
+.gate-w{font-family:var(--mono); font-size:.66rem; letter-spacing:.1em; color:var(--dim);
+  white-space:nowrap; text-align:right;}
+.gate-row.open{background:rgba(212,175,106,.11);}
+.gate-row.open .gate-w{color:var(--gold);}
+.gate-row.shut{opacity:.5;}
+
+.vs{display:grid; grid-template-columns:1fr 1fr; gap:1px; margin-top:26px;
+  background:var(--rule-s); border:1px solid var(--rule-s);}
+@media(max-width:560px){ .vs{grid-template-columns:1fr;} }
+.vs > div{background:var(--page-edge); padding:22px 20px;}
+.vs h4{margin:0 0 12px; font-family:var(--serif); font-weight:700; font-size:1rem; color:var(--star);}
+.vs .tag{font-family:var(--mono); font-size:.58rem; letter-spacing:.18em; margin-bottom:8px;}
+.vs .yes .tag{color:#9AD1A5;}
+.vs .no .tag{color:#E5A0A0;}
+.vs ul{margin:0; padding-left:1.1em;}
+.vs li{font-size:.85rem; color:var(--soft); margin-top:7px; line-height:1.8;}
+
+.verdict{margin-top:28px; padding:26px 28px; border:1px solid var(--gold);
+  background:rgba(212,175,106,.07);}
+.verdict .tag{font-family:var(--mono); font-size:.6rem; letter-spacing:.2em;
+  color:var(--gold); margin-bottom:12px;}
+.verdict p{margin-top:0; color:var(--star); font-size:1.04rem; line-height:1.9;}
+.verdict p + p{margin-top:14px; color:var(--soft); font-size:.95rem;}
+
+.warn{margin-top:26px; padding:22px 24px; border-left:2px solid #E5A0A0;
+  background:rgba(229,160,160,.06);}
+.warn .tag{font-family:var(--mono); font-size:.6rem; letter-spacing:.2em;
+  color:#E5A0A0; margin-bottom:11px;}
+.warn p{margin-top:0; font-size:.9rem;}
+.warn p + p{margin-top:11px;}
+.warn ul{margin:11px 0 0; padding-left:1.1em;}
+.warn li{font-size:.88rem; color:var(--soft); margin-top:6px;}
+</style>
+
+<div class="book">
+
+  <article class="page cover" data-part="cover">
+    <div class="mark">STELLA SAJU</div>
+    <h1>직성의 신이 전하는<br>재물운</h1>
+    <div class="sub">THE ARCHITECT &middot; WEALTH</div>
+    <div class="rule"></div>
+    <dl>
+      <dt>이름</dt><dd>OOO</dd>
+      <dt>생년월일시</dt><dd>양력 1975년 1월 23일 오전 9시 35분</dd>
+      <dt>태어난 곳</dt><dd>대한민국 서울 독산동</dd>
+      <dt>고른 주제</dt><dd>재물운</dd>
+      <dt>발행</dt><dd>2026년 8월 20일 &middot; SS-1302</dd>
+    </dl>
+  </article>
+
+  <article class="page" data-part="one">
+    <p class="eyebrow">여는 글</p>
+    <h2>돈 이야기를 하기 전에</h2>
+
+    <div class="voice">
+      <div class="who">직성의 신</div>
+      <p>돈은 사주에서 가장 오해받는 자리입니다.</p>
+      <p>사람들은 "돈이 많은 사주"와 "돈이 없는 사주"가 따로 있다고 믿지만, 내가 읽는 것은 그게 아닙니다. 나는 <strong>당신에게 돈이 어떤 방식으로 들어오고, 어떤 방식으로 새는지</strong>를 봅니다. 같은 액수라도 들어오는 문이 다르면 사는 방법이 완전히 달라지거든요.</p>
+      <p>이 책도 두 번 읽습니다. <strong>앞쪽 절반은 당신 답을 듣기 전에 쓴 것</strong>이고, 뒤쪽 절반은 듣고 나서 쓴 것입니다. 당신이 주식을 하는지 부동산을 보는지, 나는 앞쪽을 쓸 때 몰랐습니다.</p>
+      <p>그리고 미리 말해둘 것이 하나 있습니다. 나는 <em>어떤 종목도, 어떤 물건도 지목하지 않습니다.</em> 그건 내가 할 수 있는 일이 아니고, 해서도 안 되는 일입니다. 내가 말할 수 있는 건 당신에게 맞는 <strong>방식</strong>과 <strong>때</strong>까지입니다.</p>
+    </div>
+
+    <hr>
+    <p>이 책은 <b>전통 사주명리학</b>으로 재물이 드나드는 자리를 읽고, <b>서양점성술</b>로 당신이 돈을 대하는 태도를, <b>수비학</b>으로 어느 자리에서 시작하는 사람인지를 겹쳐 봅니다.</p>
+    <div class="folio">02</div>
+  </article>
+
+  <article class="page" data-part="one">
+    <p class="eyebrow">1부 &middot; 묻기 전에 읽은 것</p>
+    <h2>당신의 네 기둥</h2>
+    <p class="dek">사주 원국 &middot; 진태양시 08:51 보정 적용</p>
+
+    <div class="chart">
+      <div class="col-h">시주 &middot; 말년</div>
+      <div class="col-h">일주 &middot; 나</div>
+      <div class="col-h">월주 &middot; 재물 기반</div>
+      <div class="col-h">연주 &middot; 뿌리</div>
+
+      <div><div class="han">戊辰</div><div class="kor">무진</div><div class="sip">겁재 / 겁재</div></div>
+      <div><div class="han">己巳</div><div class="kor">기사</div><div class="sip">일간 / 정인</div></div>
+      <div><div class="han">丁丑</div><div class="kor">정축</div><div class="sip">편인 / 비견</div></div>
+      <div><div class="han">甲寅</div><div class="kor">갑인</div><div class="sip">정관 / 정관</div></div>
+    </div>
+
+    <p>여덟 글자를 재물의 언어로 옮기면 이렇게 읽힙니다.</p>
+
+    <div class="tw">
+      <table>
+        <tr><th>십신</th><th>돈에서 뜻하는 것</th><th>당신에게</th></tr>
+        <tr><td class="k">재성 財</td><td>돈 그 자체. 내가 취해서 쥐는 것</td><td><strong>0개</strong></td></tr>
+        <tr><td class="k">식상 食傷</td><td>돈을 만들어내는 통로. 생산</td><td><strong>0개</strong></td></tr>
+        <tr><td class="k">비겁 比劫</td><td>나와 함께 그 돈을 노리는 사람들</td><td><strong>4개</strong></td></tr>
+        <tr><td class="k">인성 印</td><td>문서 &middot; 계약 &middot; 공부 &middot; 부동산 등기</td><td>2개</td></tr>
+        <tr><td class="k">관성 官</td><td>직장 &middot; 조직에서 나오는 근로소득</td><td>2개</td></tr>
+      </table>
+    </div>
+
+    <p class="lead">돈을 쥐는 자리가 0, 돈을 만드는 통로가 0. 그런데 <strong>그 돈을 나눠 가질 사람 자리가 넷</strong>입니다.</p>
+    <p>이 세 줄이 당신 재물운의 전부입니다. 다음 두 장에서 하나씩 풀겠습니다.</p>
+    <div class="folio">03</div>
+  </article>
+
+  <article class="page" data-part="one">
+    <p class="eyebrow">1부 &middot; 묻기 전에 읽은 것</p>
+    <h2>무재(無財)라는 것</h2>
+    <p class="dek">재성이 원국에 하나도 없는 사주</p>
+
+    <div class="scale">
+      <div class="el"><span class="el-n">토 土</span><span class="el-bar"><span style="width:100%"></span></span><span class="el-v">50%</span></div>
+      <div class="el"><span class="el-n">화 火</span><span class="el-bar"><span style="width:50%"></span></span><span class="el-v">25%</span></div>
+      <div class="el"><span class="el-n">목 木</span><span class="el-bar"><span style="width:50%"></span></span><span class="el-v">25%</span></div>
+      <div class="el zero"><span class="el-n">금 金</span><span class="el-bar"></span><span class="el-v">0%</span></div>
+      <div class="el zero"><span class="el-n">수 水</span><span class="el-bar"></span><span class="el-v">0%</span></div>
+    </div>
+    <p class="el-note">기토(己土)에게 수(水)가 재성입니다. 그 자리가 비어 있습니다.</p>
+
+    <p>먼저 오해부터 걷어냅시다. <strong>무재는 가난한 사주가 아닙니다.</strong> 무재로 큰 재산을 이룬 사람은 얼마든지 있습니다. 무재가 뜻하는 건 이것입니다.</p>
+
+    <div class="verdict">
+      <div class="tag">이 사주의 제1 원칙</div>
+      <p>돈을 <strong>직접 좇으면 잡히지 않습니다.</strong><br>돈은 당신이 만든 것의 <strong>결과로만</strong> 옵니다.</p>
+      <p>재성이 있는 사람은 돈 자체를 겨냥해도 손에 붙습니다. 당신은 그게 안 됩니다. 대신 식상(만들어 내놓는 것)을 세우면 재성이 뒤따라옵니다. 명리에서 이걸 <em>식상생재(食傷生財)</em>라고 합니다. 당신 재물운은 오직 이 경로로만 열립니다.</p>
+    </div>
+
+    <p>현실에서 이게 어떻게 나타나느냐면 —</p>
+    <p>"돈 되겠다" 싶어서 뛰어든 일은 이상하게 안 됩니다. 반대로 <strong>돈 생각 없이 몰두해서 만들어둔 것이, 한참 뒤에 값이 되어 돌아옵니다.</strong> 아마 지금까지 살아오시면서 몇 번 겪으셨을 겁니다.</p>
+    <p>그리고 무재 사주의 또 하나의 특징은 <em>돈이 통장에 오래 머물지 않는다</em>는 것입니다. 그릇이 없으니 담기지 않고 흘러요. 이건 소비 습관 문제가 아니라 구조 문제입니다. 그래서 무재 사주는 <strong>현금이 아니라 형태로 바꿔 두어야</strong> 지켜집니다. 이 얘기는 뒤에서 부동산과 함께 다시 하겠습니다.</p>
+    <div class="folio">04</div>
+  </article>
+
+  <article class="page" data-part="one">
+    <p class="eyebrow">1부 &middot; 묻기 전에 읽은 것</p>
+    <h2>군겁쟁재 — 이 사주의 가장 큰 위험</h2>
+    <p class="dek">群劫爭財 &middot; 여럿이 하나의 재물을 두고 다투는 형국</p>
+
+    <p>비겁이 넷입니다. 여덟 글자 중 절반이에요. 비겁은 <strong>나와 똑같은 것을 노리는 존재</strong>입니다. 형제, 동료, 동업자, 같은 물건을 보고 있는 다른 투자자.</p>
+    <p>재성은 0인데 비겁은 4. 명리에서 이 배치를 <em>군겁쟁재</em>라고 부릅니다. <strong>먹을 것은 적은데 달려드는 입은 많은 판</strong>이라는 뜻이에요.</p>
+
+    <div class="warn">
+      <div class="tag">이 사주가 돈을 잃는 방식은 정해져 있습니다</div>
+      <p>당신은 사업 실패나 시장 폭락으로 돈을 잃는 사람이 아닙니다. <strong>사람을 통해 잃습니다.</strong></p>
+      <ul>
+        <li>동업 — 시작은 좋고 끝이 나쁩니다. 지분이 아니라 관계가 깨집니다.</li>
+        <li>지인과의 공동투자 &middot; 계 &middot; 돈 빌려주기 &middot; 보증</li>
+        <li>남의 추천으로 들어간 투자 — 리딩방, 종목 추천, "확실한 정보"</li>
+        <li>가족 명의 &middot; 공동 명의로 묶어둔 자산</li>
+        <li>사람이 몰려 있는 시장에 뒤늦게 들어가는 것</li>
+      </ul>
+      <p>공통점이 보이시나요. <strong>전부 내 돈에 다른 사람의 손이 얹히는 형태</strong>입니다.</p>
+    </div>
+
+    <div class="verdict">
+      <div class="tag">이 사주의 제2 원칙</div>
+      <p><strong>내 명의, 내 계좌, 내 결정.</strong><br>이 셋 중 하나라도 남과 섞이면 그 돈은 지켜지지 않습니다.</p>
+      <p>반대로 말하면, 혼자 판단하고 혼자 책임지는 구조에서는 이 비겁 넷이 전부 <em>지구력</em>으로 바뀝니다. 남들이 지쳐 떨어져 나갈 때까지 버티는 힘이요. 같은 글자가 독이 되기도 하고 무기가 되기도 합니다.</p>
+    </div>
+    <div class="folio">05</div>
+  </article>
+
+  <article class="page" data-part="one">
+    <p class="eyebrow">1부 &middot; 묻기 전에 읽은 것</p>
+    <h2>돈을 대하는 태도</h2>
+    <p class="dek">출생 차트 &middot; 1975년 1월 23일 09:35 서울</p>
+
+    <div class="tw">
+      <table>
+        <tr><th>자리</th><th>별자리</th><th>돈에서 나타나는 모습</th></tr>
+        <tr><td class="k">태양</td><td>물병자리 2.4도</td><td>남들이 다 하는 방식으로는 못 함. 새 판을 보면 먼저 반응함</td></tr>
+        <tr><td class="k">상승궁</td><td>물고기자리 9.8도</td><td>경계가 무름. <strong>부탁을 거절하기 어려움</strong> &mdash; 돈 문제에서 이게 약점</td></tr>
+        <tr><td class="k">천정</td><td>사수자리 18.5도</td><td>키우고 넓히려는 쪽. 지키는 것보다 벌리는 데 마음이 감</td></tr>
+      </table>
+    </div>
+
+    <p class="lead">여기서 사주와 점성이 <strong>같은 위험을 두 번 가리킵니다.</strong></p>
+    <p>사주는 군겁쟁재 — 사람을 통해 돈이 샌다고 말합니다. 점성은 물고기자리 상승 — 경계가 무르고 거절을 못 한다고 말합니다. <em>두 체계가 서로 모르는 언어로 같은 곳을 짚었습니다.</em></p>
+    <p>그래서 이 책에서 제가 가장 힘주어 말하는 건 수익률이 아니라 <strong>경계선</strong>입니다. 당신에게는 좋은 투자처를 찾는 것보다 <em>누구의 손도 얹히지 않게 하는 것</em>이 훨씬 큰 돈을 남깁니다.</p>
+
+    <h3>수비학 &middot; 라이프패스 1</h3>
+    <p>독립 &middot; 자기 이름. 여기서도 같은 말이 나옵니다. 세 번째입니다.</p>
+    <div class="folio">06</div>
+  </article>
+
+  <article class="page" data-part="one">
+    <p class="eyebrow">1부 &middot; 묻기 전에 읽은 것</p>
+    <h2>묻기 전에 읽은 당신의 돈</h2>
+
+    <p class="lead">돈을 겨냥하면 놓치고, 만든 것의 결과로만 쥐는 사람. 시장이 아니라 사람 때문에 잃는 사람. 그리고 혼자 두면 끝까지 버티는 사람.</p>
+
+    <p>그래서 당신에게 맞는 재물의 형태는 처음부터 좁혀집니다.</p>
+    <p><strong>빠른 것보다 오래가는 것.</strong> 식상이 원국에 없으니 순발력으로 먹는 돈은 당신 몫이 아닙니다. 대신 토(土)가 절반이라 <em>오래 들고 있는 힘</em>은 남들보다 훨씬 큽니다.</p>
+    <p><strong>여럿이 있는 곳보다 혼자 있는 곳.</strong> 사람이 몰린 자리에서는 비겁이 재를 뜯어갑니다.</p>
+    <p><strong>흐르는 것보다 형태가 있는 것.</strong> 무재는 현금을 오래 못 쥡니다. 눈에 보이는 형태로 바꿔둬야 남습니다.</p>
+
+    <hr>
+    <p style="color:var(--dim); font-size:.86rem; margin-top:28px;">— 여기까지가 당신 답을 듣기 전에 쓴 부분입니다. 주식을 하시는지 부동산을 보시는지 나는 아직 모릅니다.</p>
+    <div class="folio">07</div>
+  </article>
+
+  <article class="page" data-part="two">
+    <p class="eyebrow">2부 &middot; 답을 듣고 다시 읽은 것</p>
+    <h2>당신이 알려준 것</h2>
+    <p class="dek">고치지 않고 그대로 옮겼습니다.</p>
+
+    <div class="answers">
+      <div class="ans"><span class="ans-q">지금 돈을 어디에 두고 계신가요</span><span class="ans-a">예적금 · 주식 조금</span></div>
+      <div class="ans"><span class="ans-q">원금이 줄어드는 걸 견디실 수 있나요</span><span class="ans-a">어느 정도는 감수한다</span></div>
+      <div class="ans"><span class="ans-q">얼마나 자주 확인하시나요</span><span class="ans-a">자꾸 들여다보게 된다</span></div>
+      <div class="ans"><span class="ans-q">결정은 누가 하시나요</span><span class="ans-a">내가 판단한다</span></div>
+      <div class="ans"><span class="ans-q">목돈 한 번 / 매달 조금씩</span><span class="ans-a">매달 조금씩</span></div>
+      <div class="ans"><span class="ans-q">지금 가장 관심 있는 것</span><span class="ans-a">주식과 부동산 둘 다</span></div>
+      <div class="ans"><span class="ans-q">누군가와 함께 하고 계신 투자가 있나요</span><span class="ans-a">없다</span></div>
+      <div class="ans"><span class="ans-q">한 줄 질문</span><span class="ans-a">주식이 맞나요, 부동산이 맞나요?</span></div>
+    </div>
+
+    <p>답을 받고 나서 가장 먼저 확인한 것은 마지막에서 두 번째 줄이었습니다. <strong>함께 하고 있는 투자가 없다</strong> — 다행입니다. 1부에서 이 사주의 가장 큰 위험으로 짚은 자리가 지금은 비어 있습니다.</p>
+    <div class="folio">08</div>
+  </article>
+
+  <article class="page" data-part="two">
+    <p class="eyebrow">2부 &middot; 답을 듣고 다시 읽은 것</p>
+    <h2>돈이 들어오는 네 개의 문</h2>
+    <p class="dek">당신에게 열려 있는 문과 아직 닫힌 문</p>
+
+    <div class="gate">
+      <div class="gate-row shut">
+        <span class="gate-n">I</span>
+        <span class="gate-t">근로 — 조직에서 받는 돈<small>관성(甲寅). 뿌리 자리라 인생 전반을 받쳐준 문</small></span>
+        <span class="gate-w">역할이 끝나가는 문</span>
+      </div>
+      <div class="gate-row open">
+        <span class="gate-n">II</span>
+        <span class="gate-t">생산 — 만들어 내놓아 버는 돈<small>식상. 원국엔 없지만 2028년부터 대운·세운으로 들어옴</small></span>
+        <span class="gate-w">지금 열리는 중</span>
+      </div>
+      <div class="gate-row open">
+        <span class="gate-n">III</span>
+        <span class="gate-t">정재 — 다달이 꾸준히 들어오는 돈<small>임대료 · 배당 · 구독 · 반복 수입</small></span>
+        <span class="gate-w">2031부터 크게 열림</span>
+      </div>
+      <div class="gate-row">
+        <span class="gate-n">IV</span>
+        <span class="gate-t">편재 — 사고팔아 차익으로 버는 돈<small>매매 · 시세차익 · 큰 거래</small></span>
+        <span class="gate-w">2032~2033 · 조건부</span>
+      </div>
+    </div>
+
+    <p class="lead">중요한 건 순서입니다. 당신에게는 <strong>II → III → IV</strong> 순으로 열립니다.</p>
+    <p>만드는 문이 먼저 열리고(2028~2030), 꾸준히 들어오는 문이 그다음이고(2031~), 사고파는 문이 마지막입니다(2032~). 이 순서를 거꾸로 밟으면 — 즉 지금 당장 IV번 문(매매차익)부터 두드리면 — 무재 사주의 그 유명한 <em>"좇으면 도망가는"</em> 현상이 그대로 일어납니다.</p>
+    <div class="folio">09</div>
+  </article>
+
+  <article class="page" data-part="two">
+    <p class="eyebrow">2부 &middot; 답을 듣고 다시 읽은 것</p>
+    <h2>주식이 맞나요, 부동산이 맞나요</h2>
+    <p class="dek">당신이 물으신 것에 답합니다</p>
+
+    <div class="verdict">
+      <div class="tag">답</div>
+      <p><strong>둘 다 하시되, 역할을 완전히 나누십시오.</strong></p>
+      <p>부동산은 <strong>지키는 자리</strong>, 주식은 <strong>키우는 자리</strong>입니다. 당신 사주에서는 이 둘을 같은 목적으로 쓰면 반드시 한쪽이 다른 쪽을 잡아먹습니다.</p>
+    </div>
+
+    <h3>왜 부동산이 지키는 자리인가</h3>
+    <p>세 가지가 겹칩니다. <em>첫째,</em> 당신은 기토(己土) — 흙을 다루는 사람이고 토가 절반입니다. 땅과 건물은 낯선 물건이 아닙니다. <em>둘째,</em> 인성(문서)이 둘 살아 있습니다. 등기 &middot; 계약 &middot; 임대차 같은 서류를 다루는 힘이 원국에 있어요. <em>셋째,</em> 무재는 현금을 오래 못 쥡니다. <strong>형태로 바꿔둬야 남습니다.</strong></p>
+
+    <h3>왜 주식이 키우는 자리인가</h3>
+    <p>2028년부터 식상(금)이 대운과 세운으로 계속 들어옵니다. 식상은 <em>바깥으로 내보내 불리는</em> 기운이에요. 다만 <strong>원국에 식상이 0</strong>이라는 걸 잊으면 안 됩니다. 타고난 순발력이 없다는 뜻입니다. 그래서 주식은 하시되 <em>순발력이 필요 없는 방식</em>이라야 합니다.</p>
+
+    <div class="vs">
+      <div class="yes">
+        <div class="tag">맞는 방식</div>
+        <h4>이렇게 하십시오</h4>
+        <ul>
+          <li><strong>부동산</strong> — 월세가 나오는 작은 물건. 들고 받는 방식</li>
+          <li>단독 명의. 대출은 감당 가능한 선에서</li>
+          <li>사람이 몰리지 않은 물건 (비겁을 피합니다)</li>
+          <li><strong>주식</strong> — 배당 &middot; 장기보유 &middot; 적립식</li>
+          <li>종목은 셋 이하. 매달 같은 날 같은 금액</li>
+          <li>계좌는 한 달에 한 번만 열어보기</li>
+        </ul>
+      </div>
+      <div class="no">
+        <div class="tag">안 맞는 방식</div>
+        <h4>이건 하지 마십시오</h4>
+        <ul>
+          <li><strong>부동산</strong> — 갭투자 &middot; 분양권 전매 &middot; 단기 시세차익</li>
+          <li>공동 명의 &middot; 가족 명의 &middot; 지인과 공동 매입</li>
+          <li>사람이 몰려 있는 지역에 뒤늦게 진입</li>
+          <li><strong>주식</strong> — 단타 &middot; 테마주 &middot; 레버리지 &middot; 선물옵션</li>
+          <li>리딩방 &middot; 종목 추천 &middot; "확실한 정보"</li>
+          <li>매일 확인하며 사고팔기</li>
+        </ul>
+      </div>
+    </div>
+
+    <p style="margin-top:24px;">오른쪽 항목들의 공통점을 보십시오. <strong>빠르거나, 남이 끼어 있습니다.</strong> 당신이 잃는 방식이 정확히 그 둘입니다.</p>
+    <div class="folio">10</div>
+  </article>
+
+  <article class="page" data-part="two">
+    <p class="eyebrow">2부 &middot; 답을 듣고 다시 읽은 것</p>
+    <h2>겹치는 자리, 어긋나는 자리</h2>
+
+    <h3>겹치는 자리</h3>
+    <p><strong>"매달 조금씩"을 고르셨습니다.</strong> 정재(壬)가 먼저 열리는 이 사주에 정확히 맞는 방식입니다. 목돈을 한 번에 밀어넣는 건 편재의 방식인데, 당신은 편재가 2032년 이후에나 옵니다. 이미 몸이 맞는 쪽을 고르고 계셨어요.</p>
+    <p><strong>"내가 판단한다"를 고르셨습니다.</strong> 군겁쟁재 사주에 이보다 나은 답은 없습니다. 이것만 지키셔도 이 책값은 하십니다.</p>
+
+    <h3>어긋나는 자리</h3>
+    <p class="lead">두 군데가 어긋납니다. 둘 다 고치실 수 있는 것들입니다.</p>
+
+    <p><strong>하나 — "자꾸 들여다보게 된다"</strong></p>
+    <p>이게 이 사주에서 제일 위험한 습관입니다. 식상이 0인 사람이 시세를 자주 보면, <em>보는 것 자체가 파는 이유를 만들어냅니다.</em> 순발력이 없는 사람이 순발력을 요구하는 자리에 스스로를 계속 세우는 셈이에요. 토(土)의 장점인 지구력이 여기서 전부 무너집니다.</p>
+    <p>고치는 방법은 간단합니다. <strong>확인하는 날을 정해두십시오.</strong> 매달 하루. 그날 외에는 앱을 지우셔도 좋습니다. 이건 인내심 문제가 아니라 구조 문제라 의지로는 안 됩니다.</p>
+
+    <p><strong>둘 — "어느 정도는 감수한다"</strong></p>
+    <p>사주는 그렇게 말하지 않습니다. 재성이 0인 사람은 손실을 감수하는 게 아니라 <em>손실이 나면 그 돈이 다시 안 돌아옵니다.</em> 재성이 있는 사람은 잃어도 또 벌어서 메웁니다. 당신은 메우는 통로가 원국에 없어요.</p>
+    <p>그래서 당신에게 맞는 문장은 "감수한다"가 아니라 <strong>"잃어도 생활이 흔들리지 않는 돈만 넣는다"</strong>입니다. 같은 말 같지만 완전히 다릅니다. 앞은 각오이고, 뒤는 규칙입니다. 당신에게 필요한 건 규칙 쪽입니다.</p>
+    <div class="folio">11</div>
+  </article>
+
+  <article class="page" data-part="one">
+    <p class="eyebrow">3부 &middot; 시기</p>
+    <h2>재물의 문이 열리는 30년</h2>
+    <p class="dek">대운 &middot; 연간 甲(양) &middot; 여성 → 역행 &middot; 대운수 5.7세</p>
+
+    <div class="tw">
+      <table>
+        <tr><th>연도</th><th>대운</th><th>재물에서 뜻하는 것</th></tr>
+        <tr><td class="k">2000~2010</td><td class="k">甲戌</td><td>관성 / 비겁 — 근로소득의 시기. 돈이 모이기 어려움</td></tr>
+        <tr><td class="k">2010~2020</td><td class="k">癸酉</td><td><strong>편재 / 식신</strong> — 원국에 없던 돈 자리가 처음 들어옴</td></tr>
+        <tr class="now"><td class="k">2020~2030</td><td class="k">壬申</td><td><strong>정재 / 상관</strong> — 만드는 힘과 꾸준한 돈이 함께 들어옴</td></tr>
+        <tr><td class="k">2030~2040</td><td class="k">辛未</td><td><strong>식신</strong> / 비겁 — 만드는 힘이 계속됨. 사람은 조심</td></tr>
+        <tr><td class="k">2040~2050</td><td class="k">庚午</td><td><strong>상관</strong> / 인성 — 늦게까지 생산이 이어짐</td></tr>
+      </table>
+    </div>
+
+    <p class="lead">원국에 없던 재성(水)과 식상(金)이 2010년부터 40년간 들어옵니다.</p>
+    <p>즉 당신 재물운은 <strong>타고난 것이 아니라 들어오는 것</strong>입니다. 그리고 그 들어오는 기간이 유난히 깁니다. 2010년 이전과 이후는 다른 사람의 인생이라고 봐도 됩니다.</p>
+    <p>지금 들어와 계신 <em>壬申</em>은 정재(壬)와 상관(申)이 함께 온 대운입니다. <strong>만들어서(申) 꾸준한 돈으로 바꾸는(壬) 구조</strong> — 식상생재가 대운 차원에서 완성되어 있습니다. 무재 사주가 만날 수 있는 가장 좋은 배치 중 하나예요.</p>
+    <div class="folio">12</div>
+  </article>
+
+  <article class="page" data-part="one">
+    <p class="eyebrow">3부 &middot; 시기</p>
+    <h2>넣을 때, 뺄 때, 지킬 때</h2>
+    <p class="dek">2026 &ndash; 2035 &middot; 돈의 관점으로 다시 읽은 열 해</p>
+
+    <div class="tw">
+      <table>
+        <tr><th>해</th><th>간지</th><th>이 해의 돈</th><th>할 일</th></tr>
+        <tr><td class="k">2026</td><td class="k">丙午</td><td>인성 / 인성</td><td>사는 해가 아닙니다. 종잣돈을 모으고 공부하는 해</td></tr>
+        <tr><td class="k">2027</td><td class="k">丁未</td><td>인성 / 비겁<span class="mini">丑未충 — 월지 충</span></td><td><strong>기반이 흔들립니다.</strong> 큰 계약 &middot; 이사 &middot; 명의 변경 신중히</td></tr>
+        <tr><td class="k">2028</td><td class="k">戊申</td><td>비겁 / 상관<span class="mini">寅申충 — 연지 충</span></td><td>만들기 시작. 변동이 큰 해라 자산은 지키는 쪽으로</td></tr>
+        <tr><td class="k">2029</td><td class="k">己酉</td><td>비겁 / 식신<span class="mini">巳酉丑 삼합 금국</span></td><td>생산이 완성됩니다. 돈은 아직. <strong>여기에 투자하십시오</strong></td></tr>
+        <tr><td class="k">2030</td><td class="k">庚戌</td><td>상관 / 비겁</td><td>내 방식이 자리 잡음. 사람과의 금전은 여전히 금물</td></tr>
+        <tr class="now"><td class="k">2031</td><td class="k">辛亥</td><td><strong>식신 / 정재</strong></td><td><strong>취득 적기.</strong> 꾸준히 들어오는 자산을 붙이는 해</td></tr>
+        <tr class="now"><td class="k">2032</td><td class="k">壬子</td><td><strong>정재 / 편재</strong></td><td><strong>가장 두꺼운 해.</strong> 반복 수입 구조를 완성하십시오</td></tr>
+        <tr><td class="k">2033</td><td class="k">癸丑</td><td><strong>편재</strong> / 비겁</td><td>차익 실현이 가능해지는 첫 해. 다만 관리 부담이 늘어남</td></tr>
+        <tr><td class="k">2034</td><td class="k">甲寅</td><td>정관 / 정관</td><td>지키는 해. 세금 &middot; 명의 &middot; 서류를 정리</td></tr>
+        <tr><td class="k">2035</td><td class="k">乙卯</td><td>편관 / 편관</td><td>규모에 맞는 관리. 벌리지 말고 다듬으십시오</td></tr>
+      </table>
+    </div>
+
+    <div class="warn">
+      <div class="tag">특히 조심할 두 해</div>
+      <p><strong>2027년</strong>은 월지 丑이 충을 맞습니다. 월지는 사주에서 기반 &middot; 터전을 뜻해요. 부동산이라면 이 해의 큰 거래는 미루시는 편이 낫습니다.</p>
+      <p><strong>2028년</strong>은 연지 寅이 충을 맞습니다. 변동이 크고 마음이 급해지는 해라, 이 해에 조급하게 지른 것이 나중에 발목을 잡기 쉽습니다.</p>
+    </div>
+    <div class="folio">13</div>
+  </article>
+
+  <article class="page" data-part="two">
+    <p class="eyebrow">2부 &middot; 답을 듣고 다시 읽은 것</p>
+    <h2>정리하면 이렇습니다</h2>
+
+    <div class="voice" style="background:rgba(154,134,216,.08); border-left-color:var(--speak);">
+      <div class="who" style="color:var(--speak-lite);">당신이 물으신 것</div>
+      <p>주식이 맞나요, 부동산이 맞나요?</p>
+    </div>
+
+    <p><strong>2026~2030 — 아직 사는 시기가 아닙니다.</strong> 이 다섯 해는 종잣돈을 모으고, 만들 것을 만드는 기간입니다. 주식은 적립식으로 매달 같은 날 같은 금액만. 부동산은 보러 다니되 사지는 마십시오. 특히 2027년과 2028년은 큰 거래를 피하십시오.</p>
+
+    <p><strong>2031~2032 — 여기가 취득의 때입니다.</strong> 정재가 두 해 연속 열립니다. 월세가 나오는 물건, 배당이 나오는 자산. <em>단독 명의로.</em> 이 두 해에 붙여둔 것이 이후 20년의 바닥이 됩니다.</p>
+
+    <p><strong>2033 이후 — 그때 비로소 사고팔아도 됩니다.</strong> 편재가 옵니다. 다만 그때도 원칙은 같습니다. 혼자, 천천히, 형태로.</p>
+
+    <hr>
+    <p class="lead" style="margin-top:26px;">한 문장으로 답하면 — <strong>부동산으로 지키고, 주식으로 키우되, 둘 다 혼자 천천히 하십시오.</strong></p>
+    <p style="color:var(--dim); font-size:.86rem;">그리고 이 책 전체에서 딱 하나만 가져가신다면 이것입니다. 당신은 잘못된 종목을 골라서 잃는 사람이 아니라, <strong style="color:var(--speak-lite);">누군가와 함께해서 잃는 사람</strong>입니다. 수익률보다 경계선이 먼저입니다.</p>
+    <div class="folio">14</div>
+  </article>
+
+  <article class="page" data-part="one">
+    <p class="eyebrow">4부 &middot; 마지막 한 장</p>
+    <h2>당신이 뽑은 세 장</h2>
+    <p class="dek">사주는 태어날 때 정해진 것을 읽고, 카드는 오늘의 것을 읽습니다.</p>
+
+    <div class="cards">
+      <div class="card"><span class="num">I</span><span class="lb">지금 쥐고 있는 것</span></div>
+      <div class="card"><span class="num">II</span><span class="lb">놓아야 할 것</span></div>
+      <div class="card"><span class="num">III</span><span class="lb">돌아올 것</span></div>
+    </div>
+
+    <p style="margin-top:30px; color:var(--dim); font-size:.86rem;">카드는 결제 후 화면에서 직접 뽑으시게 됩니다. 뽑으신 세 장이 이 자리에 그림과 함께 들어가고, 마지막 한 문단에 <strong>사주가 말한 것과 카드가 겹치는 지점</strong>을 적습니다.</p>
+    <div class="folio">15</div>
+  </article>
+
+  <article class="page close" data-part="one">
+    <p class="eyebrow" style="margin-bottom:36px;">맺음말</p>
+    <p class="lead" style="max-width:34em; margin:0 auto;">당신에게는 돈을 담을 그릇이<br>처음부터 주어지지 않았습니다.</p>
+    <p style="max-width:34em; margin:22px auto 0;">그래서 오래 애쓰신 것에 비해 남은 것이 적었을 겁니다. 그건 당신이 헤펐거나 게을러서가 아닙니다. 그릇이 없는 사람에게 물을 부으면 손가락 사이로 빠져나가는 게 당연합니다.</p>
+    <p style="max-width:34em; margin:22px auto 0;">그런데 2010년부터 그 그릇이 들어오기 시작했고, 2031년과 2032년에 가장 커집니다. <strong>이제는 부어도 담깁니다.</strong> 다만 그릇을 남과 나눠 쓰지만 마십시오.</p>
+    <div class="folio">16</div>
+  </article>
+
+  <article class="page farewell" data-part="one">
+    <div class="fw-portrait">
+      <img src="https://stellasaju.com/wp-content/uploads/2026/08/stellardoorarchitect.webp"
+           alt="직성의 신" width="640" height="953">
+    </div>
+    <div class="fw-name">직성의 신</div>
+    <div class="fw-en">THE ARCHITECT</div>
+
+    <div class="fw-words">
+      <p>마지막으로 한마디만 남기겠습니다.</p>
+      <p>돈 이야기를 오래 했지만, 내가 이 책에서 가장 하고 싶었던 말은 수익률이 아닙니다.</p>
+      <p><strong>거절하는 법을 익히십시오.</strong> 당신은 사람이 좋아서 잃는 사람입니다. 부탁을 들어주고 나서 밤에 후회하는 일이 몇 번쯤 있으셨을 겁니다. 그건 마음이 약해서가 아니라 당신이 태어날 때부터 경계가 무른 자리에 서 있기 때문입니다.</p>
+      <p>돈에 관해서만은 무례해지셔도 됩니다. 그게 당신을 지키고, 결국 그 사람들과의 관계도 지킵니다.</p>
+      <p>그리고 조급해하지 마십시오. 앞으로 스무 해 동안 문이 계속 열립니다. 서둘러 잡으려다 놓치는 것보다, 천천히 담아서 남기는 편이 당신에게는 몇 배 큽니다.</p>
+      <p class="fw-last">혼자, 천천히, 형태로.<br>이 여섯 글자면 충분합니다.</p>
+    </div>
+
+    <div class="sig">— 직성의 신</div>
+
+    <p class="fine">
+      본 콘텐츠는 전통 사주명리학·서양점성술·수비학의 상징 체계에 기반한 오락 및 자기이해용 콘텐츠이며,<br>
+      과학적으로 검증된 예측이나 투자 자문이 아닙니다. 특정 종목·상품·물건을 권유하지 않으며,<br>
+      투자 판단과 그 결과에 대한 책임은 투자자 본인에게 있습니다.<br><br>
+      진태양시 보정 적용 &middot; 절기는 태양 황경 기준으로 계산 &middot; 대운은 양남음녀 순행 원칙에 따름<br>
+      STELLA SAJU &middot; stellasaju.com
+    </p>
+    <div class="folio">17</div>
+  </article>
+
+</div>
