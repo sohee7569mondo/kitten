@@ -98,6 +98,12 @@ body.page-id-62 #ss-nav-spacer{display:none;}
   color:var(--gold); border:1px solid var(--gold-soft); border-radius:20px; padding:2px 8px;
 }
 
+/* 지금 열려 있는 항목 */
+#ss-nav .ssnav-drop a.now::after{
+  content:'열림'; flex:0 0 auto; font-family:'IBM Plex Mono',monospace; font-size:.6rem;
+  color:#0D0A1A; background:var(--gold); border-radius:20px; padding:2px 9px;
+}
+
 /* ── 모바일 ─────────────────────────────────────────────── */
 #ss-nav .ssnav-burger{display:none; flex-direction:column; gap:5px; padding:10px; flex:0 0 auto;}
 #ss-nav .ssnav-burger span{display:block; width:22px; height:2px; background:var(--gold);
@@ -169,12 +175,20 @@ body.page-id-62 #ss-nav-spacer{display:none;}
       <div class="ssnav-item">
         <button type="button" class="ssnav-top" aria-expanded="false">여섯 개의 문 <span class="caret">&#9662;</span></button>
         <div class="ssnav-drop">
-          <a class="soon" href="/door-career/">직성의 신 <span class="sub">일과 돈</span></a>
+          <a class="now" href="/door-career/">직성의 신 <span class="sub">일과 돈</span></a>
           <a class="soon" href="/door-love/">연성의 신 <span class="sub">사랑</span></a>
           <a class="soon" href="/door-health/">강성의 신 <span class="sub">건강</span></a>
           <a class="soon" href="/door-fortune/">세성의 신 <span class="sub">흐름</span></a>
           <a class="soon" href="/door-astro/">성좌의 신 <span class="sub">별자리</span></a>
           <a class="soon" href="/door-tarot/">아르카나 <span class="sub">타로</span></a>
+        </div>
+      </div>
+
+      <div class="ssnav-item">
+        <button type="button" class="ssnav-top" aria-expanded="false">샘플 전자책 <span class="caret">&#9662;</span></button>
+        <div class="ssnav-drop">
+          <a class="now" href="/reading-sample/">직업운 <span class="sub">15쪽</span></a>
+          <a class="now" href="/reading-wealth/">재물운 <span class="sub">17쪽</span></a>
         </div>
       </div>
 
@@ -276,6 +290,23 @@ body.page-id-62 #ss-nav-spacer{display:none;}
       closeAll();
     });
   });
+  // ── 홈 화면의 '직성의 문' 카드 열기 ─────────────────────────
+  // 홈(페이지 62) 코드 안에 class="door-card is-soon" 으로 잠겨 있습니다.
+  // 홈을 다시 쓸 때 그 HTML 에서 is-soon 을 직접 지우고, 이 블록은 지우세요.
+  var homeOpen = ['/door-career/'];
+  homeOpen.forEach(function(href){
+    var card = document.querySelector('#stellar-home a.door-card[href="' + href + '"]');
+    if(!card) return;
+    card.classList.remove('is-soon');
+    var badge = card.querySelector('.price-badge');
+    if(badge){
+      badge.textContent = '지금 열림';
+      badge.style.background = '#D4AF6A';
+      badge.style.color = '#0D0A1A';
+      badge.style.borderColor = '#D4AF6A';
+    }
+  });
+
   // 화면을 키우면 모바일 상태 해제
   window.addEventListener('resize', function(){
     if(!isMobile() && nav.classList.contains('mobile-open')){
