@@ -1,0 +1,191 @@
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 나의 인생길잡이 소개  (/guide/)   BUILD: G1
+  헤더 메뉴 세 개가 이 페이지로 옵니다: 책 소개 · #preview · #buy
+  자바스크립트 없이 도는 정적 페이지입니다.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&amp;family=Cinzel:wght@400;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+#ssi{
+  --void:#0D0A1A; --void-deep:#070512;
+  --nebula:#1C1533;
+  --gold:#D4AF6A; --gold-soft:#C9A66B; --gold-lite:#E8CD96;
+  --speak:#9A86D8; --speak-lite:#BCADEA;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.46);
+  --line:rgba(212,175,106,.18);
+  --serif:'Gowun Batang','Noto Serif KR',serif;
+  --latin:'Cinzel',serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+
+  max-width:none !important; width:auto !important;
+  margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
+  padding:0 !important;
+  position:relative; z-index:0; overflow-x:clip;
+  background:var(--void); color:var(--star);
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:400; line-height:1.9; font-size:17.5px;
+  word-break:keep-all; overflow-wrap:break-word;
+}
+#ssi *{margin:0; padding:0; box-sizing:border-box;}
+#ssi a{text-decoration:none; color:inherit;}
+#ssi .wrap{max-width:820px; margin:0 auto; padding:60px 22px 120px;}
+@media(max-width:700px){ #ssi .wrap{padding:40px 18px 84px;} }
+
+#ssi .mark{font-family:var(--latin); font-size:.68rem; letter-spacing:.34em; color:var(--gold); margin-bottom:20px;}
+#ssi h1{font-family:var(--serif); font-weight:700; font-size:clamp(1.9rem,5.2vw,2.6rem);
+  line-height:1.42; text-wrap:balance; margin-bottom:16px;}
+#ssi .lead{color:var(--ink-soft); font-size:1.06rem; max-width:33em;}
+
+#ssi section{margin-top:64px; scroll-margin-top:110px;}
+#ssi h2{font-family:var(--serif); font-weight:700; font-size:1.42rem; line-height:1.5;
+  margin-bottom:8px; text-wrap:balance;}
+#ssi .sub{color:var(--ink-dim); font-size:.94rem; margin-bottom:26px;}
+#ssi p{color:var(--ink-soft); margin-top:16px; max-width:36em;}
+#ssi em{font-style:normal; color:var(--gold-lite);}
+
+/* 근거 다섯 */
+#ssi .why{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:26px;}
+@media(max-width:640px){ #ssi .why{grid-template-columns:1fr;} }
+#ssi .why div{background:var(--nebula); border:1px solid var(--line); border-radius:11px; padding:24px 24px 22px;}
+#ssi .why .n{font-family:var(--latin); font-size:.66rem; letter-spacing:.2em; color:var(--gold); opacity:.8;}
+#ssi .why .t{font-family:var(--serif); font-weight:700; font-size:1.08rem; margin:9px 0 6px;}
+#ssi .why .d{color:var(--ink-dim); font-size:.92rem; line-height:1.8;}
+
+/* 목차 */
+#ssi .toc{margin-top:26px; border-top:1px solid var(--line);}
+#ssi .toc .r{display:grid; grid-template-columns:3.4rem 1fr auto; gap:16px; align-items:baseline;
+  padding:14px 0; border-bottom:1px solid rgba(212,175,106,.10);}
+#ssi .toc .p{font-family:var(--mono); font-size:.72rem; color:var(--gold); opacity:.8;}
+#ssi .toc .t{color:var(--star); font-size:1rem;}
+#ssi .toc .g{font-family:var(--mono); font-size:.64rem; letter-spacing:.12em; color:var(--ink-dim); white-space:nowrap;}
+@media(max-width:560px){ #ssi .toc .r{grid-template-columns:3.2rem 1fr;} #ssi .toc .g{display:none;} }
+
+/* 만드는 순서 */
+#ssi .flow{margin-top:26px; counter-reset:flow;}
+#ssi .flow .s{position:relative; padding:18px 0 18px 46px; border-top:1px solid var(--line); counter-increment:flow;}
+#ssi .flow .s::before{content:counter(flow); position:absolute; left:0; top:18px;
+  font-family:var(--latin); font-size:.94rem; color:var(--gold); opacity:.75;}
+#ssi .flow .s b{display:block; font-family:var(--serif); font-weight:700; font-size:1.04rem; margin-bottom:5px;}
+#ssi .flow .s span{color:var(--ink-dim); font-size:.93rem;}
+
+/* 값 */
+#ssi .price{background:var(--nebula); border:1px solid var(--line); border-radius:12px;
+  padding:32px 30px; margin-top:26px; text-align:center;}
+#ssi .price .tag{font-family:var(--mono); font-size:.68rem; letter-spacing:.2em; color:var(--gold);}
+#ssi .price .big{font-family:var(--serif); font-weight:700; font-size:2.1rem; color:var(--gold-lite); margin:12px 0 6px;}
+#ssi .price .note{color:var(--ink-dim); font-size:.93rem;}
+#ssi .doors{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:26px;}
+@media(max-width:640px){ #ssi .doors{grid-template-columns:repeat(2,1fr);} }
+#ssi .doors a{display:block; padding:17px 10px; border:1px solid var(--line); border-radius:9px;
+  background:var(--nebula); color:var(--ink-soft); font-size:.94rem; text-align:center;}
+#ssi .doors a:hover{border-color:var(--gold-soft); color:var(--star);}
+#ssi .cta{display:inline-block; margin-top:26px; padding:16px 38px; border-radius:4px;
+  font-size:1rem; font-weight:700; color:var(--void-deep);
+  background:linear-gradient(135deg, var(--gold), #B98A47);}
+#ssi .cta:hover{filter:brightness(1.06);}
+#ssi .fine{margin-top:40px; padding-top:26px; border-top:1px solid var(--line);
+  color:var(--ink-dim); font-size:.86rem; line-height:1.9;}
+@media(prefers-reduced-motion:reduce){ #ssi *{animation:none !important; transition:none !important;} }
+</style>
+
+<div id="ssi">
+  <div class="wrap">
+    <div class="mark">STELLA SAJU</div>
+    <h1>나의 인생길잡이</h1>
+    <p class="lead">태어난 해 · 달 · 날 · 시 여덟 글자로, 그 자리에서 한 권을 만듭니다.
+      같은 책은 두 권 나오지 않습니다.</p>
+
+    <section>
+      <h2>지어내지 않습니다</h2>
+      <p class="sub">이 책의 모든 문장은 계산된 값에서 나옵니다</p>
+      <p>사주 풀이가 미덥지 않은 이유는 대개 하나입니다. 어디서 나온 말인지 알 수 없다는 것.
+        누구에게나 맞는 말을 그럴듯하게 늘어놓으면, 읽는 사람은 자기 이야기라고 느끼지만
+        남는 것은 없습니다.</p>
+      <p>그래서 이 책은 <em>근거를 먼저 펼치고</em> 시작합니다. 앞의 다섯 장은 풀이가 아니라
+        계산입니다. 시각을 어떻게 바로잡았는지, 여덟 글자가 어떻게 세워졌는지,
+        기운이 어느 쪽으로 몇 자씩 기울었는지를 숫자로 보여드립니다.
+        그다음에야 문장이 나옵니다.</p>
+
+      <div class="why">
+        <div><div class="n">근거 하나</div><div class="t">시각을 바로잡습니다</div>
+          <div class="d">시계가 가리킨 시각과 해가 실제로 있던 시각은 다릅니다. 경도와 균시차를 더해 진태양시를 구합니다.</div></div>
+        <div><div class="n">근거 둘</div><div class="t">여덟 글자를 세웁니다</div>
+          <div class="d">해 · 달 · 날 · 시를 각각 두 자씩. 한 해는 입춘에, 한 달은 절기에 바뀝니다.</div></div>
+        <div><div class="n">근거 셋</div><div class="t">기운을 세어봅니다</div>
+          <div class="d">여덟 글자를 오행으로 나눠 세어봅니다. 무엇이 두텁고 무엇이 비어 있는지가 여기서 나옵니다.</div></div>
+        <div><div class="n">근거 넷</div><div class="t">판이 바뀌는 시점</div>
+          <div class="d">대운은 좋고 나쁨의 표가 아니라 판이 바뀌는 시점의 표입니다. 지금이 어느 판인지 짚습니다.</div></div>
+        <div><div class="n">근거 다섯</div><div class="t">태어나던 밤의 하늘</div>
+          <div class="d">같은 사람을 서양의 언어로 한 번 더 읽습니다. 태양 · 상승궁 · 천정.</div></div>
+        <div><div class="n">그리고</div><div class="t">어긋나는 자리</div>
+          <div class="d">사주가 가리키는 쪽과 지금 사시는 쪽이 다른 곳도 그대로 적습니다. 이 장이 없는 풀이는 믿지 마세요.</div></div>
+      </div>
+    </section>
+
+    <section id="preview">
+      <h2>목차 미리보기</h2>
+      <p class="sub">열여덟 장. 카드를 뽑지 않으시면 열여섯 장</p>
+      <div class="toc">
+        <div class="r"><div class="p">01</div><div class="t">표지 — 이름과 여덟 글자</div><div class="g">COVER</div></div>
+        <div class="r"><div class="p">02</div><div class="t">여는 글 — 가디언이 직접</div><div class="g">OPEN</div></div>
+        <div class="r"><div class="p">03</div><div class="t">시각을 먼저 바로잡습니다</div><div class="g">근거 하나</div></div>
+        <div class="r"><div class="p">04</div><div class="t">여덟 글자</div><div class="g">근거 둘</div></div>
+        <div class="r"><div class="p">05</div><div class="t">기운의 저울</div><div class="g">근거 셋</div></div>
+        <div class="r"><div class="p">06</div><div class="t">십 년마다 바뀌는 판</div><div class="g">근거 넷</div></div>
+        <div class="r"><div class="p">07</div><div class="t">태어나던 밤의 하늘</div><div class="g">근거 다섯</div></div>
+        <div class="r"><div class="p">08</div><div class="t">당신이 아무 말도 하기 전에</div><div class="g">1부</div></div>
+        <div class="r"><div class="p">09</div><div class="t">주제의 언어로 옮기면</div><div class="g">1부</div></div>
+        <div class="r"><div class="p">10</div><div class="t">당신이 답해주신 것</div><div class="g">2부</div></div>
+        <div class="r"><div class="p">11</div><div class="t">적어주신 말</div><div class="g">2부</div></div>
+        <div class="r"><div class="p">12</div><div class="t">어긋나는 자리 — 두 저울</div><div class="g">2부</div></div>
+        <div class="r"><div class="p">13</div><div class="t">어긋나는 자리 — 남은 셋</div><div class="g">2부</div></div>
+        <div class="r"><div class="p">14</div><div class="t">오늘의 카드 세 장</div><div class="g">TAROT</div></div>
+        <div class="r"><div class="p">15</div><div class="t">세 장이 하는 말</div><div class="g">TAROT</div></div>
+        <div class="r"><div class="p">16</div><div class="t">세 가지만 기억하세요</div><div class="g">맺음말</div></div>
+        <div class="r"><div class="p">17</div><div class="t">가디언이 드리는 마지막 말</div><div class="g">맺음말</div></div>
+        <div class="r"><div class="p">18</div><div class="t">배웅</div><div class="g">END</div></div>
+      </div>
+      <p>PDF 로 저장해 두시면 언제든 다시 펼쳐 보실 수 있습니다.
+        여덟 글자는 앞으로도 바뀌지 않으니까요.</p>
+    </section>
+
+    <section>
+      <h2>어떻게 만들어지나</h2>
+      <p class="sub">네 걸음, 오 분이면 끝납니다</p>
+      <div class="flow">
+        <div class="s"><b>문을 고릅니다</b><span>여섯 가디언 가운데 지금 궁금한 주제 하나를 고릅니다.</span></div>
+        <div class="s"><b>생년월일시를 넣습니다</b><span>이름 · 성별 · 태어난 날과 시각 · 태어난 곳. 시각을 모르시면 여섯 글자로 봅니다.</span></div>
+        <div class="s"><b>일곱 가지에 답합니다</b><span>사주가 대답할 수 없는 것 — 취향과 지금의 마음 — 만 묻습니다. 그리고 카드 세 장.</span></div>
+        <div class="s"><b>책이 만들어집니다</b><span>브라우저 안에서 그 자리에서 계산해 펼쳐 보입니다. 넣으신 정보는 서버로 보내지 않습니다.</span></div>
+      </div>
+    </section>
+
+    <section id="buy">
+      <h2>지금은 체험판입니다</h2>
+      <p class="sub">여섯 문이 전부 열려 있습니다</p>
+      <div class="price">
+        <div class="tag">TRIAL</div>
+        <div class="big">무료</div>
+        <div class="note">체험판 기간에는 구슬을 쓰지 않습니다.<br>정식 발행이 열리면 이 자리에 값이 들어갑니다.</div>
+      </div>
+      <div class="doors">
+        <a href="/door-career/">직업운 · 재물운</a>
+        <a href="/door-love/">연애운 · 궁합</a>
+        <a href="/door-health/">건강운 · 가족운</a>
+        <a href="/door-fortune/">시기운 · 대운</a>
+        <a href="/door-astro/">별자리 · 사주</a>
+        <a href="/door-tarot/">타로 · 오늘의 선택</a>
+      </div>
+      <p style="text-align:center"><a class="cta" href="/door-career/">지금 한 권 받아보기 →</a></p>
+
+      <p class="fine">먼저 읽어보고 싶으시면 <a href="/reading-sample/" style="color:var(--speak-lite)">직업운 샘플</a>과
+        <a href="/reading-wealth/" style="color:var(--speak-lite)">재물운 샘플</a>이 열려 있습니다.<br>
+        본 콘텐츠는 전통 사주명리학과 서양점성술에 기반한 오락적 콘텐츠이며,
+        의료 · 법률 · 투자에 관한 조언이 아닙니다.</p>
+    </section>
+
+  </div>
+</div>
+<!-- /wp:html -->
