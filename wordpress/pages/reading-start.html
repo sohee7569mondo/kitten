@@ -342,12 +342,21 @@
       i++;
     }, 1100);
 
+    try{ localStorage.setItem('stella_answers', JSON.stringify(answers)); }catch(err){}
+
     fetch('/wp-json/stella/v1/reading', {
       method:'POST', headers:{'Content-Type':'application/json'},
       credentials:'same-origin',
       body:JSON.stringify({ answers:answers, cards:cards.length })
-    }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, body:j}; }); })
+    }).then(function(r){
+      if(r.status===404){ return {demo:true}; }
+      return r.json().then(function(j){ return {ok:r.ok, body:j}; });
+    })
       .then(function(res){
+        if(res.demo){
+          setTimeout(function(){ location.href = '/reading-sample/?demo=1'; }, 6800);
+          return;
+        }
         var b = res.body || {};
         if(!res.ok){ throw new Error(b.message || '발행에 실패했어요.'); }
         setTimeout(function(){ location.href = b.next || '/mypage/'; }, 1200);

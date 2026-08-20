@@ -534,6 +534,14 @@
   var msg=$('msg');
   function say(text, kind){ msg.textContent=text; msg.className='msg show '+(kind||''); }
 
+  /* 서버 기능이 아직 안 켜졌을 때 — 가입 없이 체험판으로 끝까지 걸어봅니다 */
+  function goDemo(payload){
+    try{ localStorage.setItem('stella_demo', JSON.stringify(payload)); }catch(err){}
+    say('체험판으로 진행합니다. 질문 화면으로 이동해요…','ok');
+    setTimeout(function(){ location.href='/reading-start/'; }, 800);
+  }
+
+
   $('goBtn').addEventListener('click', function(){
     var total=recalc();
     var topicEl=document.querySelector('input[name="ssg-topic"]:checked');
@@ -557,6 +565,7 @@
       return r.json().then(function(j){ return {ok:r.ok, body:j}; });
     })
         .then(function(res){
+          if(res.demo){ return goDemo(payload); }
           var b = res.body || {};
           if(!res.ok){ throw new Error(b.message || '주문에 실패했어요.'); }
           location.href = b.next || '/reading-start/';
@@ -595,10 +604,11 @@
       method:'POST', headers:{'Content-Type':'application/json'},
       credentials:'same-origin', body:JSON.stringify(payload)
     }).then(function(r){
-      if(r.status===404){ throw new Error('아직 가입 기능이 켜지지 않았어요. 관리자에게 알려주세요.'); }
+      if(r.status===404){ return {demo:true}; }
       return r.json().then(function(j){ return {ok:r.ok, body:j}; });
     })
       .then(function(res){
+        if(res.demo){ return goDemo(payload); }
         var b = res.body || {};
         if(!res.ok){ throw new Error(b.message || '가입에 실패했어요.'); }
         say('가입이 완료됐어요. 결제 화면으로 이동합니다…','ok');
