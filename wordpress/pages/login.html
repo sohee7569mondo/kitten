@@ -1,0 +1,153 @@
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 로그인  (/login/)   BUILD: L1
+
+  비밀번호를 묻지 않습니다. 가입할 때도 안 만들었으니까요.
+  이메일만 넣으시면 30분짜리 링크를 메일로 보내드리고,
+  그 링크를 누르면 들어오십니다.
+
+    POST /wp-json/stella/v1/login   { email }
+
+  가입된 주소든 아니든 서버는 똑같이 대답합니다.
+  누가 회원인지 알려주지 않기 위해서입니다.
+-->
+<style>
+#ssl{
+  --void:#0D0A1A; --void-deep:#070512; --nebula:#1C1533;
+  --gold:#D4AF6A; --gold-lite:#E8CD96;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.46);
+  --line:rgba(212,175,106,.18);
+
+  max-width:none !important; width:auto !important;
+  margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
+  padding:0 !important;
+  position:relative; z-index:0; overflow-x:clip;
+  background:var(--void); color:var(--star); text-align:left;
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:400; line-height:1.85; font-size:17.5px;
+  word-break:keep-all; overflow-wrap:break-word; min-height:70vh;
+}
+#ssl *{margin:0; padding:0; box-sizing:border-box;}
+#ssl button{font:inherit; cursor:pointer;}
+#ssl .wrap{max-width:480px; margin:0 auto; padding:78px 22px 110px;}
+@media(max-width:700px){ #ssl .wrap{padding:48px 18px 80px;} }
+
+#ssl .mark{font-family:'Cinzel',serif; font-size:.68rem; letter-spacing:.34em;
+  color:var(--gold); margin-bottom:18px;}
+#ssl h1{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.75rem;
+  line-height:1.45; color:var(--star); margin-bottom:12px;}
+#ssl .dek{color:var(--ink-soft); font-size:.98rem; margin-bottom:34px;}
+
+#ssl label{display:block; font-family:'IBM Plex Mono',monospace; font-size:.7rem;
+  letter-spacing:.1em; color:var(--ink-dim); margin-bottom:7px;}
+#ssl input{width:100%; background:var(--void-deep); color:var(--star);
+  border:1px solid var(--line); border-radius:7px; padding:15px 16px;
+  font-family:inherit; font-size:17px;}
+#ssl input:focus{outline:none; border-color:var(--gold);}
+
+#ssl .go{width:100%; margin-top:14px; padding:16px 20px; border-radius:5px; border:none;
+  font-size:1rem; font-weight:700; color:var(--void-deep);
+  background:linear-gradient(135deg, var(--gold), #B98A47);
+  box-shadow:0 16px 34px -14px rgba(212,175,106,.55);}
+#ssl .go:hover{filter:brightness(1.06);}
+#ssl .go:disabled{opacity:.45; cursor:default; box-shadow:none;}
+
+#ssl .say{margin-top:16px; padding:16px 18px; border-radius:9px; font-size:.94rem;
+  line-height:1.85; display:none;}
+#ssl .say.on{display:block;}
+#ssl .say.ok{background:rgba(154,209,165,.1); border:1px solid rgba(154,209,165,.32); color:#BFE3C7;}
+#ssl .say.err{background:rgba(229,160,160,.08); border:1px solid rgba(229,160,160,.28); color:#E9BFBF;}
+
+#ssl .again{margin-bottom:26px; padding:16px 18px; border-radius:9px;
+  background:rgba(229,160,160,.08); border:1px solid rgba(229,160,160,.28);
+  color:#E9BFBF; font-size:.93rem; line-height:1.85; display:none;}
+#ssl .again.on{display:block;}
+
+#ssl .why{margin-top:34px; padding-top:26px; border-top:1px solid var(--line);
+  font-size:.88rem; color:var(--ink-dim); line-height:1.9;}
+#ssl .why b{color:var(--ink-soft); font-weight:400;}
+#ssl .why a{color:var(--gold); border-bottom:1px solid var(--gold); padding-bottom:1px;
+  text-decoration:none;}
+</style>
+
+<div id="ssl">
+  <div class="wrap">
+    <div class="mark">STELLA SAJU</div>
+    <h1>다시 오셨네요</h1>
+    <p class="dek">비밀번호는 묻지 않습니다. 가입하실 때도 만들지 않으셨으니까요.<br>
+      이메일만 알려주시면 들어오실 수 있는 링크를 보내드릴게요.</p>
+
+    <div class="again" id="lAgain">
+      링크가 이미 쓰였거나 시간이 지났어요. 아래에서 새로 받으시면 됩니다.
+    </div>
+
+    <label for="lMail">이메일</label>
+    <input type="email" id="lMail" placeholder="you@example.com" autocomplete="email">
+    <button type="button" class="go" id="lGo">로그인 링크 받기</button>
+    <div class="say" id="lSay"></div>
+
+    <div class="why">
+      <b>링크는 30분 동안만 살아 있고, 한 번 쓰면 사라집니다.</b><br>
+      메일이 안 보이면 스팸함도 한 번 봐주세요.<br><br>
+      가입하신 적이 없다면 <a href="/">문을 하나 골라</a> 생년월일시를 넣으시면
+      그 자리에서 가입까지 함께 끝납니다.
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var root=document.getElementById('ssl'); if(!root){ return; }
+  var box=document.getElementById('lMail');
+  var btn=document.getElementById('lGo');
+  var say=document.getElementById('lSay');
+
+  /* 쓴 링크나 시간이 지난 링크로 들어오셨을 때 */
+  try{
+    if(new URLSearchParams(location.search).get('again')){
+      document.getElementById('lAgain').className='again on';
+    }
+  }catch(err){}
+
+  function tell(text, kind){
+    say.textContent=text;
+    say.className='say on '+kind;
+  }
+
+  function send(){
+    var v=box.value.trim();
+    if(v.indexOf('@')<1){ tell('이메일을 정확히 적어주세요.','err'); return; }
+
+    btn.disabled=true;
+    var was=btn.textContent;
+    btn.textContent='보내는 중…';
+    tell('메일을 보내고 있어요…','ok');
+
+    fetch('/wp-json/stella/v1/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      credentials:'same-origin', body:JSON.stringify({email:v})
+    }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(res){
+        btn.textContent=was;
+        if(!res.ok){
+          btn.disabled=false;
+          tell(res.j.message || '보내지 못했어요. 잠시 후 다시 시도해주세요.','err');
+          return;
+        }
+        tell('메일을 보내드렸어요. 받은 편지함을 열어 링크를 눌러주세요. '
+           + '안 보이면 스팸함도 한 번 봐주세요.','ok');
+      })
+      .catch(function(){
+        btn.disabled=false;
+        btn.textContent=was;
+        tell('보내지 못했어요. 잠시 후 다시 시도해주세요.','err');
+      });
+  }
+
+  btn.addEventListener('click', send);
+  box.addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ send(); }
+  });
+})();
+</script>
+<!-- /wp:html -->

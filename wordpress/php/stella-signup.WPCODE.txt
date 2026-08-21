@@ -54,6 +54,10 @@ define( 'STELLA_REF_ORBS',      5   );  // 친구 한 명당 드리는 구슬
 define( 'STELLA_REF_MAX_ORBS',  50  );  // 한 사람이 추천으로 받을 수 있는 최대
 define( 'STELLA_REF_COOKIE',    'stella_ref' );
 define( 'STELLA_REF_DAYS',      30  );  // 추천 링크를 기억해두는 기간
+
+/* 메일로 보내는 로그인 링크 — 비밀번호 없이 들어오시는 길입니다.
+   가입할 때 비밀번호를 안 만들었으니, 돌아오실 때도 비밀번호를 묻지 않습니다. */
+define( 'STELLA_LOGIN_MINUTES', 30 );  // 링크가 살아 있는 시간 (분)
 /* ================================================================ */
 
 
@@ -717,6 +721,99 @@ function stella_ref_award( $new_uid, $has_email ) {
 
 
 /* ---------------------------------------------------------------
+ * 4.6 메일로 받는 로그인 링크
+ *
+ *   가입할 때 비밀번호를 만들지 않았으니, 돌아오실 때도 묻지 않습니다.
+ *   이메일만 넣으시면 30분짜리 링크를 보내드리고, 그 링크를 누르면 들어오십니다.
+ *
+ *   · 열쇠는 해시로만 저장합니다 (메일이 새도 데이터베이스에서 되찾을 수 없게)
+ *   · 한 번 쓰면 지워집니다
+ *   · 가입 안 된 주소를 넣어도 똑같이 대답합니다 — 누가 회원인지 알려주지 않습니다
+ * --------------------------------------------------------------- */
+
+/** 로그인 링크를 만들어 메일로 보냅니다 */
+function stella_login_send( $uid ) {
+	$user = get_userdata( $uid );
+	if ( ! $user ) {
+		return false;
+	}
+	$token = wp_generate_password( 32, false, false );
+	update_user_meta( $uid, 'stella_login_hash', wp_hash_password( $token ) );
+	update_user_meta( $uid, 'stella_login_till', time() + STELLA_LOGIN_MINUTES * MINUTE_IN_SECONDS );
+
+	$link = add_query_arg(
+		array( 'stella_login' => $token, 'u' => $uid ),
+		home_url( '/' )
+	);
+	$name = (string) get_user_meta( $uid, 'stella_name', true );
+	$name = $name !== '' ? $name : $user->display_name;
+
+	$lines   = array();
+	$lines[] = $name . '님, 아래 링크를 누르시면 바로 들어오실 수 있어요.';
+	$lines[] = '';
+	$lines[] = $link;
+	$lines[] = '';
+	$lines[] = '이 링크는 ' . STELLA_LOGIN_MINUTES . '분 동안만 살아 있고, 한 번 쓰면 사라집니다.';
+	$lines[] = '비밀번호는 따로 없어도 됩니다.';
+	$lines[] = '';
+	$lines[] = '혹시 직접 요청하신 것이 아니라면 이 메일은 그냥 지우셔도 됩니다.';
+	$lines[] = '누군가 주소를 잘못 적었을 뿐, 계정에는 아무 일도 일어나지 않습니다.';
+	$lines[] = '';
+	$lines[] = '— 명성의 신 드림';
+
+	return wp_mail( $user->user_email, '[스텔라사주] 로그인 링크입니다', implode( "\n", $lines ) );
+}
+
+/**
+ * 이 열쇠가 맞는지 봅니다. 맞든 틀리든 열쇠는 지웁니다 — 한 번 쓰면 끝입니다.
+ *
+ * @return bool
+ */
+function stella_login_check( $uid, $token ) {
+	if ( $uid < 1 ) {
+		return false;
+	}
+	if ( $token === '' ) {
+		return false;
+	}
+
+	$hash = (string) get_user_meta( $uid, 'stella_login_hash', true );
+	$till = (int) get_user_meta( $uid, 'stella_login_till', true );
+
+	delete_user_meta( $uid, 'stella_login_hash' );
+	delete_user_meta( $uid, 'stella_login_till' );
+
+	if ( $hash === '' ) {
+		return false;
+	}
+	if ( time() > $till ) {
+		return false;
+	}
+	return (bool) wp_check_password( $token, $hash, $uid );
+}
+
+/** 링크를 누르고 들어오셨을 때 */
+add_action( 'init', function () {
+	if ( ! isset( $_GET['stella_login'] ) ) {
+		return;
+	}
+	$token = sanitize_text_field( wp_unslash( $_GET['stella_login'] ) );
+	$uid   = isset( $_GET['u'] ) ? (int) $_GET['u'] : 0;
+
+	if ( ! stella_login_check( $uid, $token ) ) {
+		wp_safe_redirect( home_url( '/login/?again=1' ) );
+		exit;
+	}
+
+	wp_clear_auth_cookie();
+	wp_set_current_user( $uid );
+	wp_set_auth_cookie( $uid, true );
+	wp_safe_redirect( home_url( '/mypage/' ) );
+	exit;
+}, 5 );
+
+
+/* ---------------------------------------------------------------
  * 5. REST — 가입 / 주문 / 내 정보
  * --------------------------------------------------------------- */
 
@@ -756,7 +853,51 @@ add_action( 'rest_api_init', function () {
 		'permission_callback' => '__return_true',
 		'callback'            => 'stella_rest_reopen',
 	) );
+
+	register_rest_route( 'stella/v1', '/login', array(
+		'methods'             => 'POST',
+		'permission_callback' => '__return_true',
+		'callback'            => 'stella_rest_login',
+	) );
 } );
+
+/**
+ * 로그인 링크 보내주세요.
+ *
+ * 가입된 주소든 아니든 대답은 똑같습니다.
+ * 여기서 '그런 회원 없습니다' 라고 하면, 아무나 이메일을 넣어보며
+ * 누가 우리 회원인지 알아낼 수 있게 됩니다.
+ */
+function stella_rest_login( WP_REST_Request $req ) {
+	$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '0';
+	$key = 'stella_lg_' . md5( $ip );
+	$hit = (int) get_transient( $key );
+	if ( $hit >= 5 ) {
+		return new WP_Error( 'stella_slow', '요청이 너무 잦습니다. 잠시 후 다시 시도해주세요.', array( 'status' => 429 ) );
+	}
+	set_transient( $key, $hit + 1, 10 * MINUTE_IN_SECONDS );
+
+	$body  = (array) $req->get_json_params();
+	$email = isset( $body['email'] ) ? sanitize_email( $body['email'] ) : '';
+
+	$said = '메일을 보내드렸어요. 받은 편지함을 확인해주세요.';
+
+	if ( ! is_email( $email ) ) {
+		return new WP_Error( 'stella_email', '이메일을 정확히 적어주세요.', array( 'status' => 400 ) );
+	}
+
+	$user = get_user_by( 'email', $email );
+	if ( $user ) {
+		/* 같은 사람에게 자꾸 보내지는 않습니다 */
+		$one = 'stella_lg1_' . $user->ID;
+		if ( ! get_transient( $one ) ) {
+			set_transient( $one, 1, 2 * MINUTE_IN_SECONDS );
+			stella_login_send( $user->ID );
+		}
+	}
+
+	return rest_ensure_response( array( 'ok' => true, 'message' => $said ) );
+}
 
 /**
  * 예전에 받으신 풀이를 다시 엽니다.
@@ -988,9 +1129,16 @@ function stella_rest_signup( WP_REST_Request $req ) {
 	$existing = $hasEmail ? get_user_by( 'email', $email ) : false;
 	if ( $existing ) {
 		if ( ! is_user_logged_in() ) {
+			/* 돌아오신 분입니다. 비밀번호가 없으니 메일로 들어올 길을 열어드립니다. */
+			$one = 'stella_lg1_' . $existing->ID;
+			if ( ! get_transient( $one ) ) {
+				set_transient( $one, 1, 2 * MINUTE_IN_SECONDS );
+				stella_login_send( $existing->ID );
+			}
 			return new WP_Error(
 				'stella_exists',
-				'이미 가입된 이메일이에요. 로그인 후 이용해주세요.',
+				'이미 쓰고 계신 이메일이에요. 들어오실 수 있는 링크를 방금 메일로 보내드렸습니다. ' .
+				'메일을 열어 링크를 누르시면 그동안 받으신 풀이와 구슬이 그대로 있어요.',
 				array( 'status' => 409 )
 			);
 		}
