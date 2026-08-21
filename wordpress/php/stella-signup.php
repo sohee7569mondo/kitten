@@ -46,6 +46,15 @@ define( 'STELLA_PRICE_ONELINE',  5   );  // 한 줄 질문
 define( 'STELLA_PRICE_DEEP',     5   );  // 심화 질문 한 개
 define( 'STELLA_PRICE_FULL',     50  );  // 나의 인생길잡이 — 종합본
 define( 'STELLA_MAX_DEEP',       2   );  // 심화 질문은 한 번에 두 개까지
+
+/* 친구 추천 — 친구 한 명이 가입을 마치면 추천한 분께 구슬을 드립니다.
+   '이메일을 남긴 친구만' 인정합니다. 비밀번호 없는 가입이라 문턱이 낮은 만큼,
+   이 조건 하나가 혼자 여러 번 가입해 구슬을 만드는 일을 대부분 막아줍니다.
+   집에서 식구들 것을 대신 가입해주는 경우까지 막지는 않습니다 — 그건 정상적인 쓰임입니다. */
+define( 'STELLA_REF_ORBS',      5   );  // 친구 한 명당 드리는 구슬
+define( 'STELLA_REF_MAX_ORBS',  50  );  // 한 사람이 추천으로 받을 수 있는 최대
+define( 'STELLA_REF_COOKIE',    'stella_ref' );
+define( 'STELLA_REF_DAYS',      30  );  // 추천 링크를 기억해두는 기간
 /* ================================================================ */
 
 
@@ -552,6 +561,163 @@ function stella_order_payload( $uid ) {
 
 
 /* ---------------------------------------------------------------
+ * 4.5 친구 추천
+ *
+ *   흐름:  친구가 ?ref=코드 로 들어옴  →  쿠키에 30일 기억
+ *          →  가입을 마치고, 이메일까지 남겼으면  →  추천한 분께 5구슬
+ *
+ *   구슬은 서버에서만 얹습니다. 브라우저가 보내는 값은 쓰지 않습니다.
+ * --------------------------------------------------------------- */
+
+/** 헷갈리는 글자(0·O·1·I)는 빼고 여섯 자를 만듭니다 */
+function stella_ref_make_code() {
+	$abc  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+	$out  = '';
+	$max  = strlen( $abc ) - 1;
+	for ( $i = 0; $i < 6; $i++ ) {
+		$out .= $abc[ wp_rand( 0, $max ) ];
+	}
+	return $out;
+}
+
+/** 이 코드를 쓰는 회원을 찾습니다. 없으면 0 */
+function stella_ref_user_by_code( $code ) {
+	$code = strtoupper( preg_replace( '/[^A-Z0-9]/i', '', (string) $code ) );
+	if ( $code === '' ) {
+		return 0;
+	}
+	$hit = get_users( array(
+		'meta_key'   => 'stella_ref_code',
+		'meta_value' => $code,
+		'number'     => 1,
+		'fields'     => 'ID',
+	) );
+	return $hit ? (int) $hit[0] : 0;
+}
+
+/** 내 추천 코드 — 없으면 그 자리에서 하나 만들어 둡니다 */
+function stella_ref_code( $uid ) {
+	$code = (string) get_user_meta( $uid, 'stella_ref_code', true );
+	if ( $code !== '' ) {
+		return $code;
+	}
+	for ( $try = 0; $try < 8; $try++ ) {
+		$cand = stella_ref_make_code();
+		if ( ! stella_ref_user_by_code( $cand ) ) {
+			update_user_meta( $uid, 'stella_ref_code', $cand );
+			return $cand;
+		}
+	}
+	/* 여덟 번을 다 놓칠 확률은 사실상 없지만, 그래도 빈손으로 돌려보내지는 않습니다 */
+	$cand = stella_ref_make_code() . $uid;
+	update_user_meta( $uid, 'stella_ref_code', $cand );
+	return $cand;
+}
+
+/** 마이페이지가 보여줄 추천 현황 */
+function stella_ref_stat( $uid ) {
+	$code = stella_ref_code( $uid );
+	return array(
+		'code'  => $code,
+		'url'   => add_query_arg( 'ref', $code, home_url( '/' ) ),
+		'count' => (int) get_user_meta( $uid, 'stella_ref_count', true ),
+		'orbs'  => (int) get_user_meta( $uid, 'stella_ref_orbs', true ),
+		'each'  => (int) STELLA_REF_ORBS,
+		'max'   => (int) STELLA_REF_MAX_ORBS,
+	);
+}
+
+/** ?ref=코드 로 들어오면 30일 동안 기억해 둡니다 */
+add_action( 'init', function () {
+	if ( ! isset( $_GET['ref'] ) ) {
+		return;
+	}
+	if ( is_admin() ) {
+		return;
+	}
+	if ( is_user_logged_in() ) {
+		return;  /* 이미 회원이면 기억할 까닭이 없습니다 */
+	}
+	$code = strtoupper( preg_replace( '/[^A-Za-z0-9]/', '', (string) wp_unslash( $_GET['ref'] ) ) );
+	if ( strlen( $code ) < 4 ) {
+		return;
+	}
+	if ( strlen( $code ) > 12 ) {
+		return;
+	}
+	$_COOKIE[ STELLA_REF_COOKIE ] = $code;
+	if ( headers_sent() ) {
+		return;
+	}
+	setcookie(
+		STELLA_REF_COOKIE, $code, time() + STELLA_REF_DAYS * DAY_IN_SECONDS,
+		COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, is_ssl(), true
+	);
+} );
+
+/** 추천한 분께 구슬을 얹습니다 */
+function stella_ref_pay( $new_uid, $code ) {
+	$ref = stella_ref_user_by_code( $code );
+	if ( ! $ref ) {
+		return false;
+	}
+	if ( $ref === (int) $new_uid ) {
+		return false;  /* 자기 코드로 자기가 가입 */
+	}
+	if ( get_user_meta( $new_uid, 'stella_ref_by', true ) ) {
+		return false;  /* 한 사람은 한 번만 세어집니다 */
+	}
+
+	update_user_meta( $new_uid, 'stella_ref_by', $ref );
+	delete_user_meta( $new_uid, 'stella_ref_pending' );
+	update_user_meta( $ref, 'stella_ref_count', (int) get_user_meta( $ref, 'stella_ref_count', true ) + 1 );
+
+	$got = (int) get_user_meta( $ref, 'stella_ref_orbs', true );
+	if ( $got >= STELLA_REF_MAX_ORBS ) {
+		return false;  /* 사람 수는 세되 구슬은 상한까지만 */
+	}
+	$give = (int) STELLA_REF_ORBS;
+	if ( $got + $give > STELLA_REF_MAX_ORBS ) {
+		$give = (int) STELLA_REF_MAX_ORBS - $got;
+	}
+	if ( $give < 1 ) {
+		return false;
+	}
+
+	stella_orb_add( $ref, $give, '친구 추천' );
+	update_user_meta( $ref, 'stella_ref_orbs', $got + $give );
+	return true;
+}
+
+/**
+ * 갓 가입한 분에게 추천 쿠키가 붙어 있는지 봅니다.
+ * 이메일을 아직 안 남기셨으면 코드만 적어두고, 나중에 이메일을 넣을 때 드립니다.
+ */
+function stella_ref_award( $new_uid, $has_email ) {
+	$code = isset( $_COOKIE[ STELLA_REF_COOKIE ] )
+		? sanitize_text_field( wp_unslash( $_COOKIE[ STELLA_REF_COOKIE ] ) ) : '';
+	if ( $code === '' ) {
+		return;
+	}
+
+	/* 쿠키는 한 번 쓰고 지웁니다 */
+	unset( $_COOKIE[ STELLA_REF_COOKIE ] );
+	if ( ! headers_sent() ) {
+		setcookie(
+			STELLA_REF_COOKIE, '', time() - 3600,
+			COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, is_ssl(), true
+		);
+	}
+
+	if ( ! $has_email ) {
+		update_user_meta( $new_uid, 'stella_ref_pending', $code );
+		return;
+	}
+	stella_ref_pay( $new_uid, $code );
+}
+
+
+/* ---------------------------------------------------------------
  * 5. REST — 가입 / 주문 / 내 정보
  * --------------------------------------------------------------- */
 
@@ -585,7 +751,65 @@ add_action( 'rest_api_init', function () {
 		'permission_callback' => '__return_true',
 		'callback'            => 'stella_rest_email',
 	) );
+
+	register_rest_route( 'stella/v1', '/reopen', array(
+		'methods'             => 'POST',
+		'permission_callback' => '__return_true',
+		'callback'            => 'stella_rest_reopen',
+	) );
 } );
+
+/**
+ * 예전에 받으신 풀이를 다시 엽니다.
+ *
+ * 전자책은 저장해둔 파일이 아니라 열 때마다 그 자리에서 다시 세웁니다.
+ * 그래서 계산기가 좋아지면 다시 여는 것만으로 새 계산이 반영됩니다.
+ * 이미 값을 치른 주문이므로 구슬은 다시 받지 않습니다.
+ */
+function stella_rest_reopen( WP_REST_Request $req ) {
+	if ( ! is_user_logged_in() ) {
+		return new WP_Error( 'stella_need_login', '로그인이 필요해요.', array( 'status' => 401 ) );
+	}
+	$uid  = get_current_user_id();
+	$body = (array) $req->get_json_params();
+	$id   = isset( $body['id'] ) ? sanitize_text_field( $body['id'] ) : '';
+
+	$orders = get_user_meta( $uid, 'stella_orders', true );
+	$orders = is_array( $orders ) ? $orders : array();
+	if ( ! $orders ) {
+		return new WP_Error( 'stella_no_order', '다시 열 풀이가 없어요.', array( 'status' => 404 ) );
+	}
+
+	$found = null;
+	if ( $id !== '' ) {
+		foreach ( $orders as $row ) {
+			if ( isset( $row['id'] ) && (string) $row['id'] === $id ) {
+				$found = $row;
+				break;
+			}
+		}
+	} else {
+		$found = end( $orders );  /* 아이디를 안 주시면 가장 최근 것 */
+	}
+
+	if ( ! $found ) {
+		return new WP_Error( 'stella_no_order', '그 풀이를 찾지 못했어요.', array( 'status' => 404 ) );
+	}
+	if ( ! stella_profile_of( $uid ) ) {
+		return new WP_Error( 'stella_no_profile', '사주 정보가 없어요. 마이페이지에서 먼저 넣어주세요.', array( 'status' => 409 ) );
+	}
+
+	/* 이걸 지금 보는 주문으로 세웁니다 — 전자책이 이 값을 읽습니다 */
+	update_user_meta( $uid, 'stella_order_now', $found );
+
+	return rest_ensure_response( array(
+		'ok'       => true,
+		'guardian' => isset( $found['guardian'] ) ? $found['guardian'] : '',
+		'topic'    => isset( $found['topic'] ) ? $found['topic'] : '',
+		'orbs'     => 0,
+		'next'     => home_url( '/reading-book/' ),
+	) );
+}
 
 /** 마이페이지에서 사주 정보를 고쳤을 때 — 서버에도 남깁니다 */
 function stella_rest_profile( WP_REST_Request $req ) {
@@ -645,6 +869,13 @@ function stella_rest_email( WP_REST_Request $req ) {
 
 	delete_user_meta( $uid, 'stella_needs_email' );
 	stella_send_welcome( $uid, (string) get_user_meta( $uid, 'stella_name', true ) );
+
+	/* 가입할 때 이메일이 없어 미뤄둔 추천 구슬이 있으면 이제 드립니다 */
+	$pending = (string) get_user_meta( $uid, 'stella_ref_pending', true );
+	if ( $pending !== '' ) {
+		stella_ref_pay( $uid, $pending );
+		delete_user_meta( $uid, 'stella_ref_pending' );
+	}
 
 	return rest_ensure_response( array( 'ok' => true, 'email' => $email ) );
 }
@@ -708,6 +939,7 @@ function stella_rest_me( WP_REST_Request $req ) {
 		'log'      => array_values( $log ),
 		'orders'   => array_values( $orders ),
 		'readings' => stella_reading_list( $uid ),
+		'ref'      => stella_ref_stat( $uid ),
 	) );
 }
 
@@ -790,6 +1022,9 @@ function stella_rest_signup( WP_REST_Request $req ) {
 		} else {
 			update_user_meta( $uid, 'stella_needs_email', 1 );
 		}
+
+		/* 친구 추천으로 오셨으면 추천한 분께 구슬을 드립니다 */
+		stella_ref_award( $uid, $hasEmail );
 	}
 
 	/* 사주 정보 저장 */
