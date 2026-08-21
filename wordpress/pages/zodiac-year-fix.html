@@ -1,0 +1,57 @@
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 띠별운세 글자 고침 (페이지 92 의 두 번째 블록)
+
+  왜 있는가:
+    첫 블록을 올릴 때 전송 중에 한글 몇 자가 깨졌습니다.
+    (뻗는 → 뱗는, 꺾이면 → 꿱이면 같은 식으로 아홉 군데)
+    큰 블록을 다시 올리면 다른 자리가 또 깨질 수 있어서,
+    깨진 글자만 화면에서 되돌려 놓는 작은 블록을 따로 답니다.
+
+  이 블록은 화면에 아무것도 그리지 않습니다.
+  글자를 훑어 아래 표에 있는 것만 바로잡습니다.
+  나중에 첫 블록을 성한 글로 다시 올리면, 이 블록은 지우셔도 됩니다.
+  (표에 없는 글자는 건드리지 않으니, 남겨둬도 해롭지 않습니다)
+-->
+<script>
+(function(){
+  var FIX=[
+    ['뱗는','뻗는'],
+    ['꿱이면','꺾이면'],
+    ['앞서다니다','앞섭니다'],
+    ['끕는 기운이라','끊는 기운이라'],
+    ['릺고 끕는 것이','맺고 끊는 것이'],
+    ['스메드는','스며드는'],
+    ['크게 벗기보다','크게 뻗기보다'],
+    ['어그나는 주','어긋나는 주'],
+    ['어그납니다','어긋납니다'],
+    ['얘히지','얽히지']
+  ];
+
+  function mend(){
+    var root=document.getElementById('ssp');
+    if(!root){ return; }
+    var walk=document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null, false);
+    var node, i, before;
+    while((node=walk.nextNode())){
+      before=node.nodeValue;
+      if(!before){ continue; }
+      for(i=0;i<FIX.length;i++){
+        if(before.indexOf(FIX[i][0])>=0){
+          before=before.split(FIX[i][0]).join(FIX[i][1]);
+        }
+      }
+      if(before!==node.nodeValue){ node.nodeValue=before; }
+    }
+  }
+
+  /* 카드는 첫 블록이 그립니다. 다 그려진 뒤에 훑어야 합니다. */
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', mend);
+  } else {
+    mend();
+  }
+  window.addEventListener('load', mend);
+})();
+</script>
+<!-- /wp:html -->
