@@ -152,6 +152,7 @@ body.page-id-62 #ss-nav-spacer{display:none;}
     position:static; transform:none; opacity:1; visibility:visible; pointer-events:auto;
     min-width:0; background:none; border:0; box-shadow:none; padding:0 0 14px 4px;
   }
+  #ss-nav .ssnav-drop.tall{max-height:none; overflow-y:visible;}
   #ss-nav .ssnav-drop a{padding:12px 10px; font-size:.92rem;}
   #ss-nav .ssnav-top .caret{display:none;}
   #ss-nav .soon{pointer-events:none;}
@@ -235,6 +236,10 @@ body.page-id-62 #ss-nav-spacer{display:none;}
 
       <div class="ssnav-item">
         <a class="ssnav-top" href="/mypage/">마이페이지</a>
+      </div>
+
+      <div class="ssnav-item" id="ssnav-auth">
+        <a class="ssnav-top" href="/login/">로그인</a>
       </div>
 
     </nav>
@@ -322,23 +327,48 @@ body.page-id-62 #ss-nav-spacer{display:none;}
       closeAll();
     });
   });
-  // ── 홈 화면의 '직성의 문' 카드 열기 ─────────────────────────
-  // 홈(페이지 62) 코드 안에 class="door-card is-soon" 으로 잠겨 있습니다.
+  // ── 홈 화면의 여섯 문 열기 ───────────────────────────────
+  // 홈(페이지 62) 코드 안에 class="door-card is-soon" 으로 잠겨 있어서
+  // 눌러도 안 열립니다. 여기서 그 잠금을 풀고 뱃지를 바꿔 답니다.
+  // 중요: 이 머리말은 본문보다 먼저 읽히기 때문에, 지금 바로 찾으면
+  //       홈 내용이 아직 없어서 못 찾습니다. 본문이 다 온 뒤에 합니다.
   // 홈을 다시 쓸 때 그 HTML 에서 is-soon 을 직접 지우고, 이 블록은 지우세요.
-  var homeOpen = ['/door-career/','/door-love/','/door-health/',
-                  '/door-fortune/','/door-astro/','/door-tarot/'];
-  homeOpen.forEach(function(href){
-    var card = document.querySelector('#stellar-home a.door-card[href="' + href + '"]');
-    if(!card) return;
-    card.classList.remove('is-soon');
-    var badge = card.querySelector('.price-badge');
-    if(badge){
-      badge.textContent = '지금 열림';
-      badge.style.background = '#D4AF6A';
-      badge.style.color = '#0D0A1A';
-      badge.style.borderColor = '#D4AF6A';
-    }
-  });
+  function openHomeDoors(){
+    var homeOpen = ['/door-career/','/door-love/','/door-health/',
+                    '/door-fortune/','/door-astro/','/door-tarot/'];
+    homeOpen.forEach(function(href){
+      var card = document.querySelector('#stellar-home a.door-card[href="' + href + '"]');
+      if(!card) return;
+      card.classList.remove('is-soon');
+      var badge = card.querySelector('.price-badge');
+      if(badge){
+        badge.textContent = '지금 열림';
+        badge.style.background = '#D4AF6A';
+        badge.style.color = '#0D0A1A';
+        badge.style.borderColor = '#D4AF6A';
+      }
+    });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', openHomeDoors);
+  } else {
+    openHomeDoors();
+  }
+  // 혹시 홈 내용이 나중에 그려지는 경우를 대비해 한 번 더 시도합니다.
+  window.addEventListener('load', openHomeDoors);
+
+  // 로그인한 분께는 '로그아웃'으로 바꿔 답니다.
+  // 주소는 워드프레스가 만든 것을 그대로 씁니다 (한 번 쓰는 열쇠가 붙어 있어요).
+  // 서버가 알려주지 않으면 '로그인' 그대로 둡니다.
+  var authSlot = document.getElementById('ssnav-auth');
+  if(authSlot){
+    var authLink = authSlot.querySelector('a');
+    var me = window.STELLA_USER;
+    if(authLink){ if(me){ if(me.logout){
+      authLink.textContent = '로그아웃';
+      authLink.href = me.logout;
+    } } }
+  }
 
   // 화면을 키우면 모바일 상태 해제
   window.addEventListener('resize', function(){
@@ -347,25 +377,6 @@ body.page-id-62 #ss-nav-spacer{display:none;}
       document.documentElement.style.overflow = '';
     }
   });
-})();
-
-// ── 친구 추천 링크 기억하기 ───────────────────────────────────
-// stellasaju.com/?ref=A7K2M9 로 들어오시면 그 코드를 30일 동안 쿠키에 담아둡니다.
-// 가입이 끝나면 서버가 이 쿠키를 보고 추천한 분께 구슬을 얹습니다.
-// PHP 쪽에도 같은 일을 하는 코드가 있지만, 페이지가 캐시되면 PHP 가 안 돌 수 있어
-// 브라우저에서도 한 번 더 담아둡니다.
-(function(){
-  try{
-    // 물음표 뒤 값은 URLSearchParams 로 읽습니다.
-    // 정규식으로 하면 앰퍼샌드가 들어가는데, 워드프레스가 그 글자를 바꿔버립니다.
-    var code = new URLSearchParams(location.search).get('ref');
-    if(!code){ return; }
-    code = code.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    if(code.length < 4){ return; }
-    if(code.length > 12){ return; }
-    var till = new Date(Date.now() + 30*24*60*60*1000).toUTCString();
-    document.cookie = 'stella_ref=' + code + '; expires=' + till + '; path=/; SameSite=Lax';
-  }catch(err){}
 })();
 </script>
 <!-- /wp:html -->

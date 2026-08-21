@@ -1322,6 +1322,7 @@ add_action( 'wp_head', function () {
 			'balance' => stella_orb_balance( $uid ),
 			'expires' => '',
 			'trial'   => (bool) STELLA_TRIAL,
+			'logout'  => wp_logout_url( home_url( '/' ) ),
 		) ) . ';</script>' . "\n";
 		return;
 	}
@@ -1360,6 +1361,9 @@ add_action( 'wp_head', function () {
 		'job'     => (string) get_user_meta( $uid, 'stella_job', true ),
 		'years'   => (string) get_user_meta( $uid, 'stella_years', true ),
 		'want'    => (string) get_user_meta( $uid, 'stella_want', true ),
+		/* 머리말의 '로그아웃'이 쓸 주소입니다. 워드프레스가 만든 것이라
+		   한 번 쓰는 열쇠가 붙어 있어, 남이 몰래 로그아웃시킬 수 없습니다. */
+		'logout'  => wp_logout_url( home_url( '/' ) ),
 	);
 
 	echo '<script>window.STELLA_USER=' . wp_json_encode( $data ) . ';</script>' . "\n";
