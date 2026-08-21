@@ -59,6 +59,80 @@ define( 'STELLA_REF_DAYS',      30  );  // 추천 링크를 기억해두는 기�
 /* 메일로 보내는 로그인 링크 — 비밀번호 없이 들어오시는 길입니다.
    가입할 때 비밀번호를 안 만들었으니, 돌아오실 때도 비밀번호를 묻지 않습니다. */
 define( 'STELLA_LOGIN_MINUTES', 30 );  // 링크가 살아 있는 시간 (분)
+
+/* 결제 — 구슬 충전 (Stripe)
+ *
+ *   Stripe 에 가입하시면 열쇠 세 개를 받습니다. 아래에 채워 넣고
+ *   STELLA_PAY_ON 을 true 로 바꾸면 그때부터 결제가 열립니다.
+ *   그 전까지는 마이페이지에 '준비중'으로만 보이고 아무 일도 안 합니다.
+ *
+ *   [비밀 열쇠] sk_live_... — 절대 밖으로 새면 안 됩니다. 서버에서만 씁니다.
+ *   [공개 열쇠] pk_live_... — 브라우저가 봐도 되는 열쇠입니다.
+ *   [영수증 열쇠] whsec_... — Stripe 가 보내는 결제완료 소식이
+ *                 진짜 Stripe 에서 온 것인지 확인하는 데 씁니다.
+ *
+ *   Stripe 대시보드 → 개발자 → Webhooks 에서 아래 주소를 등록하고
+ *   checkout.session.completed 하나만 체크하시면 됩니다.
+ *     https://stellasaju.com/wp-json/stella/v1/pay-hook
+ */
+define( 'STELLA_PAY_ON',        false );      // 열쇠를 다 넣은 뒤 true 로
+define( 'STELLA_PAY_SECRET',    '' );         // sk_live_... (또는 시험용 sk_test_...)
+define( 'STELLA_PAY_PUBLIC',    '' );         // pk_live_...
+define( 'STELLA_PAY_HOOKKEY',   '' );         // whsec_...
+define( 'STELLA_PAY_CURRENCY',  'krw' );      // 'krw' 원화 · 'cad' 캐나다달러
+
+/* 충전 묶음 — 값은 여기서만 정합니다.
+   브라우저는 '어느 묶음인지'만 보내고, 값은 서버가 다시 찾아 씁니다.
+   그래서 화면을 조작해도 싸게 살 수 없습니다.
+
+   krw 는 원 단위 그대로, cad 는 달러 단위로 적으세요.
+   Stripe 에 보낼 때 필요한 단위 변환은 아래 stella_pay_amount() 가 합니다. */
+function stella_pay_packs() {
+	return array(
+		'p1' => array( 'orbs' => 5,  'krw' => 4900,  'cad' => 4.90,  'name' => '구슬 5개',  'note' => '풀이 한 편' ),
+		'p2' => array( 'orbs' => 15, 'krw' => 12900, 'cad' => 12.90, 'name' => '구슬 15개', 'note' => '풀이 세 편' ),
+		'p3' => array( 'orbs' => 30, 'krw' => 22900, 'cad' => 22.90, 'name' => '구슬 30개', 'note' => '풀이 여섯 편' ),
+		'p4' => array( 'orbs' => 60, 'krw' => 39900, 'cad' => 39.90, 'name' => '구슬 60개', 'note' => '인생길잡이 한 권 + 두 편' ),
+	);
+}
+
+/* Stripe 는 '가장 작은 단위'로 값을 받습니다.
+   원화는 소수점이 없어서 4900 을 그대로 보내지만,
+   캐나다달러는 센트라서 4.90 을 490 으로 바꿔 보내야 합니다.
+   여기를 한 군데로 모아두면 통화를 바꿔도 값이 틀어지지 않습니다. */
+function stella_pay_zero_decimal( $cur ) {
+	// 소수점이 없는 통화들 (Stripe 기준)
+	$none = array( 'krw', 'jpy', 'vnd', 'clp', 'isk', 'kmf', 'xaf', 'xof', 'xpf',
+	               'bif', 'djf', 'gnf', 'mga', 'pyg', 'rwf', 'ugx', 'vuv' );
+	return in_array( strtolower( $cur ), $none, true );
+}
+
+/** 묶음 하나를 Stripe 가 알아듣는 정수 금액으로 바꿉니다. 못 바꾸면 0. */
+function stella_pay_amount( $pack ) {
+	$cur = strtolower( (string) STELLA_PAY_CURRENCY );
+	if ( ! isset( $pack[ $cur ] ) ) {
+		return 0;
+	}
+	if ( stella_pay_zero_decimal( $cur ) ) {
+		return (int) round( $pack[ $cur ] );
+	}
+	return (int) round( $pack[ $cur ] * 100 );
+}
+
+/** 사람이 읽는 값 — 마이페이지 단추에 적을 글자입니다. */
+function stella_pay_label( $pack ) {
+	$cur = strtolower( (string) STELLA_PAY_CURRENCY );
+	if ( ! isset( $pack[ $cur ] ) ) {
+		return '';
+	}
+	if ( 'krw' === $cur ) {
+		return number_format( (float) $pack['krw'] ) . '원';
+	}
+	if ( 'cad' === $cur ) {
+		return 'CA$' . number_format( (float) $pack['cad'], 2 );
+	}
+	return strtoupper( $cur ) . ' ' . number_format( (float) $pack[ $cur ], 2 );
+}
 /* ================================================================ */
 
 
@@ -269,7 +343,30 @@ add_action( 'stella_daily_orbs', function () {
 
 		stella_orb_maybe_warn( $uid );
 	}
+
+	stella_pay_sweep();
 } );
+
+/**
+ * 결제 한 건마다 '이미 처리함' 표시를 하나씩 남겨둡니다.
+ * 그냥 두면 해가 갈수록 쌓이므로, 90일이 지난 것은 치웁니다.
+ * Stripe 가 그렇게 오래된 소식을 다시 보내는 일은 없습니다.
+ */
+function stella_pay_sweep() {
+	global $wpdb;
+	$cut = time() - ( 90 * DAY_IN_SECONDS );
+
+	$old = $wpdb->get_col( $wpdb->prepare(
+		"SELECT option_name FROM {$wpdb->options}
+		  WHERE option_name LIKE %s AND option_value < %d LIMIT 500",
+		$wpdb->esc_like( 'stella_paid_' ) . '%',
+		$cut
+	) );
+
+	foreach ( (array) $old as $name ) {
+		delete_option( $name );
+	}
+}
 
 
 /* ---------------------------------------------------------------
@@ -815,6 +912,157 @@ add_action( 'init', function () {
 
 
 /* ---------------------------------------------------------------
+ * 4.7 결제 — 구슬 충전
+ *
+ *   흐름:  마이페이지에서 묶음 고름
+ *          →  서버가 Stripe 결제창을 만들어 주소를 돌려줌
+ *          →  손님이 카드로 결제
+ *          →  Stripe 가 우리 서버를 두드림 (pay-hook)
+ *          →  서버가 '어느 묶음이었는지'만 보고 값을 다시 찾아 구슬을 얹음
+ *
+ *   지켜야 할 것 두 가지:
+ *     1. 브라우저가 보내는 금액은 절대 쓰지 않습니다. 묶음 이름만 받습니다.
+ *     2. 같은 결제로 두 번 얹지 않습니다 (아래 stella_pay_once).
+ * --------------------------------------------------------------- */
+
+/** 결제를 켤 준비가 됐는지 — 열쇠가 하나라도 비면 꺼진 것으로 봅니다. */
+function stella_pay_ready() {
+	if ( ! STELLA_PAY_ON ) { return false; }
+	if ( '' === (string) STELLA_PAY_SECRET ) { return false; }
+	if ( '' === (string) STELLA_PAY_PUBLIC ) { return false; }
+	return true;
+}
+
+/**
+ * 같은 결제를 두 번 처리하지 않게 막습니다.
+ *
+ * Stripe 는 우리가 확실히 받았다고 대답할 때까지 같은 소식을 여러 번 보냅니다.
+ * 게다가 손님이 돌아온 화면에서도 한 번 확인하기 때문에, 같은 결제가
+ * 두 길로 들어옵니다. add_option 은 이미 있는 이름이면 false 를 돌려주므로
+ * 먼저 도착한 쪽만 통과합니다.
+ *
+ * @return bool 처음이면 true, 이미 처리했으면 false
+ */
+function stella_pay_once( $session_id ) {
+	$key = 'stella_paid_' . substr( preg_replace( '/[^A-Za-z0-9_]/', '', (string) $session_id ), 0, 120 );
+	return (bool) add_option( $key, time(), '', 'no' );
+}
+
+/** Stripe 에 부탁하기 — 실패하면 WP_Error 를 돌려줍니다. */
+function stella_pay_call( $path, $body = null, $method = 'POST' ) {
+	$args = array(
+		'method'  => $method,
+		'timeout' => 20,
+		'headers' => array(
+			'Authorization' => 'Bearer ' . STELLA_PAY_SECRET,
+			'Content-Type'  => 'application/x-www-form-urlencoded',
+		),
+	);
+	if ( null !== $body ) {
+		$args['body'] = $body;
+	}
+
+	$res = wp_remote_request( 'https://api.stripe.com/v1/' . ltrim( $path, '/' ), $args );
+	if ( is_wp_error( $res ) ) {
+		return $res;
+	}
+
+	$json = json_decode( wp_remote_retrieve_body( $res ), true );
+	if ( ! is_array( $json ) ) {
+		return new WP_Error( 'stella_pay_reply', '결제사 응답을 읽지 못했습니다.' );
+	}
+	if ( isset( $json['error'] ) ) {
+		$msg = isset( $json['error']['message'] ) ? $json['error']['message'] : '결제사에서 거절했습니다.';
+		return new WP_Error( 'stella_pay_no', $msg );
+	}
+	return $json;
+}
+
+/**
+ * 결제가 끝난 결제건 하나를 받아 구슬을 얹습니다.
+ *
+ * 금액은 여기서 쓰지 않습니다. 묶음 이름(metadata.pack)만 보고
+ * stella_pay_packs() 에서 개수를 다시 찾습니다.
+ *
+ * @return int 얹은 구슬 수 (0 이면 아무 일도 안 한 것)
+ */
+function stella_pay_grant( $session ) {
+	if ( ! is_array( $session ) ) { return 0; }
+
+	$paid = isset( $session['payment_status'] ) ? $session['payment_status'] : '';
+	if ( 'paid' !== $paid ) { return 0; }
+
+	$meta = isset( $session['metadata'] ) ? (array) $session['metadata'] : array();
+	$uid  = isset( $meta['uid'] )  ? (int) $meta['uid'] : 0;
+	$slug = isset( $meta['pack'] ) ? (string) $meta['pack'] : '';
+	$sid  = isset( $session['id'] ) ? (string) $session['id'] : '';
+
+	if ( $uid < 1 ) { return 0; }
+	if ( '' === $sid ) { return 0; }
+	if ( ! get_userdata( $uid ) ) { return 0; }
+
+	$packs = stella_pay_packs();
+	if ( ! isset( $packs[ $slug ] ) ) { return 0; }
+
+	$orbs = (int) $packs[ $slug ]['orbs'];
+	if ( $orbs < 1 ) { return 0; }
+
+	// 여기를 지나는 건 이 결제건에 대해 딱 한 번뿐입니다.
+	if ( ! stella_pay_once( $sid ) ) { return 0; }
+
+	stella_orb_add( $uid, $orbs, '구슬 충전 (' . $packs[ $slug ]['name'] . ')' );
+
+	// 영수증 기록 — 마이페이지에서 보여드립니다.
+	$bills = get_user_meta( $uid, 'stella_bills', true );
+	$bills = is_array( $bills ) ? $bills : array();
+	$bills[] = array(
+		'at'   => time(),
+		'pack' => $slug,
+		'orbs' => $orbs,
+		'paid' => stella_pay_label( $packs[ $slug ] ),
+		'sid'  => $sid,
+	);
+	update_user_meta( $uid, 'stella_bills', array_slice( $bills, -50 ) );
+
+	return $orbs;
+}
+
+/**
+ * Stripe 가 보낸 소식이 진짜인지 확인합니다.
+ *
+ * 이 확인이 없으면 아무나 우리 주소로 '결제됐어요' 라고 보내서
+ * 공짜로 구슬을 받아갈 수 있습니다. 반드시 있어야 합니다.
+ *
+ * 머리글 모양:  t=1712345678,v1=abcdef...,v0=...
+ * 확인법:      't.본문' 을 영수증 열쇠로 서명해서 v1 과 같은지 봅니다.
+ */
+function stella_pay_hook_ok( $raw, $header ) {
+	if ( '' === (string) STELLA_PAY_HOOKKEY ) { return false; }
+	if ( '' === (string) $header ) { return false; }
+
+	$time = '';
+	$sigs = array();
+	foreach ( explode( ',', $header ) as $bit ) {
+		$pair = explode( '=', trim( $bit ), 2 );
+		if ( 2 !== count( $pair ) ) { continue; }
+		if ( 't' === $pair[0] )  { $time = $pair[1]; }
+		if ( 'v1' === $pair[0] ) { $sigs[] = $pair[1]; }
+	}
+	if ( '' === $time ) { return false; }
+	if ( empty( $sigs ) ) { return false; }
+
+	// 너무 오래된 소식은 받지 않습니다 (누가 가로채 두었다 다시 보내는 것 막기).
+	if ( abs( time() - (int) $time ) > 5 * MINUTE_IN_SECONDS ) { return false; }
+
+	$mine = hash_hmac( 'sha256', $time . '.' . $raw, STELLA_PAY_HOOKKEY );
+	foreach ( $sigs as $one ) {
+		if ( hash_equals( $mine, $one ) ) { return true; }
+	}
+	return false;
+}
+
+
+/* ---------------------------------------------------------------
  * 5. REST — 가입 / 주문 / 내 정보
  * --------------------------------------------------------------- */
 
@@ -859,6 +1107,33 @@ add_action( 'rest_api_init', function () {
 		'methods'             => 'POST',
 		'permission_callback' => '__return_true',
 		'callback'            => 'stella_rest_login',
+	) );
+
+	register_rest_route( 'stella/v1', '/packs', array(
+		'methods'             => 'GET',
+		'permission_callback' => '__return_true',
+		'callback'            => 'stella_rest_packs',
+	) );
+
+	register_rest_route( 'stella/v1', '/pay', array(
+		'methods'             => 'POST',
+		'permission_callback' => '__return_true',
+		'callback'            => 'stella_rest_pay',
+	) );
+
+	/* 손님이 결제를 마치고 돌아온 화면에서 한 번 확인합니다.
+	   Stripe 소식이 늦거나 막혔을 때를 위한 두 번째 길입니다. */
+	register_rest_route( 'stella/v1', '/pay-check', array(
+		'methods'             => 'POST',
+		'permission_callback' => '__return_true',
+		'callback'            => 'stella_rest_pay_check',
+	) );
+
+	/* Stripe 가 두드리는 문 — 사람이 열 일은 없습니다. */
+	register_rest_route( 'stella/v1', '/pay-hook', array(
+		'methods'             => 'POST',
+		'permission_callback' => '__return_true',
+		'callback'            => 'stella_rest_pay_hook',
 	) );
 } );
 
@@ -1081,7 +1356,216 @@ function stella_rest_me( WP_REST_Request $req ) {
 		'orders'   => array_values( $orders ),
 		'readings' => stella_reading_list( $uid ),
 		'ref'      => stella_ref_stat( $uid ),
+		'pay'      => array(
+			'ready'    => stella_pay_ready(),
+			'currency' => strtolower( (string) STELLA_PAY_CURRENCY ),
+		),
+		'bills'    => stella_bill_list( $uid ),
 	) );
+}
+
+/** 결제 영수증 — 마이페이지에서 보여드립니다 (최근 것이 위로). */
+function stella_bill_list( $uid ) {
+	$bills = get_user_meta( $uid, 'stella_bills', true );
+	if ( ! is_array( $bills ) ) {
+		return array();
+	}
+	$out = array();
+	foreach ( array_slice( $bills, -20 ) as $row ) {
+		$out[] = array(
+			'date' => wp_date( 'Y-m-d', (int) $row['at'] ),
+			'orbs' => (int) $row['orbs'],
+			'paid' => isset( $row['paid'] ) ? (string) $row['paid'] : '',
+		);
+	}
+	return array_reverse( $out );
+}
+
+
+/** 충전 묶음 목록 — 마이페이지가 읽어 갑니다. */
+function stella_rest_packs( WP_REST_Request $req ) {
+	$out = array();
+	foreach ( stella_pay_packs() as $slug => $pack ) {
+		$out[] = array(
+			'id'    => $slug,
+			'orbs'  => (int) $pack['orbs'],
+			'name'  => $pack['name'],
+			'note'  => $pack['note'],
+			'price' => stella_pay_label( $pack ),
+		);
+	}
+	return rest_ensure_response( array(
+		'ok'       => true,
+		'ready'    => stella_pay_ready(),
+		'currency' => strtolower( (string) STELLA_PAY_CURRENCY ),
+		'packs'    => $out,
+	) );
+}
+
+/**
+ * 결제창 열어주세요.
+ *
+ * 받는 것은 묶음 이름 하나뿐입니다. 금액은 서버가 정합니다.
+ */
+function stella_rest_pay( WP_REST_Request $req ) {
+	if ( ! is_user_logged_in() ) {
+		return new WP_Error( 'stella_guest', '먼저 들어와 주세요.', array( 'status' => 401 ) );
+	}
+	if ( ! stella_pay_ready() ) {
+		return new WP_Error( 'stella_pay_off', '결제는 아직 준비중이에요.', array( 'status' => 503 ) );
+	}
+
+	$uid  = get_current_user_id();
+	$slug = sanitize_key( (string) $req->get_param( 'pack' ) );
+
+	$packs = stella_pay_packs();
+	if ( ! isset( $packs[ $slug ] ) ) {
+		return new WP_Error( 'stella_pay_pack', '없는 묶음이에요.', array( 'status' => 400 ) );
+	}
+
+	$pack   = $packs[ $slug ];
+	$amount = stella_pay_amount( $pack );
+	if ( $amount < 1 ) {
+		return new WP_Error( 'stella_pay_amount', '값을 정하지 못했어요.', array( 'status' => 500 ) );
+	}
+
+	$user  = get_userdata( $uid );
+	$email = ( $user && is_email( $user->user_email ) ) ? $user->user_email : '';
+	$cur   = strtolower( (string) STELLA_PAY_CURRENCY );
+
+	$body = array(
+		'mode'        => 'payment',
+		'success_url' => home_url( '/mypage/?paid=1&s={CHECKOUT_SESSION_ID}' ),
+		'cancel_url'  => home_url( '/mypage/?paid=0' ),
+		'locale'      => 'ko',
+		'metadata'    => array( 'uid' => (string) $uid, 'pack' => $slug ),
+
+		'line_items'  => array(
+			array(
+				'quantity'   => 1,
+				'price_data' => array(
+					'currency'     => $cur,
+					'unit_amount'  => $amount,
+					'product_data' => array(
+						'name'        => '스텔라사주 ' . $pack['name'],
+						'description' => $pack['note'],
+					),
+				),
+			),
+		),
+	);
+	if ( '' !== $email ) {
+		$body['customer_email'] = $email;
+	}
+
+	/* 같은 사람이 같은 묶음을 연달아 두 번 눌러도 결제창이 하나만 만들어지게 합니다.
+	   (결제가 두 번 되는 것이 아니라, 창이 두 개 열리는 것을 막습니다) */
+	$args = array(
+		'method'  => 'POST',
+		'timeout' => 20,
+		'headers' => array(
+			'Authorization'   => 'Bearer ' . STELLA_PAY_SECRET,
+			'Content-Type'    => 'application/x-www-form-urlencoded',
+			'Idempotency-Key' => 'ss_' . $uid . '_' . $slug . '_' . floor( time() / 60 ),
+		),
+		'body'    => $body,
+	);
+	$res = wp_remote_request( 'https://api.stripe.com/v1/checkout/sessions', $args );
+
+	if ( is_wp_error( $res ) ) {
+		return new WP_Error( 'stella_pay_net', '결제사에 닿지 못했어요. 잠시 후 다시 시도해주세요.', array( 'status' => 502 ) );
+	}
+	$json = json_decode( wp_remote_retrieve_body( $res ), true );
+	if ( ! is_array( $json ) ) {
+		return new WP_Error( 'stella_pay_reply', '결제사 응답을 읽지 못했어요.', array( 'status' => 502 ) );
+	}
+	if ( isset( $json['error'] ) ) {
+		// 자세한 사유는 손님께 보이지 않습니다 — 기록에만 남깁니다.
+		$why = isset( $json['error']['message'] ) ? $json['error']['message'] : 'unknown';
+		error_log( '[stella pay] ' . $why );
+		return new WP_Error( 'stella_pay_no', '결제창을 열지 못했어요. 잠시 후 다시 시도해주세요.', array( 'status' => 502 ) );
+	}
+	if ( empty( $json['url'] ) ) {
+		return new WP_Error( 'stella_pay_url', '결제창 주소를 받지 못했어요.', array( 'status' => 502 ) );
+	}
+
+	return rest_ensure_response( array( 'ok' => true, 'url' => $json['url'] ) );
+}
+
+/**
+ * 결제를 마치고 돌아온 화면에서 한 번 더 확인합니다.
+ *
+ * 결제번호만 받고, 그 번호로 Stripe 에 직접 물어봅니다.
+ * 브라우저가 '결제됐어요' 라고 말하는 것은 믿지 않습니다.
+ */
+function stella_rest_pay_check( WP_REST_Request $req ) {
+	if ( ! is_user_logged_in() ) {
+		return new WP_Error( 'stella_guest', '먼저 들어와 주세요.', array( 'status' => 401 ) );
+	}
+	if ( ! stella_pay_ready() ) {
+		return new WP_Error( 'stella_pay_off', '결제는 아직 준비중이에요.', array( 'status' => 503 ) );
+	}
+
+	$sid = (string) $req->get_param( 'session' );
+	$sid = preg_replace( '/[^A-Za-z0-9_]/', '', $sid );
+	if ( '' === $sid ) {
+		return new WP_Error( 'stella_pay_sid', '결제번호가 없어요.', array( 'status' => 400 ) );
+	}
+
+	$session = stella_pay_call( 'checkout/sessions/' . $sid, null, 'GET' );
+	if ( is_wp_error( $session ) ) {
+		return new WP_Error( 'stella_pay_net', '확인하지 못했어요. 잠시 후 마이페이지를 새로고침해주세요.', array( 'status' => 502 ) );
+	}
+
+	/* 남의 결제번호를 넣어보는 것을 막습니다 —
+	   그 결제가 정말 지금 로그인한 분의 것인지 확인합니다. */
+	$meta = isset( $session['metadata'] ) ? (array) $session['metadata'] : array();
+	$who  = isset( $meta['uid'] ) ? (int) $meta['uid'] : 0;
+	if ( $who !== get_current_user_id() ) {
+		return new WP_Error( 'stella_pay_whose', '확인하지 못했어요.', array( 'status' => 403 ) );
+	}
+
+	$got = stella_pay_grant( $session );
+
+	return rest_ensure_response( array(
+		'ok'      => true,
+		'added'   => (int) $got,          // 0 이면 이미 처리됐거나 아직 결제 전
+		'balance' => stella_orb_balance( get_current_user_id() ),
+	) );
+}
+
+/**
+ * Stripe 가 두드리는 문.
+ *
+ * 서명을 먼저 확인하고, 통과한 것만 처리합니다.
+ * 대답은 언제나 200 으로 합니다 — 우리 쪽 사정으로 Stripe 가
+ * 같은 소식을 며칠씩 다시 보내게 만들지 않기 위해서입니다.
+ */
+function stella_rest_pay_hook( WP_REST_Request $req ) {
+	$raw = $req->get_body();
+	$sig = $req->get_header( 'stripe_signature' );
+
+	if ( ! stella_pay_hook_ok( $raw, (string) $sig ) ) {
+		// 서명이 안 맞으면 아무것도 하지 않습니다.
+		return new WP_REST_Response( array( 'ok' => false ), 400 );
+	}
+
+	$event = json_decode( $raw, true );
+	if ( ! is_array( $event ) ) {
+		return new WP_REST_Response( array( 'ok' => true ), 200 );
+	}
+
+	$type = isset( $event['type'] ) ? $event['type'] : '';
+	if ( 'checkout.session.completed' !== $type ) {
+		if ( 'checkout.session.async_payment_succeeded' !== $type ) {
+			return new WP_REST_Response( array( 'ok' => true ), 200 );
+		}
+	}
+
+	$session = isset( $event['data']['object'] ) ? $event['data']['object'] : null;
+	stella_pay_grant( $session );
+
+	return new WP_REST_Response( array( 'ok' => true ), 200 );
 }
 
 function stella_rest_signup( WP_REST_Request $req ) {

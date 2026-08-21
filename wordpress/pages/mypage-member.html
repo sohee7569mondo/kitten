@@ -73,6 +73,33 @@
 #ssm .ref .say{margin-top:10px; font-size:.86rem; color:#9AD1A5; display:none;}
 #ssm .ref .say.on{display:block;}
 
+/* 구슬 충전 */
+#ssm .buy{display:grid !important; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:4px;}
+@media(max-width:520px){ #ssm .buy{grid-template-columns:1fr;} }
+#ssm .buy .pack{text-align:left; background:#070512; border:1px solid rgba(212,175,106,.18);
+  border-radius:9px; padding:16px 18px; cursor:pointer; color:#F2ECE0;
+  font-family:inherit; transition:border-color .2s ease, transform .2s ease;}
+#ssm .buy .pack:hover{border-color:#D4AF6A; transform:translateY(-2px);}
+#ssm .buy .pack:disabled{opacity:.5; cursor:default; transform:none;}
+#ssm .buy .pack .n{font-size:1.05rem; font-weight:700;}
+#ssm .buy .pack .w{margin-top:3px; font-size:.78rem; color:rgba(242,236,224,.46);}
+#ssm .buy .pack .p{margin-top:10px; font-family:'IBM Plex Mono',monospace;
+  font-size:.94rem; color:#D4AF6A;}
+#ssm .buy .pack .best{display:inline-block; margin-left:7px; padding:2px 8px; border-radius:20px;
+  background:#D4AF6A; color:#070512; font-size:.62rem; font-weight:700;
+  font-family:'IBM Plex Mono',monospace; vertical-align:middle;}
+#ssm .paysay{margin-top:12px; font-size:.86rem; display:none;}
+#ssm .paysay.on{display:block;}
+#ssm .paysay.err{color:#E5A0A0;}
+#ssm .paysay.ok{color:#9AD1A5;}
+#ssm .paycap{margin-top:12px; font-size:.8rem; color:rgba(242,236,224,.46); line-height:1.8;}
+#ssm .bills{margin-top:16px;}
+#ssm .bills .b1{display:flex !important; justify-content:space-between; gap:14px;
+  padding:10px 0; border-bottom:1px solid rgba(212,175,106,.1); font-size:.88rem;}
+#ssm .bills .b1:last-child{border-bottom:0;}
+#ssm .bills .b1 .l{color:rgba(242,236,224,.72);}
+#ssm .bills .b1 .r{color:#D4AF6A; font-family:'IBM Plex Mono',monospace; flex:0 0 auto;}
+
 /* 로그인 안 하신 분께 */
 #ssm .guest{margin-bottom:30px; padding:20px 22px; border-radius:10px;
   background:rgba(140,101,214,.1); border:1px solid rgba(140,101,214,.3);}
@@ -192,6 +219,152 @@
 
     /* 6 — 친구 추천 */
     paintRef(me, host);
+
+    /* 7 — 구슬 충전.
+       칸은 host 바로 뒤에 끼워 넣기 때문에, 나중에 넣은 것이 위로 옵니다.
+       충전은 구슬 잔액 바로 아래에 있어야 하므로 맨 마지막에 부릅니다. */
+    paintPay(me, host);
+  }
+
+  /* ── 구슬 충전 ────────────────────────────────────────────
+     값은 서버에서 받아옵니다. 여기에 값을 적어두지 않습니다 —
+     화면의 숫자를 고쳐도 결제되는 값은 서버가 정한 값 그대로입니다. */
+  function paintPay(me, host){
+    if(!me.pay){ return; }
+
+    var sec=section('구슬 충전',
+      me.pay.ready
+        ? '카드로 바로 채우실 수 있어요. 해외 카드도 받습니다.'
+        : '결제는 준비하고 있어요. 조금만 기다려주세요.',
+      '<div class="buy" id="mBuy"></div>'
+      + '<div class="paysay" id="mPaySay"></div>'
+      + '<div class="paycap">채우신 구슬은 1년 동안 쓰실 수 있어요. '
+      + '결제창은 스트라이프(Stripe)가 띄웁니다 — 카드 번호는 저희 쪽에 남지 않습니다.</div>'
+      + '<div class="bills" id="mBills"></div>');
+    host.parentNode.insertBefore(sec, host.nextSibling);
+
+    paintBills(me);
+
+    if(!me.pay.ready){
+      var off=document.getElementById('mBuy');
+      if(off){ off.innerHTML='<button type="button" class="pack" disabled>'
+        + '<div class="n">준비중</div><div class="w">곧 열어드릴게요</div></button>'; }
+      return;
+    }
+
+    fetch('/wp-json/stella/v1/packs', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d){ return; }
+        if(!d.packs){ return; }
+        drawPacks(d.packs);
+      })
+      .catch(function(){});
+  }
+
+  function drawPacks(packs){
+    var wrap=document.getElementById('mBuy');
+    if(!wrap){ return; }
+
+    var html='', i, k, best=0, mostOrbs=0;
+    for(i=0;i<packs.length;i++){ if(packs[i].orbs>mostOrbs){ mostOrbs=packs[i].orbs; best=i; } }
+
+    for(i=0;i<packs.length;i++){
+      k=packs[i];
+      html += '<button type="button" class="pack" data-id="'+esc(k.id)+'">'
+           +  '<div class="n">'+esc(k.name)
+           +  (i===best ? '<span class="best">가장 큼</span>' : '')
+           +  '</div>'
+           +  '<div class="w">'+esc(k.note)+'</div>'
+           +  '<div class="p">'+esc(k.price)+'</div></button>';
+    }
+    wrap.innerHTML=html;
+
+    wrap.addEventListener('click', function(e){
+      var btn=e.target;
+      while(btn){
+        if(btn.className){ if(String(btn.className).indexOf('pack')>=0){ break; } }
+        btn=btn.parentNode;
+      }
+      if(!btn){ return; }
+      if(btn.disabled){ return; }
+      buy(btn.getAttribute('data-id')||'', wrap);
+    });
+  }
+
+  function buy(id, wrap){
+    if(!id){ return; }
+    var all=wrap.querySelectorAll('.pack'), i;
+    for(i=0;i<all.length;i++){ all[i].disabled=true; }
+    say('결제창을 여는 중…','');
+
+    fetch('/wp-json/stella/v1/pay', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      credentials:'same-origin', body:JSON.stringify({pack:id})
+    }).then(function(r){ return r.json().then(function(j){ return {ok:r.ok, j:j}; }); })
+      .then(function(res){
+        if(!res.ok){ throw new Error(res.j.message||''); }
+        if(!res.j.url){ throw new Error(''); }
+        location.href=res.j.url;
+      })
+      .catch(function(err){
+        for(var n=0;n<all.length;n++){ all[n].disabled=false; }
+        var why='';
+        if(err){ if(err.message){ why=err.message; } }
+        say(why ? why : '결제창을 열지 못했어요. 잠시 후 다시 해주세요.','err');
+      });
+  }
+
+  function say(text, kind){
+    var el=document.getElementById('mPaySay');
+    if(!el){ return; }
+    el.textContent=text;
+    el.className='paysay on'+(kind ? ' '+kind : '');
+  }
+
+  function paintBills(me){
+    var el=document.getElementById('mBills');
+    if(!el){ return; }
+    if(!me.bills){ return; }
+    if(!me.bills.length){ return; }
+    var html='', i, b;
+    for(i=0;i<me.bills.length;i++){
+      b=me.bills[i];
+      html += '<div class="b1"><span class="l">'+esc(b.date)+' · 구슬 '+b.orbs+'개</span>'
+           +  '<span class="r">'+esc(b.paid)+'</span></div>';
+    }
+    el.innerHTML='<div style="font-size:.84rem;color:rgba(242,236,224,.46);margin-bottom:6px">충전 내역</div>'+html;
+  }
+
+  /* 결제를 마치고 돌아오셨을 때 —
+     서버에 결제번호를 주고 다시 확인합니다.
+     브라우저가 '됐어요' 하는 말은 믿지 않습니다. */
+  function afterPay(){
+    var q=new URLSearchParams(location.search);
+    var paid=q.get('paid');
+    if(!paid){ return false; }
+
+    var sid=q.get('s')||'';
+    if(history.replaceState){ history.replaceState(null,'',location.pathname); }
+
+    if(paid!=='1'){ return false; }
+    if(!sid){ return false; }
+
+    fetch('/wp-json/stella/v1/pay-check', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      credentials:'same-origin', body:JSON.stringify({session:sid})
+    }).then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d){ return; }
+        if(!d.ok){ return; }
+        var num=document.getElementById('oNum');
+        if(num){ num.textContent=String(d.balance); }
+        say(d.added>0
+          ? '구슬 '+d.added+'개를 채웠어요. 지금 '+d.balance+'개입니다.'
+          : '결제를 확인했어요. 지금 구슬은 '+d.balance+'개입니다.','ok');
+      })
+      .catch(function(){});
+    return true;
   }
 
   /* ── 지난 풀이 ────────────────────────────────────────────
@@ -338,6 +511,7 @@
         if(!me){ return; }
         if(!me.member){ askLogin(); return; }
         paintMe(me);
+        afterPay();
       })
       .catch(function(){});   /* 서버가 없으면 조용히 넘어갑니다 */
   }
