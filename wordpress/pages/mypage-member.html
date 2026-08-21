@@ -1,15 +1,18 @@
 <!-- wp:html -->
 <!--
   STELLA SAJU — 마이페이지 · 회원 부분 (페이지 185 의 두 번째 블록)
-  BUILD: M1
+  BUILD: M3
 
   첫 번째 블록은 브라우저 저장소만 읽습니다. 이 블록이 서버에 물어봐서
   회원이면 진짜 값으로 덮어씁니다.
 
-    GET  /wp-json/stella/v1/me       잔액 · 만료일 · 사용내역 · 주문 · 내 책
-    POST /wp-json/stella/v1/profile  정보 고치기를 서버에도 저장
-    POST /wp-json/stella/v1/email    이메일 없이 가입한 분에게 나중에 받기
-    POST /wp-json/stella/v1/reopen   지난 풀이를 다시 펼치기 (구슬 안 받음)
+    GET  /wp-json/stella/v1/me         잔액 · 만료일 · 사용내역 · 주문 · 내 책
+    POST /wp-json/stella/v1/profile    정보 고치기를 서버에도 저장
+    POST /wp-json/stella/v1/email      이메일 없이 가입한 분에게 나중에 받기
+    POST /wp-json/stella/v1/reopen     지난 풀이를 다시 펼치기 (구슬 안 받음)
+    GET  /wp-json/stella/v1/packs      충전 묶음 목록 (값은 서버가 정합니다)
+    POST /wp-json/stella/v1/pay        결제창 열기
+    POST /wp-json/stella/v1/pay-check  결제를 마치고 돌아왔을 때 확인
 
   로그인하지 않은 채로 오시면 맨 위에 '들어오기' 안내를 띄웁니다.
 
@@ -371,7 +374,7 @@
   }
 
   /* ── 지난 풀이 ────────────────────────────────────────────
-     전자책은 저장해둔 파일이 아니라 열 때마다 그 자리에서 다시 셉니다.
+     전자책은 저장해둔 파일이 아니라 열 때마다 그 자리에서 다시 계산합니다.
      그래서 계산기가 좋아지면 다시 여는 것만으로 새 계산이 반영됩니다. */
   function paintAgain(me, host){
     if(!me.orders){ return; }
