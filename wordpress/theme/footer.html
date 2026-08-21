@@ -41,6 +41,26 @@ body .wp-site-blocks > footer.wp-block-template-part{
 </div>
 
 <script>
+/* 친구 추천 링크 기억하기 ─────────────────────────────────────
+   stellasaju.com/?ref=A7K2M9 처럼 들어오시면 그 코드를 30일 동안 쿠키에 담아둡니다.
+   가입이 끝나면 서버가 이 쿠키를 보고 추천한 분께 구슬을 얹습니다.
+
+   PHP 쪽에도 같은 일을 하는 코드가 있지만, 페이지가 캐시되면 PHP 가 안 돌 수도 있어
+   브라우저에서도 한 번 더 담아둡니다. 푸터는 모든 쪽에 붙으니 어디로 들어오셔도 잡힙니다. */
+(function(){
+  try{
+    /* 물음표 뒤 값은 URLSearchParams 로 읽습니다.
+       정규식으로 하면 앰퍼샌드가 들어가는데, 워드프레스가 그 글자를 바꿔버립니다. */
+    var code = new URLSearchParams(location.search).get('ref');
+    if(!code){ return; }
+    code = code.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if(code.length < 4){ return; }
+    if(code.length > 12){ return; }
+    var till = new Date(Date.now() + 30*24*60*60*1000).toUTCString();
+    document.cookie = 'stella_ref=' + code + '; expires=' + till + '; path=/; SameSite=Lax';
+  }catch(err){}
+})();
+
 (function(){
   var img = document.querySelector('#ss-footer .ssf-logo');
   if(!img) return;
