@@ -242,6 +242,10 @@ body.page-id-62 #ss-nav-spacer{display:none;}
         <a class="ssnav-top" href="/login/">로그인</a>
       </div>
 
+      <div class="ssnav-item" id="ssnav-join">
+        <a class="ssnav-top" href="/door-career/">가입</a>
+      </div>
+
     </nav>
 
     <button type="button" class="ssnav-burger" aria-label="메뉴 열기" aria-expanded="false">
@@ -361,14 +365,17 @@ body.page-id-62 #ss-nav-spacer{display:none;}
   // 주소는 워드프레스가 만든 것을 그대로 씁니다 (한 번 쓰는 열쇠가 붙어 있어요).
   // 서버가 알려주지 않으면 '로그인' 그대로 둡니다.
   var authSlot = document.getElementById('ssnav-auth');
+  var joinSlot = document.getElementById('ssnav-join');
+  var me = window.STELLA_USER;
   if(authSlot){
     var authLink = authSlot.querySelector('a');
-    var me = window.STELLA_USER;
     if(authLink){ if(me){ if(me.logout){
       authLink.textContent = '로그아웃';
       authLink.href = me.logout;
     } } }
   }
+  // 이미 들어와 계신 분께 '가입'은 필요 없습니다.
+  if(joinSlot){ if(me){ joinSlot.style.display = 'none'; } }
 
   // 화면을 키우면 모바일 상태 해제
   window.addEventListener('resize', function(){

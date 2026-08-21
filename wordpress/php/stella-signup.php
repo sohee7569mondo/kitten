@@ -300,7 +300,7 @@ function stella_orb_maybe_warn( $uid ) {
 	$lines[] = '';
 	$lines[] = '— 스텔라사주';
 
-	$sent = wp_mail( $user->user_email, $subject, implode( "\n", $lines ) );
+	$sent = stella_mail( $user->user_email, $subject, implode( "\n", $lines ) );
 	update_user_meta( $uid, 'stella_low_mailed_at', time() );
 
 	return $sent;
@@ -330,7 +330,7 @@ add_action( 'stella_daily_orbs', function () {
 		if ( $dropped > 0 ) {
 			$user = get_userdata( $uid );
 			if ( $user && is_email( $user->user_email ) ) {
-				wp_mail(
+				stella_mail(
 					$user->user_email,
 					'[스텔라사주] 구슬 ' . $dropped . '개의 기한이 지났어요',
 					"안녕하세요.\n\n" .
@@ -859,7 +859,7 @@ function stella_login_send( $uid ) {
 	$lines[] = '';
 	$lines[] = '— 명성의 신 드림';
 
-	return wp_mail( $user->user_email, '[스텔라사주] 로그인 링크입니다', implode( "\n", $lines ) );
+	return stella_mail( $user->user_email, '[스텔라사주] 로그인 링크입니다', implode( "\n", $lines ) );
 }
 
 /**
@@ -1063,6 +1063,57 @@ function stella_pay_hook_ok( $raw, $header ) {
 
 
 /* ---------------------------------------------------------------
+ * 4.8 메일 — 보낸 결과를 남겨둡니다
+ *
+ *   메일이 안 온다고 하실 때, 서버가 "보냈다"고 생각하는지
+ *   "못 보냈다"고 하는지부터 알아야 합니다. 그 둘은 고치는 방법이
+ *   완전히 다릅니다.
+ *
+ *     못 보냄  →  서버나 스니펫 문제. 아래 기록에 사유가 남습니다.
+ *     보냈음   →  받는 쪽 문제. 스팸함이나 도메인 인증(SPF/DKIM).
+ * --------------------------------------------------------------- */
+
+/* 보내는 사람 이름을 또박또박 적어줍니다.
+   'WordPress' 라고만 오면 스팸으로 걸리기 쉽습니다. */
+add_filter( 'wp_mail_from_name', function ( $name ) {
+	return '스텔라사주';
+} );
+
+/* 워드프레스가 메일을 못 보내면 그 사유를 적어둡니다. */
+add_action( 'wp_mail_failed', function ( $err ) {
+	if ( is_wp_error( $err ) ) {
+		set_transient( 'stella_mail_err', $err->get_error_message(), HOUR_IN_SECONDS );
+	}
+} );
+
+/**
+ * wp_mail 을 감싸서 결과를 남깁니다.
+ *
+ * 기록은 최근 30건만 둡니다. 늘어나지 않습니다.
+ */
+function stella_mail( $to, $subject, $body ) {
+	delete_transient( 'stella_mail_err' );
+
+	$sent = wp_mail( $to, $subject, $body );
+
+	$log = get_option( 'stella_mail_log', array() );
+	if ( ! is_array( $log ) ) {
+		$log = array();
+	}
+	$log[] = array(
+		'at'   => time(),
+		'to'   => (string) $to,
+		'subj' => (string) $subject,
+		'ok'   => (bool) $sent,
+		'why'  => $sent ? '' : (string) get_transient( 'stella_mail_err' ),
+	);
+	update_option( 'stella_mail_log', array_slice( $log, -30 ), false );
+
+	return $sent;
+}
+
+
+/* ---------------------------------------------------------------
  * 5. REST — 가입 / 주문 / 내 정보
  * --------------------------------------------------------------- */
 
@@ -1134,6 +1185,18 @@ add_action( 'rest_api_init', function () {
 		'methods'             => 'POST',
 		'permission_callback' => '__return_true',
 		'callback'            => 'stella_rest_pay_hook',
+	) );
+
+	/* 메일 진단 — 관리자만 볼 수 있습니다.
+	   주소창에 그냥 치시면 됩니다:
+	     /wp-json/stella/v1/mailcheck            최근 보낸 기록
+	     /wp-json/stella/v1/mailcheck?to=주소     그 주소로 시험 메일 */
+	register_rest_route( 'stella/v1', '/mailcheck', array(
+		'methods'             => 'GET',
+		'permission_callback' => function () {
+			return current_user_can( 'manage_options' );
+		},
+		'callback'            => 'stella_rest_mailcheck',
 	) );
 } );
 
@@ -1381,6 +1444,58 @@ function stella_bill_list( $uid ) {
 	return array_reverse( $out );
 }
 
+
+/**
+ * 메일이 나가고 있는지 확인하는 관리자용 창구.
+ *
+ * ?to=주소 를 붙이면 그 주소로 시험 메일을 한 통 보내고,
+ * 워드프레스가 "보냈다"고 했는지 그대로 알려줍니다.
+ * 여기서 sent 가 true 인데 메일이 안 온다면 받는 쪽(스팸함·도메인 인증)
+ * 문제이고, false 라면 보내는 쪽 문제입니다.
+ */
+function stella_rest_mailcheck( WP_REST_Request $req ) {
+	$out = array(
+		'snippet' => 'ok',                       // 이 줄이 보이면 스니펫은 최신입니다
+		'site'    => home_url( '/' ),
+		'from'    => 'wordpress@' . wp_parse_url( home_url(), PHP_URL_HOST ),
+		'log'     => array(),
+	);
+
+	$to = (string) $req->get_param( 'to' );
+	if ( '' !== $to ) {
+		if ( ! is_email( $to ) ) {
+			$out['test'] = array( 'to' => $to, 'sent' => false, 'why' => '이메일 모양이 아닙니다' );
+		} else {
+			$sent = stella_mail(
+				$to,
+				'[스텔라사주] 메일 시험',
+				"이 메일이 보이면 서버에서 메일이 나가고 있는 것입니다.\n\n" .
+				"보낸 시각 : " . wp_date( 'Y-m-d H:i:s' ) . "\n" .
+				home_url( '/' ) . "\n\n— 스텔라사주"
+			);
+			$out['test'] = array(
+				'to'   => $to,
+				'sent' => (bool) $sent,
+				'why'  => $sent ? '' : (string) get_transient( 'stella_mail_err' ),
+			);
+		}
+	}
+
+	$log = get_option( 'stella_mail_log', array() );
+	if ( is_array( $log ) ) {
+		foreach ( array_reverse( array_slice( $log, -20 ) ) as $row ) {
+			$out['log'][] = array(
+				'when' => wp_date( 'Y-m-d H:i:s', (int) $row['at'] ),
+				'to'   => $row['to'],
+				'subj' => $row['subj'],
+				'sent' => (bool) $row['ok'],
+				'why'  => $row['why'],
+			);
+		}
+	}
+
+	return rest_ensure_response( $out );
+}
 
 /** 충전 묶음 목록 — 마이페이지가 읽어 갑니다. */
 function stella_rest_packs( WP_REST_Request $req ) {
@@ -1781,7 +1896,7 @@ function stella_send_welcome( $uid, $name ) {
 	$lines[] = '';
 	$lines[] = '— 명성의 신 드림';
 
-	wp_mail( $user->user_email, '[스텔라사주] 가입을 환영합니다', implode( "\n", $lines ) );
+	stella_mail( $user->user_email, '[스텔라사주] 가입을 환영합니다', implode( "\n", $lines ) );
 }
 
 
