@@ -1,0 +1,134 @@
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 총평에서 내 자리 짚어주기 (페이지 84 의 두 번째 블록)
+
+  다섯 장 가운데 어느 것을 봐야 하는지 몰라서 그냥 나가시는 분이 많습니다.
+  가입할 때 넣으신 생년월일로 일간(日干)을 세워, 그 사람의 자리를
+  맨 위로 올리고 표시해 드립니다.
+
+  '나'는 일간입니다. 오행이 많은 쪽이 아니라, 일주의 위 글자예요.
+  그래서 여기서도 일간만 봅니다.
+
+  음력으로 넣으신 분은 건너뜁니다. 여기에는 음력 변환표가 없어서
+  잘못 세울 바에는 아무 말도 하지 않는 편이 낫습니다.
+  (그런 분께는 /saju/ 로 가시라고 안내만 답니다)
+-->
+<style>
+#wsMine{max-width:760px; margin:0 auto 6px; padding:18px 22px; border-radius:11px;
+  background:rgba(212,175,106,.09); border:1px solid rgba(212,175,106,.34);
+  font-size:.96rem; line-height:1.9; color:#F2ECE0; text-align:left; display:none;}
+#wsMine.on{display:block;}
+#wsMine b{color:#D4AF6A;}
+#wsMine .sub{display:block; margin-top:6px; font-size:.84rem; color:rgba(242,236,224,.6);}
+#wsMine a{color:#D4AF6A; border-bottom:1px solid rgba(212,175,106,.5);}
+.el-card.ws-mine{box-shadow:0 0 0 2px #D4AF6A, 0 24px 46px -24px rgba(140,101,214,.5);}
+.el-card .ws-badge{display:inline-block; margin-left:8px; padding:3px 10px; border-radius:20px;
+  background:#D4AF6A; color:#0D0A1A; font-size:.62rem; font-weight:700;
+  font-family:'IBM Plex Mono',monospace; vertical-align:middle;}
+</style>
+<script>
+(function(){
+  var GAN_K=['갑','을','병','정','무','기','경','신','임','계'];
+  var GAN_H=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  var GAN_EL=['목','목','화','화','토','토','금','금','수','수'];
+  var EL_H={'목':'木','화':'火','토':'土','금':'金','수':'水'};
+
+  /* 일주 — 1900-01-31 을 갑진일로 잡습니다 (사이트의 다른 계산과 같은 기준).
+     밤 11시부터는 만세력에서 다음 날로 넘깁니다. */
+  function ilgan(y,m,d,h){
+    var diff=Math.round((Date.UTC(y,m-1,d)-Date.UTC(1900,0,31))/86400000);
+    if(h!==null){ if(h>=23){ diff+=1; } }
+    return ((diff%10)+10)%10;
+  }
+
+  function profile(){
+    var raw=null;
+    try{ raw=localStorage.getItem('stella_demo'); }catch(e){ return null; }
+    if(!raw){ return null; }
+    var p=null;
+    try{ p=JSON.parse(raw).profile; }catch(e){ return null; }
+    if(!p){ return null; }
+    if(!p.year){ return null; }
+    if(!p.month){ return null; }
+    if(!p.day){ return null; }
+    return p;
+  }
+
+  function findCard(el){
+    var want=EL_H[el];
+    var cards=document.querySelectorAll('.el-card');
+    for(var i=0;i<cards.length;i++){
+      var g=cards[i].querySelector('.el-glyph');
+      if(!g){ continue; }
+      if(g.textContent.indexOf(want)>=0){ return cards[i]; }
+    }
+    return null;
+  }
+
+  function show(){
+    var box=document.getElementById('wsMine');
+    if(!box){ return; }
+
+    var p=profile();
+    if(!p){
+      box.innerHTML='다섯 가운데 <b>어느 것이 내 자리인지</b> 모르시겠다면, '
+        + '<a href="/saju/">나의 사주풀이</a>에서 생년월일을 한 번 넣어보세요. '
+        + '그러면 여기 올 때마다 자동으로 짚어드립니다.';
+      box.className='on';
+      return;
+    }
+
+    if(p.calendar==='lunar'){
+      box.innerHTML='음력으로 넣어두셨네요. 음력은 양력으로 바꿔야 일간을 세울 수 있어서, '
+        + '<a href="/saju/">나의 사주풀이</a>에서 확인해 주세요. 거기서 바꿔 계산해 드립니다.';
+      box.className='on';
+      return;
+    }
+
+    var h=null;
+    if(p.hour===0){ h=0; }
+    if(p.hour){ h=p.hour; }
+
+    var g=ilgan(p.year, p.month, p.day, h);
+    var el=GAN_EL[g];
+    var card=findCard(el);
+
+    box.innerHTML='나를 나타내는 글자는 <b>'+GAN_K[g]+'('+GAN_H[g]+')</b>, '
+      + '<b>'+el+'('+EL_H[el]+')</b>의 사람이세요.<br>'
+      + '아래 다섯 가운데 <b>'+el+'('+EL_H[el]+')의 기운</b> 항목이 당신 자리입니다.'
+      + '<span class="sub">오행이 많은 쪽이 아니라, 일주의 위 글자가 곧 나입니다. '
+      + '나머지 넷은 나를 둘러싼 기운이라, 참고로만 보시면 돼요.</span>';
+    box.className='on';
+
+    if(!card){ return; }
+    card.className = card.className + ' ws-mine';
+    var name=card.querySelector('.el-name');
+    if(name){
+      if(name.innerHTML.indexOf('ws-badge')<0){
+        name.innerHTML = name.innerHTML + '<span class="ws-badge">내 기운</span>';
+      }
+    }
+    /* 내 자리를 맨 앞으로 올립니다 */
+    var grid=card.parentNode;
+    if(grid){ grid.insertBefore(card, grid.firstChild); }
+  }
+
+  function place(){
+    /* 안내 칸을 다섯 장 바로 위에 끼워 넣습니다 */
+    if(document.getElementById('wsMine')){ show(); return; }
+    var grid=document.querySelector('.el-grid');
+    if(!grid){ return; }
+    var box=document.createElement('div');
+    box.id='wsMine';
+    grid.parentNode.insertBefore(box, grid);
+    show();
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', place);
+  } else {
+    place();
+  }
+})();
+</script>
+<!-- /wp:html -->
