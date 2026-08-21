@@ -1,0 +1,64 @@
+<!-- wp:html -->
+<script>
+/* ═══ 진태양시 설명을 태어난 곳에 맞춥니다 ═══
+   03 장의 첫 문단이 늘 동경 135도와 우리 국토를 이야기하면
+   밴쿠버에서 태어난 분께는 앞뒤가 맞지 않습니다.
+
+   전자책 원본(reading-book.html)은 이미 이렇게 고쳐져 있습니다.
+   이 블록은 올려둔 페이지에 옛 문장이 남아 있을 때만 일을 합니다. */
+(function(){
+  function start(){
+    var box=document.getElementById('ssb'); if(!box){ return; }
+    var S=window.StellaSaju; if(!S){ return; }
+    if(!S.lastChart){ return; }
+    var chart=S.lastChart(); if(!chart){ return; }
+    var ts=chart.trueSolar; if(!ts){ return; }
+
+    /* 그 문단을 찾습니다 */
+    var ps=box.getElementsByTagName('p'), i, target=null;
+    for(i=0;i<ps.length;i++){
+      if(ps[i].innerHTML.indexOf('사주는 시계를 보지 않고 해를 봅니다.')>=0){ target=ps[i]; break; }
+    }
+    if(!target){ return; }
+
+    /* 경도 보정 줄에 어느 곳을 기준으로 셈했는지 적혀 있습니다 */
+    var place='태어나신 곳';
+    var minis=box.getElementsByClassName('mini'), k, t;
+    for(k=0;k<minis.length;k++){
+      t=(minis[k].textContent||'').replace(/\s+$/,'');
+      if(t.length>2){
+        if(t.slice(-2)==='기준'){ place=t.slice(0,-2).replace(/\s+$/,''); break; }
+      }
+    }
+    function esc(x){
+      return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    var meridian=ts.tz*15;
+    var meridianName=(meridian<0) ? ('서경 '+Math.abs(meridian)+'도')
+                    : ((meridian>0) ? ('동경 '+meridian+'도') : '본초자오선');
+    var why;
+    if(ts.zone==='kr'){
+      why='우리나라 표준시는 <em>'+meridianName+'</em>를 기준으로 하는데 '+
+        (ts.lonCorrection<0 ? '국토는 그보다 서쪽에 있어서, 시계가 늘 조금 앞서 갑니다.'
+                            : '국토는 그보다 동쪽에 있어서, 시계가 늘 조금 뒤처져 갑니다.');
+    } else {
+      why='시계는 넓은 땅이 함께 쓰라고 만든 약속이라, 태어나신 그 자리에서 해가 '+
+        '한가운데 뜨는 진짜 정오와는 어긋납니다. <em>'+esc(place)+'</em>의 시계는 '+
+        '<em>'+meridianName+'</em> 기준으로 맞춰져 있어서, 그 자리에서 해는 시계보다 '+
+        Math.abs(ts.lonCorrection)+'분 '+(ts.lonCorrection<0?'늦게':'이르게')+' 움직입니다.';
+    }
+
+    var want='사주는 시계를 보지 않고 해를 봅니다. '+why+' 여기에 하나가 더 붙습니다 — '+
+      '지구가 해를 도는 길이 정확한 동그라미가 아니라 살짝 찌그러진 타원이라, 하루 길이가 계절마다 몇 분씩 '+
+      '늘었다 줄었다 합니다. 이 차이를 <em>균시차</em>라고 해요. 둘을 다 더해야 태어난 진짜 시각이 나옵니다.';
+
+    if(target.innerHTML!==want){ target.innerHTML=want; }
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+})();
+</script>
+<!-- /wp:html -->
