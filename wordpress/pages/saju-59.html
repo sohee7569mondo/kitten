@@ -437,7 +437,7 @@
 
     var el=stemEl[dp.s], elh=EL.filter(function(e){return e[0]===el;})[0][1];
     $('elementLine').innerHTML='나를 나타내는 글자는 일주의 위 글자, <span>'+stemsKr[dp.s]+'('+stemsHan[dp.s]+')</span>'
-      +' 입니다.<br>사장님은 <span>'+el+'('+elh+')</span>의 사람이에요.';
+      +' 입니다.<br>당신은 <span>'+el+'('+elh+')</span>의 사람이에요.';
 
     /* 어느 항목을 봐야 하는지 —
        '나'는 일간(日干)입니다. 오행이 많다고 그 오행의 사주가 아닙니다.
@@ -449,7 +449,7 @@
     var weak=EL.filter(function(e){return cnt[e[0]]===0;}).map(function(e){return e[0];});
 
     var msg='이번주 총평에서는 <b style="color:#D4AF6A;font-weight:700">'
-          + mineEl + '(' + elh + ')의 기운</b> 항목을 보세요. 그게 사장님 자신입니다.';
+          + mineEl + '(' + elh + ')의 기운</b> 항목을 보세요. 그게 당신 자신입니다.';
 
     var extra='';
     if(strong.length===1){
