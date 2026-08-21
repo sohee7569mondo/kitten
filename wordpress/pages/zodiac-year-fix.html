@@ -1,20 +1,24 @@
 <!-- wp:html -->
 <!--
-  STELLA SAJU — 띠별운세 글자 고침 (페이지 92 의 두 번째 블록)
+  STELLA SAJU — 띠별운세 뒷손질 (페이지 92 의 두 번째 블록)
 
-  왜 있는가:
-    첫 블록을 올릴 때 전송 중에 한글 몇 자가 깨졌습니다.
-    (뻗는 → 뱗는, 꺾이면 → 꿱이면 같은 식으로 아홉 군데)
-    큰 블록을 다시 올리면 다른 자리가 또 깨질 수 있어서,
-    깨진 글자만 화면에서 되돌려 놓는 작은 블록을 따로 답니다.
+  두 가지를 합니다.
 
-  이 블록은 화면에 아무것도 그리지 않습니다.
-  글자를 훑어 아래 표에 있는 것만 바로잡습니다.
-  나중에 첫 블록을 성한 글로 다시 올리면, 이 블록은 지우셔도 됩니다.
-  (표에 없는 글자는 건드리지 않으니, 남겨둬도 해롭지 않습니다)
+  [1] 전송 중에 깨진 한글 몇 자를 화면에서 되돌립니다.
+      큰 블록을 다시 올리면 다른 자리가 또 깨질 수 있어 따로 답니다.
+
+  [2] 월·일을 채워 넣고 다시 찾습니다.
+      첫 블록은 지난번에 넣으신 '해'를 기억해 뒀다가 그대로 씁니다.
+      그런데 월·일 칸이 생기기 전에 저장된 값에는 해밖에 없어서,
+      1월생이 계속 뒷 띠로 나왔습니다.
+      가입할 때 넣으신 생년월일에서 월·일을 가져와 채우고,
+      '내 띠 찾기'를 한 번 눌러 줍니다.
+
+  첫 블록을 다시 올릴 때 이 두 가지를 안에 넣으면, 이 블록은 지워도 됩니다.
 -->
 <script>
 (function(){
+  /* ── [1] 깨진 글자 되돌리기 ─────────────────────────── */
   var FIX=[
     ['뱗는','뻗는'],
     ['꿱이면','꺾이면'],
@@ -45,13 +49,50 @@
     }
   }
 
-  /* 카드는 첫 블록이 그립니다. 다 그려진 뒤에 훑어야 합니다. */
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', mend);
-  } else {
-    mend();
+  /* ── [2] 월·일 채워 넣고 다시 찾기 ───────────────────── */
+  function fillDate(){
+    var mon=document.getElementById('zMon');
+    var day=document.getElementById('zDay');
+    var yr =document.getElementById('zYear');
+    var btn=document.getElementById('zFind');
+    if(!mon){ return; }
+    if(!day){ return; }
+    if(!yr){ return; }
+    if(!btn){ return; }
+
+    /* 이미 월·일이 들어 있으면 건드리지 않습니다 */
+    if(mon.value){ if(day.value){ return; } }
+
+    var raw=null;
+    try{ raw=localStorage.getItem('stella_demo'); }catch(err){ return; }
+    if(!raw){ return; }
+
+    var p=null;
+    try{ p=JSON.parse(raw).profile; }catch(err){ return; }
+    if(!p){ return; }
+    if(!p.year){ return; }
+    if(!p.month){ return; }
+    if(!p.day){ return; }
+
+    /* 음력으로 넣으신 분은 그대로 쓰면 안 됩니다.
+       입춘은 양력 날짜로 견주는 것이라, 음력 날짜를 넣으면 엉뚱해집니다.
+       그런 분은 손으로 넣으시게 두고 여기서는 손대지 않습니다. */
+    if(p.calendar==='lunar'){ return; }
+
+    yr.value  = String(p.year);
+    mon.value = String(p.month);
+    day.value = String(p.day);
+    btn.click();
   }
-  window.addEventListener('load', mend);
+
+  function go(){ mend(); fillDate(); mend(); }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', go);
+  } else {
+    go();
+  }
+  window.addEventListener('load', go);
 })();
 </script>
 <!-- /wp:html -->
