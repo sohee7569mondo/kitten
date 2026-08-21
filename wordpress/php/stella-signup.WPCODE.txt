@@ -1422,6 +1422,10 @@ function stella_rest_me( WP_REST_Request $req ) {
 			'ready'    => stella_pay_ready(),
 			'currency' => strtolower( (string) STELLA_PAY_CURRENCY ),
 		),
+		/* 마이페이지가 '정보 고치기'를 저장할 때 나라를 잃지 않도록 함께 내려줍니다.
+		   그 화면에는 나라를 고르는 칸이 없어서, 없으면 한국으로 덮어써버립니다.
+		   밴쿠버에서 태어난 분이 한국 기준으로 계산되던 문제가 여기서 났습니다. */
+		'profile'  => stella_profile_of( $uid ),
 		'bills'    => stella_bill_list( $uid ),
 	) );
 }

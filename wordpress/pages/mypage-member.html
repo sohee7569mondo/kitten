@@ -114,6 +114,9 @@
 (function(){
   var root=document.getElementById('ssm'); if(!root) return;
 
+  /* 서버가 알려준 내 정보를 담아둡니다 (나라 같은 것을 잃지 않으려고) */
+  var MEMBER=null;
+
   function esc(s){ return String(s==null?'':s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -248,7 +251,7 @@
     if(!me.pay.ready){
       var off=document.getElementById('mBuy');
       if(off){ off.innerHTML='<button type="button" class="pack" disabled>'
-        + '<div class="n">준비중</div><div class="w">곧 열어드릴게요</div></button>'; }
+        + '<div class="n">준비중</div><div class="w">준비되는 대로 열어드려요</div></button>'; }
       return;
     }
 
@@ -489,8 +492,16 @@
     btn.addEventListener('click', function(){
       function val(id){ var e=document.getElementById(id); return e ? e.value.trim() : ''; }
       function n(id){ var v=val(id); return v==='' ? null : parseInt(v,10); }
+
+      /* 이 화면에는 나라를 고르는 칸이 없습니다.
+         서버가 알려준 나라를 그대로 돌려보냅니다. 그러지 않으면
+         밴쿠버에서 태어난 분을 한국으로 덮어써서, 시차와 경도 보정이
+         전부 틀어집니다. 모르면 그때만 한국으로 둡니다. */
+      var land='대한민국';
+      if(MEMBER){ if(MEMBER.profile){ if(MEMBER.profile.country){ land=MEMBER.profile.country; } } }
+
       var p={ name:val('fName'), sex:val('fSex'), city:val('fCity'),
-              calendar:val('fCal'), country:'대한민국',
+              calendar:val('fCal'), country:land,
               year:n('fYear'), month:n('fMonth'), day:n('fDay'),
               hour:n('fHour'), minute:(n('fMin')===null?0:n('fMin')) };
       if(!p.year){ return; }
@@ -510,6 +521,7 @@
       .then(function(me){
         if(!me){ return; }
         if(!me.member){ askLogin(); return; }
+        MEMBER=me;
         paintMe(me);
         afterPay();
       })

@@ -75,6 +75,12 @@ body.page-id-62 #ss-nav-spacer{display:none;}
 #ss-nav .ssnav-top .caret{font-size:.62rem; color:var(--gold-soft); transition:transform .2s ease;}
 #ss-nav .ssnav-item.open .ssnav-top .caret{transform:rotate(180deg);}
 
+/* 가입 — 한 눈에 보이게 금빛 단추로 */
+#ss-nav #ssnav-join .ssnav-top{
+  background:linear-gradient(135deg, var(--gold), #B98A47); color:#070512; font-weight:700;
+}
+#ss-nav #ssnav-join .ssnav-top:hover{filter:brightness(1.07); background:linear-gradient(135deg, var(--gold), #B98A47);}
+
 #ss-nav .ssnav-drop{
   position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%) translateY(-6px);
   min-width:250px; padding:8px; border-radius:8px;
@@ -147,6 +153,9 @@ body.page-id-62 #ss-nav-spacer{display:none;}
   }
   #ss-nav .ssnav-item{border-bottom:1px solid rgba(212,175,106,.1);}
   #ss-nav .ssnav-top{width:100%; justify-content:space-between; padding:18px 4px; font-size:1rem;}
+  /* 가입 단추는 모바일에서도 눈에 띄게 */
+  #ss-nav #ssnav-join{border-bottom:0; padding:14px 0 4px;}
+  #ss-nav #ssnav-join .ssnav-top{justify-content:center; border-radius:6px; padding:15px 20px;}
   /* 모바일에서는 접기/펴기 없이 전부 펼쳐 보여줍니다 */
   #ss-nav .ssnav-drop{
     position:static; transform:none; opacity:1; visibility:visible; pointer-events:auto;
