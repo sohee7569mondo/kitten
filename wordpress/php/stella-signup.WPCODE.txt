@@ -828,10 +828,31 @@ function stella_ref_award( $new_uid, $has_email ) {
  *   · 가입 안 된 주소를 넣어도 똑같이 대답합니다 — 누가 회원인지 알려주지 않습니다
  * --------------------------------------------------------------- */
 
+/**
+ * 이 계정이 메일 링크로 들어와도 되는 계정인가.
+ *
+ * 손님(구독자)은 됩니다. 관리자·편집자처럼 사이트를 고칠 수 있는 계정은
+ * 안 됩니다. 메일 한 통이 곧 열쇠가 되는 방식이라, 메일함이 털리면
+ * 사이트까지 통째로 넘어갑니다. 그런 계정은 워드프레스 본래의
+ * 로그인 화면(/wp-login.php)을 쓰셔야 합니다.
+ */
+function stella_login_allowed( $uid ) {
+	if ( user_can( $uid, 'edit_posts' ) ) {
+		return false;
+	}
+	if ( user_can( $uid, 'manage_options' ) ) {
+		return false;
+	}
+	return true;
+}
+
 /** 로그인 링크를 만들어 메일로 보냅니다 */
 function stella_login_send( $uid ) {
 	$user = get_userdata( $uid );
 	if ( ! $user ) {
+		return false;
+	}
+	if ( ! stella_login_allowed( $uid ) ) {
 		return false;
 	}
 	$token = wp_generate_password( 32, false, false );
@@ -899,6 +920,13 @@ add_action( 'init', function () {
 
 	if ( ! stella_login_check( $uid, $token ) ) {
 		wp_safe_redirect( home_url( '/login/?again=1' ) );
+		exit;
+	}
+
+	/* 보낼 때 막았지만, 들어올 때 한 번 더 봅니다.
+	   그 사이에 그 계정이 관리자가 되었을 수도 있으니까요. */
+	if ( ! stella_login_allowed( $uid ) ) {
+		wp_safe_redirect( wp_login_url( home_url( '/mypage/' ) ) );
 		exit;
 	}
 
