@@ -75,7 +75,9 @@
   font-family:'IBM Plex Mono',monospace; font-size:17px;}
 #ssp .finder button{padding:12px 20px; border-radius:6px; border:0; cursor:pointer; font-weight:700;
   background:linear-gradient(135deg, var(--gold), #B98A47); color:var(--void-deep);}
-#ssp .finder .hint{flex:1 0 100%; font-size:.8rem; color:var(--ink-dim);}
+#ssp .finder #zMon,#ssp .finder #zDay{width:74px;}
+#ssp .finder .hint{flex:1 0 100%; font-size:.8rem; color:var(--ink-dim); line-height:1.75;}
+#ssp .finder .hint b{color:var(--gold-soft); font-weight:400;}
 
 #ssp .agrid{display:grid !important; grid-template-columns:repeat(3,1fr); gap:15px; margin-top:44px; text-align:left;}
 @media(max-width:940px){ #ssp .agrid{grid-template-columns:repeat(2,1fr);} }
@@ -134,10 +136,14 @@
     </div>
 
     <div class="finder">
-      <label for="zYear">태어난 해</label>
-      <input id="zYear" type="number" inputmode="numeric" placeholder="1994" min="1900" max="2030">
+      <label for="zYear">태어난 날</label>
+      <input id="zYear" type="number" inputmode="numeric" placeholder="1994" min="1900" max="2049">
+      <input id="zMon" type="number" inputmode="numeric" placeholder="월" min="1" max="12">
+      <input id="zDay" type="number" inputmode="numeric" placeholder="일" min="1" max="31">
       <button type="button" id="zFind">내 띠 찾기</button>
-      <div class="hint">1월~2월 초에 태어나신 분은 사주로 보면 앞 띠일 수 있어요.</div>
+      <div class="hint">사주에서 한 해는 1월 1일이 아니라 <b>입춘</b>에 바뀝니다.
+        그래서 1월이나 2월 초에 태어나신 분은 앞 띠예요.
+        월·일까지 넣어주시면 정확히 갈라 드립니다.</div>
     </div>
 
     <div class="agrid" id="zGrid"></div>
@@ -300,31 +306,96 @@
   }
   grid.innerHTML = html;
 
+  /* ── 입춘 구하기 ────────────────────────────────────────────
+     사주에서 한 해는 1월 1일이 아니라 입춘에 바뀝니다.
+     그래서 1월 23일에 태어나신 분은 그 해 띠가 아니라 앞 해 띠입니다.
+     아래 세 함수는 전자책이 쓰는 것과 똑같은 계산입니다 —
+     두 곳이 다른 답을 내지 않게 하려고 그대로 옮겨왔습니다. */
+  function jd(y,m,d,h,mi){
+    h=h||0; mi=mi||0;
+    if(m<=2){ y-=1; m+=12; }
+    var A=Math.floor(y/100), B=2-A+Math.floor(A/4);
+    return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))
+           +d+B-1524.5+(h+mi/60)/24;
+  }
+  function sunLon(j){          /* 겉보기 황경(도) */
+    var T=(j-2451545.0)/36525.0;
+    var L0=(280.46646+36000.76983*T+0.0003032*T*T)%360;
+    var M =(357.52911+35999.05029*T-0.0001537*T*T)%360;
+    var Mr=M*Math.PI/180;
+    var C =(1.914602-0.004817*T-0.000014*T*T)*Math.sin(Mr)
+          +(0.019993-0.000101*T)*Math.sin(2*Mr)+0.000289*Math.sin(3*Mr);
+    var om=125.04-1934.136*T;
+    return (L0+C-0.00569-0.00478*Math.sin(om*Math.PI/180)+720)%360;
+  }
+  /* 태양 황경이 315도가 되는 순간 = 입춘 (세계시 기준 율리우스일) */
+  function ipchunJd(year){
+    var lo=jd(year,2,1)-5, hi=jd(year,2,1)+15;
+    function f(t){ var v=(sunLon(t)-315+360)%360; return v>180 ? v-360 : v; }
+    for(var i=0;i<60;i++){
+      var mid=(lo+hi)/2;
+      if(f(lo)*f(mid)<=0){ hi=mid; } else { lo=mid; }
+    }
+    return (lo+hi)/2;
+  }
+
+  /* 태어난 날이 입춘 앞이면 앞 해로 봅니다.
+     월·일을 안 넣으셨으면 넣으신 해를 그대로 씁니다. */
+  function sajuYearOf(y, m, d){
+    if(!m){ return y; }
+    if(!d){ return y; }
+    /* 한국 시각으로 넣으신 날짜를 세계시로 옮겨 견줍니다 (아홉 시간 차이) */
+    var born=jd(y, m, d, 0, 0) - 9/24;
+    return (born < ipchunJd(y)) ? y-1 : y;
+  }
+
   /* ── 내 띠 찾기 ── */
   var input=document.getElementById('zYear');
+  var monIn=document.getElementById('zMon');
+  var dayIn=document.getElementById('zDay');
   var btn=document.getElementById('zFind');
   function findMine(){
     var y=parseInt(input.value,10);
     if(!y){ return; }
     if(y<1900){ return; }
-    if(y>2030){ return; }
-    var z=((y-4)%12+12)%12;
+    if(y>2049){ return; }
+    var m=parseInt(monIn.value,10);
+    var d=parseInt(dayIn.value,10);
+    if(isNaN(m)){ m=0; }
+    if(isNaN(d)){ d=0; }
+
+    var sy=sajuYearOf(y,m,d);
+    var z=((sy-4)%12+12)%12;
     var cards=grid.querySelectorAll('.acard');
     for(var i=0;i<cards.length;i++){
       cards[i].classList.remove('mine');
-      var m=cards[i].querySelector('.amine');
-      if(m){ m.style.display='none'; }
+      /* 여기 이름을 m 으로 쓰면 위에서 읽어둔 '월'을 덮어씁니다.
+         var 는 블록이 아니라 함수 전체에 걸리기 때문입니다. */
+      var tag=cards[i].querySelector('.amine');
+      if(tag){ tag.style.display='none'; }
     }
     var card=document.getElementById('zc'+z);
     if(!card){ return; }
     card.classList.add('mine');
     var mine=card.querySelector('.amine');
     if(mine){
-      mine.textContent = y+'년생 · '+ANIMAL[z]+'띠. 지금 보고 계신 띠예요.';
+      var say = y+'년생 · '+ANIMAL[z]+'띠. 지금 보고 계신 띠예요.';
+      if(sy!==y){
+        say = y+'년 '+m+'월 '+d+'일생이시라면 '+ANIMAL[z]+'띠입니다. '
+            + '그 해 입춘 전에 태어나셔서, 사주로는 '+sy+'년에 들어갑니다.';
+      } else if(!m || !d){
+        if(y>=1900){
+          say += ' 1월이나 2월 초에 태어나셨다면 월·일도 넣어주세요 — 앞 띠일 수 있어요.';
+        }
+      }
+      mine.textContent = say;
       mine.style.display='block';
     }
     card.scrollIntoView({behavior:'smooth', block:'center'});
-    try{ localStorage.setItem('stella_zodiac_year', String(y)); }catch(e){}
+    try{
+      localStorage.setItem('stella_zodiac_year', String(y));
+      localStorage.setItem('stella_zodiac_md', (m||0)+'-'+(d||0));
+    }catch(e){}
   }
   btn.addEventListener('click', findMine);
   input.addEventListener('keydown', function(e){ if(e.key==='Enter'){ findMine(); } });
@@ -332,12 +403,27 @@
   /* 지난번에 넣으신 해가 있으면 바로 찾아둡니다 */
   try{
     var saved=localStorage.getItem('stella_zodiac_year');
-    if(saved){ input.value=saved; findMine(); }
+    if(saved){
+      input.value=saved;
+      var md=localStorage.getItem('stella_zodiac_md');
+      if(md){
+        var bits=md.split('-');
+        if(bits[0]!=='0'){ monIn.value=bits[0]; }
+        if(bits[1]!=='0'){ dayIn.value=bits[1]; }
+      }
+      findMine();
+    }
     else{
       var demo=localStorage.getItem('stella_demo');
       if(demo){
         var o=JSON.parse(demo);
-        if(o){ if(o.profile){ if(o.profile.year){ input.value=o.profile.year; findMine(); } } }
+        if(o){ if(o.profile){ if(o.profile.year){
+          input.value=o.profile.year;
+          /* 월·일도 함께 가져옵니다. 이게 없으면 1월생이 뒷 띠로 나옵니다. */
+          if(o.profile.month){ monIn.value=o.profile.month; }
+          if(o.profile.day){ dayIn.value=o.profile.day; }
+          findMine();
+        } } }
       }
     }
   }catch(e){}

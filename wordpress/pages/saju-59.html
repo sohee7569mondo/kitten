@@ -76,6 +76,10 @@
   transition:border-color .2s ease;}
 #ssp .field input:focus,#ssp .field select:focus{outline:none; border-color:var(--gold-soft);}
 #ssp .field select:disabled{opacity:.4;}
+/* 윈도우 크롬은 select 배경만 따르고 글자색은 안 따라옵니다.
+   그래서 까만 바탕에 까만 글자가 되어 목록이 빈 칸처럼 보였습니다.
+   option 에 색을 직접 적어줘야 합니다. */
+#ssp .field select option{background:#1C1533; color:#F2ECE0;}
 #ssp .chk{display:flex !important; align-items:center; gap:9px; margin-top:8px;
   font-size:.85rem; color:var(--ink-soft); cursor:pointer;}
 #ssp .chk input{accent-color:var(--gold); width:16px; height:16px; flex:0 0 auto;}
@@ -190,7 +194,9 @@
 
         <div class="element-line" id="elementLine"></div>
         <div class="weeklink" id="weekLink"></div>
-        <div class="disclaimer">양력 기준 간이 계산이에요. 절기 보정은 포함되지 않아 실제 사주와 조금 다를 수 있어요.</div>
+        <div class="disclaimer">연주는 입춘, 월주는 절기를 기준으로 셉니다.<br>
+          시주는 한국에서 태어나신 것으로 보고 계산해요. 해외에서 태어나셨다면
+          <a href="/door-career/" style="color:#D4AF6A">여섯 개의 문</a>에서 나라와 도시를 넣고 보세요.</div>
       </div>
     </div>
 
@@ -275,12 +281,87 @@
   var EL=[['목','木','#7FB77E'],['화','火','#E08A6A'],['토','土','#D4AF6A'],
           ['금','金','#C9CFD8'],['수','水','#7EA6D8']];
 
+  /* ── 절기 ────────────────────────────────────────────────
+     사주에서 한 해는 1월 1일이 아니라 입춘에 바뀌고,
+     한 달은 1일이 아니라 절기에 바뀝니다.
+     전에는 달력 그대로 셌더니, 1월생의 연주가 통째로 한 해 밀렸습니다.
+     아래 계산은 전자책이 쓰는 것과 똑같습니다. */
+  var TERMS=[
+    {deg:285, ji:1,  mon:1},  {deg:315, ji:2,  mon:2},
+    {deg:345, ji:3,  mon:3},  {deg:15,  ji:4,  mon:4},
+    {deg:45,  ji:5,  mon:5},  {deg:75,  ji:6,  mon:6},
+    {deg:105, ji:7,  mon:7},  {deg:135, ji:8,  mon:8},
+    {deg:165, ji:9,  mon:9},  {deg:195, ji:10, mon:10},
+    {deg:225, ji:11, mon:11}, {deg:255, ji:0,  mon:12}
+  ];
+  function jdOf(y,m,d,h,mi){
+    h=h||0; mi=mi||0;
+    if(m<=2){ y-=1; m+=12; }
+    var A=Math.floor(y/100), B=2-A+Math.floor(A/4);
+    return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))
+           +d+B-1524.5+(h+mi/60)/24;
+  }
+  function sunLon(j){
+    var T=(j-2451545.0)/36525.0;
+    var L0=(280.46646+36000.76983*T+0.0003032*T*T)%360;
+    var M =(357.52911+35999.05029*T-0.0001537*T*T)%360;
+    var Mr=M*Math.PI/180;
+    var C =(1.914602-0.004817*T-0.000014*T*T)*Math.sin(Mr)
+          +(0.019993-0.000101*T)*Math.sin(2*Mr)+0.000289*Math.sin(3*Mr);
+    var om=125.04-1934.136*T;
+    return (L0+C-0.00569-0.00478*Math.sin(om*Math.PI/180)+720)%360;
+  }
+  function findTerm(deg, year, mon){
+    var lo=jdOf(year,mon,1)-5, hi=jdOf(year,mon,1)+15;
+    function f(t){ var v=(sunLon(t)-deg+360)%360; return v>180 ? v-360 : v; }
+    for(var i=0;i<60;i++){
+      var mid=(lo+hi)/2;
+      if(f(lo)*f(mid)<=0){ hi=mid; } else { lo=mid; }
+    }
+    return (lo+hi)/2;
+  }
+  var termCache={};
+  function termsOfYear(y){
+    if(termCache[y]){ return termCache[y]; }
+    var list=TERMS.map(function(t){
+      return { jd:findTerm(t.deg, y, t.mon), ji:t.ji };
+    }).sort(function(a,b){ return a.jd-b.jd; });
+    termCache[y]=list;
+    return list;
+  }
+
+  /* 태어난 순간(한국 시각)을 세계시 율리우스일로 */
+  function bornJd(y,m,d,h){
+    var hh = (h===null) ? 12 : (h*2+1)%24;   /* 시를 모르면 한낮으로 둡니다 */
+    return jdOf(y,m,d,hh,0) - 9/24;
+  }
+
+  /* 연주 — 입춘을 새해로 */
+  function sajuYearOf(y,m,d,h){
+    return (bornJd(y,m,d,h) < findTerm(315,y,2)) ? y-1 : y;
+  }
+  /* 월지 — 태어난 순간이 어느 절 안에 있는지 */
+  function monthJiOf(y,m,d,h){
+    var t=bornJd(y,m,d,h);
+    var all=termsOfYear(y-1).concat(termsOfYear(y));
+    var ji=2;
+    for(var i=0;i<all.length;i++){
+      if(all[i].jd<=t){ ji=all[i].ji; } else { break; }
+    }
+    return ji;
+  }
+
   function yearPillar(y){ return {s:((y-4)%10+10)%10, b:((y-4)%12+12)%12}; }
   function dayPillar(y,m,d){
     var diff=Math.round((Date.UTC(y,m-1,d)-Date.UTC(1900,0,31))/86400000);
     return {s:((diff%10)+10)%10, b:((diff+4)%12+12)%12};
   }
-  function monthPillar(m, ys){ return {s:((((ys%5)*2+2)%10)+(m-1))%10, b:(m+1)%12}; }
+  /* 오호둔(五虎遁) — 연간에 따라 인월(寅)의 천간이 정해집니다 */
+  function monthPillar(monthJi, ys){
+    var startGan=[2,4,6,8,0][ys%5];
+    var fromTiger=((monthJi-2)%12+12)%12;
+    return { s:((startGan+fromTiger)%10+10)%10, b:monthJi };
+  }
   function hourPillar(h, ds){ return (h===null||isNaN(h))?null:{s:(((ds%5)*2)%10+h)%10, b:h}; }
 
   function card(label,p,i){
@@ -316,7 +397,14 @@
     err.classList.remove('show');
     $('solarEcho').textContent=echo;
 
-    var yp=yearPillar(sy), dp=dayPillar(sy,sm,sd), mp=monthPillar(sm,yp.s), hp=hourPillar(h,dp.s);
+    var sajuY = sajuYearOf(sy,sm,sd,h);
+    var mJi   = monthJiOf(sy,sm,sd,h);
+    var yp=yearPillar(sajuY), dp=dayPillar(sy,sm,sd);
+    var mp=monthPillar(mJi, yp.s), hp=hourPillar(h,dp.s);
+    if(sajuY!==sy){
+      echo += '   (사주로는 '+sajuY+'년 — 입춘 전에 태어나셨어요)';
+      $('solarEcho').textContent=echo;
+    }
     $('pillars').innerHTML = card('시주 HOUR',hp,0)+card('일주 DAY',dp,1)
                            + card('월주 MONTH',mp,2)+card('년주 YEAR',yp,3);
 
@@ -348,14 +436,39 @@
     $('elemRows').innerHTML=rows;
 
     var el=stemEl[dp.s], elh=EL.filter(function(e){return e[0]===el;})[0][1];
-    $('elementLine').innerHTML='당신의 일간(나를 나타내는 글자)은 <span>'+stemsKr[dp.s]+'('+stemsHan[dp.s]+')</span>'
-      +' — <span>'+el+'('+elh+')</span>의 기운이에요.';
+    $('elementLine').innerHTML='나를 나타내는 글자는 일주의 위 글자, <span>'+stemsKr[dp.s]+'('+stemsHan[dp.s]+')</span>'
+      +' 입니다.<br>사장님은 <span>'+el+'('+elh+')</span>의 사람이에요.';
 
+    /* 어느 항목을 봐야 하는지 —
+       '나'는 일간(日干)입니다. 오행이 많다고 그 오행의 사주가 아닙니다.
+       토가 넷이어도 일간이 갑목이면 그 사람은 목(木)입니다.
+       많은 오행은 '나를 둘러싼 기운'이지 '나'가 아니에요.
+       전에는 많은 오행을 보라고 했더니 이걸 헷갈리게 만들었습니다. */
+    var mineEl=stemEl[dp.s];
     var strong=EL.filter(function(e){return cnt[e[0]]===maxV;}).map(function(e){return e[0];});
     var weak=EL.filter(function(e){return cnt[e[0]]===0;}).map(function(e){return e[0];});
-    var msg='이번주 총평에서 <b style="color:#D4AF6A;font-weight:700">'+strong.join('·')+'</b>의 기운을 먼저 읽어보세요.';
-    if(weak.length) msg+='<br>'+weak.join('·')+'의 기운은 사주에 없으니, 그 항목은 참고만 하셔도 돼요.';
-    $('weekLink').innerHTML=msg+'<br><a href="/weekly-summary/">이번주 사주 총평 보러가기 &rarr;</a>';
+
+    var msg='이번주 총평에서는 <b style="color:#D4AF6A;font-weight:700">'
+          + mineEl + '(' + elh + ')의 기운</b> 항목을 보세요. 그게 사장님 자신입니다.';
+
+    var extra='';
+    if(strong.length===1){
+      if(strong[0]!==mineEl){
+        extra = '사주에 ' + strong[0] + '이(가) 가장 많지만, 그건 <b>나를 둘러싼 기운</b>이지 내가 아니에요. '
+              + '나를 나타내는 것은 언제나 일간 하나입니다.';
+      } else {
+        extra = '마침 ' + mineEl + '의 기운도 가장 많네요. 그만큼 색이 뚜렷한 사주예요.';
+      }
+    } else {
+      extra = '두드러진 기운은 ' + strong.join('·') + '이에요. 다만 그건 나를 둘러싼 기운이지 내가 아닙니다.';
+    }
+    if(weak.length){
+      extra += '<br>' + weak.join('·') + '의 기운은 사주에 없어요. 그 항목은 참고만 하셔도 됩니다.';
+    }
+
+    $('weekLink').innerHTML = msg
+      + '<br><span style="font-size:.86rem;color:rgba(242,236,224,.6)">' + extra + '</span>'
+      + '<br><a href="/weekly-summary/">이번주 사주 총평 보러가기 &rarr;</a>';
 
     var r=$('sajuResult');
     r.classList.add('show');
