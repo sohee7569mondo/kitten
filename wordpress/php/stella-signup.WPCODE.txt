@@ -1418,6 +1418,11 @@ function stella_rest_me( WP_REST_Request $req ) {
 		'orders'   => array_values( $orders ),
 		'readings' => stella_reading_list( $uid ),
 		'ref'      => stella_ref_stat( $uid ),
+		/* 머리말이 '로그인'을 '로그아웃'으로 바꿀 때 쓰는 주소입니다.
+		   머리말은 원래 wp_head 가 심어준 window.STELLA_USER 를 보는데,
+		   페이지가 캐시되어 있으면 그게 아예 안 실려 옵니다.
+		   그때는 머리말이 이 /me 를 직접 물어봅니다 — 이 길은 캐시를 타지 않습니다. */
+		'logout'   => wp_logout_url( home_url( '/' ) ),
 		'pay'      => array(
 			'ready'    => stella_pay_ready(),
 			'currency' => strtolower( (string) STELLA_PAY_CURRENCY ),

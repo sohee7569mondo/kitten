@@ -370,21 +370,67 @@ body.page-id-62 #ss-nav-spacer{display:none;}
   // 혹시 홈 내용이 나중에 그려지는 경우를 대비해 한 번 더 시도합니다.
   window.addEventListener('load', openHomeDoors);
 
-  // 로그인한 분께는 '로그아웃'으로 바꿔 답니다.
-  // 주소는 워드프레스가 만든 것을 그대로 씁니다 (한 번 쓰는 열쇠가 붙어 있어요).
-  // 서버가 알려주지 않으면 '로그인' 그대로 둡니다.
+  // ── 로그인한 분께는 '로그아웃'으로 ──────────────────────────
+  // 원래는 서버가 머리말에 심어준 window.STELLA_USER 를 봅니다.
+  // 그런데 페이지가 캐시되어 있으면, 로그인한 뒤에 들어와도
+  // '로그인 안 한 사람용'으로 만들어 둔 옛 페이지가 그대로 나옵니다.
+  // 그 안에는 STELLA_USER 가 아예 없어서, 계속 '로그인'으로 보였습니다.
+  // 그래서 없으면 서버에 직접 물어봅니다 — 이 길은 캐시를 타지 않습니다.
   var authSlot = document.getElementById('ssnav-auth');
   var joinSlot = document.getElementById('ssnav-join');
-  var me = window.STELLA_USER;
-  if(authSlot){
-    var authLink = authSlot.querySelector('a');
-    if(authLink){ if(me){ if(me.logout){
-      authLink.textContent = '로그아웃';
-      authLink.href = me.logout;
-    } } }
+
+  function wearName(me){
+    if(!me){ return; }
+    if(!me.logout){ return; }
+    if(authSlot){
+      var a = authSlot.querySelector('a');
+      if(a){
+        a.textContent = '로그아웃';
+        a.href = me.logout;
+      }
+    }
+    // 이미 들어와 계신 분께 '가입'은 필요 없습니다.
+    if(joinSlot){ joinSlot.style.display = 'none'; }
   }
-  // 이미 들어와 계신 분께 '가입'은 필요 없습니다.
-  if(joinSlot){ if(me){ joinSlot.style.display = 'none'; } }
+
+  // 한 번 물어본 답은 이 탭에서만 잠깐 기억해 둡니다.
+  // 페이지를 옮길 때마다 서버를 두드리지 않기 위해서입니다.
+  var KEEP = 'stella_nav_me';
+
+  function askServer(){
+    fetch('/wp-json/stella/v1/me', { credentials:'same-origin' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(!d){ return; }
+        if(!d.member){ return; }
+        if(!d.logout){ return; }
+        try{ sessionStorage.setItem(KEEP, d.logout); }catch(err){}
+        wearName(d);
+      })
+      .catch(function(){});
+  }
+
+  if(window.STELLA_USER){
+    wearName(window.STELLA_USER);
+  } else {
+    var kept = null;
+    try{ kept = sessionStorage.getItem(KEEP); }catch(err){}
+    if(kept){
+      wearName({ logout: kept });
+    } else {
+      askServer();
+    }
+  }
+
+  // 로그아웃하고 나가시면 기억해둔 것도 지웁니다.
+  if(authSlot){
+    authSlot.addEventListener('click', function(){
+      var a = authSlot.querySelector('a');
+      if(!a){ return; }
+      if(a.textContent !== '로그아웃'){ return; }
+      try{ sessionStorage.removeItem(KEEP); }catch(err){}
+    });
+  }
 
   // 화면을 키우면 모바일 상태 해제
   window.addEventListener('resize', function(){
