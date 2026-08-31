@@ -1,0 +1,102 @@
+/* ════════════════════════════════════════════════════════════
+   가입 화면이 어느 페이지에 있는지 찾기 · 소희 님께
+
+   페이지 130 에는 이메일 칸도 가입 코드도 없었습니다.
+   가입은 다른 페이지에 있습니다. 사이트 전체에서 찾습니다.
+   아무것도 고치지 않습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere → 저장 → 활성
+
+   ★ 저장 직후 먼저  https://stellasaju.com/wp-json/stella/v1/me
+   그 다음          https://stellasaju.com/?stella_find=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_find'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	/* 찾을 말 — 넉넉히 길게 잡아 엉뚱한 데 안 걸리게 합니다 */
+	$marks = array(
+		'v1/signup',
+		'가입하고',
+		'이메일',
+		'gEmail',
+		'약관',
+		'개인정보',
+		'stella_signup',
+	);
+
+	echo "가입 화면 찾기\n";
+	echo str_repeat( '=', 60 ) . "\n\n";
+
+	/* ── 페이지와 글 ── */
+	echo "[ 페이지 · 글 · 템플릿 ]\n\n";
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_name, post_type, post_status, post_content
+		   FROM {$wpdb->posts}
+		  WHERE post_status IN ('publish','draft','private')
+		    AND post_type IN ('page','post','wp_template','wp_template_part','wp_block')
+		  ORDER BY ID"
+	);
+	foreach ( (array) $rows as $r ) {
+		$hits = array();
+		foreach ( $marks as $m ) {
+			$n = substr_count( $r->post_content, $m );
+			if ( $n ) {
+				$hits[] = $m . ' ' . $n;
+			}
+		}
+		if ( $hits ) {
+			printf(
+				"%5d  %-28s /%s/\n       %s\n       (%d 바이트)\n\n",
+				$r->ID,
+				mb_substr( $r->post_title, 0, 28 ),
+				$r->post_name,
+				implode( ' · ', $hits ),
+				strlen( $r->post_content )
+			);
+		}
+	}
+
+	/* ── 스니펫 ── */
+	echo "\n[ 스니펫 ]\n\n";
+	$snips = $wpdb->get_results(
+		"SELECT ID, post_title, post_status, post_content FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode' ORDER BY ID"
+	);
+	foreach ( (array) $snips as $s ) {
+		$hits = array();
+		foreach ( $marks as $m ) {
+			$n = substr_count( $s->post_content, $m );
+			if ( $n ) {
+				$hits[] = $m . ' ' . $n;
+			}
+		}
+		if ( $hits ) {
+			printf(
+				"%5d  %-30s %s\n       %s\n\n",
+				$s->ID,
+				mb_substr( $s->post_title, 0, 30 ),
+				'publish' === $s->post_status ? '켜짐' : '꺼짐',
+				implode( ' · ', $hits )
+			);
+		}
+	}
+
+	echo str_repeat( '=', 60 ) . "\n";
+	echo "끝\n";
+	exit;
+} );
