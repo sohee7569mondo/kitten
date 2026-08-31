@@ -680,9 +680,14 @@ add_action( 'admin_init', function () use ( $STELLA_W_EDITS ) {
 	}
 
 	/* ---- 고칠 자리가 하나씩 다 있는지 먼저 셉니다 ---- */
+	/* WPCode 편집기에 붙여넣으면 줄바꿈이 \r\n 으로 바뀝니다. 그러면 여러 줄에
+	   걸친 찾기 문구가 페이지의 \n 과 안 맞아 하나도 못 찾습니다.
+	   그래서 찾기 문구와 바꿀 글을 쓰기 직전에 \n 으로 되돌립니다. */
+	$fixnl = function ( $t ) { return str_replace( array( "\r\n", "\r" ), "\n", $t ); };
+
 	$bad = false;
 	foreach ( $STELLA_W_EDITS as $e ) {
-		$found = preg_match_all( $e['re'], $content );
+		$found = preg_match_all( $fixnl( $e['re'] ), $content );
 		if ( false === $found ) {
 			$log[] = '⚠ ' . $e['name'] . ' — 찾다가 오류가 났습니다';
 			$bad   = true;
@@ -701,8 +706,8 @@ add_action( 'admin_init', function () use ( $STELLA_W_EDITS ) {
 	/* ---- 실제로 바꿔봅니다 ---- */
 	$updated = $content;
 	foreach ( $STELLA_W_EDITS as $e ) {
-		$rep     = $e['rep'];
-		$updated = preg_replace_callback( $e['re'], function ( $m ) use ( $rep ) {
+		$rep     = $fixnl( $e['rep'] );
+		$updated = preg_replace_callback( $fixnl( $e['re'] ), function ( $m ) use ( $rep ) {
 			$out = $rep;
 			for ( $i = count( $m ) - 1; $i >= 1; $i-- ) {
 				$out = str_replace( '\\' . $i, $m[ $i ], $out );
