@@ -49,8 +49,8 @@ defined( 'STELLA_W_PAGE' ) || define( 'STELLA_W_PAGE', 160 );
 defined( 'STELLA_W_KEY' )  || define( 'STELLA_W_KEY',  'words1' );
 
 /* 다 고치고 나면 본문이 이 모양이어야 합니다 — 제가 미리 걸어보고 잰 값입니다 */
-defined( 'STELLA_W_GROW' ) || define( 'STELLA_W_GROW', 7165 );
-defined( 'STELLA_W_SHA' )  || define( 'STELLA_W_SHA',  '8832231a9f766d35ca52d7f23eb32e10fc80c4ed' );
+defined( 'STELLA_W_GROW' ) || define( 'STELLA_W_GROW', 7799 );
+defined( 'STELLA_W_SHA' )  || define( 'STELLA_W_SHA',  'a29020d3cc74d275468981a50d3a55c91acfd63b' );
 
 $STELLA_W_EDITS = array(
 	array(
@@ -404,6 +404,22 @@ RE19,
           + esc(mate) + ((mate.charCodeAt(mate.length-1)-0xAC00)%28 ? '을' : '를')
           + ' 고르는 일에서는 누구를 선택하느냐만큼, 선택한 사람에게 집중하기로 하는 것도 중요합니다.</p>';
 REP19,
+		'n'    => 1,
+	),
+	array(
+		'name' => <<<'NAME20'
+달 표는 해마다 되풀이됨을 밝힘
+NAME20,
+		're'   => <<<'RE20'
+~var\ out\ =\ '<p>'\ \+\ w\.lead\ \+\ '</p>';~s
+RE20,
+		'rep'  => <<<'REP20'
+var out = '<p>' + w.lead + '</p>'
+      /* 2026-08-31 · 「올해 8월인가?」 하고 읽으신 분이 계셔서 못 박아 둡니다.
+         monthGrade 는 태어난 날의 글자(일지) 하나만 봅니다. 그 해의 글자는
+         전혀 안 들어가므로, 이 표는 해마다 똑같이 되풀이됩니다. */
+      + '<p>여기 적힌 달은 <em>올해만의 이야기가 아닙니다.</em> 태어난 날의 글자와 그 달의 글자가 만나는 방식으로 갈리는 것이라, 내년에도 그 다음 해에도 같은 달이 같은 자리에 옵니다. 절기 기준이라 달력의 1일이 아니라 절기가 드는 날에 바뀝니다.</p>';
+REP20,
 		'n'    => 1,
 	),
 );
