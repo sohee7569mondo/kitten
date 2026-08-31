@@ -70,263 +70,267 @@ add_action( 'init', function () {
 		return '/' . implode( '\r?\n', $lines ) . '/u';
 	};
 
-	$edits = array(
-		array(
-			'name' => '① 주제 빗장 풀기 — loveTopicOf',
-			'find' => 'function loveTopicOf(slug){
-    if(slug!==\'door-love\'){ return \'\'; }
-    try{',
-			'rep'  => '/* 2026-08-31 · 어느 문에서 어떤 주제를 쓰는지 ─────────────────────
-     여태 주제별 글은 연성의 신일 때만 보게 빗장이 걸려 있었습니다.
-     그래서 직성의 신은 직장운을 물으나 사업운을 물으나 같은 글이 나왔습니다.
-     빗장을 걷되, 주제 이름만 보고 표를 고르지는 않습니다 — 나중에 다른 문에
-     같은 이름의 주제가 생기면 엉뚱한 글이 나가니까요. 문과 주제를 함께 봅니다. */
-  var DOOR_TOPICS={
-    \'door-love\':  [\'결혼운\',\'연애운\',\'재회운\',\'이별운\',\'짝사랑\'],
-    \'door-career\':[\'취업운\',\'직장운\',\'이직운\',\'퇴사운\',\'사업운\',\'재물운\']
-  };
-  function topicAllowed(s, t){
-    if(!t){ return false; }
-    var list=DOOR_TOPICS[s];
-    if(!list){ return false; }
-    for(var i=0; i < list.length; i++){ if(list[i]===t){ return true; } }
-    return false;
-  }
-  function loveTopicOf(slug){
-    try{',
-		),
-		array(
-			'name' => '② 맺음말 빗장 풀기 — closeOf · lastOf',
-			'find' => '  function closeOf(){
-    if(slug===\'door-love\'){ if(CLOSE_TOPIC[topic]){ return CLOSE_TOPIC[topic]; } }
-    return g.close;
-  }
-  function lastOf(){
-    if(slug===\'door-love\'){ if(LAST_TOPIC[topic]){ return LAST_TOPIC[topic]; } }
-    return g.last;
-  }',
-			'rep'  => '  /* 2026-08-31 · 연성의 신에만 걸려 있던 빗장을 위의 DOOR_TOPICS 로 바꿉니다.
-     이제 직성의 신 여섯 주제도 저마다 다른 맺음말을 씁니다. */
-  function closeOf(){
-    if(topicAllowed(slug, topic)){ if(CLOSE_TOPIC[topic]){ return CLOSE_TOPIC[topic]; } }
-    return g.close;
-  }
-  function lastOf(){
-    if(topicAllowed(slug, topic)){ if(LAST_TOPIC[topic]){ return LAST_TOPIC[topic]; } }
-    return g.last;
-  }',
-		),
-		array(
-			'name' => '③ 카드 잇는 문장 빗장 풀기 — bridgeOf',
-			'find' => '      if(slug!==\'door-love\'){ return \'\'; }
-      var m=CARD_BRIDGE[topic];',
-			'rep'  => '      if(!topicAllowed(slug, topic)){ return \'\'; }
-      var m=CARD_BRIDGE[topic];',
-		),
-		array(
-			'name' => '④ 세 장 합본 빗장 풀기 — comboSay',
-			'find' => '      if(slug!==\'door-love\'){ return \'\'; }
-      var m=COMBO_TOPIC[topic];',
-			'rep'  => '      if(!topicAllowed(slug, topic)){ return \'\'; }
-      var m=COMBO_TOPIC[topic];',
-		),
-		array(
-			'name' => '⑤ 저울 대사에 직성의 신 넣기 — AXIS_SAY',
-			'find' => 'var AXIS_SAY={
-    \'door-love\':{',
-			'rep'  => 'var AXIS_SAY={
-    /* 2026-08-31 · 직성의 신이 빠져 있어 저울 대사가 일반 문장으로
-       떨어지고 있었습니다. 다섯 축의 양쪽 이름을 일의 말로 채웁니다. */
-    \'door-career\':{
-      solo:{\'혼자\':\'혼자 파고들 때 힘이 나는 쪽\',\'함께\':\'사람과 굴릴 때 힘이 나는 쪽\'},
-      form:{\'실물\':\'손에 잡히는 것을 만드는 쪽\',\'무형\':\'눈에 안 보이는 것을 다루는 쪽\'},
-      many:{\'하나\':\'하나를 깊게 파는 쪽\',\'여럿\':\'여러 개를 동시에 굴리는 쪽\'},
-      risk:{\'안정\':\'자리를 지키는 쪽\',\'변화\':\'판을 흔드는 쪽\'},
-      make:{\'정답\':\'정해진 답을 지키는 쪽\',\'창조\':\'없던 답을 만드는 쪽\'}
-    },
-    \'door-love\':{',
-		),
-		array(
-			'name' => '⑥ 직성의 신 여섯 주제 저울 글 90칸 — AXIS_WARM_TOPIC',
-			'find' => '
-    }
-  };
+	/* 2026-08-31 · 고칠 자리 여섯 개를 gzip 으로 눌러 담았습니다.
+	   그냥 적으면 스니펫이 53KB 가 되는데, 그만한 크기로 저장하면
+	   중간에서 잘려 따옴표가 안 닫히고 문법 오류가 납니다. 그러면
+	   WPCode 가 스니펫을 꺼버려서 화면에 아무것도 안 뜹니다.
+	   눌러 담으면 5분의 1이고, 잘렸는지도 글자 수로 바로 확인됩니다. */
+	$edits_b64 =
+		'H4sIAPoWlWoC/719fW9b15nnV+HkH6cdNe3MADuzSbNAph0sip1BFk2B3UUmKDKt0wnqxAPHnUER' .
+		'BKCkK4WS6IiKSIuySeUqpkzKoWtaupKpMZ0A/Sjtf7yX32Gf13Oec++lJDvZLYJGIS/PPS/Py+95' .
+		'PW9//NKH735w9aVXKy/9aSuuZPcmWdyppGc72d5BZfZ5dToeVf5UbVauXf/3q7+4/m/v/+rN915a' .
+		'qLz03vsf/hp/897vPvzVzfevf2i/f/mja7/7zfc+/ucPK/C/9/k//+L116/8+vr1Gz/A56587+PK' .
+		'jas3f3fjw8qVK69VPuEnb974/cc49I2r/4Yj//D7lb/+0V//lx/86O9+8Dd/Vfnjk0p2O0nXG5V0' .
+		'OM52GlnUoQ9u92TK6cGkkm2P0vVm1q9W/tSsfpt/eEKVbGc4W+7oC46jynRczbpV+HyURY+zbruS' .
+		'bcRZd1JJW/W0X6+kx8n0qC6bl3WTyvTxOI1hhnu1bKeWrZ+kG7V0o/eKDD99Mk732rSS/qIdsEof' .
+		'wBB3kqwbwYonWWeSLsG3S8NsZ6Xw8XS0iz+i2SUV+CTbbRbeprOCVTx+kjbaC3rW8Jv0fqTzP44r' .
+		'sy3aTfgzPUhgN2FPK1lr3Y1I9IBv6W3BSVTgk/RgLOeiS+MZ8dC0LnrXdASfLXeBptLDBLZxLb3z' .
+		'eNbqmJnDE/CS6Vk9u9N8BcecHk/MCc9ag+nTdiVNVmRxle//EF/57+/eqPz0zTd//stfvPk/f/aT' .
+		't14X4jMk92ql8vaV6dFo1p7A/l1ZuIKH2Irl773h7E5d/oY5H0fyd78LW57ubV15Z8GO+Kt3b1y9' .
+		'euPKq29fyZ4M+EToaTk0HgX/k/6efZrgwfHneoL8VjxD+PsdHPyT1/D/HUPdRGZ649q16/9x9dcv' .
+		'f7RQuWk46i9ueg56791rH111TIQbce39j26+bnbj7Y/eec3/FL+d9+v3rt94GUd4//UfvVZ5v/Jj' .
+		'GuqVa1c//M3Nf4UP/vIv4YcwBn769vvvvP7662akmzd+hwPpUMH4tLxgdfPEBQmBTxYqVirtV9L+' .
+		'f2ZdYLFGiWD61bXrH1198z2UENfe/ehmKJ7MG+W5l3OC6fW8YILPf/KPb771D7x5b9MxvOOXWfyu' .
+		'uOjfvEIvK1s2zfAyc/jHN976xZwpFL4qmwG+iSdgZGqlUpSqgSzbaaAc8GIrvdU2giPrEC8b0qqk' .
+		'+6AsRs3pN2uhtEH6j3OCDeVpFj1Sdt6EAeNq2ieRokJED5pe11wMufy8swzZBTZ1gTnoe///j/SC' .
+		'qXyHJ5tjlC8r2VmSbsO2732KQhtFMjBLkWf+5cb7v/7N1TyrPJ+6Zlnzwes/eePnP/3l3//8Zz/9' .
+		'7/+gkw4ozomsc3bl+UbPrfpeJYvGFVph6zA9HpfJiOsf/Mv1t979/Xey3jf/6e/fDA/pu1xvyei5' .
+		'9faQbbI7sM56ldRJI8dmaXRPF/7G//7ZW798643/YxeOL9LPyxSlBWFlzxZFSIheQI+fxVk8Jthz' .
+		'OwlnSwigO0lHbaFOhDD7Hd2ESnp7AL8B0IFAJI+bUEqQADlt0dtub2UPnjmQEeHA+DmIDxRL2eMo' .
+		'u5uTIHkF/rG++KPr166/+vEVRAd7jSuvyh+VWb2OMGi7hxCvMgO0xjCFINGDZ6jcCZHALwgo1BGu' .
+		'TE9gQsmcX3yyoK8EZfsBvDIDyTec4ACrDTrLvf0ZCF54fHq0TDivXwee9m9Mh8ms3YIfpLUa/aBV' .
+		'Q+SG22B+BKPeGxRf+sG7H/4e19lqw5xwnfQHwb2zdQSvsGL/KhDY6Rff4NzwjyHAOkJh6eZuttHB' .
+		'd9NSh8XX3Hj/o9/i2lq1LMapwl7ic4jR+9XZUs+s5rg6223iTOok9Gfdplmtnfhvr+KIcSvdOMER' .
+		'49asBYSCSz2hw88NnI2eZfsjmvsqqTF+LNxN4b5PFsrYIMd3B+dpM6VyQLKV//qj7Gzs2e9/vfHz' .
+		'f2KOtlwoL1bgh/8GxiqYNALCVwZs2BjW9DN3bMnGS26apOPtTL+lbXRZ46lSIiUIHROi94ZMYswX' .
+		'QhNgWLR7eGJCytNRLQUby6MB9wKQA8L9LyP//vEJstQfnyCN//EJkiD+/dur36M3srBASwNoEY5/' .
+		'9lmbQHq18ld/87cwTNsNCyf1P96qZLtVIJa9rBVlLTQ82ukjmh9abXWe6VYDjmeBJg6oibeXLKL+' .
+		'HrJStlwjOdQsCiFvNrxaCWWQ/094TMVR5ePKf/zruzdfrVyZngxxI8kIRd7E/ROjCKeIZA17hTva' .
+		'ikgqwFObEdh6IDmBomA6KpJOd+lpZkzcD5Z4WWsNf6qCjzllAyw3kLAgxE8j3DSwv9E8y9Z7s2iU' .
+		'Npu0aDLe4F8Dorx+BO8lYbF9j2Q5nCnYfAD3COAByByvEQOzpI9b2d4W/BjURa+ankVsc4Jgaxzq' .
+		'5qE8v3MIHHFCTAFHulpHHUIKhF4DZuVxgmgStyjeqmSjr3EtWfcZnRMsDx6BX4EYA6ubAOj+CMZE' .
+		'EzS9NUJLXHYBns+OG+hQyDZY9ou2gp3LlhIYNV1yE/vx1Q/+G0t/FTBoqt9+SmsAeQVzomkt5PY4' .
+		'q2/TQcruAiMcjYBUadO8lKIDyvbU4P3xD+FtVypeMCKZiA7yZCIvSkeH6iuhXUUSQcMbzmIPJOKD' .
+		'pxW0txEphufqVBl+2JrArglxoeSHU0EbfrRImwHrA/pptGmH6fCJtkjxixp7DHSTNJCLUNXgrrfW' .
+		'yE9izlYpKd2OUZIDrSFjw3+QcEjM/HFP3GbTyT1YwWcBVMDQwJOwn6wIgQO/3DDowfOAUUd8TNPx' .
+		'GH8ttCVE1Ir8y1Bb6FbuqHoneu9/RofIx9Su0QaWUYTyJjyZHSX4U+blymy3g9vqTriSrlYzWOhG' .
+		'jziDthoWjpIKuSca4ytKyOC9a/boSxiYBYE7W5xTLQq+hu1DRdkT6IZHhhr+i2EpmfCbSPTB48CG' .
+		'yN+jw9ltNhb3lpnr6IXkXuJ9OEyU3flQCRLmWB2AHEhThHMwp1FbeZxmjKSVHo6yM/KUeZbC3fKf' .
+		'l27/RldGyvodoRScDVAJSHk9ONyDrLdVYWhEZ7zVQOkOwLrN/r1IyJsXvUA6gclh1m0QGEVJtyY4' .
+		'Duk5buRZWA8uBwgD+a/Y0Mh/FhHDCb2CAaAHf7JjSC0bZZA1PD8SMjGq2QUSeGcd/jurfYXnShs+' .
+		'cJgyMUTx5ypsaSJYfnYbV/Xn6i16w3ojXarTK7cfuuOEDbjb8LMiGdBfBCCrzkfmONhGZSRmNXgi' .
+		'2/mU3s3gmCeEPkkUkrBu5gY49wQEPv+KRhcBhaePL/aqgU4YF96jM2wPHMz4zwmqH95Mt313B1kT' .
+		'cW+LJA1sX3iKldnmcLY+nm0mxP09EkiqJ0J1g3IDv5J5pEtfedGUk+eK8P2xB7YBSoKstZ5H+yOa' .
+		'MUwCyS6GqXw21knnRTvhL9h50jR72WmTOFVpFw+nw/K83yCDhpEZy3qVwfacZhsj1v2Og4ukuTTK' .
+		'TjtCuADJkZJwU9Z78A+OTjRFQ5NHGKU3AHciLJKDO0PYTbRrszX0pYK+Jr6bPk6Y7M2oLFEinAs6' .
+		'50Ep+R3LvlxJD9rwOb4d+Tb+1KgIEtw5ajVkSYsUmjSmBEpH0fD+Wyc4yaqiTcPnArqdL8ULxmDG' .
+		'+i009uRDpCeZb1Zrq94tYfZOcHKk/AmTITuwsAY81Bnkj1gf1G/dKc82HxKrR9tIgaTrWZyS73/C' .
+		'+BqGL2Av4VT4BR67cjlKIzc6njsqyVEVnTlZ6xkRM3oGE6sqghOjKRwfq08xEORsTQ2QIuBAUZ2T' .
+		'KiD1dWuAmwrsb8+FxD6+XqQN7m68qHpOFCXyTNzL+lvKyUWxTiZ3COvF+jZ4DUn++JjoxtnhxvPA' .
+		'Yp95rESSM3OACYr8kUb30Iwk46SCgg+OhiE+wkFQgd2qgeG4d2dtg8ElzCabRk7ajhg8c/U1UjmO' .
+		'sHFKhhwvBA84qtF/idLt4ZxpVsBRGHABYdT3S+2oNPdfhwzHvgmYMdDTnWZ2v20UhPFZ0yMYQiKu' .
+		'jxDdIDQgia8kb/QF+q/JsAM78/4zS1ewk8QHNSIenr7VhyzknRhkvB+leyfnw3X1qhjxLu4V3ri8' .
+		'e8XJoVHD2h8ldCBkRGAL7DtiakMCsHDaWiE2slSRDoilkLw3YyTmqLOgfrh9RlCoCe/U0+MTej9b' .
+		'D7jhfrtwZ+ID3ATcKV5OelSvOFWr9HgcZau3iEY7k5z2RprRX6KUm+DG73cd08MitofsHRT/DeN+' .
+		'PitxHEYyGsF5EO/LBzBaRDxadWYB6obdQI/j4P26UJ1xKc52nhBdDEWFEGtukdRgDglWKAsqx+Vl' .
+		'LM6Q/JzTj3sk4Bslh23Cx07nK4ezoiAfWVsYDgEq/T9NHIwLRqu4Lack4xpt1q7PrMkkkjV2s0Mo' .
+		'PD4pAnJdPPm9ppOHRZngBMKI7TMr5xZoqMFYDgkUCgFt4T+F7Q6ia3gZJBY6umBaDwYEZYWq21ti' .
+		'NnobZw7POv2y2kBvxIUYnRybIUYXH6fhZjGvgaQ2GlYjw/TgtFt7zEW1bHlRDpbnTbLIM+Tqtoib' .
+		'vKwfpckaDbEPeAgYZekPSNCb4jvteWI1Dp7uRLifuYZgX+BXJ11AS0kbQqiO/55taTQJ3/rlovpz' .
+		'ClKAqQCGG6JzhigxERiHv/EQj/UHYaKTIXyG1sN+R7StMXOZtTfOODZJNNHfC/1WQJ+02+v3GTMm' .
+		'fj7M2gTfPN49imYb8MFJB2YIPEkBg6O6bnVzRHR9EU87t7U5dT5XAh4eoDkIhT4fgQ4PPqUdgpdw' .
+		'7Kaa3huwK6zktNmH6Cakso/GXSD11l8UZC67CnC83lBfhbcG1BD0RnZw2jiT2yc4PL0OjIKRSumN' .
+		'WOSA6DiH9ln44Oaf7uIvCZ+uqy0tRIUn6AhTiR2FIHu22VkDD84WJwv+WHSXAJugMYc+EnYKpp/3' .
+		'SDaeNZHoWalkd6vkFA3hGxoHR3VjtRK/rKFEFB0A9ieYESTEFRwI58wzzRSd260jAb0ZgeZHeNgd' .
+		'u8+QEhiLHSfnYnObCIT7DIs/BMaj84LlRkhYRdmMxEtOKSKIQOaQoJGQun8GaEwyfAxQywtyXIOl' .
+		'+xAqAQdnuxTsmHWBo8a4Y3eayL3k6e1huE4AA7tSdC0ExAVaOuxdyXab3pz3pmDWqitWWGmS33CD' .
+		'kEdevvnNmCeuKWoUimsJIBnGvYNCSK0HNqhRc+62gHWUFQAECAZrFY1qdhsSC8WLMzSvwdo5OiQH' .
+		'6p0RgGeUP7PWQ/HNIOM0Dzk+WVfPmijuhPkpkM48Wna/C/wRN4CKwPA9egZwi5I3RoPsqJ1+MUGT' .
+		'G9SB7CzMHo5H1cvRMuj4WQQcfdiEGbmj9RwqCjQ7G4s/gd3tI0LOzOgsDUiWlHojWdDiAFUnlN04' .
+		'oIDYxmDq8vrYQjG0GWkjh+mtLwjENshdKHJopclY6LDca6IBP3+y6C1CDDzREJPssjFH2EzBdwyf' .
+		'zsp4Ez3Tn+0Cx4xRyjicn8KxETYjpzdSPi2mJs6LZX/UFYXhbHlMH6MTg/ZTXCTdlkdbFLawfjn1' .
+		'5iLrAnJvRgiD4u5sfcwvZh5HciD1yYE0oWFQSEiSeESjQJ8C3tunvDs9bqIKWtatkYtHCBlsj/Ss' .
+		'Nzrq5CdOb6iPRlw2MthsqWcH2x6FNjXrchycUQVpg6qzS3RGLKfgmYsksQsD4672qrRwpjghfD6i' .
+		'NmrbbrsYU+dHWFhfgLLJ+sX3aLhmPJZchSJuJpZFK3X6ODFzYnBA9FaY0oOn1hNTPuWeGYF8mmPO' .
+		't2AMzrDDp08SVJanqnJurGnZHe88f+Ln9SdPVEzakEj0wYjiVfmz3CIDUiIpislXb2HgD/nrq+2c' .
+		'swQ9+QI/PRM7oZ0LxftsyucMkaIN1yW/vR5QTYAskgiHnDFDhSKPPiYXIDUO+opfsZQuNL4AXL/x' .
+		'FXNdPed0xDAo7YbEhGG3TQyNnM2DsXgV6ZPNOgwgCmF65KLGoNsBXLDpxZGaft1HvHi5yoj+CLO9' .
+		'fUZIyvqzelWAAGpxmjg9u4MRii3Sz3ug51dQVYNG5zcQFz4aM7qso8hzYZOcE045G6YSPcYYBYoF' .
+		'mhvG3VTU18T/Zlajlg/G/U9eJMqp2GerQU5KcQbDhp4TuwK0Q9veXnV2IBuMApA8aKQTJLx7uqtO' .
+		'cRK2FC+wB8ogJVhHBTOLl0mvkzs+8TF5Lz4kJCtAnR1yBi/iQ+zBXZthTBcteAnvOh9PxlEBJ6XZ' .
+		'LQoEsjEQpAscPVvhyHTUSx+s6FyEOPRDifJGLrfbr0lza/IhEMHZ1kpjUwrWth0ePEaL5BWsid1Q' .
+		'lw9lih88zLYalnnDOyUOsnpVLSMg7y9G8rV6AeiM2DwAWee9114JMKL9SrUju1eIDdkoYs72NhZ5' .
+		'zOl7dsRQRC+RD2B+qCNnm2vw09lWx+F00oNkkSOerOVEOnoA+hQeoCc55seuaXEVBrhhCfHBsmTd' .
+		'+OCPcziskTdx7PTMXFOAj5sdS+oHZ+KibQcEeX9lvhv8MtFNhUQadlSnt2FHpCBCWA7TlcU0wTan' .
+		'wKyGrDrkvUDHZtZGZwiIHQlzCnguSb6zpmPolvGhehFwu1U96X69UoieqKvkOBLJ6f0g6cO2owx4' .
+		'LzlC3AAuyUKdpj6iKlEPcv/09yXcQhY9I1ThhNx2Bqi06OKYYzZj0mW3rh4XdpRzSgyLMuDL+4ni' .
+		'+bnovBjTvDh90UVhncNhnh4uD2iKKshH4jQtQdKIRL0BIxQEHFFNLHLHqxZUNmyZiBfBBOfwGdjU' .
+		'JbYCxDLD5Y1diGykaSJerLBTk2QQJZQkSugeZqijMl6k42HBENIZqjEksp5NTgltZMPvOmmYsF8w' .
+		'wsX9rvMKDKZHgwv82iawyAOWBD6fJ1BpADewFIBAkVNnNaFACe6dssMbHR61EgB+1EaGRWzTHaMU' .
+		'GN0V8pLkOBZZn6KEJBccJ6ZINHJ9QPxU0CL3YolK5rGPMwEl0OiCaAqjaTtP2c/BK5/moiM5Mwk3' .
+		'KkYbVfOQRIYTey7rAZ3W1KmGfFN1Ph9N2zIK9lsEJl0MVHz2jDs43SDucFJTe57K1ejGYwbePrqB' .
+		'nmOOSY0WSdBVjRWGfjk8ISd3RQaiTKoBdcQmCu3C/5qjLO48EPU8x1pHA1NkLRofTArY3UFu74MJ' .
+		'/S8Il0nWSkmbd6eY6AoJSVoXHxBL2ulR7FMYOBWF2GFnBOPzM9bXRrTkdogTsfbZ6SKsIzFZMhY3' .
+		'vjKBjcBJrnBmcTQnsHHZgCQbr7mAZPI80UimnX7dofQAswqI8PGr9bZJ//ee8a3cWYNFalLs2S42' .
+		'6Z8eTOMbrVnF9qdDC+wAQ/8/LNh7pVBugsHLuUI1BDiS+7F+X7dc3GwE3cjWPPuszEsrmEm8+BRn' .
+		'oGdiNgrdEZokhXQwyeKq0Ko3t8i71nqGHkDadoQxJu+gPORYntwvPo8wqd/jaHWJXOAOEeWq2IQ5' .
+		'zjENqrm4ppFISTxFRHfyUHwBdzkHlNUxjvvFkA5PRWeiCBejwbPFIak9MY5KgZAjK5cK13ax+y9X' .
+		'eBEKao9zqR5oiH8DC2EQqE5sWj8oCUxa6Y7JwgKUe5Bw+HSBlDE7SHF1st0Uv2yDdRdI+hKHx/MF' .
+		'FV0CUsELrhH6c1L9RJUSjOiAlYPb/pgiH2gRcb4apkFU6+pEAN2BW9GJAcqgHzznO3EMma4fYOB/' .
+		'bvrVAkWjrPPe5hGDwRPVVLlwcFIF3zYle+EhUNzRrYTtNjdFRso1NYMciwXpfvvWLcop33s1dfKz' .
+		'wUeWUuJFhNKqyrdBgaedSnCO3CifmZcU8kEuDCPKbrkqg3y+9tEQs6SLfKkF1xMumShxdy+BaFmJ' .
+		'skc95Ua0v+IDMgyXF6dJFQ+wm1hbhyURZcH6A6ecWCPEnNXBhaDNFFGKwHgRZZSHb70NcGDWl03D' .
+		'rFL9D3IxUeaCExy32n5d1SweqyuikBYgKUXI7+0/AHIFDESah6RvdrfuUkAIK5Vkgfil2Gok74np' .
+		'aBTdKNlsg90fsPavxwIj0qPWBa4NkVlldVEqnUvn0nkOAe14nji7yVhIpOtnuOfOZok6EqHgxEox' .
+		'VYuo2j3BBTRjDgRx6oDzAyyRr8s5ftRyFLYkz0fijwwgCjMBu+MYsYnUp1PyMUORwIiiSC9ybNAD' .
+		'QRHli12X+6UpMJJz7oPsPgSZLqJX09P3iwYRfTkaMZ1mzLk4IsmXiSAnIZw4/XIkhklOXIPmHA3Q' .
+		'raBRDVdNESSvoGe1Rq5u1kQLOWccRg9Gn1t7lgGPH5Vyfkfe1DJeCi/7CWJ10GrLGa9fIARriFNq' .
+		'lQspXBTGhXN9ujU7YcpMSydTtYbP2b3eRlrd5jIxfkM1tA/VyeIFVWErPLPRmA8vG0ZUM5WPFMmJ' .
+		'/eK+mkbRpjuOciW8y27H+FNvGaMckMzp7S4wtPM6M8rjxAZjnnvuJhKh357twz8+qc8k1vbFvbJ9' .
+		'z+8pu/YrnO5l2ZElGEau1FaJXSBfIZazkGYb1TRWlwZ6xJ1BlIsWoqgP9JBDdC1KADc1T+ROyu5N' .
+		'OOeyI5SC3BLQCH/Tr6u62fT6zicKHnAnFgQczy4XPxR1a1y1NvXG7VXZuYqI8jw0olwYFIjMQJzC' .
+		'UfQmSzYBSrblRY1aBFhDLIzsiNIL2D2Bg1IKn9Zc9FVzarZOvKgSY6OntkPaeWrmTLK31cnBbFaL' .
+		'TusG5+ZRTokzEbh5nAsOyjwHNCYxp7UF2QlbLekuc05E0PVUec6IIP9QKwuxjYwEjhwUNNn+6t0r' .
+		'HjNgCgT1vvaN9tcXJ2j+tSqonGk7p/IxAAJINac1DhUFVq9m1yIN7vRAGs926sBwLilun4sjwvrH' .
+		'kirGfmi0+5iCS+0G/YkQz+E7Pp+IMq0ptrOpRTVlOSBSk2nA4+al0i870Wyn7VX5haE/OoyRlO6p' .
+		'QVws0xuWACRXP6pJBpxliqCqpPCP6xmraPQVql64OEgT4AxMEmO2htyLiZAIb3dGafcZ8eniei7J' .
+		'EaO7HO5Gwyi9hzJCyh65vAqLoQEUg9A4alt2xSyiVk38irnSR0vzRoPkEyrFt+2Tt6kSrG3KAmVT' .
+		'SuvptHI1vdUkpOFI9sL6xKCgUyGvr+tcPQm/mpufQUUaTAI0zZ1EO26B2IITMNrZIUkaMICJKZAh' .
+		'fH26W5ppR/WvHc0LMx47SnbOoi5lKvpiRJf1xxpQcl0PAyIVobpZ1+BlwZqhUCPbEmTY1qajGqVh' .
+		'UNovnr0CkHBhIHgPwFA/uXSS3GUic8xvTkbOa1XhUp2odBQIguo3SxAupyCQJS81i7d9ow/Ua0x1' .
+		'/FiQAWM7gog33lbpHZrUdRSsbBPaHINBxRVRWpOHTEsMbdmEbZcNSFFE66o9r0hSsl5uNXMFyHSq' .
+		'QeWJdCrR4LvWR0o5ZFlFIm1qwnHoEYfFPFuc6+UtqSoMDlVEMbFx5DyhZUG68kyYiKTgzlBxOpWV' .
+		'2liQzWsz4bf+mjxunRheYAmZcJ2fyClx5FEqFroXxsQD8Ulur01tmaEejrKGNYKmoHVnFSlMHNPY' .
+		'juMp++8QY4HEkEx1xp4MxMscilxZKJkEHCl0O6j+jMQ0FZgXN7VBttjJyb0asVkYaOuYr0tOye6d' .
+		'K/OWpAGy91xDDNWqmm1OeXwCUauFijdtIVBWIemq8kjhsbqlUKct9NWUfs5nZmdCMXNRUGVQJRKw' .
+		'0pDirsdiYhPrFBOVdNGcLScOP+Xc6DGwAiJWcZh1n3Gx7TkI9UWL/Jwe0fCRRtarFobOPq+WQhhT' .
+		'MLTTCOv9uA1N1q+JbvDOvFn30IdW8vXSaitvdxC4LJ1f2CdVHqaw70sMRl+isM8U1elGuKI6Tkwk' .
+		'GYLqYLeVHsRcKCO2wtxuGKQRObwoJTGYv7c2zO7WwxiiN/a8BqYtd6gpCPy9cNkeSEDaZG56Mas3' .
+		'0o0BU1jn/Jo9n3zmPY04uBbVEhuBDlvs4F/ToyHGh4E9VXBJTTWY8F+PncPd1+gF05WuMbAbs9tr' .
+		'HLzVEmDYTPbktdO9KnvKF9kBQ8sCO+GE8H951NJTh8u04mA0e/h6Ln1EHDOJIgR/jGoVcGOGEFQW' .
+		'ixwlEYPrwtV9b0Y/X7QWuFLM93xdHu12+xJ+V8IslHmn50k+SDgV1R2Pxtibi0vw2M9KihD05llZ' .
+		'DR7bncYtzyCISYSMt9uYpaJwFt8WM6XE2OeCPTNzkrnYpHYVwTR8Z4jpysTYpqqkZkTlnKK50Jg1' .
+		'0oUxC4ZIz8tHuEwYbHpUze53tWhJxE8AYy5RQSfVnYmktBLcodI8n9NbWDizYa4ww5XiaXiy3RND' .
+		'EbvdbcRh0MvXrJFPi7dGwqenAO1rggCNk1WX1jHxFi9jtfsuT1GMC9cSp0plmGKt+dhLqQFInId1' .
+		'rdbY06qG3F6oyxLhbW8LxiQXFvU5ugCAFmvm4CQejV0TIVeJJkK5WCyXtiknFf6ZWzAnFXEOjVAU' .
+		'AA2VupRFqT9ZrBTfNqBQM5ctPcs7ztGyH2nRgp5uIuqKPYTcoXj1c9tThhdkg2Z77fTBU0aVLjDT' .
+		'bIpNiD9tDyUuKj62ADJcWPHGwkENI8yibEigc/p4XChJu6DIImA61gyPsii2hW6CXC6R1UWJ39yE' .
+		'Q6sGEqcxjyW0jiYaVvdqXcQSZWAURSPrqn7dKyUiGs5aZmcqZmd6N5c1Ckno3o5db6Yk68QWv1K4' .
+		'iYi7x9LQIX1RlQRj6Wdc9b6KDaXFf/3gmSlyDESuBysmL5oGQTjiqiIPz6t3e8EoFTIN99bTrGF4' .
+		'MXOCNS9tz4fy+FR9m0h0IIVoQcRaM+4aJg32AqRVyXaxfpLq7aQR8ClWYNDP4ICjmnYgobQ+LWbb' .
+		'6MGAFSRNymf33KzNYZDyiYySQnq6j25RTkmQzhcG09WO54gTnp24/0Lf1ekhzJnG0/4nSRC7ERZF' .
+		'kcy2Y0vS5jpOC4+D0HRNdvvC+FQuRm7OIfEdLzgiTjNFnZI4g1uTSPKZ1B7Gc2KIzcgaSMmW0kgT' .
+		'6/ts1QMMs9syihm9l1qb0Vb2R6G28xDBilQcUfGX6+QmyQQ+acAXvu/F0zNQBLc6qnFvNeVXxOQS' .
+		'uBmNqCOn88vkrNQcQWhuEpw2BqXVz9I4LC12kMxRrUaGh51Djzjj5KK8rBIe5FI1zeDMEf883Imp' .
+		'kMtd1cnRNmM5MqUQiJroOaEXX2svah2jCf1eiWh1GVMksPMS0Lg/Oa8EtyKXhWIS29ebIontAkuf' .
+		'CXuwIYLGqXGJlSyjkImB8r7UJCR4teSiIrAe2YizuKxWIRdv8n37n7dJ5xMs3sAIENOVaDL1DpMy' .
+		'08pmb5+XtutiE0SAqQR7xNORWFWHdytwFi11RDFhp1tNUqEEH7xzFLTUcTUUZBQbqiJyxRRa6ZpA' .
+		'eJgvniA5SnaFj6jrx6HEmttWk9vzVRTESGvDJI9OKZvahTVRM0kP0ZjCpXwuSlNcqDS7G4HAkgak' .
+		'QV1f/jecL4o7iGjN/QxJe/3Fys+0QyPnMu/6dpAcTmGAz2GwfLFKeSUZ42H17W7UgGkefSM+TF8U' .
+		'gCIT+MRLsFk0ljQJ01on7Gvjc4o4W1sdk2E6uzydjm6HlGe7gRa8nfeH6stC0tdGDbTJsk+YZZ8U' .
+		'kktQuIEsaK2Znj60ZKo5C1EzGTOx9ThLaaLNlS3r/XluJCpoa+daYZ7fKHNG4L7IsBL1LKV35XVu' .
+		'zOsxpM8dNxUffKpUptsIWYQTIIg6OGOTqokH0vmchum0gTByzaxUDlV9bZjz+Ui3gH49J2lGdz0p' .
+		'mRp/zsDgImblv+eBqpdqdKky1HQgKA87ceapOOwdWalFPcdKXNNMZ9OPFV2uOW4oJUJKgLTtKV1w' .
+		'QQ0218kmFy98hUHJyM8dvfpBMbp85jMyc+Ejm+bviVBx49owjMsaE8M20NSaLvxZeTWn2dI1m7FL' .
+		'YNgC5ouDTGJyodiNfR7ARDr4Bx4H4jY4qE6EuLHQbzrwsfk6HbU+JK+KktXS5UZZdgwtiKJtWsiV' .
+		'7zzrv+RmOprh0TJLqOfUnemjYWA2C2lfQaYoueeaWI5U0BXcA76vnSbwj9YyF0kp2qTlNXxh5Z7r' .
+		'Jm/z9C50jwb1ts7at8325lv6tAhN4WbPlcNFglhdliD3r4KJfmNhCoFQstPDJsCx637DTZXdO8K2' .
+		'N84p5udg6TAqBO80L0pwIsrFjR6nv48VcD5OxLAhE92HaOigucHhAoNmBZtRtv5EY/VrQ5e3yqir' .
+		'Vb+469hloksB6PTODClKwI1rN9L4SUn3Gmq9ob2OORtC9Yqk9aKKHY2lak4NJRKNuT7eWlBTQtL+' .
+		'NSQjnQPTpJ4VVB0CpE2tINHmRVKMHqgfTnY0TRHw6QmQqWY7Bjl1XBTQUNsjWDH3yGPB4eJGIGfv' .
+		'UbJAejShPPKtQocx/bIqmSii6TEosrclZ60VGpuTMru+EF6S3cL9bD4GqXuHdpMC3ZJ0xuU7VeGl' .
+		'6dEZpXuheO6cH57gxu3cp0MJZ6g2pqtCprc4BkUXFzZzGBJwcBU4VGRG0XxPbrZ/uIze1jZG+G6+' .
+		'Am497AJUs7mJ2IpCsgL8RQdislLffGfYi48TyHR6tFgo0jAuO6Jnwuragtl12cL4SpjabFtweXOH' .
+		'uOqizP4c68lU0TLwSaTu/L4p+3r+4SmISzTIhwC4F9l6HA76lPiNbX9GGHAp1oDR8uJs97BQdMK5' .
+		'Mqz+/LGUOC8lO0piMQUkvlzmfTOpc0iuk06BpSTlyoI7cboQqXNnTy7cPTd5/zJBJUkLQg8G2lSC' .
+		'dM6wPZfKU4eo5gJ/biKrDZkkNG97zgpfamhNBAMnQWtTKPbPmdsZtvKStXxWPn4k8JtrRnHTNmta' .
+		'prc04gRzw522FEM77lGyGTdJdN58GtZnPElZTzQu+sO5PZKxNFHjBdhEZoLfTBi0apcdHoS+d70M' .
+		'5SFe4PkdBorhJYfylePdISEukroaLhlzeRdLJQkXfteDlF5nunpvBltsnwVha1914ZoPslMixGd8' .
+		'UwBgZULBAhokNp0oZrxbN26SEtvE4/ogWxGYEW/81NrkhPwR/S4mem4/YlgYOp/rkqmt2fqF/CZc' .
+		'S6x9lQKnh/OCGr4sFZRrQ/HC8NHr6Uhsa2d4iVi751w2Qn07W9dAsps4MVHSqMttIruTKMteU8d0' .
+		'ALKraILwSXa3qRF1icGNJWPR1ZcXguzWCUvGnT7m6nq9wRYyQ1jCpPucY3vfyDyAOS8YI1Ls5m9q' .
+		'YHO/Ht4BIEgMH72cJ7M7xsL97hj4ewHze4GiRMrLvTHcz3dpJGqJ+JWaLxongDuqYgjJW4D+Qd3e' .
+		'nRWUKpIoRqoIM7Ol1FLlLczBRGy9w9DE23er7GWhrLD+WqAHF8yrTABdPCm+I+zRV5JLlzO8FWZU' .
+		'BU7a3NmgKcnF9UpicbsusNS/2TVWYcdPfA5PDSjN2JfnC9RoJr72wV714PwhFPlwITwRr4hGfNdR' .
+		'LlAx0JregtQ2W2m4sJ1+X1U5FQAOuWOmUNUmsR8n101Nt1QMST/1fD/DohwVxA8aGgGL2hQsCuFJ' .
+		'qlUo5HwGJgoZh4tDTXuSzLNzBeL0bJAu7ngVkWc029HQrtN1L75cXajJT/In524ZoiwlcT2Xiks/' .
+		'EdJT3tJhMVXSi2SSqzvygzBYpZvWSsbxUFbaMpc7O4yFy/nHLFddjquK0KTsloZ8iZG7nvl5mw7K' .
+		'vWFBw36f+YcBpwOXDLZb0kMWUefOis/E0vJaLsdzaNEY4NJpEbdn/T63PMIFz2oT55H0N/A4jzkV' .
+		'A3V8wHSOW5jO8WQIkkVuussHFNzDJneTDnfUnJ4dkJis1XyJGD01t2bXBRa0jTCg015k87FMOwGt' .
+		'PHRlivZZV0JxcQVRroOcOTR649Neqec43KVDdiK6jvqkL0Xd861PonQOa9npgeMiOWsGA4Ah7jbC' .
+		'286oDMEvvtCK68zdehe1JX8j54eUgUxNAflwCVv6oLt2SWr4K35KswSpuRbJMcxtkIQlfdTa8a4L' .
+		'l5rqX264zP+HF8diDBjkBVymzN0HgzBfbSI14tJzyfVei9NHk9BxkfZ72Wkn5yVnaGVs2bYxm1l4' .
+		'8UZItwJMTqpzMAD+9N2uvJuD49fqBXIeJhokN/USZyCDCleIx9vEVb8iUURjfk4+mvCRUSd9cHhu' .
+		'yuWlSn/mFPvM6vULayZhKPYXUJwjfyeU1OFsyy1x+bLvrF+zPTC1okg9+NbteE4rOb3QtsvGJjeq' .
+		'Wmm6vFQ5RA51FbtuciNNSlPUbk9YIR/7Eg4MeIjnUe6CU6yVXy88OFvu2CLofJKLnLlLozDZs2CK' .
+		'nNPx51v119M38JWghXxK+d0CQTn3984Ijs9r/DnFO3toOFF/RJ+QyQ6djZqwhSQUp8e3bIG01yia' .
+		'kubbw7M2N7mbprhUA0tYBogWWj4vhLt1hAwprcU2pK3HVthEzpR/KsEs/QH0bVjEebneeBfd1Syp' .
+		'TxdKPGzTmz4Y4KW2xheITuyum/wqgA8k5RUsMfKNy3O3KbF/Ycx+o7rzMPfQ0xAHMZHgwm5CkXQL' .
+		'QG5Qn02rO1+wjTXozOXnYmK5puU1bUQQ1P247irGmYNOqsCLzBO/kxTKRL7L5ndG7AkQU/aZczOX' .
+		'vTiboXqh551tVEzVVgwhBM+DGVGIqluR69uHkdRn8pIW41ws5W6vIvnFzkbX1xtv2jwnN5w2YFv6' .
+		'aKXrbdtwkIum5LpDA9Hm9x0zvylRdH4V8EPfHDms+solG166Sqf87nLv9zunj53GYbwG1+CDywBn' .
+		'ObprPqSbtGw5grZvOsgX5IxqwNnFEu5Cyio6riPcurO2hirsFQ4ADqNHRVLznzOtJVXbc7yhUUiu' .
+		'zsmFT1YY7mE7s1wVglzYFbauy/u/LuhKxxdguUBI9Bw3Xi1zkVc3ma10pG+3xoGlP6jvHGmc6NZU' .
+		'ZsfeMzbKtuyHTgA6AMAZpWahqj9cw2VT9Eg7QwVaUsRf6hUkL8+TTna2awiMgYftTYpBCZT06yel' .
+		'IODFAh6abIsdMEdfkLfHdeRQftCWHSX8wMUuXEig/5UOzsIrBkVAyXIEo3Ifdc3MwYO8T/dCyhWL' .
+		'D57mIPrZHda3Cb1J+mDRBRO+2QUeKhe++asnTNd2vsKdeEXyCimnFJMD8LLauGdasnv5pzfUS0OU' .
+		'tN8NsYbtsEnt7gtAw3oVXfZx0FpOS863nrM3HJmm1JFPUx6dyPfFHWxoo3GJN6Ql82tJqeUS7qZp' .
+		'Xe3XHhzirHvg6yryMX9HFa4Si+O4y97Jz4kncPr7fE1AXJrCV0g3i2K5qBLP15QFkS+uN6sPxC+i' .
+		'9QDSgdnk9MRhIFFTDlAFYreTw4vvepKO5/tMZFxYGvDBZYQWl/rl5RNSSvcZxZKe2dwX2npuweTf' .
+		'5BIW5BuEuONYGun6zEDU8YCX9jv2RnJMwvfdHRGT+3ZbvgpRumGbLvClBwNPn+ZSzFA4xQeh8fz/' .
+		'qJBFLDJfmGQuPgxbrpnGCWVeN7mwXsrrx2NX8EF32z2xXtXTiMpMsL4W+Mj6n6XB4J0kvKvFxVg7' .
+		'vk9WIVey/K67LplJ1Pclf2FNqVMs369CwzXmcgT+WRF0+Y45DscW03ly9yi5egd/l9+huZbMdP2V' .
+		'vfQJw5e8tMl5Fn3TNfK1DZE+CTOsspfoc2dWlUG38EYkgu7G92kaPrNebU1KbmXSyxHdIRsd57MF' .
+		'/XWIaIIobiAbjL4XU1LiA5y7SClLtq1smHFF1c8u/6nezF9saBuUdTTEq1OqBvdSRdqmjffSXrSL' .
+		'KeT+2gfhV8mpORtc3GQ4z4N8/XrN/NfzdX2fe/5cGOirP6Xh6NdjjuKgJ0WLqgOIgVKZ2uwUwxll' .
+		'FyTl3pwzWKcnI2x/yTluckFTrr1dmBqPDWBPq2rAHiYVTxPkd3JJoRTu5YeRaqXAhXuk+JyiICN4' .
+		'fhgD+GQ4eYEwBmWLVIv90cRW0kjvXomnjyUpEK3ecyApMLTA3O3L8h81dUxzxBgtXwrGURNQAYS5' .
+		'whWMpxwleDh4xccI05YoyYnqWUzf+6Dfj0+wkOIWUR8YN3F5C67kmnunZa0696zlujf+zDiEQ3Gd' .
+		'SC28tBXLVXsDJCKfFGUCc7s8zdYn3+89ez91VN7k4rLVKBRzxkbaUiBkKoF0M+UimrDvwLy+PhQw' .
+		'MHUf2DmEe9KGTS3cbcwLphWLcXCHlm3Z7bPcRqKWCwb52gufIb7J/bmp6Z1Vichm3KnU3WiZb3bA' .
+		'A1MLfjQ6cThbB7F6Qt4MxwFsLJuQWKGNHbZYJSvucncZebIKcwElTZnzXaVf58VJgHjpLQm/9fsq' .
+		'+cTGoaIpJShJj3E8WFLtp9OS3HC9Q6wkd1Bbk1F8vMUuZqUqyYHgTz29aZmRMaEkfJW/9oI7YzCJ' .
+		'aeWUa4pSNL8wS2pjUrxM6jsMdOBChN5c+PISLSb6Wxr0uCACsmzBV0Qm6eLEmMAu607vUDhIuIDQ' .
+		'TpBv5jxMcvZaOurxgmI127QWnlJxTrTDTv4eaTpiP0cR5BfldLIEdH21cveru97l1Dm3Trf3HkU5' .
+		'Z2I/yvqdQluRF4x0uO5I9g3+PuTSJCWiCUKMzkvGCgxTC9jJQBTO7XkJ3Lai6VmXhNp6Y/o0Kab9' .
+		'5Xqn+cBGdnsClEQbRs0f5O4B02KjPIOF7kkou/XG98dBKdbvIIrEph7a8Zh7MG/oFTpiBss9Y2Ed' .
+		'BHwgbXhJIy3X5EJPdTecL+yCUyiJe5gLkl0g6jIXAtk2q74NIhrgxw3MEguLEQA2oGI75JvMXJ07' .
+		'XbnGzbDisYb6ECysYx9PvhpV7+nzil4v5Yik26buMgk69vGUNoJTkA4sSv0guNHQ6GvvSl1QOBIa' .
+		'cThqZ3JxDjV1UN+szbtV84U6lLlFEdPn++rILXlofnEAl3tFFVsIqH+bMLMU7mjWY94Lzdqj4Js2' .
+		'l4aM6DQLtSa5OfOW2fCh3CwrHXx8R57DRI7TXqrxLCe1BtIfr8HXWnL9gvaoAC2IiIEr7vMXOZnE' .
+		'F2+Fw0EtmC+yuEa3Q+NdlY8TuklNH5ubyXJOgIPCCK5EypwdamROhS11URW3h53wSJ9SGona2+0c' .
+		'hm73OIFkj7E32LPGayvpzjQfvjaHNNKS5guz8HMiz4tBl2vO9rC9IMZYyNxpnmmer7KrZaOhr4Mp' .
+		'9GzgjZGyx+iRCWmEDhjt58KNDnGPlkaF1EMMvlwA9Qpc5IMctobtEi5DyRWh/xefmybicgmaNBED' .
+		'dQ5be69OXr1o7O8BB/Ezp6MY3+Fw5wu9IWcO1DNNwqnnqOgL30rfRWaDDrYi/PYaBBP5Ng6SsXRw' .
+		'7LmX9Ob8l3oBk7fMvm3TsHNk2Tk9wiSLRsT6JnWzpBtfBEr1Im3WL/jK9D+x7RX+XK2b3GSpISCI' .
+		'g5Hx7sQWqfLdf9LJfWVATqsgL9Y6EGOP8V27LNe8QSJ608lD/MzeBFca5dUozlHErTgTCa5oY7O9' .
+		'ZXO3jcA813b385KCOO1+uvGQbp2R8IS70TPMVL8o8IF+A5DoWNYtyZ2BF+i8e3EookigfbNGRVYu' .
+		'rV5baNF4q9WckSE3N+YxHedmN7QXnFwTtclHxy5Ply5hrq3aWzb75vYkoiTBu4u5kjUUusSSKxtW' .
+		'XpA33qgSvoWWm2yQH2S/I6lMrfDiZ9WA/Ji5JdQVOU6fblZ8WtRFvWiVm4xz/LkvD8P46YFrbMkZ' .
+		'hTyIpvovcoBDdLpYt+ttXgksEUQLhi/X7+cLO8Em7AzmR5a4aQ3pHN5GHJ8O331GExn50reSJhcV' .
+		'/xpei3PtcvJKvsE7T6FpfxZc+NOv61HXsYCF9q1tTaqlCwO/z3dNjXbag7n2qMcnG5E2tUU5tV3q' .
+		'7dMLLze8x9S509lPzx1JTXi1kFoiZephKzABzNqqG3PNpKef79u43M1W69r4gC+Poo6LnRIjOH+F' .
+		'pL9gwXfnM/VL5sbeMLnV14Hm/Q3am9jtCedmkjytMwBDY0VufXA3Jq373stzi9rmxkfMvps+wOoF' .
+		'yIVJMAZsrnsaDcpPVOLpcnEDO4Moi9vXacRytxMny/bQocklxCVhJH/BTCGgFLxCSwnkQ+cpvkQp' .
+		'gYm80Saw4zUXcmZjgN4b3WM7w/n8taNZx7o58q1tQGb55Gsfds92myq6xLxT9OIraM7vQBOwowRO' .
+		'/HqcjczlyxeVdCQU0m5KmytTwp32e5xr6qJdQaJg7vO6V9SUwcVNhvWaKddkOOhQ4VtTZO1F+Mfi' .
+		'dy52t1hS7ziXHik2fMIGna8prfi7zv2U5va80NuLkV7r2y4LzjvbyWXDr8eUEF3O/LoQ/Ncnr/3z' .
+		'h/jvH36f+8H3EN4h4buGGoDUePkvffLO/wUeknSwUK8AAA=='
+;
+	$expect_edits_b64 = 18212;
 
-  /* 어떤 주제를 고르셨는지',
-			'rep'  => '
-    },
-
-    /* ── 직성의 신 · 여섯 주제 ────────────────────────────────
-       2026-08-31 · 직장운과 사업운이 같은 글로 나오던 것을 갈라 씁니다.
-       축 이름(solo·form·many·risk·make)과 양쪽 글자는 페이지 137 의
-       PICKS 와 맞아야 하므로 그대로 두고, 글만 주제에 맞게 새로 씁니다. */
-    \'취업운\': {
-      solo: {
-        \'혼자\': { what: \'구직은 여럿이 함께 하는 일 같아 보여도, 실제로 힘이 붙는 자리는 혼자 앉아 파고드는 시간인 분이에요. 스터디에 나가 남의 진도를 듣고 오면 마음만 급해지고 정작 내 준비는 안 됩니다. 채용 공고를 소문으로 듣기보다 직접 찾아 읽고, 자기소개서도 조용한 데서 혼자 고쳐 쓰실 때 문장이 살아납니다. <em>사람을 만나 얻는 정보보다, 혼자 앉아 쌓은 시간이 결과를 만드는 자리입니다.</em>\' },
-        \'함께\': { what: \'혼자 방에서 준비하면 오래 못 가는 분이에요. 사람과 이야기하는 동안 생각이 정리되고, 남이 붙어 있는 걸 봐야 나도 앉게 됩니다. 스터디든 지인이든 같이 준비하는 사람을 한 명이라도 두시는 게 좋습니다. 실제로 자리를 얻는 길도 공고보다 아는 사람 쪽에서 열릴 때가 많은 자리예요. <em>사람을 만나는 일 자체가 구직 활동입니다. 놀았다고 생각하지 마세요.</em>\' },
-        flat: \'혼자 파고드는 시간도, 사람과 나누는 시간도 둘 다 있어야 굴러가는 분이에요. 혼자만 있으면 방향을 잃고, 사람만 만나면 정작 준비가 안 됩니다. 일주일을 반으로 나누어 며칠은 혼자 앉고 며칠은 사람을 만나는 식으로 짜두시면 좋아요. <em>둘 중 하나가 두 주 넘게 비어 있으면, 그때가 흐름이 막히는 지점입니다.</em>\'
-      },
-      form: {
-        \'실물\': { what: \'결과물이 눈에 보이는 일을 하실 때 힘이 나는 분이에요. 만든 것, 고친 것, 숫자로 남는 것이 있어야 「내가 일했다」는 느낌이 듭니다. 지원하실 때도 직무 이름보다 그 자리에서 무엇이 손에 남는지를 보세요. 면접에서도 생각을 말하기보다 <em>만들어 온 것을 꺼내 보이실 때 훨씬 강한 분입니다.</em> 포트폴리오 한 장이 자기소개서 열 장보다 낫습니다.\' },
-        \'무형\': { what: \'손에 잡히지 않는 것을 다룰 때 오히려 편한 분이에요. 사람 사이를 맞추고, 흐름을 짜고, 말과 글로 정리하는 자리에서 티가 납니다. 눈에 보이는 산출물이 없어서 스스로 「나는 한 게 없다」고 여기기 쉬운데, 그건 일이 없어서가 아니라 남지 않는 종류라서 그렇습니다. <em>지원하실 때 그 자리가 무엇을 만드는가보다, 무엇을 굴러가게 하는가를 보세요.</em>\' },
-        flat: \'손에 잡히는 일도 안 보이는 일도 다 하실 수 있는 분이에요. 만드는 자리에 가면 만들고, 조율하는 자리에 가면 조율합니다. 폭이 넓다는 건 좋은 일이지만, 자기소개서에서는 「무엇이든 합니다」가 가장 약한 말이 됩니다. <em>지원하는 곳마다 둘 중 하나를 골라 그쪽으로만 써 보내세요.</em> 두 가지를 다 적으면 둘 다 흐려집니다.\'
-      },
-      many: {
-        \'하나\': { what: \'한 곳을 깊게 파고들 때 결과가 나는 분이에요. 여기저기 넣어두고 기다리는 방식은 마음만 지치고 정작 어느 하나도 제대로 준비가 안 됩니다. 가고 싶은 곳을 서너 곳으로 줄이고 그 회사만 파고드세요. 그 회사가 무엇을 파는지, 요즘 무엇이 걸려 있는지까지 아시고 들어가면 면접에서 바로 갈립니다. <em>넣는 수를 줄이는 것이 이 자리에서는 전략입니다.</em>\' },
-        \'여럿\': { what: \'여러 곳을 동시에 굴리실 때 감이 살아나는 분이에요. 한 곳만 붙들고 기다리면 그 한 곳에 마음이 다 쏠려서, 떨어졌을 때 회복이 오래 걸립니다. 이력서를 여러 벌 만들어두고 계속 넣으세요. 면접을 여러 번 볼수록 말이 다듬어지는 쪽이라 <em>떨어진 면접도 그냥 버려지는 게 아닙니다.</em> 다만 회사 이름을 헷갈리지 않게 표만 하나 만들어두세요.\' },
-        flat: \'한 곳을 깊게 파도, 여러 곳을 동시에 굴려도 되는 분이에요. 그래서 오히려 방식을 안 정하고 그때그때 하다가 흐지부지되기 쉽습니다. 지원할 곳을 두 층으로 나누어 두세요 — 꼭 가고 싶은 곳 서너 개는 깊게 파고, 나머지는 넓게 넣는 식으로요. <em>같은 정성을 모든 곳에 똑같이 나누는 것이 이 자리에서 가장 손해입니다.</em>\'
-      },
-      risk: {
-        \'안정\': { what: \'오래 다닐 수 있는 곳, 앞이 예상되는 곳에서 마음이 놓이는 분이에요. 연봉이 조금 낮아도 흔들리지 않는 자리라면 그쪽이 맞습니다. 다만 안정된 곳일수록 뽑는 문이 좁고 오래 걸립니다. 두세 달 소식이 없다고 「나는 안 되는구나」로 가지 마세요. <em>당신에게 맞는 자리는 원래 늦게 열립니다.</em> 그 사이를 버틸 최소한의 벌이는 따로 만들어두세요.\' },
-        \'변화\': { what: \'앞이 다 보이는 자리에 앉으면 몇 달 만에 지루해지는 분이에요. 새로 만들어지는 자리, 아직 정리 안 된 판에서 오히려 힘이 납니다. 안정된 곳에 억지로 맞춰 넣으신 지원서는 티가 나서 잘 붙지도 않아요. 다만 <em>흔들리는 곳을 고르시는 만큼, 최소한 몇 달치 생활비는 뒤에 깔아두고 움직이세요.</em> 그게 있어야 조급하게 아무 데나 들어가지 않습니다.\' },
-        flat: \'안정된 곳도 도전적인 곳도 다 넣어보실 수 있는 분이에요. 그래서 지원 목록이 뒤섞이기 쉽습니다. 한쪽에는 오래 다닐 곳, 다른 쪽에는 해보고 싶은 곳으로 나누어 적어두세요. 면접에서 「왜 저희인가요」를 들었을 때 <em>두 목록 중 어느 쪽으로 왔는지를 스스로 알고 계셔야 답이 흔들리지 않습니다.</em>\'
-      },
-      make: {
-        \'정답\': { what: \'요구하는 것을 정확히 맞춰 갈 때 강한 분이에요. 공고에 적힌 자격과 우대 사항을 하나씩 채워가는 방식이 잘 맞습니다. 자격증, 점수, 경력 연차처럼 눈금으로 확인되는 것부터 메우세요. 다만 <em>모든 칸을 다 채우고 나서 넣으려 하지 마세요.</em> 그 칸은 원래 다 채우라고 적어둔 것이 아닙니다. 일고여덟만 되면 넣으셔도 됩니다.\' },
-        \'창조\': { what: \'남들과 같은 방식으로 줄을 서면 묻히는 분이에요. 스펙 싸움에서는 밀려도, 남들이 안 한 것을 하나 들고 가면 거기서 눈에 띕니다. 직접 만든 것, 혼자 해본 프로젝트, 남다른 경로 같은 것을 앞에 세우세요. <em>부족한 칸을 메우는 데 시간을 다 쓰지 마시고, 남들에게 없는 한 칸을 키우는 데 쓰세요.</em> 당신을 뽑는 곳은 그 한 칸을 보고 뽑습니다.\' },
-        flat: \'정해진 기준을 채우는 것도, 나만의 것을 만드는 것도 다 되는 분이에요. 그래서 준비 기간이 길어지기 쉽습니다. 자격 요건을 채우다 보면 나만의 것을 못 만들고, 나만의 것을 만들다 보면 기본이 비어 보이니까요. <em>기본은 남들만큼만 맞추고, 남는 시간을 한 가지에 몰아 쓰세요.</em> 두 마리를 같은 속도로 쫓으면 둘 다 반쪽이 됩니다.\'
-      }
-    },
-    \'직장운\': {
-      solo: {
-        \'혼자\': { what: \'회의가 길어질수록 기운이 빠지고, 혼자 자리에 앉아야 일이 되는 분이에요. 사람이 싫은 게 아니라 남의 속도에 맞추는 동안 내 머리가 안 돌아가는 겁니다. 오전 두 시간만이라도 회의 없는 시간을 잡아두세요. 팀에는 「이 시간엔 집중 작업 중」이라고 미리 알려두시면 됩니다. <em>당신의 성과는 회의실이 아니라 그 두 시간에서 나옵니다.</em>\' },
-        \'함께\': { what: \'혼자 오래 두면 일이 안 굴러가는 분이에요. 누가 옆에서 같이 보고 있어야 속도가 붙고, 말로 꺼내는 동안 답이 나옵니다. 재택이 편해 보여도 길어지면 오히려 지치실 수 있어요. 막힐 때 혼자 붙들고 있지 마시고 <em>일단 아무한테나 설명해 보세요. 설명하는 도중에 답이 나오는 쪽입니다.</em> 그게 당신에게는 딴짓이 아니라 일하는 방식입니다.\' },
-        flat: \'혼자 파고드는 일도 사람과 굴리는 일도 다 하시는 분이에요. 팀에서 이런 분이 가장 편하게 쓰이지만, 그래서 두 몫을 다 하고도 티가 안 납니다. 조율도 하고 실무도 하는데 평가표에는 한 칸만 적히니까요. <em>연말에 한 일을 적으실 때, 혼자 해낸 것과 사람 사이에서 막아낸 것을 나누어 적어두세요.</em> 안 적으면 아무도 모릅니다.\'
-      },
-      form: {
-        \'실물\': { what: \'눈에 남는 결과가 있어야 일한 것 같은 분이에요. 만든 화면, 정리한 문서, 올라간 숫자처럼 손에 잡히는 게 있어야 마음이 놓입니다. 회의와 조율만 하는 자리에 오래 계시면 「나는 뭘 하고 있나」 하는 생각이 계속 듭니다. <em>지금 맡은 일 안에서라도 눈에 남는 것을 하나 만들어두세요.</em> 그게 있어야 다음 자리로 갈 때 보여드릴 것이 됩니다.\' },
-        \'무형\': { what: \'눈에 안 보이는 것을 다루실 때 티가 나는 분이에요. 사람 사이를 맞추고, 일이 굴러가게 하고, 사고를 미리 막는 쪽입니다. 문제는 이 일이 잘 되면 아무 일도 안 일어난 것처럼 보인다는 거예요. 그래서 <em>가장 많이 일한 사람이 가장 적게 적히는 자리에 서 계실 때가 많습니다.</em> 막아낸 일도 일입니다. 기록으로 남겨두세요.\' },
-        flat: \'만드는 일도 굴러가게 하는 일도 다 하실 수 있는 분이에요. 그래서 조직에서 빈자리마다 불려 다니기 쉽습니다. 처음엔 인정받는 것 같아도 몇 해 지나면 「무슨 일 하시는 분이죠」가 됩니다. <em>남들이 나를 어느 한 가지로 부를 수 있게 만들어두세요.</em> 다 할 줄 아는 것과 그것으로 불리는 것은 다른 이야기입니다.\'
-      },
-      many: {
-        \'하나\': { what: \'한 가지를 깊게 붙들 때 제일 잘하시는 분이에요. 여러 건이 동시에 걸리면 각각은 다 되는데도 마음이 계속 어수선합니다. 일이 여러 개 들어올 때 순서를 정해 하나씩 닫아가는 방식이 맞습니다. 「지금은 이것부터 하고 그다음에 그것을 하겠다」고 말하는 연습을 해두세요. <em>동시에 다 잡으려다 하나도 못 닫는 것이 당신에게 가장 큰 손해입니다.</em>\' },
-        \'여럿\': { what: \'여러 건을 동시에 굴릴 때 감이 살아나는 분이에요. 한 가지만 오래 붙들고 있으면 오히려 늘어지고 지루해집니다. 일이 몰릴 때 힘들다기보다 오히려 잘 돌아가는 쪽이에요. 다만 벌여둔 것이 많아 <em>마무리가 늦는 것으로 평가가 깎이기 쉽습니다.</em> 새로 벌이기 전에 닫는 것 하나를 먼저 정해두시면 그 약점이 사라집니다.\' },
-        flat: \'하나를 깊게 파는 것도 여러 개를 굴리는 것도 되는 분이에요. 그래서 일이 계속 들어옵니다. 거절을 안 하면 결국 다 받게 되고, 그러다 어느 해에 한 번 크게 지치십니다. <em>지금 들고 있는 일의 수를 종이에 적어보세요.</em> 머릿속에 있을 때는 몇 개인지 모르다가, 적고 나면 하나는 넘길 수 있게 됩니다.\'
-      },
-      risk: {
-        \'안정\': { what: \'자리가 흔들리지 않을 때 힘이 나는 분이에요. 조직이 개편되거나 팀장이 바뀌는 시기에 유난히 기운이 빠집니다. 능력이 없어서가 아니라, 판이 흔들리는 동안 에너지를 그쪽에 다 쓰기 때문이에요. 이런 시기에는 새 일을 벌이기보다 <em>맡은 것을 조용히 정확하게 해내는 쪽이 결국 살아남습니다.</em> 지금은 눈에 띄지 않는 것이 전략입니다.\' },
-        \'변화\': { what: \'판이 그대로면 오래 못 견디는 분이에요. 같은 일을 같은 방식으로 삼 년쯤 하면 실력과 상관없이 마음이 먼저 나갑니다. 나가기 전에 안에서 바꿔볼 것을 먼저 찾아보세요. 새 프로젝트에 손을 들거나, 안 하던 일을 가져오는 식으로요. <em>회사를 옮겨야만 새로워지는 것은 아닙니다.</em> 안에서 판을 흔들 수 있으면 그게 가장 싸게 바꾸는 방법입니다.\' },
-        flat: \'지금 자리를 지키는 것도 안에서 판을 흔드는 것도 되는 분이에요. 그래서 조직이 바뀔 때 어느 편에도 안 서고 가운데 계시기 쉽습니다. 가운데는 편하지만 아무도 내 편이 아닌 자리이기도 해요. <em>큰 변화가 올 때 한 번은 어느 쪽인지 말해두셔야 합니다.</em> 끝까지 안 정하면 정해지는 쪽으로 끌려갑니다.\'
-      },
-      make: {
-        \'정답\': { what: \'정해진 방식대로 정확히 해낼 때 가장 신뢰받는 분이에요. 절차와 기준이 있는 자리에서 실수가 적고, 그게 당신의 값입니다. 다만 기준이 흐린 조직에 계시면 유난히 힘드실 거예요. 그럴 땐 <em>없는 기준을 스스로 만들어 문서로 남겨두세요.</em> 지키는 사람이 만들어놓은 기준은 조직에서 오래 갑니다. 그게 당신의 자리를 만듭니다.\' },
-        \'창조\': { what: \'있는 대로 하라고 하면 오히려 실수가 나는 분이에요. 왜 이렇게 하는지가 납득되어야 손이 움직입니다. 그래서 절차가 빡빡한 곳에서는 「말 안 듣는 사람」이 되기도 해요. 바꾸자고 말할 때 <em>지금 방식이 틀렸다는 말부터 하지 마시고, 새 방식으로 한 번 해서 결과를 보여주는 순서로 가세요.</em> 순서만 바꿔도 같은 말이 다르게 들립니다.\' },
-        flat: \'정해진 대로도 하고 새로 만들기도 하는 분이에요. 어느 조직에 가도 무난히 섞이지만, 그래서 강한 인상이 안 남습니다. 평가철에 「무난하다」는 말을 들으신 적이 있다면 그 뜻이에요. <em>한 해에 한 번은 안 하던 방식으로 눈에 띄는 것을 하나 남기세요.</em> 무난함은 오래가지만 올라가지는 않습니다.\'
-      }
-    },
-    \'이직운\': {
-      solo: {
-        \'혼자\': { what: \'이직 준비를 혼자 조용히 하실 때 잘 되는 분이에요. 옮길 생각이 있다고 여기저기 말해두면 오히려 마음만 급해지고 지금 자리도 불편해집니다. 이력서도 헤드헌터에게 맡기기보다 직접 고쳐 쓰실 때 말이 살아나요. <em>준비가 끝나기 전에는 아무에게도 말하지 마세요.</em> 소문이 먼저 도는 것이 이 자리에서 가장 위험합니다.\' },
-        \'함께\': { what: \'옮기는 길이 사람 쪽에서 열리는 분이에요. 공고를 보고 넣는 것보다 아는 사람이 부르는 자리에서 훨씬 잘 붙습니다. 그러니 평소에 연락을 끊지 마세요. 전 직장 동료, 같이 일했던 거래처에 한 번씩 안부를 두시는 게 이직 준비입니다. <em>당신에게는 이력서를 고치는 시간보다 사람을 만나는 시간이 더 값집니다.</em>\' },
-        flat: \'혼자 준비하는 것도 사람을 통하는 것도 다 되는 분이에요. 두 길이 다 열려 있으니 오히려 어느 쪽도 끝까지 안 밀어붙이기 쉽습니다. 기한을 정해두세요 — 석 달은 혼자 넣어보고, 안 되면 사람 쪽으로 돌리는 식으로요. <em>두 방법을 번갈아 조금씩 하면 어느 쪽도 무르익지 않습니다.</em>\'
-      },
-      form: {
-        \'실물\': { what: \'옮기실 때 손에 잡히는 것을 들고 가야 값을 받는 분이에요. 「이런 일을 했습니다」보다 「이것을 만들었습니다」가 훨씬 강합니다. 지금 회사에서 나온 결과물 가운데 가져갈 수 있는 것을 정리해두세요. 숫자로 남는 것이 있으면 더 좋습니다. <em>면접에서 말로 설명하실 때보다 꺼내 보이실 때 값이 두 배가 되는 분입니다.</em>\' },
-        \'무형\': { what: \'옮기실 때 가장 값진 것이 눈에 안 보이는 분이에요. 사람을 붙여놓은 것, 굴러가게 만든 것, 사고를 막은 것 같은 일입니다. 이런 건 이력서에 적기가 참 어렵습니다. <em>「무엇을 만들었나」가 아니라 「내가 없었으면 어떻게 됐을까」로 바꿔서 적어보세요.</em> 그렇게 쓰면 안 보이던 일이 문장이 됩니다.\' },
-        flat: \'만든 것도 있고 굴러가게 한 것도 있는 분이에요. 이력서에 둘 다 적으시면 페이지는 길어지는데 인상은 흐려집니다. 가는 자리가 무엇을 원하는지 보고 <em>그 자리에 맞는 한쪽만 앞에 세우세요.</em> 나머지는 면접에서 물어볼 때 꺼내시면 됩니다. 다 적어 보내는 것이 성실함으로 읽히지는 않습니다.\'
-      },
-      many: {
-        \'하나\': { what: \'한 곳을 정해두고 그리로 가실 때 잘 풀리는 분이에요. 여러 곳에 넣어두고 저울질하면 마음이 흩어지고 면접에서도 그게 드러납니다. 가고 싶은 곳을 두세 곳으로 좁히고 그 회사만 파고드세요. <em>넣는 곳을 줄이는 만큼 붙을 확률이 올라가는 자리입니다.</em> 조건이 조금 아쉬워도 마음이 정해진 쪽으로 가시는 게 맞습니다.\' },
-        \'여럿\': { what: \'여러 곳을 동시에 놓고 봐야 판단이 서는 분이에요. 한 곳만 보고 있으면 그곳이 좋은지 나쁜지 견줄 데가 없어서 자꾸 흔들립니다. 여러 곳을 함께 진행하시고, 조건도 나란히 적어놓고 비교하세요. <em>동시에 두세 곳에서 이야기가 오갈 때 당신이 받는 조건이 가장 좋아집니다.</em> 한 곳만 붙들면 아쉬운 쪽이 당신이 됩니다.\' },
-        flat: \'한 곳을 정해 가도, 여러 곳을 견줘도 되는 분이에요. 그래서 「일단 보고 정하자」로 미루다가 시기를 놓치기 쉽습니다. 옮길 마음이 들었으면 <em>언제까지 정할지 날짜부터 적어두세요.</em> 이직은 마음이 뜬 채로 오래 다니는 것이 가장 손해입니다. 지금 자리에서도 값이 깎입니다.\'
-      },
-      risk: {
-        \'안정\': { what: \'검증된 곳으로 옮기실 때 마음이 놓이는 분이에요. 이름이 알려진 곳, 사람이 오래 다니는 곳이 맞습니다. 연봉이 크게 오르는 대신 흔들리는 자리는 가서도 계속 불안하실 거예요. 옮기시기 전에 그 회사에 다니는 사람 한 명은 꼭 만나보세요. <em>당신에게는 조건표보다 사람들이 오래 다니는지가 더 중요한 정보입니다.</em>\' },
-        \'변화\': { what: \'이미 정리된 곳에 가시면 몇 달 만에 또 답답해지는 분이에요. 아직 자리가 안 잡힌 곳, 만들어가야 하는 곳에서 오히려 삽니다. 다만 그런 곳은 흔들릴 확률도 함께 높아요. <em>가시기 전에 잘못됐을 때 어디로 돌아올지를 하나 정해두고 움직이세요.</em> 그게 있으면 훨씬 과감하게 걸어보실 수 있습니다.\' },
-        flat: \'검증된 곳도 낯선 곳도 다 가실 수 있는 분이에요. 그래서 두 종류를 같이 놓고 보다가 결정을 못 내리기 쉽습니다. 조건만 비교하면 답이 안 나와요. <em>지금 회사를 떠나는 이유가 무엇인지 한 줄로 적어보시고, 그 이유를 없애주는 쪽을 고르세요.</em> 조건이 아니라 이유로 고르시면 흔들리지 않습니다.\'
-      },
-      make: {
-        \'정답\': { what: \'해오던 일을 이어가실 때 값을 제대로 받는 분이에요. 쌓아온 경력이 그대로 인정되는 자리로 가시는 게 맞습니다. 완전히 다른 분야로 건너가면 처음부터 다시 증명해야 하는데, 그 과정이 당신에게는 유난히 지칩니다. <em>같은 일을 더 좋은 조건에서 하는 것도 충분히 좋은 이직입니다.</em> 꼭 바꿔야 잘한 이직인 것은 아니에요.\' },
-        \'창조\': { what: \'하던 일을 그대로 이어가면 옮겨도 옮긴 것 같지 않은 분이에요. 회사만 바뀌고 지루함은 그대로 따라옵니다. 이왕 옮기실 거면 일의 종류나 역할을 한 칸이라도 바꿔보세요. 연봉이 잠깐 덜 오르더라도 <em>새로 배울 것이 있는 자리가 당신에게는 결국 더 큰 값이 됩니다.</em> 그게 몇 해 뒤에 값으로 돌아옵니다.\' },
-        flat: \'하던 일을 이어가도, 다른 일로 건너가도 되는 분이에요. 선택지가 넓은 만큼 「어느 쪽이 맞나」로 오래 헤매기 쉽습니다. 종이에 두 줄로 적어보세요 — 삼 년 뒤 같은 일을 하고 있는 나와, 다른 일을 하고 있는 나. <em>둘 중 보기 싫은 쪽이 있으면 그게 답입니다.</em> 조건 계산보다 이쪽이 빠릅니다.\'
-      }
-    },
-    \'퇴사운\': {
-      solo: {
-        \'혼자\': { what: \'그만두는 결정을 혼자 내리셔야 마음이 편한 분이에요. 여러 사람에게 물어보면 답이 제각각이라 오히려 더 못 정합니다. 주변에서 하는 말은 대개 그 사람의 사정이지 당신의 사정이 아니에요. 조용한 데서 혼자 며칠 두고 생각해보세요. <em>남들 말을 다 듣고 정한 퇴사는 나중에 후회가 남고, 혼자 정한 퇴사는 힘들어도 후회가 적습니다.</em>\' },
-        \'함께\': { what: \'혼자 생각하면 같은 자리를 계속 도는 분이에요. 말로 꺼내는 동안 정리가 되니, 믿을 만한 사람 한둘에게는 털어놓으세요. 다만 회사 안에서 하시면 안 됩니다. <em>회사 밖 사람에게 이야기하세요.</em> 그리고 그만둔 뒤에도 혼자 지내시면 유난히 가라앉는 쪽이니, 나오시기 전에 만날 사람을 미리 정해두시는 게 좋습니다.\' },
-        flat: \'혼자 정리하는 시간도 사람과 나누는 시간도 필요한 분이에요. 먼저 혼자 며칠 두고 마음을 보시고, 그다음에 한 사람에게만 말해보세요. 순서가 바뀌면 남의 말에 휘둘립니다. <em>결정은 혼자 하시고, 확인만 사람에게 받으세요.</em> 그 순서면 나중에 흔들리지 않습니다.\'
-      },
-      form: {
-        \'실물\': { what: \'그만두고 나서 손에 잡히는 것이 없으면 유난히 불안해지는 분이에요. 쉬는 것 자체가 잘 안 됩니다. 나오시기 전에 나가서 무엇을 만들지를 한 가지 정해두세요. 배우는 것이든 만드는 것이든 상관없습니다. <em>당신에게 필요한 것은 쉬는 시간이 아니라 손에 남는 다음 것입니다.</em> 그게 없으면 쉬는 동안 더 지칩니다.\' },
-        \'무형\': { what: \'지금 힘든 것이 일의 양보다 사람과 분위기인 분이에요. 그래서 「무슨 일이 그렇게 힘드냐」는 말을 들으면 설명이 잘 안 됩니다. 설명이 안 된다고 안 힘든 게 아니에요. 다만 <em>옮겨도 사람 문제는 따라오기 쉬우니, 나가시기 전에 무엇이 나를 갉았는지 한 줄로 적어두세요.</em> 그게 다음 자리를 고르는 기준이 됩니다.\' },
-        flat: \'일도 사람도 다 걸려 있는 분이에요. 그래서 무엇 때문에 그만두는지가 스스로도 흐릿합니다. 종이를 반으로 나눠 한쪽엔 일 때문에, 다른 쪽엔 사람 때문에 힘든 것을 적어보세요. <em>한쪽이 확실히 길면 그건 옮기면 풀리는 문제이고, 두 쪽이 비슷하면 쉬셔야 하는 때입니다.</em>\'
-      },
-      many: {
-        \'하나\': { what: \'그만두는 이유가 하나로 또렷한 분이에요. 그 하나가 안 바뀌면 아무리 참아도 결국 나오게 됩니다. 다만 나가시기 전에 그 하나를 회사에 한 번은 말해보세요. 말도 안 해보고 나오면 나중에 「말이라도 해볼걸」이 남습니다. <em>말하고 안 바뀌면 그때는 마음이 아주 가벼워집니다.</em> 그 가벼움이 다음을 시작하는 힘이 돼요.\' },
-        \'여럿\': { what: \'하나만 딱 짚기 어렵고 여러 가지가 겹쳐 지친 분이에요. 그래서 「이 정도로 그만둬도 되나」 하고 스스로를 의심하십니다. 큰 사고가 하나 있어야 그만둘 자격이 생기는 것이 아니에요. <em>작은 것 여럿이 오래 쌓인 것이 훨씬 무겁습니다.</em> 적어보시면 생각보다 목록이 길 거예요. 그 목록이 당신의 이유입니다.\' },
-        flat: \'이유가 하나인 것 같기도 하고 여럿인 것 같기도 한 분이에요. 그래서 결정이 자꾸 미뤄집니다. 날짜를 하나 정해두세요 — 그날까지 상황이 그대로면 나온다고요. <em>조건이 아니라 기한으로 정해두시는 것이 당신에게는 훨씬 잘 지켜집니다.</em> 기한이 없으면 몇 해가 그냥 지나갑니다.\'
-      },
-      risk: {
-        \'안정\': { what: \'나온 뒤 한동안 비워두는 시간이 필요한 분이에요. 바로 다른 곳에 들어가면 지친 채로 시작해서 거기서도 오래 못 갑니다. 다만 비워두는 시간이 불안하지 않으려면 돈이 계산되어 있어야 해요. <em>몇 달을 버틸 수 있는지 숫자로 먼저 세어보시고, 그 기간 안에서 쉬세요.</em> 계산된 쉼은 쉼이 되고, 계산 안 된 쉼은 불안이 됩니다.\' },
-        \'변화\': { what: \'쉬는 것보다 바로 다음 판을 벌이실 때 사는 분이에요. 비워두면 오히려 가라앉고 생각만 많아집니다. 다만 급하게 정한 다음 자리는 지금과 비슷한 곳이기 쉬워요. <em>나오시기 전에 다음 것을 정해두시되, 그것이 도망치듯 고른 것은 아닌지만 한 번 보세요.</em> 급할수록 같은 자리로 돌아갑니다.\' },
-        flat: \'쉬어도 되고 바로 움직여도 되는 분이에요. 그래서 나온 뒤에 흐지부지 몇 달이 지나가기 쉽습니다. 나오시는 날에 <em>「몇 달은 쉬고 몇 월부터 움직인다」를 정해두세요.</em> 어느 쪽이든 정해두면 그 시간이 쉼이 되고, 안 정하면 같은 시간이 불안으로만 남습니다.\'
-      },
-      make: {
-        \'정답\': { what: \'나가실 때도 순서대로 정리하고 나가셔야 마음이 편한 분이에요. 인수인계, 통보 기한, 남은 정산까지 다 맞춰두고 나오시는 게 맞습니다. 그렇게 나오시면 그 업계에서 당신 평판이 오래 남아요. <em>퇴사는 그 회사와의 마지막이 아니라, 그 업계 사람들에게 보이는 첫인상입니다.</em> 당신은 그 값을 받는 쪽입니다.\' },
-        \'창조\': { what: \'지금 판에서 할 것을 다 하신 분이에요. 그래서 남아 있으면 자꾸 딴생각이 납니다. 나가서 아예 다른 판을 짜보고 싶으신 마음이 있으실 텐데, 그 마음은 도망이 아니라 방향입니다. 다만 <em>새 판을 머릿속에서만 굴리지 마시고, 나오시기 전에 아주 작게라도 한 번 시험해보세요.</em> 해보고 나면 크기가 정해집니다.\' },
-        flat: \'깨끗하게 정리하고 나가는 것도, 새 판을 벌이는 것도 되는 분이에요. 그래서 「일단 나가서 생각하자」가 되기 쉽습니다. 나가는 것과 다음을 정하는 것은 다른 일이에요. <em>나가는 날짜와 다음을 정하는 날짜를 따로 적어두세요.</em> 하나로 붙여두면 둘 다 안 정해집니다.\'
-      }
-    },
-    \'사업운\': {
-      solo: {
-        \'혼자\': { what: \'혼자 굴리실 때 판단이 빠르고 정확한 분이에요. 동업은 마음 편하자고 시작해도 결국 속도를 늦추고 다툼을 만듭니다. 사람을 쓰시더라도 결정은 혼자 하시는 구조로 두세요. 다만 혼자 하는 만큼 <em>바깥의 눈을 하나는 두셔야 합니다.</em> 이야기를 들어줄 사람이 아니라, 틀렸다고 말해줄 사람으로요.\' },
-        \'함께\': { what: \'사람과 굴리실 때 판이 커지는 분이에요. 혼자 하시면 잘 하다가도 어느 지점에서 멈춥니다. 동업이든 직원이든 같이 갈 사람이 있어야 다음 칸으로 넘어가요. 다만 <em>같이 하실 때는 돈과 역할을 처음에 글로 적어두세요.</em> 사이가 좋을 때 적어두는 것이 사이를 오래 좋게 만듭니다.\' },
-        flat: \'혼자도 되고 같이도 되는 분이에요. 그래서 사람을 들일지 말지로 오래 고민하십니다. 매출이 아니라 시간으로 정하세요 — <em>내가 손을 못 대서 못 하는 일이 생기기 시작하면 그때가 사람을 들일 때입니다.</em> 그 전에는 혼자가 빠르고, 그 뒤로는 혼자가 발목입니다.\'
-      },
-      form: {
-        \'실물\': { what: \'손에 잡히는 것을 파실 때 잘 되는 분이에요. 물건이든 눈에 보이는 결과든, 사는 사람이 만질 수 있어야 값이 설명됩니다. 눈에 안 보이는 것을 파는 일은 잘하셔도 값을 못 받으실 수 있어요. <em>이미 하고 계신 일이 무형이라면, 그것을 눈에 보이는 형태로 한 번 바꿔보세요.</em> 같은 일도 값이 달라집니다.\' },
-        \'무형\': { what: \'눈에 안 보이는 것을 다루실 때 값이 붙는 분이에요. 아는 것, 짜는 것, 연결하는 것 같은 일입니다. 재고와 자리가 없으니 시작이 가볍지만, 그만큼 <em>값을 스스로 정해야 하는 것이 이 일의 어려움입니다.</em> 싸게 시작하면 계속 싸게 갑니다. 처음 부르는 값을 낮추지 마세요.\' },
-        flat: \'만드는 일도 안 보이는 것을 다루는 일도 되는 분이에요. 그래서 사업 모양이 자꾸 바뀝니다. 손님 입장에서는 무엇을 파는 곳인지 알기 어려워져요. <em>한 문장으로 「저희는 무엇을 하는 곳입니다」를 정해두시고, 한 해는 그것을 안 바꾸세요.</em> 바꾸는 것보다 버티는 것이 어려운 자리입니다.\'
-      },
-      many: {
-        \'하나\': { what: \'한 가지를 깊게 파실 때 결국 값이 나는 분이에요. 여러 개를 벌이면 각각은 다 굴러가는데 어느 것도 크지 않습니다. 잘 되는 것 하나가 보이면 나머지를 줄이고 거기에 몰아주세요. <em>당신에게는 가짓수를 늘리는 것이 성장이 아니라, 하나를 깊게 파는 것이 성장입니다.</em> 그 하나가 깊어지면 나머지는 따라옵니다.\' },
-        \'여럿\': { what: \'여러 개를 동시에 굴리실 때 살아나는 분이에요. 하나만 하면 그것이 흔들릴 때 같이 흔들려서 마음이 못 견딥니다. 여러 갈래를 두시는 게 당신에게는 안전장치예요. 다만 <em>다섯 개를 벌이면 다섯 개 다 관리가 안 되는 때가 옵니다.</em> 셋을 넘기시기 전에 접을 것 하나를 정해두세요.\' },
-        flat: \'하나를 파도 여럿을 굴려도 되는 분이에요. 그래서 새 아이템이 보일 때마다 마음이 갑니다. 벌이는 것은 쉽고 접는 것은 어려워요. <em>새로 하나를 시작하실 때, 무엇을 접을지 같이 정해두세요.</em> 그 규칙 하나만 있어도 몇 해 뒤 모습이 달라집니다.\'
-      },
-      risk: {
-        \'안정\': { what: \'한 칸씩 밟아 올라가실 때 오래가는 분이에요. 크게 걸어 크게 먹는 방식은 잘 되어도 그 뒤가 불안해서 즐기지를 못하십니다. 빚을 내어 판을 키우기보다 벌어서 키우는 속도가 맞아요. 남들 보기엔 느려 보여도 <em>당신 사업은 안 망하는 것이 가장 큰 성과입니다.</em> 오래 남아 있는 쪽이 결국 가져갑니다.\' },
-        \'변화\': { what: \'판이 커질 기회가 보이면 걸어보셔야 직성이 풀리는 분이에요. 지키기만 하는 사업은 잘 되어도 흥이 안 납니다. 다만 크게 거실 때 <em>잃어도 되는 금액의 선을 미리 정해두세요.</em> 그 선만 지키시면 몇 번 실패해도 다시 일어납니다. 선이 없으면 한 번에 끝납니다.\' },
-        flat: \'안정적으로 키워도 크게 걸어도 되는 분이에요. 그래서 시기마다 마음이 오락가락합니다. 잘 될 때 크게 걸고 안 될 때 움츠리면 순서가 거꾸로예요. <em>거는 시기와 지키는 시기를 미리 나누어 정해두세요.</em> 기분이 아니라 달력으로 정하시면 흔들리지 않습니다.\'
-      },
-      make: {
-        \'정답\': { what: \'이미 검증된 방식을 정확히 해내실 때 강한 분이에요. 남이 만든 길을 더 잘 걷는 것도 분명한 재능입니다. 새로운 것을 만들어야 한다는 말에 흔들리지 마세요. <em>당신은 없던 것을 만드는 사람이 아니라, 있는 것을 제대로 굴리는 사람입니다.</em> 그쪽에서 값이 납니다. 다만 남들과 같은 값으로는 안 됩니다. 한 가지만 더 잘하세요.\' },
-        \'창조\': { what: \'남들 하는 대로 하면 재미도 없고 값도 안 나는 분이에요. 같은 것을 파시더라도 방식이 달라야 눈에 띕니다. 다만 새로운 방식은 설명이 오래 걸려요. <em>손님이 처음 보고 무슨 말인지 모르면 아무리 좋아도 안 팔립니다.</em> 새로 만드시되, 설명은 남들이 아는 말로 하세요. 그 둘을 나누시면 훨씬 빨라집니다.\' },
-        flat: \'검증된 방식도 새 방식도 다 하실 수 있는 분이에요. 그래서 남들 하는 대로 하다가 답답해서 바꾸고, 바꿨다가 불안해서 되돌리기 쉽습니다. <em>기본은 남들 하는 대로 두시고, 한 군데만 나만의 방식으로 하세요.</em> 전부 바꾸면 손님이 못 따라오고, 전부 같으면 고를 이유가 없습니다.\'
-      }
-    },
-    \'재물운\': {
-      solo: {
-        \'혼자\': { what: \'돈은 혼자 조용히 굴리셔야 맞는 분이에요. 남이 좋다는 곳에 따라 들어가면 들어갈 때는 편한데 나올 때를 못 정합니다. 단체 대화방이나 주변 이야기에서 나온 자리는 대개 이미 늦은 자리예요. 직접 알아보고 직접 정하세요. <em>당신이 손해를 보는 자리는 거의 언제나 남의 말을 듣고 들어간 자리입니다.</em>\' },
-        \'함께\': { what: \'혼자 들여다보면 오히려 못 정하고 시기를 놓치는 분이에요. 사람과 이야기하면서 판단이 서는 쪽이라, 물어볼 사람을 두시는 게 맞습니다. 다만 <em>돈 이야기를 나누는 사람과 돈을 맡기는 사람은 반드시 나누세요.</em> 이야기는 여럿과 하시고, 통장은 혼자 관리하시는 것이 이 자리의 규칙입니다.\' },
-        flat: \'혼자 알아보기도 하고 사람 말도 듣는 분이에요. 그래서 결정이 늦고, 늦다가 남들 다 들어간 뒤에 들어가기 쉽습니다. 알아보는 기간을 정해두세요 — <em>두 주 안에 정하고, 그 안에 못 정하면 안 하는 것으로 두세요.</em> 미루면서 계속 보고 있는 것이 가장 비싼 방식입니다.\'
-      },
-      form: {
-        \'실물\': { what: \'손에 잡히는 것에 돈을 두셔야 마음이 놓이는 분이에요. 집이든 물건이든 눈에 보이는 것에서 값을 느끼십니다. 숫자로만 오르내리는 것에 넣으면 잘 되어도 밤에 잠이 안 와요. 수익률이 조금 낮아도 <em>보이는 곳에 두시는 것이 당신에게는 손해가 아닙니다.</em> 못 견디고 팔아버리는 것이 진짜 손해입니다.\' },
-        \'무형\': { what: \'눈에 안 보이는 곳에 넣는 것이 오히려 편한 분이에요. 실물은 관리가 따라붙어서 그 손이 더 아깝게 느껴집니다. 다만 안 보이는 만큼 <em>얼마가 어디에 있는지가 머릿속에서만 굴러다니기 쉽습니다.</em> 한 장짜리 표를 만들어 달마다 한 번만 적어보세요. 적는 순간 새는 데가 보입니다.\' },
-        flat: \'보이는 곳도 안 보이는 곳도 다 다루실 수 있는 분이에요. 그래서 여기저기 조금씩 걸쳐두게 됩니다. 합치면 적지 않은데 흩어져 있어서 늘 부족해 보여요. <em>먼저 전부를 한 장에 모아 적어보세요.</em> 새로 넣을 곳을 찾기 전에, 이미 있는 것을 모으는 것이 당신에게는 훨씬 큰 돈이 됩니다.\'
-      },
-      many: {
-        \'하나\': { what: \'한 곳에 모아두실 때 마음이 편하고 결과도 나은 분이에요. 여러 군데 나눠두면 관리가 안 되고, 관리가 안 되면 결국 방치됩니다. 다만 한 곳에 모으는 만큼 <em>그 한 곳이 흔들리면 전부가 흔들립니다.</em> 모으시되 성격이 다른 두 통은 만들어두세요. 하나는 굴리는 돈, 하나는 절대 안 건드리는 돈으로요.\' },
-        \'여럿\': { what: \'여러 갈래로 나눠두실 때 안심이 되는 분이에요. 한 곳이 흔들려도 전체가 안 흔들리니 잠을 잘 주무십니다. 다만 갈래가 늘어날수록 <em>어디에 얼마가 있는지 모르게 되고, 모르면 없는 돈이나 마찬가지가 됩니다.</em> 갈래는 다섯을 넘기지 마세요. 그 이상은 분산이 아니라 방치입니다.\' },
-        flat: \'한 곳에 모아도 여럿으로 나눠도 되는 분이에요. 그래서 그때그때 기분대로 옮기다가 수수료와 세금으로 새기 쉽습니다. 옮기는 횟수를 정해두세요 — <em>한 해에 두 번만 자리를 바꾸는 식으로요.</em> 자주 옮겨서 는 돈보다, 안 옮겨서 는 돈이 많은 자리입니다.\'
-      },
-      risk: {
-        \'안정\': { what: \'모아두실 때 마음이 놓이는 분이에요. 이자가 적어도 원금이 안 줄어야 잠이 옵니다. 주변에서 「그렇게 두면 손해」라는 말을 많이 들으셨을 텐데, 그 말에 흔들려 들어가시면 대개 그때가 꼭대기입니다. <em>당신에게는 크게 버는 해보다 크게 잃지 않는 해가 훨씬 값집니다.</em> 그렇게 십 년이면 결과가 남습니다.\' },
-        \'변화\': { what: \'가만히 두면 답답해서 못 견디는 분이에요. 굴려야 돈 같고, 안 움직이면 놀고 있는 것처럼 느껴집니다. 그 감이 맞을 때도 많지만 <em>한 번 크게 잃는 해가 십 년을 지웁니다.</em> 전체를 셋으로 나누어 굴리는 몫을 한 덩이로 못 박아두세요. 그 한 덩이 안에서는 마음껏 하셔도 됩니다.\' },
-        flat: \'모아두는 것도 굴리는 것도 되는 분이에요. 그래서 시장이 좋을 때 굴리고 나쁠 때 모으다가 늘 한 박자씩 늦습니다. <em>비율을 미리 정해두세요 — 얼마는 모으고 얼마는 굴린다고요.</em> 그리고 그 비율을 시장 보고 바꾸지 마세요. 정해둔 비율을 지키는 것만으로 대부분의 손해가 사라집니다.\'
-      },
-      make: {
-        \'정답\': { what: \'정해진 곳에 꾸준히 넣으실 때 결과가 나는 분이에요. 남들이 다 하는 방식이 재미없어 보여도 당신에게는 그게 맞습니다. 새로 나온 것, 아직 이름이 생소한 것에 손대시면 잘 되어도 마음이 계속 불편해요. <em>같은 자리에 오래 두는 것이 당신의 방식입니다.</em> 남들이 빠르게 벌 때 조급해지지만 않으시면 됩니다.\' },
-        \'창조\': { what: \'남들 다 하는 곳에 넣으면 재미도 없고 성에도 안 차는 분이에요. 남보다 먼저 보는 눈이 있으신 편이라 실제로 그쪽에서 값이 나기도 합니다. 다만 먼저 보는 것과 먼저 들어가는 것은 다른 일이에요. <em>새로운 곳에는 잃어도 되는 만큼만 넣고, 기본은 지루한 곳에 두세요.</em> 그래야 다음 기회가 왔을 때 넣을 돈이 남아 있습니다.\' },
-        flat: \'정해진 곳도 새로운 곳도 다 보시는 분이에요. 그래서 「이번엔 이쪽」 하고 매번 방식이 바뀝니다. 방식이 바뀌면 결과를 견줄 수가 없어서 무엇이 나았는지 영영 모르게 돼요. <em>한 해는 한 가지 방식으로만 해보시고 연말에 결과를 적어두세요.</em> 그 기록이 쌓이면 남의 말이 더는 필요 없어집니다.\'
-      }
-    }
-  };
-
-  /* 어떤 주제를 고르셨는지',
-		),
-	);
+	$edits_txt = preg_replace( '/\s+/', '', $edits_b64 );
+	if ( strlen( $edits_txt ) !== $expect_edits_b64 ) {
+		echo '<p class="no">붙여넣기가 잘렸습니다. 담긴 글자 ' . strlen( $edits_txt );
+		echo ' / 있어야 할 글자 ' . $expect_edits_b64;
+		echo '<br>스니펫을 지우고 파일을 다시 통째로 붙여넣어 주세요.</p>';
+		exit;
+	}
+	$edits_packed = base64_decode( $edits_txt, true );
+	$edits = ( false === $edits_packed ) ? null : json_decode( (string) @gzdecode( $edits_packed ), true );
+	if ( ! is_array( $edits ) ) {
+		echo '<p class="no">고칠 자리 목록을 풀지 못했습니다. 붙여넣기가 잘린 것 같습니다.</p>'; exit;
+	}
 
 	$updated = $content;
 	$fail    = false;
@@ -365,9 +369,8 @@ add_action( 'init', function () {
 		exit;
 	}
 
-	/* 2026-08-31 · 백업은 처음 한 번만 남깁니다.
-	   이 스니펫을 두 번 돌리시면 두 번째에는 「이미 고친 것」이 백업으로 덮여서
-	   되돌리기가 원래 자리까지 못 갑니다. 그래서 백업이 이미 있으면 손대지 않습니다. */
+	/* 백업은 처음 한 번만 남깁니다. 두 번 돌리면 「이미 고친 것」이 백업으로
+	   덮여서 되돌리기가 원래 자리까지 못 갑니다. */
 	if ( false === get_option( $bak_key ) ) { update_option( $bak_key, $content, false ); }
 	$done = $wpdb->update( $wpdb->posts, array( 'post_content' => $updated ), array( 'ID' => $post_id ) );
 	clean_post_cache( $post_id );
