@@ -49,8 +49,8 @@ defined( 'STELLA_W_PAGE' ) || define( 'STELLA_W_PAGE', 160 );
 defined( 'STELLA_W_KEY' )  || define( 'STELLA_W_KEY',  'words1' );
 
 /* 다 고치고 나면 본문이 이 모양이어야 합니다 — 제가 미리 걸어보고 잰 값입니다 */
-defined( 'STELLA_W_GROW' ) || define( 'STELLA_W_GROW', 7799 );
-defined( 'STELLA_W_SHA' )  || define( 'STELLA_W_SHA',  'a29020d3cc74d275468981a50d3a55c91acfd63b' );
+defined( 'STELLA_W_GROW' ) || define( 'STELLA_W_GROW', 7920 );
+defined( 'STELLA_W_SHA' )  || define( 'STELLA_W_SHA',  'aae82ed651706cf00a45c17beeec4d4caeb8a004' );
 
 $STELLA_W_EDITS = array(
 	array(
@@ -420,6 +420,45 @@ var out = '<p>' + w.lead + '</p>'
          전혀 안 들어가므로, 이 표는 해마다 똑같이 되풀이됩니다. */
       + '<p>여기 적힌 달은 <em>올해만의 이야기가 아닙니다.</em> 태어난 날의 글자와 그 달의 글자가 만나는 방식으로 갈리는 것이라, 내년에도 그 다음 해에도 같은 달이 같은 자리에 옵니다. 절기 기준이라 달력의 1일이 아니라 절기가 드는 날에 바뀝니다.</p>';
 REP20,
+		'n'    => 1,
+	),
+	array(
+		'name' => <<<'NAME21'
+맺음말 · 결은 ○○ 쪽입니다
+NAME21,
+		're'   => <<<'RE21'
+~class="kt">결은\ '\+\(leaned\ \?\ leanAxis\.name\+'\ 쪽입니다'~s
+RE21,
+		'rep'  => <<<'REP21'
+class="kt">결은 '+(leaned ? sideWord(leanKey, leanAxis.name)+' 쪽입니다'
+REP21,
+		'n'    => 1,
+	),
+	array(
+		'name' => <<<'NAME22'
+맺음말 · 가장 크게 기운 저울
+NAME22,
+		're'   => <<<'RE22'
+~'여덟\ 글자에서\ 가장\ 크게\ 기운\ 저울은\ <em>'\+AXNAME\[leanKey\]\+'</em>였습니다\.\ '\+\
+\ \ \ \ \ \ \ \ \ \ \ \ '당신은\ 아무런\ 기준\ 없이\ 처음부터\ 새로운\ 답을\ 만들어가기보다,\ '\+leanAxis\.say\+'\ 쪽으로\ 나올\ 때\ 마음이\ 더\ 편한\ 사람이에요\.</p>'\+~s
+RE22,
+		'rep'  => <<<'REP22'
+'여덟 글자에서 가장 크게 기운 저울은 <em>'+axTitle(leanKey, AXNAME[leanKey])+'</em>였습니다. '+
+            /* 2026-08-31 · saySide 값이 모두 「…쪽」으로 끝나 옛 문장에 넣으면 「쪽 쪽으로」가 됩니다 */
+            '당신은 <em>'+saySide(leanKey)+'</em>'+(R.hasBatchim(saySide(leanKey))?'이에요':'예요')+'.</p>'+
+REP22,
+		'n'    => 1,
+	),
+	array(
+		'name' => <<<'NAME23'
+맺음말 · 어긋난 자리 목록
+NAME23,
+		're'   => <<<'RE23'
+~gapKeys\.map\(function\(k\)\{\ return\ AXNAME\[k\];\ \}\)~s
+RE23,
+		'rep'  => <<<'REP23'
+gapKeys.map(function(k){ return axTitle(k, AXNAME[k]); })
+REP23,
 		'n'    => 1,
 	),
 );
