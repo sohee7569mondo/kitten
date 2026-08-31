@@ -38,9 +38,12 @@
  *           (맨 윗줄 <?php 은 빼고 붙여넣으세요)
  *
  * 돌리는 법 :
- *   미리보기 (아무것도 안 고침) : /wp-admin/?stella_combo=dry
- *   진짜로 고치기               : /wp-admin/?stella_combo=go
- *   되돌리기                    : /wp-admin/?stella_combo=undo
+ *   미리보기 (아무것도 안 고침) : /wp-admin/?stella_patch=dry
+ *   진짜로 고치기               : /wp-admin/?stella_patch=go
+ *   되돌리기                    : /wp-admin/?stella_patch=undo
+ *
+ *   ※ 반드시 /wp-admin/ 아래 주소여야 합니다. 사이트 앞쪽 주소로는 안 뜹니다.
+ *   ※ ?stella_combo= 로 치셔도 똑같이 됩니다.
  * ------------------------------------------------------------------
  */
 
@@ -214,11 +217,19 @@ REP1,
 
 add_action( 'admin_init', function () use ( $STELLA_C_EDITS ) {
 
-	if ( ! isset( $_GET['stella_combo'] ) || ! current_user_can( 'manage_options' ) ) {
+	/* 앞서 보내드린 스니펫들이 모두 ?stella_patch= 였습니다. 익숙한 대로 치셔도
+	   되도록 두 이름을 다 받습니다. 둘 다 없으면 아무 일도 하지 않습니다. */
+	$raw = '';
+	if ( isset( $_GET['stella_combo'] ) ) {
+		$raw = $_GET['stella_combo'];
+	} elseif ( isset( $_GET['stella_patch'] ) ) {
+		$raw = $_GET['stella_patch'];
+	}
+	if ( '' === $raw || ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 
-	$mode     = sanitize_key( wp_unslash( $_GET['stella_combo'] ) );
+	$mode     = sanitize_key( wp_unslash( $raw ) );
 	$page_id  = (int) STELLA_C_PAGE;
 	$done_opt = 'stella_combo_' . STELLA_C_KEY . '_done';
 	$back_opt = 'stella_combo_' . STELLA_C_KEY . '_backup';
