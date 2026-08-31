@@ -42,8 +42,16 @@ h1 { font-family:var(--serif); font-weight:700; font-size:clamp(1.9rem,4.5vw,2.6
 .done { border-left:3px solid var(--violet); background:var(--violet-soft);
   padding:1.1rem 1.25rem; margin:0 0 1.75rem; border-radius:0 3px 3px 0; }
 .done h3 { margin:0 0 .5rem; font-size:1rem; font-weight:600; color:var(--violet); }
-.done ul { margin:0; padding-left:1.1rem; font-size:.95rem; }
-.done li + li { margin-top:.35rem; }
+.done-lede { margin:0 0 .7rem; font-size:.93rem; color:var(--ink); }
+.done ul.todo { margin:0; padding:0; list-style:none; display:flex; flex-wrap:wrap; gap:.4rem; }
+.done ul.todo code { font-family:var(--mono); font-size:.78rem; background:var(--surface);
+  border:1px solid var(--edge); padding:.22rem .5rem; border-radius:2px; color:var(--ink); }
+.badge { font-family:var(--sans); font-size:.7rem; font-weight:500; letter-spacing:0;
+  padding:.14rem .45rem; border-radius:2px; vertical-align:.15em; white-space:nowrap; }
+.badge.done { background:var(--violet-soft); color:var(--violet); border:1px solid var(--violet); }
+.badge.draft { background:transparent; color:var(--faint); border:1px dashed var(--faint); }
+.state.draft { opacity:.82; }
+.state.draft:hover, .state.draft:focus-within { opacity:1; }
 
 nav.jump { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.5rem;
   padding-bottom:1.5rem; border-bottom:1px solid var(--edge); }
@@ -75,6 +83,7 @@ section.axis { margin-top:3.5rem; scroll-margin-top:1.5rem; }
 .count { font-family:var(--mono); font-size:.73rem; color:var(--faint); font-variant-numeric:tabular-nums; }
 p.body { font-family:var(--serif); font-size:1.04rem; line-height:1.85; margin:0;
   word-break:keep-all; max-width:42rem; }
+p.body em { font-style:normal; font-weight:700; color:var(--gold); }
 
 h2.block { font-family:var(--serif); font-size:1.35rem; font-weight:700;
   margin:4rem 0 .75rem; padding-bottom:.5rem; border-bottom:1px solid var(--edge); }
@@ -94,18 +103,15 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
   <div class="meta">
     <span class="chip">문구 75개</span>
     <span class="chip">주제 5 × 저울 5 × 결과 3</span>
+    <span class="chip">보신 칸 12 / 15</span>
     <span class="chip">겹치는 문장 0개</span>
-    <span class="chip">빈 자리 0개</span>
   </div>
 </header>
 
 <div class="done">
-  <h3>지난번에서 달라진 것</h3>
-  <ul>
-    <li>결혼운과 연애운에 똑같이 들어 있던 네 문장을 갈라 썼습니다. 이제 일흔다섯 개 가운데 겹치는 문장이 하나도 없습니다.</li>
-    <li>비어 있던 열 자리를 채웠습니다. 저울마다 한쪽만 있던 것을 양쪽 기울기와 평평까지 전부 씁니다 — 스물다섯 개에서 일흔다섯 개로.</li>
-    <li>사주가 「혼자」·「실물」·「하나」·「창조」 쪽으로 기운 분에게도 이제 주제별로 다른 글이 나갑니다.</li>
-  </ul>
+  <h3>남은 칸 3개 · 문구 15개</h3>
+  <p class="done-lede">아래 칸은 아직 제가 쓴 초안 그대로입니다. 열어보시고 다시 써주세요.</p>
+  <ul class="todo"><li><code>solo · 혼자</code></li><li><code>many · 여럿</code></li><li><code>many · flat</code></li></ul>
 </div>
 
 <nav class="jump"><a href="#solo">혼자냐, 함께냐</a><a href="#form">실물이냐, 무형이냐</a><a href="#many">하나냐, 여럿이냐</a><a href="#risk">안정이냐, 변화냐</a><a href="#make">정답이냐, 창조냐</a></nav>
@@ -116,9 +122,9 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
   <section class="axis" id="solo">
     <h2 class="axis-name">혼자냐, 함께냐</h2>
     
-      <div class="state">
+      <div class="state draft">
         <div class="state-head">
-          <h3>혼자 쪽으로 기울면</h3>
+          <h3>혼자 쪽으로 기울면 <span class="badge draft">제 초안 · 아직 안 보심</span></h3>
           <p class="say">혼자 파고들 때 힘이 나는 구조</p>
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>혼자</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
@@ -162,7 +168,7 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
       </div>
       <div class="state">
         <div class="state-head">
-          <h3>함께 쪽으로 기울면</h3>
+          <h3>함께 쪽으로 기울면 <span class="badge done">사장님이 쓰신 것</span></h3>
           <p class="say">사람 사이에서 굴러갈 때 힘이 나는 구조</p>
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>함께</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
@@ -170,43 +176,43 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">solo · 함께 · 결혼운</span>
-            <span class="count">229자</span>
+            <span class="count">271자</span>
           </div>
-          <p class="body">혼자 참고 견디기보다, 사람과 부딪히고 이야기하면서 풀어가는 쪽이 조금 더 편한 분이에요. 부부싸움 뒤에도 혼자 방에 들어가 삭이기보다, 어떻게든 그 자리에서 풀고 넘어가는 쪽이 당신에게는 더 편합니다. 화해 없이 며칠을 같은 집에서 냉랭하게 지내는 시간이 생각보다 많이 지치실 거예요. 꼭 큰 대화를 해야 한다는 뜻은 아니에요. 「나는 이게 조금 서운했어」 하고 마음을 조금씩 꺼내놓는 것만으로도 충분합니다.</p>
+          <p class="body">혼자 참고 견디기보다, 사람과 부딪히고 이야기하면서 마음을 풀어가는 쪽이 조금 더 편한 분이에요. 부부싸움이 생겼을 때도 혼자 방에 들어가 마음을 정리하기보다, 「아까 그 말은 조금 서운했어」 하고 이야기를 나누면서 풀어야 마음이 놓일 수 있습니다. 화해하지 않은 채 며칠씩 같은 집에서 냉랭하게 지내는 시간이 생각보다 많이 지칠 수 있어요. 꼭 큰 대화를 해야 하는 것은 아닙니다. 함께 밥을 먹거나 차를 마시면서 <em>조금씩 마음을 꺼내놓는 것만으로도 관계가 다시 편안해질 수 있습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">solo · 함께 · 연애운</span>
-            <span class="count">144자</span>
+            <span class="count">258자</span>
           </div>
-          <p class="body">사람과 이야기를 주고받으면서 마음이 풀리는 쪽이에요. 서운한 걸 담아두고 혼자 삭이면, 정작 상대는 아무것도 모른 채 시간만 흐릅니다. 거창하게 「우리 얘기 좀 하자」 할 필요는 없어요. 만나서 「그때 나 좀 서운했다」 한마디 툭 던져놓는 정도면 충분합니다.</p>
+          <p class="body">사람과 이야기를 주고받으면서 마음이 풀리는 쪽이에요. 서운한 일이 생겼을 때 혼자 계속 생각하다 보면 감정이 더 커질 수 있고, 상대는 내가 왜 그런지 모른 채 시간이 지나갈 수도 있습니다. 예를 들어 연락이 평소보다 뜸해서 서운했다면 혼자 결론을 내리기보다, 만나서 「요즘 연락이 없어서 조금 서운했어」라고 말해보는 것이 좋아요. 거창하게 관계를 정의하는 대화가 아니어도 괜찮습니다. <em>내 마음을 조금 꺼내놓는 것만으로도 관계가 훨씬 가벼워질 수 있는 편입니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">solo · 함께 · 재회운</span>
-            <span class="count">131자</span>
+            <span class="count">250자</span>
           </div>
-          <p class="body">헤어진 이유를 혼자 곱씹기보다, 만나서든 연락해서든 직접 이야기로 풀고 싶은 쪽입니다. 아무 설명도 없이 끝난 관계일수록 오래 마음에 남으실 거예요. 다시 만난다면 그때 못다 한 이야기부터 짚고 넘어가는 편이 당신에게는 훨씬 편합니다.</p>
+          <p class="body">헤어진 이유를 혼자 곱씹으며 답을 찾기보다, 만나서든 연락해서든 직접 이야기를 나누고 싶은 쪽입니다. 특히 아무 설명 없이 연락이 끊겼거나, 마지막에 제대로 마음을 나누지 못한 관계라면 시간이 지나도 쉽게 정리되지 않을 수 있어요. 「그때 왜 그렇게 했어?」라는 질문 하나라도 직접 묻고 답을 들으면 마음이 한결 편해질 수 있습니다. 다시 만날 기회가 생긴다면 <em>예전의 문제를 덮어두기보다, 그때 하지 못했던 이야기를 먼저 풀어보는 것</em>이 중요합니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">solo · 함께 · 이별운</span>
-            <span class="count">97자</span>
+            <span class="count">230자</span>
           </div>
-          <p class="body">말없이 조용히 정리되는 이별보다, 어떤 식으로든 서로 이야기를 나누고 끝내는 쪽이 당신에게는 덜 힘듭니다. 아무 말 없이 연락이 끊기는 이별이 유난히 오래가는 상처가 됩니다.</p>
+          <p class="body">말없이 조용히 정리되는 이별보다, 서로 이야기를 나누고 끝을 확인하는 이별이 당신에게는 조금 더 편한 편입니다. 예를 들어 갑자기 연락이 끊기거나 아무런 설명 없이 관계가 끝나면 「왜 그렇게 된 걸까?」라는 생각이 오래 남을 수 있어요. 반대로 충분히 대화를 나누고 서로의 마음을 확인한 뒤 헤어지면 아프더라도 받아들이는 과정은 조금 수월할 수 있습니다. <em>당신에게는 이별에도 「끝났다는 확인」이 필요한 편입니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">solo · 함께 · 짝사랑</span>
-            <span class="count">97자</span>
+            <span class="count">233자</span>
           </div>
-          <p class="body">혼자 마음을 삭이며 끝내는 것보다, 누군가에게라도 이 마음을 털어놓아야 조금은 편해지는 쪽입니다. 아무한테도 말 못 하고 혼자 삼키는 짝사랑이 유난히 무겁게 느껴지실 거예요.</p>
+          <p class="body">혼자 마음을 삭이며 끝내는 것보다, 누군가에게라도 내 마음을 털어놓았을 때 조금 편해지는 쪽입니다. 좋아하는 사람이 생기면 혼자 계속 생각하고 상상하는 시간이 길어질 수 있어요. 친구에게 「나 사실 그 사람 좋아해」라고 말하는 것만으로도 마음이 조금 가벼워질 수 있습니다. 꼭 고백해야 한다는 뜻은 아니에요. <em>내 마음을 혼자만 가지고 있기보다 믿을 수 있는 사람과 나누는 것 자체가 감정을 정리하는 데 도움이 됩니다.</em></p>
         </article>
         </div>
       </div>
       <div class="state">
         <div class="state-head">
-          <h3>어느 쪽도 아니면</h3>
+          <h3>어느 쪽도 아니면 <span class="badge done">사장님이 쓰신 것</span></h3>
           
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — 4 대 4.</p>
@@ -214,37 +220,37 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">solo · flat · 결혼운</span>
-            <span class="count">114자</span>
+            <span class="count">237자</span>
           </div>
-          <p class="body">혼자 삭이는 시간도, 마주 앉아 이야기하는 시간도 둘 다 필요한 분이에요. 다툰 다음 날 바로 풀어도 괜찮고, 며칠 두었다가 꺼내도 괜찮습니다. 그때그때 편한 쪽을 고르셔도 결혼생활에 큰 무리가 없습니다.</p>
+          <p class="body">혼자 마음을 정리하는 시간도, 배우자와 마주 앉아 이야기하는 시간도 둘 다 필요한 분이에요. 다툰 뒤 바로 이야기하고 풀어도 괜찮고, 감정이 조금 가라앉은 다음 날 「어제 그건 조금 서운했어」 하고 꺼내도 괜찮습니다. 중요한 것은 어느 한쪽을 반드시 선택하는 것이 아니에요. <em>혼자 있고 싶은 날에는 잠시 마음을 정리하고, 이야기가 필요해지는 순간에는 다시 대화로 돌아오는 것</em>만으로도 안정적인 결혼생활을 만들어갈 수 있습니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">solo · flat · 연애운</span>
-            <span class="count">77자</span>
+            <span class="count">199자</span>
           </div>
-          <p class="body">혼자 생각을 정리하는 것도, 만나서 이야기하는 것도 둘 다 되는 분이에요. 그때 마음이 가는 쪽으로 하셔도 관계가 크게 흔들리지 않습니다.</p>
+          <p class="body">혼자 생각을 정리하는 것도, 만나서 이야기를 나누는 것도 모두 가능한 분이에요. 서운한 일이 생겼을 때 바로 연락해서 풀고 싶다면 그렇게 해도 되고, 하루 정도 혼자 생각한 뒤 「어제 조금 서운했어」라고 이야기해도 괜찮습니다. <em>감정을 반드시 혼자 해결하거나 반드시 상대와 풀어야 하는 타입은 아니기 때문에</em>, 그때 내 마음이 편해지는 방식을 선택하면 됩니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">solo · flat · 재회운</span>
-            <span class="count">76자</span>
+            <span class="count">231자</span>
           </div>
-          <p class="body">혼자 정리하는 시간도, 만나서 이야기로 푸는 것도 둘 다 도움이 되는 분이에요. 지금 마음이 어느 쪽으로 기우는지 보고 고르셔도 됩니다.</p>
+          <p class="body">헤어진 뒤 혼자 관계를 돌아보며 마음을 정리하는 것도, 상대를 만나 직접 이야기를 나누는 것도 모두 도움이 될 수 있는 분입니다. 예를 들어 다시 연락하고 싶은 마음이 들면 먼저 대화를 시도해볼 수도 있고, 아직 감정이 복잡하다면 한동안 거리를 두고 생각해볼 수도 있어요. <em>무조건 다시 만나야 한다거나 반드시 혼자 잊어야 한다는 정답은 없습니다.</em> 지금 내 마음이 어느 쪽을 필요로 하는지 살펴보고 선택하면 됩니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">solo · flat · 이별운</span>
-            <span class="count">66자</span>
+            <span class="count">208자</span>
           </div>
-          <p class="body">혼자 있는 시간도, 누군가 곁에 있어주는 것도 둘 다 도움이 되는 분이에요. 그날그날 견딜 만한 쪽을 고르셔도 됩니다.</p>
+          <p class="body">이별 후에는 혼자 있는 시간이 위로가 될 때도 있고, 친구나 가족처럼 누군가 곁에 있어주는 것이 힘이 될 때도 있는 분이에요. 어떤 날은 집에서 조용히 음악을 들으며 마음을 정리하다가도, 어떤 날은 친구를 만나 이야기를 한참 하고 나서야 마음이 조금 가라앉을 수 있습니다. <em>혼자 견뎌야 한다고 정해두지 마세요.</em> 그날 내가 감당하기 편한 방식을 선택하는 것이 가장 좋습니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">solo · flat · 짝사랑</span>
-            <span class="count">59자</span>
+            <span class="count">210자</span>
           </div>
-          <p class="body">혼자 삭이는 것도, 누군가에게 말해보는 것도 둘 다 되는 분이에요. 답답할 때 편한 쪽을 고르시면 됩니다.</p>
+          <p class="body">혼자 마음을 간직하며 천천히 생각하는 것도, 친구에게 털어놓으며 마음을 가볍게 하는 것도 모두 가능한 분이에요. 좋아하는 마음을 혼자 간직하고 싶을 때는 굳이 말하지 않아도 되고, 답답해지면 친구에게 「나 사실 그 사람 좋아해」라고 이야기해도 괜찮습니다. <em>혼자여야 한다거나 반드시 누군가에게 털어놓아야 하는 타입이 아니기 때문에</em>, 그때 마음이 편해지는 쪽을 선택하시면 됩니다.</p>
         </article>
         </div>
       </div>
@@ -254,7 +260,7 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
     
       <div class="state">
         <div class="state-head">
-          <h3>실물 쪽으로 기울면</h3>
+          <h3>실물 쪽으로 기울면 <span class="badge done">사장님이 쓰신 것</span></h3>
           <p class="say">손에 잡히는 것을 다룰 때 맞는 구조</p>
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>실물</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
@@ -262,43 +268,43 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · 실물 · 결혼운</span>
-            <span class="count">147자</span>
+            <span class="count">232자</span>
           </div>
-          <p class="body">「사랑한다」는 말보다, 아플 때 죽 한 그릇 끓여주는 쪽에서 마음을 느끼고 또 그렇게 표현하시는 분이에요. 그래서 말이 많은 배우자보다 조용히 챙기는 배우자와 오래갑니다. 다만 상대는 말을 들어야 아는 사람일 수 있으니, 내가 해준 것을 가끔은 말로도 알려주세요.</p>
+          <p class="body">「사랑해」라는 말보다, 아플 때 죽 한 그릇을 끓여주거나 바쁜 날 말없이 집안일을 해주는 모습에서 사랑을 더 크게 느끼는 분이에요. 배우자가 말이 많지 않아도 필요한 순간에 곁을 지켜주면 마음이 놓일 수 있습니다. 반대로 다정한 말을 많이 해도 행동이 따라오지 않으면 쉽게 믿기 어려울 수 있어요. 다만 상대는 말을 들어야 사랑을 느끼는 사람일 수도 있으니, <em>내가 해준 마음을 가끔은 말로도 알려주는 것</em>이 좋습니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · 실물 · 연애운</span>
-            <span class="count">133자</span>
+            <span class="count">246자</span>
           </div>
-          <p class="body">말보다 행동을 보는 분이에요. 「좋아한다」는 말을 아무리 들어도, 정작 필요할 때 옆에 없으면 그 말이 잘 믿기지 않습니다. 반대로 당신도 말로 표현하기보다 챙겨주는 쪽입니다. 상대가 말을 들어야 아는 사람이라면 거기서 어긋날 수 있어요.</p>
+          <p class="body">말보다 행동을 더 중요하게 보는 분이에요. 「좋아해」라는 말을 아무리 많이 들어도 정작 힘든 날 연락 한 번 없거나 만나기로 한 약속을 쉽게 미룬다면 그 마음을 믿기 어려울 수 있습니다. 반대로 바쁜데도 시간을 내어 만나주거나, 내가 필요로 하는 것을 기억하고 챙겨주는 모습에는 마음이 크게 움직입니다. 당신 역시 말로 표현하기보다 행동으로 마음을 보여주는 편이라, <em>말로 사랑을 확인해야 하는 사람과는 서로의 방식을 배워갈 필요가 있습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · 실물 · 재회운</span>
-            <span class="count">127자</span>
+            <span class="count">212자</span>
           </div>
-          <p class="body">「이번엔 잘하겠다」는 말만으로는 마음이 움직이지 않는 분이에요. 실제로 무엇이 달라졌는지 눈으로 봐야 믿게 됩니다. 다시 만난다면 약속보다 바뀐 행동을 먼저 확인하세요. 그게 이 관계가 또 같은 자리로 돌아가지 않게 막아줍니다.</p>
+          <p class="body">「이번에는 정말 잘할게」라는 말만으로는 쉽게 마음을 열기 어려운 분이에요. 다시 연락이 왔다고 바로 믿기보다, 예전과 무엇이 달라졌는지를 실제 행동으로 확인하려 합니다. 예를 들어 예전에는 약속을 자주 미뤘다면 이번에는 약속을 지키는지, 대화를 피했다면 이번에는 먼저 문제를 풀려고 하는지를 보게 됩니다. 다시 만난다면 <em>말보다 달라진 행동이 반복되는지를 확인하는 것</em>이 중요합니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · 실물 · 이별운</span>
-            <span class="count">122자</span>
+            <span class="count">224자</span>
           </div>
-          <p class="body">그리운 것이 그 사람의 말보다, 함께 쌓아온 시간과 습관인 쪽이에요. 같이 가던 가게, 늘 하던 저녁의 순서 같은 것들이 오래 남습니다. 그래서 회복도 마음을 다잡는 것보다 일상의 자리를 하나씩 바꾸는 데서 시작됩니다.</p>
+          <p class="body">이별 후 그리운 것은 상대가 해주었던 말보다, 함께 쌓아온 시간과 익숙한 생활일 가능성이 큽니다. 함께 가던 카페, 퇴근 후 늘 나누던 대화, 주말마다 하던 일처럼 평범했던 순간들이 오히려 오래 남을 수 있어요. 그래서 사진이나 메시지를 계속 들여다보기보다, 함께하던 일상을 조금씩 새로운 것으로 바꾸는 것이 도움이 됩니다. <em>비어버린 자리를 새로운 생활과 습관으로 채우면서 마음을 회복해가는 편</em>입니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · 실물 · 짝사랑</span>
-            <span class="count">101자</span>
+            <span class="count">236자</span>
           </div>
-          <p class="body">그 사람의 말보다 행동을 보는 분이에요. 다정한 말 한마디보다, 나를 위해 시간을 냈는지가 훨씬 크게 남습니다. 마음을 재실 때도 그 사람이 무엇을 해줬는지를 세어보시게 될 거예요.</p>
+          <p class="body">그 사람의 말보다 행동을 유심히 보는 분이에요. 「너 좋아해」라는 말보다 바쁜데도 나를 만나려고 시간을 내는지, 내가 했던 이야기를 기억하고 챙겨주는지를 더 중요하게 볼 수 있습니다. 예를 들어 내가 좋아한다고 했던 음식을 기억해주거나, 힘든 날 먼저 연락해주는 작은 행동 하나가 오래 마음에 남을 수 있어요. 그래서 마음이 생기면 <em>그 사람이 실제로 나에게 어떤 행동을 보여주고 있는지를 자연스럽게 하나씩 살펴보게 됩니다.</em></p>
         </article>
         </div>
       </div>
       <div class="state">
         <div class="state-head">
-          <h3>무형 쪽으로 기울면</h3>
+          <h3>무형 쪽으로 기울면 <span class="badge done">사장님이 쓰신 것</span></h3>
           <p class="say">보이지 않는 것을 다룰 때 맞는 구조</p>
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>무형</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
@@ -306,43 +312,43 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · 무형 · 결혼운</span>
-            <span class="count">170자</span>
+            <span class="count">236자</span>
           </div>
-          <p class="body">생활비를 벌어오고 살림을 하는 것만큼이나, 서로 마음을 말로 확인하는 것이 당신에게는 중요합니다. 아무리 살림을 잘 꾸려도 말 한마디가 없으면 「나만 애쓰나」 싶은 생각이 들 수 있어요. 꼭 거창하게 표현할 필요는 없어요. 「고마워」 「네가 있어서 좋아」 이런 짧은 말 한마디가 생각보다 큰 힘이 됩니다.</p>
+          <p class="body">생활비를 벌어오고 살림을 하는 것만큼이나, 서로의 마음을 말로 확인하는 것이 당신에게는 중요합니다. 배우자가 아무리 가족을 위해 애쓰고 있어도 「고마워」, 「오늘 힘들었지?」 같은 말이 없으면 내가 사랑받고 있는지 실감하기 어려울 수 있어요. 반대로 사소한 일에도 따뜻한 말을 건네주면 마음이 금방 풀리는 편입니다. 거창한 이벤트보다 <em>「당신이 있어서 든든해」 같은 짧은 말 한마디</em>가 결혼생활에서는 생각보다 큰 힘이 됩니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · 무형 · 연애운</span>
-            <span class="count">177자</span>
+            <span class="count">247자</span>
           </div>
-          <p class="body">무언가를 챙겨주는 것만큼이나, 마음을 표현하고 서로의 마음을 확인하는 것이 중요한 분이에요. 아무리 많은 것을 해주더라도 그 마음이 말로 전달되지 않으면, 서로의 마음을 충분히 느끼지 못할 수 있어요. 말주변이 좋아야 한다는 뜻은 아닙니다. 「고마워」 「보고 싶었어」 이런 짧은 말 한마디가 생각보다 큰 힘이 됩니다.</p>
+          <p class="body">무언가를 챙겨주는 행동만큼이나, 마음을 표현하고 서로의 마음을 확인하는 것이 중요한 분이에요. 데이트를 준비해주거나 선물을 사주는 것도 좋지만, 「오늘 만나서 좋았어」, 「보고 싶었어」처럼 마음을 직접 표현해주는 순간에 사랑을 더 크게 느낄 수 있습니다. 반대로 상대가 아무리 잘해줘도 감정 표현이 거의 없으면 혼자 의미를 해석하게 될 수 있어요. 말주변이 좋아야 한다는 뜻은 아니에요. <em>짧더라도 진심을 담아 표현하는 것이 중요한 타입</em>입니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · 무형 · 재회운</span>
-            <span class="count">126자</span>
+            <span class="count">240자</span>
           </div>
-          <p class="body">예전 관계에서 물질적으로는 부족함이 없었어도, 마음을 확인하는 말이 부족했다면 그게 헤어짐의 진짜 이유였을 가능성이 있습니다. 다시 만난다면 그 부분부터 채워야 오래갑니다. 「고마워」 「네가 필요해」 같은 말을 아끼지 마세요.</p>
+          <p class="body">예전 관계에서 물질적으로 부족한 것은 없었는데도, 마음을 확인하는 말이 부족했다면 그 부분이 오래 마음에 남았을 가능성이 있습니다. 예를 들어 상대가 늘 챙겨주기는 했지만 「사랑해」, 「미안해」, 「네가 소중해」 같은 말을 거의 하지 않았다면 다시 만나도 같은 아쉬움이 반복될 수 있어요. 재회를 원한다면 단순히 다시 만나는 것보다 <em>그때 부족했던 감정 표현부터 채우는 것</em>이 중요합니다. 말뿐 아니라 행동과 함께 진심을 보여주세요.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · 무형 · 이별운</span>
-            <span class="count">114자</span>
+            <span class="count">230자</span>
           </div>
-          <p class="body">헤어짐이 아쉬운 건 물질적으로 못 받은 게 아니라, 마음을 확인할 말이 부족했기 때문일 가능성이 큽니다. 「그 사람이 나한테 뭘 해줬나」보다 「그 사람이 나한테 뭐라고 말해줬나」가 더 오래 남으실 거예요.</p>
+          <p class="body">헤어진 뒤 마음에 오래 남는 것은 상대가 무엇을 사주었는지보다, 함께 있을 때 어떤 말을 주고받았는지일 가능성이 큽니다. 함께 찍은 사진을 보다가 그날 들었던 한마디가 떠오르거나, 마지막에 상대가 했던 말을 계속 생각할 수도 있어요. 그래서 「그 사람이 나에게 뭘 해줬나」보다 <em>「그 사람이 나에게 어떤 말을 해줬나」</em>가 더 오래 남을 수 있습니다. 시간이 지나도 말 한마디가 마음을 건드리는 이유가 여기에 있어요.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · 무형 · 짝사랑</span>
-            <span class="count">77자</span>
+            <span class="count">219자</span>
           </div>
-          <p class="body">뭔가를 해주고 챙겨주는 것보다, 그 사람이 나에게 건네는 말 한마디에 더 크게 흔들리는 쪽입니다. 짧은 한마디에도 며칠을 곱씹으실 거예요.</p>
+          <p class="body">뭔가를 해주고 챙겨주는 것보다, 그 사람이 나에게 건네는 <em>말 한마디에 더 크게 마음이 움직이는 쪽</em>입니다. 다른 사람에게는 아무렇지 않은 「오늘 예뻐 보인다」, 「잘 들어가」 같은 짧은 말도 나에게는 특별하게 느껴질 수 있어요. 그 말을 집에 돌아와서 다시 떠올리거나, 그 안에 다른 의미가 있었는지 생각하기도 합니다. 그래서 행동보다 <em>말에 담긴 마음과 뉘앙스에 더 민감하게 반응하는 편</em>입니다.</p>
         </article>
         </div>
       </div>
       <div class="state">
         <div class="state-head">
-          <h3>어느 쪽도 아니면</h3>
+          <h3>어느 쪽도 아니면 <span class="badge done">사장님이 쓰신 것</span></h3>
           
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — 4 대 4.</p>
@@ -350,37 +356,37 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · flat · 결혼운</span>
-            <span class="count">83자</span>
+            <span class="count">175자</span>
           </div>
-          <p class="body">살림과 생활비 같은 눈에 보이는 것도, 말로 주고받는 마음도 어느 한쪽만 비면 아쉬운 분이에요. 둘 다 어느 정도만 채워지면 크게 흔들리지 않습니다.</p>
+          <p class="body">살림과 생활비처럼 눈에 보이는 현실도, 말로 확인하는 마음도 어느 하나만으로는 아쉬운 분입니다. 예를 들어 생활은 안정적인데 「사랑해」라는 말이 전혀 없거나, 말은 다정한데 정작 함께할 미래를 준비하지 않는다면 마음 한구석이 비어 있을 수 있어요. <em>행동과 표현이 함께할 때 가장 든든한 결혼생활을 느끼는 편입니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · flat · 연애운</span>
-            <span class="count">57자</span>
+            <span class="count">161자</span>
           </div>
-          <p class="body">챙겨주는 것도 말로 확인하는 것도 어느 한쪽만으로는 부족한 분이에요. 둘 다 조금씩 있으면 충분합니다.</p>
+          <p class="body">챙겨주는 행동도, 마음을 표현하는 말도 모두 중요한 분입니다. 맛있는 것을 사주고 데려다주는 행동도 좋지만, 「오늘 같이 있어서 좋았어」 같은 말 한마디가 함께 있을 때 사랑받고 있다는 느낌이 더 커집니다. <em>작은 행동과 따뜻한 표현이 함께 쌓일수록 마음이 편안해지는 연애를 하는 편입니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · flat · 재회운</span>
-            <span class="count">63자</span>
+            <span class="count">174자</span>
           </div>
-          <p class="body">달라진 행동도, 마음을 확인하는 말도 둘 다 있어야 마음이 놓이는 분이에요. 어느 한쪽만 있으면 오래 못 갑니다.</p>
+          <p class="body">다시 만나는 것만으로는 마음이 쉽게 놓이지 않습니다. 예를 들어 상대가 다시 연락해오는 것만으로는 부족하고, 예전과 무엇이 달라졌는지 행동으로 보여주면서 「그때는 내가 잘못했어」처럼 마음을 확인할 수 있는 말도 필요해요. <em>말뿐인 약속보다 달라진 행동과 진심 어린 표현이 함께 있어야 다시 마음을 열 수 있습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · flat · 이별운</span>
-            <span class="count">60자</span>
+            <span class="count">187자</span>
           </div>
-          <p class="body">함께한 시간도, 주고받은 말도 둘 다 오래 남는 분이에요. 어느 한쪽만 정리한다고 마음이 접히지는 않습니다.</p>
+          <p class="body">함께했던 행동도, 그때 주고받은 말도 쉽게 지워지지 않는 분입니다. 사진이나 함께 갔던 장소 같은 기억뿐 아니라, 상대가 무심코 했던 한마디까지 오래 남을 수 있어요. 그래서 관계가 끝난 뒤에도 「그때 왜 그런 말을 했을까」 하고 지나간 대화를 다시 떠올리기도 합니다. <em>시간이 지나야 행동과 말에 담긴 감정을 천천히 정리하는 편입니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">form · flat · 짝사랑</span>
-            <span class="count">55자</span>
+            <span class="count">190자</span>
           </div>
-          <p class="body">그 사람의 말도 행동도 둘 다 눈에 들어오는 분이에요. 한쪽만 보고 마음을 정하지는 않으실 겁니다.</p>
+          <p class="body">그 사람의 행동만큼이나 말 한마디에도 마음이 움직이는 분입니다. 나에게만 유난히 다정하게 말한다거나, 별것 아닌 이야기를 기억해주는 모습처럼 작은 신호에도 의미를 느낄 수 있어요. 반대로 행동은 잘해주는데 말에서는 마음이 느껴지지 않으면 쉽게 확신하지 못할 수도 있습니다. <em>잘해주는 모습과 진심이 함께 보일 때 마음이 더 깊어지는 편입니다.</em></p>
         </article>
         </div>
       </div>
@@ -390,7 +396,7 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
     
       <div class="state">
         <div class="state-head">
-          <h3>하나 쪽으로 기울면</h3>
+          <h3>하나 쪽으로 기울면 <span class="badge done">사장님이 쓰신 것</span></h3>
           <p class="say">하나를 깊게 파는 구조</p>
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>하나</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
@@ -398,43 +404,43 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">many · 하나 · 결혼운</span>
-            <span class="count">138자</span>
+            <span class="count">243자</span>
           </div>
-          <p class="body">한 사람에게 마음을 깊이 쏟는 쪽이라, 결혼생활이 삶의 한가운데에 놓입니다. 그만큼 오래 지키는 힘이 있습니다. 다만 배우자에게 모든 것을 걸면 그 사람이 숨 쉴 자리가 좁아질 수 있어요. 나만의 시간을 조금 남겨두는 것이 두 분 다에게 좋습니다.</p>
+          <p class="body">한 사람에게 마음을 깊이 쏟는 쪽이라, 결혼생활이 삶의 중요한 중심이 되기 쉽습니다. 배우자의 식사나 일정, 가족의 작은 변화까지 세심하게 챙기고 함께 결정하려는 모습으로 나타날 수 있어요. 그만큼 관계를 오래 지키는 힘도 있습니다. 다만 배우자의 일상까지 모두 내 마음처럼 챙기다 보면 서로에게 숨 쉴 자리가 좁아질 수 있어요. <em>결혼 후에도 친구를 만나거나 혼자 쉬는 시간처럼 나만의 영역을 조금 남겨두는 것이 두 사람에게 좋습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">many · 하나 · 연애운</span>
-            <span class="count">126자</span>
+            <span class="count">229자</span>
           </div>
-          <p class="body">한 사람에게 마음을 다 쏟는 쪽이에요. 연애가 시작되면 다른 일이 잘 손에 잡히지 않습니다. 깊게 가는 힘이지만, 그 사람이 내 하루의 전부가 되면 작은 일에도 크게 흔들립니다. 연애 중에도 놓지 않을 것 하나쯤은 남겨두세요.</p>
+          <p class="body">한 사람에게 마음을 다 쏟는 쪽이에요. 연애가 시작되면 자연스럽게 그 사람을 중심으로 하루가 움직일 수 있습니다. 퇴근 후 무엇을 할지, 주말에 어디에 갈지부터 상대와 맞추고, 연락이 조금만 달라져도 평소보다 크게 신경 쓸 수 있어요. 깊게 사랑하는 힘이지만 그 사람이 내 하루의 전부가 되면 작은 변화에도 마음이 크게 흔들릴 수 있습니다. <em>연애 중에도 일이나 취미처럼 나만의 시간을 놓지 않는 것이 좋습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">many · 하나 · 재회운</span>
-            <span class="count">118자</span>
+            <span class="count">253자</span>
           </div>
-          <p class="body">그 사람 하나를 오래 붙들고 있는 쪽이에요. 그래서 재회의 가능성이 다른 사람보다 오래 살아 있습니다. 다만 그만큼 기다리는 시간이 길고 힘듭니다. 기다리는 동안 마음을 둘 곳을 하나쯤 만들어두시는 게 좋습니다.</p>
+          <p class="body">한번 마음에 들어온 사람은 쉽게 마음에서 지워지지 않는 쪽입니다. 그래서 헤어진 뒤에도 함께 찍은 사진을 다시 보거나, 그 사람이 자주 가던 장소를 지나며 지난 관계를 떠올릴 수 있어요. 다른 사람을 만나더라도 마음 한편에서는 여전히 그 사람을 생각할 수 있기 때문에 재회에 대한 마음도 오래 남을 수 있습니다. 다만 기다리는 동안 내 삶까지 멈추지 않도록, <em>그 사람을 생각하지 않고 몰입할 수 있는 일이나 새로운 목표를 하나 만들어두는 것이 좋습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">many · 하나 · 이별운</span>
-            <span class="count">122자</span>
+            <span class="count">229자</span>
           </div>
-          <p class="body">한 사람에게 마음을 깊이 쏟은 만큼, 이별 뒤에 마음을 다른 데로 돌리기가 쉽지 않은 분이에요. 억지로 새로운 걸 시작하면 오히려 더 지칩니다. 이 자리에서는 시간이 약입니다. 회복이 느린 게 당신이 약해서가 아닙니다.</p>
+          <p class="body">한 사람에게 마음을 깊이 쏟은 만큼, 이별 뒤에 마음을 다른 곳으로 돌리기가 쉽지 않은 분이에요. 연락처를 지워도 함께 듣던 노래나 자주 가던 장소처럼 사소한 것에서 기억이 되살아날 수 있습니다. 주변에서 빨리 잊으라고 해도 마음은 그렇게 쉽게 움직이지 않을 수 있어요. 억지로 새로운 사람을 만나거나 감정을 서둘러 정리하기보다, <em>충분히 슬퍼하고 익숙했던 일상을 하나씩 바꾸면서 천천히 회복하는 편이 좋습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">many · 하나 · 짝사랑</span>
-            <span class="count">125자</span>
+            <span class="count">246자</span>
           </div>
-          <p class="body">한 사람만 오래 보는 쪽이에요. 짝사랑이 길어지는 게 그래서입니다. 마음이 얕아서 못 접는 게 아니라 원래 깊게 가는 자리라 그렇습니다. 다만 그 시간이 너무 길어지면 지치니, 스스로 기한을 하나 정해두시는 것도 방법입니다.</p>
+          <p class="body">한 사람만 오래 바라보는 쪽이에요. 마음이 생기면 쉽게 다른 사람에게 관심을 돌리기보다 그 사람의 말과 행동을 오래 기억하고, 작은 변화에도 의미를 두게 될 수 있습니다. 예를 들어 한 번 다정하게 대해준 순간을 계속 떠올리거나, 다음에 만날 날을 기다리며 혼자 마음을 키우기도 해요. 그래서 짝사랑이 길어질 수 있습니다. <em>마음이 깊은 것은 장점이지만, 너무 오래 혼자 기다리지 않도록 스스로 기한이나 기준을 정해두는 것도 좋은 방법입니다.</em></p>
         </article>
         </div>
       </div>
-      <div class="state">
+      <div class="state draft">
         <div class="state-head">
-          <h3>여럿 쪽으로 기울면</h3>
+          <h3>여럿 쪽으로 기울면 <span class="badge draft">제 초안 · 아직 안 보심</span></h3>
           <p class="say">여러 개를 동시에 굴리는 구조</p>
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>여럿</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
@@ -476,9 +482,9 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         </article>
         </div>
       </div>
-      <div class="state">
+      <div class="state draft">
         <div class="state-head">
-          <h3>어느 쪽도 아니면</h3>
+          <h3>어느 쪽도 아니면 <span class="badge draft">제 초안 · 아직 안 보심</span></h3>
           
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — 4 대 4.</p>
@@ -526,7 +532,7 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
     
       <div class="state">
         <div class="state-head">
-          <h3>안정 쪽으로 기울면</h3>
+          <h3>안정 쪽으로 기울면 <span class="badge done">사장님이 쓰신 것</span></h3>
           <p class="say">정해진 틀 안에서 안전하게 가는 구조</p>
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>안정</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
@@ -534,43 +540,43 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · 안정 · 결혼운</span>
-            <span class="count">146자</span>
+            <span class="count">259자</span>
           </div>
-          <p class="body">내일이 오늘과 비슷할 때 마음이 놓이는 분이에요. 갑작스러운 이사나 이직, 미리 말 없이 바뀐 계획이 생각보다 크게 흔들립니다. 배우자에게 「결정하기 전에 먼저 말해달라」고 부탁해 두세요. 바뀌는 것 자체보다, 모르고 있다가 알게 되는 쪽이 더 힘든 자리입니다.</p>
+          <p class="body">내일이 오늘과 크게 다르지 않을 때 마음이 놓이는 분이에요. 갑작스럽게 이사를 결정하거나, 배우자가 미리 상의하지 않고 직장이나 가족 문제를 바꾸려고 하면 변화 자체보다 <em>「왜 나에게 먼저 말하지 않았지?」</em>라는 생각에 더 크게 흔들릴 수 있습니다. 반대로 「다음 달부터 이렇게 해보자」처럼 미리 이야기를 나누고 준비할 시간이 있다면 새로운 변화도 충분히 받아들일 수 있어요. 배우자에게는 <em>결정하기 전에 먼저 이야기해달라고 부탁하는 것</em>이 결혼생활에 큰 도움이 됩니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · 안정 · 연애운</span>
-            <span class="count">104자</span>
+            <span class="count">234자</span>
           </div>
-          <p class="body">자주 만나고 연락이 일정한 관계에서 마음이 놓이는 분이에요. 밀고 당기는 관계는 설레기보다 지치게 합니다. 상대의 마음을 확인하느라 쓰는 힘이 너무 크면, 그 연애는 오래가기 어렵습니다.</p>
+          <p class="body">자주 만나고 연락의 흐름이 일정한 관계에서 마음이 놓이는 분이에요. 어제까지 매일 연락하던 사람이 갑자기 답장이 늦어지거나, 약속을 잡았다 취소했다 반복하면 상대의 마음을 계속 확인하게 될 수 있습니다. 밀고 당기기를 설렘으로 즐기기보다 <em>「이 관계가 어떻게 되고 있는 걸까?」</em> 하는 생각 때문에 지칠 수 있어요. 특별한 이벤트보다 정해진 시간에 연락하고 약속을 지키는 사람에게 오히려 더 편안한 마음을 느끼는 편입니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · 안정 · 재회운</span>
-            <span class="count">110자</span>
+            <span class="count">231자</span>
           </div>
-          <p class="body">다시 만난다면 몰아치듯 시작하기보다, 예전의 익숙한 리듬을 천천히 되찾는 쪽이 맞습니다. 급하게 다 회복하려 들면 서로 부담이 됩니다. 만나는 횟수와 연락의 결부터 자리 잡히면 나머지는 따라옵니다.</p>
+          <p class="body">다시 만난다면 예전처럼 한꺼번에 모든 것을 되돌리려고 하기보다, 익숙했던 관계의 리듬을 천천히 회복하는 쪽이 좋습니다. 예를 들어 처음부터 매일 만나기보다 일주일에 한두 번 만나고, 연락도 부담스럽지 않은 정도로 다시 시작하는 식이에요. 갑자기 예전의 연인처럼 행동하면 서로에게 부담이 될 수 있습니다. <em>연락하는 방식과 만나는 횟수처럼 눈에 보이는 안정감부터 다시 만들어가면</em>, 마음도 자연스럽게 따라오는 편입니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · 안정 · 이별운</span>
-            <span class="count">120자</span>
+            <span class="count">242자</span>
           </div>
-          <p class="body">익숙하던 관계가 끝난 것 자체가 크게 흔들리는 자리예요. 그 사람이 아니라 매일의 자리가 사라진 것이 힘든 것입니다. 그래서 이 시기에는 자는 시간, 먹는 시간 같은 하루의 틀만 지켜도 회복이 눈에 띄게 빨라집니다.</p>
+          <p class="body">익숙했던 관계가 끝나면 사람을 잃은 슬픔뿐 아니라, 그동안 당연했던 일상의 변화까지 크게 느껴질 수 있는 분이에요. 매일 하던 연락이 사라지고, 주말에 만나던 일정이 없어지는 것처럼 생활의 빈자리가 마음을 더 힘들게 만들 수 있습니다. 그래서 이별 직후에는 새로운 사람을 서둘러 만나기보다 <em>자는 시간, 식사 시간, 운동이나 산책처럼 평소의 생활 리듬을 먼저 지키는 것</em>이 도움이 됩니다. 일상이 다시 안정되면 마음도 조금씩 따라옵니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · 안정 · 짝사랑</span>
-            <span class="count">108자</span>
+            <span class="count">253자</span>
           </div>
-          <p class="body">이도 저도 아닌 상태가 오래가는 것이 유난히 힘든 분이에요. 마음을 전하는 게 두려운 것보다, 모르는 채로 계속 있는 쪽이 더 지치게 합니다. 어떤 답이든 듣고 나면 오히려 편해지는 자리입니다.</p>
+          <p class="body">이도 저도 아닌 상태가 오래가는 것이 유난히 힘들 수 있는 분이에요. 좋아하는 사람이 나를 어떻게 생각하는지 모른 채 몇 달씩 기다리거나, 연락이 올 듯 말 듯한 관계가 계속되면 마음을 정리하기도 어렵습니다. 그래서 고백이 두려워서 아무것도 하지 않는 것보다 <em>「나는 너를 좋아하는데, 너는 어떻게 생각해?」 하고 한번 확인하는 것</em>이 오히려 마음을 편하게 해줄 수 있어요. 원하는 답이 아니더라도 확실한 답을 들으면 다음으로 넘어갈 힘이 생기는 편입니다.</p>
         </article>
         </div>
       </div>
       <div class="state">
         <div class="state-head">
-          <h3>변화 쪽으로 기울면</h3>
+          <h3>변화 쪽으로 기울면 <span class="badge done">사장님이 쓰신 것</span></h3>
           <p class="say">판을 흔들며 나아가는 구조</p>
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>변화</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
@@ -578,43 +584,43 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · 변화 · 결혼운</span>
-            <span class="count">143자</span>
+            <span class="count">232자</span>
           </div>
-          <p class="body">똑같은 일상이 오래 이어지면 답답해지는 분이에요. 문제가 없는데도 「이대로 괜찮은가」 싶은 마음이 드는 게 그래서입니다. 큰 변화가 아니어도 됩니다. 가보지 않은 곳에 다녀오거나 둘이 새로 배우는 것 하나만 있어도, 결혼생활이 훨씬 오래 생기 있게 갑니다.</p>
+          <p class="body">똑같은 일상이 오래 이어지면 조금씩 답답함을 느끼는 분이에요. 부부 사이에 큰 문제가 없는데도 어느 순간 「우리 매일 똑같이 사는 것 같아」라는 생각이 들 수 있습니다. 그렇다고 큰 변화를 계속 만들어야 하는 것은 아니에요. 평소 가보지 않던 동네로 함께 여행을 가거나, 둘이 새로운 운동이나 요리를 배워보는 것처럼 작은 변화만으로도 충분합니다. <em>함께 새로운 경험을 쌓을 때 결혼생활에 다시 활기가 생기는 편입니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · 변화 · 연애운</span>
-            <span class="count">127자</span>
+            <span class="count">220자</span>
           </div>
-          <p class="body">편안하기만 한 관계에는 금방 시들해지는 분이에요. 나쁜 뜻이 아니라, 같이 새로운 걸 해볼 때 마음이 살아나는 자리입니다. 만나서 늘 같은 곳에 가고 같은 이야기를 하는 사이라면, 관계가 식은 게 아니라 심심한 것일 수 있어요.</p>
+          <p class="body">편안하기만 한 관계보다는 함께 새로운 것을 경험할 때 마음이 더 살아나는 분이에요. 매번 같은 장소에서 만나 같은 이야기를 반복하다 보면 상대에게 문제가 없어도 조금씩 심심해질 수 있습니다. 예를 들어 평소 카페 데이트만 했다면 갑자기 근교로 드라이브를 가거나, 같이 공연을 보러 가는 것만으로도 분위기가 달라질 수 있어요. <em>관계가 식은 것이 아니라 새로운 자극이 부족했던 것일 수도 있습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · 변화 · 재회운</span>
-            <span class="count">101자</span>
+            <span class="count">231자</span>
           </div>
-          <p class="body">예전과 똑같은 모습으로 돌아가면, 헤어졌던 그 이유로 또 헤어질 자리예요. 다시 만나는 것이 곧 예전으로 돌아가는 것은 아닙니다. 무엇을 다르게 할지 한 가지만 정해두고 시작하세요.</p>
+          <p class="body">예전과 똑같은 모습으로 돌아가는 재회라면, 결국 헤어졌던 이유가 다시 나타날 수 있는 자리입니다. 다시 만난다면 「우리 다시 잘해보자」는 말만 하기보다 무엇을 다르게 할지를 정해보세요. 예를 들어 예전에는 연락 문제로 자주 다퉜다면 연락 방식을 새로 정하거나, 함께 보내는 시간을 조금 다르게 만들어보는 식입니다. <em>재회는 과거로 돌아가는 것이 아니라 새로운 방식으로 다시 시작하는 것</em>이라고 생각하는 편이 좋습니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · 변화 · 이별운</span>
-            <span class="count">105자</span>
+            <span class="count">245자</span>
           </div>
-          <p class="body">관계가 오래 제자리에 머물러 있던 것이 이별의 진짜 이유였을 수 있는 자리예요. 크게 싸운 일이 없는데 헤어졌다면 더 그렇습니다. 누가 잘못한 게 아니라 둘 다 지루해진 것일 수 있습니다.</p>
+          <p class="body">관계에 큰 문제가 없었는데도 어느 순간 마음이 멀어졌다면, 오랫동안 변화가 없었던 것이 이유였을 수도 있습니다. 매일 같은 데이트를 하고 같은 이야기를 나누면서 서로에게 새로운 모습을 보여줄 기회가 줄어들면 「이 관계가 더 이상 나를 설레게 하지 않는다」는 생각이 들 수 있어요. 누가 크게 잘못해서가 아니라 <em>둘 사이의 관계가 너무 오래 같은 자리에 머물렀기 때문일 수도 있습니다.</em> 이별을 돌아볼 때는 무엇이 부족했는지도 함께 살펴보세요.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · 변화 · 짝사랑</span>
-            <span class="count">113자</span>
+            <span class="count">247자</span>
           </div>
-          <p class="body">확실해지지 않은 지금의 설렘 자체를 즐기는 면이 있는 분이에요. 그래서 마음을 전하고 관계가 정해지면 오히려 마음이 식을 수도 있습니다. 정말 원하는 것이 그 사람인지, 이 설렘인지 한 번 들여다보세요.</p>
+          <p class="body">확실하게 정해진 관계보다, 아직 가능성이 열려 있는 순간의 설렘에 마음이 더 크게 움직일 수 있는 분이에요. 상대가 나를 좋아하는지 모르는 상태에서 연락을 기다리거나, 우연히 마주칠 때마다 새로운 의미를 찾는 과정 자체가 즐거울 수도 있습니다. 그래서 막상 고백해서 관계가 확실해진 뒤에는 감정의 온도가 달라질 수도 있어요. <em>정말 그 사람을 원하는 것인지, 아니면 그 사람을 좋아하는 동안의 설렘을 좋아하는 것인지</em> 한 번쯤 돌아보면 좋습니다.</p>
         </article>
         </div>
       </div>
       <div class="state">
         <div class="state-head">
-          <h3>어느 쪽도 아니면</h3>
+          <h3>어느 쪽도 아니면 <span class="badge done">사장님이 쓰신 것</span></h3>
           
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — 4 대 4.</p>
@@ -622,37 +628,37 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · flat · 결혼운</span>
-            <span class="count">117자</span>
+            <span class="count">239자</span>
           </div>
-          <p class="body">안정적이고 편안한 결혼생활도, 가끔은 신선한 자극이 있는 결혼생활도 둘 다 받아들일 수 있는 분이에요. 너무 오래 똑같기만 한 일상보다는, 가끔 작은 변화가 섞여 있을 때 관계가 더 오래 생기 있게 유지됩니다.</p>
+          <p class="body">안정적이고 편안한 결혼생활도, 가끔은 신선한 자극이 있는 결혼생활도 모두 받아들일 수 있는 분이에요. 평소에는 각자의 생활을 존중하며 조용히 지내다가도, 어느 날 갑자기 둘이 여행을 떠나거나 새로운 취미를 시작하는 것도 즐길 수 있습니다. 너무 똑같은 일상이 오래 이어지면 조금 답답할 수 있지만, 그렇다고 계속 새로운 것을 찾아야 하는 것도 아니에요. <em>편안함을 기본으로 두고 가끔 작은 변화를 더하는 방식이 가장 잘 맞습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · flat · 연애운</span>
-            <span class="count">111자</span>
+            <span class="count">237자</span>
           </div>
-          <p class="body">편안함과 긴장감, 어느 한쪽만을 원하는 성향이라기보다 두 가지 관계의 온도를 모두 받아들일 수 있는 자리예요. 지금 관계의 상황과 서로의 상태에 따라 필요한 온도가 달라질 수 있는 사람에 가깝습니다.</p>
+          <p class="body">편안함과 설렘, 어느 한쪽만을 원하는 성향이라기보다 두 가지 관계의 온도를 모두 받아들일 수 있는 자리예요. 매일 편하게 연락하고 만나던 관계도 좋지만, 가끔 평소와 다른 데이트를 하거나 예상하지 못한 곳으로 함께 떠나는 것도 즐길 수 있습니다. 반대로 상대가 계속 밀고 당기기만 한다면 피곤해질 수도 있어요. <em>지금 관계가 너무 익숙하다면 작은 변화를, 너무 불안정하다면 편안한 시간을 더해주는 식으로 균형을 맞추면 됩니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · flat · 재회운</span>
-            <span class="count">117자</span>
+            <span class="count">222자</span>
           </div>
-          <p class="body">다시 만난다면 예전처럼 편안한 관계로 돌아가고 싶은 마음과, 뭔가는 달라져야 한다는 마음이 함께 있는 쪽이에요. 둘 다 맞습니다 — 편안함은 그대로 가져가되, 예전과 똑같은 방식만 반복하지 않는 게 중요합니다.</p>
+          <p class="body">다시 만난다면 예전처럼 편안한 관계로 돌아가고 싶은 마음과, 뭔가는 달라져야 한다는 마음이 함께 있을 수 있습니다. 예를 들어 다시 연락을 시작할 때는 예전처럼 자연스럽게 대화를 이어가되, 과거에 자주 다퉜던 문제에 대해서는 새로운 약속을 만들어보는 식이에요. <em>편안했던 부분은 그대로 가져오고, 헤어짐의 원인이 되었던 부분만 다르게 만들어가는 것</em>이 재회 후 관계를 오래 이어가는 데 도움이 됩니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · flat · 이별운</span>
-            <span class="count">112자</span>
+            <span class="count">243자</span>
           </div>
-          <p class="body">이 관계가 너무 편안해서 안주하고 있었는지, 아니면 계속되는 긴장에 지쳐 있었는지 — 둘 다 이별의 이유가 될 수 있는 쪽이에요. 어느 쪽이었는지 돌아보면 다음 관계에서 무엇을 다르게 할지가 보입니다.</p>
+          <p class="body">이별을 돌아볼 때 너무 안정적이어서 관계에 변화가 없었던 것은 아닌지, 반대로 계속되는 긴장과 갈등 때문에 지쳤던 것은 아닌지 두 가지를 모두 살펴볼 필요가 있는 분입니다. 예를 들어 아무 문제는 없었지만 매일 똑같은 생활만 반복했다면 답답함이 쌓였을 수 있고, 반대로 작은 일에도 계속 다투었다면 안정감이 부족했던 것이 힘들었을 수 있어요. <em>어느 한쪽만 탓하기보다 내가 관계에서 필요했던 온도가 무엇이었는지 돌아보는 것이 중요합니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">risk · flat · 짝사랑</span>
-            <span class="count">84자</span>
+            <span class="count">231자</span>
           </div>
-          <p class="body">그 사람 앞에서 편안한 게 좋은지, 설레고 긴장되는 게 좋은지 — 둘 다 당신에게는 괜찮은 감정이에요. 어느 한쪽만 정답이라고 여기지 않으셔도 됩니다.</p>
+          <p class="body">그 사람과 편하게 이야기할 수 있는 것도 좋고, 마주칠 때마다 설레고 긴장되는 것도 나쁘지 않은 분이에요. 처음에는 눈만 마주쳐도 떨리던 사람이 어느 순간 편하게 농담을 주고받는 사이가 되어도 괜찮고, 반대로 아직 조금 어색하고 설레는 관계를 즐길 수도 있습니다. <em>편안함과 설렘 중 어느 하나만 사랑의 신호라고 정할 필요는 없습니다. 지금 그 사람과 있을 때 내가 어떤 감정을 느끼는지를 보는 것이 더 중요합니다.</em></p>
         </article>
         </div>
       </div>
@@ -662,7 +668,7 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
     
       <div class="state">
         <div class="state-head">
-          <h3>정답 쪽으로 기울면</h3>
+          <h3>정답 쪽으로 기울면 <span class="badge done">사장님이 쓰신 것</span></h3>
           <p class="say">있는 답을 정확히 지키는 구조</p>
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>정답</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
@@ -670,43 +676,43 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · 정답 · 결혼운</span>
-            <span class="count">115자</span>
+            <span class="count">213자</span>
           </div>
-          <p class="body">남들처럼 무난하게 흘러가는 결혼생활, 검증된 방식에 마음이 편한 분이에요. 굳이 남들과 다른 방식을 무리해서 만들기보다, 기본적인 틀 안에서 두 분만의 색을 조금씩 더해가는 쪽이 당신에게는 더 잘 맞습니다.</p>
+          <p class="body">남들처럼 무난하게 흘러가는 결혼생활과 이미 많은 사람들이 해온 방식에서 마음이 편해지는 분이에요. 예를 들어 집안일을 나누거나 생활비를 관리할 때도 서로 납득할 수 있는 기준을 먼저 정해두면 훨씬 편안할 수 있습니다. 굳이 남들과 완전히 다른 결혼 방식을 만들 필요는 없어요. <em>기본적인 틀과 안정감을 바탕으로, 그 안에 두 사람만의 작은 방식을 더해가는 것이 당신에게 잘 맞습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · 정답 · 연애운</span>
-            <span class="count">108자</span>
+            <span class="count">210자</span>
           </div>
-          <p class="body">이미 많은 사람들이 선택해왔거나, 어느 정도 검증된 방식과 분명한 기준이 있을 때 마음이 편한 분이에요. 관계에서도 서로가 지켜야 할 기본적인 약속과 신뢰가 분명할 때 안정감을 느끼기 쉽습니다.</p>
+          <p class="body">이미 많은 사람들이 선택해왔거나 어느 정도 검증된 방식과 분명한 기준이 있을 때 마음이 편한 분이에요. 연애에서도 연락은 어느 정도 자주 할지, 서로에게 지켜야 할 선은 무엇인지처럼 기본적인 약속이 정해져 있으면 불필요한 걱정이 줄어듭니다. 상대가 갑자기 태도를 바꾸거나 관계를 애매하게 끌고 가는 것보다 <em>서로의 마음과 약속이 분명한 관계에서 안정감과 신뢰를 느끼는 편</em>입니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · 정답 · 재회운</span>
-            <span class="count">109자</span>
+            <span class="count">219자</span>
           </div>
-          <p class="body">다시 만난다면 예전과 완전히 다른 새로운 방식보다, 검증된 안정적인 방식으로 관계를 다시 쌓고 싶은 쪽이에요. 급격한 변화보다는 익숙한 기반 위에서 천천히 다시 신뢰를 쌓는 게 당신에게 맞습니다.</p>
+          <p class="body">다시 만난다면 예전과 완전히 다른 관계를 새로 만들기보다, 이미 서로가 알고 있는 안정적인 기반 위에서 다시 시작하고 싶은 쪽이에요. 예를 들어 예전에 잘 맞았던 데이트 방식이나 연락 습관은 그대로 유지하면서, 자주 다퉜던 부분에 대해서만 새로운 약속을 정하는 식입니다. 갑자기 모든 것을 바꾸기보다 <em>확실하게 잘되는 것부터 하나씩 되살리면서 신뢰를 다시 쌓아가는 방식</em>이 당신에게 더 편합니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · 정답 · 이별운</span>
-            <span class="count">89자</span>
+            <span class="count">219자</span>
           </div>
-          <p class="body">이별을 정리하는 방식도 무리해서 튀는 방식보다, 조용하고 무난한 방식이 당신에게는 더 편합니다. 극적으로 끝내기보다 담담하게 정리하는 쪽이 회복도 더 빠릅니다.</p>
+          <p class="body">이별을 정리할 때도 감정에 휩쓸려 극적으로 끝내기보다, 서로 할 말을 하고 관계를 차분하게 정리하는 방식이 더 편한 분이에요. 예를 들어 연락을 갑자기 끊기보다 마지막으로 만나 이야기를 나누거나, 서로의 물건을 정리하고 앞으로의 연락 여부를 분명하게 정하는 식입니다. <em>끝맺음에도 어느 정도의 기준과 순서가 있을 때 마음이 덜 흔들리고</em>, 이후의 일상으로 돌아가는 것도 조금 수월할 수 있습니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · 정답 · 짝사랑</span>
-            <span class="count">91자</span>
+            <span class="count">209자</span>
           </div>
-          <p class="body">마음을 표현할 때도 파격적인 방식보다, 무난하고 검증된 방식이 당신에게는 더 편합니다. 남들 다 하는 평범한 방식으로 다가가는 것이 오히려 당신답고 자연스럽습니다.</p>
+          <p class="body">마음을 표현할 때도 너무 파격적이거나 예측하기 어려운 방법보다는, 상대가 부담 없이 받아들일 수 있는 익숙한 방식을 선호하는 분이에요. 예를 들어 갑자기 큰 이벤트를 준비하기보다 자연스럽게 식사를 제안하거나, 먼저 연락을 조금씩 늘려가면서 상대의 반응을 살피는 식입니다. <em>남들이 흔히 사용하는 평범한 방법이 오히려 당신에게는 가장 자연스럽고 편안한 접근법</em>이 될 수 있습니다.</p>
         </article>
         </div>
       </div>
       <div class="state">
         <div class="state-head">
-          <h3>창조 쪽으로 기울면</h3>
+          <h3>창조 쪽으로 기울면 <span class="badge done">사장님이 쓰신 것</span></h3>
           <p class="say">없던 답을 만들어내는 구조</p>
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>창조</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
@@ -714,43 +720,43 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · 창조 · 결혼운</span>
-            <span class="count">135자</span>
+            <span class="count">236자</span>
           </div>
-          <p class="body">남들 하는 대로 맞춰가는 결혼생활이 잘 안 맞는 분이에요. 「이맘때면 이건 해야지」 하는 순서를 따라가다 보면 어느새 지칩니다. 두 분만의 방식을 만드셔도 됩니다. 남들과 달라 보이는 것이 이 자리에서는 흠이 아니라 오히려 오래가는 힘입니다.</p>
+          <p class="body">남들이 하는 대로 맞춰가는 결혼생활보다, 두 사람에게 맞는 방식을 직접 만들어가는 쪽이 편한 분이에요. 「결혼하면 당연히 이렇게 해야지」라는 주변의 기준을 그대로 따르다 보면 오히려 답답해질 수 있습니다. 예를 들어 생활비를 따로 관리하거나, 주말을 각자 보내는 날을 정하는 것처럼 남들과 조금 다른 방식도 괜찮아요. <em>중요한 것은 남들이 어떻게 사느냐가 아니라, 두 사람이 편하고 오래갈 수 있는 방식을 찾아가는 것입니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · 창조 · 연애운</span>
-            <span class="count">109자</span>
+            <span class="count">237자</span>
           </div>
-          <p class="body">「몇 번 만나면 사귀고, 얼마쯤 되면 이걸 하고」 하는 정해진 순서가 잘 안 맞는 분이에요. 남들 연애를 기준으로 우리를 재면 늘 뭔가 모자란 것처럼 느껴집니다. 두 사람 속도대로 가셔도 됩니다.</p>
+          <p class="body">「몇 번 만나면 사귀고, 얼마쯤 지나면 이 정도는 해야지」 같은 정해진 연애 순서가 잘 맞지 않는 분이에요. 다른 커플은 매일 연락하는데 우리는 왜 다를까, 남들은 벌써 이런 관계가 됐는데 우리는 왜 그대로일까 하고 비교하면 오히려 마음이 복잡해질 수 있습니다. 예를 들어 일주일에 한 번 만나도 깊이 이야기하는 관계라면 그것도 충분히 좋은 연애예요. <em>두 사람이 편한 속도와 방식을 만들어가는 것이 당신에게 더 잘 맞습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · 창조 · 재회운</span>
-            <span class="count">102자</span>
+            <span class="count">241자</span>
           </div>
-          <p class="body">예전 방식을 그대로 되살리는 재회는 잘 안 맞는 분이에요. 만나던 자리, 하던 대화, 지키던 규칙을 그대로 가져오면 금방 답답해집니다. 다시 시작한다면 아예 새로 쓰는 편이 낫습니다.</p>
+          <p class="body">예전의 연애 방식을 그대로 되살리는 재회보다는, 다시 만난 지금의 두 사람에게 맞게 관계를 새로 만들어가는 편이 좋습니다. 예전에 만나던 장소와 연락 방식, 데이트 습관을 모두 그대로 가져오면 다시 같은 문제에 부딪힐 수 있어요. 예를 들어 예전에는 자주 만나서 갈등이 생겼다면 이번에는 각자의 시간을 존중하는 방식으로 바꿔볼 수 있습니다. <em>재회는 과거를 복사하는 것이 아니라 새로운 관계를 다시 만드는 기회</em>로 보는 것이 좋습니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · 창조 · 이별운</span>
-            <span class="count">98자</span>
+            <span class="count">223자</span>
           </div>
-          <p class="body">남들이 말하는 이별 정리법이 잘 안 맞는 분이에요. 「연락처를 지워라」 「한 달은 만나지 마라」 같은 조언을 따라 하다 보면 더 어색해집니다. 당신 방식대로 정리하셔도 됩니다.</p>
+          <p class="body">남들이 말하는 이별 정리법이 반드시 당신에게 맞는 것은 아닙니다. 「연락처를 지워야 한다」, 「한 달 동안 절대 만나지 말아야 한다」는 조언을 따라도 마음이 정리되지 않을 수 있어요. 어떤 사람은 여행을 떠나면서 회복하고, 어떤 사람은 평소 생활을 유지하면서 천천히 마음을 정리하기도 합니다. <em>당신에게 필요한 방식은 남들이 정해주는 것이 아니라, 지금 내 마음에 맞는 방법을 직접 찾아가는 것</em>입니다.</p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · 창조 · 짝사랑</span>
-            <span class="count">108자</span>
+            <span class="count">239자</span>
           </div>
-          <p class="body">정해진 고백 방법이 잘 안 맞는 분이에요. 남들이 좋다는 자리와 순서를 따라 하면 어색해져서 오히려 마음이 잘 전해지지 않습니다. 당신이 편한 방식으로 하시는 게 이 자리에서는 더 잘 닿습니다.</p>
+          <p class="body">정해진 고백 방법이나 남들이 좋다는 연애 공식을 그대로 따라가는 것보다, 상대와 나에게 맞는 자연스러운 방법을 찾는 편이 잘 맞는 분이에요. 분위기 좋은 곳에서 정식으로 고백하는 것이 어색하다면 함께 걷다가 솔직하게 마음을 이야기해도 괜찮습니다. 오히려 남들이 하는 방식에 맞추려고 할수록 내 마음이 제대로 전달되지 않을 수 있어요. <em>당신답고 자연스러운 방식으로 마음을 보여주는 것이 상대에게도 더 진심으로 느껴질 수 있습니다.</em></p>
         </article>
         </div>
       </div>
       <div class="state">
         <div class="state-head">
-          <h3>어느 쪽도 아니면</h3>
+          <h3>어느 쪽도 아니면 <span class="badge done">사장님이 쓰신 것</span></h3>
           
         </div>
         <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — 4 대 4.</p>
@@ -758,37 +764,37 @@ footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--ed
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · flat · 결혼운</span>
-            <span class="count">84자</span>
+            <span class="count">218자</span>
           </div>
-          <p class="body">검증된 방식도 두 분만의 방식도 다 받아들일 수 있는 분이에요. 기본적인 틀은 지키되 마음에 걸리는 부분만 두 분 편한 대로 바꾸셔도 무리가 없습니다.</p>
+          <p class="body">검증된 방식도 두 사람만의 새로운 방식도 모두 받아들일 수 있는 분이에요. 예를 들어 생활비나 집안일처럼 이미 정해진 기준을 따르는 것도 편하지만, 두 사람에게 더 좋은 방법이 있다면 그때그때 바꿔도 괜찮습니다. 「남들은 이렇게 산다」는 기준에 꼭 맞출 필요도, 반대로 무조건 다르게 살 필요도 없어요. <em>기본적인 틀은 지키되 마음에 걸리는 부분은 두 사람이 편한 방식으로 조율해가면 됩니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · flat · 연애운</span>
-            <span class="count">68자</span>
+            <span class="count">217자</span>
           </div>
-          <p class="body">흔한 방식도 우리만의 방식도 다 괜찮은 분이에요. 어느 쪽이 옳은지 고민하기보다 그때 편한 쪽으로 가셔도 무리가 없습니다.</p>
+          <p class="body">흔히 하는 연애 방식도, 두 사람만의 특별한 방식도 모두 자연스럽게 받아들일 수 있는 분이에요. 매일 연락하는 연애가 편할 때는 그렇게 하면 되고, 서로 바쁜 시기라 연락이 줄어드는 것도 관계에 대한 믿음이 있다면 받아들일 수 있습니다. 꼭 「정상적인 연애는 이래야 한다」는 기준을 정할 필요가 없어요. <em>그때그때 두 사람이 편하고 자연스러운 방식을 선택하면 관계가 크게 흔들리지 않습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · flat · 재회운</span>
-            <span class="count">64자</span>
+            <span class="count">218자</span>
           </div>
-          <p class="body">익숙한 방식으로 다시 쌓아도, 새로 만들어도 괜찮은 분이에요. 어느 쪽이든 두 사람이 합의만 되면 무리가 없습니다.</p>
+          <p class="body">익숙했던 방식으로 다시 관계를 쌓아도 좋고, 예전과는 전혀 다른 방식으로 새롭게 시작해도 괜찮은 분입니다. 예전처럼 자주 연락하며 천천히 가까워질 수도 있고, 이번에는 각자의 시간을 존중하면서 조금씩 다시 만날 수도 있어요. 중요한 것은 어느 방식이 더 옳은지가 아닙니다. <em>두 사람이 과거의 문제를 이해하고, 앞으로 어떤 방식으로 관계를 이어갈지 합의할 수 있다면 새로운 시작이 가능합니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · flat · 이별운</span>
-            <span class="count">68자</span>
+            <span class="count">211자</span>
           </div>
-          <p class="body">흔한 방식대로 정리해도, 내 방식대로 정리해도 괜찮은 분이에요. 어느 쪽이 맞는지 고민하는 데 힘을 쓰지 않으셔도 됩니다.</p>
+          <p class="body">남들이 흔히 하는 방식으로 이별을 정리해도 되고, 나에게 맞는 방법을 직접 찾아도 괜찮은 분이에요. 친구들에게 털어놓으며 마음을 정리할 수도 있고, 혼자 여행을 떠나거나 일에 집중하면서 천천히 정리할 수도 있습니다. 「이별했으니 반드시 이렇게 해야 한다」는 공식은 필요하지 않아요. <em>내가 실제로 회복되는 방법을 찾아가는 것이 가장 중요하고, 그 과정이 남들과 달라도 괜찮습니다.</em></p>
         </article>
         <article class="copy">
           <div class="copy-head">
             <span class="slug">make · flat · 짝사랑</span>
-            <span class="count">57자</span>
+            <span class="count">181자</span>
           </div>
-          <p class="body">흔한 방식으로 다가가도, 나만의 방식으로 해도 괜찮은 분이에요. 방법보다 시기가 더 중요한 자리입니다.</p>
+          <p class="body">흔히 하는 방식으로 조심스럽게 다가가도 좋고, 나만의 방식으로 자연스럽게 마음을 표현해도 괜찮은 분이에요. 먼저 커피를 마시자고 제안할 수도 있고, 함께 이야기할 기회를 조금씩 늘려가도 좋습니다. 어떤 방법이 정답인지 오래 고민하기보다 <em>상대와 나 사이의 분위기와 타이밍을 보고 자연스럽게 움직이는 것</em>이 더 중요한 자리입니다.</p>
         </article>
         </div>
       </div>
