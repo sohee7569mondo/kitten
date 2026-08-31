@@ -48,8 +48,8 @@ defined( 'STELLA_W_PAGE' ) || define( 'STELLA_W_PAGE', 160 );
 defined( 'STELLA_W_KEY' )  || define( 'STELLA_W_KEY',  'words1' );
 
 /* 다 고치고 나면 본문이 이 모양이어야 합니다 — 제가 미리 걸어보고 잰 값입니다 */
-defined( 'STELLA_W_GROW' ) || define( 'STELLA_W_GROW', 6847 );
-defined( 'STELLA_W_SHA' )  || define( 'STELLA_W_SHA',  '822cbe717d1b47bdfc666476f29ecb968f9c2eb9' );
+defined( 'STELLA_W_GROW' ) || define( 'STELLA_W_GROW', 7165 );
+defined( 'STELLA_W_SHA' )  || define( 'STELLA_W_SHA',  '8832231a9f766d35ca52d7f23eb32e10fc80c4ed' );
 
 $STELLA_W_EDITS = array(
 	array(
@@ -387,6 +387,22 @@ RE18,
 		'rep'  => <<<'REP18'
 '<details class=\"readfold\"><summary>다섯 저울을 읽는 법</summary>'+\2+'</details>'\3
 REP18,
+		'n'    => 1,
+	),
+	array(
+		'name' => <<<'NAME19'
+배우자 고르는 대목
+NAME19,
+		're'   => <<<'RE19'
+~'<p>마음을\ 여러\ 곳에\ 두지\ 마세요\.\ <em>고르는\ 일보다\ 고르지\ 않기로\ 하는\ 일</em>이\ '\
+\ \ \ \ \ \ \ \ \ \ \+\ esc\(mate\)\ \+\ '을\ 고르는\ 데는\ 더\ 중요합니다\.</p>';~s
+RE19,
+		'rep'  => <<<'REP19'
+'<p>마음을 여러 곳에 나누어 두기보다, 결혼을 결정한 뒤에는 한 사람에게 마음의 방향을 모으는 것이 중요합니다. '
+          /* 2026-08-31 · mate 는 「남편」 또는 「아내」 — 조사를 받침에 맞춰 고릅니다 */
+          + esc(mate) + ((mate.charCodeAt(mate.length-1)-0xAC00)%28 ? '을' : '를')
+          + ' 고르는 일에서는 누구를 선택하느냐만큼, 선택한 사람에게 집중하기로 하는 것도 중요합니다.</p>';
+REP19,
 		'n'    => 1,
 	),
 );
