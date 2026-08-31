@@ -1,0 +1,613 @@
+<?php
+/**
+ * STELLA SAJU — 오늘의 운세 (/today/) 만들기
+ *
+ *  매일 들어올 이유가 없다는 말씀을 듣고 만들었습니다.
+ *  띠 열두 갈래로 나누지 않고, 넣으신 생년월일로 「내 일간」을 세운 뒤
+ *  「오늘의 일진」과 어떤 사이인지(십성)를 보고 글을 고릅니다.
+ *  계산은 사이트에 이미 있는 window.StellaSaju 를 그대로 씁니다.
+ *  생년월일은 손님 브라우저에만 남고 서버로 가지 않습니다.
+ *
+ *  같은 슬러그(today)의 페이지가 이미 있으면 그 페이지를 고치고,
+ *  없으면 새로 만들어 공개합니다.
+ *
+ *  내용은 base64 로 담았습니다. 워드프레스 편집기가 줄바꿈이나 따옴표를
+ *  건드려도 글이 상하지 않습니다. 넣기 전에 sha1 로 맞는지 확인합니다.
+ *
+ *  쓰는 법 (WPCode Lite) — PHP · 자동 실행 안 함
+ *    확인 : https://stellasaju.com/?stella_patch=dry
+ *    적용 : https://stellasaju.com/?stella_patch=go
+ *    되돌리기 : https://stellasaju.com/?stella_patch=undo
+ *    다 되면 스니펫을 지우세요.
+ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_patch'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_patch'] ) );
+
+	global $wpdb;
+	$post_id = 'today';
+	$bak_key = 'stella_bak_today';
+	$expect_hash = 'e77b739cb043dd8c0186e396384ef9f8ba7a6694';
+	$expect_len  = 27228;
+
+	$b64 =
+		'PCEtLSB3cDpodG1sIC0tPgo8IS0tCiAgU1RFTExBIFNBSlUg4oCUIOyYpOuKmOydmCDsmrTshLgg' .
+		'KC90b2RheS8pICAgQlVJTEQ6IFQxICAgMjAyNi0wOC0zMQoKICDrp6Tsnbwg65Ok7Ja07JisIOyd' .
+		'tOycoOqwgCDsl4bri6TripQg66eQ7JSA7J2EIOuTo+qzoCDrp4zrk6Tsl4jsirXri4jri6QuCiAg' .
+		'652g64KYIOuzhOyekOumrOuhnCDsl7TrkZAg6rCI656YIOuCmOuIhOuKlCDqsoPsnbQg7JWE64uI' .
+		'6528LCDrhKPsnLzsi6Ag7IOd64WE7JuU7J2866GcCiAg44CM64K0IOydvOqwhOOAjeydhCDshLjs' .
+		'mrDqs6Ag44CM7Jik64qY7J2YIOydvOynhOOAjeqzvCDslrTrlqQg7IKs7J207J247KeA66W8IOu0' .
+		'heuLiOuLpC4KICDqt7jrnpjshJwg6rCZ7J2AIOudoOudvOuPhCDsgqzrnozrp4jri6Qg64uk66W0' .
+		'6rOgLCDrgqDrp4jri6Qg64us65287KeR64uI64ukLgoKICDqs4TsgrDsnYAg7IKs7J207Yq47JeQ' .
+		'IOydtOuvuCDsnojripQgd2luZG93LlN0ZWxsYVNhanUg66W8IOq3uOuMgOuhnCDslIHri4jri6Qu' .
+		'CiAg64Sj7Jy87IugIOyDneuFhOyblOydvOydgCDsnbQg67iM65287Jqw7KCA7JeQ66eMIOuCqOqz' .
+		'oCDshJzrsoTroZwg6rCA7KeAIOyViuyKteuLiOuLpC4KCiAg44CQ66y46rWs44CRIO2RnOyLnOqw' .
+		'gCDrtpnsnYAg6rOz66eMIOqzoOy5mOyLnOuptCDrkKnri4jri6QuCgogIOyjvOydmCA6IHNjcmlw' .
+		'dCDslYjsl5DshJwg7JWw7Y287IOM65OcIOuRkCDqsJwg7Jew7IKw7J6Q66W8IOyTsOyngCDrp4js' .
+		'hLjsmpQuCiAgICAgICAgIOybjOuTnO2UhOugiOyKpOqwgCDsl5Tti7Dti7DroZwg67CU6r+UIOyK' .
+		'pO2BrOumve2KuCDsoITssrTqsIAg7KO97Iq164uI64ukLgogICAgICAgICDrtoDrk7HtmLgg65Kk' .
+		'7JeQIOuwlOuhnCDslYztjIzrsrPsnbQg7Jik7KeAIOyViuqyjCDrnYTsm6DsirXri4jri6QuCi0t' .
+		'Pgo8bGluayByZWw9InByZWNvbm5lY3QiIGhyZWY9Imh0dHBzOi8vZm9udHMuZ29vZ2xlYXBpcy5j' .
+		'b20iPgo8bGluayByZWw9InByZWNvbm5lY3QiIGhyZWY9Imh0dHBzOi8vZm9udHMuZ3N0YXRpYy5j' .
+		'b20iIGNyb3Nzb3JpZ2luPgo8bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Imh0dHBzOi8vZm9u' .
+		'dHMuZ29vZ2xlYXBpcy5jb20vY3NzMj9mYW1pbHk9Q2luemVsOndnaHRANTAwOzYwMDs3MDAmZmFt' .
+		'aWx5PU5vdG8rU2VyaWYrS1I6d2dodEA1MDA7NzAwJmZhbWlseT1Ob3RvK1NhbnMrS1I6d2dodEAz' .
+		'MDA7NDAwOzUwMDs3MDAmZmFtaWx5PUlCTStQbGV4K01vbm86d2dodEA0MDA7NTAwJmRpc3BsYXk9' .
+		'c3dhcCI+CjxzdHlsZT4KI3NzdHsKICAtLXZvaWQ6IzEwMEIyMjsgLS12b2lkLWRlZXA6IzBBMDcx' .
+		'ODsKICAtLW5lYnVsYTojMjUxQzQ4OyAtLW5lYnVsYS1zb2Z0OiMzMTI2NUU7CiAgLS1jYXJkOmxp' .
+		'bmVhci1ncmFkaWVudCgxNThkZWcsIzJFMjM1OCAwJSwjMjIxQTQyIDEwMCUpOwogIC0tY2FyZC1o' .
+		'aTpsaW5lYXItZ3JhZGllbnQoMTU4ZGVnLCMzQjJENzAgMCUsIzJCMjA1NCAxMDAlKTsKICAtLWxp' .
+		'ZnQ6aW5zZXQgMCAxcHggMCByZ2JhKDI1NSwyNTUsMjU1LC4wNyksIDAgMTBweCAzMHB4IC0xOHB4' .
+		'IHJnYmEoMCwwLDAsLjc1KTsKICAtLXB1cnBsZS1nbG93OnJnYmEoMTYzLDEyNCwyNDYsLjQyKTsg' .
+		'LS1saWxhYzojQjlBMkYyOwogIC0tZ29sZDojRTBCQzdDOyAtLWdvbGQtc29mdDojRDJBRTc0OyAt' .
+		'LWdvbGQtbGl0ZTojRjBEOUE4OwogIC0tc3RhcjojRjZGMUU3OyAtLWluay1zb2Z0OnJnYmEoMjQ2' .
+		'LDI0MSwyMzEsLjgyKTsgLS1pbmstZGltOnJnYmEoMjQ2LDI0MSwyMzEsLjYpOwogIC0tbGluZTpy' .
+		'Z2JhKDIxMiwxNzUsMTA2LC4zMCk7CgogIG1heC13aWR0aDpub25lICFpbXBvcnRhbnQ7IHdpZHRo' .
+		'OmF1dG8gIWltcG9ydGFudDsKICBtYXJnaW4tbGVmdDpjYWxjKDUwJSAtIDUwdncpICFpbXBvcnRh' .
+		'bnQ7IG1hcmdpbi1yaWdodDpjYWxjKDUwJSAtIDUwdncpICFpbXBvcnRhbnQ7CiAgcGFkZGluZzow' .
+		'ICFpbXBvcnRhbnQ7IHBvc2l0aW9uOnJlbGF0aXZlOyB6LWluZGV4OjA7IG92ZXJmbG93LXg6Y2xp' .
+		'cDsKICBjb2xvcjp2YXIoLS1zdGFyKTsgdGV4dC1hbGlnbjpjZW50ZXI7CiAgZm9udC1mYW1pbHk6' .
+		'J05vdG8gU2FucyBLUicsLWFwcGxlLXN5c3RlbSwnQXBwbGUgU0QgR290aGljIE5lbycsJ01hbGd1' .
+		'biBHb3RoaWMnLHNhbnMtc2VyaWY7CiAgZm9udC13ZWlnaHQ6MzAwOyBsaW5lLWhlaWdodDoxLjg7' .
+		'IGZvbnQtc2l6ZToxNi41cHg7CiAgd29yZC1icmVhazprZWVwLWFsbDsgb3ZlcmZsb3ctd3JhcDpi' .
+		'cmVhay13b3JkOyBtaW4taGVpZ2h0Ojg4dmg7Cn0KI3NzdCAqe21hcmdpbjowOyBwYWRkaW5nOjA7' .
+		'IGJveC1zaXppbmc6Ym9yZGVyLWJveDt9CiNzc3QgaDEsI3NzdCBoMiwjc3N0IGgze2ZvbnQtZmFt' .
+		'aWx5OidOb3RvIFNlcmlmIEtSJyxzZXJpZjsgZm9udC13ZWlnaHQ6NzAwOyB0ZXh0LXdyYXA6YmFs' .
+		'YW5jZTt9CiNzc3QgYXtjb2xvcjppbmhlcml0OyB0ZXh0LWRlY29yYXRpb246bm9uZTt9CiNzc3Qg' .
+		'YnV0dG9ue2ZvbnQ6aW5oZXJpdDsgY3Vyc29yOnBvaW50ZXI7fQoKI3NzdCAuc2t5e3Bvc2l0aW9u' .
+		'OmZpeGVkOyBpbnNldDowOyB6LWluZGV4OjA7IHBvaW50ZXItZXZlbnRzOm5vbmU7CiAgYmFja2dy' .
+		'b3VuZDoKICAgIHJhZGlhbC1ncmFkaWVudCg2MnZ3IDQ4dncgYXQgMTAlIDQlLCAgcmdiYSgxMjIs' .
+		'OTIsMTkyLC4zMCksIHRyYW5zcGFyZW50IDYyJSksCiAgICByYWRpYWwtZ3JhZGllbnQoNTR2dyA0' .
+		'MnZ3IGF0IDkyJSAyNiUsIHJnYmEoMjI0LDE4OCwxMjQsLjEzKSwgdHJhbnNwYXJlbnQgNjAlKSwK' .
+		'ICAgIHJhZGlhbC1ncmFkaWVudCg1OHZ3IDQ2dncgYXQgNDYlIDc4JSwgcmdiYSg5NiwxMjQsMjA2' .
+		'LC4yMiksIHRyYW5zcGFyZW50IDYyJSksCiAgICByYWRpYWwtZ3JhZGllbnQoMS41cHggMS41cHgg' .
+		'YXQgMTIlIDE4JSwgcmdiYSgyNTUsMjU1LDI1NSwuOSksIHRyYW5zcGFyZW50KSwKICAgIHJhZGlh' .
+		'bC1ncmFkaWVudCgxcHggMXB4IGF0IDgyJSAxMiUsIHJnYmEoMjU1LDI1NSwyNTUsLjcpLCB0cmFu' .
+		'c3BhcmVudCksCiAgICByYWRpYWwtZ3JhZGllbnQoMS41cHggMS41cHggYXQgNjIlIDYyJSwgcmdi' .
+		'YSgyNTUsMjU1LDI1NSwuOCksIHRyYW5zcGFyZW50KSwKICAgIHJhZGlhbC1ncmFkaWVudCgxcHgg' .
+		'MXB4IGF0IDI4JSA3OCUsIHJnYmEoMjU1LDI1NSwyNTUsLjYpLCB0cmFuc3BhcmVudCksCiAgICB2' .
+		'YXIoLS12b2lkKTt9CiNzc3QgLmlue3Bvc2l0aW9uOnJlbGF0aXZlOyB6LWluZGV4OjE7IG1heC13' .
+		'aWR0aDo2NjBweDsgbWFyZ2luOjAgYXV0bzsgcGFkZGluZzo1NHB4IDIycHggOTBweDt9CkBtZWRp' .
+		'YShtYXgtd2lkdGg6NzAwcHgpeyAjc3N0IC5pbntwYWRkaW5nOjM0cHggMThweCA2NHB4O30gfQoK' .
+		'I3NzdCAuZXllYnJvd3tmb250LWZhbWlseTonSUJNIFBsZXggTW9ubycsbW9ub3NwYWNlOyBmb250' .
+		'LXNpemU6LjcycmVtOyBsZXR0ZXItc3BhY2luZzouMjRlbTsKICB0ZXh0LXRyYW5zZm9ybTp1cHBl' .
+		'cmNhc2U7IGNvbG9yOnZhcigtLWdvbGQpOyBtYXJnaW4tYm90dG9tOjEycHg7fQojc3N0IGgxe2Zv' .
+		'bnQtc2l6ZTpjbGFtcCgxLjVyZW0sNC40dncsMi4xcmVtKTsgbGluZS1oZWlnaHQ6MS40NTt9CiNz' .
+		'c3QgLmRla3ttYXJnaW4tdG9wOjEycHg7IGNvbG9yOnZhcigtLWluay1zb2Z0KTsgZm9udC1zaXpl' .
+		'Oi45NXJlbTt9CgovKiDilIDilIAg7Jik64qYIOuCoOynnCDCtyDsnbzsp4Qg4pSA4pSA4pSA4pSA' .
+		'4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA' .
+		'4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovCiNzc3QgLnRvZGF5e21hcmdpbi10b3A6MjZweDsg' .
+		'cGFkZGluZzoyMnB4IDIwcHg7IGJvcmRlci1yYWRpdXM6MTRweDsKICBiYWNrZ3JvdW5kOmxpbmVh' .
+		'ci1ncmFkaWVudCgxMjBkZWcsIHJnYmEoMjI0LDE4OCwxMjQsLjE2KSAwJSwgIzMyMjY2MyA0NiUs' .
+		'ICMyNTFENEEgMTAwJSk7CiAgYm9yZGVyOjFweCBzb2xpZCB2YXIoLS1saW5lKTsgYm94LXNoYWRv' .
+		'dzp2YXIoLS1saWZ0KTt9CiNzc3QgLnRvZGF5IC5ke2ZvbnQtZmFtaWx5OidJQk0gUGxleCBNb25v' .
+		'Jyxtb25vc3BhY2U7IGZvbnQtc2l6ZTouNzRyZW07CiAgbGV0dGVyLXNwYWNpbmc6LjE4ZW07IGNv' .
+		'bG9yOnZhcigtLWxpbGFjKTt9CiNzc3QgLnRvZGF5IC5oYW57bWFyZ2luLXRvcDo4cHg7IGZvbnQt' .
+		'ZmFtaWx5OidOb3RvIFNlcmlmIEtSJyxzZXJpZjsgZm9udC1zaXplOjIuMXJlbTsKICBmb250LXdl' .
+		'aWdodDo3MDA7IGNvbG9yOnZhcigtLWdvbGQtbGl0ZSk7IGxldHRlci1zcGFjaW5nOi4xZW07fQoj' .
+		'c3N0IC50b2RheSAua29ye21hcmdpbi10b3A6NHB4OyBmb250LXNpemU6LjkycmVtOyBjb2xvcjp2' .
+		'YXIoLS1pbmstc29mdCk7fQoKLyog4pSA4pSAIOyDneuFhOyblOydvCDrhKPquLAg4pSA4pSA4pSA' .
+		'4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA' .
+		'4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovCiNzc3QgLmFza3ttYXJnaW4t' .
+		'dG9wOjI2cHg7IHBhZGRpbmc6MjRweCAyMHB4OyBib3JkZXItcmFkaXVzOjE0cHg7CiAgYmFja2dy' .
+		'b3VuZDp2YXIoLS1jYXJkKTsgYm9yZGVyOjFweCBzb2xpZCB2YXIoLS1saW5lKTsgYm94LXNoYWRv' .
+		'dzp2YXIoLS1saWZ0KTt9CiNzc3QgLmFzayBwe2ZvbnQtc2l6ZTouOTVyZW07IGNvbG9yOnZhcigt' .
+		'LWluay1zb2Z0KTt9CiNzc3QgLnJvd3ttYXJnaW4tdG9wOjE2cHg7IGRpc3BsYXk6ZmxleCAhaW1w' .
+		'b3J0YW50OyBnYXA6OHB4OyBqdXN0aWZ5LWNvbnRlbnQ6Y2VudGVyOyBmbGV4LXdyYXA6d3JhcDt9' .
+		'CiNzc3QgLnJvdyBpbnB1dHt3aWR0aDo5MnB4OyBwYWRkaW5nOjEzcHggMTBweDsgYm9yZGVyLXJh' .
+		'ZGl1czo4cHg7IHRleHQtYWxpZ246Y2VudGVyOwogIGJvcmRlcjoxcHggc29saWQgdmFyKC0tbGlu' .
+		'ZSk7IGJhY2tncm91bmQ6cmdiYSgxMCw3LDI0LC41KTsgY29sb3I6dmFyKC0tc3Rhcik7CiAgZm9u' .
+		'dC1zaXplOjFyZW07IGZvbnQtZmFtaWx5OmluaGVyaXQ7fQojc3N0IC5yb3cgaW5wdXQ6OnBsYWNl' .
+		'aG9sZGVye2NvbG9yOnJnYmEoMjQ2LDI0MSwyMzEsLjM4KTt9CiNzc3QgLnJvdyBpbnB1dDpmb2N1' .
+		'c3tvdXRsaW5lOjJweCBzb2xpZCB2YXIoLS1nb2xkLWxpdGUpOyBvdXRsaW5lLW9mZnNldDoxcHg7' .
+		'fQojc3N0IC5nb3ttYXJnaW4tdG9wOjE4cHg7IHBhZGRpbmc6MTVweCAzNHB4OyBib3JkZXItcmFk' .
+		'aXVzOjZweDsgYm9yZGVyOm5vbmU7CiAgZm9udC1zaXplOjFyZW07IGZvbnQtd2VpZ2h0OjcwMDsg' .
+		'Y29sb3I6IzE2MEYyRTsKICBiYWNrZ3JvdW5kOmxpbmVhci1ncmFkaWVudCgxMzVkZWcsIHZhcigt' .
+		'LWdvbGQtbGl0ZSksICNDOTlBNTUpOwogIGJveC1zaGFkb3c6MCAxNHB4IDM0cHggLTEwcHggcmdi' .
+		'YSgyMjQsMTg4LDEyNCwuNTUpO30KI3NzdCAuZ286ZGlzYWJsZWR7b3BhY2l0eTouNDsgY3Vyc29y' .
+		'OmRlZmF1bHQ7fQojc3N0IC5lcnJ7bWFyZ2luLXRvcDoxMnB4OyBmb250LXNpemU6Ljg4cmVtOyBj' .
+		'b2xvcjojRjNBMkEyOyBtaW4taGVpZ2h0OjEuMmVtO30KI3NzdCAudGlueXttYXJnaW4tdG9wOjE0' .
+		'cHg7IGZvbnQtc2l6ZTouOHJlbTsgY29sb3I6dmFyKC0taW5rLWRpbSk7fQoKLyog4pSA4pSAIOqy' .
+		'sOqzvCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDi' .
+		'lIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDi' .
+		'lIDilIDilIDilIDilIDilIDilIAgKi8KI3NzdCAub3V0e2Rpc3BsYXk6bm9uZTt9CiNzc3QgLm91' .
+		'dC5vbntkaXNwbGF5OmJsb2NrOyBhbmltYXRpb246c3N0RmFkZSAuNXMgZWFzZSBib3RoO30KQGtl' .
+		'eWZyYW1lcyBzc3RGYWRle2Zyb217b3BhY2l0eTowOyB0cmFuc2Zvcm06dHJhbnNsYXRlWSgxMHB4' .
+		'KTt9IHRve29wYWNpdHk6MTsgdHJhbnNmb3JtOm5vbmU7fX0KCiNzc3QgLnNjb3Jle21hcmdpbi10' .
+		'b3A6MjZweDsgZGlzcGxheTpmbGV4ICFpbXBvcnRhbnQ7IGFsaWduLWl0ZW1zOmNlbnRlcjsganVz' .
+		'dGlmeS1jb250ZW50OmNlbnRlcjsgZ2FwOjIycHg7CiAgcGFkZGluZzoyNHB4IDIwcHg7IGJvcmRl' .
+		'ci1yYWRpdXM6MTRweDsgYmFja2dyb3VuZDp2YXIoLS1jYXJkKTsKICBib3JkZXI6MXB4IHNvbGlk' .
+		'IHZhcigtLWxpbmUpOyBib3gtc2hhZG93OnZhcigtLWxpZnQpO30KI3NzdCAucmluZ3t3aWR0aDox' .
+		'MDRweDsgaGVpZ2h0OjEwNHB4OyBib3JkZXItcmFkaXVzOjUwJTsgZmxleDowIDAgYXV0bzsgcG9z' .
+		'aXRpb246cmVsYXRpdmU7CiAgZGlzcGxheTpmbGV4OyBhbGlnbi1pdGVtczpjZW50ZXI7IGp1c3Rp' .
+		'ZnktY29udGVudDpjZW50ZXI7fQojc3N0IC5yaW5nOjphZnRlcntjb250ZW50OicnOyBwb3NpdGlv' .
+		'bjphYnNvbHV0ZTsgaW5zZXQ6OXB4OyBib3JkZXItcmFkaXVzOjUwJTsgYmFja2dyb3VuZDojMjIx' .
+		'QTQyO30KI3NzdCAucmluZyBie3Bvc2l0aW9uOnJlbGF0aXZlOyB6LWluZGV4OjE7IGZvbnQtZmFt' .
+		'aWx5OidDaW56ZWwnLHNlcmlmOyBmb250LXNpemU6MS43cmVtOyBjb2xvcjp2YXIoLS1nb2xkLWxp' .
+		'dGUpO30KI3NzdCAuc2NvcmUgLndob3t0ZXh0LWFsaWduOmxlZnQ7fQojc3N0IC5zY29yZSAuc2lw' .
+		'e2ZvbnQtZmFtaWx5OidOb3RvIFNlcmlmIEtSJyxzZXJpZjsgZm9udC1zaXplOjEuMzVyZW07IGZv' .
+		'bnQtd2VpZ2h0OjcwMDsgY29sb3I6dmFyKC0tc3Rhcik7fQojc3N0IC5zY29yZSAuc2lwZW57bWFy' .
+		'Z2luLXRvcDo0cHg7IGZvbnQtZmFtaWx5OidJQk0gUGxleCBNb25vJyxtb25vc3BhY2U7IGZvbnQt' .
+		'c2l6ZTouNjhyZW07CiAgbGV0dGVyLXNwYWNpbmc6LjE0ZW07IGNvbG9yOnZhcigtLWxpbGFjKTt9' .
+		'CiNzc3QgLnNjb3JlIC5taW5le21hcmdpbi10b3A6OHB4OyBmb250LXNpemU6Ljg1cmVtOyBjb2xv' .
+		'cjp2YXIoLS1pbmstZGltKTt9CkBtZWRpYShtYXgtd2lkdGg6NTIwcHgpewogICNzc3QgLnNjb3Jl' .
+		'e2ZsZXgtZGlyZWN0aW9uOmNvbHVtbjsgZ2FwOjE0cHg7fQogICNzc3QgLnNjb3JlIC53aG97dGV4' .
+		'dC1hbGlnbjpjZW50ZXI7fQp9Cgojc3N0IC5zYXl7bWFyZ2luLXRvcDoxOHB4OyBwYWRkaW5nOjIy' .
+		'cHggMjBweDsgYm9yZGVyLXJhZGl1czoxNHB4OyB0ZXh0LWFsaWduOmxlZnQ7CiAgYmFja2dyb3Vu' .
+		'ZDp2YXIoLS1jYXJkKTsgYm9yZGVyOjFweCBzb2xpZCB2YXIoLS1saW5lKTsgYm94LXNoYWRvdzp2' .
+		'YXIoLS1saWZ0KTt9CiNzc3QgLnNheSBoM3tmb250LXNpemU6MS4wNnJlbTsgY29sb3I6dmFyKC0t' .
+		'Z29sZC1saXRlKTsgZGlzcGxheTpmbGV4ICFpbXBvcnRhbnQ7IGFsaWduLWl0ZW1zOmNlbnRlcjsg' .
+		'Z2FwOjhweDt9CiNzc3QgLnNheSBoMyBzcGFue2ZvbnQtZmFtaWx5OidJQk0gUGxleCBNb25vJyxt' .
+		'b25vc3BhY2U7IGZvbnQtc2l6ZTouNjRyZW07CiAgbGV0dGVyLXNwYWNpbmc6LjE0ZW07IGNvbG9y' .
+		'OnZhcigtLWxpbGFjKTsgZm9udC13ZWlnaHQ6NDAwO30KI3NzdCAuc2F5IHB7bWFyZ2luLXRvcDox' .
+		'MHB4OyBmb250LXNpemU6Ljk3cmVtOyBjb2xvcjp2YXIoLS1pbmstc29mdCk7IGxpbmUtaGVpZ2h0' .
+		'OjEuOTt9CiNzc3QgLnNheSArIC5zYXl7bWFyZ2luLXRvcDoxMnB4O30KI3NzdCAuc2F5IGVte2Zv' .
+		'bnQtc3R5bGU6bm9ybWFsOyBjb2xvcjp2YXIoLS1nb2xkLWxpdGUpO30KCiNzc3QgLmx1Y2t7bWFy' .
+		'Z2luLXRvcDoxOHB4OyBkaXNwbGF5OmdyaWQgIWltcG9ydGFudDsgZ3JpZC10ZW1wbGF0ZS1jb2x1' .
+		'bW5zOnJlcGVhdCgzLDFmcik7IGdhcDoxMHB4O30KI3NzdCAubHVjayBkaXZ7cGFkZGluZzoxNnB4' .
+		'IDhweDsgYm9yZGVyLXJhZGl1czoxMnB4OyBiYWNrZ3JvdW5kOnZhcigtLWNhcmQpOwogIGJvcmRl' .
+		'cjoxcHggc29saWQgdmFyKC0tbGluZSk7IGJveC1zaGFkb3c6dmFyKC0tbGlmdCk7fQojc3N0IC5s' .
+		'dWNrIC5re2ZvbnQtZmFtaWx5OidJQk0gUGxleCBNb25vJyxtb25vc3BhY2U7IGZvbnQtc2l6ZTou' .
+		'NjJyZW07CiAgbGV0dGVyLXNwYWNpbmc6LjE0ZW07IGNvbG9yOnZhcigtLWxpbGFjKTt9CiNzc3Qg' .
+		'Lmx1Y2sgLnZ7bWFyZ2luLXRvcDo3cHg7IGZvbnQtZmFtaWx5OidOb3RvIFNlcmlmIEtSJyxzZXJp' .
+		'ZjsgZm9udC1zaXplOjEuMDJyZW07IGNvbG9yOnZhcigtLWdvbGQtbGl0ZSk7fQoKI3NzdCAuYWdh' .
+		'aW57bWFyZ2luLXRvcDoyNnB4OyBmb250LXNpemU6Ljg4cmVtOyBjb2xvcjp2YXIoLS1pbmstZGlt' .
+		'KTt9CiNzc3QgLmFnYWluIGJ1dHRvbnttYXJnaW4tdG9wOjEwcHg7IGJhY2tncm91bmQ6bm9uZTsg' .
+		'Ym9yZGVyOjA7IGNvbG9yOnZhcigtLWdvbGQtbGl0ZSk7CiAgZm9udC1zaXplOi44OHJlbTsgdGV4' .
+		'dC1kZWNvcmF0aW9uOnVuZGVybGluZTsgdGV4dC11bmRlcmxpbmUtb2Zmc2V0OjNweDt9CiNzc3Qg' .
+		'Lm1vcmV7bWFyZ2luLXRvcDozNHB4OyBwYWRkaW5nOjI2cHggMjBweDsgYm9yZGVyLXJhZGl1czox' .
+		'NHB4OwogIGJhY2tncm91bmQ6bGluZWFyLWdyYWRpZW50KDEyMGRlZywgcmdiYSgyMjQsMTg4LDEy' .
+		'NCwuMTQpIDAlLCAjMzIyNjYzIDQ4JSwgIzI1MUQ0QSAxMDAlKTsKICBib3JkZXI6MXB4IHNvbGlk' .
+		'IHZhcigtLWxpbmUpOyBib3gtc2hhZG93OnZhcigtLWxpZnQpO30KI3NzdCAubW9yZSBoM3tmb250' .
+		'LXNpemU6MS4xcmVtO30KI3NzdCAubW9yZSBwe21hcmdpbi10b3A6OHB4OyBmb250LXNpemU6Ljly' .
+		'ZW07IGNvbG9yOnZhcigtLWluay1zb2Z0KTt9CiNzc3QgLm1vcmUgYXtkaXNwbGF5OmlubGluZS1i' .
+		'bG9jazsgbWFyZ2luLXRvcDoxNnB4OyBwYWRkaW5nOjE0cHggMjhweDsgYm9yZGVyLXJhZGl1czo2' .
+		'cHg7CiAgZm9udC1zaXplOi45NXJlbTsgZm9udC13ZWlnaHQ6NzAwOyBjb2xvcjojMTYwRjJFOwog' .
+		'IGJhY2tncm91bmQ6bGluZWFyLWdyYWRpZW50KDEzNWRlZywgdmFyKC0tZ29sZC1saXRlKSwgI0M5' .
+		'OUE1NSk7fQojc3N0IC5ub3Rle21hcmdpbi10b3A6MjRweDsgZm9udC1zaXplOi44cmVtOyBjb2xv' .
+		'cjp2YXIoLS1pbmstZGltKTsgbGluZS1oZWlnaHQ6MS44NTt9CkBtZWRpYShwcmVmZXJzLXJlZHVj' .
+		'ZWQtbW90aW9uOnJlZHVjZSl7ICNzc3QgKnthbmltYXRpb246bm9uZSAhaW1wb3J0YW50OyB0cmFu' .
+		'c2l0aW9uOm5vbmUgIWltcG9ydGFudDt9IH0KPC9zdHlsZT4KCjxkaXYgaWQ9InNzdCI+CiAgPGRp' .
+		'diBjbGFzcz0ic2t5IiBhcmlhLWhpZGRlbj0idHJ1ZSI+PC9kaXY+CiAgPGRpdiBjbGFzcz0iaW4i' .
+		'PgoKICAgIDxkaXYgY2xhc3M9ImV5ZWJyb3ciPkZyZWUgJm1pZGRvdDsg66ek7J28PC9kaXY+CiAg' .
+		'ICA8IS0tIOOAkOusuOq1rOOAkSDsoJzrqqkgLS0+CiAgICA8aDE+7Jik64qY7J2YIOyatOyEuDwv' .
+		'aDE+CiAgICA8IS0tIOOAkOusuOq1rOOAkSDsoJzrqqkg7JWE656YIOyEpOuqhSAtLT4KICAgIDxw' .
+		'IGNsYXNzPSJkZWsiPuudoCDsl7TrkZAg6rCI656Y66GcIOuCmOuIhOyngCDslYrsirXri4jri6Qu' .
+		'IOuEo+ycvOyLoCDsg53rhYTsm5TsnbzroZwg7IS47Jq0IDxiPuuCtCDsnbzqsIQ8L2I+6rO8IDxi' .
+		'PuyYpOuKmOydmCDquLDsmrQ8L2I+7J20IOyWtOuWpCDsgqzsnbTsnbjsp4Drpbwg67SF64uI64uk' .
+		'LjwvcD4KCiAgICA8ZGl2IGNsYXNzPSJ0b2RheSI+CiAgICAgIDxkaXYgY2xhc3M9ImQiIGlkPSJ0' .
+		'RCI+7Jik64qYPC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9ImhhbiIgaWQ9InRIYW4iPiZtZGFzaDs8' .
+		'L2Rpdj4KICAgICAgPGRpdiBjbGFzcz0ia29yIiBpZD0idEtvciI+7Jik64qY7J2YIOq4sOyatOyd' .
+		'hCDshLjsmrDqs6Ag7J6I7Ja07JqUPC9kaXY+CiAgICA8L2Rpdj4KCiAgICA8IS0tIOyDneuFhOyb' .
+		'lOydvCDrhKPquLAgLS0+CiAgICA8ZGl2IGNsYXNzPSJhc2siIGlkPSJ0QXNrIj4KICAgICAgPCEt' .
+		'LSDjgJDrrLjqtazjgJEg7IOd64WE7JuU7J28IOusvOydhCDrlYwgLS0+CiAgICAgIDxwPu2DnOyW' .
+		'tOuCnCDtlbQgJm1pZGRvdDsg64usICZtaWRkb3Q7IOuCoOunjCDrhKPslrTso7zshLjsmpQuIOyL' .
+		'nOqwhOydgCDsl4bslrTrj4Qg65Cp64uI64ukLjwvcD4KICAgICAgPGRpdiBjbGFzcz0icm93Ij4K' .
+		'ICAgICAgICA8aW5wdXQgaWQ9InRZIiB0eXBlPSJudW1iZXIiIGlucHV0bW9kZT0ibnVtZXJpYyIg' .
+		'cGxhY2Vob2xkZXI9IjE5OTAiIGFyaWEtbGFiZWw9Iu2DnOyWtOuCnCDtlbQiPgogICAgICAgIDxp' .
+		'bnB1dCBpZD0idE0iIHR5cGU9Im51bWJlciIgaW5wdXRtb2RlPSJudW1lcmljIiBwbGFjZWhvbGRl' .
+		'cj0iNSIgYXJpYS1sYWJlbD0i7YOc7Ja064KcIOuLrCI+CiAgICAgICAgPGlucHV0IGlkPSJ0RGQi' .
+		'IHR5cGU9Im51bWJlciIgaW5wdXRtb2RlPSJudW1lcmljIiBwbGFjZWhvbGRlcj0iMTciIGFyaWEt' .
+		'bGFiZWw9Iu2DnOyWtOuCnCDrgqAiPgogICAgICA8L2Rpdj4KICAgICAgPGJ1dHRvbiB0eXBlPSJi' .
+		'dXR0b24iIGNsYXNzPSJnbyIgaWQ9InRHbyI+7Jik64qYIOyatOyEuCDrs7TquLAgJnJhcnI7PC9i' .
+		'dXR0b24+CiAgICAgIDxkaXYgY2xhc3M9ImVyciIgaWQ9InRFcnIiPjwvZGl2PgogICAgICA8IS0t' .
+		'IOOAkOusuOq1rOOAkSDslYjsi6zsi5ztgqTripQg7ZWcIOykhCAtLT4KICAgICAgPHAgY2xhc3M9' .
+		'InRpbnkiPuuEo+ycvOyLoCDqsoPsnYAg7J20IOq4sOq4sOyXkOunjCDrgqjsirXri4jri6QuIOyE' .
+		'nOuyhOuhnCDrs7TrgrTsp4Ag7JWK7JWE7JqULjxicj7tlZwg67KIIOuEo+ycvOyLnOuptCDrgrTs' .
+		'nbzrtoDthLDripQg67CU66GcIOuztOyXrOuTnOumveuLiOuLpC48L3A+CiAgICA8L2Rpdj4KCiAg' .
+		'ICA8IS0tIOqysOqzvCAtLT4KICAgIDxkaXYgY2xhc3M9Im91dCIgaWQ9InRPdXQiPgogICAgICA8' .
+		'ZGl2IGNsYXNzPSJzY29yZSI+CiAgICAgICAgPGRpdiBjbGFzcz0icmluZyIgaWQ9InRSaW5nIj48' .
+		'YiBpZD0idE51bSI+MDwvYj48L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzPSJ3aG8iPgogICAgICAg' .
+		'ICAgPGRpdiBjbGFzcz0ic2lwIiBpZD0idFNpcCI+Jm1kYXNoOzwvZGl2PgogICAgICAgICAgPGRp' .
+		'diBjbGFzcz0ic2lwZW4iIGlkPSJ0U2lwRW4iPjwvZGl2PgogICAgICAgICAgPGRpdiBjbGFzcz0i' .
+		'bWluZSIgaWQ9InRNaW5lIj48L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAg' .
+		'ICA8ZGl2IGNsYXNzPSJzYXkiPjxoMz7smKTripgg7J6YIO2SgOumrOuKlCDqsoMgPHNwYW4+R09P' .
+		'RDwvc3Bhbj48L2gzPjxwIGlkPSJ0R29vZCI+PC9wPjwvZGl2PgogICAgICA8ZGl2IGNsYXNzPSJz' .
+		'YXkiPjxoMz7smKTripgg7KGw7Ius7ZWgIOqygyA8c3Bhbj5DQVJFPC9zcGFuPjwvaDM+PHAgaWQ9' .
+		'InRDYXJlIj48L3A+PC9kaXY+CiAgICAgIDxkaXYgY2xhc3M9InNheSI+PGgzPuyYpOuKmOydmCDt' .
+		'lZwg7KSEIDxzcGFuPk9ORSBMSU5FPC9zcGFuPjwvaDM+PHAgaWQ9InRUaXAiPjwvcD48L2Rpdj4K' .
+		'ICAgICAgPGRpdiBjbGFzcz0ic2F5IiBpZD0idEppQm94Ij48aDM+7Jik64qYIOuCoOynnOyZgCDr' .
+		'gpggPHNwYW4+REFZPC9zcGFuPjwvaDM+PHAgaWQ9InRKaSI+PC9wPjwvZGl2PgoKICAgICAgPGRp' .
+		'diBjbGFzcz0ibHVjayI+CiAgICAgICAgPGRpdj48ZGl2IGNsYXNzPSJrIj5DT0xPUjwvZGl2Pjxk' .
+		'aXYgY2xhc3M9InYiIGlkPSJ0Q29sb3IiPiZtZGFzaDs8L2Rpdj48L2Rpdj4KICAgICAgICA8ZGl2' .
+		'PjxkaXYgY2xhc3M9ImsiPlRJTUU8L2Rpdj48ZGl2IGNsYXNzPSJ2IiBpZD0idFRpbWUiPiZtZGFz' .
+		'aDs8L2Rpdj48L2Rpdj4KICAgICAgICA8ZGl2PjxkaXYgY2xhc3M9ImsiPldBWTwvZGl2PjxkaXYg' .
+		'Y2xhc3M9InYiIGlkPSJ0V2F5Ij4mbWRhc2g7PC9kaXY+PC9kaXY+CiAgICAgIDwvZGl2PgoKICAg' .
+		'ICAgPGRpdiBjbGFzcz0iYWdhaW4iPgogICAgICAgIDwhLS0g44CQ66y46rWs44CRIOuCtOydvCDr' .
+		'mJAg7Jik7IS47JqUIC0tPgogICAgICAgIOuCtOydvOydtOuptCDquLDsmrTsnbQg67CU64Cd64uI' .
+		'64ukLiDtlZjro6jsl5Ag7ZWcIOuyiOyUqSDrk6Trn6zso7zshLjsmpQuCiAgICAgICAgPGJyPjxi' .
+		'dXR0b24gdHlwZT0iYnV0dG9uIiBpZD0idFJlc2V0Ij7sg53rhYTsm5Tsnbwg64uk7IucIOuEo+q4' .
+		'sDwvYnV0dG9uPgogICAgICA8L2Rpdj4KCiAgICAgIDxkaXYgY2xhc3M9Im1vcmUiPgogICAgICAg' .
+		'IDwhLS0g44CQ66y46rWs44CRIOyXrOyEryDrrLjsnLzroZwg67O064K064qUIOyekOumrCAtLT4K' .
+		'ICAgICAgICA8aDM+7Jik64qYIO2VmOujqCDrp5Dqs6AsIOyYrO2VtCDsoITssrTqsIAg6raB6riI' .
+		'7ZWY7Iuc66m0PC9oMz4KICAgICAgICA8cD7qsIDrlJTslrjsnbQg7Jes642fIOq4gOyekOulvCDs' .
+		'oITrtoAg7J297Ja0IOyKpOustCDsqr3snbQg64SY64qUIOyxhSDtlZwg6raM7J2EIOunjOuTpOyW' .
+		'tCDrk5zrpr3ri4jri6QuPC9wPgogICAgICAgIDxhIGhyZWY9Ii8jZG9vcnMiPuyXrOyEryDqsJzs' .
+		'nZgg66y4IOyXtOyWtOuztOq4sCAmcmFycjs8L2E+CiAgICAgIDwvZGl2PgogICAgPC9kaXY+Cgog' .
+		'ICAgPCEtLSDjgJDrrLjqtazjgJEg66eoIOyVhOuemCDsnpHsnYAg6riA7JSoIC0tPgogICAgPHAg' .
+		'Y2xhc3M9Im5vdGUiPuyYpOuKmOydmCDsmrTshLjripQg7J6s66+466GcIOu0kOyjvOyEuOyalC4g' .
+		'7ZWY66Oo7J2YIOq4sOyatOydgCDsl6zrjZ8g6riA7J6QIOqwgOyatOuNsCDtlZwg6riA7J6Q7JmA' .
+		'IOyYpOuKmCDtlZjripjsnZgg7ZWcIOq4gOyekOqwgCDrp4zrgpjripQg6rKD7J28IOu/kOyeheuL' .
+		'iOuLpC48YnI+7IKs656M7J2YIOqysOydgCDqt7jqsoPrs7Tri6Qg7Zuo7JSsIOuEk+yKteuLiOuL' .
+		'pC48L3A+CgogIDwvZGl2Pgo8L2Rpdj4KPHNjcmlwdD4KKGZ1bmN0aW9uKCl7CiAgdmFyIHJvb3Q9' .
+		'ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3NzdCcpOyBpZighcm9vdCl7IHJldHVybjsgfQogIHZh' .
+		'ciAkPWZ1bmN0aW9uKGlkKXsgcmV0dXJuIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKGlkKTsgfTsK' .
+		'CiAgdmFyIEdBTl9IID1bJ+eUsicsJ+S5mScsJ+S4mScsJ+S4gScsJ+aIiicsJ+W3sScsJ+W6mics' .
+		'J+i+mycsJ+WjrCcsJ+eZuCddOwogIHZhciBHQU5fSyA9WyfqsJEnLCfsnYQnLCfrs5EnLCfsoJUn' .
+		'LCfrrLQnLCfquLAnLCfqsr0nLCfsi6AnLCfsnoQnLCfqs4QnXTsKICB2YXIgR0FOX0VMPVsn66qp' .
+		'Jywn66qpJywn7ZmUJywn7ZmUJywn7YagJywn7YagJywn6riIJywn6riIJywn7IiYJywn7IiYJ107' .
+		'CiAgdmFyIEdBTl9ZSU49WzAsMSwwLDEsMCwxLDAsMSwwLDFdOwogIHZhciBKSV9IICA9WyflrZAn' .
+		'LCfkuJEnLCflr4UnLCflja8nLCfovrAnLCflt7MnLCfljYgnLCfmnKonLCfnlLMnLCfphYknLCfm' .
+		'iIwnLCfkuqUnXTsKICB2YXIgSklfSyAgPVsn7J6QJywn7LaVJywn7J24Jywn66yYJywn7KeEJywn' .
+		'7IKsJywn7JikJywn66+4Jywn7IugJywn7JygJywn7IigJywn7ZW0J107CiAgdmFyIEpJX0FOST1b' .
+		'J+ylkCcsJ+yGjCcsJ+2YuOuekeydtCcsJ+2GoOuBvCcsJ+yaqScsJ+uxgCcsJ+unkCcsJ+yWkScs' .
+		'J+ybkOyIreydtCcsJ+uLrScsJ+qwnCcsJ+uPvOyngCddOwogIHZhciBTQUVORyA9eyfrqqknOift' .
+		'mZQnLCftmZQnOifthqAnLCfthqAnOifquIgnLCfquIgnOifsiJgnLCfsiJgnOifrqqknfTsKICB2' .
+		'YXIgR0VVSyAgPXsn66qpJzon7YagJywn7YagJzon7IiYJywn7IiYJzon7ZmUJywn7ZmUJzon6riI' .
+		'Jywn6riIJzon66qpJ307CiAgdmFyIEVMX0tPID17J+uqqSc6J+uCmOustCDrqqknLCftmZQnOifr' .
+		'togg7ZmUJywn7YagJzon7Z2ZIO2GoCcsJ+q4iCc6J+yHoCDquIgnLCfsiJgnOifrrLwg7IiYJ307' .
+		'CgogIC8qIOKVkOKVkCDsmKTripgg7Jik64qUIOyXtCDqsIDsp4Ag6riw7Jq0IOKVkOKVkOKVkOKV' .
+		'kOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKV' .
+		'kOKVkOKVkOKVkOKVkOKVkOKVkOKVkAogICAgIOuCtCDsnbzqsITqs7wg7Jik64qYIO2VmOuKmOyd' .
+		'mCDquIDsnpDqsIAg7Ja065akIOyCrOydtOyduOqwgCDigJQg6re46rKD7J20IOyLreyEseyeheuL' .
+		'iOuLpC4KICAgICDjgJDrrLjqtazjgJEg7JWE656YIOuEpCDspITslKnrp4wg6rOg7LmY7Iuc66m0' .
+		'IOq3uOuMgOuhnCDtmZTrqbTsl5Ag64KY6rCR64uI64ukLiAqLwogIHZhciBTSVA9ewogICAgJ+u5' .
+		'hOqyrCc6eyBlbjonUEVFUicsIGJhc2U6NzQsCiAgICAgIGdvb2Q6J+uCmOyZgCDqsJnsnYAg6rKw' .
+		'7J2YIOq4sOyatOydtCDsmKTripQg64Kg7J6F64uI64ukLiDrgqjsnZgg64+E7JuAIOyXhuydtCA8' .
+		'ZW0+7Zi87J6QIOuwgOyWtOu2meydtOuKlCDsnbw8L2VtPuydtCDsoJzsnbwg7J6YIOuCmOqwkeuL' .
+		'iOuLpC4g66+466SE65GUIOqyg+ydhCDsmKTripgg64Gd64K07IS47JqULiDrqrjrj4Qg66eI7J2M' .
+		'64+EIO2PieyGjOuztOuLpCDrsoTthajspI3ri4jri6QuJywKICAgICAgY2FyZTon6rOg7KeR7J20' .
+		'IOyEuOyngOuKlCDrgqDsnbTrnbwgPGVtPuuCqOydmCDrp5DsnbQg7J6YIOyViCDrk6TslrTsmLXr' .
+		'i4jri6QuPC9lbT4g7Jik64qYIOuIhOq1sOqwgOyZgCDrtoDrlKrtnojshajri6TrqbQg7IOB64yA' .
+		'6rCAIOydtOyDge2VtOyEnOqwgCDslYTri4jrnbwg7Jik64qYIOuCtOqwgCDslYgg6rW97ZiA7ISc' .
+		'7J28IOyImCDsnojslrTsmpQuIOuPiCDruYzroKTso7zripQg7J2864+EIOyYpOuKmOydgCDrr7jr' .
+		'o6jshLjsmpQuJywKICAgICAgdGlwOifsmKTripjsnYAg7ISk65Od7ZWY66CkIOuTpOyngCDrp4js' .
+		'i5zqs6Ag6re464OlIO2VmOyEuOyalC4gPGVtPu2VtOuGk+qzoCDrs7Tsl6zso7zripQg7Y647J20' .
+		'IOu5oOuluCDrgqDsnoXri4jri6QuPC9lbT4nIH0sCiAgICAn6rKB7J6sJzp7IGVuOidSSVZBTCcs' .
+		'IGJhc2U6NjMsCiAgICAgIGdvb2Q6J+qyveyfgeyLrOydtCDtmZUg7Jis65287Jik64qUIOuCoOye' .
+		'heuLiOuLpC4g6rKo66Oo64qUIOyekOumrCwg66eI6rCQ7J20IOqxuOumsCDsnbzsl5DshJwgPGVt' .
+		'Pu2PieyGjOuztOuLpCDtlZwg67yYIOuNlCDrgpjsmLXri4jri6QuPC9lbT4g7Jq064+Z7J2064KY' .
+		'IOuquCDsk7DripQg7J2864+EIOyemCDrtpnslrTsmpQuJywKICAgICAgY2FyZTon64KY6rCA64qU' .
+		'IOuPiOydtCDrp47slYTsp4DripQg64Kg7J6F64uI64ukLiDstqnrj5nqtazrp6QsIO2VnO2EseuC' .
+		'tOq4sCwg6riJ7ZWcIOqysOygnOulvCA8ZW0+7Jik64qY66eM7J2AIO2VmOujqCDrr7jro6jshLjs' .
+		'mpQuPC9lbT4g7IKs656M6rO8IOydtOydteydhCDrgpjriITripQg7J207JW86riw64+EIOyYpOuK' .
+		'mOydgCDrp6Trk63sp5Psp4Ag66eI7Iuc64qUIOqyjCDsoovsirXri4jri6QuJywKICAgICAgdGlw' .
+		'OifsmKTripgg7IKs6rOgIOyLtuydgCDqsoPsnYAg64K07J2864+EIOyCtCDsiJgg7J6I7Iq164uI' .
+		'64ukLiA8ZW0+7J6l67CU6rWs64uI7JeQ66eMIOuLtOyVhOuRkOyEuOyalC48L2VtPicgfSwKICAg' .
+		'ICfsi53si6AnOnsgZW46J09VVFBVVCcsIGJhc2U6ODgsCiAgICAgIGdvb2Q6J+qwgOyepSDtjrjs' .
+		'lYjtlZwg64KgIOqwgOyatOuNsCDtlZjrgpjsnoXri4jri6QuIOuoueuKlCDqsoPrj4Qg7J6Q64qU' .
+		'IOqyg+uPhCDsnpgg65CY6rOgLCA8ZW0+6r647KSA7Z6IIO2VtOyYqCDsnbzsl5DshJwg6rKw6rO8' .
+		'6rCAIOuztOyeheuLiOuLpC48L2VtPiDsgqzrnozrk6Qg7JWe7JeQ7IScIOunkO2VoCDsnbzsnbQg' .
+		'7J6I64uk66m0IOyYpOuKmOydtCDsoovslYTsmpQuJywKICAgICAgY2FyZTon64SI66y0IO2OuO2V' .
+		'tOyEnCA8ZW0+64qY7Ja07KeA6riwIOyJrOyatCDrgqA8L2VtPuyeheuLiOuLpC4g6riJ7ZWcIOyd' .
+		'vOydtCDsnojsnLzrqbQg7Jik64qY7J2AIOyVjOuejOydhCDtlZjrgpgg642UIOunnuy2sOuRkOyE' .
+		'uOyalC4g6rO87Iud64+EIOyYpOuKmCDsnKDrgpztnogg7J6YIO2VmOyLreuLiOuLpC4nLAogICAg' .
+		'ICB0aXA6J+yYpOuKmCDtlZjro6jripQg7IOI66GcIOuyjOydtOq4sOuztOuLpCA8ZW0+7ZWY642Y' .
+		'IOqyg+ydhCDtlZwg7Lm4IOuNlCDrsIDslrTrkZDshLjsmpQuPC9lbT4g6re46rKMIOygnOydvCDt' .
+		'gazqsowg64Ko7Iq164uI64ukLicgfSwKICAgICfsg4HqtIAnOnsgZW46J0VYUFJFU1NJT04nLCBi' .
+		'YXNlOjcwLAogICAgICBnb29kOifrqLjrpqzqsIAg67mg66W06rKMIOuPhOuKlCDrgqDsnoXri4jr' .
+		'i6QuIOyVhOydtOuUlOyWtCwg6riALCDquLDtmo0sIOunjOuTnOuKlCDsnbzsl5DshJwgPGVtPuuC' .
+		'qOuTpOydtCDrqrsg67O4IOqyg+ydhCDrs7Tsi63ri4jri6QuPC9lbT4g7IOI66GcIOyLnOyeke2V' .
+		'mOuKlCDsnbzsl5Drj4Qg7Z6Y7J20IOu2meyWtOyalC4nLAogICAgICBjYXJlOifrp5DsnbQg7JWe' .
+		'7ISc64qUIOuCoOyeheuLiOuLpC4g66ee64qUIOunkOydtOyWtOuPhCA8ZW0+7Jik64qYIO2VmOyL' .
+		'nOuptCDsg4HrjIDqsIAg7IOB7LKY66GcIOuwm+yKteuLiOuLpC48L2VtPiDtirntnogg7JyX7IKs' .
+		'656MIOyVnuyXkOyEnOyalC4g7ZWY6rOgIOyLtuydgCDrp5DsnbQg7J6I7Jy866m0IOyggeyWtOuS' .
+		'gOuLpOqwgCDrgrTsnbwg7ZWY7IS47JqULicsCiAgICAgIHRpcDon7Jik64qYIOuWoOyYpOuluCDs' .
+		'g53qsIHsnYAg67aZ7J6h7JWEIOyggeyWtOuRkOyLnOqzoCwgPGVtPuyeheydgCDtlZwg67KIIOuN' .
+		'lCDri6TrrLTshLjsmpQuPC9lbT4nIH0sCiAgICAn7Y647J6sJzp7IGVuOidXSU5ERkFMTCcsIGJh' .
+		'c2U6ODAsCiAgICAgIGdvb2Q6J+uPiOqzvCDquLDtmozqsIAg64ST6rKMIOyXtOumrOuKlCDrgqDs' .
+		'noXri4jri6QuIOyCrOuejOydhCDrp4zrgpjqsbDrgpgg67CW7JeQIOuCmOqwgOuKlCDsnbwsIDxl' .
+		'bT7sg4gg6rGw656Y66W8IO2KuOuKlCDsnbw8L2VtPuydtCDsnpgg67aZ7Iq164uI64ukLiDsmIjs' .
+		'g4Eg66q7IO2VnCDrjbDshJwg7J207JW86riw6rCAIOuTpOyWtOyYrCDsiJgg7J6I7Ja07JqULics' .
+		'CiAgICAgIGNhcmU6J+uTpOyWtOyYpOuKlCDrp4ztgbwgPGVtPuuCmOqwgOq4sOuPhCDsiazsmrQg' .
+		'64KgPC9lbT7snoXri4jri6QuIOuyjOyYgOuLpOqwgCDrqrsg6rGw65GQ64qUIOydvOydtCDsg53q' .
+		'uLDri4gsIOyYpOuKmCDsg4jroZwg7Iuc7J6R7ZWY64qUIOqyg+ydgCDtgazquLDrpbwg7J6R6rKM' .
+		'IOyeoeycvOyEuOyalC4nLAogICAgICB0aXA6J+yYpOuKmOydgCDrhJPqsowg66eM64KY7Iuc6rOg' .
+		'LCA8ZW0+7KCV7ZWY64qUIOqyg+ydgCDrgrTsnbwg7ZWY7IS47JqULjwvZW0+JyB9LAogICAgJ+yg' .
+		'leyerCc6eyBlbjonU1RFQURZJywgYmFzZTo4NSwKICAgICAgZ29vZDon7LCo6rOh7LCo6rOhIOyM' .
+		'k+ydtOuKlCDrgqDsnoXri4jri6QuIOqzhOyCsCwg7KCV66asLCDqs4Tslb0sIOyggOy2leyymOuf' .
+		'vCA8ZW0+6ry86ry87Z6IIO2VtOyVvCDtlZjripQg7J28PC9lbT7snbQg7J6YIOuQqeuLiOuLpC4g' .
+		'7Jik64qYIOygleumrO2VtOuRkOuptCDtlZzrj5nslYgg7Y647ZW07JqULicsCiAgICAgIGNhcmU6' .
+		'J+yaleyLrOydhCDrgrTrqbQg7Ja06riL64Kp64uI64ukLiDtgazqsowg6rG47Ja07IScIO2BrOqy' .
+		'jCDrqLnsnLzroKTripQg66eI7J2M7J20IOuTnOyLnOuptCA8ZW0+7Jik64qY7J2AIOq3uOyqveyd' .
+		'tCDslYTri5nri4jri6QuPC9lbT4g7J6U7IaM66as6rCAIOuKmOyWtCDqsIDquYzsmrQg7IKs656M' .
+		'6rO8IOu2gOuUqu2eiOq4sOuPhCDtlbTsmpQuJywKICAgICAgdGlwOifsmKTripjsnYAgPGVtPuye' .
+		'keydgCDqsoPsnYQg7ZmV7Iuk7Z6IPC9lbT4g7ZWY7IS47JqULiDqt7jqsowg7J20IOuCoOydmCDr' .
+		'sKnsi53snoXri4jri6QuJyB9LAogICAgJ+2OuOq0gCc6eyBlbjonUFJFU1NVUkUnLCBiYXNlOjU4' .
+		'LAogICAgICBnb29kOifquLTsnqXsnbQg7Z6Y7Jy866GcIOuwlOuAjOuKlCDrgqDsnoXri4jri6Qu' .
+		'IOuvuOukhOuSgOuNmCDslrTroKTsmrQg7J28LCA8ZW0+7ZS87ZWY6rOgIOyeiOuNmCDsl7Drnb08' .
+		'L2VtPuydhCDsmKTripgg7ZW07LmY7Jqw66m0IOyDneqwgeuztOuLpCDsib3qsowg7ZKA66a964uI' .
+		'64ukLicsCiAgICAgIGNhcmU6J+yKpO2KuOugiOyKpOqwgCDrqrjsnLzroZwg66i87KCAIOyYteuL' .
+		'iOuLpC4g7Ja06rmoLCDsnIQsIOyeoCDigJQg7Ja065SU65OgIO2VnCDqtbDrjbAg7Yuw6rCAIOuC' .
+		'mOyalC4gPGVtPuyYpOuKmCDrrLTrpqztlZjsi5zrqbQg7J2067KIIOyjvCDrgrTrgrQg6rCR64uI' .
+		'64ukLjwvZW0+IOq4ie2VnCDqsrDsoJXqs7wg64uk7Yi87J2AIO2UvO2VmOyEuOyalC4nLAogICAg' .
+		'ICB0aXA6J+yYpOuKmOydgCDsnbTquLDroKQg7ZWY7KeAIOuniOyLnOqzoCA8ZW0+64SY6riw7IS4' .
+		'7JqULjwvZW0+IOuEmOq4sOuKlCDqsoPrj4Qg7J206riw64qUIOqygeuLiOuLpC4nIH0sCiAgICAn' .
+		'7KCV6rSAJzp7IGVuOidPUkRFUicsIGJhc2U6ODIsCiAgICAgIGdvb2Q6J+yekOumrOqwgCDrsJjr' .
+		'k6/tlbTsp4DripQg64Kg7J6F64uI64ukLiDqs7Xsi53soIHsnbgg7J28LCDshJzrpZgsIOuptOyg' .
+		'kSwg7JyX7IKs656M6rO87J2YIOyekOumrOyXkOyEnCA8ZW0+7Y+J7IaM67O064ukIOyii+qyjCDr' .
+		's7TsnoXri4jri6QuPC9lbT4g7JW97IaN7J2EIOyeoeq4sOyXkOuPhCDsoovslYTsmpQuJywKICAg' .
+		'ICAgY2FyZTon7YuA7JeQIOunnuy2lOuLpCA8ZW0+64K0IOqyg+ydhCDrqrsg7ZWY6rOgIO2VmOuj' .
+		'qOqwgCDqsJHri4jri6QuPC9lbT4g64KoIOuztOq4sOyXkCDqtJzssK7snYAg7Kq97Jy866Gc66eM' .
+		'IOygle2VmOuptCDrgpjspJHsl5Ag7ZuE7ZqM7ZWY7IukIOyImCDsnojslrTsmpQuJywKICAgICAg' .
+		'dGlwOifsmKTripjsnYAgPGVtPuygnOuMgOuhnCDqsJbstrDshJw8L2VtPiDsm4Dsp4HsnbTshLjs' .
+		'mpQuIOywqOumvOyDiOyZgCDrp5DtiKzqsIAg7Y+J7IaM67O064ukIO2BrOqyjCDsnbztlanri4jr' .
+		'i6QuJyB9LAogICAgJ+2OuOyduCc6eyBlbjonSU5TSUdIVCcsIGJhc2U6NjYsCiAgICAgIGdvb2Q6' .
+		'J+2YvOyekCDtjIzqs6Drk5zripQg7J287JeQIOyii+ydgCDrgqDsnoXri4jri6QuIOqzteu2gCwg' .
+		'7J6Q66OMIOywvuq4sCwg7Jik656YIOu2meuTpOuNmCDrrLjsoJzsnZggPGVtPuyLpOuniOumrOqw' .
+		'gCDsmKTripgg67O07J6F64uI64ukLjwvZW0+IOuCqOuTpOydtCDslYgg67O064qUIOyqveydhCDr' .
+		's7Tsi63ri4jri6QuJywKICAgICAgY2FyZTon7IOd6rCB7J20IOunjuyVhOyguCA8ZW0+6rKw7KCV' .
+		'7J2EIOuquyDrgrTrpqzripQg64KgPC9lbT7snoXri4jri6QuIOuwpOyXkCDsnqDsnbQg7J6YIOyV' .
+		'iCDsmKTqs6AsIOydtOuvuCDsp4Drgpwg7J287J2EIOuLpOyLnCDqurzrgrQg6rOx7JS56riwIOyJ' .
+		'rOybjOyalC4g7Jik64qYIOuwpOydmCDsg53qsIHsnYAg64K07J28IOyVhOy5qOyXkCDri6Tsi5wg' .
+		'67O07IS47JqULicsCiAgICAgIHRpcDon7Jik64qYIOuToCDqsbHsoJXsnYAg64yA6rCcIOyYpOuK' .
+		'mOunjOydmCDqsoPsnoXri4jri6QuIDxlbT7qsrDsoJXsnYAg64K07J2866GcIOuvuOujqOyEuOya' .
+		'lC48L2VtPicgfSwKICAgICfsoJXsnbgnOnsgZW46J1NVUFBPUlQnLCBiYXNlOjkwLAogICAgICBn' .
+		'b29kOifquLDrjIDrj4Qg65CY64qUIOuCoOyeheuLiOuLpC4g64+E7JuA7J20IOuTpOyWtOyYpOqz' .
+		'oCwg67Cw7Jqw64qUIOqyg+ydtCDsnpgg67aZ6rOgLCA8ZW0+66eI7J2M7J20IOqwgOudvOyVieyK' .
+		'teuLiOuLpC48L2VtPiDslrTrpbjsnbTrgpgg7ISg67Cw7JeQ6rKMIOu2gO2DgeuTnOumtCDsnbzs' .
+		'nbQg7J6I7Jy866m0IOyYpOuKmCDtlZjshLjsmpQuJywKICAgICAgY2FyZTon64SI66y0IO2OuO2V' .
+		'tOyEnCA8ZW0+66+466Oo6riwIOyJveyKteuLiOuLpC48L2VtPiDriITqsIAg7ZW07KO86rKg7KeA' .
+		'IO2VmOqzoCDshpDsnYQg64aT7Jy866m0IOq3uOuMgOuhnCDtlZjro6jqsIAg6rCR64uI64ukLiDr' .
+		'sJvquLDrp4wg7ZWY6rOgIOyViCDsm4Dsp4HsnbTrqbQg7J20IOq4sOyatOydtCDslYTquZ3sirXr' .
+		'i4jri6QuJywKICAgICAgdGlwOifsmKTripjsnYAgPGVtPuuwsOyasOqxsOuCmCDrtoDtg4HtlZjs' .
+		'hLjsmpQuPC9lbT4g7Zi87J6QIOuBmeuBmeuMgOuKlCDqsoPsnbQg7KCc7J28IOyGkO2VtOyduCDr' .
+		'gqDsnoXri4jri6QuJyB9CiAgfTsKCiAgLyog4pWQ4pWQIOyYpOuKmCDrgqDsp5zsmYAg64K0IOud' .
+		'oOydmCDsgqzsnbQg4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ' .
+		'4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQICovCiAgdmFyIEpJUkVMPXsKICAgICdj' .
+		'aHVuZyc6eyBuOi05LCB0OifsmKTripgg64Kg7Kec6rCAIDxlbT7ri7nsi6DsnZgg652g7JmAIOyg' .
+		'leuptOycvOuhnCDrp57shJzripQg64KgPC9lbT7snoXri4jri6QuIO2BrOqyjCDrgpjsgZwg7J28' .
+		'7J20IOyYqOuLpOuKlCDrnLvsnbQg7JWE64uI6528LCDsnpDrpqzqsIAg7Z2U65Ok66as6rOgIOun' .
+		'iOydjOydtCDrk6TrnKzri6TripQg65y77J207JeQ7JqULiDsmKTripjsnYAg7YGwIOqysOygleqz' .
+		'vCDrqLwg7J2064+Z7J2EIOuvuOujqOyLnOqzoCwg7ZWY642YIOyekOumrOulvCDsp4DtgqTshLjs' .
+		'mpQuJyB9LAogICAgJ3l1ayc6ICB7IG46KzgsIHQ6J+yYpOuKmCDrgqDsp5zqsIAgPGVtPuuLueyL' .
+		'oOydmCDrnaDsmYAg7IaQ7J2EIOyeoeuKlCDrgqA8L2VtPuyeheuLiOuLpC4g7IKs656M6rO87J2Y' .
+		'IOydvOydtCDrtoDrk5zrn73qsowg7ZKA66a964uI64ukLiDrtoDtg4HtlaAg6rKD7J20IOyeiOyc' .
+		'vOuptCDsmKTripgg7ZWY7IS47JqULicgfSwKICAgICdzYW0nOiAgeyBuOis2LCB0OifsmKTripgg' .
+		'64Kg7Kec6rCAIDxlbT7ri7nsi6DsnZgg652g7JmAIO2VnCDtjrjsnbQg65CY64qUIOuCoDwvZW0+' .
+		'7J6F64uI64ukLiDsl6zrn7/snbQg7ZWo6ruYIO2VmOuKlCDsnbwsIOuqqOydtOuKlCDsnpDrpqzs' .
+		'l5DshJwg7Z6Y7J20IOu2meyKteuLiOuLpC4nIH0sCiAgICAnc2FtZSc6IHsgbjorMywgdDon7Jik' .
+		'64qYIOuCoOynnOqwgCA8ZW0+64u57Iug7J2YIOudoOyZgCDqsJnsnYAg6riA7J6QPC9lbT7snoXr' .
+		'i4jri6QuIOuCtCDquLDsmrTsnbQg65GQIOuwsOqwgCDrkJjripQg64Kg7J206528IOuwgOyWtOu2' .
+		'meydtOq4sOuKlCDsoovqs6AsIOq1ve2eiOq4sOuKlCDslrTroLXsirXri4jri6QuJyB9LAogICAg' .
+		'J25vbmUnOiB7IG46MCwgIHQ6J+yYpOuKmCDrgqDsp5zsmYAg64u57Iug7J2YIOudoOuKlCA8ZW0+' .
+		'7Yq567OE7Z6IIOyWve2eiOyngCDslYrsirXri4jri6QuPC9lbT4g6re4656Y7IScIOyYpOuKmOyd' .
+		'gCDsnIQg7IS4IOqwgOyngCDsnbTslbzquLDrpbwg6re464yA66GcIOuztOyLnOuptCDrkKnri4jr' .
+		'i6QuJyB9CiAgfTsKCiAgdmFyIEVMVUNLPXsKICAgICfrqqknOnsgYzon7LSI66GdIMK3IOyXsOuR' .
+		'o+u5mycsIHQ6J+yVhOy5qCDri6TshK8g7IucIH4g7J286rOxIOyLnCcsIHc6J+uPmeyqvScgfSwK' .
+		'ICAgICftmZQnOnsgYzon67aJ7J2A67mbIMK3IOyjvO2ZqScsIHQ6J+uCriDsl7TtlZwg7IucIH4g' .
+		'7ZWcIOyLnCcsICAgICB3Oifrgqjsqr0nIH0sCiAgICAn7YagJzp7IGM6J+uFuOuegOu5myDCtyDt' .
+		'nZnruZsnLCB0OifsmKTtm4Qg7ZWcIOyLnCB+IOyEuCDsi5wnLCAgICAgdzon6rCA7Jq0642wIMK3' .
+		'IOqwgOq5jOyatCDqs7MnIH0sCiAgICAn6riIJzp7IGM6J+2dsOu5myDCtyDsnYDruZsnLCAgIHQ6' .
+		'J+yggOuFgSDri6TshK8g7IucIH4g7J286rOxIOyLnCcsIHc6J+yEnOyqvScgfSwKICAgICfsiJgn' .
+		'OnsgYzon6rKA7KCVIMK3IOuCqOu5mycsICAgdDon67CkIOyXtO2VnCDsi5wgfiDtlZwg7IucJywg' .
+		'ICAgIHc6J+u2geyqvScgfQogIH07CgogIC8qIOKUgOKUgCDsi63shLEg7KCV7ZWY6riwIOKUgOKU' .
+		'gOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKU' .
+		'gOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCAqLwogIGZ1bmN0aW9u' .
+		'IHNpcE9mKG1pbmUsIHRvZGF5KXsKICAgIHZhciBtZT1HQU5fRUxbbWluZV0sIHQ9R0FOX0VMW3Rv' .
+		'ZGF5XTsKICAgIHZhciBzYW1lPShHQU5fWUlOW21pbmVdPT09R0FOX1lJTlt0b2RheV0pOwogICAg' .
+		'aWYodD09PW1lKXsgcmV0dXJuIHNhbWUgPyAn67mE6rKsJyA6ICfqsoHsnqwnOyB9CiAgICBpZihT' .
+		'QUVOR1ttZV09PT10KXsgcmV0dXJuIHNhbWUgPyAn7Iud7IugJyA6ICfsg4HqtIAnOyB9CiAgICBp' .
+		'ZihHRVVLW21lXT09PXQpeyByZXR1cm4gc2FtZSA/ICftjrjsnqwnIDogJ+ygleyerCc7IH0KICAg' .
+		'IGlmKEdFVUtbdF09PT1tZSl7IHJldHVybiBzYW1lID8gJ+2OuOq0gCcgOiAn7KCV6rSAJzsgfQog' .
+		'ICAgcmV0dXJuIHNhbWUgPyAn7Y647J24JyA6ICfsoJXsnbgnOwogIH0KCiAgLyog4pSA4pSAIOyn' .
+		'gOyngCDsgqzsnbQg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA' .
+		'4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA' .
+		'4pSA4pSA4pSAICovCiAgdmFyIFlVSz17MDoxLDE6MCwyOjExLDExOjIsMzoxMCwxMDozLDQ6OSw5' .
+		'OjQsNTo4LDg6NSw2OjcsNzo2fTsKICBmdW5jdGlvbiBqaVJlbChtaW5lLCB0b2RheSl7CiAgICBp' .
+		'ZihtaW5lPT09dG9kYXkpeyByZXR1cm4gJ3NhbWUnOyB9CiAgICBpZihNYXRoLmFicyhtaW5lLXRv' .
+		'ZGF5KT09PTYpeyByZXR1cm4gJ2NodW5nJzsgfQogICAgaWYoWVVLW21pbmVdPT09dG9kYXkpeyBy' .
+		'ZXR1cm4gJ3l1ayc7IH0KICAgIGlmKE1hdGguYWJzKG1pbmUtdG9kYXkpJTQ9PT0wKXsgcmV0dXJu' .
+		'ICdzYW0nOyB9CiAgICByZXR1cm4gJ25vbmUnOwogIH0KCiAgLyog4pSA4pSAIOyYpOuKmOydmCDq' .
+		'sITsp4Ag4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA' .
+		'4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICov' .
+		'CiAgZnVuY3Rpb24gZ2FuamlPZih5LCBtLCBkKXsKICAgIHZhciBTPXdpbmRvdy5TdGVsbGFTYWp1' .
+		'OwogICAgaWYoIVMpeyByZXR1cm4gbnVsbDsgfQogICAgdmFyIGxvYz1TLmxvY2F0ZSgn7ISc7Jq4' .
+		'Jywn64yA7ZWc66+86rWtJyx5LG0sZCk7CiAgICB2YXIgY2g9Uy5jb21wdXRlKHsgeWVhcjp5LCBt' .
+		'b250aDptLCBkYXk6ZCwgaG91cjpudWxsLCBtaW51dGU6MCwgc2V4OidNJywKICAgICAgICAgICAg' .
+		'ICAgICAgICAgICBsb246bG9jLmxvbiwgbGF0OmxvYy5sYXQsIHR6OmxvYy50eiwgem9uZTona3In' .
+		'IH0pOwogICAgcmV0dXJuIGNoOwogIH0KICBmdW5jdGlvbiBpZHhPZihoYW4sIGFycil7CiAgICB2' .
+		'YXIgaTsgZm9yKGk9MDtpIDwgYXJyLmxlbmd0aDtpKyspeyBpZihhcnJbaV09PT1oYW4peyByZXR1' .
+		'cm4gaTsgfSB9CiAgICByZXR1cm4gLTE7CiAgfQoKICAvKiDilIDilIAg7Jik64qYIOuCoOynnCDq' .
+		't7jrpqzquLAg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA' .
+		'4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSAICovCiAgdmFyIFRPREFZ' .
+		'PW51bGwsIFRHPS0xLCBUSj0tMTsKICAoZnVuY3Rpb24oKXsKICAgIHZhciBub3c9bmV3IERhdGUo' .
+		'KTsKICAgIHZhciB5PW5vdy5nZXRGdWxsWWVhcigpLCBtPW5vdy5nZXRNb250aCgpKzEsIGQ9bm93' .
+		'LmdldERhdGUoKTsKICAgICQoJ3REJykudGV4dENvbnRlbnQgPSB5KyfrhYQgJyttKyfsm5QgJytk' .
+		'KyfsnbwnOwogICAgdmFyIGNoPW51bGw7CiAgICB0cnl7IGNoPWdhbmppT2YoeSxtLGQpOyB9Y2F0' .
+		'Y2goZXJyKXsgY2g9bnVsbDsgfQogICAgaWYoIWNoKXsgJCgndEtvcicpLnRleHRDb250ZW50PSfq' .
+		's4TsgrDquLDrpbwg7JWE7KeBIOuquyDrtojrn6zsmZTslrTsmpQuIOyDiOuhnOqzoOy5qO2VtCDs' .
+		'o7zshLjsmpQuJzsgcmV0dXJuOyB9CiAgICBUT0RBWT1jaDsKICAgIHZhciBoYW49Y2gucGlsbGFy' .
+		'cy5kYXkuaGFuOwogICAgVEc9aWR4T2YoaGFuLmNoYXJBdCgwKSwgR0FOX0gpOwogICAgVEo9aWR4' .
+		'T2YoaGFuLmNoYXJBdCgxKSwgSklfSCk7CiAgICAkKCd0SGFuJykudGV4dENvbnRlbnQgPSBoYW47' .
+		'CiAgICBpZihURyA+PSAwKXsgaWYoVEogPj0gMCl7CiAgICAgICQoJ3RLb3InKS50ZXh0Q29udGVu' .
+		'dCA9IEdBTl9LW1RHXStKSV9LW1RKXSsn7J28IMK3ICcrR0FOX0VMW1RHXSsnKCcrRUxfS09bR0FO' .
+		'X0VMW1RHXV0rJynsnZgg64KgLCAnK0pJX0FOSVtUSl0rJ+ydmCDsnpDrpqwnOwogICAgfSB9CiAg' .
+		'fSkoKTsKCiAgLyog4pSA4pSAIOyggOyepe2VtOuRlCDsg53rhYTsm5Tsnbwg4pSA4pSA4pSA4pSA' .
+		'4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA' .
+		'4pSA4pSA4pSA4pSA4pSA4pSAICovCiAgdmFyIEtFWT0nc3RlbGxhX3RvZGF5X2JpcnRoJzsKICBm' .
+		'dW5jdGlvbiByZWFkU2F2ZWQoKXsKICAgIHZhciBvPW51bGw7CiAgICB0cnl7IG89SlNPTi5wYXJz' .
+		'ZShsb2NhbFN0b3JhZ2UuZ2V0SXRlbShLRVkpKTsgfWNhdGNoKGVycil7IG89bnVsbDsgfQogICAg' .
+		'aWYobyl7IGlmKG8ueSl7IHJldHVybiBvOyB9IH0KICAgIC8qIOusuOyXkOyEnCDrhKPsnLzsi6Ag' .
+		'6rKD7J20IOyeiOycvOuptCDqt7jqsoPsnYQg6re464yA66GcIOyUgeuLiOuLpCAqLwogICAgdHJ5' .
+		'ewogICAgICB2YXIgcmF3PWxvY2FsU3RvcmFnZS5nZXRJdGVtKCdzdGVsbGFfZGVtbycpOwogICAg' .
+		'ICBpZihyYXcpewogICAgICAgIHZhciBkPUpTT04ucGFyc2UocmF3KTsKICAgICAgICBpZihkKXsg' .
+		'aWYoZC5wcm9maWxlKXsgaWYoZC5wcm9maWxlLnllYXIpewogICAgICAgICAgcmV0dXJuIHsgeTpk' .
+		'LnByb2ZpbGUueWVhciwgbTpkLnByb2ZpbGUubW9udGgsIGQ6ZC5wcm9maWxlLmRheSB9OwogICAg' .
+		'ICAgIH0gfSB9CiAgICAgIH0KICAgIH1jYXRjaChlcnIpe30KICAgIHJldHVybiBudWxsOwogIH0K' .
+		'CiAgZnVuY3Rpb24gbnVtKGlkKXsgdmFyIHY9cGFyc2VJbnQoJChpZCkudmFsdWUsMTApOyBpZihp' .
+		'c05hTih2KSl7IHJldHVybiAwOyB9IHJldHVybiB2OyB9CgogIGZ1bmN0aW9uIGRyYXcoYil7CiAg' .
+		'ICBpZihURyA8IDApeyByZXR1cm47IH0KICAgIHZhciBjaD1udWxsOwogICAgdHJ5eyBjaD1nYW5q' .
+		'aU9mKGIueSwgYi5tLCBiLmQpOyB9Y2F0Y2goZXJyKXsgY2g9bnVsbDsgfQogICAgaWYoIWNoKXsg' .
+		'JCgndEVycicpLnRleHRDb250ZW50PSfqs4TsgrDquLDrpbwg7JWE7KeBIOuquyDrtojrn6zsmZTs' .
+		'lrTsmpQuIOyDiOuhnOqzoOy5qO2VtCDso7zshLjsmpQuJzsgcmV0dXJuOyB9CgogICAgdmFyIG15' .
+		'Rz1pZHhPZihjaC5waWxsYXJzLmRheS5oYW4uY2hhckF0KDApLCBHQU5fSCk7CiAgICB2YXIgbXlK' .
+		'PWlkeE9mKGNoLnBpbGxhcnMueWVhci5oYW4uY2hhckF0KDEpLCBKSV9IKTsKICAgIGlmKG15RyA8' .
+		'IDApeyAkKCd0RXJyJykudGV4dENvbnRlbnQ9J+yDneuFhOyblOydvOydhCDri6Tsi5wg67SQ7KO8' .
+		'7IS47JqULic7IHJldHVybjsgfQoKICAgIHZhciBrZXk9c2lwT2YobXlHLCBURyk7CiAgICB2YXIg' .
+		'cz1TSVBba2V5XTsKICAgIHZhciByZWw9KG15SiA+PSAwKSA/IGppUmVsKG15SiwgVEopIDogJ25v' .
+		'bmUnOwogICAgdmFyIHI9SklSRUxbcmVsXTsKCiAgICB2YXIgc2NvcmU9cy5iYXNlICsgci5uOwog' .
+		'ICAgaWYoc2NvcmUgPiA5Nyl7IHNjb3JlPTk3OyB9CiAgICBpZihzY29yZSA8IDQ4KXsgc2NvcmU9' .
+		'NDg7IH0KCiAgICAkKCd0TnVtJykudGV4dENvbnRlbnQ9c2NvcmU7CiAgICAkKCd0UmluZycpLnN0' .
+		'eWxlLmJhY2tncm91bmQ9J2NvbmljLWdyYWRpZW50KCNFMEJDN0MgJysoc2NvcmUqMy42KSsnZGVn' .
+		'LCByZ2JhKDE2MywxMjQsMjQ2LC4yMikgMGRlZyknOwogICAgJCgndFNpcCcpLnRleHRDb250ZW50' .
+		'PWtleTsKICAgICQoJ3RTaXBFbicpLnRleHRDb250ZW50PXMuZW47CiAgICAkKCd0TWluZScpLnRl' .
+		'eHRDb250ZW50PSfrgrQg7J286rCEICcrR0FOX0hbbXlHXSsnKCcrR0FOX0tbbXlHXStHQU5fRUxb' .
+		'bXlHXSsnKScrCiAgICAgIChteUogPj0gMCA/ICcgwrcgJytKSV9BTklbbXlKXSsn652gJyA6ICcn' .
+		'KTsKICAgICQoJ3RHb29kJykuaW5uZXJIVE1MPXMuZ29vZDsKICAgICQoJ3RDYXJlJykuaW5uZXJI' .
+		'VE1MPXMuY2FyZTsKICAgICQoJ3RUaXAnKS5pbm5lckhUTUw9cy50aXA7CiAgICAkKCd0SmknKS5p' .
+		'bm5lckhUTUw9ci50OwoKICAgIHZhciBsdWNrPUVMVUNLW0dBTl9FTFtUR11dOwogICAgJCgndENv' .
+		'bG9yJykudGV4dENvbnRlbnQ9bHVjay5jOwogICAgJCgndFRpbWUnKS50ZXh0Q29udGVudD1sdWNr' .
+		'LnQ7CiAgICAkKCd0V2F5JykudGV4dENvbnRlbnQ9bHVjay53OwoKICAgICQoJ3RBc2snKS5zdHls' .
+		'ZS5kaXNwbGF5PSdub25lJzsKICAgICQoJ3RPdXQnKS5jbGFzc0xpc3QuYWRkKCdvbicpOwogIH0K' .
+		'CiAgJCgndEdvJykuYWRkRXZlbnRMaXN0ZW5lcignY2xpY2snLCBmdW5jdGlvbigpewogICAgdmFy' .
+		'IHk9bnVtKCd0WScpLCBtPW51bSgndE0nKSwgZD1udW0oJ3REZCcpOwogICAgJCgndEVycicpLnRl' .
+		'eHRDb250ZW50PScnOwogICAgaWYoeSA8IDE5MDApeyAkKCd0RXJyJykudGV4dENvbnRlbnQ9J+2D' .
+		'nOyWtOuCnCDtlbTrpbwgMTkwMOuFhOu2gO2EsCDrhKPslrTso7zshLjsmpQuJzsgcmV0dXJuOyB9' .
+		'CiAgICBpZih5ID4gMjAyNil7ICQoJ3RFcnInKS50ZXh0Q29udGVudD0n7YOc7Ja064KcIO2VtOul' .
+		'vCDri6Tsi5wg67SQ7KO87IS47JqULic7IHJldHVybjsgfQogICAgaWYobSA8IDEpeyAkKCd0RXJy' .
+		'JykudGV4dENvbnRlbnQ9J+2DnOyWtOuCnCDri6zsnYQg64Sj7Ja07KO87IS47JqULic7IHJldHVy' .
+		'bjsgfQogICAgaWYobSA+IDEyKXsgJCgndEVycicpLnRleHRDb250ZW50PSfri6zsnYQg64uk7Iuc' .
+		'IOu0kOyjvOyEuOyalC4nOyByZXR1cm47IH0KICAgIGlmKGQgPCAxKXsgJCgndEVycicpLnRleHRD' .
+		'b250ZW50PSftg5zslrTrgpwg64Kg7J2EIOuEo+yWtOyjvOyEuOyalC4nOyByZXR1cm47IH0KICAg' .
+		'IGlmKGQgPiAzMSl7ICQoJ3RFcnInKS50ZXh0Q29udGVudD0n64Kg7J2EIOuLpOyLnCDrtJDso7zs' .
+		'hLjsmpQuJzsgcmV0dXJuOyB9CiAgICB2YXIgYj17IHk6eSwgbTptLCBkOmQgfTsKICAgIHRyeXsg' .
+		'bG9jYWxTdG9yYWdlLnNldEl0ZW0oS0VZLCBKU09OLnN0cmluZ2lmeShiKSk7IH1jYXRjaChlcnIp' .
+		'e30KICAgIGRyYXcoYik7CiAgfSk7CgogICQoJ3RSZXNldCcpLmFkZEV2ZW50TGlzdGVuZXIoJ2Ns' .
+		'aWNrJywgZnVuY3Rpb24oKXsKICAgIHRyeXsgbG9jYWxTdG9yYWdlLnJlbW92ZUl0ZW0oS0VZKTsg' .
+		'fWNhdGNoKGVycil7fQogICAgJCgndE91dCcpLmNsYXNzTGlzdC5yZW1vdmUoJ29uJyk7CiAgICAk' .
+		'KCd0QXNrJykuc3R5bGUuZGlzcGxheT0nYmxvY2snOwogICAgJCgndFknKS52YWx1ZT0nJzsgJCgn' .
+		'dE0nKS52YWx1ZT0nJzsgJCgndERkJykudmFsdWU9Jyc7CiAgICB3aW5kb3cuc2Nyb2xsVG8oe3Rv' .
+		'cDowLCBiZWhhdmlvcjonc21vb3RoJ30pOwogIH0pOwoKICAvKiDqs4TsgrDquLDqsIAg64qm6rKM' .
+		'IOyYrOudvOyYrCDsiJgg7J6I7Ja0IOyeoOq5kCDquLDri6TroLjri6Qg7ZWcIOuyiCDrjZQg67SF' .
+		'64uI64ukICovCiAgZnVuY3Rpb24gc3RhcnQoKXsKICAgIHZhciBiPXJlYWRTYXZlZCgpOwogICAg' .
+		'aWYoIWIpeyByZXR1cm47IH0KICAgICQoJ3RZJykudmFsdWU9Yi55OyAkKCd0TScpLnZhbHVlPWIu' .
+		'bTsgJCgndERkJykudmFsdWU9Yi5kOwogICAgZHJhdyhiKTsKICB9CiAgaWYod2luZG93LlN0ZWxs' .
+		'YVNhanUpeyBzdGFydCgpOyB9CiAgZWxzZXsKICAgIHZhciB0cmllcz0wOwogICAgdmFyIHdhaXQ9' .
+		'c2V0SW50ZXJ2YWwoZnVuY3Rpb24oKXsKICAgICAgdHJpZXMrKzsKICAgICAgaWYod2luZG93LlN0' .
+		'ZWxsYVNhanUpewogICAgICAgIGNsZWFySW50ZXJ2YWwod2FpdCk7CiAgICAgICAgaWYoVEcgPCAw' .
+		'KXsgbG9jYXRpb24ucmVsb2FkKCk7IHJldHVybjsgfQogICAgICAgIHN0YXJ0KCk7CiAgICAgIH0K' .
+		'ICAgICAgaWYodHJpZXMgPiA0MCl7IGNsZWFySW50ZXJ2YWwod2FpdCk7IH0KICAgIH0sIDI1MCk7' .
+		'CiAgfQp9KSgpOwo8L3NjcmlwdD4KPCEtLSAvd3A6aHRtbCAtLT4K'
+;
+	$checks = array(
+		'오늘의 운세 제목' => '<h1>오늘의 운세</h1>',
+		'십성 열 가지' => 'en:\'',
+		'script 열림' => '<script>',
+		'script 닫힘' => '</script>',
+		'앰퍼샌드 두 개 (0이어야)' => '&&',
+	);
+	$page_link = '오늘의 운세';
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{font:15px/1.7 -apple-system,"Apple SD Gothic Neo",sans-serif;max-width:940px;margin:40px auto;padding:0 20px}';
+	echo 'code{background:#f4f4f4;padding:1px 5px;border-radius:3px}';
+	echo '.ok{color:#0a7a2f}.no{color:#c0392b;font-weight:700}.box{border:1px solid #ddd;border-radius:8px;padding:14px 18px;margin:14px 0}</style>';
+
+	if ( 'undo' === $mode ) {
+		$bak = get_option( $bak_key );
+		if ( ! $bak ) { echo '<p class="no">되돌릴 백업이 없습니다.</p>'; exit; }
+		if ( 'NEW' === $bak ) {
+			wp_delete_post( (int) get_option( $bak_key . '_id' ), true );
+			delete_option( $bak_key ); delete_option( $bak_key . '_id' );
+			echo '<p class="ok">새로 만들었던 페이지를 지웠습니다.</p>'; exit;
+		}
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => (int) get_option( $bak_key . '_id' ) ) );
+		clean_post_cache( (int) get_option( $bak_key . '_id' ) );
+		echo '<p class="ok">되돌렸습니다.</p>'; exit;
+	}
+
+	$new = base64_decode( preg_replace( '/\s+/', '', $b64 ), true );
+	if ( false === $new ) { echo '<p class="no">새 내용을 풀지 못했습니다. 붙여넣기가 잘린 것 같습니다.</p>'; exit; }
+
+	$len_ok  = ( strlen( $new ) === $expect_len );
+	$hash_ok = ( sha1( $new ) === $expect_hash );
+
+	/* 슬러그로 찾습니다 — 없으면 새로 만듭니다 */
+	$target = 0; $old = '';
+	if ( is_numeric( $post_id ) ) {
+		$target = (int) $post_id;
+		$old = (string) $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $target ) );
+		if ( '' === $old ) { echo '<p class="no">페이지 ' . $target . ' 을 찾지 못했습니다.</p>'; exit; }
+	} else {
+		$found = get_page_by_path( $post_id, OBJECT, 'page' );
+		if ( $found ) { $target = (int) $found->ID; $old = $found->post_content; }
+	}
+
+	echo '<h2>' . esc_html( $page_link ) . '</h2>';
+	echo '<div class="box">';
+	echo $target ? ( '지금 페이지 : <b>' . $target . '</b> · ' . strlen( $old ) . ' 바이트 · sha1 <code>' . substr( sha1( $old ), 0, 12 ) . '…</code>' )
+	             : '<b>아직 없는 페이지입니다. 새로 만듭니다.</b>';
+	echo '<br>넣을 내용 : <b>' . strlen( $new ) . '</b> 바이트 (기대 ' . $expect_len . ') ';
+	echo $len_ok ? '<span class="ok">길이 맞음</span>' : '<span class="no">길이 다름</span>';
+	echo ' · sha1 <code>' . substr( sha1( $new ), 0, 12 ) . '…</code> ';
+	echo $hash_ok ? '<span class="ok">일치</span>' : '<span class="no">불일치</span>';
+	echo '</div>';
+
+	echo '<h3>넣을 글 살펴보기</h3><ul>';
+	foreach ( $checks as $k => $needle ) {
+		echo '<li>' . esc_html( $k ) . ' : <b>' . substr_count( $new, $needle ) . '</b></li>';
+	}
+	echo '</ul>';
+
+	if ( ! $len_ok || ! $hash_ok ) {
+		echo '<p class="no">내용이 온전하지 않아 아무것도 바꾸지 않았습니다. 스니펫을 다시 붙여넣어 주세요.</p>'; exit;
+	}
+
+	if ( 'go' !== $mode ) {
+		echo '<p class="ok"><b>확인만 했습니다. 아무것도 바꾸지 않았습니다.</b></p>';
+		echo '<p>이대로 넣으시려면 <code>?stella_patch=go</code> 로 여세요.</p>'; exit;
+	}
+
+	if ( ! $target ) {
+		$target = wp_insert_post( array(
+			'post_title'   => $page_link,
+			'post_name'    => is_numeric( $post_id ) ? '' : $post_id,
+			'post_type'    => 'page',
+			'post_status'  => 'publish',
+			'post_content' => '',
+			'comment_status' => 'closed',
+		) );
+		if ( ! $target || is_wp_error( $target ) ) { echo '<p class="no">페이지를 만들지 못했습니다.</p>'; exit; }
+		update_option( $bak_key, 'NEW', false );
+	} else {
+		update_option( $bak_key, $old, false );
+	}
+	update_option( $bak_key . '_id', $target, false );
+
+	/* kses 를 타지 않도록 곧장 씁니다 — script 가 살아 있어야 합니다 */
+	$done = $wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $target ) );
+	clean_post_cache( $target );
+
+	$check = (string) $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $target ) );
+	$ok = ( sha1( $check ) === $expect_hash );
+
+	echo '<h3>' . ( $ok ? '<span class="ok">넣었습니다.</span>' : '<span class="no">확인 실패</span>' ) . '</h3>';
+	echo '<p>페이지 <b>' . $target . '</b> · 쓰기 결과 <b>' . var_export( $done, true ) . '</b> · sha1 <code>' . substr( sha1( $check ), 0, 12 ) . '…</code></p>';
+	echo '<p><a href="' . esc_url( get_permalink( $target ) ) . '">열어보기 &rarr;</a></p>';
+	echo '<p>되돌리려면 <code>?stella_patch=undo</code>. <b>이 스니펫은 이제 지우셔도 됩니다.</b></p>';
+	exit;
+}, 1 );
