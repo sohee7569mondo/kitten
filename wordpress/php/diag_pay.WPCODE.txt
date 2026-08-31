@@ -1,0 +1,234 @@
+/* ════════════════════════════════════════════════════════════
+   결제 현황 살펴보기 · 소희 님께
+
+   지금 사이트에 결제가 어디까지 들어가 있는지 그대로 읽어서 보여줍니다.
+   아무것도 고치지 않습니다. 보기만 합니다.
+   비밀키처럼 보이는 것은 가려서 찍습니다.
+
+   붙여넣기
+     1) WPCode → 새 스니펫 → 「Add Your Custom Code (New Snippet)」
+     2) 종류(Code Type) 는 반드시  PHP Snippet
+     3) 편집창 첫 줄의 PHP 여는 태그는 그대로 두고,
+        그 아래에 이 파일 내용을 통째로 붙여넣으세요.
+     4) 저장 → 활성(Active) → 주소창에
+
+          https://stellasaju.com/?stella_patch=paycheck
+
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_patch'] ) || 'paycheck' !== $_GET['stella_patch'] ) {
+		return;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.8 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:1100px">';
+	echo '<h1 style="color:#ffd76a">결제 현황</h1>';
+
+	/* 비밀로 보이는 값은 가립니다 */
+	$mask = function ( $v ) {
+		$v = (string) $v;
+		if ( strlen( $v ) <= 10 ) {
+			return str_repeat( '·', strlen( $v ) );
+		}
+		return substr( $v, 0, 6 ) . str_repeat( '·', 8 ) . substr( $v, -4 );
+	};
+
+	/* ── 1. 결제 코드가 들어 있는 글 찾기 ─────────────────── */
+	echo '<h2 style="color:#9fd">1. 결제 코드가 들어 있는 페이지</h2>';
+
+	$needles = array(
+		'PortOne'          => '포트원 SDK',
+		'portone'          => '포트원(소문자)',
+		'requestPayment'   => '결제창 띄우기',
+		'IMP.request_pay'  => '옛 아임포트 방식',
+		'channelKey'       => '채널키',
+		'storeId'          => '상점아이디',
+		'paymentId'        => '주문번호',
+	);
+
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_name, post_type, post_status
+		   FROM {$wpdb->posts}
+		  WHERE post_status IN ('publish','draft','private')
+		    AND post_type IN ('page','post')
+		    AND ( post_content LIKE '%PortOne%'
+		       OR post_content LIKE '%requestPayment%'
+		       OR post_content LIKE '%IMP.request_pay%'
+		       OR post_content LIKE '%channelKey%' )
+		  ORDER BY ID"
+	);
+
+	if ( ! $rows ) {
+		echo '<p style="color:#ff7b7b">결제 코드가 들어 있는 페이지를 못 찾았습니다.</p>';
+	} else {
+		echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+		echo '<tr style="color:#ffd76a"><td>ID</td><td>제목</td><td>주소</td><td>상태</td><td>들어 있는 것</td></tr>';
+		foreach ( $rows as $r ) {
+			$c   = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $r->ID ) );
+			$has = array();
+			foreach ( $needles as $n => $label ) {
+				$k = substr_count( $c, $n );
+				if ( $k ) {
+					$has[] = $label . '(' . $k . ')';
+				}
+			}
+			printf(
+				'<tr style="border-top:1px solid #333"><td><b>%d</b></td><td>%s</td><td>/%s/</td><td>%s</td><td style="color:#9fd">%s</td></tr>',
+				$r->ID,
+				esc_html( $r->post_title ),
+				esc_html( $r->post_name ),
+				esc_html( $r->post_status ),
+				esc_html( implode( ' · ', $has ) )
+			);
+		}
+		echo '</table>';
+	}
+
+	/* ── 2. 결제창을 띄우는 대목 그대로 보기 ─────────────── */
+	echo '<h2 style="color:#9fd">2. 결제창을 띄우는 대목</h2>';
+	$found_any = false;
+	foreach ( (array) $rows as $r ) {
+		$c = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $r->ID ) );
+
+		/* requestPayment( ... ) 를 통째로 잘라냅니다 */
+		$pos = 0;
+		while ( ( $pos = strpos( $c, 'requestPayment', $pos ) ) !== false ) {
+			$found_any = true;
+			$chunk     = substr( $c, max( 0, $pos - 700 ), 2200 );
+
+			/* 비밀로 보이는 값 가리기 */
+			$chunk = preg_replace_callback(
+				'/([\'"])((?:live|test)_[a-z]{2,4}_[A-Za-z0-9]{10,})\1/',
+				function ( $m ) use ( $mask ) {
+					return $m[1] . $mask( $m[2] ) . $m[1];
+				},
+				$chunk
+			);
+
+			printf(
+				'<p style="color:#ffd76a;margin-top:16px">페이지 %d · <b>%s</b> (/%s/)</p><pre style="white-space:pre-wrap;background:#000;padding:12px;border-left:3px solid #ffd76a;overflow-x:auto">%s</pre>',
+				$r->ID,
+				esc_html( $r->post_title ),
+				esc_html( $r->post_name ),
+				esc_html( $chunk )
+			);
+
+			$pos += 14;
+			break; /* 페이지마다 한 군데만 */
+		}
+	}
+	if ( ! $found_any ) {
+		echo '<p style="color:#ff7b7b">requestPayment 를 부르는 곳이 없습니다.</p>';
+	}
+
+	/* ── 3. 구매자 정보를 넘기고 있는지 ──────────────────── */
+	echo '<h2 style="color:#9fd">3. 구매자 정보를 같이 넘기고 있나</h2>';
+	$fields = array(
+		'customer'      => '구매자 묶음',
+		'phoneNumber'   => '휴대폰 번호  ← 이니시스가 꼭 요구하는 것',
+		'fullName'      => '이름',
+		'email'         => '이메일',
+		'buyer_tel'     => '휴대폰(옛 방식)',
+		'buyer_name'    => '이름(옛 방식)',
+		'buyer_email'   => '이메일(옛 방식)',
+	);
+	echo '<table cellpadding="8" style="border-collapse:collapse"><tr style="color:#ffd76a"><td>항목</td><td>몇 곳</td></tr>';
+	foreach ( $fields as $f => $label ) {
+		$k = 0;
+		foreach ( (array) $rows as $r ) {
+			$c  = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $r->ID ) );
+			$k += substr_count( $c, $f );
+		}
+		printf(
+			'<tr style="border-top:1px solid #333"><td>%s</td><td style="color:%s"><b>%d</b></td></tr>',
+			esc_html( $label ),
+			$k > 0 ? '#7bff9b' : '#ff7b7b',
+			$k
+		);
+	}
+	echo '</table>';
+
+	/* ── 4. 저장해 둔 설정값 ─────────────────────────────── */
+	echo '<h2 style="color:#9fd">4. 저장해 둔 설정값</h2>';
+	$opts = $wpdb->get_results(
+		"SELECT option_name, option_value FROM {$wpdb->options}
+		  WHERE option_name LIKE '%stella%'
+		     OR option_name LIKE '%portone%'
+		     OR option_name LIKE '%iamport%'
+		     OR option_name LIKE '%inicis%'
+		  ORDER BY option_name"
+	);
+	if ( ! $opts ) {
+		echo '<p style="color:#ff7b7b">저장된 설정값이 없습니다. (키를 아직 안 넣으셨다는 뜻입니다)</p>';
+	} else {
+		echo '<table cellpadding="8" style="border-collapse:collapse"><tr style="color:#ffd76a"><td>이름</td><td>값</td></tr>';
+		foreach ( $opts as $o ) {
+			$v      = $o->option_value;
+			$secret = ( false !== stripos( $o->option_name, 'secret' ) )
+				|| ( false !== stripos( $o->option_name, 'api' ) )
+				|| ( false !== stripos( $o->option_name, 'key' ) && false === stripos( $o->option_name, 'channel' ) );
+			printf(
+				'<tr style="border-top:1px solid #333"><td>%s</td><td>%s</td></tr>',
+				esc_html( $o->option_name ),
+				esc_html( $secret ? $mask( $v ) : ( strlen( $v ) > 200 ? substr( $v, 0, 200 ) . ' …' : $v ) )
+			);
+		}
+		echo '</table>';
+	}
+
+	/* ── 5. 구슬 원장 ────────────────────────────────────── */
+	echo '<h2 style="color:#9fd">5. 구슬(크레딧)</h2>';
+	$tables = $wpdb->get_col( "SHOW TABLES LIKE '%stella%'" );
+	if ( $tables ) {
+		foreach ( $tables as $t ) {
+			$n = $wpdb->get_var( "SELECT COUNT(*) FROM `$t`" );
+			printf( '<p>표 <b>%s</b> · %d줄</p>', esc_html( $t ), (int) $n );
+		}
+	} else {
+		echo '<p>stella 이름이 붙은 표가 없습니다. (구슬은 사용자 메타에 있을 수 있습니다)</p>';
+	}
+	$meta = $wpdb->get_results(
+		"SELECT meta_key, COUNT(*) AS n FROM {$wpdb->usermeta}
+		  WHERE meta_key LIKE '%orb%' OR meta_key LIKE '%stella%' OR meta_key LIKE '%구슬%'
+		  GROUP BY meta_key ORDER BY meta_key"
+	);
+	if ( $meta ) {
+		echo '<table cellpadding="8" style="border-collapse:collapse"><tr style="color:#ffd76a"><td>사용자 항목</td><td>몇 명</td></tr>';
+		foreach ( $meta as $m ) {
+			printf( '<tr style="border-top:1px solid #333"><td>%s</td><td>%d</td></tr>', esc_html( $m->meta_key ), (int) $m->n );
+		}
+		echo '</table>';
+	}
+
+	/* ── 6. 켜져 있는 WPCode 스니펫 ──────────────────────── */
+	echo '<h2 style="color:#9fd">6. 지금 켜져 있는 WPCode 스니펫</h2>';
+	$snips = $wpdb->get_results(
+		"SELECT ID, post_title, post_status FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode' ORDER BY post_title"
+	);
+	if ( ! $snips ) {
+		echo '<p>WPCode 스니펫 목록을 못 읽었습니다.</p>';
+	} else {
+		echo '<table cellpadding="8" style="border-collapse:collapse"><tr style="color:#ffd76a"><td>이름</td><td>상태</td></tr>';
+		foreach ( $snips as $s ) {
+			$on = ( 'publish' === $s->post_status );
+			printf(
+				'<tr style="border-top:1px solid #333"><td>%s</td><td style="color:%s">%s</td></tr>',
+				esc_html( $s->post_title ),
+				$on ? '#7bff9b' : '#888',
+				$on ? '켜짐' : '꺼짐'
+			);
+		}
+		echo '</table>';
+	}
+
+	echo '</body>';
+	exit;
+} );
