@@ -1,0 +1,96 @@
+/* ════════════════════════════════════════════════════════════
+   문 페이지의 가입 부분 보기 · 소희 님께
+
+   가입 흐름을 고치기 전에, 지금 화면이 어떻게 짜여 있는지 봅니다.
+   아무것도 고치지 않습니다.
+
+   페이지 130(직성의 신)만 봅니다. 다섯 문이 같은 틀이라 하나면 됩니다.
+   꾸밈 없이 글자만 나오니 붙여넣기에서 안 잘립니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere →
+              첫 줄 PHP 태그 아래에 붙여넣기 → 저장 → 활성
+
+   ★ 저장 직후 먼저 확인
+        https://stellasaju.com/wp-json/stella/v1/me
+     {"ok":false,...} 면 정상, rest_no_route 면 즉시 꺼주세요.
+
+   그 다음
+        https://stellasaju.com/?stella_form=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_form'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+	$pid = 130;
+	$c   = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	if ( ! $c ) {
+		echo "페이지 130 을 못 읽었습니다.\n";
+		exit;
+	}
+
+	printf( "페이지 130 · 전체 %d 바이트\n", strlen( $c ) );
+	echo str_repeat( '=', 62 ) . "\n";
+
+	$lines = preg_split( "/\r\n|\n|\r/", $c );
+
+	/* 찾을 말 — 이 말이 들어간 줄과 그 앞뒤를 보여줍니다 */
+	$marks = array(
+		'이메일', 'email', 'signup', '휴대폰', 'phone', 'tel',
+		'동의', '가입하고', 'agree', 'consent',
+	);
+
+	$want = array();
+	foreach ( $lines as $i => $line ) {
+		foreach ( $marks as $m ) {
+			if ( false !== stripos( $line, $m ) ) {
+				for ( $k = $i - 2; $k <= $i + 2; $k++ ) {
+					if ( $k >= 0 && $k < count( $lines ) ) {
+						$want[ $k ] = true;
+					}
+				}
+				break;
+			}
+		}
+	}
+	ksort( $want );
+
+	printf( "찾은 줄 %d개 (앞뒤 두 줄씩 함께 보여드립니다)\n", count( $want ) );
+	echo str_repeat( '-', 62 ) . "\n";
+
+	$prev = -5;
+	$shown = 0;
+	foreach ( array_keys( $want ) as $i ) {
+		if ( $i > $prev + 1 ) {
+			echo "     ...\n";
+		}
+		$line = rtrim( $lines[ $i ] );
+		if ( strlen( $line ) > 400 ) {
+			$line = substr( $line, 0, 400 ) . ' …[이 줄은 더 깁니다]';
+		}
+		printf( "%5d| %s\n", $i + 1, $line );
+		$prev = $i;
+		$shown++;
+		if ( $shown >= 260 ) {
+			echo "     ...(너무 길어 여기서 끊습니다)\n";
+			break;
+		}
+	}
+
+	echo str_repeat( '=', 62 ) . "\n";
+	echo "끝\n";
+	exit;
+} );
