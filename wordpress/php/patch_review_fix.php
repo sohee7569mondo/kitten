@@ -145,7 +145,11 @@ add_action( 'init', function () {
 
 	echo '<div class="box"><b>마무리 확인</b><br>';
 	$checks = array(
-		'머리말에 베타 띠 남았나 (0)'      => substr_count( $plan[ $targets['header'] ], 'ssnav-beta' ),
+		/* 2026-08-31 · 문자열을 통째로 세면 CSS 규칙과 주석까지 같이 세어져
+		   마크업을 제대로 지웠는데도 6 이 나옵니다. 마크업만 셉니다.
+		   남는 CSS 는 붙을 데가 없어 아무 일도 하지 않고, 나중에 띠를
+		   되살리실 때 그대로 쓰입니다. */
+		'머리말에 베타 띠 마크업 남았나 (0)' => substr_count( $plan[ $targets['header'] ], 'class="ssnav-beta"' ),
 		'머리말에 50,000원 남았나 (0)'     => substr_count( $plan[ $targets['header'] ], '50,000원' ),
 		'가격 안내에 24750원 남았나 (0)'   => substr_count( $plan[249], '24750원' ),
 		'인생길잡이에 「무료」 남았나 (0)'  => substr_count( $plan[189], '<div class="big">무료</div>' ),
