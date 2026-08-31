@@ -1,0 +1,158 @@
+/* ════════════════════════════════════════════════════════════
+   값 올리기 · 990원 → 1,000원 · 소희 님께
+
+   왜
+     KG이니시스가 1,000원 미만 결제를 받지 않습니다. 결제창은
+     열렸는데 「1000원 미만 결제를 할수 없습니다」로 막혔습니다.
+     딱 10원이 모자랐습니다.
+
+   무엇을 바꾸나 — 화면에 적힌 글자만
+     990원   →  1,000원      스물다섯 곳
+     24,750  →  25,000       네 곳   (인생길잡이 25구슬 × 1,000원)
+
+     「구슬 1개」는 그대로 둡니다. 여전히 1구슬이 맞고 값만 오릅니다.
+
+   손대는 페이지
+     62 홈 · 130 직성의 신 · 141 연성의 신 · 169 강성의 신
+     170 세성의 신 · 171 성좌의 신 · 189 나의 사주와 별자리
+     249 가격 안내 · 117 머리말(템플릿 파트)
+
+   ★ 이 패치만으로는 끝이 아닙니다
+     엔진의 숫자도 같이 바꾸셔야 합니다. 아래에 적어두었습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere →
+              첫 줄 PHP 태그 아래에 붙여넣기 → 저장 → 활성
+
+   ★ 저장 직후 먼저 확인
+        https://stellasaju.com/wp-json/stella/v1/me
+     {"ok":false,...} 면 정상, rest_no_route 면 즉시 꺼주세요.
+
+   ① 미리보기 — 아무것도 바뀌지 않습니다
+        https://stellasaju.com/?stella_won=1
+   ② 적용
+        https://stellasaju.com/?stella_won=1&go=1
+   되돌리기
+        https://stellasaju.com/?stella_won=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_won'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다. 관리자로 로그인한 창에서 열어주세요.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	$ids  = array( 62, 117, 130, 141, 169, 170, 171, 189, 249 );
+	$swap = array(
+		'990원'  => '1,000원',
+		'24,750' => '25,000',
+		'24750'  => '25000',
+	);
+
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:900px">';
+	printf(
+		'<h1 style="color:#ffd76a">990원 → 1,000원 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>ID</td><td>제목</td><td>990원</td><td>24,750</td><td>24750</td></tr>';
+
+	$total = 0;
+	foreach ( $ids as $pid ) {
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+		if ( ! $row ) {
+			printf( '<tr style="border-top:1px solid #333"><td>%d</td><td colspan="4" style="color:#ff7b7b">못 읽었습니다</td></tr>', $pid );
+			continue;
+		}
+
+		if ( $undo ) {
+			$bak = get_post_meta( $pid, '_stella_won_backup', true );
+			if ( $bak ) {
+				$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+				delete_post_meta( $pid, '_stella_won_backup' );
+				clean_post_cache( $pid );
+				printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td colspan="3" style="color:#7bff9b">되돌렸습니다</td></tr>', $pid, esc_html( $row->post_title ) );
+			} else {
+				printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td colspan="3" style="color:#888">사본 없음</td></tr>', $pid, esc_html( $row->post_title ) );
+			}
+			continue;
+		}
+
+		$c  = $row->post_content;
+		$n1 = substr_count( $c, '990원' );
+		$n2 = substr_count( $c, '24,750' );
+		$n3 = substr_count( $c, '24750' );
+		$total += $n1 + $n2 + $n3;
+
+		printf(
+			'<tr style="border-top:1px solid #333"><td><b>%d</b></td><td>%s</td><td style="color:%s">%d</td><td style="color:%s">%d</td><td style="color:%s">%d</td></tr>',
+			$pid,
+			esc_html( $row->post_title ),
+			$n1 ? '#7bff9b' : '#888', $n1,
+			$n2 ? '#7bff9b' : '#888', $n2,
+			$n3 ? '#7bff9b' : '#888', $n3
+		);
+
+		if ( $go && ( $n1 + $n2 + $n3 ) > 0 ) {
+			if ( ! get_post_meta( $pid, '_stella_won_backup', true ) ) {
+				update_post_meta( $pid, '_stella_won_backup', $c );
+			}
+			$new = strtr( $c, $swap );
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+			clean_post_cache( $pid );
+		}
+	}
+	echo '</table>';
+
+	if ( $undo ) {
+		if ( function_exists( 'wp_cache_flush' ) ) {
+			wp_cache_flush();
+		}
+		echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2></body>';
+		exit;
+	}
+
+	if ( ! $go ) {
+		printf( '<p style="margin-top:16px">바꿀 곳 모두 <b style="color:#ffd76a">%d</b>군데입니다.</p>', $total );
+		if ( 0 === $total ) {
+			echo '<h2 style="color:#7bff9b">이미 다 바뀌어 있습니다.</h2></body>';
+			exit;
+		}
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다. 아무것도 바뀌지 않았습니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_won=1&go=1">→ 이대로 바꾸기</a></p></body>';
+		exit;
+	}
+
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	echo '<h2 style="color:#7bff9b">바꿨습니다</h2>';
+	echo '<div style="background:#1a1408;border-left:4px solid #ffd76a;padding:16px 18px;margin-top:16px">'
+		. '<p style="margin:0 0 10px"><b style="color:#ffd76a">아직 한 가지가 남았습니다 — 엔진의 숫자</b></p>'
+		. '<p style="margin:0 0 8px">지금은 화면에만 1,000원이라고 적혀 있고, 실제로 받는 값은 아직 990원입니다. '
+		. '이대로 두면 화면과 결제 금액이 어긋납니다.</p>'
+		. '<p style="margin:0 0 8px">WPCode 에서 <b>「STELLA - 포트원 열쇠」(264번)</b>를 열고 <b>37번째 줄</b>을 고쳐주세요.</p>'
+		. '<pre style="background:#000;padding:12px;margin:8px 0">define( \'STELLA_ORB_KRW\', 990 );   ← 지금'
+		. "\n" . 'define( \'STELLA_ORB_KRW\', 1000 );  ← 이렇게</pre>'
+		. '<p style="margin:8px 0 0">저장하시면 풀이 한 편이 1,000원, 나의 인생길잡이가 25,000원이 됩니다.</p>'
+		. '</div>';
+
+	echo '<p style="margin-top:18px;font-size:17px">바꾸신 뒤 <a style="color:#ffd76a" href="/price/">가격 안내</a>와 '
+		. '<a style="color:#ffd76a" href="/door-career/">문 페이지</a>를 한 번씩 열어 1,000원으로 보이는지 확인해주세요.</p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_won=1&undo=1</p></body>';
+	exit;
+} );
