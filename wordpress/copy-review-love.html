@@ -4,423 +4,801 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root {
-  --ground:#F1EFF6;
-  --surface:#FBFAFE;
-  --edge:#DFDAEC;
-  --ink:#1B1630;
-  --muted:#5F587A;
-  --faint:#8C85A3;
-  --gold:#8A6A22;
-  --violet:#5B49A6;
-  --violet-soft:#EDE8FA;
-  --warn:#9E3D26;
-  --warn-soft:#FBEAE4;
-  --mark:#FBE7B8;
-  --mark-ink:#5A430D;
+  --ground:#F1EFF6; --surface:#FBFAFE; --sunk:#E9E5F3; --edge:#DFDAEC;
+  --ink:#1B1630; --muted:#5F587A; --faint:#8C85A3;
+  --gold:#8A6A22; --violet:#5B49A6; --violet-soft:#EDE8FA;
   --serif:'Gowun Batang','Nanum Myeongjo',serif;
   --sans:'IBM Plex Sans KR',system-ui,-apple-system,sans-serif;
   --mono:'IBM Plex Mono',ui-monospace,monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --ground:#0B0817;
-    --surface:#14102A;
-    --edge:#251E4C;
-    --ink:#F2ECE0;
-    --muted:#B4AAC9;
-    --faint:#8177A0;
-    --gold:#D4AF6A;
-    --violet:#A794E0;
-    --violet-soft:#1E1840;
-    --warn:#E8977E;
-    --warn-soft:#2E1A18;
-    --mark:#4A3A12;
-    --mark-ink:#F4DFA8;
+    --ground:#0B0817; --surface:#14102A; --sunk:#100C22; --edge:#251E4C;
+    --ink:#F2ECE0; --muted:#B4AAC9; --faint:#8177A0;
+    --gold:#D4AF6A; --violet:#A794E0; --violet-soft:#1E1840;
   }
 }
 :root[data-theme="dark"] {
-  --ground:#0B0817;
-  --surface:#14102A;
-  --edge:#251E4C;
-  --ink:#F2ECE0;
-  --muted:#B4AAC9;
-  --faint:#8177A0;
-  --gold:#D4AF6A;
-  --violet:#A794E0;
-  --violet-soft:#1E1840;
-  --warn:#E8977E;
-  --warn-soft:#2E1A18;
-  --mark:#4A3A12;
-  --mark-ink:#F4DFA8;
+  --ground:#0B0817; --surface:#14102A; --sunk:#100C22; --edge:#251E4C;
+  --ink:#F2ECE0; --muted:#B4AAC9; --faint:#8177A0;
+  --gold:#D4AF6A; --violet:#A794E0; --violet-soft:#1E1840;
 }
 
 * { box-sizing:border-box; }
-body {
-  margin:0; background:var(--ground); color:var(--ink);
-  font-family:var(--sans); line-height:1.7;
-  -webkit-font-smoothing:antialiased;
-}
+body { margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--sans); line-height:1.7; -webkit-font-smoothing:antialiased; }
 .wrap { max-width:52rem; margin:0 auto; padding:3.5rem 1.5rem 6rem; }
 
-header.top { margin-bottom:2.75rem; }
-.eyebrow {
-  font-family:var(--mono); font-size:.72rem; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--gold); margin:0 0 .6rem;
-}
-h1 {
-  font-family:var(--serif); font-weight:700; font-size:clamp(1.9rem,4.5vw,2.6rem);
-  line-height:1.25; margin:0 0 .75rem; text-wrap:balance; letter-spacing:-.01em;
-}
+.eyebrow { font-family:var(--mono); font-size:.72rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--gold); margin:0 0 .6rem; }
+h1 { font-family:var(--serif); font-weight:700; font-size:clamp(1.9rem,4.5vw,2.6rem);
+  line-height:1.25; margin:0 0 .75rem; text-wrap:balance; letter-spacing:-.01em; }
 .lede { margin:0 0 1.5rem; color:var(--muted); font-size:1.02rem; max-width:38rem; }
-.meta { display:flex; flex-wrap:wrap; gap:.5rem; }
-.chip {
-  font-family:var(--mono); font-size:.76rem; padding:.3rem .6rem;
+.meta { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:2rem; }
+.chip { font-family:var(--mono); font-size:.76rem; padding:.3rem .6rem;
   border:1px solid var(--edge); border-radius:2px; color:var(--muted);
-  background:var(--surface); font-variant-numeric:tabular-nums;
-}
+  background:var(--surface); font-variant-numeric:tabular-nums; }
 
-.finding {
-  border-left:3px solid var(--warn); background:var(--warn-soft);
-  padding:1.1rem 1.25rem; margin:0 0 1rem; border-radius:0 3px 3px 0;
-}
-.finding h3 { margin:0 0 .4rem; font-size:1rem; font-weight:600; color:var(--warn); }
-.finding p { margin:0; color:var(--ink); font-size:.95rem; }
-.finding p + p { margin-top:.6rem; }
+.done { border-left:3px solid var(--violet); background:var(--violet-soft);
+  padding:1.1rem 1.25rem; margin:0 0 1.75rem; border-radius:0 3px 3px 0; }
+.done h3 { margin:0 0 .5rem; font-size:1rem; font-weight:600; color:var(--violet); }
+.done ul { margin:0; padding-left:1.1rem; font-size:.95rem; }
+.done li + li { margin-top:.35rem; }
 
-h2.block {
-  font-family:var(--serif); font-size:1.35rem; font-weight:700;
-  margin:3rem 0 .5rem; padding-bottom:.5rem; border-bottom:1px solid var(--edge);
-}
-.note { color:var(--muted); font-size:.92rem; margin:.4rem 0 1.25rem; max-width:40rem; }
+nav.jump { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.5rem;
+  padding-bottom:1.5rem; border-bottom:1px solid var(--edge); }
+nav.jump a { font-family:var(--mono); font-size:.78rem; color:var(--muted);
+  text-decoration:none; border:1px solid var(--edge); background:var(--surface);
+  padding:.32rem .6rem; border-radius:2px; }
+nav.jump a:hover, nav.jump a:focus-visible { color:var(--violet); border-color:var(--violet); }
 
-.cov-scroll { overflow-x:auto; }
-table.cov { border-collapse:collapse; width:100%; min-width:34rem; font-size:.88rem; }
-table.cov th, table.cov td { border:1px solid var(--edge); padding:.6rem .7rem; text-align:left; vertical-align:top; }
-table.cov thead th {
-  font-family:var(--mono); font-size:.72rem; letter-spacing:.06em; text-transform:uppercase;
-  color:var(--faint); font-weight:500; background:var(--surface);
-}
-table.cov th[scope=row] { font-family:var(--serif); font-weight:700; white-space:nowrap; background:var(--surface); }
-table.cov td span { display:block; color:var(--faint); font-size:.78rem; }
-table.cov td b { font-weight:600; font-size:.9rem; }
-td.yes { background:var(--violet-soft); }
-td.yes b { color:var(--violet); }
-td.no b { color:var(--warn); }
+section.axis { margin-top:3.5rem; scroll-margin-top:1.5rem; }
+.axis-name { font-family:var(--serif); font-size:1.65rem; font-weight:700; margin:0 0 1.5rem;
+  padding-bottom:.5rem; border-bottom:2px solid var(--gold); }
 
-section.axis { margin-top:3.25rem; }
-.axis-head { border-bottom:2px solid var(--gold); padding-bottom:.55rem; margin-bottom:.9rem; }
-.axis-head h2 { font-family:var(--serif); font-size:1.5rem; font-weight:700; margin:0; }
-.axis-when { margin:.3rem 0 0; color:var(--muted); font-size:.88rem; }
-.axis-when strong { color:var(--gold); font-weight:600; }
+.state { margin-bottom:2.25rem; }
+.state-head { margin-bottom:.7rem; }
+.state-head h3 { font-family:var(--sans); font-size:1rem; font-weight:600; margin:0;
+  color:var(--violet); letter-spacing:.01em; }
+.say { margin:.15rem 0 0; font-size:.85rem; color:var(--faint); }
 
-.opener {
-  font-family:var(--serif); background:var(--surface); border:1px dashed var(--edge);
-  padding:.7rem .9rem; margin:0 0 1.1rem; font-size:.95rem; color:var(--muted); border-radius:3px;
-}
+.opener { font-family:var(--serif); background:var(--sunk); border:1px dashed var(--edge);
+  padding:.65rem .85rem; margin:0 0 .9rem; font-size:.92rem; color:var(--muted); border-radius:3px; }
 .opener em { font-style:normal; color:var(--gold); font-weight:700; }
-.opener-tag {
-  display:block; font-family:var(--mono); font-size:.68rem; letter-spacing:.1em;
-  text-transform:uppercase; color:var(--faint); margin-bottom:.3rem;
-}
-.dupnote {
-  margin:0 0 1.1rem; font-size:.9rem; color:var(--warn);
-  background:var(--warn-soft); padding:.6rem .8rem; border-radius:3px;
-}
-.dupnote strong { font-weight:600; }
+.opener-tag { display:block; font-family:var(--mono); font-size:.66rem; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--faint); margin-bottom:.28rem; }
 
-.copies { display:flex; flex-direction:column; gap:.85rem; }
-.copy { background:var(--surface); border:1px solid var(--edge); border-radius:3px; padding:1rem 1.15rem; }
+.copies { display:flex; flex-direction:column; gap:.8rem; }
+.copy { background:var(--surface); border:1px solid var(--edge); border-radius:3px; padding:.95rem 1.1rem; }
 .copy-head { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin-bottom:.5rem; }
-.topic {
-  font-family:var(--mono); font-size:.78rem; font-weight:500; letter-spacing:.04em;
-  color:var(--violet); border:1px solid var(--violet); padding:.15rem .5rem; border-radius:2px;
-}
-.count { font-family:var(--mono); font-size:.74rem; color:var(--faint); font-variant-numeric:tabular-nums; }
-p.body {
-  font-family:var(--serif); font-size:1.04rem; line-height:1.85; margin:0;
-  word-break:keep-all; max-width:42rem;
-}
-mark { background:var(--mark); color:var(--mark-ink); padding:.05em .1em; border-radius:2px; }
+.slug { font-family:var(--mono); font-size:.73rem; color:var(--violet); letter-spacing:.02em; }
+.count { font-family:var(--mono); font-size:.73rem; color:var(--faint); font-variant-numeric:tabular-nums; }
+p.body { font-family:var(--serif); font-size:1.04rem; line-height:1.85; margin:0;
+  word-break:keep-all; max-width:42rem; }
 
-ol.next { margin:0; padding-left:1.3rem; color:var(--ink); }
+h2.block { font-family:var(--serif); font-size:1.35rem; font-weight:700;
+  margin:4rem 0 .75rem; padding-bottom:.5rem; border-bottom:1px solid var(--edge); }
+ol.next { margin:0; padding-left:1.3rem; }
 ol.next li { margin-bottom:.5rem; }
-ol.next code {
-  font-family:var(--mono); font-size:.85em; background:var(--surface);
-  border:1px solid var(--edge); padding:.1em .35em; border-radius:2px;
-}
-footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--edge); color:var(--faint); font-size:.82rem; }
+ol.next code { font-family:var(--mono); font-size:.85em; background:var(--surface);
+  border:1px solid var(--edge); padding:.1em .35em; border-radius:2px; }
+footer.end { margin-top:4rem; padding-top:1.25rem; border-top:1px solid var(--edge);
+  color:var(--faint); font-size:.82rem; }
 </style>
 
 <div class="wrap">
-<header class="top">
+<header>
   <p class="eyebrow">페이지 160 · 어긋나는 자리</p>
   <h1>연성의 신 문구 교정지</h1>
-  <p class="lede">2부 저울 다섯 개에 새로 쓴 문구 스물다섯 개입니다. 아직 사이트에 올리지 않았습니다 — 여기서 읽어보고 고칠 것을 정한 다음에 올립니다.</p>
+  <p class="lede">2부 저울 다섯 개에 쓴 문구 일흔다섯 개입니다. 아직 사이트에 올리지 않았습니다 — 여기서 읽어보고 고칠 것을 정한 다음에 올립니다.</p>
   <div class="meta">
-    <span class="chip">문구 25개</span>
-    <span class="chip">주제 5 × 저울 5</span>
-    <span class="chip">겹치는 문장 4개</span>
-    <span class="chip">채워진 자리 5 / 15</span>
+    <span class="chip">문구 75개</span>
+    <span class="chip">주제 5 × 저울 5 × 결과 3</span>
+    <span class="chip">겹치는 문장 0개</span>
+    <span class="chip">빈 자리 0개</span>
   </div>
 </header>
 
-<div class="finding">
-  <h3>1. 결혼운과 연애운이 아직 겹칩니다</h3>
-  <p>「혼자냐, 함께냐」에서 세 문장이, 「실물이냐, 무형이냐」에서 한 문장이 두 주제에 똑같이 들어 있습니다. 결혼운과 연애운을 나란히 본 손님은 이 대목에서 또 같은 글을 읽게 됩니다. 아래에 노란색으로 표시해 두었습니다.</p>
+<div class="done">
+  <h3>지난번에서 달라진 것</h3>
+  <ul>
+    <li>결혼운과 연애운에 똑같이 들어 있던 네 문장을 갈라 썼습니다. 이제 일흔다섯 개 가운데 겹치는 문장이 하나도 없습니다.</li>
+    <li>비어 있던 열 자리를 채웠습니다. 저울마다 한쪽만 있던 것을 양쪽 기울기와 평평까지 전부 씁니다 — 스물다섯 개에서 일흔다섯 개로.</li>
+    <li>사주가 「혼자」·「실물」·「하나」·「창조」 쪽으로 기운 분에게도 이제 주제별로 다른 글이 나갑니다.</li>
+  </ul>
 </div>
 
-<div class="finding">
-  <h3>2. 저울마다 한쪽 방향만 채워져 있습니다</h3>
-  <p>저울에는 왼쪽·오른쪽·평평 세 가지 결과가 있는데, 새 문구는 저울마다 <strong>한 가지</strong>에만 있습니다. 나머지 열 자리는 예전처럼 다섯 주제가 같은 글을 냅니다 — 그 손님에게는 버그가 그대로 남습니다.</p>
-  <p>사주가 「혼자」·「실물」·「하나」·「창조」 쪽으로 기운 분, 그리고 「안정이냐 변화냐」가 한쪽으로 기운 분이 여기 해당합니다.</p>
-</div>
+<nav class="jump"><a href="#solo">혼자냐, 함께냐</a><a href="#form">실물이냐, 무형이냐</a><a href="#many">하나냐, 여럿이냐</a><a href="#risk">안정이냐, 변화냐</a><a href="#make">정답이냐, 창조냐</a></nav>
 
-<h2 class="block">어느 자리가 채워졌나</h2>
-<p class="note">보라색이 새 문구가 나오는 자리입니다. 나머지는 예전 문구 그대로라 다섯 주제가 여전히 같습니다.</p>
-<div class="cov-scroll">
-<table class="cov">
-  <thead><tr><th scope="col">저울</th><th scope="col">왼쪽으로 기울면</th><th scope="col">오른쪽으로 기울면</th><th scope="col">어느 쪽도 아니면</th></tr></thead>
-  <tbody>
-    <tr><th scope="row">혼자냐, 함께냐</th><td class="no"><span>혼자 쪽으로 기울면</span><b>예전 문구</b></td><td class="yes"><span>함께 쪽으로 기울면</span><b>새 문구</b></td><td class="no"><span>어느 쪽도 아니면</span><b>예전 문구</b></td></tr><tr><th scope="row">실물이냐, 무형이냐</th><td class="no"><span>실물 쪽으로 기울면</span><b>예전 문구</b></td><td class="yes"><span>무형 쪽으로 기울면</span><b>새 문구</b></td><td class="no"><span>어느 쪽도 아니면</span><b>예전 문구</b></td></tr><tr><th scope="row">하나냐, 여럿이냐</th><td class="no"><span>하나 쪽으로 기울면</span><b>예전 문구</b></td><td class="yes"><span>여럿 쪽으로 기울면</span><b>새 문구</b></td><td class="no"><span>어느 쪽도 아니면</span><b>예전 문구</b></td></tr><tr><th scope="row">안정이냐, 변화냐</th><td class="no"><span>안정 쪽으로 기울면</span><b>예전 문구</b></td><td class="no"><span>변화 쪽으로 기울면</span><b>예전 문구</b></td><td class="yes"><span>어느 쪽도 아니면</span><b>새 문구</b></td></tr><tr><th scope="row">정답이냐, 창조냐</th><td class="yes"><span>정답 쪽으로 기울면</span><b>새 문구</b></td><td class="no"><span>창조 쪽으로 기울면</span><b>예전 문구</b></td><td class="no"><span>어느 쪽도 아니면</span><b>예전 문구</b></td></tr>
-  </tbody>
-</table>
-</div>
+<p class="lede" style="margin-top:1.25rem">고치실 곳은 상자 왼쪽 위의 이름으로 짚어주세요 — 예를 들어 <code style="font-family:var(--mono);font-size:.9em">solo · 혼자 · 결혼운</code> 처럼요. 그 자리만 다시 쓰겠습니다.</p>
 
-<h2 class="block">문구 스물다섯 개</h2>
-<p class="note">각 저울의 첫 상자는 엔진이 문구 <em>앞에</em> 자동으로 붙이는 문장입니다 (숫자는 사람마다 달라집니다). 그 뒤에 이어지는 것이 이번에 쓴 글입니다.</p>
 
   <section class="axis" id="solo">
-    <header class="axis-head">
-      <h2>혼자냐, 함께냐</h2>
-      <p class="axis-when">사주가 <strong>함께</strong>일 때만 아래 문구가 나옵니다.</p>
-    </header>
-    <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>함께</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
-    <p class="dupnote"><strong>결혼운과 연애운에서 3개 문장이 그대로 겹칩니다.</strong> 아래에 표시해 두었습니다.</p>
-    <div class="copies">
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">결혼운</span>
-          <span class="count">229자</span>
+    <h2 class="axis-name">혼자냐, 함께냐</h2>
+    
+      <div class="state">
+        <div class="state-head">
+          <h3>혼자 쪽으로 기울면</h3>
+          <p class="say">혼자 파고들 때 힘이 나는 구조</p>
         </div>
-        <p class="body"><mark>혼자 참고 견디기보다, 사람과 부딪히고 이야기하면서 풀어가는 쪽이 조금 더 편한 분이에요.</mark> 부부싸움 뒤에도 혼자 방에 들어가 삭이기보다, 어떻게든 그 자리에서 풀고 넘어가는 쪽이 당신에게는 더 편합니다. 화해 없이 며칠을 같은 집에서 냉랭하게 지내는 시간이 생각보다 많이 지치실 거예요. <mark>꼭 큰 대화를 해야 한다는 뜻은 아니에요.</mark> <mark>「나는 이게 조금 서운했어」 하고 마음을 조금씩 꺼내놓는 것만으로도 충분합니다.</mark></p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">연애운</span>
-          <span class="count">177자</span>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>혼자</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · 혼자 · 결혼운</span>
+            <span class="count">189자</span>
+          </div>
+          <p class="body">다투고 나면 그 자리에서 풀기보다, 혼자 한 발 물러나 정리할 시간이 있어야 하는 분이에요. 배우자가 「지금 당장 말해보라」고 다그치면 오히려 말문이 막힙니다. 그래서 「나는 하루쯤 생각하고 나서 이야기하는 게 편하다」고 미리 말해두시는 게 좋습니다. 도망치는 게 아니라 정리하는 중이라는 걸 알려두면, 그 시간이 싸움을 키우지 않습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · 혼자 · 연애운</span>
+            <span class="count">162자</span>
+          </div>
+          <p class="body">마음이 복잡할 때 만나서 푸는 것보다, 혼자 정리한 뒤에 만나는 쪽이 잘 맞는 분이에요. 그래서 힘든 시기에 연락이 뜸해지기 쉽습니다. 상대는 그걸 마음이 식은 걸로 읽을 수 있어요. 「지금은 좀 정리할 시간이 필요해, 너 때문이 아니야」 이 한마디만 미리 해두시면 오해가 크게 줄어듭니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · 혼자 · 재회운</span>
+            <span class="count">152자</span>
+          </div>
+          <p class="body">헤어진 직후에 바로 연락해 붙잡기보다, 혼자 충분히 정리한 뒤에 만나야 하는 자리예요. 정리되지 않은 채로 급히 마주 앉으면 하려던 말 대신 감정만 쏟게 되고, 결국 헤어지던 그 자리로 돌아갑니다. 시간이 지나 만나는 게 늦은 게 아니라, 당신에게는 그게 맞는 순서입니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · 혼자 · 이별운</span>
+            <span class="count">137자</span>
+          </div>
+          <p class="body">이별 뒤에는 사람들 사이에서 잊기보다, 혼자 있는 시간에 회복되는 분이에요. 걱정한 친구들이 불러내는 자리가 오히려 더 지치게 할 수 있습니다. 「지금은 혼자 있고 싶다」고 말해도 괜찮아요. 그건 마음을 닫는 게 아니라 당신에게 맞는 방식입니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · 혼자 · 짝사랑</span>
+            <span class="count">128자</span>
+          </div>
+          <p class="body">이 마음을 남에게 털어놓기보다, 혼자 품고 정리하는 쪽이에요. 친구에게 상담해봐야 마음만 더 복잡해지는 걸 이미 겪어보셨을 겁니다. 남의 말로 정리되는 자리가 아니라, 혼자 오래 들여다보다 어느 날 스스로 답이 나오는 자리입니다.</p>
+        </article>
         </div>
-        <p class="body"><mark>혼자 참고 견디기보다, 사람과 부딪히고 이야기하면서 풀어가는 쪽이 조금 더 편한 분이에요.</mark> 마음이 상했을 때 아무 말 없이 혼자 삭이는 시간이 길어지면, 생각보다 마음이 많이 지칠 수 있습니다. <mark>꼭 큰 대화를 해야 한다는 뜻은 아니에요.</mark> <mark>「나는 이게 조금 서운했어」 하고 마음을 조금씩 꺼내놓는 것만으로도 충분합니다.</mark></p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">재회운</span>
-          <span class="count">131자</span>
+      </div>
+      <div class="state">
+        <div class="state-head">
+          <h3>함께 쪽으로 기울면</h3>
+          <p class="say">사람 사이에서 굴러갈 때 힘이 나는 구조</p>
         </div>
-        <p class="body">헤어진 이유를 혼자 곱씹기보다, 만나서든 연락해서든 직접 이야기로 풀고 싶은 쪽입니다. 아무 설명도 없이 끝난 관계일수록 오래 마음에 남으실 거예요. 다시 만난다면 그때 못다 한 이야기부터 짚고 넘어가는 편이 당신에게는 훨씬 편합니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">이별운</span>
-          <span class="count">97자</span>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>함께</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · 함께 · 결혼운</span>
+            <span class="count">229자</span>
+          </div>
+          <p class="body">혼자 참고 견디기보다, 사람과 부딪히고 이야기하면서 풀어가는 쪽이 조금 더 편한 분이에요. 부부싸움 뒤에도 혼자 방에 들어가 삭이기보다, 어떻게든 그 자리에서 풀고 넘어가는 쪽이 당신에게는 더 편합니다. 화해 없이 며칠을 같은 집에서 냉랭하게 지내는 시간이 생각보다 많이 지치실 거예요. 꼭 큰 대화를 해야 한다는 뜻은 아니에요. 「나는 이게 조금 서운했어」 하고 마음을 조금씩 꺼내놓는 것만으로도 충분합니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · 함께 · 연애운</span>
+            <span class="count">144자</span>
+          </div>
+          <p class="body">사람과 이야기를 주고받으면서 마음이 풀리는 쪽이에요. 서운한 걸 담아두고 혼자 삭이면, 정작 상대는 아무것도 모른 채 시간만 흐릅니다. 거창하게 「우리 얘기 좀 하자」 할 필요는 없어요. 만나서 「그때 나 좀 서운했다」 한마디 툭 던져놓는 정도면 충분합니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · 함께 · 재회운</span>
+            <span class="count">131자</span>
+          </div>
+          <p class="body">헤어진 이유를 혼자 곱씹기보다, 만나서든 연락해서든 직접 이야기로 풀고 싶은 쪽입니다. 아무 설명도 없이 끝난 관계일수록 오래 마음에 남으실 거예요. 다시 만난다면 그때 못다 한 이야기부터 짚고 넘어가는 편이 당신에게는 훨씬 편합니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · 함께 · 이별운</span>
+            <span class="count">97자</span>
+          </div>
+          <p class="body">말없이 조용히 정리되는 이별보다, 어떤 식으로든 서로 이야기를 나누고 끝내는 쪽이 당신에게는 덜 힘듭니다. 아무 말 없이 연락이 끊기는 이별이 유난히 오래가는 상처가 됩니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · 함께 · 짝사랑</span>
+            <span class="count">97자</span>
+          </div>
+          <p class="body">혼자 마음을 삭이며 끝내는 것보다, 누군가에게라도 이 마음을 털어놓아야 조금은 편해지는 쪽입니다. 아무한테도 말 못 하고 혼자 삼키는 짝사랑이 유난히 무겁게 느껴지실 거예요.</p>
+        </article>
         </div>
-        <p class="body">말없이 조용히 정리되는 이별보다, 어떤 식으로든 서로 이야기를 나누고 끝내는 쪽이 당신에게는 덜 힘듭니다. 아무 말 없이 연락이 끊기는 이별이 유난히 오래가는 상처가 됩니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">짝사랑</span>
-          <span class="count">97자</span>
+      </div>
+      <div class="state">
+        <div class="state-head">
+          <h3>어느 쪽도 아니면</h3>
+          
         </div>
-        <p class="body">혼자 마음을 삭이며 끝내는 것보다, 누군가에게라도 이 마음을 털어놓아야 조금은 편해지는 쪽입니다. 아무한테도 말 못 하고 혼자 삼키는 짝사랑이 유난히 무겁게 느껴지실 거예요.</p>
-      </article>
-    </div>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — 4 대 4.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · flat · 결혼운</span>
+            <span class="count">114자</span>
+          </div>
+          <p class="body">혼자 삭이는 시간도, 마주 앉아 이야기하는 시간도 둘 다 필요한 분이에요. 다툰 다음 날 바로 풀어도 괜찮고, 며칠 두었다가 꺼내도 괜찮습니다. 그때그때 편한 쪽을 고르셔도 결혼생활에 큰 무리가 없습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · flat · 연애운</span>
+            <span class="count">77자</span>
+          </div>
+          <p class="body">혼자 생각을 정리하는 것도, 만나서 이야기하는 것도 둘 다 되는 분이에요. 그때 마음이 가는 쪽으로 하셔도 관계가 크게 흔들리지 않습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · flat · 재회운</span>
+            <span class="count">76자</span>
+          </div>
+          <p class="body">혼자 정리하는 시간도, 만나서 이야기로 푸는 것도 둘 다 도움이 되는 분이에요. 지금 마음이 어느 쪽으로 기우는지 보고 고르셔도 됩니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · flat · 이별운</span>
+            <span class="count">66자</span>
+          </div>
+          <p class="body">혼자 있는 시간도, 누군가 곁에 있어주는 것도 둘 다 도움이 되는 분이에요. 그날그날 견딜 만한 쪽을 고르셔도 됩니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">solo · flat · 짝사랑</span>
+            <span class="count">59자</span>
+          </div>
+          <p class="body">혼자 삭이는 것도, 누군가에게 말해보는 것도 둘 다 되는 분이에요. 답답할 때 편한 쪽을 고르시면 됩니다.</p>
+        </article>
+        </div>
+      </div>
   </section>
   <section class="axis" id="form">
-    <header class="axis-head">
-      <h2>실물이냐, 무형이냐</h2>
-      <p class="axis-when">사주가 <strong>무형</strong>일 때만 아래 문구가 나옵니다.</p>
-    </header>
-    <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>무형</em> 쪽으로 뚜렷하게 기울어 있습니다 — 5 대 3.</p>
-    <p class="dupnote"><strong>결혼운과 연애운에서 1개 문장이 그대로 겹칩니다.</strong> 아래에 표시해 두었습니다.</p>
-    <div class="copies">
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">결혼운</span>
-          <span class="count">170자</span>
+    <h2 class="axis-name">실물이냐, 무형이냐</h2>
+    
+      <div class="state">
+        <div class="state-head">
+          <h3>실물 쪽으로 기울면</h3>
+          <p class="say">손에 잡히는 것을 다룰 때 맞는 구조</p>
         </div>
-        <p class="body">생활비를 벌어오고 살림을 하는 것만큼이나, 서로 마음을 말로 확인하는 것이 당신에게는 중요합니다. 아무리 살림을 잘 꾸려도 말 한마디가 없으면 「나만 애쓰나」 싶은 생각이 들 수 있어요. <mark>꼭 거창하게 표현할 필요는 없어요.</mark> 「고마워」 「네가 있어서 좋아」 이런 짧은 말 한마디가 생각보다 큰 힘이 됩니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">연애운</span>
-          <span class="count">175자</span>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>실물</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · 실물 · 결혼운</span>
+            <span class="count">147자</span>
+          </div>
+          <p class="body">「사랑한다」는 말보다, 아플 때 죽 한 그릇 끓여주는 쪽에서 마음을 느끼고 또 그렇게 표현하시는 분이에요. 그래서 말이 많은 배우자보다 조용히 챙기는 배우자와 오래갑니다. 다만 상대는 말을 들어야 아는 사람일 수 있으니, 내가 해준 것을 가끔은 말로도 알려주세요.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · 실물 · 연애운</span>
+            <span class="count">133자</span>
+          </div>
+          <p class="body">말보다 행동을 보는 분이에요. 「좋아한다」는 말을 아무리 들어도, 정작 필요할 때 옆에 없으면 그 말이 잘 믿기지 않습니다. 반대로 당신도 말로 표현하기보다 챙겨주는 쪽입니다. 상대가 말을 들어야 아는 사람이라면 거기서 어긋날 수 있어요.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · 실물 · 재회운</span>
+            <span class="count">127자</span>
+          </div>
+          <p class="body">「이번엔 잘하겠다」는 말만으로는 마음이 움직이지 않는 분이에요. 실제로 무엇이 달라졌는지 눈으로 봐야 믿게 됩니다. 다시 만난다면 약속보다 바뀐 행동을 먼저 확인하세요. 그게 이 관계가 또 같은 자리로 돌아가지 않게 막아줍니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · 실물 · 이별운</span>
+            <span class="count">122자</span>
+          </div>
+          <p class="body">그리운 것이 그 사람의 말보다, 함께 쌓아온 시간과 습관인 쪽이에요. 같이 가던 가게, 늘 하던 저녁의 순서 같은 것들이 오래 남습니다. 그래서 회복도 마음을 다잡는 것보다 일상의 자리를 하나씩 바꾸는 데서 시작됩니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · 실물 · 짝사랑</span>
+            <span class="count">101자</span>
+          </div>
+          <p class="body">그 사람의 말보다 행동을 보는 분이에요. 다정한 말 한마디보다, 나를 위해 시간을 냈는지가 훨씬 크게 남습니다. 마음을 재실 때도 그 사람이 무엇을 해줬는지를 세어보시게 될 거예요.</p>
+        </article>
         </div>
-        <p class="body">무언가를 챙겨주는 것만큼이나, 마음을 표현하고 서로의 마음을 확인하는 것이 중요한 분이에요. 아무리 많은 것을 해주더라도 그 마음이 말로 전달되지 않으면, 서로의 마음을 충분히 느끼지 못할 수 있어요. <mark>꼭 거창하게 표현할 필요는 없어요.</mark> 「고마워」 「보고 싶었어」 이런 짧은 말 한마디가 생각보다 큰 힘이 됩니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">재회운</span>
-          <span class="count">126자</span>
+      </div>
+      <div class="state">
+        <div class="state-head">
+          <h3>무형 쪽으로 기울면</h3>
+          <p class="say">보이지 않는 것을 다룰 때 맞는 구조</p>
         </div>
-        <p class="body">예전 관계에서 물질적으로는 부족함이 없었어도, 마음을 확인하는 말이 부족했다면 그게 헤어짐의 진짜 이유였을 가능성이 있습니다. 다시 만난다면 그 부분부터 채워야 오래갑니다. 「고마워」 「네가 필요해」 같은 말을 아끼지 마세요.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">이별운</span>
-          <span class="count">114자</span>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>무형</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · 무형 · 결혼운</span>
+            <span class="count">170자</span>
+          </div>
+          <p class="body">생활비를 벌어오고 살림을 하는 것만큼이나, 서로 마음을 말로 확인하는 것이 당신에게는 중요합니다. 아무리 살림을 잘 꾸려도 말 한마디가 없으면 「나만 애쓰나」 싶은 생각이 들 수 있어요. 꼭 거창하게 표현할 필요는 없어요. 「고마워」 「네가 있어서 좋아」 이런 짧은 말 한마디가 생각보다 큰 힘이 됩니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · 무형 · 연애운</span>
+            <span class="count">177자</span>
+          </div>
+          <p class="body">무언가를 챙겨주는 것만큼이나, 마음을 표현하고 서로의 마음을 확인하는 것이 중요한 분이에요. 아무리 많은 것을 해주더라도 그 마음이 말로 전달되지 않으면, 서로의 마음을 충분히 느끼지 못할 수 있어요. 말주변이 좋아야 한다는 뜻은 아닙니다. 「고마워」 「보고 싶었어」 이런 짧은 말 한마디가 생각보다 큰 힘이 됩니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · 무형 · 재회운</span>
+            <span class="count">126자</span>
+          </div>
+          <p class="body">예전 관계에서 물질적으로는 부족함이 없었어도, 마음을 확인하는 말이 부족했다면 그게 헤어짐의 진짜 이유였을 가능성이 있습니다. 다시 만난다면 그 부분부터 채워야 오래갑니다. 「고마워」 「네가 필요해」 같은 말을 아끼지 마세요.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · 무형 · 이별운</span>
+            <span class="count">114자</span>
+          </div>
+          <p class="body">헤어짐이 아쉬운 건 물질적으로 못 받은 게 아니라, 마음을 확인할 말이 부족했기 때문일 가능성이 큽니다. 「그 사람이 나한테 뭘 해줬나」보다 「그 사람이 나한테 뭐라고 말해줬나」가 더 오래 남으실 거예요.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · 무형 · 짝사랑</span>
+            <span class="count">77자</span>
+          </div>
+          <p class="body">뭔가를 해주고 챙겨주는 것보다, 그 사람이 나에게 건네는 말 한마디에 더 크게 흔들리는 쪽입니다. 짧은 한마디에도 며칠을 곱씹으실 거예요.</p>
+        </article>
         </div>
-        <p class="body">헤어짐이 아쉬운 건 물질적으로 못 받은 게 아니라, 마음을 확인할 말이 부족했기 때문일 가능성이 큽니다. 「그 사람이 나한테 뭘 해줬나」보다 「그 사람이 나한테 뭐라고 말해줬나」가 더 오래 남으실 거예요.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">짝사랑</span>
-          <span class="count">77자</span>
+      </div>
+      <div class="state">
+        <div class="state-head">
+          <h3>어느 쪽도 아니면</h3>
+          
         </div>
-        <p class="body">뭔가를 해주고 챙겨주는 것보다, 그 사람이 나에게 건네는 말 한마디에 더 크게 흔들리는 쪽입니다. 짧은 한마디에도 며칠을 곱씹으실 거예요.</p>
-      </article>
-    </div>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — 4 대 4.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · flat · 결혼운</span>
+            <span class="count">83자</span>
+          </div>
+          <p class="body">살림과 생활비 같은 눈에 보이는 것도, 말로 주고받는 마음도 어느 한쪽만 비면 아쉬운 분이에요. 둘 다 어느 정도만 채워지면 크게 흔들리지 않습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · flat · 연애운</span>
+            <span class="count">57자</span>
+          </div>
+          <p class="body">챙겨주는 것도 말로 확인하는 것도 어느 한쪽만으로는 부족한 분이에요. 둘 다 조금씩 있으면 충분합니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · flat · 재회운</span>
+            <span class="count">63자</span>
+          </div>
+          <p class="body">달라진 행동도, 마음을 확인하는 말도 둘 다 있어야 마음이 놓이는 분이에요. 어느 한쪽만 있으면 오래 못 갑니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · flat · 이별운</span>
+            <span class="count">60자</span>
+          </div>
+          <p class="body">함께한 시간도, 주고받은 말도 둘 다 오래 남는 분이에요. 어느 한쪽만 정리한다고 마음이 접히지는 않습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">form · flat · 짝사랑</span>
+            <span class="count">55자</span>
+          </div>
+          <p class="body">그 사람의 말도 행동도 둘 다 눈에 들어오는 분이에요. 한쪽만 보고 마음을 정하지는 않으실 겁니다.</p>
+        </article>
+        </div>
+      </div>
   </section>
   <section class="axis" id="many">
-    <header class="axis-head">
-      <h2>하나냐, 여럿이냐</h2>
-      <p class="axis-when">사주가 <strong>여럿</strong>일 때만 아래 문구가 나옵니다.</p>
-    </header>
-    <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>여럿</em> 쪽으로 조금 기울어 있습니다 — 5 대 3.</p>
+    <h2 class="axis-name">하나냐, 여럿이냐</h2>
     
-    <div class="copies">
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">결혼운</span>
-          <span class="count">160자</span>
+      <div class="state">
+        <div class="state-head">
+          <h3>하나 쪽으로 기울면</h3>
+          <p class="say">하나를 깊게 파는 구조</p>
         </div>
-        <p class="body">결혼생활 하나에 모든 의미를 두기보다, 일이나 취미처럼 마음이 향할 다른 곳이 있을 때 관계도 오히려 더 편안해지는 쪽입니다. 배우자에게 모든 걸 걸지 않는 게 오히려 결혼을 오래가게 합니다. 마음이 향할 수 있는 곳이 여러 군데 있을수록 결혼생활에서도 조금 더 여유를 가질 수 있어요.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">연애운</span>
-          <span class="count">161자</span>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>하나</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · 하나 · 결혼운</span>
+            <span class="count">138자</span>
+          </div>
+          <p class="body">한 사람에게 마음을 깊이 쏟는 쪽이라, 결혼생활이 삶의 한가운데에 놓입니다. 그만큼 오래 지키는 힘이 있습니다. 다만 배우자에게 모든 것을 걸면 그 사람이 숨 쉴 자리가 좁아질 수 있어요. 나만의 시간을 조금 남겨두는 것이 두 분 다에게 좋습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · 하나 · 연애운</span>
+            <span class="count">126자</span>
+          </div>
+          <p class="body">한 사람에게 마음을 다 쏟는 쪽이에요. 연애가 시작되면 다른 일이 잘 손에 잡히지 않습니다. 깊게 가는 힘이지만, 그 사람이 내 하루의 전부가 되면 작은 일에도 크게 흔들립니다. 연애 중에도 놓지 않을 것 하나쯤은 남겨두세요.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · 하나 · 재회운</span>
+            <span class="count">118자</span>
+          </div>
+          <p class="body">그 사람 하나를 오래 붙들고 있는 쪽이에요. 그래서 재회의 가능성이 다른 사람보다 오래 살아 있습니다. 다만 그만큼 기다리는 시간이 길고 힘듭니다. 기다리는 동안 마음을 둘 곳을 하나쯤 만들어두시는 게 좋습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · 하나 · 이별운</span>
+            <span class="count">122자</span>
+          </div>
+          <p class="body">한 사람에게 마음을 깊이 쏟은 만큼, 이별 뒤에 마음을 다른 데로 돌리기가 쉽지 않은 분이에요. 억지로 새로운 걸 시작하면 오히려 더 지칩니다. 이 자리에서는 시간이 약입니다. 회복이 느린 게 당신이 약해서가 아닙니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · 하나 · 짝사랑</span>
+            <span class="count">125자</span>
+          </div>
+          <p class="body">한 사람만 오래 보는 쪽이에요. 짝사랑이 길어지는 게 그래서입니다. 마음이 얕아서 못 접는 게 아니라 원래 깊게 가는 자리라 그렇습니다. 다만 그 시간이 너무 길어지면 지치니, 스스로 기한을 하나 정해두시는 것도 방법입니다.</p>
+        </article>
         </div>
-        <p class="body">한 가지에만 마음을 오래 집중하기보다, 관심과 마음의 방향을 여러 영역으로 나누어 둘 때 조금 더 편안한 성향이에요. 사람이 아니어도 괜찮아요. 일일 수도 있고, 취미일 수도 있습니다. 마음이 향할 수 있는 곳이 여러 군데 있을수록 한 사람과의 관계에서도 조금 더 여유를 가질 수 있어요.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">재회운</span>
-          <span class="count">107자</span>
+      </div>
+      <div class="state">
+        <div class="state-head">
+          <h3>여럿 쪽으로 기울면</h3>
+          <p class="say">여러 개를 동시에 굴리는 구조</p>
         </div>
-        <p class="body">헤어진 뒤 그 사람 생각만 붙잡고 있기보다, 다른 데로 마음을 돌릴 자리가 있어야 오히려 회복이 빠른 쪽입니다. 다시 만나더라도 그 사람 하나에만 몰두하지 않는 편이 당신에게는 더 건강합니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">이별운</span>
-          <span class="count">100자</span>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>여럿</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · 여럿 · 결혼운</span>
+            <span class="count">160자</span>
+          </div>
+          <p class="body">결혼생활 하나에 모든 의미를 두기보다, 일이나 취미처럼 마음이 향할 다른 곳이 있을 때 관계도 오히려 더 편안해지는 쪽입니다. 배우자에게 모든 걸 걸지 않는 게 오히려 결혼을 오래가게 합니다. 마음이 향할 수 있는 곳이 여러 군데 있을수록 결혼생활에서도 조금 더 여유를 가질 수 있어요.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · 여럿 · 연애운</span>
+            <span class="count">161자</span>
+          </div>
+          <p class="body">한 가지에만 마음을 오래 집중하기보다, 관심과 마음의 방향을 여러 영역으로 나누어 둘 때 조금 더 편안한 성향이에요. 사람이 아니어도 괜찮아요. 일일 수도 있고, 취미일 수도 있습니다. 마음이 향할 수 있는 곳이 여러 군데 있을수록 한 사람과의 관계에서도 조금 더 여유를 가질 수 있어요.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · 여럿 · 재회운</span>
+            <span class="count">107자</span>
+          </div>
+          <p class="body">헤어진 뒤 그 사람 생각만 붙잡고 있기보다, 다른 데로 마음을 돌릴 자리가 있어야 오히려 회복이 빠른 쪽입니다. 다시 만나더라도 그 사람 하나에만 몰두하지 않는 편이 당신에게는 더 건강합니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · 여럿 · 이별운</span>
+            <span class="count">100자</span>
+          </div>
+          <p class="body">이별 후 그 사람 생각에만 갇혀 있기보다, 마음을 나눠 쓸 다른 곳이 있어야 조금씩 회복되는 쪽입니다. 일이든 취미든 마음 둘 곳을 하나 만들어두시면 이 시기가 덜 힘드실 거예요.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · 여럿 · 짝사랑</span>
+            <span class="count">110자</span>
+          </div>
+          <p class="body">그 사람 하나에만 마음을 다 쏟기보다, 다른 곳에도 마음 둘 자리가 있어야 이 짝사랑이 덜 버겁습니다. 마음이 그 사람으로만 꽉 차 있다면, 다른 관심사를 하나 만들어두는 게 도움이 될 수 있어요.</p>
+        </article>
         </div>
-        <p class="body">이별 후 그 사람 생각에만 갇혀 있기보다, 마음을 나눠 쓸 다른 곳이 있어야 조금씩 회복되는 쪽입니다. 일이든 취미든 마음 둘 곳을 하나 만들어두시면 이 시기가 덜 힘드실 거예요.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">짝사랑</span>
-          <span class="count">110자</span>
+      </div>
+      <div class="state">
+        <div class="state-head">
+          <h3>어느 쪽도 아니면</h3>
+          
         </div>
-        <p class="body">그 사람 하나에만 마음을 다 쏟기보다, 다른 곳에도 마음 둘 자리가 있어야 이 짝사랑이 덜 버겁습니다. 마음이 그 사람으로만 꽉 차 있다면, 다른 관심사를 하나 만들어두는 게 도움이 될 수 있어요.</p>
-      </article>
-    </div>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — 4 대 4.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · flat · 결혼운</span>
+            <span class="count">86자</span>
+          </div>
+          <p class="body">결혼생활에 마음을 쏟다가도 일이나 취미로 눈을 돌릴 수 있는 분이에요. 어느 한쪽으로 치우치지 않아서, 결혼이 삶의 전부가 되지도 뒷전이 되지도 않습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · flat · 연애운</span>
+            <span class="count">71자</span>
+          </div>
+          <p class="body">한 사람에게 깊이 갈 수도, 마음을 여러 곳에 나눌 수도 있는 분이에요. 연애가 삶을 다 덮지도, 뒷전이 되지도 않는 편입니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · flat · 재회운</span>
+            <span class="count">64자</span>
+          </div>
+          <p class="body">그 사람을 생각하다가도 다른 데로 눈을 돌릴 수 있는 분이에요. 재회를 기다리는 시간이 아주 무겁지는 않을 겁니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · flat · 이별운</span>
+            <span class="count">60자</span>
+          </div>
+          <p class="body">그 사람 생각에 잠기다가도 다른 일로 눈을 돌릴 수 있는 분이에요. 회복이 아주 오래 걸리지는 않을 겁니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">many · flat · 짝사랑</span>
+            <span class="count">58자</span>
+          </div>
+          <p class="body">그 사람 생각을 하다가도 다른 데로 마음이 갈 수 있는 분이에요. 짝사랑이 삶을 다 덮지는 않을 겁니다.</p>
+        </article>
+        </div>
+      </div>
   </section>
   <section class="axis" id="risk">
-    <header class="axis-head">
-      <h2>안정이냐, 변화냐</h2>
-      <p class="axis-when">사주가 <strong>어느 쪽도 아닐 때</strong>일 때만 아래 문구가 나옵니다.</p>
-    </header>
-    <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — 4 대 4.</p>
+    <h2 class="axis-name">안정이냐, 변화냐</h2>
     
-    <div class="copies">
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">결혼운</span>
-          <span class="count">117자</span>
+      <div class="state">
+        <div class="state-head">
+          <h3>안정 쪽으로 기울면</h3>
+          <p class="say">정해진 틀 안에서 안전하게 가는 구조</p>
         </div>
-        <p class="body">안정적이고 편안한 결혼생활도, 가끔은 신선한 자극이 있는 결혼생활도 둘 다 받아들일 수 있는 분이에요. 너무 오래 똑같기만 한 일상보다는, 가끔 작은 변화가 섞여 있을 때 관계가 더 오래 생기 있게 유지됩니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">연애운</span>
-          <span class="count">111자</span>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>안정</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · 안정 · 결혼운</span>
+            <span class="count">146자</span>
+          </div>
+          <p class="body">내일이 오늘과 비슷할 때 마음이 놓이는 분이에요. 갑작스러운 이사나 이직, 미리 말 없이 바뀐 계획이 생각보다 크게 흔들립니다. 배우자에게 「결정하기 전에 먼저 말해달라」고 부탁해 두세요. 바뀌는 것 자체보다, 모르고 있다가 알게 되는 쪽이 더 힘든 자리입니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · 안정 · 연애운</span>
+            <span class="count">104자</span>
+          </div>
+          <p class="body">자주 만나고 연락이 일정한 관계에서 마음이 놓이는 분이에요. 밀고 당기는 관계는 설레기보다 지치게 합니다. 상대의 마음을 확인하느라 쓰는 힘이 너무 크면, 그 연애는 오래가기 어렵습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · 안정 · 재회운</span>
+            <span class="count">110자</span>
+          </div>
+          <p class="body">다시 만난다면 몰아치듯 시작하기보다, 예전의 익숙한 리듬을 천천히 되찾는 쪽이 맞습니다. 급하게 다 회복하려 들면 서로 부담이 됩니다. 만나는 횟수와 연락의 결부터 자리 잡히면 나머지는 따라옵니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · 안정 · 이별운</span>
+            <span class="count">120자</span>
+          </div>
+          <p class="body">익숙하던 관계가 끝난 것 자체가 크게 흔들리는 자리예요. 그 사람이 아니라 매일의 자리가 사라진 것이 힘든 것입니다. 그래서 이 시기에는 자는 시간, 먹는 시간 같은 하루의 틀만 지켜도 회복이 눈에 띄게 빨라집니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · 안정 · 짝사랑</span>
+            <span class="count">108자</span>
+          </div>
+          <p class="body">이도 저도 아닌 상태가 오래가는 것이 유난히 힘든 분이에요. 마음을 전하는 게 두려운 것보다, 모르는 채로 계속 있는 쪽이 더 지치게 합니다. 어떤 답이든 듣고 나면 오히려 편해지는 자리입니다.</p>
+        </article>
         </div>
-        <p class="body">편안함과 긴장감, 어느 한쪽만을 원하는 성향이라기보다 두 가지 관계의 온도를 모두 받아들일 수 있는 자리예요. 지금 관계의 상황과 서로의 상태에 따라 필요한 온도가 달라질 수 있는 사람에 가깝습니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">재회운</span>
-          <span class="count">117자</span>
+      </div>
+      <div class="state">
+        <div class="state-head">
+          <h3>변화 쪽으로 기울면</h3>
+          <p class="say">판을 흔들며 나아가는 구조</p>
         </div>
-        <p class="body">다시 만난다면 예전처럼 편안한 관계로 돌아가고 싶은 마음과, 뭔가는 달라져야 한다는 마음이 함께 있는 쪽이에요. 둘 다 맞습니다 — 편안함은 그대로 가져가되, 예전과 똑같은 방식만 반복하지 않는 게 중요합니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">이별운</span>
-          <span class="count">112자</span>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>변화</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · 변화 · 결혼운</span>
+            <span class="count">143자</span>
+          </div>
+          <p class="body">똑같은 일상이 오래 이어지면 답답해지는 분이에요. 문제가 없는데도 「이대로 괜찮은가」 싶은 마음이 드는 게 그래서입니다. 큰 변화가 아니어도 됩니다. 가보지 않은 곳에 다녀오거나 둘이 새로 배우는 것 하나만 있어도, 결혼생활이 훨씬 오래 생기 있게 갑니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · 변화 · 연애운</span>
+            <span class="count">127자</span>
+          </div>
+          <p class="body">편안하기만 한 관계에는 금방 시들해지는 분이에요. 나쁜 뜻이 아니라, 같이 새로운 걸 해볼 때 마음이 살아나는 자리입니다. 만나서 늘 같은 곳에 가고 같은 이야기를 하는 사이라면, 관계가 식은 게 아니라 심심한 것일 수 있어요.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · 변화 · 재회운</span>
+            <span class="count">101자</span>
+          </div>
+          <p class="body">예전과 똑같은 모습으로 돌아가면, 헤어졌던 그 이유로 또 헤어질 자리예요. 다시 만나는 것이 곧 예전으로 돌아가는 것은 아닙니다. 무엇을 다르게 할지 한 가지만 정해두고 시작하세요.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · 변화 · 이별운</span>
+            <span class="count">105자</span>
+          </div>
+          <p class="body">관계가 오래 제자리에 머물러 있던 것이 이별의 진짜 이유였을 수 있는 자리예요. 크게 싸운 일이 없는데 헤어졌다면 더 그렇습니다. 누가 잘못한 게 아니라 둘 다 지루해진 것일 수 있습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · 변화 · 짝사랑</span>
+            <span class="count">113자</span>
+          </div>
+          <p class="body">확실해지지 않은 지금의 설렘 자체를 즐기는 면이 있는 분이에요. 그래서 마음을 전하고 관계가 정해지면 오히려 마음이 식을 수도 있습니다. 정말 원하는 것이 그 사람인지, 이 설렘인지 한 번 들여다보세요.</p>
+        </article>
         </div>
-        <p class="body">이 관계가 너무 편안해서 안주하고 있었는지, 아니면 계속되는 긴장에 지쳐 있었는지 — 둘 다 이별의 이유가 될 수 있는 쪽이에요. 어느 쪽이었는지 돌아보면 다음 관계에서 무엇을 다르게 할지가 보입니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">짝사랑</span>
-          <span class="count">84자</span>
+      </div>
+      <div class="state">
+        <div class="state-head">
+          <h3>어느 쪽도 아니면</h3>
+          
         </div>
-        <p class="body">그 사람 앞에서 편안한 게 좋은지, 설레고 긴장되는 게 좋은지 — 둘 다 당신에게는 괜찮은 감정이에요. 어느 한쪽만 정답이라고 여기지 않으셔도 됩니다.</p>
-      </article>
-    </div>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — 4 대 4.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · flat · 결혼운</span>
+            <span class="count">117자</span>
+          </div>
+          <p class="body">안정적이고 편안한 결혼생활도, 가끔은 신선한 자극이 있는 결혼생활도 둘 다 받아들일 수 있는 분이에요. 너무 오래 똑같기만 한 일상보다는, 가끔 작은 변화가 섞여 있을 때 관계가 더 오래 생기 있게 유지됩니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · flat · 연애운</span>
+            <span class="count">111자</span>
+          </div>
+          <p class="body">편안함과 긴장감, 어느 한쪽만을 원하는 성향이라기보다 두 가지 관계의 온도를 모두 받아들일 수 있는 자리예요. 지금 관계의 상황과 서로의 상태에 따라 필요한 온도가 달라질 수 있는 사람에 가깝습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · flat · 재회운</span>
+            <span class="count">117자</span>
+          </div>
+          <p class="body">다시 만난다면 예전처럼 편안한 관계로 돌아가고 싶은 마음과, 뭔가는 달라져야 한다는 마음이 함께 있는 쪽이에요. 둘 다 맞습니다 — 편안함은 그대로 가져가되, 예전과 똑같은 방식만 반복하지 않는 게 중요합니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · flat · 이별운</span>
+            <span class="count">112자</span>
+          </div>
+          <p class="body">이 관계가 너무 편안해서 안주하고 있었는지, 아니면 계속되는 긴장에 지쳐 있었는지 — 둘 다 이별의 이유가 될 수 있는 쪽이에요. 어느 쪽이었는지 돌아보면 다음 관계에서 무엇을 다르게 할지가 보입니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">risk · flat · 짝사랑</span>
+            <span class="count">84자</span>
+          </div>
+          <p class="body">그 사람 앞에서 편안한 게 좋은지, 설레고 긴장되는 게 좋은지 — 둘 다 당신에게는 괜찮은 감정이에요. 어느 한쪽만 정답이라고 여기지 않으셔도 됩니다.</p>
+        </article>
+        </div>
+      </div>
   </section>
   <section class="axis" id="make">
-    <header class="axis-head">
-      <h2>정답이냐, 창조냐</h2>
-      <p class="axis-when">사주가 <strong>정답</strong>일 때만 아래 문구가 나옵니다.</p>
-    </header>
-    <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>정답</em> 쪽으로 크게 기울어 있습니다 — 6 대 2.</p>
+    <h2 class="axis-name">정답이냐, 창조냐</h2>
     
-    <div class="copies">
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">결혼운</span>
-          <span class="count">115자</span>
+      <div class="state">
+        <div class="state-head">
+          <h3>정답 쪽으로 기울면</h3>
+          <p class="say">있는 답을 정확히 지키는 구조</p>
         </div>
-        <p class="body">남들처럼 무난하게 흘러가는 결혼생활, 검증된 방식에 마음이 편한 분이에요. 굳이 남들과 다른 방식을 무리해서 만들기보다, 기본적인 틀 안에서 두 분만의 색을 조금씩 더해가는 쪽이 당신에게는 더 잘 맞습니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">연애운</span>
-          <span class="count">108자</span>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>정답</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · 정답 · 결혼운</span>
+            <span class="count">115자</span>
+          </div>
+          <p class="body">남들처럼 무난하게 흘러가는 결혼생활, 검증된 방식에 마음이 편한 분이에요. 굳이 남들과 다른 방식을 무리해서 만들기보다, 기본적인 틀 안에서 두 분만의 색을 조금씩 더해가는 쪽이 당신에게는 더 잘 맞습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · 정답 · 연애운</span>
+            <span class="count">108자</span>
+          </div>
+          <p class="body">이미 많은 사람들이 선택해왔거나, 어느 정도 검증된 방식과 분명한 기준이 있을 때 마음이 편한 분이에요. 관계에서도 서로가 지켜야 할 기본적인 약속과 신뢰가 분명할 때 안정감을 느끼기 쉽습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · 정답 · 재회운</span>
+            <span class="count">109자</span>
+          </div>
+          <p class="body">다시 만난다면 예전과 완전히 다른 새로운 방식보다, 검증된 안정적인 방식으로 관계를 다시 쌓고 싶은 쪽이에요. 급격한 변화보다는 익숙한 기반 위에서 천천히 다시 신뢰를 쌓는 게 당신에게 맞습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · 정답 · 이별운</span>
+            <span class="count">89자</span>
+          </div>
+          <p class="body">이별을 정리하는 방식도 무리해서 튀는 방식보다, 조용하고 무난한 방식이 당신에게는 더 편합니다. 극적으로 끝내기보다 담담하게 정리하는 쪽이 회복도 더 빠릅니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · 정답 · 짝사랑</span>
+            <span class="count">91자</span>
+          </div>
+          <p class="body">마음을 표현할 때도 파격적인 방식보다, 무난하고 검증된 방식이 당신에게는 더 편합니다. 남들 다 하는 평범한 방식으로 다가가는 것이 오히려 당신답고 자연스럽습니다.</p>
+        </article>
         </div>
-        <p class="body">이미 많은 사람들이 선택해왔거나, 어느 정도 검증된 방식과 분명한 기준이 있을 때 마음이 편한 분이에요. 관계에서도 서로가 지켜야 할 기본적인 약속과 신뢰가 분명할 때 안정감을 느끼기 쉽습니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">재회운</span>
-          <span class="count">109자</span>
+      </div>
+      <div class="state">
+        <div class="state-head">
+          <h3>창조 쪽으로 기울면</h3>
+          <p class="say">없던 답을 만들어내는 구조</p>
         </div>
-        <p class="body">다시 만난다면 예전과 완전히 다른 새로운 방식보다, 검증된 안정적인 방식으로 관계를 다시 쌓고 싶은 쪽이에요. 급격한 변화보다는 익숙한 기반 위에서 천천히 다시 신뢰를 쌓는 게 당신에게 맞습니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">이별운</span>
-          <span class="count">89자</span>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 <em>창조</em> 쪽으로 크게 기울어 있습니다 — 5 대 3.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · 창조 · 결혼운</span>
+            <span class="count">135자</span>
+          </div>
+          <p class="body">남들 하는 대로 맞춰가는 결혼생활이 잘 안 맞는 분이에요. 「이맘때면 이건 해야지」 하는 순서를 따라가다 보면 어느새 지칩니다. 두 분만의 방식을 만드셔도 됩니다. 남들과 달라 보이는 것이 이 자리에서는 흠이 아니라 오히려 오래가는 힘입니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · 창조 · 연애운</span>
+            <span class="count">109자</span>
+          </div>
+          <p class="body">「몇 번 만나면 사귀고, 얼마쯤 되면 이걸 하고」 하는 정해진 순서가 잘 안 맞는 분이에요. 남들 연애를 기준으로 우리를 재면 늘 뭔가 모자란 것처럼 느껴집니다. 두 사람 속도대로 가셔도 됩니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · 창조 · 재회운</span>
+            <span class="count">102자</span>
+          </div>
+          <p class="body">예전 방식을 그대로 되살리는 재회는 잘 안 맞는 분이에요. 만나던 자리, 하던 대화, 지키던 규칙을 그대로 가져오면 금방 답답해집니다. 다시 시작한다면 아예 새로 쓰는 편이 낫습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · 창조 · 이별운</span>
+            <span class="count">98자</span>
+          </div>
+          <p class="body">남들이 말하는 이별 정리법이 잘 안 맞는 분이에요. 「연락처를 지워라」 「한 달은 만나지 마라」 같은 조언을 따라 하다 보면 더 어색해집니다. 당신 방식대로 정리하셔도 됩니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · 창조 · 짝사랑</span>
+            <span class="count">108자</span>
+          </div>
+          <p class="body">정해진 고백 방법이 잘 안 맞는 분이에요. 남들이 좋다는 자리와 순서를 따라 하면 어색해져서 오히려 마음이 잘 전해지지 않습니다. 당신이 편한 방식으로 하시는 게 이 자리에서는 더 잘 닿습니다.</p>
+        </article>
         </div>
-        <p class="body">이별을 정리하는 방식도 무리해서 튀는 방식보다, 조용하고 무난한 방식이 당신에게는 더 편합니다. 극적으로 끝내기보다 담담하게 정리하는 쪽이 회복도 더 빠릅니다.</p>
-      </article>
-      <article class="copy">
-        <div class="copy-head">
-          <span class="topic">짝사랑</span>
-          <span class="count">91자</span>
+      </div>
+      <div class="state">
+        <div class="state-head">
+          <h3>어느 쪽도 아니면</h3>
+          
         </div>
-        <p class="body">마음을 표현할 때도 파격적인 방식보다, 무난하고 검증된 방식이 당신에게는 더 편합니다. 남들 다 하는 평범한 방식으로 다가가는 것이 오히려 당신답고 자연스럽습니다.</p>
-      </article>
-    </div>
+        <p class="opener"><span class="opener-tag">엔진이 먼저 붙이는 문장</span>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다</em> — 4 대 4.</p>
+        <div class="copies">
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · flat · 결혼운</span>
+            <span class="count">84자</span>
+          </div>
+          <p class="body">검증된 방식도 두 분만의 방식도 다 받아들일 수 있는 분이에요. 기본적인 틀은 지키되 마음에 걸리는 부분만 두 분 편한 대로 바꾸셔도 무리가 없습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · flat · 연애운</span>
+            <span class="count">68자</span>
+          </div>
+          <p class="body">흔한 방식도 우리만의 방식도 다 괜찮은 분이에요. 어느 쪽이 옳은지 고민하기보다 그때 편한 쪽으로 가셔도 무리가 없습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · flat · 재회운</span>
+            <span class="count">64자</span>
+          </div>
+          <p class="body">익숙한 방식으로 다시 쌓아도, 새로 만들어도 괜찮은 분이에요. 어느 쪽이든 두 사람이 합의만 되면 무리가 없습니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · flat · 이별운</span>
+            <span class="count">68자</span>
+          </div>
+          <p class="body">흔한 방식대로 정리해도, 내 방식대로 정리해도 괜찮은 분이에요. 어느 쪽이 맞는지 고민하는 데 힘을 쓰지 않으셔도 됩니다.</p>
+        </article>
+        <article class="copy">
+          <div class="copy-head">
+            <span class="slug">make · flat · 짝사랑</span>
+            <span class="count">57자</span>
+          </div>
+          <p class="body">흔한 방식으로 다가가도, 나만의 방식으로 해도 괜찮은 분이에요. 방법보다 시기가 더 중요한 자리입니다.</p>
+        </article>
+        </div>
+      </div>
   </section>
 
 <h2 class="block">다음에 할 일</h2>
 <ol class="next">
-  <li>위 문구를 읽고 고칠 곳을 알려주세요. 제가 고쳐서 다시 올려드립니다.</li>
-  <li>결혼운·연애운의 겹치는 네 문장을 갈라 쓸지 정해주세요.</li>
-  <li>비어 있는 열 자리를 채울지 정해주세요. 채우면 문구가 스물다섯 개 더 필요합니다.</li>
+  <li>천천히 읽으시고 고칠 문구를 이름으로 알려주세요. 고쳐서 이 페이지를 갱신하겠습니다.</li>
   <li>문구가 확정되면 <code>patch160_axis-topic</code> 스니펫을 WPCode에 넣고 <code>?stella_patch=dry</code> → <code>?stella_patch=go</code> → 스니펫 삭제 → 캐시 비우기.</li>
+  <li>전자책에서 확인한 뒤 디버그 배너(섹션 13)를 뗍니다.</li>
 </ol>
 
 <footer class="end">스텔라사주 · 페이지 160 「나의 전자책」 · 아직 사이트에 반영되지 않은 초고입니다</footer>
