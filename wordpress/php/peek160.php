@@ -36,14 +36,29 @@ add_action( 'admin_init', function () {
 		return;
 	}
 
-	/* 보고 싶은 자리 : 앞에서부터 몇 글자, 뒤로 몇 글자 */
+	/* 보고 싶은 자리 : 찾는 말, 앞으로 몇 글자, 뒤로 몇 글자 */
 	$marks = array(
-		'AXIS_TITLE 표'      => array( 'var AXIS_TITLE', 200, 3000 ),
-		'저울 본문 만드는 곳'  => array( 'function gapBlock', 2500, 3000 ),
-		'저울 장 머리말'      => array( '남은 저울 셋', 1200, 600 ),
+		'AXIS_TITLE 표'       => array( 'var AXIS_TITLE', 200, 3000 ),
+		'저울 본문 만드는 곳'   => array( 'function gapBlock', 2500, 3000 ),
+		'저울 장 머리말'       => array( '남은 저울 셋', 1200, 600 ),
+		'오행을 말로 푸는 곳'   => array( '기운으로는', 1500, 1500 ),
+		'인연의 별'           => array( '인연의 별', 1200, 1200 ),
 	);
 
+	/* ?stella_peek=1&find=아무말 로 다른 자리도 볼 수 있습니다 */
+	if ( ! empty( $_GET['find'] ) ) {
+		$find = sanitize_text_field( wp_unslash( $_GET['find'] ) );
+		$marks[ '찾으신 말' ] = array( $find, 1500, 1500 );
+	}
+
 	$out = array( '페이지 160 · 전체 ' . number_format( strlen( $content ) ) . ' 바이트' );
+
+	/* 오행 낱말이 본문에 몇 번이나 나오는지 — 손볼 자리가 몇 군데인지 가늠용 */
+	$counts = array();
+	foreach ( array( '목', '화', '토', '금', '수' ) as $el ) {
+		$counts[] = $el . " '" . $el . "' " . substr_count( $content, "'" . $el . "'" ) . '번';
+	}
+	$out[] = '따옴표에 싸인 오행 낱말 : ' . implode( ' · ', $counts );
 
 	foreach ( $marks as $label => $spec ) {
 		list( $needle, $before, $after ) = $spec;
