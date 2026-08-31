@@ -176,7 +176,10 @@ add_action( 'init', function () {
 		echo '<p>이대로 넣으시려면 <code>?stella_patch=go</code> 로 여세요.</p>'; exit;
 	}
 
-	update_option( $bak_key, $backup, false );
+	/* 2026-08-31 · 백업은 처음 한 번만 남깁니다.
+	   이 스니펫을 두 번 돌리시면 두 번째에는 「이미 고친 것」이 백업으로 덮여서
+	   되돌리기가 원래 자리까지 못 갑니다. 그래서 백업이 이미 있으면 손대지 않습니다. */
+	if ( false === get_option( $bak_key ) ) { update_option( $bak_key, $backup, false ); }
 	foreach ( $plan as $id => $c ) {
 		$data = array( 'post_content' => $c );
 		if ( 85 === (int) $id ) { $data['post_title'] = $new_title; }
