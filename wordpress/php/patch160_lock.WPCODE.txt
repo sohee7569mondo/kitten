@@ -1,0 +1,209 @@
+/* ════════════════════════════════════════════════════════════
+   전자책 자물쇠 · 소희 님께
+
+   왜
+     페이지 160 은 서버에 아무것도 안 물어봅니다. 브라우저에 생년월일만
+     있으면 책이 통째로 열립니다. 결제도 로그인도 확인하지 않습니다.
+
+   무엇을 하나
+     ① 책 맨 앞에 문지기 한 조각을 얹습니다. 책을 잠깐 감춰두고
+        서버에 「이 사람이 값을 치른 풀이가 있나」만 물어본 뒤,
+        있으면 그대로 펼치고 없으면 안내 화면을 띄웁니다.
+        생년월일이나 사주는 한 글자도 안 보냅니다.
+     ② 견본 책(?demo=)이 진짜 견본일 때만 열리도록 표시 한 줄을 답니다.
+        (이게 없으면 주소 뒤에 ?demo=아무거나 를 붙여 자물쇠를 넘어갑니다)
+
+   기존 코드는 한 글자도 고치지 않습니다. ①은 맨 앞에 덧붙이기만 하고
+   ②는 한 줄에 표시만 답니다. 되돌리기를 누르면 통째로 원래대로 옵니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Insert Method 는 Auto Insert, Location 은 Run Everywhere →
+              저장 → 오른쪽 위 토글을 Active 로
+
+   ★ 저장 직후 먼저  https://stellasaju.com/wp-json/stella/v1/me
+   ① 미리보기  https://stellasaju.com/?stella_lock=1
+   ② 적용      https://stellasaju.com/?stella_lock=1&go=1
+   되돌리기    https://stellasaju.com/?stella_lock=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_lock'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">';
+	echo '<body class="notranslate" translate="no" style="font:15px/1.8 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:900px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	global $wpdb;
+
+	$pid  = 160;
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	$demo_old = 'if(!DEMOS[slug]){ return; }';
+	$demo_new = 'if(!DEMOS[slug]){ return; } window.__stellaDemo=1;';
+
+	$block = <<<'STELLALOCK'
+<!-- wp:html -->
+<style id="ssLockCss">#ssb{height:0 !important;overflow:hidden !important;opacity:0 !important}</style>
+<div id="ssLock" style="max-width:660px;margin:70px auto;padding:40px 28px;border-radius:14px;background:#0b0a18;border:1px solid rgba(212,175,106,.25);color:#f2ece0;font:16px/1.9 Gowun Batang,serif;text-align:center">
+<div style="letter-spacing:.3em;font-size:.72rem;color:#d4af6a;margin-bottom:16px">STELLA SAJU</div>
+<div id="ssLockMsg">책을 펼칠 수 있는지 확인하고 있어요…</div>
+<div id="ssLockGo" style="margin-top:26px"></div>
+</div>
+<script>
+(function(){
+  var css=document.getElementById('ssLockCss');
+  var box=document.getElementById('ssLock');
+  var msg=document.getElementById('ssLockMsg');
+  var pad=document.getElementById('ssLockGo');
+  var done=false;
+
+  function link(href,text){
+    return '<a href="'+href+'" style="display:inline-block;margin:6px 8px;padding:12px 22px;border-radius:9px;background:#d4af6a;color:#1a1428;text-decoration:none;font-weight:700">'+text+'</a>';
+  }
+  function ready(fn){
+    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',fn); return; }
+    fn();
+  }
+  function openBook(){
+    if(css){ if(css.parentNode){ css.parentNode.removeChild(css); } }
+    if(box){ if(box.parentNode){ box.parentNode.removeChild(box); } }
+  }
+  function pass(){
+    if(done){ return; }
+    done=true;
+    clearTimeout(timer);
+    openBook();
+  }
+  function stop(text,html){
+    if(done){ return; }
+    done=true;
+    clearTimeout(timer);
+    if(msg){ msg.innerHTML=text; }
+    if(pad){ pad.innerHTML=html; }
+  }
+  function again(){
+    return link(location.pathname,'다시 시도');
+  }
+
+  var timer=null;
+  ready(function(){
+    timer=setTimeout(function(){
+      stop('연결이 느려요. 잠시 뒤에 다시 열어주세요.',again());
+    },12000);
+  });
+
+  function decide(me){
+    ready(function(){
+      if(window.__stellaDemo===1){ pass(); return; }
+      if(!me){ stop('확인하지 못했어요. 잠시 뒤에 다시 열어주세요.',again()); return; }
+      if(me.member!==true){
+        stop('이 책을 보시려면 먼저 들어오셔야 해요.',link('/mypage/','내 자리로 가기'));
+        return;
+      }
+      var n=0;
+      if(me.orders){ if(me.orders.length){ n=me.orders.length; } }
+      if(n>0){ pass(); return; }
+      stop('아직 펼칠 수 있는 풀이가 없어요.<br>여섯 개의 문에서 하나를 고르고 값을 치르시면<br>이 자리에 당신의 책이 만들어집니다.',link('/','문 고르러 가기')+link('/mypage/','내 자리'));
+    });
+  }
+
+  try{
+    fetch('/wp-json/stella/v1/me',{credentials:'same-origin',headers:{'Accept':'application/json'}})
+      .then(function(r){ return r.json(); })
+      .then(function(me){ decide(me); })
+      .catch(function(){ decide(null); });
+  }catch(e){
+    decide(null);
+  }
+})();
+</script>
+<!-- /wp:html -->
+
+STELLALOCK;
+
+	printf(
+		'<h1 style="color:#ffd76a">전자책 자물쇠 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	$c = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( null === $c ) {
+		echo '<h2 style="color:#ff7b7b">160 을 못 읽었습니다.</h2>';
+		exit;
+	}
+
+	if ( $undo ) {
+		$bak = get_post_meta( $pid, '_stella_lock_backup', true );
+		if ( $bak ) {
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+			delete_post_meta( $pid, '_stella_lock_backup' );
+			clean_post_cache( $pid );
+			if ( function_exists( 'wp_cache_flush' ) ) {
+				wp_cache_flush();
+			}
+			echo '<h2 style="color:#7bff9b">되돌렸습니다. 자물쇠가 없던 상태로 왔습니다.</h2>';
+		} else {
+			echo '<h2 style="color:#888">사본이 없습니다.</h2>';
+		}
+		exit;
+	}
+
+	$has_lock = substr_count( $c, 'ssLockCss' );
+	$has_mark = substr_count( $c, '__stellaDemo' );
+	$n_demo   = substr_count( $c, $demo_old );
+	$len      = strlen( $c );
+
+	echo '<table cellpadding="8" style="border-collapse:collapse">';
+	printf( '<tr><td>페이지 크기</td><td><b>%d</b> 바이트</td></tr>', $len );
+	printf( '<tr><td>① 문지기가 이미 있음</td><td>%d</td></tr>', $has_lock );
+	printf( '<tr><td>② 견본 표시가 이미 있음</td><td>%d</td></tr>', $has_mark );
+	printf(
+		'<tr><td>② 표시를 달 자리</td><td style="color:%s"><b>%d</b>번</td></tr>',
+		1 === $n_demo ? '#7bff9b' : '#ff7b7b',
+		$n_demo
+	);
+	echo '</table>';
+
+	if ( $has_lock > 0 ) {
+		echo '<h2 style="color:#7bff9b">자물쇠가 이미 걸려 있습니다.</h2>'
+			. '<p style="color:#888">되돌리려면 ?stella_lock=1&undo=1</p>';
+		exit;
+	}
+	if ( 1 !== $n_demo ) {
+		echo '<h2 style="color:#ff7b7b">견본 표시를 달 자리가 딱 한 번이 아니라 아무것도 바꾸지 않았습니다.</h2>'
+			. '<p>이 화면을 저에게 보내주세요.</p>';
+		exit;
+	}
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_lock=1&go=1">→ 이대로 자물쇠 걸기</a></p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, '_stella_lock_backup', true ) ) {
+		update_post_meta( $pid, '_stella_lock_backup', $c );
+	}
+
+	$out = str_replace( $demo_old, $demo_new, $c );
+	$out = $block . $out;
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $out ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	printf( '<h2 style="color:#7bff9b">자물쇠를 걸었습니다 — %d → %d 바이트</h2>', $len, strlen( $out ) );
+	echo '<p><a style="color:#ffd76a" href="/reading-book/">→ 전자책 열어보기</a></p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_lock=1&undo=1</p>';
+	exit;
+} );
