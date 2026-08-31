@@ -1,0 +1,71 @@
+<?php
+/**
+ * STELLA SAJU — 페이지 160 안을 들여다보기만 하는 스니펫   PEEK-1
+ * ------------------------------------------------------------------
+ * 아무것도 고치지 않습니다. 읽어서 화면에 보여주기만 합니다.
+ * 보고 나면 지우세요.
+ *
+ * 넣는 곳 : WPCode → + Add Snippet → Add Your Custom Code
+ *           Code Type = PHP Snippet / Location = Run Everywhere / Active
+ *           (맨 윗줄 <?php 은 빼고 붙여넣으세요)
+ *
+ * 여는 곳 : 관리자로 로그인한 채
+ *           https://stellasaju.com/wp-admin/?stella_peek=1
+ *
+ * 화면에 나오는 글을 통째로 복사해서 저에게 붙여넣어 주세요.
+ * 저울 이름을 바꾼 표(AXIS_TITLE)와 본문을 만드는 자리를 봐야
+ * 소제목과 본문의 낱말을 맞출 수 있습니다.
+ * ------------------------------------------------------------------
+ */
+
+add_action( 'admin_init', function () {
+
+	if ( ! isset( $_GET['stella_peek'] ) || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	global $wpdb;
+	$content = $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", 160
+	) );
+
+	if ( ! $content ) {
+		add_action( 'admin_notices', function () {
+			echo '<div class="notice notice-error"><p>페이지 160 을 못 찾았습니다.</p></div>';
+		} );
+		return;
+	}
+
+	/* 보고 싶은 자리 : 앞에서부터 몇 글자, 뒤로 몇 글자 */
+	$marks = array(
+		'AXIS_TITLE 표'      => array( 'var AXIS_TITLE', 200, 3000 ),
+		'저울 본문 만드는 곳'  => array( 'function gapBlock', 2500, 3000 ),
+		'저울 장 머리말'      => array( '남은 저울 셋', 1200, 600 ),
+	);
+
+	$out = array( '페이지 160 · 전체 ' . number_format( strlen( $content ) ) . ' 바이트' );
+
+	foreach ( $marks as $label => $spec ) {
+		list( $needle, $before, $after ) = $spec;
+		$pos = strpos( $content, $needle );
+		$out[] = '';
+		$out[] = str_repeat( '=', 60 );
+		$out[] = '### ' . $label . '   (찾는 말: ' . $needle . ')';
+		$out[] = str_repeat( '=', 60 );
+		if ( false === $pos ) {
+			$out[] = '못 찾았습니다.';
+			continue;
+		}
+		$from = max( 0, $pos - $before );
+		$out[] = mb_strcut( $content, $from, $before + $after, 'UTF-8' );
+	}
+
+	$text = implode( "\n", $out );
+
+	add_action( 'admin_notices', function () use ( $text ) {
+		echo '<div class="notice notice-info"><p><strong>페이지 160 들여다보기</strong> — 아래를 통째로 복사해서 알려주세요.</p>'
+		   . '<textarea readonly style="width:100%;height:60vh;font-family:monospace;font-size:12px;white-space:pre">'
+		   . esc_textarea( $text )
+		   . '</textarea></div>';
+	} );
+} );
