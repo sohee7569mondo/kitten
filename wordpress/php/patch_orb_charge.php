@@ -1,0 +1,105 @@
+<?php
+/**
+ * STELLA SAJU — 「구슬로 먼저 충전하기」 링크 걷어내기
+ *
+ *  왜 고치는가
+ *    /price/ 와 /pay/ 는 둘 다 이렇게 못 박고 있습니다 —
+ *      「구슬만 따로 구매하실 수는 없습니다」
+ *      「구슬을 미리 충전하지 않습니다. 풀이 한 편을 그 자리에서 삽니다」
+ *    그런데 여섯 문 페이지에는 구슬이 모자랄 때 이런 링크가 뜹니다 —
+ *      「구슬로 먼저 충전하기」 → /mypage/?charge=1
+ *    사이트가 스스로 반대되는 말을 하고 있는 셈입니다.
+ *
+ *    결제대행 심사에서 이것이 문제가 됩니다. 카카오페이 심사자가
+ *    「구슬을 구매할 수 있는 사이트 주소를 알려달라」고 물어온 까닭도
+ *    여기에 있을 수 있습니다 — 구슬이 따로 파는 물건으로 보이니까요.
+ *
+ *    구슬이 모자라면 어차피 /pay/ 로 가서 그 한 편의 값을 냅니다.
+ *    충전이라는 단계는 없습니다. 그 링크만 걷어냅니다.
+ *
+ *  손대는 곳 : 여섯 문 페이지 (130 · 141 · 169 · 170 · 171 · 172)
+ *              그 문장이 없는 페이지는 건너뜁니다.
+ *
+ *  쓰는 법 — 확인 ?stella_patch=dry · 적용 =go · 되돌리기 =undo
+ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_patch'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_patch'] ) );
+
+	global $wpdb;
+	$bak_key = 'stella_bak_orb_charge';
+	$doors   = array(
+		130 => '직성의 신',  141 => '연성의 신',  169 => '강성의 신',
+		170 => '세성의 신',  171 => '성좌의 신',  172 => '아르카나',
+	);
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{font:15px/1.7 -apple-system,"Apple SD Gothic Neo",sans-serif;max-width:940px;margin:40px auto;padding:0 20px}';
+	echo 'code{background:#f4f4f4;padding:1px 5px;border-radius:3px;word-break:break-all}';
+	echo '.ok{color:#0a7a2f}.no{color:#c0392b;font-weight:700}.dim{color:#888}';
+	echo '.box{border:1px solid #ddd;border-radius:8px;padding:14px 18px;margin:14px 0}</style>';
+	echo '<h2>「구슬로 먼저 충전하기」 링크 걷어내기</h2>';
+
+	if ( 'undo' === $mode ) {
+		$bak = get_option( $bak_key );
+		if ( ! $bak ) { echo '<p class="no">되돌릴 백업이 없습니다.</p>'; exit; }
+		foreach ( $bak as $id => $c ) {
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $c ), array( 'ID' => (int) $id ) );
+			clean_post_cache( (int) $id );
+		}
+		echo '<p class="ok">되돌렸습니다.</p>'; exit;
+	}
+
+	/* 문마다 글자가 조금씩 다를 수 있어, 링크 부분만 느슨하게 찾습니다.
+	   앞의 가운뎃점과 이어붙이는 따옴표까지 같이 걷어내고 마침표로 닫습니다. */
+	$re = '/ · \'\s*\+\s*\'<a href="\/mypage\/\?charge=1">[^<]*<\/a>\'/u';
+
+	$plan = array(); $backup = array(); $found = 0; $fail = false;
+
+	foreach ( $doors as $id => $name ) {
+		$c = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		if ( null === $c ) {
+			echo '<p class="no">페이지 ' . $id . ' 을 찾지 못했습니다.</p>'; $fail = true; continue;
+		}
+		$backup[ $id ] = $c;
+		$n = preg_match_all( $re, $c );
+
+		echo '<div class="box"><b>' . $id . ' · ' . esc_html( $name ) . '</b> — 찾은 수 ';
+		if ( $n > 0 ) {
+			echo '<b class="ok">' . $n . '</b>';
+			$found += $n;
+			$plan[ $id ] = preg_replace( $re, ".'", $c );
+			echo '<br><span class="dim">고친 뒤 남은 charge 링크 : ' . substr_count( $plan[ $id ], '/mypage/?charge=1' ) . '</span>';
+			if ( substr_count( $plan[ $id ], '/mypage/?charge=1' ) > 0 ) { $fail = true; echo ' <span class="no">← 아직 남았습니다</span>'; }
+		} else {
+			echo '<span class="dim">0 (이 문에는 없습니다 — 건너뜁니다)</span>';
+			if ( strpos( $c, '/mypage/?charge=1' ) !== false ) {
+				echo '<br><span class="no">그런데 charge 링크는 들어 있습니다. 글자 모양이 달라 못 잡았습니다 — 이 화면을 보여주세요.</span>';
+				$fail = true;
+			}
+		}
+		echo '</div>';
+	}
+
+	echo '<div class="box">모두 <b>' . $found . '</b> 군데를 걷어냅니다.</div>';
+	if ( 0 === $found ) { echo '<p class="ok">고칠 것이 없습니다. 이미 다 걷어낸 상태입니다.</p>'; exit; }
+	if ( $fail ) { echo '<p class="no">어긋난 곳이 있어 아무것도 바꾸지 않았습니다. 이 화면을 그대로 보여주세요.</p>'; exit; }
+
+	if ( 'go' !== $mode ) {
+		echo '<p class="ok"><b>확인만 했습니다. 아무것도 바꾸지 않았습니다.</b></p>';
+		echo '<p>이대로 넣으시려면 <code>?stella_patch=go</code> 로 여세요.</p>'; exit;
+	}
+
+	if ( false === get_option( $bak_key ) ) { update_option( $bak_key, $backup, false ); }
+	foreach ( $plan as $id => $c ) {
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $c ), array( 'ID' => (int) $id ) );
+		clean_post_cache( (int) $id );
+		$chk = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", (int) $id ) );
+		echo '<p>페이지 <b>' . $id . '</b> — ' . ( sha1( $chk ) === sha1( $c ) ? '<span class="ok">넣었습니다.</span>' : '<span class="no">확인 실패</span>' ) . '</p>';
+	}
+	echo '<p>되돌리려면 <code>?stella_patch=undo</code>. <b>이 스니펫은 이제 지우셔도 됩니다.</b></p>';
+	exit;
+}, 1 );
