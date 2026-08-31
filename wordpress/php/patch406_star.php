@@ -48,8 +48,21 @@ add_action( 'init', function () {
 	$old_hash = sha1( $content );
 	$from_ok  = ( $old_hash === $expect_from );
 	echo '<div class="box">지금 길이 <b>' . strlen( $content ) . '</b> 바이트 · sha1 <code>' . substr( $old_hash, 0, 12 ) . '…</code> ';
-	echo $from_ok ? '<span class="ok">(제가 보고 만든 것과 같습니다)</span>' : '<span class="no">(그 사이에 누가 고쳤습니다)</span>';
+	$already = ( $old_hash === $expect_hash );
+	if ( $from_ok ) { echo '<span class="ok">(바탕이 맞습니다)</span>'; }
+	elseif ( $already ) { echo '<span class="ok">(이미 다 들어간 모습입니다)</span>'; }
+	else { echo '<span class="no">(제가 보고 만든 바탕과 다릅니다)</span>'; }
 	echo '</div>';
+	/* 2026-08-31 · 이미 들어간 상태를 「어긋남」이라고 잘못 말하던 것을 고칩니다.
+	   두 번째로 여시면 지금 해시가 「고친 뒤」 해시와 같습니다. 그건 사고가 아니라
+	   이미 성공했다는 뜻이므로, 빨간 글씨 대신 그렇게 알려드립니다. */
+	if ( ! $from_ok && $already ) {
+		echo '<p class="ok"><b>이미 들어가 있습니다.</b> 지금 페이지가 바로 「고친 뒤」의 모습입니다 ';
+		echo '&mdash; sha1 <code>' . substr( $expect_hash, 0, 12 ) . '…</code> 가 그 증거입니다.</p>';
+		echo '<p>더 하실 일이 없습니다. <b>이 스니펫은 지우셔도 됩니다.</b><br>';
+		echo '되돌리시려면 <code>?stella_patch=undo</code> 로 여세요.</p>';
+		exit;
+	}
 	if ( ! $from_ok ) { echo '<p class="no">바탕이 달라 아무것도 바꾸지 않았습니다.</p>'; exit; }
 
 	$fixnl = function ( $t ) { return str_replace( array( "\r\n", "\r" ), "\n", $t ); };
