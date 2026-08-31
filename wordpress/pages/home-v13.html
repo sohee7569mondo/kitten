@@ -1,58 +1,34 @@
-<title>스텔라사주 새 홈화면</title>
-<style>
-  :root{ color-scheme: dark; }
-  body{ background:#100B22; margin:0; }
-  #pv{
-    position:sticky; top:0; z-index:99999;
-    background:rgba(16,11,34,.94); backdrop-filter:blur(8px);
-    border-bottom:1px solid rgba(212,175,106,.3);
-    color:#F6F1E7; font:14px/1.6 -apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-    padding:11px 18px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-  }
-  #pv b{ color:#E0BC7C; font-weight:700; letter-spacing:.02em; }
-  #pv .sp{ flex:1 1 auto; }
-  #pv small{ color:rgba(246,241,231,.6); font-size:12px; }
-  #pv button{
-    font:600 13px/1 -apple-system,'Apple SD Gothic Neo',sans-serif;
-    color:#F0D9A8; background:rgba(163,124,246,.16);
-    border:1px solid rgba(212,175,106,.45); border-radius:999px;
-    padding:8px 15px; cursor:pointer; transition:background .2s ease;
-  }
-  #pv button:hover{ background:rgba(163,124,246,.3); }
-  #pv button:focus-visible{ outline:2px solid #F0D9A8; outline-offset:2px; }
-  /* 데스크톱에서 휴대폰 폭으로 보기 */
-  body.phone #stage{
-    max-width:420px; margin:0 auto; border-left:1px solid rgba(212,175,106,.22);
-    border-right:1px solid rgba(212,175,106,.22); overflow:hidden;
-  }
-  body.phone #stage #stellar-home{ margin-left:0 !important; margin-right:0 !important; }
-  body.phone #stage .stars{ position:absolute !important; }
-  body.phone #stage{ position:relative; }
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 홈 (/)   BUILD: v12   2026-08-31
 
-  /* 미리보기에서만 — 여기서는 stellasaju.com 의 사진을 불러올 수 없습니다.
-     (미리보기 화면의 보안 규칙이 바깥 사진을 막습니다)
-     빈 네모가 생기지 않게 사진 자리를 접고, 원래 깔려 있던 한자 글리프와
-     성운 배경이 드러나게 둡니다. 실제 홈에서는 사진이 그대로 나옵니다. */
-  #stage .hero-figure{ display:none !important; }
-  #stage .door-card .imgwrap img{ display:none !important; }
-  #stage .door-card .imgwrap::before{
-    background:radial-gradient(circle at 50% 38%, rgba(163,124,246,.30), transparent 62%),
-               linear-gradient(158deg,#3B2D70,#221A42) !important; }
-  #stage .door-card .glyph{ opacity:.85 !important; font-size:4.2rem !important; }
-  #stage .hero-portrait, #stage .final-portrait{
-    background:radial-gradient(circle at 50% 35%, #4A3888, #1E1740);
-    display:flex; align-items:center; justify-content:center; }
-  #stage .hero-portrait img, #stage .final-portrait img{ display:none !important; }
-  #stage .hero-portrait::after, #stage .final-portrait::after{
-    content:'\2726'; color:#F0D9A8; font-size:2rem; }
-</style>
-<div id="pv">
-  <b>미리보기</b>
-  <small>스텔라사주 홈 &middot; BUILD v13 &mdash; 아직 라이브에 올리지 않았습니다. 사진은 이 미리보기에서만 안 보입니다(한자 자리에 들어갑니다)</small>
-  <span class="sp"></span>
-  <button type="button" id="pvBtn">휴대폰 폭으로 보기</button>
-</div>
-<div id="stage">
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  문구를 고치고 싶으실 때                                        │
+  │                                                                 │
+  │  워드프레스 관리자 → 페이지 → home → 편집 →                     │
+  │  아래 「사용자 정의 HTML」 블록을 열고 글자만 고치시면 됩니다.   │
+  │  script 도 그대로 저장되는 것을 확인했습니다.                   │
+  │                                                                 │
+  │  각 문단 앞에 【문구】 표시를 달아두었습니다. 그 줄만 만지세요.  │
+  │  <br> 는 줄바꿈입니다. 넣고 빼시면 그대로 화면에 반영됩니다.     │
+  │  태그(< > 로 감싼 것)는 지우지 마세요.                          │
+  └─────────────────────────────────────────────────────────────────┘
+
+  2026-08-31 에 바꾼 것 (소희 님)
+    1. 첫 화면 문구를 새로 주신 것으로 바꿨습니다.
+    2. 모바일에서 카드가 세로로 길게 쌓이던 것을 옆으로 미는
+       슬라이드(레일)로 바꿨습니다 — 심심풀이 · 여섯 문 · 운명의 비율.
+    3. 「정답 말고 가벼운 질문」의 긴 설명을 걷어내고
+       한 장씩 넘겨보는 띠 배너로 바꿨습니다.
+    4. 스타운세는 매주 한 사람의 이름이 바뀌어 나오고,
+       누르면 그 사람의 사주로 바로 갑니다.
+    5. 스크롤을 줄였습니다. 모바일 기준 위아래 여백을 절반 가까이 줄였고
+       섹션마다 있던 설명 문단을 짧게 다듬었습니다.
+
+  주의 : script 안에서 앰퍼샌드 두 개 연산자를 쓰지 마세요.
+         워드프레스가 엔티티로 바꿔 스크립트 전체가 죽습니다.
+         부등호 뒤에 바로 알파벳이 오지 않게 띄웠습니다.
+-->
 <style>html,body{overflow-x:hidden!important; max-width:100vw!important;} header.wp-block-template-part{position:relative!important; z-index:9999!important; background:#100B22!important;} #stellar-home{overflow-x:hidden!important;}</style>
 <style id="stellar-home-css">
 html{scroll-behavior:smooth;}
@@ -701,15 +677,5 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   }catch(err){}
 
 })();
-</script></div>
-<script>
-(function(){
-  var b = document.getElementById('pvBtn');
-  if(!b) return;
-  b.addEventListener('click', function(){
-    var on = document.body.classList.toggle('phone');
-    b.textContent = on ? '전체 폭으로 보기' : '휴대폰 폭으로 보기';
-    window.scrollTo({top:0, behavior:'auto'});
-  });
-})();
 </script>
+<!-- /wp:html -->
