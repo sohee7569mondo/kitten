@@ -378,7 +378,7 @@ add_action( 'wp_head', function () {
 	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : stella_um_tier( $score );
 	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
 
-	$img = stella_um_card_url( $score, $rel, $a, $b, $c );
+	$img = home_url( '/um-card/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c );
 
 	$title = '우리 ' . $score . '점' . ( $tier ? ' - ' . $tier : '' );
 	$desc  = '사주 ' . $a . '/40, 별자리 ' . $b . '/30, 띠 ' . $c . '/30. 생일만 넣으면 바로 나와요';
@@ -419,7 +419,7 @@ add_filter( 'jetpack_open_graph_tags', function ( $tags ) {
 	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : stella_um_tier( $score );
 	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
 
-	$img = stella_um_card_url( $score, $rel, $a, $b, $c );
+	$img = home_url( '/um-card/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c );
 
 	$tags['og:title']        = '우리 ' . $score . '점' . ( $tier ? ' - ' . $tier : '' );
 	$tags['og:description']  = '사주 ' . $a . '/40, 별자리 ' . $b . '/30, 띠 ' . $c . '/30. 생일만 넣으면 바로 나와요';

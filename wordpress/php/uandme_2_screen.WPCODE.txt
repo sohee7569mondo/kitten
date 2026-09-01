@@ -566,21 +566,40 @@ window.UM_CELEB = {
        주소를 부르면 서버가 그 자리에서 800x400 그림을 그려 줍니다
        (④번 스니펫). 아무것도 남기지 않고 이름도 담기지 않습니다. */
     if (st.result) {
-      var u = cardUrl();
+      var u = cardCdn();
       if (u) { return u; }
     }
     if (!window.UM_SET) { return ''; }
     if (!window.UM_SET.설정) { return ''; }
     return window.UM_SET.설정.카톡그림 || '';
   }
-  function cardUrl() {
+  function cardName() {
     if (!st.result) { return ''; }
     var r = st.result;
-    /* 물음표와 앰퍼샌드가 붙은 주소는 카카오가 그림으로 봐주지 않습니다.
-       그림 파일처럼 생긴 주소로 부릅니다. 등급 이름은 서버가 점수로
-       알아내므로 주소에 한글을 실을 일이 없습니다. */
-    return location.origin + '/um-card/' + r.total + '-' + st.rel + '-' +
-      r.blocks.saju.score + '-' + r.blocks.zodiac.score + '-' + r.blocks.animal.score;
+    return r.total + '-' + st.rel + '-' + r.blocks.saju.score + '-' +
+      r.blocks.zodiac.score + '-' + r.blocks.animal.score;
+  }
+  /* 우리 서버가 그 자리에서 그려 주는 주소 */
+  function cardUrl() {
+    var n = cardName();
+    return n ? (location.origin + '/um-card/' + n) : '';
+  }
+  /* 워드프레스닷컴 그림 CDN 주소 — 카카오가 우리 서버에서는 그림을
+     못 가져가는 듯하여 이쪽을 알려줍니다. 위 주소를 한 번 부르면
+     서버가 파일로 남겨 두므로 CDN 이 그것을 나릅니다. */
+  function cardCdn() {
+    var n = cardName();
+    if (!n) { return ''; }
+    var host = location.host;
+    if (!host) { return cardUrl(); }
+    return 'https://i0.wp.com/' + host +
+      '/wp-content/uploads/uandme/card/' + n + '.png?ssl=1';
+  }
+  /* 결과가 나오면 카드를 미리 한 번 그려 둡니다 (파일로 남게) */
+  function cardWarm() {
+    var u = cardUrl();
+    if (!u) { return; }
+    try { var im = new Image(); im.src = u; } catch (e) {}
   }
 
   function kakaoReady() {
@@ -1445,6 +1464,7 @@ window.UM_CELEB = {
     root.innerHTML = h.join('');
     wire();
     veilOff();
+    if (st.view === 'result') { cardWarm(); }
   }
 
   function step(n, txt, last) {
