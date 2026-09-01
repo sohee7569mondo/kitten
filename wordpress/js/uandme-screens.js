@@ -290,6 +290,133 @@
     return true;
   }
 
+  /* ── 연예인 고르기 ──────────────────────────────────────
+     UM_CELEB 은 사람 목록을 짧은 글로 눌러 담아 둔 것입니다.
+     처음 한 번만 풀어서 씁니다. */
+  var CELEB = null;
+  function celebList() {
+    if (CELEB) { return CELEB; }
+    if (!window.UM_CELEB) { return []; }
+    var G = window.UM_CELEB.g, out = [], rows = window.UM_CELEB.p.split(';'), i;
+    for (i = 0; i < rows.length; i++) {
+      var f = rows[i].split('|');
+      if (f.length < 5) { continue; }
+      var gg = (G[parseInt(f[3], 10)] || '|').split('|');
+      out.push({
+        n: f[0], e: f[1],
+        y: parseInt(f[2].slice(0, 4), 10),
+        m: parseInt(f[2].slice(4, 6), 10),
+        d: parseInt(f[2].slice(6, 8), 10),
+        g: gg[0], ge: gg[1] || '', s: f[4],
+        c: cho(f[0]), l: (f[1] + gg[1]).toLowerCase()
+      });
+    }
+    CELEB = out;
+    return out;
+  }
+  /* 한글 첫소리 — 장원영 → ㅈㅇㅇ */
+  var CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  function cho(str) {
+    var out = '', i, c;
+    for (i = 0; i < str.length; i++) {
+      c = str.charCodeAt(i);
+      if (c >= 0xAC00) { if (c <= 0xD7A3) { out += CHO[Math.floor((c - 0xAC00) / 588)]; continue; } }
+      if (str.charAt(i) !== ' ') { out += str.charAt(i); }
+    }
+    return out;
+  }
+  function celebHit(p, q) {
+    if (!q) { return true; }
+    if (p.n.indexOf(q) >= 0) { return true; }
+    if (p.g.indexOf(q) >= 0) { return true; }
+    if (p.c.indexOf(q) >= 0) { return true; }
+    if (p.l.indexOf(q.toLowerCase()) >= 0) { return true; }
+    return false;
+  }
+  function pad2n(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function celebSheet() {
+    var all = celebList();
+    if (!all.length) { toast('연예인 목록을 아직 못 받았어요'); return; }
+
+    var old = document.getElementById('um-celeb');
+    if (old) { if (old.parentNode) { old.parentNode.removeChild(old); } }
+
+    var wrap = el('<div id="um-celeb" style="position:fixed;left:0;top:0;right:0;bottom:0;' +
+      'background:#F7F2FC;z-index:2147483644;display:flex;flex-direction:column"></div>');
+
+    var top = el('<div style="padding:16px 18px 12px;background:#F7F2FC;flex:0 0 auto"></div>');
+    var row = el('<div style="display:flex;gap:9px;align-items:center"></div>');
+    var inp = el('<input id="um-cq" placeholder="이름 · 그룹 · ㅈㅇㅇ" ' +
+      'style="flex:1;min-width:0;border:1.6px solid #E4DAF6;background:#fff;border-radius:15px;' +
+      'padding:13px 15px;font-size:15px;color:#3F3A52;font-family:inherit;outline:none">');
+    var xb = el('<button style="flex:0 0 auto;background:none;border:0;padding:8px;' +
+      'font-size:15px;color:#8C82A6;font-family:inherit">닫기</button>');
+    row.appendChild(inp); row.appendChild(xb);
+    top.appendChild(el('<div class="jua" style="font-size:22px;color:#3F3A52;margin-bottom:12px">' +
+      '누구랑 볼까요?</div>'));
+    top.appendChild(row);
+    top.appendChild(el('<div style="font-size:11.5px;color:#A79BC4;margin-top:9px">' +
+      all.length + '명 · 태어난 시각은 알려진 것이 없어 빼고 봅니다</div>'));
+
+    var body = el('<div style="flex:1 1 auto;overflow-y:auto;padding:4px 18px 30px"></div>');
+    wrap.appendChild(top); wrap.appendChild(body);
+
+    function draw(q) {
+      var i, cur = '', out = [], n = 0;
+      for (i = 0; i < all.length; i++) {
+        var p = all[i];
+        if (!celebHit(p, q)) { continue; }
+        if (n >= 220) { break; }
+        if (p.g !== cur) {
+          cur = p.g;
+          out.push('<div style="font-size:12px;font-weight:700;color:#A79BC4;' +
+            'margin:18px 0 8px;letter-spacing:.02em">' + esc(p.g) + '</div>');
+        }
+        out.push('<button class="um-cb" data-i="' + i + '" style="width:100%;text-align:left;' +
+          'background:#fff;border:0;border-radius:16px;padding:13px 15px;margin-bottom:7px;' +
+          'display:flex;align-items:center;gap:10px;font-family:inherit">' +
+          '<span style="flex:1;min-width:0;font-size:15px;font-weight:600;color:#3F3A52">' +
+          esc(p.n) + '</span>' +
+          '<span style="font-size:11.5px;color:#B3A9C9">' + p.y + '.' + pad2n(p.m) + '.' + pad2n(p.d) +
+          '</span></button>');
+        n++;
+      }
+      if (!n) {
+        out.push('<div style="text-align:center;color:#A79BC4;font-size:14px;padding:50px 0">' +
+          '그런 사람은 없어요<br><span style="font-size:12px">초성으로도 찾아보세요 — ㅈㅇㅇ</span></div>');
+      }
+      body.innerHTML = out.join('');
+      var bs = body.querySelectorAll('.um-cb'), k;
+      for (k = 0; k < bs.length; k++) {
+        bs[k].addEventListener('click', function () {
+          pickCeleb(all[parseInt(this.getAttribute('data-i'), 10)]);
+        });
+      }
+    }
+    function shut() { if (wrap.parentNode) { wrap.parentNode.removeChild(wrap); } }
+    xb.addEventListener('click', shut);
+    var tmr = null;
+    inp.addEventListener('input', function () {
+      var v = this.value;
+      if (tmr) { clearTimeout(tmr); }
+      tmr = setTimeout(function () { draw(v.replace(/\s+/g, '')); }, 120);
+    });
+
+    document.body.appendChild(wrap);
+    draw('');
+    window.__umPick = shut;
+  }
+
+  function pickCeleb(p) {
+    if (window.__umPick) { window.__umPick(); }
+    st.you = { sex: p.s, y: p.y, m: p.m, d: p.d, h: 0, mi: 0, known: false, name: p.n };
+    st.celeb = p;
+    try { U.compute(); } catch (e) { toast('계산이 안 됐어요'); return; }
+    history.replaceState(null, '', X.base());
+    go('result');
+  }
+
   function imageSheet(blob, canvas) {
     var url = '';
     try { url = URL.createObjectURL(blob); } catch (e) { url = ''; }
@@ -637,7 +764,8 @@
         '<div class="sub">상대 생일은 몰라도 됩니다. 링크를 보내면 그쪽이 직접 넣어요.</div></div>',
         form('me'),
         '<div class="pad" style="margin-top:28px"><button class="btnP" id="mk-link">궁합 링크 만들기</button>',
-        '<div style="height:9px"></div><button class="btnG" id="both">상대 생일도 내가 알아요</button></div>');
+        '<div style="height:9px"></div><button class="btnG" id="both">상대 생일도 내가 알아요</button>',
+        '<div style="height:9px"></div><button class="btnG" id="celeb" style="background:#F3ECFF;color:#6B5BA8">연예인이랑 볼래요</button></div>');
     } else if (st.view === 'both') {
       h.push('<div class="pad" style="padding-top:30px"><div class="h1">상대는<br>언제 태어났나요</div></div>',
         form('you'),
@@ -668,6 +796,17 @@
     } else if (st.view === 'result') {
       var r = st.result, tier = window.UANDME_TIER(r.total, st.rel);
       var ru = resultUrl();
+      if (st.celeb) {
+        h.push('<div class="pad" style="padding-top:22px"><div style="background:#F3ECFF;' +
+          'border-radius:18px;padding:13px 16px;display:flex;align-items:center;gap:10px">' +
+          '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:11.5px;color:#8C82A6;font-weight:700">연예인 궁합</div>' +
+          '<div style="font-size:14.5px;color:#3F3A52;font-weight:600;margin-top:3px">' +
+          esc(st.celeb.n) + (st.celeb.g === '배우' ? '' : ' · ' + esc(st.celeb.g)) +
+          '</div></div>' +
+          '<div style="font-size:11px;color:#A79BC4;text-align:right;line-height:1.5">' +
+          '태어난 시각은<br>빼고 봤어요</div></div></div>');
+      }
       h.push('<div class="pad" style="padding-top:26px"><div class="card">',
         '<div style="display:flex;align-items:center;justify-content:space-between">',
         '<div style="background:#FFE2D6;color:#C4674A;font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:999px">' +
@@ -694,7 +833,8 @@
         '</div></div>',
         '<div class="pad" style="margin-top:24px"><div class="lbl">자랑하기</div>',
         shareRow(ru, shareText(), true), '</div>',
-        '<div class="pad" style="margin-top:26px"><button class="btnG" id="again">다른 사람과도 보기</button></div>',
+        '<div class="pad" style="margin-top:26px"><button class="btnG" id="again">다른 사람과도 보기</button>',
+        '<div style="height:9px"></div><button class="btnG" id="celeb2" style="background:#F3ECFF;color:#6B5BA8">연예인이랑도 볼래요</button></div>',
         '<div class="pad" style="margin-top:26px"><a href="/" style="text-decoration:none"><div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px;background:#100B22;border-radius:24px">',
         '<div><div style="font-size:11px;color:#B9A2F2;font-weight:700;margin-bottom:5px">스텔라사주</div>',
         '<div style="font-size:16px;font-weight:700;color:#F6F1E7">내 사주 제대로 읽어보기</div></div>',
@@ -787,6 +927,11 @@
       st.me = p; U.saveMe(); draft = { sex: 'M', known: true, ampm: '오전' }; go('both');
     });
     bind('#both2', function () { draft = { sex: 'M', known: true, ampm: '오전' }; go('both'); });
+    bind('#celeb', function () {
+      var p = readForm(); if (!p) { return; }
+      st.me = p; U.saveMe(); celebSheet();
+    });
+    bind('#celeb2', function () { celebSheet(); });
     bind('#calc', function () {
       var p = readForm(); if (!p) { return; }
       st.you = p;
@@ -795,7 +940,7 @@
       go('result');
     });
     bind('#again', function () {
-      st.you = null; st.result = null;
+      st.you = null; st.result = null; st.celeb = null;
       history.replaceState(null, '', X.base());
       draft = { sex: 'M', known: true, ampm: '오전' }; go('both');
     });
