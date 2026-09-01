@@ -258,6 +258,14 @@
   var BUN = art('로고', 'bunny_white');
 
   /* 카드 뒤에서 머리만 내미는 「빼꼼」 */
+  /* 카드 뒤로 숨기지 않고 통째로 얹습니다 */
+  function pop(slot, w, css) {
+    var a = art(slot, '');
+    if (!a) { return ''; }
+    return '<div class="pop" style="width:' + w + 'px;height:' + w + 'px;' + css + '">' +
+      a + '</div>';
+  }
+
   function peek(slot, fb, w, css) {
     var a = art(slot, fb);
     if (!a) { return ''; }          /* 「없음」이면 빈 칸도 안 만듭니다 */
@@ -296,11 +304,11 @@
       h.push(
       /* 히어로 — 오른쪽에서 둘이 빼꼼 */
       '<div class="pad" style="padding-top:26px;padding-bottom:18px;position:relative">' +
-        peek('히어로큰', 'bunny_pink', 96, 'right:-8px;top:24px;transform:rotate(9deg)') +
+        peek('히어로큰', 'bunny_pink', 134, 'right:-10px;top:8px') +
         peek('히어로작은', 'bunny_white', 78, 'right:60px;top:78px;transform:rotate(-11deg)') +
         '<div class="front" style="display:inline-block;background:#E7DEFA;color:#6B5BA8;' +
         'border-radius:999px;padding:7px 15px;font-size:12px;font-weight:500">' + T('제목위') + '</div>' +
-        '<div class="h1 front" style="margin-top:16px">' + T('제목') + '</div>' +
+        '<div class="h1 front" style="margin-top:16px;max-width:215px">' + T('제목') + '</div>' +
         '<div class="sub front" style="max-width:235px">' + T('제목설명') + '</div>' +
       '</div>',
 
@@ -351,6 +359,7 @@
 
       /* 초대 설명 */
       '<div class="pad" style="margin-top:54px;position:relative">' +
+        pop('초대그림', 118, 'right:10px;top:-70px') +
         peek('초대위', 'cow', 84, 'right:28px;top:-44px;transform:rotate(8deg)') +
         '<div class="front" style="background:#E7DEFA;border-radius:28px;padding:26px 22px">' +
           '<div class="jua" style="font-size:25px;line-height:1.3;color:#3F3A52">' + T('초대제목') + '</div>' +
@@ -670,6 +679,8 @@
       pc.textContent = '#um .peek{position:absolute;z-index:0;' +
         'filter:drop-shadow(0 5px 8px rgba(107,91,168,.22))}' +
         '#um .front{position:relative;z-index:1}' +
+        '#um .pop{position:absolute;z-index:3;pointer-events:none;' +
+        'filter:drop-shadow(0 6px 10px rgba(107,91,168,.2))}' +
         '#um .tile{display:flex;flex-direction:column;align-items:center;gap:7px}' +
         '#um .tile .im{width:100%;aspect-ratio:1;border-radius:22px;padding:5px;cursor:pointer}' +
         '#um .tile.on .im{outline:3px solid #B8A6E8;outline-offset:2px}' +
