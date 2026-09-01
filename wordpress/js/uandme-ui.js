@@ -1,0 +1,92 @@
+/* ══════════════════════════════════════════════════════════════
+   유앤미 — 화면
+   uandme-app.js · uandme-tiers.js · stella-saju.js · stella-match.js
+   가 먼저 실려 있어야 합니다.
+   주의 · 이 파일 안에서 앰퍼샌드 두 개 연산자를 쓰지 않습니다.
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var U = window.UandMe, st = U.state, root = null;
+  var BASE = location.origin + location.pathname;
+
+  /* ── 옷 ──────────────────────────────────────────────── */
+  var CSS = [
+    '#um{--p:#B8A6E8;--pd:#6B5BA8;--bg:#F7F2FC;--ink:#3F3A52;--sub:#7C7392;--soft:#A79BC4;',
+    'font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif;background:var(--bg);',
+    'color:#4A4358;max-width:420px;margin:0 auto;padding:0 0 56px;overflow:hidden;-webkit-text-size-adjust:100%}',
+    '#um *{box-sizing:border-box}',
+    '#um .jua{font-family:Jua,"Noto Sans KR",sans-serif}',
+    '#um .pad{padding-left:20px;padding-right:20px}',
+    '#um .h1{font-family:Jua,"Noto Sans KR",sans-serif;font-size:34px;line-height:1.26;',
+    'letter-spacing:-.02em;color:var(--ink)}',
+    '#um .sub{font-size:14.5px;line-height:1.8;color:var(--sub);margin-top:12px}',
+    '#um .lbl{font-size:12.5px;font-weight:700;color:#8C82A6;margin-bottom:8px}',
+    '#um .card{background:#fff;border-radius:28px;padding:26px 22px;',
+    'box-shadow:0 18px 34px -20px rgba(107,91,168,.4)}',
+    '#um .btnP{display:flex;align-items:center;justify-content:center;height:56px;background:var(--p);',
+    'color:#fff;border-radius:20px;font-family:Jua,"Noto Sans KR",sans-serif;font-size:16.5px;',
+    'border:0;width:100%;cursor:pointer;box-shadow:0 10px 20px -12px rgba(107,91,168,.8)}',
+    '#um .btnG{display:flex;align-items:center;justify-content:center;height:52px;background:#fff;',
+    'color:var(--sub);border-radius:20px;font-size:14.5px;font-weight:500;border:0;width:100%;cursor:pointer}',
+    '#um .chip{background:#fff;border:0;border-radius:999px;padding:12px 17px;font-size:13.5px;',
+    'color:#57506E;cursor:pointer;font-family:inherit}',
+    '#um .chip.on{background:var(--p);color:#fff;font-weight:700}',
+    '#um .fld{height:54px;background:#fff;border:0;border-radius:18px;padding:0 16px;font-size:15px;',
+    'color:var(--ink);width:100%;font-family:inherit;text-align:center}',
+    '#um .fld::placeholder{color:#C3BAD6}',
+    '#um .row{display:flex;gap:7px}',
+    '#um .seg{flex:1;height:50px;background:#fff;border:0;border-radius:16px;font-size:14px;',
+    'color:#57506E;cursor:pointer;font-family:inherit}',
+    '#um .seg.on{background:var(--p);color:#fff;font-weight:700}',
+    '#um .bar{height:9px;background:#EDE6F8;border-radius:99px;overflow:hidden}',
+    '#um .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#C3B2F0,#F4B9D4)}',
+    '#um .sh{display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;cursor:pointer;',
+    'background:none;border:0;font-family:inherit;padding:0}',
+    '#um .sh i{width:56px;height:56px;border-radius:20px;display:flex;align-items:center;justify-content:center}',
+    '#um .sh span{font-size:11.5px;font-weight:700;color:#57506E}',
+    '#um .note{font-size:12px;line-height:1.85;color:var(--soft)}',
+    '#um .mini{font-size:11.5px;line-height:1.9;color:#B3A9C9}',
+    '@media(max-width:400px){#um .h1{font-size:31px}}'
+  ].join('');
+
+  function css() {
+    if (document.getElementById('um-css')) { return; }
+    var s = document.createElement('style');
+    s.id = 'um-css'; s.textContent = CSS;
+    document.head.appendChild(s);
+    var f = document.createElement('link');
+    f.rel = 'stylesheet';
+    f.href = 'https://fonts.googleapis.com/css2?family=Jua' + '&' + 'display=swap';
+    document.head.appendChild(f);
+  }
+
+  function el(html) {
+    var d = document.createElement('div');
+    d.innerHTML = html;
+    return d.firstElementChild;
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[<>"']/g, function (c) {
+      return { '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function on(sel, ev, fn) {
+    var n = root.querySelectorAll(sel), i;
+    for (i = 0; i < n.length; i++) { n[i].addEventListener(ev, fn); }
+  }
+
+  /* ── 아이콘 ──────────────────────────────────────────── */
+  var IC = {
+    talk: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3F2A08" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4a9.7 9.7 0 0 1-2.7-.4L3 21l1.6-4.1A8.2 8.2 0 0 1 3 11.5a8.4 8.4 0 0 1 9-8.4a8.4 8.4 0 0 1 9 8.4z"/></svg>',
+    at:   '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>',
+    cam:  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>',
+    link: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6B5BA8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
+    save: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4F937A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+  };
+
+  window.UandMeUI = { css: css, el: el, esc: esc, on: on, IC: IC, CSS: CSS,
+                      base: function () { return BASE; },
+                      setRoot: function (r) { root = r; },
+                      getRoot: function () { return root; } };
+})();
