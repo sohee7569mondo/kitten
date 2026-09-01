@@ -308,12 +308,24 @@ add_action( 'init', function () {
 		imagestring( $im, 3, 330, 300, 'stellasaju.com/uandme', $soft );
 	}
 
-	nocache_headers();
-	header( 'Content-Type: image/png' );
-	header( 'Cache-Control: public, max-age=604800' );
-	header( 'X-Robots-Tag: noindex' );
+	/* 크롤러가 그림을 가져갈 수 있게 아주 평범한 그림처럼 내보냅니다.
+	   nocache_headers() 는 Expires 를 1984년으로 박아 두는데, 그러면
+	   카카오처럼 그림을 자기 쪽에 담아두는 서비스가 담기를 포기합니다.
+	   X-Robots-Tag: noindex 도 「가져가지 말라」는 뜻으로 읽힙니다.
+	   둘 다 뺍니다. */
+	ob_start();
 	imagepng( $im );
 	imagedestroy( $im );
+	$png = ob_get_clean();
+
+	header( 'Content-Type: image/png' );
+	header( 'Content-Length: ' . strlen( $png ) );
+	header( 'Cache-Control: public, max-age=604800' );
+	header( 'Accept-Ranges: none' );
+	header_remove( 'Expires' );
+	header_remove( 'Pragma' );
+	header_remove( 'X-Robots-Tag' );
+	echo $png;
 	exit;
 } );
 
