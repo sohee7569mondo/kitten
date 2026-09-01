@@ -128,6 +128,11 @@
   function makeImage(cb) {
     /* 결과가 아직 없으면(초대 화면) 초대용 그림을 그립니다 */
     if (!st.result) { makeInvite(cb); return; }
+    /* 캐릭터를 먼저 받아두고 나서 그립니다 */
+    var slotA = REL_PIC[st.rel] || '연인';
+    loadPics([slotA, '히어로큰'], function (P) { drawResult(P, cb); });
+  }
+  function drawResult(P, cb) {
     var W = 1080, H = 1350;
     var c = document.createElement('canvas');
     c.width = W; c.height = H;
@@ -146,6 +151,11 @@
     var who = (st.me.name || '나') + ' × ' + (st.you.name || '너');
     g.fillStyle = '#8C82A6'; g.font = '500 38px "Noto Sans KR",sans-serif';
     g.fillText(who, W / 2, 205);
+
+    /* 큰 점수 좌우로 둘이 마주봅니다 */
+    var slotA2 = REL_PIC[st.rel] || '연인';
+    drawPic(g, P[slotA2], 168, 452, 250);
+    drawPic(g, P['히어로큰'], 912, 452, 250);
 
     g.fillStyle = '#6B5BA8'; g.font = '700 300px Jua,"Noto Sans KR",sans-serif';
     g.fillText(String(r.total), W / 2, 520);
@@ -199,6 +209,10 @@
   }
   /* 초대 화면에서 나갈 그림 — 아직 점수가 없으니 물음표를 크게 */
   function makeInvite(cb) {
+    var slotB = REL_PIC[st.rel] || '연인';
+    loadPics([slotB, '히어로큰'], function (P) { drawInvite(P, cb); });
+  }
+  function drawInvite(P, cb) {
     var W = 1080, H = 1350;
     var c = document.createElement('canvas');
     c.width = W; c.height = H;
@@ -209,6 +223,10 @@
     g.textAlign = 'center';
     g.fillStyle = '#A79BC4'; g.font = '600 34px "Noto Sans KR",sans-serif';
     g.fillText('유앤미 · ' + U.relKo(st.rel) + ' 궁합', W / 2, 150);
+    var slotB2 = REL_PIC[st.rel] || '연인';
+    drawPic(g, P[slotB2], 168, 470, 250);
+    drawPic(g, P['히어로큰'], 912, 470, 250);
+
     g.fillStyle = '#6B5BA8'; g.font = '700 300px Jua,"Noto Sans KR",sans-serif';
     g.fillText('?', W / 2, 540);
     g.fillStyle = '#3F3A52'; g.font = '700 84px Jua,"Noto Sans KR",sans-serif';
@@ -236,21 +254,86 @@
     g.closePath();
   }
 
+  /* 그림 저장 ─────────────────────────────────────────────
+     예전에는 곧바로 내려받기를 시켰는데, 아이폰 사파리는 내려받기를
+     아예 안 하고 안드로이드도 가끔 막습니다. 그래서 그림을 화면에
+     띄워 드리고 거기서 저장하시게 합니다. 어느 기기에서나 됩니다. */
   function shareImage() {
-    makeImage(function (blob, canvas) {
-      var file = null;
-      try { file = new File([blob], 'uandme.png', { type: 'image/png' }); } catch (e) {}
-      if (file) { if (navigator.canShare) { if (navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file], text: shareText() }).catch(function () {});
-        return;
-      } } }
-      var a = document.createElement('a');
-      a.href = canvas.toDataURL('image/png');
-      a.download = 'uandme.png';
-      a.click();
-      toast(st.result ? '그림을 저장했어요. 인스타에 올려보세요' :
-        '초대 그림을 저장했어요. 링크는 프로필이나 스토리에 걸어주세요');
+    makeImage(function (blob, canvas) { imageSheet(blob, canvas); });
+  }
+
+  function saveBlob(blob, canvas) {
+    var name = st.result ? 'uandme.png' : 'uandme-invite.png';
+    var url = '';
+    try { url = URL.createObjectURL(blob); } catch (e) { url = ''; }
+    if (!url) { try { url = canvas.toDataURL('image/png'); } catch (e2) { url = ''; } }
+    if (!url) { return false; }
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      if (a.parentNode) { a.parentNode.removeChild(a); }
+      try { URL.revokeObjectURL(url); } catch (e3) {}
+    }, 4000);
+    return true;
+  }
+
+  function shareFile(blob) {
+    var file = null;
+    try { file = new File([blob], 'uandme.png', { type: 'image/png' }); } catch (e) { return false; }
+    if (!navigator.canShare) { return false; }
+    try { if (!navigator.canShare({ files: [file] })) { return false; } } catch (e2) { return false; }
+    try { navigator.share({ files: [file], text: shareText() }).catch(function () {}); } catch (e3) { return false; }
+    return true;
+  }
+
+  function imageSheet(blob, canvas) {
+    var url = '';
+    try { url = URL.createObjectURL(blob); } catch (e) { url = ''; }
+    if (!url) { try { url = canvas.toDataURL('image/png'); } catch (e2) { url = ''; } }
+
+    var old = document.getElementById('um-sheet');
+    if (old) { if (old.parentNode) { old.parentNode.removeChild(old); } }
+
+    var wrap = el('<div id="um-sheet" style="position:fixed;left:0;top:0;right:0;bottom:0;' +
+      'background:rgba(30,24,48,.88);z-index:2147483645;display:flex;align-items:center;' +
+      'justify-content:center;padding:18px;overflow:auto"></div>');
+    var box = el('<div style="max-width:340px;width:100%;text-align:center"></div>');
+    box.appendChild(el('<img src="' + url + '" alt="유앤미 궁합" ' +
+      'style="width:100%;border-radius:20px;display:block;box-shadow:0 18px 50px rgba(0,0,0,.35)">'));
+    box.appendChild(el('<div style="color:#fff;font-size:13px;line-height:1.7;margin-top:14px;opacity:.92">' +
+      '그림을 <b>꾹 눌러</b> 저장하세요<br>' +
+      '<span style="opacity:.72">컴퓨터라면 오른쪽 단추 → 이미지 저장</span></div>'));
+
+    var row = el('<div style="display:flex;gap:9px;margin-top:15px"></div>');
+    var bSave = el('<button style="flex:1;background:#fff;color:#3F3A52;border:0;border-radius:15px;' +
+      'padding:14px 0;font-size:14.5px;font-weight:700;font-family:inherit">저장하기</button>');
+    var bShare = el('<button style="flex:1;background:#B8A6E8;color:#fff;border:0;border-radius:15px;' +
+      'padding:14px 0;font-size:14.5px;font-weight:700;font-family:inherit">보내기</button>');
+    var bClose = el('<button style="width:100%;background:none;color:#fff;border:0;margin-top:11px;' +
+      'padding:11px 0;font-size:13.5px;opacity:.8;font-family:inherit">닫기</button>');
+
+    bSave.addEventListener('click', function () {
+      if (saveBlob(blob, canvas)) { toast('사진첩이나 다운로드 폴더를 봐주세요'); }
+      else { toast('그림을 꾹 눌러 저장해 주세요'); }
     });
+    bShare.addEventListener('click', function () {
+      if (!shareFile(blob)) { toast('이 기기에서는 그림을 꾹 눌러 저장해 주세요'); }
+    });
+    function shut() {
+      if (wrap.parentNode) { wrap.parentNode.removeChild(wrap); }
+      try { URL.revokeObjectURL(url); } catch (e) {}
+    }
+    bClose.addEventListener('click', shut);
+    wrap.addEventListener('click', function (ev) { if (ev.target === wrap) { shut(); } });
+
+    row.appendChild(bSave); row.appendChild(bShare);
+    box.appendChild(row); box.appendChild(bClose);
+    wrap.appendChild(box);
+    document.body.appendChild(wrap);
   }
 
   /* ── 화면 ────────────────────────────────────────────── */
@@ -349,6 +432,53 @@
 
   /* 설정(um-settings.js)에 그림 주소가 들어 있으면 그 그림을,
      비어 있으면 그려진 동물을 씁니다. 소희 님이 주소만 넣으면 바뀝니다. */
+  /* 그림 자리 이름 → 실제 주소. art 와 같은 규칙입니다. */
+  /* 관계마다 쓰는 그림 자리 (설정의 이름과 같습니다) */
+  var REL_PIC = { lover: '연인', married: '부부', friend: '친구', sibling: '형제자매',
+                  parent_child: '부모자녀', boss_sub: '상사부하', partner: '동업자' };
+
+  function picUrl(slot) {
+    var u = '';
+    if (window.UM_SET) { if (window.UM_SET.그림) { u = window.UM_SET.그림[slot] || ''; } }
+    if (u === '없음') { return ''; }
+    if (u) { if (u.indexOf('/') < 0) {
+      if (window.UM_PIC) { u = window.UM_PIC[u] || ''; }
+    } }
+    return u;
+  }
+  /* 그림 한 장 미리 받아둡니다. 못 받으면 없는 대로 갑니다. */
+  function loadPic(slot, cb) {
+    var u = picUrl(slot);
+    if (!u) { cb(null); return; }
+    var im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = function () { cb(im); };
+    im.onerror = function () { cb(null); };
+    im.src = u;
+  }
+  /* 여러 장을 다 받고 나서 한 번에 부릅니다 */
+  function loadPics(slots, cb) {
+    var out = {}, left = slots.length;
+    if (!left) { cb(out); return; }
+    var done = function () { left = left - 1; if (left === 0) { cb(out); } };
+    var i;
+    for (i = 0; i < slots.length; i++) {
+      (function (nm) {
+        loadPic(nm, function (im) { out[nm] = im; done(); });
+      })(slots[i]);
+    }
+    setTimeout(function () { if (left > 0) { left = 0; cb(out); } }, 3000);
+  }
+  /* 캔버스에 그림을 넣습니다 — 비율을 지키고 상자 안에 맞춥니다 */
+  function drawPic(g, im, cx, cy, box) {
+    if (!im) { return; }
+    var w = im.naturalWidth || im.width, h = im.naturalHeight || im.height;
+    if (!w) { return; }
+    var k = Math.min(box / w, box / h);
+    var dw = w * k, dh = h * k;
+    g.drawImage(im, cx - dw / 2, cy - dh / 2, dw, dh);
+  }
+
   function art(slot, fb) {
     var u = '';
     if (window.UM_SET) { if (window.UM_SET.그림) { u = window.UM_SET.그림[slot] || ''; } }
