@@ -212,7 +212,7 @@
       '<div class="pad" style="margin-top:22px"><div class="lbl">부를 이름 <span style="font-weight:400;color:#B3A9C9">(안 넣어도 돼요)</span></div>',
       '<input class="fld" id="f-name" maxlength="8" placeholder="지은" value="' + esc(p.name || '') + '"></div>',
       '<div class="pad" style="margin-top:18px"><div class="lbl">생년월일</div><div class="row">',
-      '<input class="fld" id="f-y" inputmode="numeric" maxlength="4" placeholder="1994" value="' + (p.y || '') + '" style="flex:1.3">',
+      '<input class="fld" id="f-y" inputmode="numeric" maxlength="4" placeholder="1994" value="' + (p.y || '') + '" style="flex:1.7">',
       '<input class="fld" id="f-m" inputmode="numeric" maxlength="2" placeholder="03" value="' + (p.m || '') + '">',
       '<input class="fld" id="f-d" inputmode="numeric" maxlength="2" placeholder="21" value="' + (p.d || '') + '">',
       '</div></div>',

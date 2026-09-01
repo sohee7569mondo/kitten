@@ -43,6 +43,9 @@
     'color:var(--ink);width:100%;font-family:inherit;text-align:center}',
     '#um .fld::placeholder{color:#C3BAD6}',
     '#um .row{display:flex;gap:7px}',
+    /* 한 줄에 놓인 칸은 폭을 0에서 시작해 고르게 나눠 갖습니다.
+       이게 없으면 width:100% 때문에 뒷칸이 폭을 다 먹고 연도 칸이 찌그러집니다. */
+    '#um .row>.fld{flex:1 1 0;min-width:0}',
     '#um .seg{flex:1;height:50px;background:#fff;border:0;border-radius:16px;font-size:14px;',
     'color:#57506E;cursor:pointer;font-family:inherit}',
     '#um .seg.on{background:var(--p);color:#fff;font-weight:700}',
