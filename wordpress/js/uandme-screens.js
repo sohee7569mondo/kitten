@@ -367,9 +367,7 @@
           '<div style="display:flex;align-items:center;justify-content:space-between">' +
             '<div style="background:#FFE2D6;color:#C4674A;font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:999px">연인 궁합</div>' +
             '<div style="font-size:11.5px;color:#B3A9C9;font-weight:500">이런 식으로 나와요</div></div>' +
-          '<div style="text-align:center;margin-top:14px">' +
-            '<div class="jua" style="font-size:76px;line-height:1;color:#6B5BA8">92</div>' +
-            '<div style="font-size:12.5px;color:#A79BC4;font-weight:500">점</div></div>' +
+          '<div style="margin-top:16px">' + ring(92, 'umRingA') + '</div>' +
           '<div class="jua" style="font-size:27px;text-align:center;margin-top:10px;color:#3F3A52">완전 찰떡궁합</div>' +
           '<div style="font-size:13.5px;line-height:1.8;color:#7C7392;margin-top:10px;text-align:center">' +
           '갑돌이가 갑순이 시집가도 여전히 못 잊었다는데, 두 분은 그럴 걱정 없을 궁합이에요.</div>' +
@@ -477,8 +475,7 @@
         U.relKo(st.rel) + ' 궁합</div>',
         '<div style="font-size:11.5px;color:#B3A9C9;font-weight:500">' +
         esc(st.me.name || '나') + ' × ' + esc(st.you.name || '너') + '</div></div>',
-        '<div style="text-align:center;margin-top:16px"><div class="jua" style="font-size:82px;line-height:1;color:#6B5BA8">' +
-        r.total + '</div><div style="font-size:12.5px;color:#A79BC4;font-weight:500;margin-top:2px">점</div></div>',
+        '<div style="margin-top:16px">' + ring(r.total, 'umRingB') + '</div>',
         '<div class="jua" style="font-size:28px;text-align:center;margin-top:12px;color:#3F3A52">' + esc(tier.title) + '</div>',
         '<div style="font-size:13.5px;line-height:1.8;color:#7C7392;margin-top:10px;text-align:center">' + esc(tier.comment) + '</div>',
         bar('사주', r.blocks.saju.score, 40),
@@ -520,6 +517,28 @@
       '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C3BAD6" stroke-width="2.4" ' +
       'stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' +
       '</button>';
+  }
+
+  /* 도넛 게이지 — 시안에 있던 그것입니다.
+     둘레는 2 x 3.14159 x 70 = 439.8. 점수만큼 칠하고 나머지는 비웁니다. */
+  function ring(score, id) {
+    var C = 439.8;
+    var on = C * (score / 100);
+    return '<div style="position:relative;width:168px;height:168px;margin:0 auto">' +
+      '<svg width="168" height="168" viewBox="0 0 168 168">' +
+      '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0%" stop-color="#C3B2F0"/>' +
+      '<stop offset="50%" stop-color="#F4B9D4"/>' +
+      '<stop offset="100%" stop-color="#FFCBA8"/></linearGradient></defs>' +
+      '<circle cx="84" cy="84" r="70" fill="none" stroke="#F1EBFA" stroke-width="17"/>' +
+      '<circle cx="84" cy="84" r="70" fill="none" stroke="url(#' + id + ')" stroke-width="17" ' +
+      'stroke-linecap="round" stroke-dasharray="' + on.toFixed(1) + ' ' + (C - on + 60).toFixed(1) + '" ' +
+      'transform="rotate(-90 84 84)"/></svg>' +
+      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;' +
+      'align-items:center;justify-content:center">' +
+      '<div class="jua" style="font-size:58px;line-height:1;color:#6B5BA8">' + score + '</div>' +
+      '<div style="font-size:12.5px;color:#A79BC4;font-weight:500;margin-top:2px">점</div>' +
+      '</div></div>';
   }
 
   function cat(name, v, bg, fg, sub) {
