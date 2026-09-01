@@ -9,6 +9,27 @@
   var el = X.el, esc = X.esc, IC = X.IC;
   var root = null;
 
+  /* ── 들어올 때의 장막 ────────────────────────────────────
+     워드프레스가 자기 화면을 먼저 그리고 나서야 우리 코드가 도는
+     탓에, 그 사이 스텔라사주 첫 화면이 깜빡 비칩니다. 들어오는
+     즉시 파스텔 여백으로 덮어두었다가 우리 화면이 다 그려지면
+     걷습니다. 혹시 무슨 일이 나도 4초 뒤에는 반드시 걷힙니다. */
+  function veilOn() {
+    if (document.getElementById('um-veil')) { return; }
+    var st2 = document.createElement('style');
+    st2.id = 'um-veil';
+    st2.textContent = 'html.um-load::before{content:"";position:fixed;left:0;top:0;' +
+      'right:0;bottom:0;background:#F7F2FC;z-index:2147483646;pointer-events:none}';
+    (document.head || document.documentElement).appendChild(st2);
+    document.documentElement.className += ' um-load';
+    setTimeout(veilOff, 4000);
+  }
+  function veilOff() {
+    var d = document.documentElement;
+    d.className = d.className.replace(/\s*\bum-load\b/g, '');
+  }
+  veilOn();
+
   function go(v) { st.view = v; render(); window.scrollTo(0, 0); }
 
   /* ── 공유 ────────────────────────────────────────────── */
@@ -552,6 +573,7 @@
     }
     root.innerHTML = h.join('');
     wire();
+    veilOff();
   }
 
   function step(n, txt, last) {
