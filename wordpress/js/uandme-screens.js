@@ -94,6 +94,18 @@
     document.head.appendChild(sc);
   }
 
+  /* 카톡 카드에 들어갈 속 이야기 — 점수가 있으면 알맹이를 넣습니다 */
+  function kakaoDesc() {
+    if (!st.result) {
+      return '사주 · 별자리 · 띠 셋을 함께 봅니다. 생일만 넣으면 바로 나와요';
+    }
+    var r = st.result;
+    return '사주 ' + r.blocks.saju.score + '/40 · 별자리 ' + r.blocks.zodiac.score +
+      '/30 · 띠 ' + r.blocks.animal.score + '/30\n' +
+      '성격 ' + r.categories.personality + ' 연애 ' + r.categories.love +
+      ' 결혼 ' + r.categories.marriage + ' 금전 ' + r.categories.money;
+  }
+
   function kakao(url, text) {
     if (kakaoReady()) {
       try {
@@ -101,11 +113,12 @@
           objectType: 'feed',
           content: {
             title: text || '우리 궁합 몇 점일까?',
-            description: '사주 · 별자리 · 띠 셋을 함께 봅니다. 생일만 넣으면 바로 나와요',
+            description: kakaoDesc(),
             imageUrl: kakaoPic(),
             link: { mobileWebUrl: url, webUrl: url }
           },
-          buttons: [{ title: '나도 보기', link: { mobileWebUrl: url, webUrl: url } }]
+          buttons: [{ title: st.result ? '나도 해보기' : '내 생일 넣기',
+                      link: { mobileWebUrl: url, webUrl: url } }]
         });
         return;
       } catch (e) {}
@@ -403,7 +416,7 @@
       tmr = setTimeout(function () { draw(v.replace(/\s+/g, '')); }, 120);
     });
 
-    document.body.appendChild(wrap);
+    (X.getRoot() || document.body).appendChild(wrap);
     draw('');
     window.__umPick = shut;
   }
@@ -426,29 +439,42 @@
     if (old) { if (old.parentNode) { old.parentNode.removeChild(old); } }
 
     var wrap = el('<div id="um-sheet" style="position:fixed;left:0;top:0;right:0;bottom:0;' +
-      'background:rgba(30,24,48,.88);z-index:2147483645;display:flex;align-items:center;' +
+      'background:rgba(28,22,45,.95);z-index:2147483645;display:flex;align-items:center;' +
       'justify-content:center;padding:18px;overflow:auto"></div>');
     var box = el('<div style="max-width:340px;width:100%;text-align:center"></div>');
     box.appendChild(el('<img src="' + url + '" alt="유앤미 궁합" ' +
       'style="width:100%;border-radius:20px;display:block;box-shadow:0 18px 50px rgba(0,0,0,.35)">'));
     box.appendChild(el('<div style="color:#fff;font-size:13px;line-height:1.7;margin-top:14px;opacity:.92">' +
-      '그림을 <b>꾹 눌러</b> 저장하세요<br>' +
-      '<span style="opacity:.72">컴퓨터라면 오른쪽 단추 → 이미지 저장</span></div>'));
+      '카톡·X·스레드로 보내면 <b>이 그림과 링크가 함께</b> 갑니다<br>' +
+      '<span style="opacity:.72">인스타는 그림을 저장해서 올려주세요</span></div>'));
 
-    var row = el('<div style="display:flex;gap:9px;margin-top:15px"></div>');
-    var bSave = el('<button style="flex:1;background:#fff;color:#3F3A52;border:0;border-radius:15px;' +
-      'padding:14px 0;font-size:14.5px;font-weight:700;font-family:inherit">저장하기</button>');
-    var bShare = el('<button style="flex:1;background:#B8A6E8;color:#fff;border:0;border-radius:15px;' +
-      'padding:14px 0;font-size:14.5px;font-weight:700;font-family:inherit">보내기</button>');
-    var bClose = el('<button style="width:100%;background:none;color:#fff;border:0;margin-top:11px;' +
+    /* 보내는 곳들 — 화면 아래쪽과 같은 아이콘 줄입니다 */
+    var link = st.result ? resultUrl() : inviteUrl();
+    var row = el('<div id="um-shsheet" style="margin-top:15px"></div>');
+    row.innerHTML = shareRow(link, shareText(), false);
+    var bs = row.querySelectorAll('[data-s]'), bi;
+    for (bi = 0; bi < bs.length; bi++) {
+      bs[bi].addEventListener('click', function () {
+        var k = this.getAttribute('data-s');
+        if (k === 'kakao') { kakao(link, shareText()); return; }
+        if (k === 'x') { tweet(link, shareText()); return; }
+        if (k === 'threads') { threads(link, shareText()); return; }
+        if (k === 'copy') { copy(link); toast('링크를 복사했어요'); return; }
+        if (k === 'image') {
+          if (saveBlob(blob, canvas)) { toast('그림을 저장했어요. 인스타에 올려보세요'); }
+          else { toast('그림을 꾹 눌러 저장해 주세요'); }
+        }
+      });
+    }
+    var bSave = el('<button style="width:100%;background:#fff;color:#3F3A52;border:0;border-radius:15px;' +
+      'padding:14px 0;margin-top:11px;font-size:14.5px;font-weight:700;font-family:inherit">' +
+      '그림 저장하기</button>');
+    var bClose = el('<button style="width:100%;background:none;color:#fff;border:0;margin-top:9px;' +
       'padding:11px 0;font-size:13.5px;opacity:.8;font-family:inherit">닫기</button>');
 
     bSave.addEventListener('click', function () {
       if (saveBlob(blob, canvas)) { toast('사진첩이나 다운로드 폴더를 봐주세요'); }
       else { toast('그림을 꾹 눌러 저장해 주세요'); }
-    });
-    bShare.addEventListener('click', function () {
-      if (!shareFile(blob)) { toast('이 기기에서는 그림을 꾹 눌러 저장해 주세요'); }
     });
     function shut() {
       if (wrap.parentNode) { wrap.parentNode.removeChild(wrap); }
@@ -457,10 +483,9 @@
     bClose.addEventListener('click', shut);
     wrap.addEventListener('click', function (ev) { if (ev.target === wrap) { shut(); } });
 
-    row.appendChild(bSave); row.appendChild(bShare);
-    box.appendChild(row); box.appendChild(bClose);
+    box.appendChild(row); box.appendChild(bSave); box.appendChild(bClose);
     wrap.appendChild(box);
-    document.body.appendChild(wrap);
+    (X.getRoot() || document.body).appendChild(wrap);
   }
 
   /* ── 화면 ────────────────────────────────────────────── */

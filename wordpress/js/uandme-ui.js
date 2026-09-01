@@ -58,6 +58,8 @@
     'background:none;border:0;font-family:inherit;padding:0}',
     '#um .sh i{width:56px;height:56px;border-radius:20px;display:flex;align-items:center;justify-content:center}',
     '#um .sh span{font-size:11.5px;font-weight:700;color:#57506E}',
+    /* 어두운 덮개 위에 뜨는 시트 안에서는 글씨가 하얘야 보입니다 */
+    '#um #um-sheet .sh span{color:#F2EDFA}',
     '#um .stp{cursor:pointer;transition:transform .12s}',
     '#um .stp:active{transform:scale(.98)}',
     '#um .note{font-size:12px;line-height:1.85;color:var(--soft)}',
