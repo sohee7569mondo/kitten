@@ -1,0 +1,223 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@700&display=swap">
+  <style>
+    body { margin: 0; background: #FFFFFF; }
+    a { color: #111111; text-decoration: none; }
+    a:hover { color: #555555; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="width: 390px; background: #FFFFFF; font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif; color: #111111; padding-bottom: 48px;">
+
+  <!-- 상단 -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 0;">
+    <div style="font-size: 18px; font-weight: 900; letter-spacing: -0.04em;">테스트</div>
+    <div style="font-size: 10.5px; font-weight: 500; color: #999999; letter-spacing: 0.02em;">스텔라사주</div>
+  </div>
+
+  <!-- 아주 얇은 헤드 : 첫 화면을 테스트에 양보 -->
+  <div style="padding: 18px 18px 16px;">
+    <div style="font-size: 26px; font-weight: 900; line-height: 1.25; letter-spacing: -0.045em;">
+      오늘은 뭘 해볼까
+    </div>
+    <div style="font-size: 12.5px; color: #888888; margin-top: 6px;">전부 무료 · 로그인 없음 · 1~3분</div>
+  </div>
+
+  <!-- 검색 -->
+  <div style="padding: 0 18px;">
+    <div style="display: flex; align-items: center; gap: 9px; height: 44px; border: 1.5px solid #111111; border-radius: 2px; padding: 0 13px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/></svg>
+      <div style="font-size: 13.5px; color: #AAAAAA;">테스트 찾기</div>
+    </div>
+  </div>
+
+  <!-- 분류 칩 -->
+  <div style="display: flex; gap: 6px; padding: 14px 18px 0; flex-wrap: wrap;">
+    <div style="background: #111111; color: #FFFFFF; height: 44px; display: flex; align-items: center; padding: 0 15px; font-size: 12.5px; font-weight: 700; border-radius: 2px;">전체</div>
+    <div style="background: #F2F2F2; color: #444444; height: 44px; display: flex; align-items: center; padding: 0 15px; font-size: 12.5px; font-weight: 500; border-radius: 2px;">성격</div>
+    <div style="background: #F2F2F2; color: #444444; height: 44px; display: flex; align-items: center; padding: 0 15px; font-size: 12.5px; font-weight: 500; border-radius: 2px;">연애</div>
+    <div style="background: #F2F2F2; color: #444444; height: 44px; display: flex; align-items: center; padding: 0 15px; font-size: 12.5px; font-weight: 500; border-radius: 2px;">일</div>
+    <div style="background: #F2F2F2; color: #444444; height: 44px; display: flex; align-items: center; padding: 0 15px; font-size: 12.5px; font-weight: 500; border-radius: 2px;">마음</div>
+    <div style="background: #F2F2F2; color: #444444; height: 44px; display: flex; align-items: center; padding: 0 15px; font-size: 12.5px; font-weight: 500; border-radius: 2px;">돈</div>
+    <div style="background: #F2F2F2; color: #444444; height: 44px; display: flex; align-items: center; padding: 0 15px; font-size: 12.5px; font-weight: 500; border-radius: 2px;">가족</div>
+  </div>
+
+  <!-- 테스트 격자 : 첫 화면에 최대한 많이 -->
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5px; background: #111111; margin-top: 16px; border-top: 1.5px solid #111111; border-bottom: 1.5px solid #111111;">
+
+    <div style="background: #FFFFFF; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #999999;">01</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">나는 어떤 동물일까</div>
+      </div>
+      <div style="font-size: 11px; color: #999999;">12문항 · 2분</div>
+    </div>
+
+    <div style="background: #111111; color: #FFFFFF; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #888888;">02</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">연애할 때<br>나는 어떤 사람</div>
+      </div>
+      <div style="font-size: 11px; color: #888888;">16문항 · 3분</div>
+    </div>
+
+    <div style="background: #FFFFFF; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #999999;">03</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">번아웃<br>자가진단</div>
+      </div>
+      <div style="font-size: 11px; color: #999999;">10문항 · 2분</div>
+    </div>
+
+    <div style="background: #E8E8E8; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #777777;">04</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">나의 사랑의 언어</div>
+      </div>
+      <div style="font-size: 11px; color: #777777;">14문항 · 3분</div>
+    </div>
+
+    <div style="background: #FFFFFF; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #999999;">05</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">직장에서<br>나는 어떤 사람</div>
+      </div>
+      <div style="font-size: 11px; color: #999999;">15문항 · 3분</div>
+    </div>
+
+    <div style="background: #FFFFFF; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #999999;">06</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">나의 소비 유형</div>
+      </div>
+      <div style="font-size: 11px; color: #999999;">12문항 · 2분</div>
+    </div>
+
+    <div style="background: #E8E8E8; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #777777;">07</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">친구들이<br>보는 나</div>
+      </div>
+      <div style="font-size: 11px; color: #777777;">10문항 · 2분</div>
+    </div>
+
+    <div style="background: #FFFFFF; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #999999;">08</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">스트레스 지수</div>
+      </div>
+      <div style="font-size: 11px; color: #999999;">9문항 · 2분</div>
+    </div>
+
+    <div style="background: #FFFFFF; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #999999;">09</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">화가 날 때<br>나는</div>
+      </div>
+      <div style="font-size: 11px; color: #999999;">11문항 · 2분</div>
+    </div>
+
+    <div style="background: #111111; color: #FFFFFF; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #888888;">10</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">나는 어떤<br>부모일까</div>
+      </div>
+      <div style="font-size: 11px; color: #888888;">13문항 · 3분</div>
+    </div>
+
+    <div style="background: #FFFFFF; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #999999;">11</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">결정 장애 지수</div>
+      </div>
+      <div style="font-size: 11px; color: #999999;">10문항 · 2분</div>
+    </div>
+
+    <div style="background: #E8E8E8; padding: 15px 14px; min-height: 108px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 10px; color: #777777;">12</div>
+        <div style="font-size: 15px; font-weight: 700; line-height: 1.35; margin-top: 6px; letter-spacing: -0.03em;">나의 여행 스타일</div>
+      </div>
+      <div style="font-size: 11px; color: #777777;">12문항 · 2분</div>
+    </div>
+
+  </div>
+
+  <div style="padding: 18px 18px 0;">
+    <a href="#" style="display: flex; align-items: center; justify-content: center; height: 48px; border: 1.5px solid #111111; border-radius: 2px; font-size: 14px; font-weight: 700;">테스트 더 보기</a>
+  </div>
+
+  <!-- 지금 많이 하는 -->
+  <div style="margin-top: 44px; padding: 0 18px;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between;">
+      <div style="font-size: 20px; font-weight: 900; letter-spacing: -0.04em;">지금 많이 하는</div>
+      <div style="font-family: 'Space Mono', monospace; font-size: 10.5px; color: #999999;">09.01 21:00</div>
+    </div>
+    <div style="margin-top: 14px; border-top: 1.5px solid #111111;">
+      <div style="display: flex; align-items: center; gap: 13px; padding: 13px 0; border-bottom: 1px solid #E4E4E4;">
+        <div style="font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; width: 20px;">1</div>
+        <div style="flex: 1; font-size: 14px; font-weight: 500;">연애할 때 나는 어떤 사람</div>
+        <div style="font-size: 11px; color: #999999;">4.2만</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 13px; padding: 13px 0; border-bottom: 1px solid #E4E4E4;">
+        <div style="font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; width: 20px;">2</div>
+        <div style="flex: 1; font-size: 14px; font-weight: 500;">번아웃 자가진단</div>
+        <div style="font-size: 11px; color: #999999;">3.8만</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 13px; padding: 13px 0; border-bottom: 1px solid #E4E4E4;">
+        <div style="font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; width: 20px;">3</div>
+        <div style="flex: 1; font-size: 14px; font-weight: 500;">나는 어떤 동물일까</div>
+        <div style="font-size: 11px; color: #999999;">3.1만</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 13px; padding: 13px 0; border-bottom: 1px solid #E4E4E4;">
+        <div style="font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; width: 20px;">4</div>
+        <div style="flex: 1; font-size: 14px; font-weight: 500;">나의 사랑의 언어</div>
+        <div style="font-size: 11px; color: #999999;">2.7만</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 13px; padding: 13px 0; border-bottom: 1px solid #E4E4E4;">
+        <div style="font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; width: 20px;">5</div>
+        <div style="flex: 1; font-size: 14px; font-weight: 500;">직장에서 나는 어떤 사람</div>
+        <div style="font-size: 11px; color: #999999;">2.3만</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 유앤미로 -->
+  <div style="margin-top: 40px; padding: 0 18px;">
+    <a href="#" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px; background: #F7F2FC; border-radius: 2px;">
+      <div>
+        <div style="font-size: 11px; color: #A79BC4; font-weight: 700; margin-bottom: 5px;">유앤미</div>
+        <div style="font-size: 16px; font-weight: 700; color: #3F3A52; letter-spacing: -0.03em;">둘이서 궁합도 보고 가세요</div>
+      </div>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#B8A6E8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </div>
+
+  <!-- 스텔라사주로 -->
+  <div style="margin-top: 10px; padding: 0 18px;">
+    <a href="#" style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px; background: #100B22; border-radius: 2px;">
+      <div>
+        <div style="font-size: 11px; color: #B9A2F2; font-weight: 700; margin-bottom: 5px;">스텔라사주</div>
+        <div style="font-size: 16px; font-weight: 700; color: #F6F1E7; letter-spacing: -0.03em;">내 사주 제대로 읽어보기</div>
+      </div>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C99A55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </div>
+
+  <div style="margin-top: 28px; padding: 0 18px; font-size: 11px; line-height: 1.9; color: #AAAAAA;">
+    성격 유형 검사는 재미로 보는 것입니다. 심리 진단이나 의학적 판단이 아닙니다.
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
