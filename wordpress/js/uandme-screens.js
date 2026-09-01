@@ -34,7 +34,22 @@
 
   /* ── 공유 ────────────────────────────────────────────── */
   function inviteUrl() { return X.base() + '?i=' + U.packLink(st.rel, st.me); }
-  function resultUrl() { return X.base() + '?r=' + U.packLink(st.rel, st.me, st.you); }
+  function resultUrl() {
+    var u = X.base() + '?r=' + U.packLink(st.rel, st.me, st.you);
+    /* 점수를 같이 실어 둡니다. 이러면 링크를 스레드·X·디스코드 어디에
+       붙여도 그쪽에서 우리 점수 카드를 미리 보여줍니다.
+       생년월일은 앞의 r 안에만 있고 여기에는 점수뿐입니다. */
+    if (st.result) {
+      var r = st.result, t = '';
+      try { t = window.UANDME_TIER(r.total, st.rel).title || ''; } catch (e) { t = ''; }
+      u += '&s=' + r.total +
+           '&a=' + r.blocks.saju.score +
+           '&b=' + r.blocks.zodiac.score +
+           '&c=' + r.blocks.animal.score +
+           '&t=' + encodeURIComponent(t);
+    }
+    return u;
+  }
 
   function shareText() {
     if (!st.result) { return '우리 궁합 몇 점일까?'; }

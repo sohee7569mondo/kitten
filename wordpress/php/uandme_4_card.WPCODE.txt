@@ -280,3 +280,76 @@ add_action( 'init', function () {
 	imagedestroy( $im );
 	exit;
 } );
+
+/* ── 링크를 어디에 붙여도 우리 카드가 뜨게 ─────────────
+   스레드·X·디스코드·페이스북은 페이지의 og:image 를 봅니다. 카톡도
+   링크만 붙여넣으면 이걸 봅니다. 유앤미 결과 링크에 점수가 실려
+   있으므로, 그 점수로 그린 카드를 og:image 로 내겁니다. */
+add_action( 'wp_head', function () {
+
+	if ( ! function_exists( 'stella_um_here' ) ) { return; }
+	if ( ! stella_um_here() ) { return; }
+	if ( ! isset( $_GET['s'] ) ) { return; }
+
+	$score = max( 0, min( 99, intval( $_GET['s'] ) ) );
+	$a     = isset( $_GET['a'] ) ? max( 0, min( 40, intval( $_GET['a'] ) ) ) : 0;
+	$b     = isset( $_GET['b'] ) ? max( 0, min( 30, intval( $_GET['b'] ) ) ) : 0;
+	$c     = isset( $_GET['c'] ) ? max( 0, min( 30, intval( $_GET['c'] ) ) ) : 0;
+	$rel   = isset( $_GET['rel'] ) ? sanitize_key( $_GET['rel'] ) : 'lover';
+	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : '';
+	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
+
+	$img = home_url( '/?um_card=1&s=' . $score . '&r=' . $rel . '&a=' . $a . '&b=' . $b .
+	                 '&c=' . $c . '&t=' . rawurlencode( $tier ) );
+
+	$title = '우리 ' . $score . '점' . ( $tier ? ' - ' . $tier : '' );
+	$desc  = '사주 ' . $a . '/40, 별자리 ' . $b . '/30, 띠 ' . $c . '/30. 생일만 넣으면 바로 나와요';
+
+	$host = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : 'stellasaju.com';
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '/uandme/';
+	$here = ( is_ssl() ? 'https://' : 'http://' ) . $host . $uri;
+
+	echo "\n<!-- 유앤미 -->\n";
+	echo '<meta property="og:type" content="website">' . "\n";
+	echo '<meta property="og:title" content="' . esc_attr( $title ) . '">' . "\n";
+	echo '<meta property="og:description" content="' . esc_attr( $desc ) . '">' . "\n";
+	echo '<meta property="og:image" content="' . esc_url( $img ) . '">' . "\n";
+	echo '<meta property="og:image:width" content="800">' . "\n";
+	echo '<meta property="og:image:height" content="400">' . "\n";
+	echo '<meta property="og:url" content="' . esc_url( $here ) . '">' . "\n";
+	echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+	echo '<meta name="twitter:title" content="' . esc_attr( $title ) . '">' . "\n";
+	echo '<meta name="twitter:description" content="' . esc_attr( $desc ) . '">' . "\n";
+	echo '<meta name="twitter:image" content="' . esc_url( $img ) . '">' . "\n";
+
+}, 1 );
+
+/* 젯팩이 스스로 내보내는 og 태그를 우리 것으로 바꿔 끼웁니다.
+   그러지 않으면 회색 스텔라사주 그림이 같이 나가 그쪽이 뽑힙니다. */
+add_filter( 'jetpack_open_graph_tags', function ( $tags ) {
+
+	if ( ! function_exists( 'stella_um_here' ) ) { return $tags; }
+	if ( ! stella_um_here() ) { return $tags; }
+	if ( ! isset( $_GET['s'] ) ) { return $tags; }
+
+	$score = max( 0, min( 99, intval( $_GET['s'] ) ) );
+	$a     = isset( $_GET['a'] ) ? max( 0, min( 40, intval( $_GET['a'] ) ) ) : 0;
+	$b     = isset( $_GET['b'] ) ? max( 0, min( 30, intval( $_GET['b'] ) ) ) : 0;
+	$c     = isset( $_GET['c'] ) ? max( 0, min( 30, intval( $_GET['c'] ) ) ) : 0;
+	$rel   = isset( $_GET['rel'] ) ? sanitize_key( $_GET['rel'] ) : 'lover';
+	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : '';
+	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
+
+	$img = home_url( '/?um_card=1&s=' . $score . '&r=' . $rel . '&a=' . $a . '&b=' . $b .
+	                 '&c=' . $c . '&t=' . rawurlencode( $tier ) );
+
+	$tags['og:title']        = '우리 ' . $score . '점' . ( $tier ? ' - ' . $tier : '' );
+	$tags['og:description']  = '사주 ' . $a . '/40, 별자리 ' . $b . '/30, 띠 ' . $c . '/30. 생일만 넣으면 바로 나와요';
+	$tags['og:image']        = $img;
+	$tags['og:image:width']  = 800;
+	$tags['og:image:height'] = 400;
+	$tags['twitter:card']    = 'summary_large_image';
+	$tags['twitter:image']   = $img;
+
+	return $tags;
+}, 20 );
