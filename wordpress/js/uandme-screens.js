@@ -39,6 +39,11 @@
     var q = 'text=' + encodeURIComponent(text + '\n' + url);
     window.open('https://www.threads.net/intent/post?' + q, '_blank', 'noopener');
   }
+  function xpost(url, text) {
+    /* 물음표 뒤에 값 하나만 넘깁니다 — 주소에 앰퍼샌드를 안 쓰려고요 */
+    var q = 'text=' + encodeURIComponent(text + '\n' + url);
+    window.open('https://twitter.com/intent/tweet?' + q, '_blank', 'noopener');
+  }
   function kakao(url, text) {
     if (window.Kakao) { if (window.Kakao.Share) {
       try {
@@ -65,6 +70,8 @@
 
   /* ── 자랑용 그림 만들기 ──────────────────────────────── */
   function makeImage(cb) {
+    /* 결과가 아직 없으면(초대 화면) 초대용 그림을 그립니다 */
+    if (!st.result) { makeInvite(cb); return; }
     var W = 1080, H = 1350;
     var c = document.createElement('canvas');
     c.width = W; c.height = H;
@@ -134,6 +141,35 @@
 
     c.toBlob(function (blob) { cb(blob, c); }, 'image/png');
   }
+  /* 초대 화면에서 나갈 그림 — 아직 점수가 없으니 물음표를 크게 */
+  function makeInvite(cb) {
+    var W = 1080, H = 1350;
+    var c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    var g = c.getContext('2d');
+    var bg = g.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, '#FBF6FF'); bg.addColorStop(0.55, '#F0E6FB'); bg.addColorStop(1, '#FFEDE2');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    g.textAlign = 'center';
+    g.fillStyle = '#A79BC4'; g.font = '600 34px "Noto Sans KR",sans-serif';
+    g.fillText('유앤미 · ' + U.relKo(st.rel) + ' 궁합', W / 2, 150);
+    g.fillStyle = '#6B5BA8'; g.font = '700 300px Jua,"Noto Sans KR",sans-serif';
+    g.fillText('?', W / 2, 540);
+    g.fillStyle = '#3F3A52'; g.font = '700 84px Jua,"Noto Sans KR",sans-serif';
+    g.fillText('우리 둘,', W / 2, 700);
+    g.fillText('몇 점일까?', W / 2, 810);
+    g.fillStyle = '#7C7392'; g.font = '500 40px "Noto Sans KR",sans-serif';
+    g.fillText('사주 · 별자리 · 띠 셋을 함께 봅니다', W / 2, 915);
+    g.fillText('생일만 넣으면 바로 나와요', W / 2, 980);
+    g.fillStyle = 'rgba(255,255,255,.85)';
+    rr(g, 140, 1070, 800, 120, 34); g.fill();
+    g.fillStyle = '#6B5BA8'; g.font = '700 42px "Noto Sans KR",sans-serif';
+    g.fillText('가입도 앱 설치도 없어요', W / 2, 1146);
+    g.fillStyle = '#A79BC4'; g.font = '500 32px "Noto Sans KR",sans-serif';
+    g.fillText('stellasaju.com/uandme', W / 2, 1290);
+    c.toBlob(function (blob) { cb(blob, c); }, 'image/png');
+  }
+
   function rr(g, x, y, w, h, r) {
     g.beginPath();
     g.moveTo(x + r, y);
@@ -156,7 +192,8 @@
       a.href = canvas.toDataURL('image/png');
       a.download = 'uandme.png';
       a.click();
-      toast('그림을 저장했어요. 인스타에 올려보세요');
+      toast(st.result ? '그림을 저장했어요. 인스타에 올려보세요' :
+        '초대 그림을 저장했어요. 링크는 프로필이나 스토리에 걸어주세요');
     });
   }
 
@@ -216,14 +253,24 @@
   }
 
   function shareRow(url, text, withImage) {
-    var b = ['<button class="sh" data-s="kakao"><i style="background:#FAE100">' + IC.talk + '</i><span>카카오톡</span></button>',
-             '<button class="sh" data-s="threads"><i style="background:#1A1A1A">' + IC.at + '</i><span>스레드</span></button>'];
+    var row = '<div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px">' +
+      shareBtn('kakao',   '카카오톡',  '#FAE100', IC.talk) +
+      shareBtn('x',       'X',        '#000000', IC.ex) +
+      shareBtn('threads', '스레드',    '#1A1A1A', IC.at) +
+      shareBtn('image',   '인스타',    '#D9578C', IC.cam) +
+      shareBtn('copy',    '링크 복사', '#E7DEFA', IC.link) +
+      '</div>';
     if (withImage) {
-      b.push('<button class="sh" data-s="image"><i style="background:#D9578C">' + IC.cam + '</i><span>인스타</span></button>');
-      b.push('<button class="sh" data-s="save"><i style="background:#E2F5EE">' + IC.save + '</i><span>그림 저장</span></button>');
+      row += '<button class="btnG" data-s="save" style="margin-top:12px;background:#fff">' +
+        '그림으로 저장하기</button>';
     }
-    b.push('<button class="sh" data-s="copy"><i style="background:#E7DEFA">' + IC.link + '</i><span>링크 복사</span></button>');
-    return '<div style="display:flex;gap:8px">' + b.join('') + '</div>';
+    return row;
+  }
+
+  function shareBtn(k, name, bg, icon) {
+    return '<button class="sh" data-s="' + k + '">' +
+      '<i style="background:' + bg + '">' + icon + '</i>' +
+      '<span>' + name + '</span></button>';
   }
 
   /* ── 유앤미만의 머리말과 꼬리말 ───────────────────────
@@ -533,6 +580,7 @@
       var text = st.result ? shareText() :
         ((st.me.name || '친구') + '님이 궁합 보자고 해요');
       if (k === 'kakao')   { kakao(url, text); }
+      if (k === 'x')       { xpost(url, text); }
       if (k === 'threads') { threads(url, text); }
       if (k === 'copy')    { copy(url); }
       if (k === 'image')   { shareImage(); }
