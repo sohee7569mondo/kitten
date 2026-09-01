@@ -1,0 +1,106 @@
+/* ════════════════════════════════════════════════════════════
+   책(160)의 뼈대만 훑어봅니다 · 읽기 전용
+
+   나이대 겹(초년 · 중년 · 말년)을 직성 · 연성 · 강성에도 얹으려면
+   각 문이 어디서 시작하고, 어디에 글을 그리는지를 알아야 합니다.
+   이 조각은 아무것도 바꾸지 않고 그 자리들만 세어서 보여줍니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   열기 : https://stellasaju.com/?stella_stage=1
+
+   화면을 통째로 보내주시면 됩니다. 다 보고 나면 꺼주세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_stage'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">';
+	echo '<body class="notranslate" translate="no" style="font:14px/1.7 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:20px;max-width:1100px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	global $wpdb;
+	$pid = 160;
+	$now = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+
+	if ( null === $now ) {
+		echo '<h2 style="color:#ff7b7b">160 을 못 읽었습니다.</h2>';
+		exit;
+	}
+
+	printf( '<h1 style="color:#ffd76a">책의 뼈대 — %d 바이트</h1>', strlen( $now ) );
+	echo '<p style="color:#888">아무것도 바꾸지 않았습니다.</p>';
+
+	$rows = array();
+
+	$look = array(
+		array( '나이 계산',   '/var age\s*=[^;\n]{0,60};/u' ),
+		array( '대운 변수',   '/var lk\s*=\s*chart\.luck;/u' ),
+		array( '지금 판 찾기', '/var nowIdx\s*=/u' ),
+		array( '문 분기',     '/slug\s*===\s*\'(door-[a-z]+)\'/u' ),
+		array( '주제 읽기',   '/var (__[A-Za-z]{2,6})=\(function/u' ),
+		array( '겹치기 함수', '/function (__[A-Za-z]{2,8})\(tbl/u' ),
+		array( '그리는 자리', '/([A-Za-z]{2,12}Txt)\+\s*\'<div class=\"voice\">/u' ),
+		array( '글자 변수',   '/var ([A-Za-z]{2,12}Txt)\s*=/u' ),
+		array( '나이대 겹',   '/__fSpan/u' ),
+	);
+
+	foreach ( $look as $L ) {
+		$hits = array();
+		if ( preg_match_all( $L[1], $now, $mm, PREG_OFFSET_CAPTURE | PREG_SET_ORDER ) ) {
+			foreach ( $mm as $one ) {
+				$name = isset( $one[1] ) ? $one[1][0] : trim( $one[0][0] );
+				if ( strlen( $name ) > 60 ) {
+					$name = substr( $name, 0, 60 ) . '…';
+				}
+				$hits[] = array( $one[0][1], $name );
+			}
+		}
+		$rows[] = array( $L[0], $hits );
+	}
+
+	echo '<table cellpadding="7" style="border-collapse:collapse;width:100%;font-size:14px">';
+	echo '<tr style="color:#ffd76a"><td>무엇</td><td>몇 개</td><td>어디에 (바이트 자리 · 이름)</td></tr>';
+	foreach ( $rows as $r ) {
+		$n    = count( $r[1] );
+		$list = array();
+		foreach ( $r[1] as $h ) {
+			$list[] = '<span style="color:#9fd">' . number_format( $h[0] ) . '</span> ' . esc_html( $h[1] );
+		}
+		printf(
+			'<tr style="border-top:1px solid #333;vertical-align:top"><td>%s</td><td style="color:%s"><b>%d</b></td><td>%s</td></tr>',
+			esc_html( $r[0] ),
+			$n ? '#7bff9b' : '#ff7b7b',
+			$n,
+			$list ? implode( '<br>', $list ) : '<span style="color:#666">없음</span>'
+		);
+	}
+	echo '</table>';
+
+	echo '<h2 style="color:#ffd76a">문마다 어디서 시작하나</h2>';
+	$doors = array( 'door-career', 'door-love', 'door-health', 'door-fortune', 'door-tarot' );
+	echo '<table cellpadding="7" style="border-collapse:collapse">';
+	foreach ( $doors as $d ) {
+		$c = substr_count( $now, "'" . $d . "'" );
+		$p = strpos( $now, "slug==='" . $d . "'" );
+		printf(
+			'<tr style="border-top:1px solid #333"><td>%s</td><td>이름 %d번</td><td>%s</td></tr>',
+			esc_html( $d ),
+			$c,
+			false === $p ? '<span style="color:#666">분기 없음</span>' : '<span style="color:#9fd">분기 ' . number_format( $p ) . '</span>'
+		);
+	}
+	echo '</table>';
+
+	echo '<p style="color:#888;margin-top:22px">다 보셨으면 이 스니펫은 꺼주세요.</p>';
+	exit;
+} );
