@@ -507,7 +507,12 @@
      것만 감춥니다. 워드프레스 관리 막대(#wpadminbar)는 div 라서 안 걸립니다. */
   function hideTheme(host) {
     var i, n;
-    n = document.querySelectorAll('header, footer, .site-header, .site-footer, #masthead, #colophon');
+    /* 워드프레스는 머리띠를 <header> 로 낼 때도 있고 그냥
+       <div class="wp-block-template-part"> 로 낼 때도 있습니다.
+       태그를 가리지 않고 「템플릿 조각」이면 다 잡습니다. */
+    n = document.querySelectorAll(
+      'header, footer, .wp-block-template-part, .site-header, .site-footer, ' +
+      '#masthead, #colophon, .wp-block-site-logo, .wp-block-navigation');
     for (i = 0; i < n.length; i++) {
       if (n[i].id === 'um-top') { continue; }
       if (n[i].id === 'um-foot') { continue; }
@@ -539,15 +544,30 @@
     out.push('body 표시 : ' + (document.body.classList.contains('um-page') ? 'um-page 붙음' : '안 붙음'));
     out.push('유앤미 머리말 : ' + (document.getElementById('um-top') ? '있음' : '없음'));
     out.push('유앤미 꼬리말 : ' + (document.getElementById('um-foot') ? '있음' : '없음'));
-    var n = document.querySelectorAll('header, footer'), i, L = [];
-    for (i = 0; i < n.length; i++) {
-      L.push(n[i].tagName.toLowerCase() +
-        (n[i].id ? '#' + n[i].id : '') +
-        (n[i].className ? '.' + String(n[i].className).trim().split(/\s+/).join('.') : '') +
-        ' → ' + getComputedStyle(n[i]).display);
+    /* 화면에 아직 보이는 것이 무엇인지 그대로 보여줍니다 */
+    var all = document.querySelectorAll('body *'), i, L = [], seen = 0;
+    for (i = 0; i < all.length; i++) {
+      var e = all[i];
+      if (e.closest('#wpadminbar')) { continue; }
+      if (e.closest('#um')) { continue; }
+      if (e.closest('#um-top')) { continue; }
+      if (e.closest('#um-foot')) { continue; }
+      if (e.contains(host)) { continue; }
+      if (getComputedStyle(e).display === 'none') { continue; }
+      var r = e.getBoundingClientRect();
+      if (r.height < 24) { continue; }
+      if (r.width < 120) { continue; }
+      if (e.parentNode) { if (e.parentNode.__um) { continue; } }
+      e.__um = 1;
+      seen++;
+      if (seen > 14) { break; }
+      L.push(e.tagName.toLowerCase() +
+        (e.id ? '#' + e.id : '') +
+        (e.className ? '.' + String(e.className).trim().split(/\s+/).slice(0, 3).join('.') : '') +
+        '  [' + Math.round(r.width) + 'x' + Math.round(r.height) + ']');
     }
-    out.push('페이지의 머리·꼬리 ' + n.length + '개');
-    out.push(L.join('<br>'));
+    out.push('아직 화면에 남아 있는 것 ' + seen + '개');
+    out.push(L.length ? L.join('<br>') : '없음 — 깨끗합니다');
     var d = X.el('<div style="position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;' +
       'background:#111;color:#9fd;font:12px/1.7 monospace;padding:14px;border-radius:12px;' +
       'max-height:52vh;overflow:auto">' + out.join('<br>') + '</div>');
