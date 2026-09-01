@@ -236,13 +236,14 @@
   function art(slot, fb) {
     var u = '';
     if (window.UM_SET) { if (window.UM_SET.그림) { u = window.UM_SET.그림[slot] || ''; } }
+    /* 「없음」이라고 적으면 그 자리에 아무것도 안 그립니다 */
+    if (u === '없음') { return ''; }
     /* 「가1」 「다7」 같은 이름표면 그림 목록에서 주소를 찾습니다 */
     if (u) { if (u.indexOf('/') < 0) {
       if (window.UM_PIC) { u = window.UM_PIC[u] || ''; }
     } }
     if (u) {
-      return '<img src="' + esc(u) + '" alt="" ' +
-        'style="width:100%;height:100%;object-fit:contain;display:block">';
+      return '<img class="um-img" src="' + esc(u) + '" alt="">';
     }
     return ch(fb);
   }
@@ -258,15 +259,17 @@
 
   /* 카드 뒤에서 머리만 내미는 「빼꼼」 */
   function peek(slot, fb, w, css) {
+    var a = art(slot, fb);
+    if (!a) { return ''; }          /* 「없음」이면 빈 칸도 안 만듭니다 */
     return '<div class="peek" style="width:' + w + 'px;height:' + w + 'px;' + css + '">' +
-      art(slot, fb) + '</div>';
+      a + '</div>';
   }
 
   function chrome() {
     if (!document.getElementById('um-top')) {
       var top = X.el('<div id="um-top"><div class="in">' +
         '<a class="lg" href="/uandme/">' +
-        '<span style="width:32px;height:32px;flex:0 0 32px;display:block">' + BUN + '</span>' +
+        '<span class="lgi">' + BUN + '</span>' +
         '<b>유앤미</b></a>' +
         '<a class="st" href="/">스텔라사주</a>' +
         '</div></div>');

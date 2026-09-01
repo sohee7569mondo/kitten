@@ -37,6 +37,8 @@ window.UM_CHARS = {
    가 1~6 · 나 1~11 · 다 1~12 · 모두 29장.
    자리를 바꾸시려면 아래 UM_SET.그림 에서 이름만 갈아끼우면 됩니다. */
 window.UM_PIC = {
+  '로고그림': 'https://stellasaju.com/wp-content/uploads/2026/09/uandme_logo-01.png',
+  '히어로그림': 'https://stellasaju.com/wp-content/uploads/2026/09/uandme_cha-02-300px.png',
   '가1': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-01-300px.png',
   '가2': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-02-300px.png',
   '가3': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-03-300px.png',
@@ -92,10 +94,10 @@ window.UM_SET = {
      이렇게 넣으시면 됩니다 —
        로고: 'https://stellasaju.com/wp-content/uploads/2026/08/younme-char-01.webp',   */
   그림: {
-    로고:      '가1',
+    로고:      '로고그림',
 
-    히어로큰:  '나1',   /* 첫 화면 오른쪽 · 큰 아이 */
-    히어로작은: '나2',   /* 첫 화면 오른쪽 · 작은 아이 */
+    히어로큰:  '히어로그림',   /* 첫 화면 오른쪽 · 큰 아이 */
+    히어로작은: '없음',      /* 「없음」이라고 쓰면 아무것도 안 나옵니다 */   /* 첫 화면 오른쪽 · 작은 아이 */
 
     카드왼쪽:  '나3',   /* 점수 카드 위 왼쪽에서 빼꼼 */
     카드오른쪽: '나4',   /* 점수 카드 위 오른쪽에서 빼꼼 */
@@ -298,6 +300,13 @@ window.UM_SET = {
     'font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif;background:var(--bg);',
     'color:#4A4358;max-width:420px;margin:0 auto;padding:0 0 56px;overflow:hidden;-webkit-text-size-adjust:100%}',
     '#um *{box-sizing:border-box}',
+    /* 워드프레스 테마가 button 에 입히는 테두리·배경·그림자를 걷어냅니다.
+       「누구랑 볼까요」 칸에 검정 테두리가 나오던 원인입니다. */
+    '#um button{border:0;background:none;box-shadow:none;padding:0;margin:0;',
+    'font-family:inherit;color:inherit;text-transform:none;letter-spacing:normal;',
+    'border-radius:0;-webkit-appearance:none;appearance:none;cursor:pointer}',
+    '#um button:hover,#um button:focus{border:0;box-shadow:none;outline:none}',
+    '#um img{max-width:100%;height:auto;border:0;border-radius:0;box-shadow:none}',
     '#um .jua{font-family:Jua,"Noto Sans KR",sans-serif}',
     '#um .pad{padding-left:20px;padding-right:20px}',
     '#um .h1{font-family:Jua,"Noto Sans KR",sans-serif;font-size:34px;line-height:1.26;',
@@ -352,6 +361,12 @@ window.UM_SET = {
     'align-items:center;justify-content:space-between}',
     '#um-top .lg{display:flex;align-items:center;gap:7px;text-decoration:none}',
     '#um-top .lg b{font-family:Jua,"Noto Sans KR",sans-serif;font-size:22px;color:#6B5BA8;font-weight:400}',
+    '#um-top .lgi{display:block;height:34px;flex:0 0 auto}',
+    /* 그림은 칸을 꽉 채우되 비율은 지킵니다. #um 밖(머리말)에서도 먹어야 해서
+       #um 을 앞에 안 붙였습니다. */
+    '.um-img{width:100%;height:100%;object-fit:contain;display:block}',
+    '#um-top .lgi .um-img{height:34px;width:auto}',
+    '#um-top .lgi svg{height:34px;width:34px;display:block}',
     '#um-top a.st{font-size:11.5px;font-weight:700;color:#A79BC4;text-decoration:none;',
     'background:#EDE6F8;padding:8px 13px;border-radius:999px}',
 
@@ -644,13 +659,14 @@ window.UM_SET = {
   function art(slot, fb) {
     var u = '';
     if (window.UM_SET) { if (window.UM_SET.그림) { u = window.UM_SET.그림[slot] || ''; } }
+    /* 「없음」이라고 적으면 그 자리에 아무것도 안 그립니다 */
+    if (u === '없음') { return ''; }
     /* 「가1」 「다7」 같은 이름표면 그림 목록에서 주소를 찾습니다 */
     if (u) { if (u.indexOf('/') < 0) {
       if (window.UM_PIC) { u = window.UM_PIC[u] || ''; }
     } }
     if (u) {
-      return '<img src="' + esc(u) + '" alt="" ' +
-        'style="width:100%;height:100%;object-fit:contain;display:block">';
+      return '<img class="um-img" src="' + esc(u) + '" alt="">';
     }
     return ch(fb);
   }
@@ -666,15 +682,17 @@ window.UM_SET = {
 
   /* 카드 뒤에서 머리만 내미는 「빼꼼」 */
   function peek(slot, fb, w, css) {
+    var a = art(slot, fb);
+    if (!a) { return ''; }          /* 「없음」이면 빈 칸도 안 만듭니다 */
     return '<div class="peek" style="width:' + w + 'px;height:' + w + 'px;' + css + '">' +
-      art(slot, fb) + '</div>';
+      a + '</div>';
   }
 
   function chrome() {
     if (!document.getElementById('um-top')) {
       var top = X.el('<div id="um-top"><div class="in">' +
         '<a class="lg" href="/uandme/">' +
-        '<span style="width:32px;height:32px;flex:0 0 32px;display:block">' + BUN + '</span>' +
+        '<span class="lgi">' + BUN + '</span>' +
         '<b>유앤미</b></a>' +
         '<a class="st" href="/">스텔라사주</a>' +
         '</div></div>');
@@ -1140,7 +1158,7 @@ add_action( 'init', function () {
 	if ( ! current_user_can( 'manage_options' ) ) { echo '관리자만 볼 수 있습니다.'; exit; }
 	echo '<h1 style="color:#ffd76a">유앤미 2 · 화면</h1>';
 	echo '<p>이 스니펫은 살아 있습니다.</p>';
-	echo '<p>실어주는 글 : <b>64KB</b></p>';
+	echo '<p>실어주는 글 : <b>65KB</b></p>';
 	echo '<p>유앤미 화면 : <a style="color:#9fd" href="/uandme/">stellasaju.com/uandme/</a></p>';
 	exit;
 } );

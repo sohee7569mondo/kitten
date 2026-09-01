@@ -16,6 +16,13 @@
     'font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif;background:var(--bg);',
     'color:#4A4358;max-width:420px;margin:0 auto;padding:0 0 56px;overflow:hidden;-webkit-text-size-adjust:100%}',
     '#um *{box-sizing:border-box}',
+    /* 워드프레스 테마가 button 에 입히는 테두리·배경·그림자를 걷어냅니다.
+       「누구랑 볼까요」 칸에 검정 테두리가 나오던 원인입니다. */
+    '#um button{border:0;background:none;box-shadow:none;padding:0;margin:0;',
+    'font-family:inherit;color:inherit;text-transform:none;letter-spacing:normal;',
+    'border-radius:0;-webkit-appearance:none;appearance:none;cursor:pointer}',
+    '#um button:hover,#um button:focus{border:0;box-shadow:none;outline:none}',
+    '#um img{max-width:100%;height:auto;border:0;border-radius:0;box-shadow:none}',
     '#um .jua{font-family:Jua,"Noto Sans KR",sans-serif}',
     '#um .pad{padding-left:20px;padding-right:20px}',
     '#um .h1{font-family:Jua,"Noto Sans KR",sans-serif;font-size:34px;line-height:1.26;',
@@ -70,6 +77,12 @@
     'align-items:center;justify-content:space-between}',
     '#um-top .lg{display:flex;align-items:center;gap:7px;text-decoration:none}',
     '#um-top .lg b{font-family:Jua,"Noto Sans KR",sans-serif;font-size:22px;color:#6B5BA8;font-weight:400}',
+    '#um-top .lgi{display:block;height:34px;flex:0 0 auto}',
+    /* 그림은 칸을 꽉 채우되 비율은 지킵니다. #um 밖(머리말)에서도 먹어야 해서
+       #um 을 앞에 안 붙였습니다. */
+    '.um-img{width:100%;height:100%;object-fit:contain;display:block}',
+    '#um-top .lgi .um-img{height:34px;width:auto}',
+    '#um-top .lgi svg{height:34px;width:34px;display:block}',
     '#um-top a.st{font-size:11.5px;font-weight:700;color:#A79BC4;text-decoration:none;',
     'background:#EDE6F8;padding:8px 13px;border-radius:999px}',
 

@@ -2,6 +2,8 @@
    가 1~6 · 나 1~11 · 다 1~12 · 모두 29장.
    자리를 바꾸시려면 아래 UM_SET.그림 에서 이름만 갈아끼우면 됩니다. */
 window.UM_PIC = {
+  '로고그림': 'https://stellasaju.com/wp-content/uploads/2026/09/uandme_logo-01.png',
+  '히어로그림': 'https://stellasaju.com/wp-content/uploads/2026/09/uandme_cha-02-300px.png',
   '가1': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-01-300px.png',
   '가2': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-02-300px.png',
   '가3': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-03-300px.png',
