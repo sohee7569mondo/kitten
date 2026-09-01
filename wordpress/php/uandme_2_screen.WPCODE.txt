@@ -32,6 +32,43 @@ window.UM_CHARS = {
 };
 
 
+/* ───── um-pics.js ───── */
+/* 유앤미 캐릭터 그림 — 워드프레스 미디어에 올려두신 것들입니다.
+   가 1~6 · 나 1~11 · 다 1~12 · 모두 29장.
+   자리를 바꾸시려면 아래 UM_SET.그림 에서 이름만 갈아끼우면 됩니다. */
+window.UM_PIC = {
+  '가1': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-01-300px.png',
+  '가2': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-02-300px.png',
+  '가3': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-03-300px.png',
+  '가4': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-04-300px.png',
+  '가5': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-05-300px.png',
+  '가6': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-06-300px.png',
+  '나1': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-01-300px.png',
+  '나2': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-02-300px.png',
+  '나3': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-03-300px.png',
+  '나4': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-04-300px.png',
+  '나5': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-05-300px.png',
+  '나6': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-06-300px.png',
+  '나7': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-07-300px.png',
+  '나8': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-08-300px.png',
+  '나9': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-09-300px.png',
+  '나10': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-10-300px.png',
+  '나11': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-11-300px.png',
+  '다1': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-01-300px.png',
+  '다2': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-02-300px.png',
+  '다3': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-03-300px.png',
+  '다4': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-04-300px.png',
+  '다5': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-05-300px.png',
+  '다6': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-06-300px.png',
+  '다7': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-07-300px.png',
+  '다8': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-08-300px.png',
+  '다9': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-09-300px.png',
+  '다10': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-10-300px.png',
+  '다11': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-11-300px.png',
+  '다12': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-12-300px.png'
+};
+
+
 /* ───── um-settings.js ───── */
 /* ══════════════════════════════════════════════════════════════
    ┌────────────────────────────────────────────────────────────┐
@@ -55,26 +92,26 @@ window.UM_SET = {
      이렇게 넣으시면 됩니다 —
        로고: 'https://stellasaju.com/wp-content/uploads/2026/08/younme-char-01.webp',   */
   그림: {
-    로고:      '',
+    로고:      '가1',
 
-    히어로큰:  '',   /* 첫 화면 오른쪽 · 큰 아이 */
-    히어로작은: '',   /* 첫 화면 오른쪽 · 작은 아이 */
+    히어로큰:  '나1',   /* 첫 화면 오른쪽 · 큰 아이 */
+    히어로작은: '나2',   /* 첫 화면 오른쪽 · 작은 아이 */
 
-    카드왼쪽:  '',   /* 점수 카드 위 왼쪽에서 빼꼼 */
-    카드오른쪽: '',   /* 점수 카드 위 오른쪽에서 빼꼼 */
+    카드왼쪽:  '나3',   /* 점수 카드 위 왼쪽에서 빼꼼 */
+    카드오른쪽: '나4',   /* 점수 카드 위 오른쪽에서 빼꼼 */
 
-    초대위:    '',   /* 「그 사람 생일 몰라도 괜찮아요」 위 */
-    초대아래:  '',   /* 그 아래에서 빼꼼 */
-    공짜카드:  '',   /* 「전부 공짜입니다」 위 */
+    초대위:    '나5',   /* 「그 사람 생일 몰라도 괜찮아요」 위 */
+    초대아래:  '나6',   /* 그 아래에서 빼꼼 */
+    공짜카드:  '나7',   /* 「전부 공짜입니다」 위 */
 
     /* 관계 고르는 여덟 칸 — 여기는 얼굴이 다 보입니다 */
-    연인:      '',
-    부부:      '',
-    친구:      '',
-    형제자매:  '',
-    부모자녀:  '',
-    상사부하:  '',
-    동업자:    ''
+    연인:      '다1',
+    부부:      '다2',
+    친구:      '다3',
+    형제자매:  '다4',
+    부모자녀:  '다5',
+    상사부하:  '다6',
+    동업자:    '다7'
   },
 
   /* ── 글자 ──────────────────────────────────────────────── */
@@ -607,6 +644,10 @@ window.UM_SET = {
   function art(slot, fb) {
     var u = '';
     if (window.UM_SET) { if (window.UM_SET.그림) { u = window.UM_SET.그림[slot] || ''; } }
+    /* 「가1」 「다7」 같은 이름표면 그림 목록에서 주소를 찾습니다 */
+    if (u) { if (u.indexOf('/') < 0) {
+      if (window.UM_PIC) { u = window.UM_PIC[u] || ''; }
+    } }
     if (u) {
       return '<img src="' + esc(u) + '" alt="" ' +
         'style="width:100%;height:100%;object-fit:contain;display:block">';
@@ -995,6 +1036,34 @@ window.UM_SET = {
     document.body.appendChild(d);
   }
 
+  /* 그림 스물아홉 장을 번호와 함께 봅니다 : /uandme/?umall=1
+     「연인을 다9로 바꿔줘」처럼 말씀하시면 그대로 옮깁니다. */
+  function picSheet(host) {
+    var P = window.UM_PIC || {}, S = (window.UM_SET || {}).그림 || {};
+    var used = {}, k;
+    for (k in S) { if (S[k]) { used[S[k]] = (used[S[k]] ? used[S[k]] + ' · ' : '') + k; } }
+    var keys = Object.keys(P), i, cells = '';
+    for (i = 0; i < keys.length; i++) {
+      var n = keys[i], u = used[n] || '';
+      cells += '<div style="text-align:center">' +
+        '<div style="background:#fff;border-radius:18px;padding:6px;' +
+        (u ? 'outline:3px solid #B8A6E8;outline-offset:2px' : '') + '">' +
+        '<img src="' + esc(P[n]) + '" alt="" style="width:100%;aspect-ratio:1;object-fit:contain;display:block">' +
+        '</div>' +
+        '<div style="font-family:Jua,sans-serif;font-size:16px;color:#6B5BA8;margin-top:6px">' + n + '</div>' +
+        '<div style="font-size:10.5px;color:' + (u ? '#B8A6E8' : '#C9C2DA') + ';line-height:1.5;min-height:26px">' +
+        (u ? esc(u) : '안 씀') + '</div></div>';
+    }
+    host.innerHTML =
+      '<div class="pad" style="padding-top:24px">' +
+      '<div class="h1" style="font-size:26px">그림 ' + keys.length + '장</div>' +
+      '<div class="sub">보라색 테두리가 지금 쓰이는 그림입니다.<br>' +
+      '「연인을 다9로 바꿔줘」처럼 말씀해 주세요.</div></div>' +
+      '<div class="pad" style="margin-top:22px;display:grid;' +
+      'grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">' + cells + '</div>' +
+      '<div class="pad" style="margin-top:28px"><a class="btnG" href="?">유앤미로 돌아가기</a></div>';
+  }
+
   /* ── 시작 ────────────────────────────────────────────── */
   function boot() {
     var host = document.getElementById('um');
@@ -1018,6 +1087,11 @@ window.UM_SET = {
     setTimeout(function () { hideTheme(host); }, 400);
     setTimeout(function () { hideTheme(host); }, 1500);
     U.setEngines(window.StellaSaju, window.StellaMatch);
+
+    if (location.search.indexOf('umall') >= 0) {
+      chrome(); picSheet(host);
+      return;
+    }
 
     var q = new URLSearchParams(location.search);
     var i = q.get('i'), r = q.get('r');
@@ -1066,7 +1140,7 @@ add_action( 'init', function () {
 	if ( ! current_user_can( 'manage_options' ) ) { echo '관리자만 볼 수 있습니다.'; exit; }
 	echo '<h1 style="color:#ffd76a">유앤미 2 · 화면</h1>';
 	echo '<p>이 스니펫은 살아 있습니다.</p>';
-	echo '<p>실어주는 글 : <b>59KB</b></p>';
+	echo '<p>실어주는 글 : <b>64KB</b></p>';
 	echo '<p>유앤미 화면 : <a style="color:#9fd" href="/uandme/">stellasaju.com/uandme/</a></p>';
 	exit;
 } );

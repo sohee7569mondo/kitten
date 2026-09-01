@@ -236,6 +236,10 @@
   function art(slot, fb) {
     var u = '';
     if (window.UM_SET) { if (window.UM_SET.그림) { u = window.UM_SET.그림[slot] || ''; } }
+    /* 「가1」 「다7」 같은 이름표면 그림 목록에서 주소를 찾습니다 */
+    if (u) { if (u.indexOf('/') < 0) {
+      if (window.UM_PIC) { u = window.UM_PIC[u] || ''; }
+    } }
     if (u) {
       return '<img src="' + esc(u) + '" alt="" ' +
         'style="width:100%;height:100%;object-fit:contain;display:block">';
@@ -624,6 +628,34 @@
     document.body.appendChild(d);
   }
 
+  /* 그림 스물아홉 장을 번호와 함께 봅니다 : /uandme/?umall=1
+     「연인을 다9로 바꿔줘」처럼 말씀하시면 그대로 옮깁니다. */
+  function picSheet(host) {
+    var P = window.UM_PIC || {}, S = (window.UM_SET || {}).그림 || {};
+    var used = {}, k;
+    for (k in S) { if (S[k]) { used[S[k]] = (used[S[k]] ? used[S[k]] + ' · ' : '') + k; } }
+    var keys = Object.keys(P), i, cells = '';
+    for (i = 0; i < keys.length; i++) {
+      var n = keys[i], u = used[n] || '';
+      cells += '<div style="text-align:center">' +
+        '<div style="background:#fff;border-radius:18px;padding:6px;' +
+        (u ? 'outline:3px solid #B8A6E8;outline-offset:2px' : '') + '">' +
+        '<img src="' + esc(P[n]) + '" alt="" style="width:100%;aspect-ratio:1;object-fit:contain;display:block">' +
+        '</div>' +
+        '<div style="font-family:Jua,sans-serif;font-size:16px;color:#6B5BA8;margin-top:6px">' + n + '</div>' +
+        '<div style="font-size:10.5px;color:' + (u ? '#B8A6E8' : '#C9C2DA') + ';line-height:1.5;min-height:26px">' +
+        (u ? esc(u) : '안 씀') + '</div></div>';
+    }
+    host.innerHTML =
+      '<div class="pad" style="padding-top:24px">' +
+      '<div class="h1" style="font-size:26px">그림 ' + keys.length + '장</div>' +
+      '<div class="sub">보라색 테두리가 지금 쓰이는 그림입니다.<br>' +
+      '「연인을 다9로 바꿔줘」처럼 말씀해 주세요.</div></div>' +
+      '<div class="pad" style="margin-top:22px;display:grid;' +
+      'grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">' + cells + '</div>' +
+      '<div class="pad" style="margin-top:28px"><a class="btnG" href="?">유앤미로 돌아가기</a></div>';
+  }
+
   /* ── 시작 ────────────────────────────────────────────── */
   function boot() {
     var host = document.getElementById('um');
@@ -647,6 +679,11 @@
     setTimeout(function () { hideTheme(host); }, 400);
     setTimeout(function () { hideTheme(host); }, 1500);
     U.setEngines(window.StellaSaju, window.StellaMatch);
+
+    if (location.search.indexOf('umall') >= 0) {
+      chrome(); picSheet(host);
+      return;
+    }
 
     var q = new URLSearchParams(location.search);
     var i = q.get('i'), r = q.get('r');
