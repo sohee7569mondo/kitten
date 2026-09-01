@@ -796,10 +796,15 @@ window.UM_CELEB = {
     a.style.display = 'none';
     document.body.appendChild(a);
     a.click();
+    /* 주소를 너무 일찍 거두면 안 됩니다. 「저장할 곳을 물어보기」가 켜져
+       있는 컴퓨터에서는 사람이 폴더를 고르는 동안 내려받기가 이어지는데,
+       그 사이에 거두면 파일이 잘려 열리지 않습니다. */
     setTimeout(function () {
       if (a.parentNode) { a.parentNode.removeChild(a); }
+    }, 2000);
+    setTimeout(function () {
       try { URL.revokeObjectURL(url); } catch (e3) {}
-    }, 4000);
+    }, 120000);
     return true;
   }
 

@@ -353,3 +353,84 @@ add_filter( 'jetpack_open_graph_tags', function ( $tags ) {
 
 	return $tags;
 }, 20 );
+
+/* ── 크롤러가 보는 것을 그대로 들여다보기 ───────────────
+   https://stellasaju.com/?um_og=1        (관리자만)
+
+   서버가 스스로 결과 페이지를 「스레드인 척」 「카톡인 척」 두 번 읽어서
+   og 태그가 실제로 나가는지, 그림 주소가 살아 있는지 보여줍니다. */
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['um_og'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.7 system-ui;background:#111;color:#eee;padding:22px;max-width:900px">';
+	echo '<h1 style="color:#ffd76a">크롤러가 보는 것</h1>';
+
+	$page = home_url( '/uandme/?r=TEST&s=63&a=30&b=12&c=24&rel=lover&t=' . rawurlencode( '무난한 사이' ) );
+	$img  = home_url( '/?um_card=1&s=63&r=lover&a=30&b=12&c=24&t=' . rawurlencode( '무난한 사이' ) );
+
+	$agents = array(
+		'스레드·페이스북' => 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+		'카카오톡'        => 'facebookexternalhit/1.1; kakaotalk-scrap/1.0; +https://devtalk.kakao.com/t/scrap/33984',
+		'트위터'          => 'Twitterbot/1.0',
+	);
+
+	echo '<h2 style="color:#9fd">① 결과 페이지</h2>';
+	echo '<p style="color:#888;font-size:12px;word-break:break-all">' . esc_html( $page ) . '</p>';
+
+	foreach ( $agents as $who => $ua ) {
+
+		echo '<h3 style="color:#8cf;margin-top:20px">' . esc_html( $who ) . '</h3>';
+
+		$r = wp_remote_get( $page, array(
+			'timeout'     => 25,
+			'user-agent'  => $ua,
+			'redirection' => 3,
+		) );
+		if ( is_wp_error( $r ) ) {
+			echo '<p style="color:#f88">못 읽음 — ' . esc_html( $r->get_error_message() ) . '</p>';
+			continue;
+		}
+		$code = wp_remote_retrieve_response_code( $r );
+		$body = wp_remote_retrieve_body( $r );
+		echo '<p>응답 <b style="color:' . ( 200 === intval( $code ) ? '#9f9' : '#f88' ) . '">' . intval( $code ) .
+		     '</b> · 글 길이 ' . number_format( strlen( $body ) ) . '</p>';
+
+		$n = preg_match_all( '#<meta[^>]*(?:property|name)=["\'](og:[^"\']*|twitter:[^"\']*)["\'][^>]*>#i', $body, $m );
+		if ( ! $n ) {
+			echo '<p style="color:#f88">og 태그가 하나도 없습니다</p>';
+		} else {
+			echo '<div style="background:#000;padding:10px;border-radius:8px;font-size:11.5px;' .
+			     'white-space:pre-wrap;word-break:break-all;max-height:280px;overflow:auto">';
+			foreach ( $m[0] as $tag ) {
+				$hot = ( false !== strpos( $tag, 'um_card' ) );
+				echo '<div style="color:' . ( $hot ? '#9f9' : '#999' ) . '">' . esc_html( $tag ) . '</div>';
+			}
+			echo '</div>';
+			echo '<p style="font-size:12px;color:#888">초록색이 우리 점수 카드입니다. 회색만 있으면 옛 그림이 나가는 중입니다.</p>';
+		}
+	}
+
+	echo '<h2 style="color:#9fd;margin-top:28px">② 카드 그림 자체</h2>';
+	echo '<p style="color:#888;font-size:12px;word-break:break-all">' . esc_html( $img ) . '</p>';
+	foreach ( $agents as $who => $ua ) {
+		$r = wp_remote_get( $img, array( 'timeout' => 30, 'user-agent' => $ua, 'redirection' => 3 ) );
+		if ( is_wp_error( $r ) ) {
+			echo '<p style="color:#f88">' . esc_html( $who ) . ' — 못 받음 · ' . esc_html( $r->get_error_message() ) . '</p>';
+			continue;
+		}
+		$code = wp_remote_retrieve_response_code( $r );
+		$ct   = wp_remote_retrieve_header( $r, 'content-type' );
+		$len  = strlen( wp_remote_retrieve_body( $r ) );
+		$good = ( 200 === intval( $code ) );
+		if ( false === strpos( (string) $ct, 'image' ) ) { $good = false; }
+		echo '<p style="color:' . ( $good ? '#9f9' : '#f88' ) . '">' . esc_html( $who ) . ' — ' .
+		     intval( $code ) . ' · ' . esc_html( $ct ) . ' · ' . number_format( $len ) . ' 바이트</p>';
+	}
+
+	echo '<hr style="margin:26px 0;border-color:#333">';
+	echo '<p style="color:#888">이 화면을 통째로 찍어서 보내주세요.</p>';
+	exit;
+} );
