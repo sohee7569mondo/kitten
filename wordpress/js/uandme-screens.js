@@ -93,7 +93,11 @@
        주소를 부르면 서버가 그 자리에서 800x400 그림을 그려 줍니다
        (④번 스니펫). 아무것도 남기지 않고 이름도 담기지 않습니다. */
     if (st.result) {
-      var u = cardCdn();
+      /* ① 카카오에 올려 둔 그림 (카톡에 확실히 뜹니다) */
+      var k = cardKakao();
+      if (k) { return k; }
+      /* ② 아직 안 올라갔으면 우리 서버 카드 */
+      var u = cardUrl();
       if (u) { return u; }
     }
     if (!window.UM_SET) { return ''; }
@@ -122,11 +126,41 @@
     return 'https://i0.wp.com/' + host +
       '/wp-content/uploads/uandme/card/' + n + '.png?ssl=1';
   }
-  /* 결과가 나오면 카드를 미리 한 번 그려 둡니다 (파일로 남게) */
+  /* 결과가 나오면 카드를 미리 그려 두고, 카카오에도 올려 둡니다.
+     카카오는 우리 서버 그림을 가져가지 않아서, 카카오 자기 서버에
+     올려 둔 그림을 알려줘야 카톡 카드에 그림이 실립니다. */
+  var KIMG = {};
   function cardWarm() {
     var u = cardUrl();
     if (!u) { return; }
     try { var im = new Image(); im.src = u; } catch (e) {}
+
+    var n = cardName();
+    if (!n) { return; }
+    if (KIMG[n]) { return; }
+    KIMG[n] = 'wait';
+    try {
+      var x = new XMLHttpRequest();
+      x.open('GET', location.origin + '/?um_kimg=' + n, true);
+      x.onload = function () {
+        try {
+          var j = JSON.parse(x.responseText);
+          if (j.ok) { if (j.url) { KIMG[n] = j.url; return; } }
+        } catch (e2) {}
+        KIMG[n] = '';
+      };
+      x.onerror = function () { KIMG[n] = ''; };
+      x.send();
+    } catch (e3) { KIMG[n] = ''; }
+  }
+  /* 카카오에 올려 둔 주소 — 아직 안 왔으면 빈 값 */
+  function cardKakao() {
+    var n = cardName();
+    if (!n) { return ''; }
+    var v = KIMG[n];
+    if (!v) { return ''; }
+    if (v === 'wait') { return ''; }
+    return v;
   }
 
   function kakaoReady() {
