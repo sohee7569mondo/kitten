@@ -210,7 +210,9 @@ add_action( 'init', function () {
 
 	/* 아이 둘 — 좌우 끝에 하나씩 */
 	$up = wp_upload_dir();
-	$paste = function ( $file, $cx, $cy, $box ) use ( $im, $up ) {
+	/* 키(높이)를 기준으로 맞춥니다. 상자에 맞추면 세로로 긴 아이가
+	   작아 보입니다. 너비에는 울타리를 둬 옆으로 퍼지지 않게 합니다. */
+	$paste = function ( $file, $cx, $cy, $tall, $wide ) use ( $im, $up ) {
 		$p = $up['basedir'] . '/2026/09/' . $file;
 		if ( ! file_exists( $p ) ) { $p = $up['basedir'] . '/2026/08/' . $file; }
 		if ( ! file_exists( $p ) ) { return; }
@@ -224,14 +226,14 @@ add_action( 'init', function () {
 		}
 		$sw = imagesx( $src ); $sh = imagesy( $src );
 		if ( ! $sw ) { imagedestroy( $src ); return; }
-		$k  = min( $box / $sw, $box / $sh );
+		$k  = min( $tall / $sh, $wide / $sw );
 		$dw = intval( $sw * $k ); $dh = intval( $sh * $k );
 		imagecopyresampled( $im, $src, intval( $cx - $dw / 2 ), intval( $cy - $dh / 2 ),
 			0, 0, $dw, $dh, $sw, $sh );
 		imagedestroy( $src );
 	};
-	$paste( $left,  106, 214, 198 );
-	$paste( $right, 694, 214, 198 );
+	$paste( $left,  104, 212, 224, 196 );
+	$paste( $right, 696, 212, 224, 196 );
 
 	$font = stella_um_font();
 
