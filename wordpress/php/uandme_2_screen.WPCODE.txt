@@ -117,6 +117,30 @@ window.UM_SET = {
     동업자:    '다7'
   },
 
+  /* ── 카카오톡으로 보내기 ────────────────────────────────
+     여기가 비어 있으면 카톡 단추가 「링크 복사」처럼 움직입니다.
+     채우면 카카오가 만든 예쁜 창이 뜨고, 휴대폰에서는 카톡 앱으로
+     바로 넘어갑니다.
+
+     키 받는 곳 : developers.kakao.com
+       ① 로그인 → 「내 애플리케이션」 → 애플리케이션 추가하기
+       ② 앱 이름 「유앤미」, 사업자명 넣고 저장
+       ③ 「앱 키」 화면에서 <JavaScript 키>를 복사 (REST API 키 아닙니다)
+       ④ 왼쪽 「플랫폼」 → Web → 사이트 도메인에 아래 둘을 등록
+            https://stellasaju.com
+            http://stellasaju.com
+       ⑤ 복사한 JavaScript 키를 아래 따옴표 안에 붙여넣기
+
+     ※ JavaScript 키는 공개되어도 되는 키입니다. 등록한 도메인에서만
+        움직이므로 남이 가져다 쓸 수 없습니다. (REST API 키는 절대
+        여기에 넣으면 안 됩니다) */
+  설정: {
+    카카오키:  '',
+
+    /* 카톡에 뜨는 그림 — 200px 이상이어야 합니다 */
+    카톡그림:  'https://stellasaju.com/wp-content/uploads/2026/09/uandme_cha-02-300px.png'
+  },
+
   /* ── 글자 ──────────────────────────────────────────────── */
   글: {
     제목위:    '생년월일 두 개면 끝',
@@ -477,20 +501,55 @@ window.UM_SET = {
     var q = 'text=' + encodeURIComponent(text + '\n' + url);
     window.open('https://twitter.com/intent/tweet?' + q, '_blank', 'noopener');
   }
+  /* 카카오 SDK — 설정에 키가 있을 때만 불러옵니다 */
+  function kakaoKey() {
+    if (!window.UM_SET) { return ''; }
+    if (!window.UM_SET.설정) { return ''; }
+    return window.UM_SET.설정.카카오키 || '';
+  }
+  function kakaoPic() {
+    if (!window.UM_SET) { return ''; }
+    if (!window.UM_SET.설정) { return ''; }
+    return window.UM_SET.설정.카톡그림 || '';
+  }
+  function kakaoReady() {
+    if (!window.Kakao) { return false; }
+    if (!window.Kakao.Share) { return false; }
+    try { return window.Kakao.isInitialized(); } catch (e) { return false; }
+  }
+  function loadKakao() {
+    var key = kakaoKey();
+    if (!key) { return; }
+    function boot() {
+      try { if (!window.Kakao.isInitialized()) { window.Kakao.init(key); } } catch (e) {}
+    }
+    if (window.Kakao) { boot(); return; }
+    var sc = document.createElement('script');
+    sc.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js';
+    sc.onload = boot;
+    document.head.appendChild(sc);
+  }
+
   function kakao(url, text) {
-    if (window.Kakao) { if (window.Kakao.Share) {
+    if (kakaoReady()) {
       try {
         window.Kakao.Share.sendDefault({
           objectType: 'feed',
-          content: { title: text, description: '생일만 넣으면 우리 둘 점수가 바로 나와요',
-                     imageUrl: location.origin + '/wp-content/uploads/uandme-share.png',
-                     link: { mobileWebUrl: url, webUrl: url } },
+          content: {
+            title: text || '우리 궁합 몇 점일까?',
+            description: '사주 · 별자리 · 띠 셋을 함께 봅니다. 생일만 넣으면 바로 나와요',
+            imageUrl: kakaoPic(),
+            link: { mobileWebUrl: url, webUrl: url }
+          },
           buttons: [{ title: '나도 보기', link: { mobileWebUrl: url, webUrl: url } }]
         });
         return;
       } catch (e) {}
-    } }
-    if (!nativeShare(url, text)) { copy(url); }
+    }
+    /* 키가 아직 없으면 — 윈도우 공유창은 카톡이 안 잡혀서 안 씁니다.
+       대신 링크를 복사해 드리고 붙여넣으시게 합니다. */
+    copy(url);
+    toast('링크를 복사했어요. 카카오톡에 붙여넣어 보내세요');
   }
 
   function toast(msg) {
@@ -1221,6 +1280,7 @@ window.UM_SET = {
     setTimeout(function () { hideTheme(host); }, 400);
     setTimeout(function () { hideTheme(host); }, 1500);
     U.setEngines(window.StellaSaju, window.StellaMatch);
+    loadKakao();
 
     if (location.search.indexOf('umall') >= 0) {
       chrome(); picSheet(host);
@@ -1274,7 +1334,7 @@ add_action( 'init', function () {
 	if ( ! current_user_can( 'manage_options' ) ) { echo '관리자만 볼 수 있습니다.'; exit; }
 	echo '<h1 style="color:#ffd76a">유앤미 2 · 화면</h1>';
 	echo '<p>이 스니펫은 살아 있습니다.</p>';
-	echo '<p>실어주는 글 : <b>71KB</b></p>';
+	echo '<p>실어주는 글 : <b>74KB</b></p>';
 	echo '<p>유앤미 화면 : <a style="color:#9fd" href="/uandme/">stellasaju.com/uandme/</a></p>';
 	exit;
 } );

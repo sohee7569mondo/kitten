@@ -44,20 +44,55 @@
     var q = 'text=' + encodeURIComponent(text + '\n' + url);
     window.open('https://twitter.com/intent/tweet?' + q, '_blank', 'noopener');
   }
+  /* 카카오 SDK — 설정에 키가 있을 때만 불러옵니다 */
+  function kakaoKey() {
+    if (!window.UM_SET) { return ''; }
+    if (!window.UM_SET.설정) { return ''; }
+    return window.UM_SET.설정.카카오키 || '';
+  }
+  function kakaoPic() {
+    if (!window.UM_SET) { return ''; }
+    if (!window.UM_SET.설정) { return ''; }
+    return window.UM_SET.설정.카톡그림 || '';
+  }
+  function kakaoReady() {
+    if (!window.Kakao) { return false; }
+    if (!window.Kakao.Share) { return false; }
+    try { return window.Kakao.isInitialized(); } catch (e) { return false; }
+  }
+  function loadKakao() {
+    var key = kakaoKey();
+    if (!key) { return; }
+    function boot() {
+      try { if (!window.Kakao.isInitialized()) { window.Kakao.init(key); } } catch (e) {}
+    }
+    if (window.Kakao) { boot(); return; }
+    var sc = document.createElement('script');
+    sc.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js';
+    sc.onload = boot;
+    document.head.appendChild(sc);
+  }
+
   function kakao(url, text) {
-    if (window.Kakao) { if (window.Kakao.Share) {
+    if (kakaoReady()) {
       try {
         window.Kakao.Share.sendDefault({
           objectType: 'feed',
-          content: { title: text, description: '생일만 넣으면 우리 둘 점수가 바로 나와요',
-                     imageUrl: location.origin + '/wp-content/uploads/uandme-share.png',
-                     link: { mobileWebUrl: url, webUrl: url } },
+          content: {
+            title: text || '우리 궁합 몇 점일까?',
+            description: '사주 · 별자리 · 띠 셋을 함께 봅니다. 생일만 넣으면 바로 나와요',
+            imageUrl: kakaoPic(),
+            link: { mobileWebUrl: url, webUrl: url }
+          },
           buttons: [{ title: '나도 보기', link: { mobileWebUrl: url, webUrl: url } }]
         });
         return;
       } catch (e) {}
-    } }
-    if (!nativeShare(url, text)) { copy(url); }
+    }
+    /* 키가 아직 없으면 — 윈도우 공유창은 카톡이 안 잡혀서 안 씁니다.
+       대신 링크를 복사해 드리고 붙여넣으시게 합니다. */
+    copy(url);
+    toast('링크를 복사했어요. 카카오톡에 붙여넣어 보내세요');
   }
 
   function toast(msg) {
@@ -788,6 +823,7 @@
     setTimeout(function () { hideTheme(host); }, 400);
     setTimeout(function () { hideTheme(host); }, 1500);
     U.setEngines(window.StellaSaju, window.StellaMatch);
+    loadKakao();
 
     if (location.search.indexOf('umall') >= 0) {
       chrome(); picSheet(host);
