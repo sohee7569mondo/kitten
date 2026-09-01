@@ -228,23 +228,22 @@
 
   /* ── 유앤미만의 머리말과 꼬리말 ───────────────────────
      스텔라사주의 검은 머리띠는 이 페이지에서만 감춰집니다(옷 쪽에서). */
-  var BUN = '<svg viewBox="0 0 120 120" width="32" height="32" style="display:block">' +
-    '<g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round">' +
-    '<ellipse cx="45" cy="31" rx="9" ry="25" fill="#fff" transform="rotate(-9 45 31)"/>' +
-    '<ellipse cx="75" cy="31" rx="9" ry="25" fill="#fff" transform="rotate(9 75 31)"/>' +
-    '<ellipse cx="60" cy="88" rx="31" ry="26" fill="#fff"/>' +
-    '<circle cx="60" cy="63" r="27" fill="#fff"/></g>' +
-    '<ellipse cx="45" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(-9 45 30)"/>' +
-    '<ellipse cx="75" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(9 75 30)"/>' +
-    '<circle cx="50" cy="61" r="3.6" fill="#5A4038"/><circle cx="70" cy="61" r="3.6" fill="#5A4038"/>' +
-    '<ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
-    '<ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
-    '<ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg>';
+  var C = window.UM_CHARS || {};
+  function ch(k) { return C[k] || ''; }
+  var BUN = ch('bunny_white');
+
+  /* 카드 뒤에서 머리만 내미는 「빼꼼」 */
+  function peek(k, w, css) {
+    return '<div class="peek" style="width:' + w + 'px;height:' + w + 'px;' + css + '">' +
+      ch(k) + '</div>';
+  }
 
   function chrome() {
     if (!document.getElementById('um-top')) {
       var top = X.el('<div id="um-top"><div class="in">' +
-        '<a class="lg" href="/uandme/">' + BUN + '<b>유앤미</b></a>' +
+        '<a class="lg" href="/uandme/">' +
+        '<span style="width:32px;height:32px;flex:0 0 32px;display:block">' + BUN + '</span>' +
+        '<b>유앤미</b></a>' +
         '<a class="st" href="/">스텔라사주</a>' +
         '</div></div>');
       root.parentNode.insertBefore(top, root);
@@ -268,12 +267,93 @@
     chrome();
     var h = [];
     if (st.view === 'home') {
-      h.push('<div class="pad" style="padding-top:34px"><div class="h1">우리 둘,<br>몇 점일까?</div>',
-        '<div class="sub">사주 · 별자리 · 띠 셋을 함께 봅니다.<br>가입도 앱 설치도 없어요.</div></div>',
-        '<div class="pad" style="margin-top:34px"><div class="lbl">누구와 보나요</div>',
-        '<div style="display:flex;flex-wrap:wrap;gap:7px">' + relChips() + '</div></div>',
-        '<div class="pad" style="margin-top:30px"><button class="btnP" id="go-mine">시작하기</button></div>',
-        '<div class="pad" style="margin-top:22px"><div class="mini">생년월일은 이 기기에만 남습니다. 서버로 보내지 않습니다.</div></div>');
+      h.push(
+      /* 히어로 — 오른쪽에서 둘이 빼꼼 */
+      '<div class="pad" style="padding-top:26px;padding-bottom:18px;position:relative">' +
+        peek('bunny_pink', 96, 'right:-8px;top:24px;transform:rotate(9deg)') +
+        peek('bunny_white', 78, 'right:60px;top:78px;transform:rotate(-11deg)') +
+        '<div class="front" style="display:inline-block;background:#E7DEFA;color:#6B5BA8;' +
+        'border-radius:999px;padding:7px 15px;font-size:12px;font-weight:500">생년월일 두 개면 끝</div>' +
+        '<div class="h1 front" style="margin-top:16px">우리 둘,<br>몇 점일까?</div>' +
+        '<div class="sub front" style="max-width:235px">사주 · 별자리 · 띠 셋을 함께 봅니다.<br>가입도 앱 설치도 없어요.</div>' +
+      '</div>',
+
+      /* 보기 카드 — 카드 위 테두리에서 머리만 */
+      '<div class="pad" style="padding-top:40px;position:relative">' +
+        peek('bunny_happy', 78, 'left:38px;top:12px;transform:rotate(-9deg)') +
+        peek('cat_cream', 78, 'right:38px;top:12px;transform:rotate(9deg)') +
+        '<div class="card front">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between">' +
+            '<div style="background:#FFE2D6;color:#C4674A;font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:999px">연인 궁합</div>' +
+            '<div style="font-size:11.5px;color:#B3A9C9;font-weight:500">이런 식으로 나와요</div></div>' +
+          '<div style="text-align:center;margin-top:14px">' +
+            '<div class="jua" style="font-size:76px;line-height:1;color:#6B5BA8">92</div>' +
+            '<div style="font-size:12.5px;color:#A79BC4;font-weight:500">점</div></div>' +
+          '<div class="jua" style="font-size:27px;text-align:center;margin-top:10px;color:#3F3A52">완전 찰떡궁합</div>' +
+          '<div style="font-size:13.5px;line-height:1.8;color:#7C7392;margin-top:10px;text-align:center">' +
+          '갑돌이가 갑순이 시집가도 여전히 못 잊었다는데, 두 분은 그럴 걱정 없을 궁합이에요.</div>' +
+          bar('사주', 34, 40) + bar('별자리', 27, 30) + bar('띠', 26, 30) +
+          '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:20px">' +
+          cat('성격', 90, '#F1EBFA', '#6B5BA8', '#A79BC4') +
+          cat('연애', 85, '#FCE8F1', '#C4658F', '#C58AA8') +
+          cat('결혼', 70, '#FFEFE2', '#C4784A', '#C99578') +
+          cat('금전', 95, '#E2F5EE', '#4F937A', '#7FAE9C') +
+          '</div></div></div>',
+
+      /* 관계 고르기 — 여기서는 얼굴이 다 보여야 고를 수 있습니다 */
+      '<div class="pad" style="margin-top:46px">' +
+        '<div class="jua" style="font-size:25px;color:#3F3A52">누구랑 볼까요?</div>' +
+        '<div style="font-size:13px;color:#A79BC4;margin-top:7px">같은 92점도 관계마다 말이 달라져요</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px">' +
+      '<button class="tile' + (st.rel==='lover' ? ' on' : '') + '" data-rel="lover">' +
+        '<div class="im" style="background:#FCE8F1">' + ch('bunny_pink') + '</div><b>연인</b></button>' +
+      '<button class="tile' + (st.rel==='married' ? ' on' : '') + '" data-rel="married">' +
+        '<div class="im" style="background:#E7DEFA">' + ch('bunny_white') + '</div><b>부부</b></button>' +
+      '<button class="tile' + (st.rel==='friend' ? ' on' : '') + '" data-rel="friend">' +
+        '<div class="im" style="background:#E2F5EE">' + ch('cat_cream') + '</div><b>친구</b></button>' +
+      '<button class="tile' + (st.rel==='sibling' ? ' on' : '') + '" data-rel="sibling">' +
+        '<div class="im" style="background:#FFEFE2">' + ch('bunny_happy') + '</div><b>형제자매</b></button>' +
+      '<button class="tile' + (st.rel==='parent_child' ? ' on' : '') + '" data-rel="parent_child">' +
+        '<div class="im" style="background:#DCEEF9">' + ch('cow') + '</div><b>부모자녀</b></button>' +
+      '<button class="tile' + (st.rel==='boss_sub' ? ' on' : '') + '" data-rel="boss_sub">' +
+        '<div class="im" style="background:#F1EBFA">' + ch('bunny_peek') + '</div><b>상사부하</b></button>' +
+      '<button class="tile' + (st.rel==='partner' ? ' on' : '') + '" data-rel="partner">' +
+        '<div class="im" style="background:#FCF3DA">' + ch('cat_cream') + '</div><b>동업자</b></button>' +
+        '</div></div>',
+
+      '<div class="pad" style="margin-top:30px"><button class="btnP" id="go-mine">시작하기</button></div>',
+
+      /* 초대 설명 */
+      '<div class="pad" style="margin-top:54px;position:relative">' +
+        peek('cow', 84, 'right:28px;top:-44px;transform:rotate(8deg)') +
+        '<div class="front" style="background:#E7DEFA;border-radius:28px;padding:26px 22px">' +
+          '<div class="jua" style="font-size:25px;line-height:1.3;color:#3F3A52">그 사람 생일,<br>몰라도 괜찮아요</div>' +
+          step(1, '내 생일만 넣고 링크 만들기') +
+          step(2, '카톡으로 툭 보내기') +
+          step(3, '둘 다 결과 보기', true) +
+        '</div>' +
+        peek('bunny_peek', 70, 'left:38px;bottom:-28px;transform:rotate(-10deg);z-index:2') +
+      '</div>',
+
+      /* 무료라는 것 */
+      '<div class="pad" style="margin-top:56px;position:relative">' +
+        peek('bunny_white', 80, 'right:30px;top:-38px;transform:rotate(11deg)') +
+        '<div class="card front">' +
+          '<div class="jua" style="font-size:22px;color:#3F3A52">전부 공짜입니다</div>' +
+          '<div style="font-size:13.5px;line-height:1.8;color:#7C7392;margin-top:9px">' +
+          '점수도, 왜 그 점수인지도 다 보여드려요. 가입도 결제도 없습니다. ' +
+          '생년월일은 서버로 보내지 않고, 링크를 지우면 함께 사라집니다.</div>' +
+        '</div></div>',
+
+      /* 스텔라사주로 */
+      '<div class="pad" style="margin-top:44px">' +
+        '<a href="/" style="text-decoration:none"><div style="display:flex;align-items:center;' +
+        'justify-content:space-between;padding:20px 22px;background:#100B22;border-radius:24px">' +
+        '<div><div style="font-size:11px;color:#B9A2F2;font-weight:700;margin-bottom:5px">스텔라사주</div>' +
+        '<div style="font-size:16px;font-weight:700;color:#F6F1E7">내 사주 제대로 읽어보기</div></div>' +
+        '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C99A55" stroke-width="2" ' +
+        'stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' +
+        '</div></a></div>');
     } else if (st.view === 'mine') {
       h.push('<div class="pad" style="padding-top:30px"><div class="h1">먼저<br>내 것부터</div>',
         '<div class="sub">상대 생일은 몰라도 됩니다. 링크를 보내면 그쪽이 직접 넣어요.</div></div>',
@@ -348,6 +428,14 @@
     wire();
   }
 
+  function step(n, txt, last) {
+    return '<div style="display:flex;gap:12px;align-items:center;background:#fff;border-radius:20px;' +
+      'padding:13px 15px;margin-top:9px"><div style="width:26px;height:26px;border-radius:999px;' +
+      'background:' + (last ? '#B8A6E8' : '#E7DEFA') + ';color:' + (last ? '#fff' : '#6B5BA8') + ';' +
+      'font-family:Jua,sans-serif;font-size:13px;display:flex;align-items:center;justify-content:center;' +
+      'flex:0 0 26px">' + n + '</div><div style="font-size:14px;color:#57506E">' + txt + '</div></div>';
+  }
+
   function cat(name, v, bg, fg, sub) {
     return '<div style="background:' + bg + ';border-radius:18px;padding:13px 6px;text-align:center">' +
       '<div style="font-size:10.5px;color:' + sub + ';font-weight:500">' + name + '</div>' +
@@ -413,12 +501,81 @@
     if (n) { n.addEventListener('click', fn); }
   }
 
+  /* ── 스텔라사주의 머리띠와 꼬리말 감추기 ──────────────
+     테마가 어떤 이름을 쓰는지 몰라도 되게, 이름이 아니라 구조로 찾습니다.
+     페이지에 있는 모든 header · footer 가운데 우리 화면을 품고 있지 않은
+     것만 감춥니다. 워드프레스 관리 막대(#wpadminbar)는 div 라서 안 걸립니다. */
+  function hideTheme(host) {
+    var i, n;
+    n = document.querySelectorAll('header, footer, .site-header, .site-footer, #masthead, #colophon');
+    for (i = 0; i < n.length; i++) {
+      if (n[i].id === 'um-top') { continue; }
+      if (n[i].id === 'um-foot') { continue; }
+      if (n[i].contains(host)) { continue; }
+      if (host.contains(n[i])) { continue; }
+      n[i].style.setProperty('display', 'none', 'important');
+    }
+    /* 워드프레스가 붙이는 페이지 제목도 감춥니다 */
+    n = document.querySelectorAll('.wp-block-post-title, .entry-title, h1.entry-title');
+    for (i = 0; i < n.length; i++) {
+      if (!host.contains(n[i])) { n[i].style.setProperty('display', 'none', 'important'); }
+    }
+    /* 본문 칸의 여백과 최대 너비를 풀어 화면 전체를 씁니다 */
+    var box = host.parentNode, hop = 0;
+    while (box) {
+      if (box === document.body) { break; }
+      if (hop > 4) { break; }
+      box.style.setProperty('max-width', 'none', 'important');
+      box.style.setProperty('margin', '0', 'important');
+      box.style.setProperty('padding', '0', 'important');
+      box = box.parentNode; hop++;
+    }
+    document.body.style.setProperty('background', '#F7F2FC', 'important');
+  }
+
+  /* 무엇을 감췄는지 보고 싶을 때 : /uandme/?umdebug=1 */
+  function debugPanel(host) {
+    var out = ['<b>유앤미 진단</b>'];
+    out.push('body 표시 : ' + (document.body.classList.contains('um-page') ? 'um-page 붙음' : '안 붙음'));
+    out.push('유앤미 머리말 : ' + (document.getElementById('um-top') ? '있음' : '없음'));
+    out.push('유앤미 꼬리말 : ' + (document.getElementById('um-foot') ? '있음' : '없음'));
+    var n = document.querySelectorAll('header, footer'), i, L = [];
+    for (i = 0; i < n.length; i++) {
+      L.push(n[i].tagName.toLowerCase() +
+        (n[i].id ? '#' + n[i].id : '') +
+        (n[i].className ? '.' + String(n[i].className).trim().split(/\s+/).join('.') : '') +
+        ' → ' + getComputedStyle(n[i]).display);
+    }
+    out.push('페이지의 머리·꼬리 ' + n.length + '개');
+    out.push(L.join('<br>'));
+    var d = X.el('<div style="position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;' +
+      'background:#111;color:#9fd;font:12px/1.7 monospace;padding:14px;border-radius:12px;' +
+      'max-height:52vh;overflow:auto">' + out.join('<br>') + '</div>');
+    document.body.appendChild(d);
+  }
+
   /* ── 시작 ────────────────────────────────────────────── */
   function boot() {
     var host = document.getElementById('um');
     if (!host) { return; }
     X.css(); X.setRoot(host); root = host;
+    if (!document.getElementById('um-peek-css')) {
+      var pc = document.createElement('style');
+      pc.id = 'um-peek-css';
+      pc.textContent = '#um .peek{position:absolute;z-index:0;' +
+        'filter:drop-shadow(0 5px 8px rgba(107,91,168,.22))}' +
+        '#um .front{position:relative;z-index:1}' +
+        '#um .tile{display:flex;flex-direction:column;align-items:center;gap:7px}' +
+        '#um .tile .im{width:100%;aspect-ratio:1;border-radius:22px;padding:5px;cursor:pointer}' +
+        '#um .tile.on .im{outline:3px solid #B8A6E8;outline-offset:2px}' +
+        '#um .tile b{font-size:12px;font-weight:500;color:#57506E}' +
+        '#um .tile.on b{font-weight:700;color:#6B5BA8}';
+      document.head.appendChild(pc);
+    }
     document.body.classList.add('um-page');
+    hideTheme(host);
+    setTimeout(function () { hideTheme(host); }, 400);
+    setTimeout(function () { hideTheme(host); }, 1500);
     U.setEngines(window.StellaSaju, window.StellaMatch);
 
     var q = new URLSearchParams(location.search);
@@ -434,6 +591,9 @@
       if (d1) { st.rel = d1.rel; st.me = d1.a; st.view = 'joined'; draft = { sex: 'M', known: true }; }
     }
     render();
+    if (location.search.indexOf('umdebug') >= 0) {
+      setTimeout(function () { debugPanel(host); }, 900);
+    }
   }
 
   if (document.readyState === 'loading') {
