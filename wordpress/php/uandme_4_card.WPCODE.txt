@@ -144,7 +144,7 @@ add_action( 'init', function () {
 	$b     = isset( $_GET['b'] ) ? max( 0, min( 30, intval( $_GET['b'] ) ) ) : 0;
 	$c     = isset( $_GET['c'] ) ? max( 0, min( 30, intval( $_GET['c'] ) ) ) : 0;
 	$rel   = isset( $_GET['r'] ) ? sanitize_key( $_GET['r'] ) : 'lover';
-	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : '';
+	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : stella_um_tier( $score );
 	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
 	/* Jua 가 그릴 줄 아는 글자만 남깁니다 — 한글·영문·숫자·기본 부호.
 	   그러지 않으면 네모난 두부가 나옵니다. */
@@ -299,11 +299,10 @@ add_action( 'wp_head', function () {
 	$b     = isset( $_GET['b'] ) ? max( 0, min( 30, intval( $_GET['b'] ) ) ) : 0;
 	$c     = isset( $_GET['c'] ) ? max( 0, min( 30, intval( $_GET['c'] ) ) ) : 0;
 	$rel   = isset( $_GET['rel'] ) ? sanitize_key( $_GET['rel'] ) : 'lover';
-	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : '';
+	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : stella_um_tier( $score );
 	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
 
-	$img = home_url( '/?um_card=1&s=' . $score . '&r=' . $rel . '&a=' . $a . '&b=' . $b .
-	                 '&c=' . $c . '&t=' . rawurlencode( $tier ) );
+	$img = home_url( '/um-card/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c . '.png' );
 
 	$title = '우리 ' . $score . '점' . ( $tier ? ' - ' . $tier : '' );
 	$desc  = '사주 ' . $a . '/40, 별자리 ' . $b . '/30, 띠 ' . $c . '/30. 생일만 넣으면 바로 나와요';
@@ -341,11 +340,10 @@ add_filter( 'jetpack_open_graph_tags', function ( $tags ) {
 	$b     = isset( $_GET['b'] ) ? max( 0, min( 30, intval( $_GET['b'] ) ) ) : 0;
 	$c     = isset( $_GET['c'] ) ? max( 0, min( 30, intval( $_GET['c'] ) ) ) : 0;
 	$rel   = isset( $_GET['rel'] ) ? sanitize_key( $_GET['rel'] ) : 'lover';
-	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : '';
+	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : stella_um_tier( $score );
 	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
 
-	$img = home_url( '/?um_card=1&s=' . $score . '&r=' . $rel . '&a=' . $a . '&b=' . $b .
-	                 '&c=' . $c . '&t=' . rawurlencode( $tier ) );
+	$img = home_url( '/um-card/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c . '.png' );
 
 	$tags['og:title']        = '우리 ' . $score . '점' . ( $tier ? ' - ' . $tier : '' );
 	$tags['og:description']  = '사주 ' . $a . '/40, 별자리 ' . $b . '/30, 띠 ' . $c . '/30. 생일만 넣으면 바로 나와요';
@@ -373,7 +371,7 @@ add_action( 'init', function () {
 	echo '<h1 style="color:#ffd76a">크롤러가 보는 것</h1>';
 
 	$page = home_url( '/uandme/?r=TEST&sc=63&a=30&b=12&c=24&rel=lover&t=' . rawurlencode( '무난한 사이' ) );
-	$img  = home_url( '/?um_card=1&s=63&r=lover&a=30&b=12&c=24&t=' . rawurlencode( '무난한 사이' ) );
+	$img  = home_url( '/um-card/63-lover-30-12-24.png' );
 
 	$agents = array(
 		'스레드·페이스북' => 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',

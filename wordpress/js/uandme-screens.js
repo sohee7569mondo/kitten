@@ -103,17 +103,13 @@
   function cardUrl() {
     if (!st.result) { return ''; }
     var r = st.result;
-    var t = '';
-    try { t = window.UANDME_TIER(r.total, st.rel).title || ''; } catch (e) { t = ''; }
-    var q = 'um_card=1' +
-      '&s=' + r.total +
-      '&r=' + encodeURIComponent(st.rel) +
-      '&a=' + r.blocks.saju.score +
-      '&b=' + r.blocks.zodiac.score +
-      '&c=' + r.blocks.animal.score +
-      '&t=' + encodeURIComponent(t);
-    return location.origin + '/?' + q;
+    /* 물음표와 앰퍼샌드가 붙은 주소는 카카오가 그림으로 봐주지 않습니다.
+       그림 파일처럼 생긴 주소로 부릅니다. 등급 이름은 서버가 점수로
+       알아내므로 주소에 한글을 실을 일이 없습니다. */
+    return location.origin + '/um-card/' + r.total + '-' + st.rel + '-' +
+      r.blocks.saju.score + '-' + r.blocks.zodiac.score + '-' + r.blocks.animal.score + '.png';
   }
+
   function kakaoReady() {
     if (!window.Kakao) { return false; }
     if (!window.Kakao.Share) { return false; }
@@ -146,14 +142,6 @@
 
   function kakao(url, text) {
     if (kakaoReady()) {
-      /* 주소만 넘기면 카카오가 스스로 그 쪽 og 를 읽어 카드를 만듭니다.
-         스레드가 하는 것과 같은 방식입니다. 그림을 직접 넘기는
-         sendDefault 는 우리 그림을 실어주지 않았습니다. */
-      try {
-        window.Kakao.Share.sendScrap({ requestUrl: url });
-        return;
-      } catch (e) {}
-      /* 그래도 안 되면 예전 방식으로 한 번 더 */
       try {
         window.Kakao.Share.sendDefault({
           objectType: 'feed',
@@ -161,15 +149,16 @@
             title: text || '우리 궁합 몇 점일까?',
             description: kakaoDesc(),
             imageUrl: kakaoPic(),
+            imageWidth: 800,
+            imageHeight: 400,
             link: { mobileWebUrl: url, webUrl: url }
           },
           buttons: [{ title: st.result ? '나도 해보기' : '내 생일 넣기',
                       link: { mobileWebUrl: url, webUrl: url } }]
         });
         return;
-      } catch (e2) {}
+      } catch (e) {}
     }
-    /* 카카오가 아직 안 실렸으면 링크를 복사해 드립니다 */
     copy(url);
     toast('링크를 복사했어요. 카카오톡에 붙여넣어 보내세요');
   }
