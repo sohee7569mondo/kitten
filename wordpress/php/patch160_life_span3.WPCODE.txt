@@ -1,0 +1,195 @@
+/* ════════════════════════════════════════════════════════════
+   세성의 신 · 초년 · 중년 · 말년 (세 번째 판 — 표준 나이로)
+
+   「다른 사이트들이 많이 하는 나이로 자르자, 우리만 튀어나오지 않게」
+
+   확인해봤습니다. 가장 널리 쓰이는 것은 근묘화실 틀입니다 —
+   년주 0~15세, 월주 15~30세, 일주 30~45세, 시주 45세~.
+   셋으로 접으면 —
+
+     초년 = 만 0 ~ 29세   (년주 + 월주)
+     중년 = 만 30 ~ 44세  (일주)
+     말년 = 만 45세 이후  (시주)
+
+   「말년 45세부터」가 여러 출처에서 가장 반복적으로 나오는 숫자입니다.
+
+   자르는 나이는 표준을 따르되, 그 시기에 그 사람이 어떤 대운 판을
+   지나는지는 한 줄로 덧붙입니다. 나이는 표준, 내용은 그 사람 것.
+
+   ★ 마흔다섯 손님이 「내가 벌써 말년?」 하고 기분 상하지 않도록,
+     말년은 늙는 시기가 아니라 「앞에서 쌓은 것으로 사는 시기」라고
+     글에서 분명히 짚어둡니다.
+
+   ═══ 넣는 순서 ═══
+   ① 먼저  https://stellasaju.com/?stella_span2=1&undo=1
+      (두 번째 판을 걷어냅니다. 937043 바이트로 돌아갑니다)
+   ② 두 번째 판 스니펫(?stella_span2)을 끕니다
+   ③ 이 스니펫을 새로 만들어 켭니다
+   ④ 저장 직후  https://stellasaju.com/wp-json/stella/v1/me
+   ⑤ 미리보기  https://stellasaju.com/?stella_span3=1
+   ⑥ 적용      https://stellasaju.com/?stella_span3=1&go=1
+   되돌리기    https://stellasaju.com/?stella_span3=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_span3'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">';
+	echo '<body class="notranslate" translate="no" style="font:15px/1.9 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:960px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	global $wpdb;
+
+	$pid  = 160;
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	$span = <<<'STELLA_SPAN'
+
+    /* ═══ 초년 · 중년 · 말년 · 사주에서 흔히 쓰는 나이로 (2026-09-01) ═══
+       근묘화실 — 년주 0~15, 월주 15~30, 일주 30~45, 시주 45~ 를 셋으로 접습니다.
+         초년 = 만 0~29세 · 중년 = 만 30~44세 · 말년 = 만 45세 이후
+       자르는 나이는 표준, 그 시기에 지나는 대운 판은 그 사람 것.
+       주의 · 이 안에서 앰퍼샌드를 쓰지 않습니다. */
+    var __fSpan=(function(){
+      function pans(lo,hi){
+        var out=[];
+        if(!lst){ return out; }
+        var i;
+        for(i=0;i<lst.length;i++){
+          if(lst[i].to>lo){ if(lst[i].from<hi){ out.push(lst[i].han); } }
+        }
+        return out;
+      }
+      function say(lo,hi){
+        var p=pans(lo,hi);
+        if(!p.length){ return ''; }
+        if(p.length===1){ return '대운으로는 <em>'+p[0]+'</em> 판이 이 시기에 들어갑니다. '; }
+        return '대운으로는 <em>'+p.join('</em> · <em>')+'</em> 판이 이 시기에 걸칩니다. ';
+      }
+      var tail='<p class="mini">사주에서 흔히 쓰는 구분을 따랐습니다. 년주가 맡는 어린 시절과 '+
+        '월주가 맡는 청년기까지를 초년으로, 일주가 맡는 서른부터 마흔넷까지를 중년으로, '+
+        '시주가 맡는 마흔다섯 이후를 말년으로 봅니다. 나이는 이렇게 공통으로 자르지만, '+
+        '대운이 드는 나이는 사람마다 달라서 같은 초년이라도 어떤 판을 지나는지는 저마다 '+
+        '다릅니다. 위 표에서 그것을 보실 수 있습니다.</p>';
+      if(__fct==='초년'){
+        return '<p>당신의 <em>초년</em>은 태어나서 만 스물아홉까지입니다. 사주에서 년주와 월주가 '+
+          '맡는 자리예요. '+say(0,30)+
+          '이 시기에는 내가 고른 것보다 주어진 것이 많습니다. 집이 어디였는지, 누구를 만났는지, '+
+          '어느 학교에 앉아 있었는지가 내 뜻과 상관없이 정해졌어요. 그래서 그때 일이 왜 그렇게 '+
+          '흘러갔는지는 내 탓으로만 볼 일이 아닙니다. 다만 그 시기에 몸에 붙은 버릇 하나는 '+
+          '지금까지 따라옵니다. 위 표에서 그 판들이 지나간 줄을 보시면, 그 버릇이 어디서 '+
+          '왔는지가 보입니다.</p>'+tail;
+      }
+      if(__fct==='중년'){
+        return '<p>당신의 <em>중년</em>은 만 서른부터 마흔넷까지입니다. 사주에서 일주가 맡는 '+
+          '자리, 꽃에 해당하는 시기예요. '+say(30,45)+
+          '이 안에서 판이 한 번은 바뀝니다. 그래서 같은 사람이 십 년 만에 다른 사람처럼 '+
+          '보이기도 하고, 그 전까지 잘되던 방식이 어느 해부터 갑자기 안 먹히기도 합니다. '+
+          '열다섯 해밖에 안 되는데 인생에서 가장 많은 것이 결정되는 구간이라 한꺼번에 보시면 '+
+          '뭉뚱그려집니다. 위 표에서 나이가 바뀌는 줄을 찾아 그 앞뒤로 나눠 보세요.</p>'+tail;
+      }
+      if(__fct==='말년'){
+        return '<p>당신의 <em>말년</em>은 만 마흔다섯부터입니다. 사주에서 시주가 맡는 자리, '+
+          '열매에 해당하는 시기예요. '+say(45,999)+
+          '마흔다섯이 이르게 느껴지실 수 있습니다. 그런데 사주에서 말하는 말년은 늙는다는 뜻이 '+
+          '아니라 <em>앞에서 쌓은 것으로 사는 시기</em>라는 뜻입니다. 새로 심는 철이 아니라 '+
+          '거두는 철이라는 말이에요. 그래서 이 시기의 판이 무엇이냐보다, 그 앞에서 무엇을 '+
+          '남겼느냐가 훨씬 크게 작용합니다. 위 표를 뒤에서부터 거꾸로 읽어보시면 그게 '+
+          '보입니다.</p>'+tail;
+      }
+      return '';
+    })();
+
+STELLA_SPAN;
+
+	$re_a = '/return M\[__fct\]\?\(\'<p>\'\+M\[__fct\]\+\'<\/p>\'\):\'\';\s*\}\)\(\);/u';
+	$re_b = '/nowTxt\+\s*\'<div class="voice">/u';
+
+	printf(
+		'<h1 style="color:#ffd76a">초년 · 중년 · 말년을 대운으로 (세 번째 판 · 표준 나이) — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	$now = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( null === $now ) {
+		echo '<h2 style="color:#ff7b7b">160 을 못 읽었습니다.</h2>';
+		exit;
+	}
+
+	if ( $undo ) {
+		$bak = get_post_meta( $pid, '_stella_span3_backup', true );
+		if ( $bak ) {
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+			delete_post_meta( $pid, '_stella_span3_backup' );
+			clean_post_cache( $pid );
+			if ( function_exists( 'wp_cache_flush' ) ) {
+				wp_cache_flush();
+			}
+			echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2>';
+		} else {
+			echo '<h2 style="color:#888">사본이 없습니다.</h2>';
+		}
+		exit;
+	}
+
+	$has = substr_count( $now, '__fSpan' );
+	$na  = preg_match_all( $re_a, $now );
+	$nb  = preg_match_all( $re_b, $now );
+
+	echo '<table cellpadding="8" style="border-collapse:collapse">';
+	printf( '<tr><td>페이지 크기</td><td><b>%d</b> 바이트</td></tr>', strlen( $now ) );
+	printf( '<tr><td>새 글 크기</td><td>%d 바이트</td></tr>', strlen( $span ) );
+	printf( '<tr><td>이미 들어감</td><td>%d</td></tr>', $has );
+	printf( '<tr><td>① 만들 자리</td><td style="color:%s"><b>%d</b></td></tr>', 1 === $na ? '#7bff9b' : '#ff7b7b', $na );
+	printf( '<tr><td>② 부를 자리</td><td style="color:%s"><b>%d</b></td></tr>', 1 === $nb ? '#7bff9b' : '#ff7b7b', $nb );
+	echo '</table>';
+
+	if ( $has > 0 ) {
+		echo '<h2 style="color:#7bff9b">이미 들어가 있습니다.</h2>'
+			. '<p style="color:#888">되돌리려면 ?stella_span3=1&undo=1</p>';
+		exit;
+	}
+	if ( 1 !== $na || 1 !== $nb ) {
+		echo '<h2 style="color:#ff7b7b">자리가 딱 한 번씩이 아니라 아무것도 바꾸지 않았습니다.</h2>'
+			. '<p>세성 두 번째 판(?stella_fortune2=1)이 먼저 들어가 있어야 합니다.</p>'
+			. '<p>두 번째 판을 먼저 되돌리셨는지 확인해 주세요 — ?stella_span2=1&amp;undo=1</p>'
+			. '<p>이 화면을 저에게 보내주세요.</p>';
+		exit;
+	}
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_span3=1&go=1">→ 이대로 넣기</a></p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, '_stella_span3_backup', true ) ) {
+		update_post_meta( $pid, '_stella_span3_backup', $now );
+	}
+
+	$out = preg_replace_callback( $re_a, function ( $m ) use ( $span ) { return $m[0] . $span; }, $now, 1 );
+	$out = preg_replace_callback(
+		$re_b,
+		function ( $m ) { return str_replace( 'nowTxt+', 'nowTxt+__fNow+__fSpan+', $m[0] ); },
+		$out,
+		1
+	);
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $out ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	printf( '<h2 style="color:#7bff9b">넣었습니다 — %d → %d 바이트</h2>', strlen( $now ), strlen( $out ) );
+	echo '<p style="color:#888">되돌리려면 ?stella_span3=1&undo=1</p>';
+	exit;
+} );
