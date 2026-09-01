@@ -796,7 +796,7 @@ window.UM_SET = {
 
       /* 무료라는 것 */
       '<div class="pad" style="margin-top:56px;position:relative">' +
-        peek('공짜카드', 'bunny_white', 80, 'right:30px;top:-38px;transform:rotate(11deg)') +
+        pop('공짜카드', 112, 'right:12px;top:-62px') +
         '<div class="card front">' +
           '<div class="jua" style="font-size:22px;color:#3F3A52">' + T('공짜제목') + '</div>' +
           '<div style="font-size:13.5px;line-height:1.8;color:#7C7392;margin-top:9px">' +
