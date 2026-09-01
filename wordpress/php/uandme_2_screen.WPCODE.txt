@@ -327,6 +327,9 @@ window.UM_SET = {
     '#um .fld{height:54px;background:#fff;border:0;border-radius:18px;padding:0 16px;font-size:15px;',
     'color:var(--ink);width:100%;font-family:inherit;text-align:center}',
     '#um .fld::placeholder{color:#C3BAD6}',
+    /* 칸을 누를 때 브라우저 기본 검은 테두리 대신 연보라 테두리 */
+    '#um input:focus{outline:none;box-shadow:0 0 0 3px #DCD0F5}',
+    '#um button:focus-visible{outline:none;box-shadow:0 0 0 3px #DCD0F5}',
     '#um .row{display:flex;gap:7px}',
     /* 한 줄에 놓인 칸은 폭을 0에서 시작해 고르게 나눠 갖습니다.
        이게 없으면 width:100% 때문에 뒷칸이 폭을 다 먹고 연도 칸이 찌그러집니다. */
