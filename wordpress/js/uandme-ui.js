@@ -52,6 +52,8 @@
     'background:none;border:0;font-family:inherit;padding:0}',
     '#um .sh i{width:56px;height:56px;border-radius:20px;display:flex;align-items:center;justify-content:center}',
     '#um .sh span{font-size:11.5px;font-weight:700;color:#57506E}',
+    '#um .stp{cursor:pointer;transition:transform .12s}',
+    '#um .stp:active{transform:scale(.98)}',
     '#um .note{font-size:12px;line-height:1.85;color:var(--soft)}',
     '#um .mini{font-size:11.5px;line-height:1.9;color:#B3A9C9}',
     '@media(max-width:400px){#um .h1{font-size:31px}}',

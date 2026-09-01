@@ -358,8 +358,8 @@
       '<div class="pad" style="margin-top:30px"><button class="btnP" id="go-mine">' + T('시작버튼') + '</button></div>',
 
       /* 초대 설명 */
-      '<div class="pad" style="margin-top:54px;position:relative">' +
-        pop('초대그림', 118, 'right:10px;top:-70px') +
+      '<div class="pad" style="margin-top:104px;position:relative">' +
+        pop('초대그림', 124, 'right:8px;top:-108px') +
         peek('초대위', 'cow', 84, 'right:28px;top:-44px;transform:rotate(8deg)') +
         '<div class="front" style="background:#E7DEFA;border-radius:28px;padding:26px 22px">' +
           '<div class="jua" style="font-size:25px;line-height:1.3;color:#3F3A52">' + T('초대제목') + '</div>' +
@@ -371,8 +371,8 @@
       '</div>',
 
       /* 무료라는 것 */
-      '<div class="pad" style="margin-top:56px;position:relative">' +
-        pop('공짜카드', 112, 'right:12px;top:-62px') +
+      '<div class="pad" style="margin-top:100px;position:relative">' +
+        pop('공짜카드', 118, 'right:10px;top:-104px') +
         '<div class="card front">' +
           '<div class="jua" style="font-size:22px;color:#3F3A52">' + T('공짜제목') + '</div>' +
           '<div style="font-size:13.5px;line-height:1.8;color:#7C7392;margin-top:9px">' +
@@ -463,11 +463,16 @@
   }
 
   function step(n, txt, last) {
-    return '<div style="display:flex;gap:12px;align-items:center;background:#fff;border-radius:20px;' +
-      'padding:13px 15px;margin-top:9px"><div style="width:26px;height:26px;border-radius:999px;' +
+    return '<button class="stp" data-goto="mine" style="display:flex;gap:12px;align-items:center;' +
+      'background:#fff;border-radius:20px;padding:13px 15px;margin-top:9px;width:100%;text-align:left">' +
+      '<span style="width:26px;height:26px;border-radius:999px;' +
       'background:' + (last ? '#B8A6E8' : '#E7DEFA') + ';color:' + (last ? '#fff' : '#6B5BA8') + ';' +
       'font-family:Jua,sans-serif;font-size:13px;display:flex;align-items:center;justify-content:center;' +
-      'flex:0 0 26px">' + n + '</div><div style="font-size:14px;color:#57506E">' + txt + '</div></div>';
+      'flex:0 0 26px">' + n + '</span>' +
+      '<span style="font-size:14px;color:#57506E;flex:1">' + txt + '</span>' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C3BAD6" stroke-width="2.4" ' +
+      'stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' +
+      '</button>';
   }
 
   function cat(name, v, bg, fg, sub) {
@@ -497,6 +502,10 @@
       });
     }
     bind('#go-mine', function () { draft = { sex: 'F', known: true }; go('mine'); });
+    X.on('[data-goto]', 'click', function () {
+      draft = { sex: 'F', known: true };
+      go(this.getAttribute('data-goto'));
+    });
     bind('#mk-link', function () {
       var p = readForm(); if (!p) { return; }
       st.me = p; U.saveMe(); go('invite');
