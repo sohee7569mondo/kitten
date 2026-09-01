@@ -16,39 +16,121 @@
    확인 : https://stellasaju.com/?um_card=1&s=63&r=lover&a=30&b=12&c=24
    ════════════════════════════════════════════════════════════ */
 
-/* ── 글꼴 한 벌 마련하기 ──────────────────────────────── */
-if ( ! function_exists( 'stella_um_font' ) ) {
-	function stella_um_font() {
-
-		$up  = wp_upload_dir();
-		$dir = $up['basedir'] . '/uandme';
-		$ttf = $dir . '/jua.ttf';
-
-		if ( file_exists( $ttf ) ) {
-			if ( filesize( $ttf ) > 40000 ) { return $ttf; }
-		}
-		if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
-
-		/* 구글에 옛날 브라우저인 척 물으면 ttf 주소를 알려줍니다.
-		   요즘 형식(woff2)은 GD 가 읽지 못합니다. */
-		$css = wp_remote_get( 'https://fonts.googleapis.com/css?family=Jua', array(
-			'timeout'    => 20,
-			'user-agent' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)',
-		) );
-		if ( is_wp_error( $css ) ) { return ''; }
-
-		$body = wp_remote_retrieve_body( $css );
-		if ( ! preg_match( '#https://[^)\'"]+\.ttf#', $body, $m ) ) { return ''; }
-
-		$bin = wp_remote_get( $m[0], array( 'timeout' => 30 ) );
-		if ( is_wp_error( $bin ) ) { return ''; }
-		$raw = wp_remote_retrieve_body( $bin );
-		if ( strlen( $raw ) < 40000 ) { return ''; }
-
-		file_put_contents( $ttf, $raw );
-		return file_exists( $ttf ) ? $ttf : '';
+/* ── 글꼴 한 벌 마련하기 ────────────────────────────────
+   서버에 한글 글꼴이 없어서 한 번만 받아 uploads 에 둡니다.
+   받는 곳을 여러 군데 두고 되는 데까지 가 봅니다. */
+if ( ! function_exists( 'stella_um_font_path' ) ) {
+	function stella_um_font_path() {
+		$up = wp_upload_dir();
+		return $up['basedir'] . '/uandme/jua.ttf';
 	}
 }
+if ( ! function_exists( 'stella_um_font_try' ) ) {
+	/* 한 곳에서 받아 봅니다. 무슨 일이 있었는지 글로 돌려줍니다. */
+	function stella_um_font_try( $url, &$log ) {
+
+		$r = wp_remote_get( $url, array(
+			'timeout'    => 30,
+			'user-agent' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)',
+		) );
+		if ( is_wp_error( $r ) ) {
+			$log[] = array( $url, '못 감', $r->get_error_message() );
+			return '';
+		}
+		$code = wp_remote_retrieve_response_code( $r );
+		$body = wp_remote_retrieve_body( $r );
+		$log[] = array( $url, '응답 ' . $code, strlen( $body ) . ' 바이트' );
+		if ( 200 !== intval( $code ) ) { return ''; }
+
+		/* 글꼴 파일이면 앞 네 글자가 0x00010000 이거나 true/OTTO 입니다 */
+		$head = substr( $body, 0, 4 );
+		if ( strlen( $body ) > 40000 ) {
+			if ( "\x00\x01\x00\x00" === $head || 'true' === $head || 'ttcf' === $head ) {
+				return $body;
+			}
+		}
+		/* 글꼴이 아니면 안에서 ttf 주소를 찾아 다시 가 봅니다 */
+		if ( preg_match( '#https://[^)\'"\s]+\.ttf#', $body, $m ) ) {
+			$log[] = array( $m[0], '안에서 찾음', '따라갑니다' );
+			return stella_um_font_try( $m[0], $log );
+		}
+		$log[] = array( $url, '글꼴 아님', substr( strip_tags( $body ), 0, 120 ) );
+		return '';
+	}
+}
+if ( ! function_exists( 'stella_um_font' ) ) {
+	function stella_um_font( &$log = null ) {
+
+		if ( null === $log ) { $log = array(); }
+		$ttf = stella_um_font_path();
+
+		if ( file_exists( $ttf ) ) {
+			if ( filesize( $ttf ) > 40000 ) {
+				$log[] = array( $ttf, '이미 있음', filesize( $ttf ) . ' 바이트' );
+				return $ttf;
+			}
+		}
+		$dir = dirname( $ttf );
+		if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
+
+		$where = array(
+			'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/jua/Jua-Regular.ttf',
+			'https://raw.githubusercontent.com/google/fonts/main/ofl/jua/Jua-Regular.ttf',
+			'https://fonts.googleapis.com/css?family=Jua',
+			'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosanskr/NotoSansKR%5Bwght%5D.ttf',
+			'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/gothica1/GothicA1-Bold.ttf',
+		);
+		foreach ( $where as $u ) {
+			$raw = stella_um_font_try( $u, $log );
+			if ( ! $raw ) { continue; }
+			$ok = @file_put_contents( $ttf, $raw );
+			$log[] = array( $ttf, $ok ? '저장함' : '저장 못 함', strlen( $raw ) . ' 바이트' );
+			if ( $ok ) { return $ttf; }
+		}
+		return '';
+	}
+}
+
+/* ── 글꼴이 잘 왔는지 보기 ─────────────────────────────
+   https://stellasaju.com/?um_font=1                 (관리자만)
+   https://stellasaju.com/?um_font=1&again=1         다시 받기 */
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['um_font'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	if ( isset( $_GET['again'] ) ) { @unlink( stella_um_font_path() ); }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.7 system-ui;background:#111;color:#eee;padding:24px;max-width:900px">';
+	echo '<h1 style="color:#ffd76a">유앤미 · 글꼴 받아오기</h1>';
+
+	$log  = array();
+	$font = stella_um_font( $log );
+
+	echo '<table style="width:100%;border-collapse:collapse;font-size:12.5px">';
+	foreach ( $log as $row ) {
+		echo '<tr style="border-bottom:1px solid #333">';
+		echo '<td style="padding:7px;color:#8cf;word-break:break-all">' . esc_html( $row[0] ) . '</td>';
+		echo '<td style="padding:7px;white-space:nowrap;color:#ffd76a">' . esc_html( $row[1] ) . '</td>';
+		echo '<td style="padding:7px;color:#aaa">' . esc_html( $row[2] ) . '</td>';
+		echo '</tr>';
+	}
+	echo '</table>';
+
+	if ( $font ) {
+		echo '<h2 style="color:#9f9">글꼴 마련됐습니다</h2>';
+		echo '<p>' . esc_html( $font ) . '</p>';
+		echo '<p>아래 그림에 한글이 제대로 보이면 다 된 것입니다.</p>';
+		echo '<img src="' . esc_url( home_url( '/?um_card=1&s=63&r=lover&a=30&b=12&c=24&t=' . rawurlencode( '무난한 사이' ) ) ) .
+		     '" style="width:100%;max-width:800px;border-radius:12px;margin-top:10px">';
+	} else {
+		echo '<h2 style="color:#f88">글꼴을 못 받았습니다</h2>';
+		echo '<p>위 표를 통째로 찍어서 보내주세요. 다른 길을 찾겠습니다.</p>';
+	}
+	echo '<p style="margin-top:22px;color:#888">다시 받으려면 주소 끝에 <b>&again=1</b> 을 붙이세요.</p>';
+	exit;
+} );
 
 /* ── 그림 그리기 ──────────────────────────────────────── */
 add_action( 'init', function () {
@@ -159,10 +241,21 @@ add_action( 'init', function () {
 		$mid( 17, 348, '사주 ' . $a . ' · 별자리 ' . $b . ' · 띠 ' . $c, $sub, 420 );
 		$mid( 14, 378, 'stellasaju.com/uandme',    $soft, 420 );
 	} else {
-		/* 글꼴을 못 받았을 때 — 숫자만이라도 */
-		$s = (string) $score;
-		imagestring( $im, 5, 400 - 5 * strlen( $s ), 190, $s, $pur );
-		imagestring( $im, 3, 330, 220, 'stellasaju.com/uandme', $soft );
+		/* 글꼴을 못 받았을 때 — 숫자만이라도 큼직하게.
+		   작게 그린 뒤 늘려 붙입니다. */
+		$s  = (string) $score;
+		$tw = imagefontwidth( 5 ) * strlen( $s );
+		$th = imagefontheight( 5 );
+		$tmp = imagecreatetruecolor( $tw, $th );
+		$bg  = imagecolorallocate( $tmp, 251, 246, 255 );
+		imagefill( $tmp, 0, 0, $bg );
+		imagecolortransparent( $tmp, $bg );
+		imagestring( $tmp, 5, 0, 0, $s, imagecolorallocate( $tmp, 107, 91, 168 ) );
+		$k = 9;
+		imagecopyresampled( $im, $tmp, intval( 400 - $tw * $k / 2 ), intval( 210 - $th * $k / 2 ),
+			0, 0, intval( $tw * $k ), intval( $th * $k ), $tw, $th );
+		imagedestroy( $tmp );
+		imagestring( $im, 3, 330, 300, 'stellasaju.com/uandme', $soft );
 	}
 
 	nocache_headers();
