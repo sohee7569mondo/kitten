@@ -61,7 +61,7 @@ window.UM_SET = {
         움직이므로 남이 가져다 쓸 수 없습니다. (REST API 키는 절대
         여기에 넣으면 안 됩니다) */
   설정: {
-    카카오키:  '',
+    카카오키:  '7806d048aad9905e98fb7dd4217236d2',
 
     /* 카톡에 뜨는 그림 — 200px 이상이어야 합니다 */
     카톡그림:  'https://stellasaju.com/wp-content/uploads/2026/09/uandme_cha-02-300px.png'
