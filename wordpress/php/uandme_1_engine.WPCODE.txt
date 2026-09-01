@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════
-   유앤미 1 · 계산기 (사주 · 궁합 · 멘트)
+   유앤미 1 · 오전 오후
 
    유앤미(/uandme/) 화면에서만 실립니다. 다른 페이지에는 영향이
    없습니다. 페이지 내용이 아니라 머리말로 실어주므로, 워드프레스가
@@ -1119,9 +1119,10 @@ add_action( 'init', function () {
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo '<meta charset="utf-8"><body style="font:15px/1.8 system-ui;background:#111;color:#eee;padding:24px">';
 	if ( ! current_user_can( 'manage_options' ) ) { echo '관리자만 볼 수 있습니다.'; exit; }
-	echo '<h1 style="color:#ffd76a">유앤미 1 · 계산기 (사주 · 궁합 · 멘트)</h1>';
+	echo '<h1 style="color:#ffd76a">유앤미 1 · 오전 오후</h1>';
 	echo '<p>이 스니펫은 살아 있습니다.</p>';
 	echo '<p>실어주는 글 : <b>59KB</b></p>';
+	echo '<table style="font-size:13px;margin:14px 0"><tr><td style="padding:4px 12px 4px 0">연예인 목록</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">연예인 단추</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">카톡 점수 카드</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">공유 아이콘 시트</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">그림 여백 잘라내기</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">들어올 때 장막</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">카카오 키</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">오전 오후</td><td style="color:#f88">없음</td></tr></table>';
 	echo '<p>유앤미 화면 : <a style="color:#9fd" href="/uandme/">stellasaju.com/uandme/</a></p>';
 	exit;
 } );
