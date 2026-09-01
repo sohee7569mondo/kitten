@@ -216,11 +216,18 @@
       '<input class="fld" id="f-m" inputmode="numeric" maxlength="2" placeholder="03" value="' + (p.m || '') + '">',
       '<input class="fld" id="f-d" inputmode="numeric" maxlength="2" placeholder="21" value="' + (p.d || '') + '">',
       '</div></div>',
-      '<div class="pad" style="margin-top:18px"><div class="lbl">태어난 시각</div><div class="row">',
-      '<input class="fld" id="f-h" inputmode="numeric" maxlength="2" placeholder="14" style="flex:1">',
-      '<input class="fld" id="f-mi" inputmode="numeric" maxlength="2" placeholder="30" style="flex:1">',
-      '<button class="seg' + (p.known === false ? ' on' : '') + '" id="f-unk" style="flex:0 0 96px">모름</button>',
-      '</div><div class="note" style="margin-top:9px">모르셔도 됩니다. 시각 없이도 나오고, 있으면 조금 더 정확해집니다.</div></div>',
+      '<div class="pad" style="margin-top:18px"><div class="lbl">태어난 시각</div>',
+      '<div class="row">',
+      '<button class="seg' + (draft.ampm !== '오후' ? ' on' : '') + '" data-ampm="오전">오전</button>',
+      '<button class="seg' + (draft.ampm === '오후' ? ' on' : '') + '" data-ampm="오후">오후</button>',
+      '</div>',
+      '<div class="row" style="margin-top:7px">',
+      '<input class="fld" id="f-h" inputmode="numeric" maxlength="2" placeholder="9시">',
+      '<input class="fld" id="f-mi" inputmode="numeric" maxlength="2" placeholder="30분">',
+      '<button class="seg' + (draft.known === false ? ' on' : '') + '" id="f-unk" style="flex:0 0 92px">모름</button>',
+      '</div>',
+      '<div class="note" style="margin-top:9px">낮 12시는 <b>오후 12시</b>, 밤 12시는 <b>오전 12시</b>입니다.<br>',
+      '모르셔도 됩니다. 시각 없이도 나오고, 있으면 조금 더 정확해집니다.</div></div>',
       '<div class="pad" style="margin-top:18px"><div class="lbl">성별</div><div class="row">',
       '<button class="seg' + (p.sex !== 'M' ? ' on' : '') + '" data-sex="F">여성</button>',
       '<button class="seg' + (p.sex === 'M' ? ' on' : '') + '" data-sex="M">남성</button>',
@@ -228,7 +235,7 @@
     ].join('');
   }
 
-  var draft = { sex: 'F', known: true };
+  var draft = { sex: 'F', known: true, ampm: '오전' };
 
   function readForm() {
     function v(id) { var n = root.querySelector('#' + id); return n ? n.value.trim() : ''; }
@@ -240,7 +247,13 @@
     var h = +v('f-h'), mi = +v('f-mi');
     var known = draft.known;
     if (known) { if (!v('f-h')) { known = false; } }
-    if (known) { if (h < 0 || h > 23) { toast('시각을 다시 봐주세요'); return null; } }
+    if (known) {
+      if (h < 1 || h > 12) { toast('시각은 1시부터 12시까지 넣어주세요'); return null; }
+      /* 오전 12시는 밤 0시, 오후 12시는 낮 12시입니다 */
+      if (draft.ampm === '오후') { if (h < 12) { h = h + 12; } }
+      else { if (h === 12) { h = 0; } }
+      if (mi < 0 || mi > 59) { toast('분은 0부터 59까지 넣어주세요'); return null; }
+    }
     return { sex: draft.sex, y: y, m: m, d: d, h: known ? h : 12,
              mi: known ? (mi || 0) : 0, known: known, name: v('f-name') };
   }
@@ -551,6 +564,12 @@
     X.on('[data-rel]', 'click', function () {
       st.rel = this.getAttribute('data-rel'); render();
     });
+    X.on('[data-ampm]', 'click', function () {
+      draft.ampm = this.getAttribute('data-ampm');
+      var n = root.querySelectorAll('[data-ampm]'), i;
+      for (i = 0; i < n.length; i++) { n[i].classList.remove('on'); }
+      this.classList.add('on');
+    });
     X.on('[data-sex]', 'click', function () {
       draft.sex = this.getAttribute('data-sex');
       var n = root.querySelectorAll('[data-sex]'), i;
@@ -567,9 +586,9 @@
         if (b) { b.disabled = !draft.known; b.style.opacity = draft.known ? 1 : .45; }
       });
     }
-    bind('#go-mine', function () { draft = { sex: 'F', known: true }; go('mine'); });
+    bind('#go-mine', function () { draft = { sex: 'F', known: true, ampm: '오전' }; go('mine'); });
     X.on('[data-goto]', 'click', function () {
-      draft = { sex: 'F', known: true };
+      draft = { sex: 'F', known: true, ampm: '오전' };
       go(this.getAttribute('data-goto'));
     });
     bind('#mk-link', function () {
@@ -578,9 +597,9 @@
     });
     bind('#both', function () {
       var p = readForm(); if (!p) { return; }
-      st.me = p; U.saveMe(); draft = { sex: 'M', known: true }; go('both');
+      st.me = p; U.saveMe(); draft = { sex: 'M', known: true, ampm: '오전' }; go('both');
     });
-    bind('#both2', function () { draft = { sex: 'M', known: true }; go('both'); });
+    bind('#both2', function () { draft = { sex: 'M', known: true, ampm: '오전' }; go('both'); });
     bind('#calc', function () {
       var p = readForm(); if (!p) { return; }
       st.you = p;
@@ -591,7 +610,7 @@
     bind('#again', function () {
       st.you = null; st.result = null;
       history.replaceState(null, '', X.base());
-      draft = { sex: 'M', known: true }; go('both');
+      draft = { sex: 'M', known: true, ampm: '오전' }; go('both');
     });
     X.on('[data-s]', 'click', function () {
       var k = this.getAttribute('data-s');
@@ -785,7 +804,7 @@
       } }
     } else if (i) {
       var d1 = U.unpackLink(i);
-      if (d1) { st.rel = d1.rel; st.me = d1.a; st.view = 'joined'; draft = { sex: 'M', known: true }; }
+      if (d1) { st.rel = d1.rel; st.me = d1.a; st.view = 'joined'; draft = { sex: 'M', known: true, ampm: '오전' }; }
     }
     render();
     if (location.search.indexOf('umdebug') >= 0) {
