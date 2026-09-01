@@ -1,0 +1,175 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 ④ · 카톡에 갈 점수 그림
+
+   카톡으로 보낼 때 뜨는 네모난 그림을 이 서버가 그 자리에서 그립니다.
+   점수마다 다른 그림이 가므로 받는 사람이 「이게 뭐지」 하고 누릅니다.
+
+   · 800x400 — 카카오가 좋아하는 크기입니다
+   · 글씨는 「Jua」 라는 둥글고 귀여운 글꼴을 씁니다.
+     서버에 한글 글꼴이 없어서 처음 한 번만 받아 와 보관합니다.
+   · 아무것도 남기지 않습니다. 부를 때마다 그리고 버립니다.
+   · 생년월일이나 이름은 담기지 않습니다. 점수만 담깁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   확인 : https://stellasaju.com/?um_card=1&s=63&r=lover&a=30&b=12&c=24
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 글꼴 한 벌 마련하기 ──────────────────────────────── */
+if ( ! function_exists( 'stella_um_font' ) ) {
+	function stella_um_font() {
+
+		$up  = wp_upload_dir();
+		$dir = $up['basedir'] . '/uandme';
+		$ttf = $dir . '/jua.ttf';
+
+		if ( file_exists( $ttf ) ) {
+			if ( filesize( $ttf ) > 40000 ) { return $ttf; }
+		}
+		if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
+
+		/* 구글에 옛날 브라우저인 척 물으면 ttf 주소를 알려줍니다.
+		   요즘 형식(woff2)은 GD 가 읽지 못합니다. */
+		$css = wp_remote_get( 'https://fonts.googleapis.com/css?family=Jua', array(
+			'timeout'    => 20,
+			'user-agent' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)',
+		) );
+		if ( is_wp_error( $css ) ) { return ''; }
+
+		$body = wp_remote_retrieve_body( $css );
+		if ( ! preg_match( '#https://[^)\'"]+\.ttf#', $body, $m ) ) { return ''; }
+
+		$bin = wp_remote_get( $m[0], array( 'timeout' => 30 ) );
+		if ( is_wp_error( $bin ) ) { return ''; }
+		$raw = wp_remote_retrieve_body( $bin );
+		if ( strlen( $raw ) < 40000 ) { return ''; }
+
+		file_put_contents( $ttf, $raw );
+		return file_exists( $ttf ) ? $ttf : '';
+	}
+}
+
+/* ── 그림 그리기 ──────────────────────────────────────── */
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['um_card'] ) ) { return; }
+
+	$W = 800; $H = 400;
+
+	$score = isset( $_GET['s'] ) ? max( 0, min( 99, intval( $_GET['s'] ) ) ) : 0;
+	$a     = isset( $_GET['a'] ) ? max( 0, min( 40, intval( $_GET['a'] ) ) ) : 0;
+	$b     = isset( $_GET['b'] ) ? max( 0, min( 30, intval( $_GET['b'] ) ) ) : 0;
+	$c     = isset( $_GET['c'] ) ? max( 0, min( 30, intval( $_GET['c'] ) ) ) : 0;
+	$rel   = isset( $_GET['r'] ) ? sanitize_key( $_GET['r'] ) : 'lover';
+	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : '';
+	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
+
+	$relko = array(
+		'lover' => '연인', 'married' => '부부', 'friend' => '친구',
+		'sibling' => '형제자매', 'parent_child' => '부모와 자녀',
+		'boss_sub' => '상사와 부하', 'partner' => '동업자',
+	);
+	$ko = isset( $relko[ $rel ] ) ? $relko[ $rel ] : '연인';
+
+	/* 관계마다 다른 아이가 나옵니다 */
+	$pics = array(
+		'lover'        => 'animal_2785140635-01-300px.png',
+		'married'      => 'animal_2785140635-02-300px.png',
+		'friend'       => 'animal_2785140635-03-300px.png',
+		'sibling'      => 'animal_2785140635-04-300px.png',
+		'parent_child' => 'animal_2785140635-05-300px.png',
+		'boss_sub'     => 'animal_2785140635-06-300px.png',
+		'partner'      => 'animal_2785140635-07-300px.png',
+	);
+	$left = isset( $pics[ $rel ] ) ? $pics[ $rel ] : $pics['lover'];
+
+	/* 오른쪽은 그때그때 다른 아이가 나옵니다 — 스물아홉 중 하나 */
+	$pool = array( 'uandme_cha-02-300px.png' );
+	$i = 1;
+	while ( $i <= 6 )  { $pool[] = sprintf( 'animal-%02d-300px.png', $i ); $i++; }
+	$i = 1;
+	while ( $i <= 11 ) { $pool[] = sprintf( 'animal_2785140636-%02d-300px.png', $i ); $i++; }
+	$i = 1;
+	while ( $i <= 12 ) { $pool[] = sprintf( 'animal_2785140635-%02d-300px.png', $i ); $i++; }
+	$right = $pool[ wp_rand( 0, count( $pool ) - 1 ) ];
+
+	$im = imagecreatetruecolor( $W, $H );
+	imagealphablending( $im, true );
+	imagesavealpha( $im, true );
+
+	/* 파스텔 바탕 — 왼쪽 위에서 오른쪽 아래로 */
+	for ( $y = 0; $y < $H; $y++ ) {
+		$t = $y / ( $H - 1 );
+		$r1 = 251 + ( 255 - 251 ) * $t;
+		$g1 = 246 + ( 237 - 246 ) * $t;
+		$b1 = 255 + ( 226 - 255 ) * $t;
+		$col = imagecolorallocate( $im, intval( $r1 ), intval( $g1 ), intval( $b1 ) );
+		imagefilledrectangle( $im, 0, $y, $W, $y, $col );
+	}
+	$ink  = imagecolorallocate( $im, 63, 58, 82 );
+	$pur  = imagecolorallocate( $im, 107, 91, 168 );
+	$soft = imagecolorallocate( $im, 167, 155, 196 );
+	$sub  = imagecolorallocate( $im, 124, 115, 146 );
+
+	/* 아이 둘 — 좌우 끝에 하나씩 */
+	$up = wp_upload_dir();
+	$paste = function ( $file, $cx, $cy, $box ) use ( $im, $up ) {
+		$p = $up['basedir'] . '/2026/09/' . $file;
+		if ( ! file_exists( $p ) ) { $p = $up['basedir'] . '/2026/08/' . $file; }
+		if ( ! file_exists( $p ) ) { return; }
+		$src = @imagecreatefrompng( $p );
+		if ( ! $src ) { return; }
+		/* 둘레의 빈 곳을 떼어냅니다. 아이마다 여백이 달라서 그냥 맞추면
+		   어떤 아이는 작아 보입니다. */
+		if ( function_exists( 'imagecropauto' ) ) {
+			$cut = @imagecropauto( $src, IMG_CROP_SIDES );
+			if ( false !== $cut ) { imagedestroy( $src ); $src = $cut; }
+		}
+		$sw = imagesx( $src ); $sh = imagesy( $src );
+		if ( ! $sw ) { imagedestroy( $src ); return; }
+		$k  = min( $box / $sw, $box / $sh );
+		$dw = intval( $sw * $k ); $dh = intval( $sh * $k );
+		imagecopyresampled( $im, $src, intval( $cx - $dw / 2 ), intval( $cy - $dh / 2 ),
+			0, 0, $dw, $dh, $sw, $sh );
+		imagedestroy( $src );
+	};
+	$paste( $left,  106, 214, 198 );
+	$paste( $right, 694, 214, 198 );
+
+	$font = stella_um_font();
+
+	if ( $font ) {
+		/* 가운데 정렬 · 자리가 좁으면 글씨를 줄여 넣습니다 */
+		$mid = function ( $size, $y, $text, $col, $max ) use ( $im, $font ) {
+			if ( '' === $text ) { return; }
+			$w = 0;
+			while ( $size > 8 ) {
+				$bx = imagettfbbox( $size, 0, $font, $text );
+				$w  = $bx[2] - $bx[0];
+				if ( $w <= $max ) { break; }
+				$size = $size - 1;
+			}
+			imagettftext( $im, $size, 0, intval( ( 800 - $w ) / 2 ), $y, $col, $font, $text );
+		};
+		$mid( 20,  92, '유앤미 · ' . $ko . ' 궁합', $soft, 380 );
+		$mid( 104, 218, (string) $score,           $pur,  380 );
+		$mid( 19,  250, '점',                       $soft, 380 );
+		if ( $tier ) { $mid( 36, 306, $tier, $ink, 420 ); }
+		$mid( 17, 348, '사주 ' . $a . ' · 별자리 ' . $b . ' · 띠 ' . $c, $sub, 420 );
+		$mid( 14, 378, 'stellasaju.com/uandme',    $soft, 420 );
+	} else {
+		/* 글꼴을 못 받았을 때 — 숫자만이라도 */
+		$s = (string) $score;
+		imagestring( $im, 5, 400 - 5 * strlen( $s ), 190, $s, $pur );
+		imagestring( $im, 3, 330, 220, 'stellasaju.com/uandme', $soft );
+	}
+
+	nocache_headers();
+	header( 'Content-Type: image/png' );
+	header( 'Cache-Control: public, max-age=604800' );
+	header( 'X-Robots-Tag: noindex' );
+	imagepng( $im );
+	imagedestroy( $im );
+	exit;
+} );

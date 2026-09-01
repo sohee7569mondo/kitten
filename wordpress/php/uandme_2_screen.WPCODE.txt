@@ -542,9 +542,30 @@ window.UM_CELEB = {
     return window.UM_SET.설정.카카오키 || '';
   }
   function kakaoPic() {
+    /* 점수가 나왔으면 그 점수로 그린 카드를 보냅니다.
+       주소를 부르면 서버가 그 자리에서 800x400 그림을 그려 줍니다
+       (④번 스니펫). 아무것도 남기지 않고 이름도 담기지 않습니다. */
+    if (st.result) {
+      var u = cardUrl();
+      if (u) { return u; }
+    }
     if (!window.UM_SET) { return ''; }
     if (!window.UM_SET.설정) { return ''; }
     return window.UM_SET.설정.카톡그림 || '';
+  }
+  function cardUrl() {
+    if (!st.result) { return ''; }
+    var r = st.result;
+    var t = '';
+    try { t = window.UANDME_TIER(r.total, st.rel).title || ''; } catch (e) { t = ''; }
+    var q = 'um_card=1' +
+      '&s=' + r.total +
+      '&r=' + encodeURIComponent(st.rel) +
+      '&a=' + r.blocks.saju.score +
+      '&b=' + r.blocks.zodiac.score +
+      '&c=' + r.blocks.animal.score +
+      '&t=' + encodeURIComponent(t);
+    return location.origin + '/?' + q;
   }
   function kakaoReady() {
     if (!window.Kakao) { return false; }
@@ -613,7 +634,7 @@ window.UM_CELEB = {
     if (!st.result) { makeInvite(cb); return; }
     /* 캐릭터를 먼저 받아두고 나서 그립니다 */
     var slotA = REL_PIC[st.rel] || '연인';
-    loadPics([slotA, '히어로큰'], function (P) { drawResult(P, cb); });
+    loadPics([slotA, '__lucky'], function (P) { drawResult(P, cb); });
   }
   function drawResult(P, cb) {
     var W = 1080, H = 1350;
@@ -637,8 +658,8 @@ window.UM_CELEB = {
 
     /* 큰 점수 좌우로 둘이 마주봅니다 */
     var slotA2 = REL_PIC[st.rel] || '연인';
-    drawPic(g, P[slotA2], 168, 452, 250);
-    drawPic(g, P['히어로큰'], 912, 452, 250);
+    drawPic(g, P[slotA2], 166, 448, 268);
+    drawPic(g, P['__lucky'], 914, 448, 268);
 
     g.fillStyle = '#6B5BA8'; g.font = '700 300px Jua,"Noto Sans KR",sans-serif';
     g.fillText(String(r.total), W / 2, 520);
@@ -693,7 +714,7 @@ window.UM_CELEB = {
   /* 초대 화면에서 나갈 그림 — 아직 점수가 없으니 물음표를 크게 */
   function makeInvite(cb) {
     var slotB = REL_PIC[st.rel] || '연인';
-    loadPics([slotB, '히어로큰'], function (P) { drawInvite(P, cb); });
+    loadPics([slotB, '__lucky'], function (P) { drawInvite(P, cb); });
   }
   function drawInvite(P, cb) {
     var W = 1080, H = 1350;
@@ -707,8 +728,8 @@ window.UM_CELEB = {
     g.fillStyle = '#A79BC4'; g.font = '600 34px "Noto Sans KR",sans-serif';
     g.fillText('유앤미 · ' + U.relKo(st.rel) + ' 궁합', W / 2, 150);
     var slotB2 = REL_PIC[st.rel] || '연인';
-    drawPic(g, P[slotB2], 168, 470, 250);
-    drawPic(g, P['히어로큰'], 912, 470, 250);
+    drawPic(g, P[slotB2], 166, 466, 268);
+    drawPic(g, P['__lucky'], 914, 466, 268);
 
     g.fillStyle = '#6B5BA8'; g.font = '700 300px Jua,"Noto Sans KR",sans-serif';
     g.fillText('?', W / 2, 540);
@@ -1061,7 +1082,8 @@ window.UM_CELEB = {
 
   function picUrl(slot) {
     var u = '';
-    if (window.UM_SET) { if (window.UM_SET.그림) { u = window.UM_SET.그림[slot] || ''; } }
+    if (slot === '__lucky') { u = luckyPic(); }
+    else if (window.UM_SET) { if (window.UM_SET.그림) { u = window.UM_SET.그림[slot] || ''; } }
     if (u === '없음') { return ''; }
     if (u) { if (u.indexOf('/') < 0) {
       if (window.UM_PIC) { u = window.UM_PIC[u] || ''; }
@@ -1091,14 +1113,63 @@ window.UM_CELEB = {
     }
     setTimeout(function () { if (left > 0) { left = 0; cb(out); } }, 3000);
   }
-  /* 캔버스에 그림을 넣습니다 — 비율을 지키고 상자 안에 맞춥니다 */
+  /* 그림 둘레의 빈 곳을 재 둡니다.
+     아이마다 여백이 달라서, 그냥 상자에 맞추면 어떤 아이는 작아 보입니다.
+     실제로 그려진 데만 재서 쓰면 다들 고르게 큼직해집니다. */
+  var TRIM = {};
+  function trimBox(im) {
+    var key = im.src;
+    if (TRIM[key]) { return TRIM[key]; }
+    var w = im.naturalWidth || im.width, h = im.naturalHeight || im.height;
+    var box = { x: 0, y: 0, w: w, h: h };
+    if (w) { if (h) {
+      try {
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        var g2 = c.getContext('2d');
+        g2.drawImage(im, 0, 0);
+        var d = g2.getImageData(0, 0, w, h).data;
+        var x0 = w, y0 = h, x1 = -1, y1 = -1, x, y, i;
+        for (y = 0; y < h; y++) {
+          for (x = 0; x < w; x++) {
+            i = (y * w + x) * 4 + 3;
+            if (d[i] > 12) {
+              if (x < x0) { x0 = x; }
+              if (x > x1) { x1 = x; }
+              if (y < y0) { y0 = y; }
+              if (y > y1) { y1 = y; }
+            }
+          }
+        }
+        if (x1 >= 0) { box = { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 }; }
+      } catch (e) {}
+    } }
+    TRIM[key] = box;
+    return box;
+  }
+  /* 캔버스에 그림을 넣습니다 — 빈 곳은 빼고 상자에 꽉 채웁니다 */
   function drawPic(g, im, cx, cy, box) {
     if (!im) { return; }
-    var w = im.naturalWidth || im.width, h = im.naturalHeight || im.height;
-    if (!w) { return; }
-    var k = Math.min(box / w, box / h);
-    var dw = w * k, dh = h * k;
-    g.drawImage(im, cx - dw / 2, cy - dh / 2, dw, dh);
+    var t = trimBox(im);
+    if (!t.w) { return; }
+    var k = Math.min(box / t.w, box / t.h);
+    var dw = t.w * k, dh = t.h * k;
+    g.drawImage(im, t.x, t.y, t.w, t.h, cx - dw / 2, cy - dh / 2, dw, dh);
+  }
+  /* 그림 곳간에서 아무거나 한 장 — 들어올 때 한 번 정하고 그대로 씁니다 */
+  var LUCKY = null;
+  function luckyPic() {
+    if (LUCKY) { return LUCKY; }
+    if (!window.UM_PIC) { return ''; }
+    var keys = [], k;
+    for (k in window.UM_PIC) {
+      if (!window.UM_PIC.hasOwnProperty(k)) { continue; }
+      if (k === '로고그림') { continue; }
+      keys.push(k);
+    }
+    if (!keys.length) { return ''; }
+    LUCKY = keys[Math.floor(Math.random() * keys.length)];
+    return LUCKY;
   }
 
   function art(slot, fb) {
@@ -1669,7 +1740,7 @@ add_action( 'init', function () {
 	if ( ! current_user_can( 'manage_options' ) ) { echo '관리자만 볼 수 있습니다.'; exit; }
 	echo '<h1 style="color:#ffd76a">유앤미 2 · 화면</h1>';
 	echo '<p>이 스니펫은 살아 있습니다.</p>';
-	echo '<p>실어주는 글 : <b>100KB</b></p>';
+	echo '<p>실어주는 글 : <b>103KB</b></p>';
 	echo '<p>유앤미 화면 : <a style="color:#9fd" href="/uandme/">stellasaju.com/uandme/</a></p>';
 	exit;
 } );
