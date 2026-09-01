@@ -1,0 +1,304 @@
+/* ════════════════════════════════════════════════════════════
+   세성의 신 · 주제별로 갈라 쓰기
+
+   신년운세 · 삼재 · 인생총운(초년 · 중년 · 말년) 다섯 주제가 모두 같은
+   글을 쓰고 있었습니다. 대운 표와 달력 계산은 그대로 두고, 그 결과를
+   읽는 말만 갈아끼웁니다.
+
+   주제 값이 「인생총운 · 초년」처럼 붙어 올 수 있어, 가운뎃점 뒤만
+   잘라 읽습니다. 「초년」이든 「인생총운 · 초년」이든 다 걸립니다.
+
+   ① 지금 주제를 읽는 자리
+   ② 올해의 달별 흐름       — 5주제 × 5기운, 스물다섯 문단
+   ③ 움직여도 좋은 자리     — 5주제 × 2구간, 열 문단
+   ④ 미루는 편이 나은 자리  — 5주제 × 2구간, 열 문단
+   ⑤ 지금 판과 다음 판      — 주제마다 한 문단
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   ★ 저장 직후 먼저  https://stellasaju.com/wp-json/stella/v1/me
+   ① 미리보기  https://stellasaju.com/?stella_fortune=1
+   ② 적용      https://stellasaju.com/?stella_fortune=1&go=1
+   되돌리기    https://stellasaju.com/?stella_fortune=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_fortune'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">';
+	echo '<body class="notranslate" translate="no" style="font:15px/1.9 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:960px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	global $wpdb;
+
+	$pid  = 160;
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	$i1 = <<<'STELLA_F1'
+
+    /* ═══ 주제별로 갈라 쓰기 · 세성의 신 (2026-09-01) ═══
+       주제 값이 「인생총운 · 초년」처럼 올 수 있어 가운뎃점 뒤만 읽습니다.
+       계산 결과는 그대로 두고 읽는 말만 갈아끼웁니다.
+       주의 · 이 안에서 앰퍼샌드를 쓰지 않습니다. */
+    var __fct=(function(){
+      try{
+        var o=JSON.parse(localStorage.getItem('stella_demo'));
+        var t=String((o?o.topic:'')||'').trim();
+        var p=t.split('\u00b7');
+        return p[p.length-1].trim();
+      }catch(e){ return ''; }
+    })();
+    function __fover(tbl, base){
+      var m=tbl[__fct];
+      if(!m){ return; }
+      var k;
+      for(k in m){ if(Object.prototype.hasOwnProperty.call(m,k)){ base[k]=m[k]; } }
+    }
+    var __fNow=(function(){
+      var M={
+        '신년운세':'올해 한 해만 보시더라도 지금 판이 무엇인지는 알고 계시는 편이 낫습니다. 같은 해도 쌓는 판에 얹히면 조용하게, 벌이는 판에 얹히면 크게 굴러갑니다. 위 판 이름을 하나만 기억해 두세요.',
+        '삼재':'삼재는 십이지로 세는 것이라 판과는 따로 갑니다. 그래서 삼재라도 판이 좋으면 크게 흔들리지 않고, 삼재가 아니어도 판이 무거우면 힘듭니다. 둘을 겹쳐 보셔야 실제에 가깝습니다.',
+        '초년':'초년은 대개 첫 판 아니면 두 번째 판에 걸칩니다. 그 시기에 내가 고른 것이 적고 주어진 것이 많은 이유가 여기 있어요. 지금 돌아보시면 그때 왜 그렇게 흘러갔는지가 보입니다.',
+        '중년':'중년은 판이 한 번 크게 바뀌는 자리와 겹치는 일이 많습니다. 그래서 같은 사람이 십 년 만에 다른 사람처럼 보이기도 해요. 위 표에서 나이가 바뀌는 줄을 보시면 그 지점이 나옵니다.',
+        '말년':'말년의 판은 앞에서 쌓은 것으로 삽니다. 그래서 이 시기의 판이 무엇이냐보다, 그 앞 판에서 무엇을 남겼느냐가 더 크게 작용합니다. 위 표를 뒤에서부터 거꾸로 읽어보시면 그게 보입니다.'
+      };
+      return M[__fct]?('<p>'+M[__fct]+'</p>'):'';
+    })();
+
+STELLA_F1;
+	$k1 = <<<'STELLA_E1'
+__fct=
+STELLA_E1;
+	$i2 = <<<'STELLA_F2'
+
+    __fover({
+      '신년운세':{
+        push  :'올해는 밖에서 오는 일에 맞추는 해입니다. 내가 정하기보다 정해지는 일이 많아요. 계획을 세우실 때 여백을 넉넉히 두셔야 덜 흔들립니다.',
+        drain :'올해는 벌여둔 것을 내보내는 해입니다. 새로 시작하기보다 끝내는 데 값이 붙습니다. 올해 매듭지은 것이 내년의 밑천이 됩니다.',
+        spend :'올해는 나가서 잡는 해입니다. 움직임이 커지고 판이 넓어집니다. 넓어진 만큼 거두는 손도 같이 키우셔야 남습니다.',
+        same  :'올해는 버티는 해입니다. 힘은 붙는데 나눠 갖게 되어 남는 것이 생각보다 적습니다. 셈이 필요한 일은 종이에 적어두세요.',
+        rest  :'올해는 고이는 해입니다. 크게 움직이지 않는 대신 다음에 쓸 것이 쌓입니다. 조용한 것을 뒤처지는 것으로 읽지 마세요.'
+      },
+      '삼재':{
+        push  :'삼재를 보실 때 제일 조심할 해가 이런 해입니다. 밖에서 오는 일이 겹치는데 내가 고를 여지가 적어요. 새로 벌이지 마시고 하던 것을 지키는 데 쓰세요.',
+        drain :'내보내는 해입니다. 삼재라도 이런 해는 나쁘지만은 않아요. 오래 끌던 것을 끝내기에 오히려 알맞습니다. 다만 끝낸 자리에 바로 새것을 채우지는 마세요.',
+        spend :'나가서 잡는 해입니다. 삼재 중에 이런 해가 오면 움직이고 싶어집니다. 움직이되 되돌릴 수 있는 것부터 하시고, 돌이킬 수 없는 것은 다음 해로 넘기세요.',
+        same  :'같은 것을 노리는 사람이 붙는 해입니다. 삼재에 이런 해가 겹치면 다툼과 지출이 함께 옵니다. 동업과 보증은 올해만은 피하시는 편이 낫습니다.',
+        rest  :'고이는 해입니다. 삼재 가운데 가장 견딜 만한 해예요. 몸과 문서를 정리해두면 삼재가 지난 뒤에 쓸 것이 남습니다.'
+      },
+      '초년':{
+        push  :'초년의 이런 해는 남이 정해준 자리에 맞추는 해입니다. 학교든 첫 직장이든 내 뜻보다 틀이 먼저 있습니다. 이 시기에 배운 참는 법이 평생 갑니다.',
+        drain :'초년의 이런 해는 가진 것을 처음 꺼내 보이는 해입니다. 서툴러도 내놓아야 늘어요. 완성해서 보여주려다 때를 놓치는 것이 이 시기의 가장 흔한 손해입니다.',
+        spend :'초년의 이런 해는 밖으로 나가는 해입니다. 사람과 자리가 빠르게 늘어납니다. 넓히기는 쉬운 때이니 깊이는 다음으로 미루셔도 됩니다.',
+        same  :'초년의 이런 해는 또래와 나란히 서는 해입니다. 비교가 가장 아픈 시기예요. 남의 속도로 나를 재면 이 시기가 통째로 힘들어집니다.',
+        rest  :'초년의 이런 해는 채우는 해입니다. 눈에 보이는 성과가 없어 답답하지만, 여기서 쌓은 것이 중년의 밑천이 됩니다.'
+      },
+      '중년':{
+        push  :'중년의 이런 해는 짊어지는 해입니다. 위아래로 책임이 몰리고 거절하기 어려운 자리에 섭니다. 다 맡으면 몸이 먼저 무너지니 하나는 넘기셔야 합니다.',
+        drain :'중년의 이런 해는 쌓은 것을 꺼내 쓰는 해입니다. 지금까지 만든 것이 값을 하기 시작해요. 다만 꺼내기만 하면 줄어드니 채우는 자리를 하나 남겨두세요.',
+        spend :'중년의 이런 해는 판을 넓히는 해입니다. 돈과 사람이 함께 움직입니다. 이 시기의 확장은 거두는 손이 같이 크지 않으면 나중에 부담으로 돌아옵니다.',
+        same  :'중년의 이런 해는 겨루는 해입니다. 같은 자리를 노리는 사람이 늘고 독립하고 싶어집니다. 나가실 거면 종이에 적고 나가세요.',
+        rest  :'중년의 이런 해는 숨을 고르는 해입니다. 멈춘 것 같아 불안하지만 실은 다음 십 년을 고르는 시기예요. 이때 배운 것이 말년의 일이 됩니다.'
+      },
+      '말년':{
+        push  :'말년의 이런 해는 밖에서 오는 일이 몸으로 오는 해입니다. 예전 같으면 넘겼을 일이 오래 갑니다. 무리한 다음 날을 비워두는 것이 최선의 대비입니다.',
+        drain :'말년의 이런 해는 물려주고 정리하는 해입니다. 쥐고 있던 것을 넘기기에 알맞아요. 넘기는 순서를 정해두지 않으면 남은 사람들이 다툽니다.',
+        spend :'말년의 이런 해는 다시 밖으로 나가는 해입니다. 새로 시작할 힘이 남아 있는 시기예요. 다만 되돌릴 수 없는 크기로는 벌이지 마세요.',
+        same  :'말년의 이런 해는 지키는 힘이 시험받는 해입니다. 사람을 통해 나가는 일이 늘어납니다. 빌려주실 거면 못 받아도 되는 만큼만 하세요.',
+        rest  :'말년의 이런 해는 고이는 해입니다. 조용하고 담백한 시기라 몸과 마음이 함께 회복됩니다. 미뤄둔 검사와 정리는 이런 해에 하십시오.'
+      }
+    }, SYSAY);
+
+STELLA_F2;
+	$k2 = <<<'STELLA_E2'
+'삼재':{
+        push
+STELLA_E2;
+	$i3 = <<<'STELLA_F3'
+
+    __fover({
+      '신년운세':{
+        spend :'나서기 좋은 구간입니다. 옮기는 일, 새로 잡는 일, 사람을 만나는 일을 여기에 몰아두세요.',
+        drain :'끝내기 좋은 구간입니다. 오래 끌던 것을 매듭짓는 데 힘이 덜 듭니다. 올해 안에 정리할 것이 있다면 여기입니다.'
+      },
+      '삼재':{
+        spend :'삼재 중에도 숨통이 트이는 구간입니다. 다만 되돌릴 수 있는 일부터 하세요. 계약처럼 돌이킬 수 없는 것은 삼재가 지난 뒤로 미루시는 편이 낫습니다.',
+        drain :'끝내기 좋은 구간입니다. 삼재에는 새로 벌이는 것보다 매듭짓는 데 값이 붙어요. 정리한 만큼 다음이 가벼워집니다.'
+      },
+      '초년':{
+        spend :'넓히기 좋은 구간입니다. 사람을 만나고 새것을 시도하는 데 힘이 덜 듭니다. 이 시기의 실패는 값이 싸니 여기서 겪어두세요.',
+        drain :'내놓기 좋은 구간입니다. 완성하지 않아도 보여주세요. 초년에는 다듬는 것보다 내놓는 횟수가 더 빨리 실력을 만듭니다.'
+      },
+      '중년':{
+        spend :'움직이기 좋은 구간입니다. 옮기거나 벌이실 일이 있다면 여기에 놓으세요. 중년의 결정은 되돌리는 값이 크니 준비는 미리 끝내두시고요.',
+        drain :'매듭짓기 좋은 구간입니다. 오래 끌어온 일과 관계를 정리하는 데 알맞습니다. 정리한 자리에 무엇을 놓을지는 미리 정해두세요.'
+      },
+      '말년':{
+        spend :'움직이기 좋은 구간입니다. 미뤄둔 여행이나 만남처럼 몸이 가벼울 때 해야 하는 일을 여기에 놓으세요.',
+        drain :'넘기고 정리하기 좋은 구간입니다. 서류든 살림이든 물려줄 것을 손보기에 알맞습니다. 한 번에 다 하려 마시고 하나씩 하세요.'
+      }
+    }, GO);
+
+STELLA_F3;
+	$k3 = <<<'STELLA_E3'
+삼재 중에도 숨통이 트이는 구간입니다
+STELLA_E3;
+	$i4 = <<<'STELLA_F4'
+
+    __fover({
+      '신년운세':{
+        push  :'밖에서 밀려오는 구간입니다. 여기서 내린 결정은 대개 떠밀린 것이라 뒤에 후회가 남습니다. 큰 답은 이 구간을 넘겨서 내세요.',
+        same  :'같은 것을 노리는 사람이 붙는 구간입니다. 경쟁과 지출이 같이 늘어납니다. 동업과 보증과 큰 지출은 이 구간을 피하세요.'
+      },
+      '삼재':{
+        push  :'삼재에서 가장 조심할 구간입니다. 밖에서 오는 일이 겹치고 내가 고를 여지가 적어요. 이 구간에는 자리를 바꾸거나 도장을 찍지 마세요.',
+        same  :'같은 것을 두고 부딪히는 구간입니다. 삼재에 이 구간이 겹치면 다툼이 오래 갑니다. 돈이 오가는 약속은 이 구간을 넘기세요.'
+      },
+      '초년':{
+        push  :'어른들이 정해주는 대로 흘러가는 구간입니다. 내 뜻이 아니었다는 억울함이 남기 쉬워요. 지금 못 정한 것은 뒤에 다시 정할 기회가 옵니다.',
+        same  :'또래와 나란히 서게 되는 구간입니다. 비교가 가장 아픈 자리예요. 이 구간에는 남의 결과를 덜 보시는 것이 실력에 낫습니다.'
+      },
+      '중년':{
+        push  :'위아래로 책임이 몰리는 구간입니다. 다 맡으면 몸이 먼저 무너집니다. 이 구간에 들어온 부탁 하나는 미리 접어두세요.',
+        same  :'같은 자리를 노리는 사람이 붙는 구간입니다. 독립하고 싶어지는 자리이기도 해요. 나가실 결정은 이 구간을 넘겨서 내시는 편이 낫습니다.'
+      },
+      '말년':{
+        push  :'밖에서 오는 일이 몸으로 오는 구간입니다. 예전 같으면 넘겼을 일이 오래 갑니다. 이 구간에는 일정을 절반만 잡으세요.',
+        same  :'사람을 통해 나가는 일이 늘어나는 구간입니다. 부탁이 몰리기 쉬워요. 거절이 어려우시면 액수를 미리 정해두고 그 안에서만 움직이세요.'
+      }
+    }, HOLD);
+
+STELLA_F4;
+	$k4 = <<<'STELLA_E4'
+삼재에서 가장 조심할 구간입니다
+STELLA_E4;
+	$i5 = <<<'STELLA_F5'
+-
+STELLA_F5;
+	$k5 = <<<'STELLA_E5'
+__fNow
+STELLA_E5;
+
+	$steps = array(
+		array( '① 주제를 읽는 자리', '/tag:\'고이는 달\' \\}\\s*\\};/u', $i1, $k1, 'after' ),
+		array( '② 올해의 달별 흐름', '/올해는 고이는 해입니다\\. 크게 움직이지 않는 대신 다음에 쓸 것이 쌓입니다\\.\'\\s*\\};/u', $i2, $k2, 'after' ),
+		array( '③ 움직여도 좋은 자리', '/시작보다 정리에 쓰세요\\.\'\\s*\\};/u', $i3, $k3, 'after' ),
+		array( '④ 미루는 편이 나은 자리', '/동업 · 보증 · 큰 지출은 이 구간을 피하시는 게 낫습니다\\.\'\\s*\\};/u', $i4, $k4, 'after' ),
+		array( '⑤ 지금 판과 다음 판', '/nowTxt\\+\\s*\'<div class=\\"voice\\">/u', $i5, $k5, 'call' ),
+	);
+
+	printf(
+		'<h1 style="color:#ffd76a">세성의 신 주제별 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	$now = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( null === $now ) {
+		echo '<h2 style="color:#ff7b7b">160 을 못 읽었습니다.</h2>';
+		exit;
+	}
+
+	if ( $undo ) {
+		$bak = get_post_meta( $pid, '_stella_fortune_backup', true );
+		if ( $bak ) {
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+			delete_post_meta( $pid, '_stella_fortune_backup' );
+			clean_post_cache( $pid );
+			if ( function_exists( 'wp_cache_flush' ) ) {
+				wp_cache_flush();
+			}
+			echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2>';
+		} else {
+			echo '<h2 style="color:#888">사본이 없습니다.</h2>';
+		}
+		exit;
+	}
+
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>할 일</td><td>자리</td><td>이미 됨</td><td>글자 수</td></tr>';
+
+	$ready = true;
+	$done  = true;
+
+	foreach ( $steps as $s ) {
+		$n = preg_match_all( $s[1], $now );
+		$m = substr_count( $now, $s[3] );
+
+		if ( $m > 0 ) {
+			printf(
+				'<tr style="border-top:1px solid #333"><td>%s</td><td style="color:#888">%d</td><td style="color:#9fd">이미 됨</td><td>%d</td></tr>',
+				esc_html( $s[0] ), $n, strlen( $s[2] )
+			);
+			continue;
+		}
+		$done = false;
+		if ( 1 !== $n ) {
+			$ready = false;
+		}
+		printf(
+			'<tr style="border-top:1px solid #333"><td>%s</td><td style="color:%s"><b>%d</b></td><td></td><td>%d</td></tr>',
+			esc_html( $s[0] ), 1 === $n ? '#7bff9b' : '#ff7b7b', $n, strlen( $s[2] )
+		);
+	}
+	echo '</table>';
+
+	if ( $done ) {
+		echo '<h2 style="color:#7bff9b">이미 다 들어가 있습니다.</h2>'
+			. '<p style="color:#888">되돌리려면 ?stella_fortune=1&undo=1</p>';
+		exit;
+	}
+	if ( ! $ready ) {
+		echo '<h2 style="color:#ff7b7b">자리가 딱 한 번씩이 아니라 아무것도 바꾸지 않았습니다.</h2>'
+			. '<p>이 화면을 저에게 보내주세요.</p>';
+		exit;
+	}
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_fortune=1&go=1">→ 이대로 넣기</a></p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, '_stella_fortune_backup', true ) ) {
+		update_post_meta( $pid, '_stella_fortune_backup', $now );
+	}
+
+	$out = $now;
+	foreach ( $steps as $s ) {
+		if ( substr_count( $out, $s[3] ) > 0 ) {
+			continue;
+		}
+		$ins  = $s[2];
+		$mode = $s[4];
+		$out  = preg_replace_callback(
+			$s[1],
+			function ( $mm ) use ( $ins, $mode ) {
+				if ( 'after' === $mode ) {
+					return $mm[0] . $ins;
+				}
+				return str_replace( 'nowTxt+', 'nowTxt+__fNow+', $mm[0] );
+			},
+			$out,
+			1
+		);
+	}
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $out ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	printf( '<h2 style="color:#7bff9b">넣었습니다 — %d → %d 바이트</h2>', strlen( $now ), strlen( $out ) );
+	echo '<p style="color:#888">되돌리려면 ?stella_fortune=1&undo=1</p>';
+	exit;
+} );
