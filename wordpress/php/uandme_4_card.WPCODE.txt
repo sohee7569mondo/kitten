@@ -16,6 +16,24 @@
    확인 : https://stellasaju.com/?um_card=1&s=63&r=lover&a=30&b=12&c=24
    ════════════════════════════════════════════════════════════ */
 
+/* ── 점수로 등급 이름 알아내기 ─────────────────────────
+   주소에 한글을 싣지 않으려고 서버도 같은 표를 갖습니다.
+   유앤미 화면(uandme-tiers.js)과 같은 구간입니다. */
+if ( ! function_exists( 'stella_um_tier' ) ) {
+	function stella_um_tier( $n ) {
+		if ( $n >= 95 ) { return '천생연분'; }
+		if ( $n >= 90 ) { return '완전 찰떡궁합'; }
+		if ( $n >= 80 ) { return '환상의 케미'; }
+		if ( $n >= 70 ) { return '좋은 궁합'; }
+		if ( $n >= 60 ) { return '무난한 사이'; }
+		if ( $n >= 50 ) { return '노력형 궁합'; }
+		if ( $n >= 40 ) { return '위태위태'; }
+		if ( $n >= 30 ) { return '친구가 나을지도'; }
+		if ( $n >= 20 ) { return '재고요망'; }
+		return '이번 생은 예능감';
+	}
+}
+
 /* ── 글꼴 한 벌 마련하기 ────────────────────────────────
    서버에 한글 글꼴이 없어서 한 번만 받아 uploads 에 둡니다.
    받는 곳을 여러 군데 두고 되는 데까지 가 봅니다. */
@@ -135,7 +153,23 @@ add_action( 'init', function () {
 /* ── 그림 그리기 ──────────────────────────────────────── */
 add_action( 'init', function () {
 
-	if ( ! isset( $_GET['um_card'] ) ) { return; }
+	/* 두 가지 주소를 다 받습니다.
+	     예쁜 주소 : /um-card/63-lover-30-12-24
+	     예전 주소 : /?um_card=1&s=63&r=lover&a=30&b=12&c=24
+	   .png 를 붙이면 웹서버가 그림 파일로 여겨 가로채 404 를 냅니다. */
+	$want = isset( $_GET['um_card'] );
+	if ( ! $want ) {
+		$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+		if ( preg_match( '#/um-card/(\d{1,2})-([a-z_]{2,14})-(\d{1,2})-(\d{1,2})-(\d{1,2})#', $uri, $mm ) ) {
+			$_GET['s'] = $mm[1];
+			$_GET['r'] = $mm[2];
+			$_GET['a'] = $mm[3];
+			$_GET['b'] = $mm[4];
+			$_GET['c'] = $mm[5];
+			$want = true;
+		}
+	}
+	if ( ! $want ) { return; }
 
 	$W = 800; $H = 400;
 
@@ -302,7 +336,7 @@ add_action( 'wp_head', function () {
 	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : stella_um_tier( $score );
 	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
 
-	$img = home_url( '/um-card/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c . '.png' );
+	$img = home_url( '/um-card/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c );
 
 	$title = '우리 ' . $score . '점' . ( $tier ? ' - ' . $tier : '' );
 	$desc  = '사주 ' . $a . '/40, 별자리 ' . $b . '/30, 띠 ' . $c . '/30. 생일만 넣으면 바로 나와요';
@@ -343,7 +377,7 @@ add_filter( 'jetpack_open_graph_tags', function ( $tags ) {
 	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : stella_um_tier( $score );
 	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
 
-	$img = home_url( '/um-card/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c . '.png' );
+	$img = home_url( '/um-card/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c );
 
 	$tags['og:title']        = '우리 ' . $score . '점' . ( $tier ? ' - ' . $tier : '' );
 	$tags['og:description']  = '사주 ' . $a . '/40, 별자리 ' . $b . '/30, 띠 ' . $c . '/30. 생일만 넣으면 바로 나와요';
@@ -371,7 +405,7 @@ add_action( 'init', function () {
 	echo '<h1 style="color:#ffd76a">크롤러가 보는 것</h1>';
 
 	$page = home_url( '/uandme/?r=TEST&sc=63&a=30&b=12&c=24&rel=lover&t=' . rawurlencode( '무난한 사이' ) );
-	$img  = home_url( '/um-card/63-lover-30-12-24.png' );
+	$img  = home_url( '/um-card/63-lover-30-12-24' );
 
 	$agents = array(
 		'스레드·페이스북' => 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',

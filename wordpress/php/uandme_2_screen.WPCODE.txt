@@ -580,7 +580,7 @@ window.UM_CELEB = {
        그림 파일처럼 생긴 주소로 부릅니다. 등급 이름은 서버가 점수로
        알아내므로 주소에 한글을 실을 일이 없습니다. */
     return location.origin + '/um-card/' + r.total + '-' + st.rel + '-' +
-      r.blocks.saju.score + '-' + r.blocks.zodiac.score + '-' + r.blocks.animal.score + '.png';
+      r.blocks.saju.score + '-' + r.blocks.zodiac.score + '-' + r.blocks.animal.score;
   }
 
   function kakaoReady() {
