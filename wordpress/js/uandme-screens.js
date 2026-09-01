@@ -42,7 +42,9 @@
     if (st.result) {
       var r = st.result, t = '';
       try { t = window.UANDME_TIER(r.total, st.rel).title || ''; } catch (e) { t = ''; }
-      u += '&s=' + r.total +
+      /* 「s」 는 워드프레스가 검색어로 알아듣는 이름이라 페이지가 404 가
+         됩니다. 크롤러는 404 페이지의 og 를 버리므로 「sc」 로 씁니다. */
+      u += '&sc=' + r.total +
            '&a=' + r.blocks.saju.score +
            '&b=' + r.blocks.zodiac.score +
            '&c=' + r.blocks.animal.score +

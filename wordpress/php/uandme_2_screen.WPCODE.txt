@@ -515,7 +515,9 @@ window.UM_CELEB = {
     if (st.result) {
       var r = st.result, t = '';
       try { t = window.UANDME_TIER(r.total, st.rel).title || ''; } catch (e) { t = ''; }
-      u += '&s=' + r.total +
+      /* 「s」 는 워드프레스가 검색어로 알아듣는 이름이라 페이지가 404 가
+         됩니다. 크롤러는 404 페이지의 og 를 버리므로 「sc」 로 씁니다. */
+      u += '&sc=' + r.total +
            '&a=' + r.blocks.saju.score +
            '&b=' + r.blocks.zodiac.score +
            '&c=' + r.blocks.animal.score +
@@ -1779,7 +1781,7 @@ add_action( 'init', function () {
 	if ( ! current_user_can( 'manage_options' ) ) { echo '관리자만 볼 수 있습니다.'; exit; }
 	echo '<h1 style="color:#ffd76a">유앤미 2 · 화면</h1>';
 	echo '<p>이 스니펫은 살아 있습니다.</p>';
-	echo '<p>실어주는 글 : <b>104KB</b></p>';
+	echo '<p>실어주는 글 : <b>105KB</b></p>';
 	echo '<table style="font-size:13px;margin:14px 0"><tr><td style="padding:4px 12px 4px 0">연예인 목록</td><td style="color:#9f9">있음</td></tr><tr><td style="padding:4px 12px 4px 0">연예인 단추</td><td style="color:#9f9">있음</td></tr><tr><td style="padding:4px 12px 4px 0">카톡 점수 카드</td><td style="color:#9f9">있음</td></tr><tr><td style="padding:4px 12px 4px 0">공유 아이콘 시트</td><td style="color:#9f9">있음</td></tr><tr><td style="padding:4px 12px 4px 0">그림 여백 잘라내기</td><td style="color:#9f9">있음</td></tr><tr><td style="padding:4px 12px 4px 0">들어올 때 장막</td><td style="color:#9f9">있음</td></tr><tr><td style="padding:4px 12px 4px 0">카카오 키</td><td style="color:#9f9">있음</td></tr><tr><td style="padding:4px 12px 4px 0">오전 오후</td><td style="color:#9f9">있음</td></tr></table>';
 	echo '<p>유앤미 화면 : <a style="color:#9fd" href="/uandme/">stellasaju.com/uandme/</a></p>';
 	exit;

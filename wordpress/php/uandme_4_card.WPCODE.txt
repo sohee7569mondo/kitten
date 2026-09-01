@@ -289,9 +289,10 @@ add_action( 'wp_head', function () {
 
 	if ( ! function_exists( 'stella_um_here' ) ) { return; }
 	if ( ! stella_um_here() ) { return; }
-	if ( ! isset( $_GET['s'] ) ) { return; }
+	if ( ! isset( $_GET['sc'] ) ) { if ( ! isset( $_GET['s'] ) ) { return; } }
 
-	$score = max( 0, min( 99, intval( $_GET['s'] ) ) );
+	$raw   = isset( $_GET['sc'] ) ? $_GET['sc'] : ( isset( $_GET['s'] ) ? $_GET['s'] : 0 );
+	$score = max( 0, min( 99, intval( $raw ) ) );
 	$a     = isset( $_GET['a'] ) ? max( 0, min( 40, intval( $_GET['a'] ) ) ) : 0;
 	$b     = isset( $_GET['b'] ) ? max( 0, min( 30, intval( $_GET['b'] ) ) ) : 0;
 	$c     = isset( $_GET['c'] ) ? max( 0, min( 30, intval( $_GET['c'] ) ) ) : 0;
@@ -330,9 +331,10 @@ add_filter( 'jetpack_open_graph_tags', function ( $tags ) {
 
 	if ( ! function_exists( 'stella_um_here' ) ) { return $tags; }
 	if ( ! stella_um_here() ) { return $tags; }
-	if ( ! isset( $_GET['s'] ) ) { return $tags; }
+	if ( ! isset( $_GET['sc'] ) ) { if ( ! isset( $_GET['s'] ) ) { return $tags; } }
 
-	$score = max( 0, min( 99, intval( $_GET['s'] ) ) );
+	$raw   = isset( $_GET['sc'] ) ? $_GET['sc'] : ( isset( $_GET['s'] ) ? $_GET['s'] : 0 );
+	$score = max( 0, min( 99, intval( $raw ) ) );
 	$a     = isset( $_GET['a'] ) ? max( 0, min( 40, intval( $_GET['a'] ) ) ) : 0;
 	$b     = isset( $_GET['b'] ) ? max( 0, min( 30, intval( $_GET['b'] ) ) ) : 0;
 	$c     = isset( $_GET['c'] ) ? max( 0, min( 30, intval( $_GET['c'] ) ) ) : 0;
@@ -368,7 +370,7 @@ add_action( 'init', function () {
 	echo '<meta charset="utf-8"><body style="font:14px/1.7 system-ui;background:#111;color:#eee;padding:22px;max-width:900px">';
 	echo '<h1 style="color:#ffd76a">크롤러가 보는 것</h1>';
 
-	$page = home_url( '/uandme/?r=TEST&s=63&a=30&b=12&c=24&rel=lover&t=' . rawurlencode( '무난한 사이' ) );
+	$page = home_url( '/uandme/?r=TEST&sc=63&a=30&b=12&c=24&rel=lover&t=' . rawurlencode( '무난한 사이' ) );
 	$img  = home_url( '/?um_card=1&s=63&r=lover&a=30&b=12&c=24&t=' . rawurlencode( '무난한 사이' ) );
 
 	$agents = array(
@@ -433,4 +435,20 @@ add_action( 'init', function () {
 	echo '<hr style="margin:26px 0;border-color:#333">';
 	echo '<p style="color:#888">이 화면을 통째로 찍어서 보내주세요.</p>';
 	exit;
+} );
+
+/* ── 유앤미 화면에서 ?s= 를 검색으로 보지 않게 ──────────
+   워드프레스는 ?s= 를 검색어로 읽어 「찾은 글 없음」 404 를 냅니다.
+   크롤러는 404 페이지의 og 를 버리므로 카드가 뜨지 않았습니다.
+   새 링크는 sc= 를 쓰지만, 이미 남에게 보낸 옛 링크도 살려 둡니다. */
+add_action( 'parse_query', function ( $q ) {
+
+	if ( ! $q->is_main_query() ) { return; }
+	if ( ! function_exists( 'stella_um_here' ) ) { return; }
+	if ( ! stella_um_here() ) { return; }
+	if ( ! isset( $q->query_vars['s'] ) ) { return; }
+
+	unset( $q->query_vars['s'] );
+	$q->is_search = false;
+	$q->is_404    = false;
 } );
