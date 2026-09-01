@@ -1,0 +1,95 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 · 카톡 그림 시험 (관리자만)
+
+   카톡 카드에 그림이 안 실리는 까닭을 딱 잘라 알아냅니다.
+   그림만 다른 카드 세 장을 보내 보고, 어느 것이 보이는지 봅니다.
+
+     ㉮ 우리 서버가 그 자리에서 그린 카드   (?um_card=...)
+     ㉯ 우리 서버에 올려둔 그림 파일        (uandme_cha-02)
+     ㉰ 카카오가 스스로 가지고 있는 그림     (mud-kage.kakao.com)
+
+   ㉰만 보이면  → 카카오가 우리 서버 그림을 못 가져오는 것입니다
+   셋 다 안 보이면 → 컴퓨터 카톡이 원래 그림을 안 그리는 것입니다
+   ㉮㉯ 가 보이면 → 다 된 것입니다
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   열기 : https://stellasaju.com/?umkakao=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['umkakao'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	$key  = '7806d048aad9905e98fb7dd4217236d2';
+	$card = home_url( '/?um_card=1&s=63&r=lover&a=30&b=12&c=24&t=' . rawurlencode( '무난한 사이' ) );
+	$file = home_url( '/wp-content/uploads/2026/09/uandme_cha-02-300px.png' );
+	$mud  = 'https://mud-kage.kakao.com/dn/Q2iNx/btqgeRgV54P/VLdBs9cvyn8BJXB3o7N8UK/kakaolink40_original.png';
+	$link = home_url( '/uandme/' );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	?>
+<!doctype html><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<body style="font:15px/1.7 system-ui;background:#12101c;color:#eee;padding:22px;max-width:560px;margin:0 auto">
+<h1 style="color:#ffd76a;font-size:22px">카톡 그림 시험</h1>
+<p style="color:#aaa;font-size:13.5px">아래 세 단추를 <b>차례로</b> 눌러 「나에게」로 보내신 다음,
+카톡을 열어 <b>어느 카드에 그림이 있는지</b> 봐주세요.</p>
+
+<button class="b" data-k="a" style="background:#B8A6E8">㉮ 우리가 그린 카드</button>
+<button class="b" data-k="b" style="background:#8FBBE6">㉯ 우리 서버의 그림 파일</button>
+<button class="b" data-k="c" style="background:#E6A88F">㉰ 카카오가 가진 그림</button>
+
+<div id="log" style="margin-top:18px;font-size:13px;color:#9f9;white-space:pre-wrap"></div>
+
+<h2 style="color:#9fd;font-size:16px;margin-top:30px">그림 자체는 이렇게 생겼습니다</h2>
+<p style="font-size:12.5px;color:#888">여기서 안 보이면 주소부터 잘못된 것입니다.</p>
+<img src="<?php echo esc_url( $card ); ?>" style="width:100%;border-radius:10px;margin-bottom:8px">
+<img src="<?php echo esc_url( $file ); ?>" style="width:140px;border-radius:10px">
+
+<style>
+ .b{display:block;width:100%;border:0;border-radius:14px;padding:15px;margin-bottom:9px;
+    font-size:15px;font-weight:700;color:#221c33;font-family:inherit;cursor:pointer}
+</style>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+<script>
+(function () {
+  var PICS = {
+    a: <?php echo wp_json_encode( $card ); ?>,
+    b: <?php echo wp_json_encode( $file ); ?>,
+    c: <?php echo wp_json_encode( $mud ); ?>
+  };
+  var NAMES = { a: '㉮ 우리가 그린 카드', b: '㉯ 우리 서버 그림', c: '㉰ 카카오 그림' };
+  var LINK = <?php echo wp_json_encode( $link ); ?>;
+  var log = document.getElementById('log');
+  function say(s) { log.textContent = log.textContent + s + '\n'; }
+
+  try { Kakao.init(<?php echo wp_json_encode( $key ); ?>); say('카카오 준비됨'); }
+  catch (e) { say('카카오 준비 실패: ' + e); }
+
+  var bs = document.querySelectorAll('.b'), i;
+  for (i = 0; i < bs.length; i++) {
+    bs[i].addEventListener('click', function () {
+      var k = this.getAttribute('data-k');
+      try {
+        Kakao.Share.sendDefault({
+          objectType: 'feed',
+          content: {
+            title: NAMES[k],
+            description: '이 카드에 그림이 보이나요?',
+            imageUrl: PICS[k],
+            link: { mobileWebUrl: LINK, webUrl: LINK }
+          },
+          buttons: [{ title: '열어보기', link: { mobileWebUrl: LINK, webUrl: LINK } }]
+        });
+        say(NAMES[k] + ' 보냄');
+      } catch (e) { say(NAMES[k] + ' 실패: ' + e); }
+    });
+  }
+})();
+</script>
+	<?php
+	exit;
+} );
