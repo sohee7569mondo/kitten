@@ -1292,7 +1292,8 @@ window.UM_CELEB = {
         '<div class="im" style="background:#FCF3DA">' + art('동업자', 'cat_cream') + '</div><b>동업자</b></button>' +
         '</div></div>',
 
-      '<div class="pad" style="margin-top:30px"><button class="btnP" id="go-mine">' + T('시작버튼') + '</button></div>',
+      '<div class="pad" style="margin-top:30px"><button class="btnP" id="go-mine">' + T('시작버튼') + '</button>',
+        '<div style="height:10px"></div><button class="btnG" id="celeb0" style="background:#F3ECFF;color:#6B5BA8">연예인이랑 볼래요</button></div>',
 
       /* 초대 설명 */
       '<div class="pad" style="margin-top:104px;position:relative">' +
@@ -1498,6 +1499,10 @@ window.UM_CELEB = {
       st.me = p; U.saveMe(); celebSheet();
     });
     bind('#celeb2', function () { celebSheet(); });
+    bind('#celeb0', function () {
+      draft = { sex: 'F', known: true, ampm: '오전' };
+      go('mine');
+    });
     bind('#calc', function () {
       var p = readForm(); if (!p) { return; }
       st.you = p;
