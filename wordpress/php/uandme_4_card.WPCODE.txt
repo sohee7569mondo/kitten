@@ -146,6 +146,20 @@ add_action( 'init', function () {
 	$rel   = isset( $_GET['r'] ) ? sanitize_key( $_GET['r'] ) : 'lover';
 	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : '';
 	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
+	/* Jua 가 그릴 줄 아는 글자만 남깁니다 — 한글·영문·숫자·기본 부호.
+	   그러지 않으면 네모난 두부가 나옵니다. */
+	$keep = '';
+	$len  = mb_strlen( $tier );
+	for ( $i = 0; $i < $len; $i++ ) {
+		$ch = mb_substr( $tier, $i, 1 );
+		$cp = mb_ord( $ch, 'UTF-8' );
+		if ( false === $cp ) { continue; }
+		if ( $cp >= 0x20 ) { if ( $cp <= 0x7E ) { $keep .= $ch; continue; } }
+		if ( $cp >= 0xAC00 ) { if ( $cp <= 0xD7A3 ) { $keep .= $ch; continue; } }
+		if ( $cp >= 0x3131 ) { if ( $cp <= 0x318E ) { $keep .= $ch; continue; } }
+		$keep .= ' ';
+	}
+	$tier = trim( $keep );
 
 	$relko = array(
 		'lover' => '연인', 'married' => '부부', 'friend' => '친구',
@@ -234,11 +248,11 @@ add_action( 'init', function () {
 			}
 			imagettftext( $im, $size, 0, intval( ( 800 - $w ) / 2 ), $y, $col, $font, $text );
 		};
-		$mid( 20,  92, '유앤미 · ' . $ko . ' 궁합', $soft, 380 );
+		$mid( 20,  92, '유앤미 - ' . $ko . ' 궁합', $soft, 380 );
 		$mid( 104, 218, (string) $score,           $pur,  380 );
 		$mid( 19,  250, '점',                       $soft, 380 );
 		if ( $tier ) { $mid( 36, 306, $tier, $ink, 420 ); }
-		$mid( 17, 348, '사주 ' . $a . ' · 별자리 ' . $b . ' · 띠 ' . $c, $sub, 420 );
+		$mid( 17, 348, '사주 ' . $a . ' / 별자리 ' . $b . ' / 띠 ' . $c, $sub, 420 );
 		$mid( 14, 378, 'stellasaju.com/uandme',    $soft, 420 );
 	} else {
 		/* 글꼴을 못 받았을 때 — 숫자만이라도 큼직하게.
