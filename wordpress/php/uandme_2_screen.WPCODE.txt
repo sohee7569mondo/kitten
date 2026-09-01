@@ -114,7 +114,10 @@ window.UM_SET = {
     형제자매:  '다4',
     부모자녀:  '다5',
     상사부하:  '다6',
-    동업자:    '다7'
+    동업자:    '다7',
+
+    /* 관계 칸 여덟째 — 연예인이랑 보기 */
+    연예인:    '다8'
   },
 
   /* ── 카카오톡으로 보내기 ────────────────────────────────
@@ -1290,10 +1293,11 @@ window.UM_CELEB = {
         '<div class="im" style="background:#F1EBFA">' + art('상사부하', 'bunny_peek') + '</div><b>상사부하</b></button>' +
       '<button class="tile' + (st.rel==='partner' ? ' on' : '') + '" data-rel="partner">' +
         '<div class="im" style="background:#FCF3DA">' + art('동업자', 'cat_cream') + '</div><b>동업자</b></button>' +
+      '<button class="tile" id="tile-celeb">' +
+        '<div class="im" style="background:#F1EBFA">' + art('연예인', 'bunny_happy') + '</div><b>연예인</b></button>' +
         '</div></div>',
 
-      '<div class="pad" style="margin-top:30px"><button class="btnP" id="go-mine">' + T('시작버튼') + '</button>',
-        '<div style="height:10px"></div><button class="btnG" id="celeb0" style="background:#F3ECFF;color:#6B5BA8">연예인이랑 볼래요</button></div>',
+      '<div class="pad" style="margin-top:30px"><button class="btnP" id="go-mine">' + T('시작버튼') + '</button></div>',
 
       /* 초대 설명 */
       '<div class="pad" style="margin-top:104px;position:relative">' +
@@ -1327,12 +1331,21 @@ window.UM_CELEB = {
         'stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' +
         '</div></a></div>');
     } else if (st.view === 'mine') {
+      var celebFirst = (st.want === 'celeb');
       h.push('<div class="pad" style="padding-top:30px"><div class="h1">먼저<br>내 것부터</div>',
-        '<div class="sub">상대 생일은 몰라도 됩니다. 링크를 보내면 그쪽이 직접 넣어요.</div></div>',
+        '<div class="sub">' + (celebFirst
+          ? '내 생일만 넣으면 연예인을 고를 수 있어요.'
+          : '상대 생일은 몰라도 됩니다. 링크를 보내면 그쪽이 직접 넣어요.') + '</div></div>',
         form('me'),
-        '<div class="pad" style="margin-top:28px"><button class="btnP" id="mk-link">궁합 링크 만들기</button>',
-        '<div style="height:9px"></div><button class="btnG" id="both">상대 생일도 내가 알아요</button>',
-        '<div style="height:9px"></div><button class="btnG" id="celeb" style="background:#F3ECFF;color:#6B5BA8">연예인이랑 볼래요</button></div>');
+        '<div class="pad" style="margin-top:28px">' +
+        (celebFirst
+          ? '<button class="btnP" id="celeb">연예인 고르기</button>' +
+            '<div style="height:9px"></div><button class="btnG" id="mk-link">궁합 링크 만들기</button>' +
+            '<div style="height:9px"></div><button class="btnG" id="both">상대 생일도 내가 알아요</button>'
+          : '<button class="btnP" id="mk-link">궁합 링크 만들기</button>' +
+            '<div style="height:9px"></div><button class="btnG" id="both">상대 생일도 내가 알아요</button>' +
+            '<div style="height:9px"></div><button class="btnG" id="celeb" style="background:#F3ECFF;color:#6B5BA8">연예인이랑 볼래요</button>') +
+        '</div>');
     } else if (st.view === 'both') {
       h.push('<div class="pad" style="padding-top:30px"><div class="h1">상대는<br>언제 태어났나요</div></div>',
         form('you'),
@@ -1480,9 +1493,10 @@ window.UM_CELEB = {
         if (b) { b.disabled = !draft.known; b.style.opacity = draft.known ? 1 : .45; }
       });
     }
-    bind('#go-mine', function () { draft = { sex: 'F', known: true, ampm: '오전' }; go('mine'); });
+    bind('#go-mine', function () { draft = { sex: 'F', known: true, ampm: '오전' }; st.want = ''; go('mine'); });
     X.on('[data-goto]', 'click', function () {
       draft = { sex: 'F', known: true, ampm: '오전' };
+      st.want = '';
       go(this.getAttribute('data-goto'));
     });
     bind('#mk-link', function () {
@@ -1499,9 +1513,9 @@ window.UM_CELEB = {
       st.me = p; U.saveMe(); celebSheet();
     });
     bind('#celeb2', function () { celebSheet(); });
-    bind('#celeb0', function () {
+    bind('#tile-celeb', function () {
       draft = { sex: 'F', known: true, ampm: '오전' };
-      go('mine');
+      st.want = 'celeb'; go('mine');
     });
     bind('#calc', function () {
       var p = readForm(); if (!p) { return; }
