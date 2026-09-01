@@ -1,0 +1,155 @@
+/* ════════════════════════════════════════════════════════════
+   직성의 신 · 「돈이 들어오고 나가는 자리」를 주제별로
+
+   이 꼭지만 아직 여섯 주제가 같은 글을 씁니다. 재성 · 비겁 · 식상을
+   읽는 부분은 계산 결과라 그대로 두고, 그 아래에 주제에 맞는 한 문단을
+   덧붙입니다. 취업이면 급여의 모양을, 이직이면 빈 기간을, 사업이면
+   나가는 문을 봅니다.
+
+   손대는 곳 둘 —
+     ① var moneyTxt=''; 바로 뒤에 주제별 표를 놓습니다
+     ② 그 표를 화면에 끼워 넣습니다
+
+   기존 글은 한 글자도 안 지웁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   ★ 저장 직후 먼저  https://stellasaju.com/wp-json/stella/v1/me
+   ① 미리보기  https://stellasaju.com/?stella_money=1
+   ② 적용      https://stellasaju.com/?stella_money=1&go=1
+   되돌리기    https://stellasaju.com/?stella_money=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_money'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">';
+	echo '<body class="notranslate" translate="no" style="font:15px/1.9 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:960px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	global $wpdb;
+
+	$pid  = 160;
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	$tbl = <<<'STELLA_MJ'
+
+    /* ═══ 돈이 들어오고 나가는 자리 · 주제별 (2026-09-01) ═══
+       위의 재성 · 비겁 · 식상 풀이는 그대로 두고, 그 아래에 주제에 맞는
+       한 문단을 덧붙입니다. 사실은 하나, 읽는 자리만 달라집니다.
+       주의 · 이 안에서 앰퍼샌드를 쓰지 않습니다. */
+    var __moneyTopic=(function(){
+      var M={
+        '취업운':'지금은 아직 버는 자리에 앉기 전이라, 이 자리가 말해주는 것은 <em>어떤 조건을 보고 골라야 하는가</em>입니다. 첫 자리의 액수는 대개 내 뜻대로 안 됩니다. 대신 급여가 어떤 모양으로 짜여 있는지 — 고정급인지, 성과가 붙는지, 수당이 큰지 — 는 고를 수 있어요. 위에 짚인 모양과 반대로 짜인 곳에 들어가면 첫 해부터 유난히 힘이 듭니다. 액수보다 모양을 먼저 보세요.',
+        '직장운':'월급이라는 정해진 문으로 들어오는 자리입니다. 그래서 버는 쪽보다 <em>새는 쪽</em>이 훨씬 크게 작용해요. 같은 연봉을 받았는데 어떤 해는 남고 어떤 해는 하나도 안 남았던 기억이 있으실 겁니다. 회사를 옮겨 연봉을 올리는 것보다, 위에 짚인 틈 하나를 막는 쪽이 대개 더 빨리 표가 납니다. 올해는 그것만 하셔도 충분합니다.',
+        '이직운':'옮기는 자리에서 돈은 두 번 움직입니다. 나올 때 한 번, 들어갈 때 한 번이에요. 그 사이의 빈 기간을 얼마나 버틸 수 있느냐가 그대로 협상의 힘이 됩니다. 급해지면 부르는 값이 내려가는 것은 사주와 상관없이 누구나 그렇고, 위에 짚인 모양이 그 급함을 더 키우는 쪽이라면 <em>석 달치를 미리 떼어두는 일</em>이 조건을 지키는 가장 확실한 방법입니다.',
+        '퇴사운':'나오실 때 셈해야 할 것은 퇴직금이 아니라 <em>다음 돈이 들어올 때까지의 거리</em>입니다. 위에 짚인 모양이 크게 들어오고 크게 나가는 쪽이라면 그 거리가 실제보다 짧게 느껴지고, 착실하게 모이는 쪽이라면 실제보다 길게 느껴집니다. 어느 쪽이든 종이에 숫자로 적어보시면 마음이 정해져요. 나오는 날짜를 정하는 것보다 그 종이가 먼저입니다.',
+        '사업운':'사업의 돈은 버는 것과 남는 것이 다릅니다. 매출이 늘었는데 손에는 없는 시기를 한 번은 겪으시게 돼요. 위에 짚인 모양은 <em>들어오는 문의 크기</em>를 말해주지, 나가는 문까지 막아주지는 않습니다. 그래서 사업에서는 값을 올리는 일보다 나가는 항목을 매달 같은 날에 적는 일이 더 오래 갑니다. 세금과 사람 값은 특히 그렇습니다.',
+        '재물운':'여기서 보는 것은 일과 떼어놓은 <em>돈 그 자체</em>입니다. 버는 힘과 모으는 힘은 서로 다른 힘이에요. 잘 버는데 하나도 안 남는 분이 있고, 적게 버는데 꼬박꼬박 쌓이는 분이 있습니다. 위에 짚인 모양이 어느 쪽이든, 모으는 힘은 타고나기보다 <em>손이 잘 안 닿는 곳에 얼마를 두느냐</em>로 정해집니다. 그 한 칸을 정하는 것이 올해 할 일입니다.'
+      };
+      var t=(typeof __ct!=='undefined')?__ct:'';
+      return M[t]?('<p>'+M[t]+'</p>'):'';
+    })();
+
+STELLA_MJ;
+
+	$re_a = '/var moneyTxt=\'\';/u';
+	$re_b = '/moneyTxt\+\s*\'<div class="voice">/u';
+
+	printf(
+		'<h1 style="color:#ffd76a">돈이 들어오고 나가는 자리 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	$now = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( null === $now ) {
+		echo '<h2 style="color:#ff7b7b">160 을 못 읽었습니다.</h2>';
+		exit;
+	}
+
+	if ( $undo ) {
+		$bak = get_post_meta( $pid, '_stella_money_backup', true );
+		if ( $bak ) {
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+			delete_post_meta( $pid, '_stella_money_backup' );
+			clean_post_cache( $pid );
+			if ( function_exists( 'wp_cache_flush' ) ) {
+				wp_cache_flush();
+			}
+			echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2>';
+		} else {
+			echo '<h2 style="color:#888">사본이 없습니다.</h2>';
+		}
+		exit;
+	}
+
+	$has = substr_count( $now, '__moneyTopic' );
+	$na  = preg_match_all( $re_a, $now );
+	$nb  = preg_match_all( $re_b, $now );
+
+	echo '<table cellpadding="8" style="border-collapse:collapse">';
+	printf( '<tr><td>페이지 크기</td><td><b>%d</b> 바이트</td></tr>', strlen( $now ) );
+	printf( '<tr><td>새 글 크기</td><td>%d 바이트 · 여섯 주제</td></tr>', strlen( $tbl ) );
+	printf( '<tr><td>이미 들어감</td><td>%d</td></tr>', $has );
+	printf( '<tr><td>① 표를 놓을 자리</td><td style="color:%s"><b>%d</b></td></tr>', 1 === $na ? '#7bff9b' : '#ff7b7b', $na );
+	printf( '<tr><td>② 화면에 끼울 자리</td><td style="color:%s"><b>%d</b></td></tr>', 1 === $nb ? '#7bff9b' : '#ff7b7b', $nb );
+	echo '</table>';
+
+	if ( $has > 0 ) {
+		echo '<h2 style="color:#7bff9b">이미 들어가 있습니다.</h2>'
+			. '<p style="color:#888">되돌리려면 ?stella_money=1&undo=1</p>';
+		exit;
+	}
+	if ( 1 !== $na || 1 !== $nb ) {
+		echo '<h2 style="color:#ff7b7b">자리가 딱 한 번씩이 아니라 아무것도 바꾸지 않았습니다.</h2>'
+			. '<p>이 화면을 저에게 보내주세요.</p>';
+		exit;
+	}
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_money=1&go=1">→ 이대로 넣기</a></p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, '_stella_money_backup', true ) ) {
+		update_post_meta( $pid, '_stella_money_backup', $now );
+	}
+
+	$out = preg_replace_callback(
+		$re_a,
+		function ( $m ) use ( $tbl ) {
+			return $m[0] . $tbl;
+		},
+		$now,
+		1
+	);
+	$out = preg_replace_callback(
+		$re_b,
+		function ( $m ) {
+			return str_replace( 'moneyTxt+', 'moneyTxt+__moneyTopic+', $m[0] );
+		},
+		$out,
+		1
+	);
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $out ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	printf( '<h2 style="color:#7bff9b">넣었습니다 — %d → %d 바이트</h2>', strlen( $now ), strlen( $out ) );
+	echo '<p><a style="color:#ffd76a" href="/door-career/">→ 문에서 확인</a></p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_money=1&undo=1</p>';
+	exit;
+} );
