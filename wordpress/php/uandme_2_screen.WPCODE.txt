@@ -32,6 +32,79 @@ window.UM_CHARS = {
 };
 
 
+/* ───── um-settings.js ───── */
+/* ══════════════════════════════════════════════════════════════
+   ┌────────────────────────────────────────────────────────────┐
+   │                                                            │
+   │   여기만 고치시면 됩니다                                    │
+   │                                                            │
+   │   · 그림을 바꾸려면 : 따옴표 안에 그림 주소를 넣으세요       │
+   │     워드프레스 → 미디어 → 그림 클릭 → 「파일 URL」 복사      │
+   │     비워두면 지금처럼 그려진 동물이 나옵니다                 │
+   │                                                            │
+   │   · 글자를 바꾸려면 : 따옴표 안의 글자만 고치세요            │
+   │     따옴표와 쉼표는 지우지 마세요                           │
+   │                                                            │
+   └────────────────────────────────────────────────────────────┘
+   ══════════════════════════════════════════════════════════════ */
+
+window.UM_SET = {
+
+  /* ── 그림 ────────────────────────────────────────────────
+     주소 보기 : https://stellasaju.com/wp-content/uploads/2026/08/younme-char-01.webp
+     이렇게 넣으시면 됩니다 —
+       로고: 'https://stellasaju.com/wp-content/uploads/2026/08/younme-char-01.webp',   */
+  그림: {
+    로고:      '',
+
+    히어로큰:  '',   /* 첫 화면 오른쪽 · 큰 아이 */
+    히어로작은: '',   /* 첫 화면 오른쪽 · 작은 아이 */
+
+    카드왼쪽:  '',   /* 점수 카드 위 왼쪽에서 빼꼼 */
+    카드오른쪽: '',   /* 점수 카드 위 오른쪽에서 빼꼼 */
+
+    초대위:    '',   /* 「그 사람 생일 몰라도 괜찮아요」 위 */
+    초대아래:  '',   /* 그 아래에서 빼꼼 */
+    공짜카드:  '',   /* 「전부 공짜입니다」 위 */
+
+    /* 관계 고르는 여덟 칸 — 여기는 얼굴이 다 보입니다 */
+    연인:      '',
+    부부:      '',
+    친구:      '',
+    형제자매:  '',
+    부모자녀:  '',
+    상사부하:  '',
+    동업자:    ''
+  },
+
+  /* ── 글자 ──────────────────────────────────────────────── */
+  글: {
+    제목위:    '생년월일 두 개면 끝',
+    제목:      '우리 둘,<br>몇 점일까?',
+    제목설명:  '사주 · 별자리 · 띠 셋을 함께 봅니다.<br>가입도 앱 설치도 없어요.',
+
+    관계제목:  '누구랑 볼까요?',
+    관계설명:  '같은 92점도 관계마다 말이 달라져요',
+
+    시작버튼:  '시작하기',
+
+    초대제목:  '그 사람 생일,<br>몰라도 괜찮아요',
+    초대1:     '내 생일만 넣고 링크 만들기',
+    초대2:     '카톡으로 툭 보내기',
+    초대3:     '둘 다 결과 보기',
+
+    공짜제목:  '전부 공짜입니다',
+    공짜설명:  '점수도, 왜 그 점수인지도 다 보여드려요. 가입도 결제도 없습니다. ' +
+               '생년월일은 서버로 보내지 않고, 링크를 지우면 함께 사라집니다.',
+
+    스텔라띠:  '내 사주 제대로 읽어보기',
+
+    꼬리말:    '재미로 보는 궁합입니다. 생년월일은 결과를 만드는 동안에만 쓰이고 ' +
+               '서버로 보내지 않습니다. 링크를 지우면 함께 사라집니다.'
+  }
+};
+
+
 /* ───── uandme-app.js ───── */
 /* ══════════════════════════════════════════════════════════════
    유앤미 — 두 사람 궁합 (stellasaju.com/uandme/)
@@ -528,12 +601,32 @@ window.UM_CHARS = {
      스텔라사주의 검은 머리띠는 이 페이지에서만 감춰집니다(옷 쪽에서). */
   var C = window.UM_CHARS || {};
   function ch(k) { return C[k] || ''; }
-  var BUN = ch('bunny_white');
+
+  /* 설정(um-settings.js)에 그림 주소가 들어 있으면 그 그림을,
+     비어 있으면 그려진 동물을 씁니다. 소희 님이 주소만 넣으면 바뀝니다. */
+  function art(slot, fb) {
+    var u = '';
+    if (window.UM_SET) { if (window.UM_SET.그림) { u = window.UM_SET.그림[slot] || ''; } }
+    if (u) {
+      return '<img src="' + esc(u) + '" alt="" ' +
+        'style="width:100%;height:100%;object-fit:contain;display:block">';
+    }
+    return ch(fb);
+  }
+
+  /* 설정에 글이 들어 있으면 그것을, 없으면 원래 글을 */
+  function T(k, fb) {
+    var v = '';
+    if (window.UM_SET) { if (window.UM_SET.글) { v = window.UM_SET.글[k] || ''; } }
+    return v || fb || '';
+  }
+
+  var BUN = art('로고', 'bunny_white');
 
   /* 카드 뒤에서 머리만 내미는 「빼꼼」 */
-  function peek(k, w, css) {
+  function peek(slot, fb, w, css) {
     return '<div class="peek" style="width:' + w + 'px;height:' + w + 'px;' + css + '">' +
-      ch(k) + '</div>';
+      art(slot, fb) + '</div>';
   }
 
   function chrome() {
@@ -553,8 +646,7 @@ window.UM_CHARS = {
         '<a href="/">스텔라사주</a>' +
         '<a href="/privacy/">개인정보</a>' +
         '</div>' +
-        '<p>재미로 보는 궁합입니다. 생년월일은 결과를 만드는 동안에만 쓰이고 ' +
-        '서버로 보내지 않습니다. 링크를 지우면 함께 사라집니다.</p>' +
+        '<p>' + T('꼬리말') + '</p>' +
         '<p style="margin-top:10px">stellasaju.com</p></div>');
       root.parentNode.insertBefore(foot, root.nextSibling);
     }
@@ -568,18 +660,18 @@ window.UM_CHARS = {
       h.push(
       /* 히어로 — 오른쪽에서 둘이 빼꼼 */
       '<div class="pad" style="padding-top:26px;padding-bottom:18px;position:relative">' +
-        peek('bunny_pink', 96, 'right:-8px;top:24px;transform:rotate(9deg)') +
-        peek('bunny_white', 78, 'right:60px;top:78px;transform:rotate(-11deg)') +
+        peek('히어로큰', 'bunny_pink', 96, 'right:-8px;top:24px;transform:rotate(9deg)') +
+        peek('히어로작은', 'bunny_white', 78, 'right:60px;top:78px;transform:rotate(-11deg)') +
         '<div class="front" style="display:inline-block;background:#E7DEFA;color:#6B5BA8;' +
-        'border-radius:999px;padding:7px 15px;font-size:12px;font-weight:500">생년월일 두 개면 끝</div>' +
-        '<div class="h1 front" style="margin-top:16px">우리 둘,<br>몇 점일까?</div>' +
-        '<div class="sub front" style="max-width:235px">사주 · 별자리 · 띠 셋을 함께 봅니다.<br>가입도 앱 설치도 없어요.</div>' +
+        'border-radius:999px;padding:7px 15px;font-size:12px;font-weight:500">' + T('제목위') + '</div>' +
+        '<div class="h1 front" style="margin-top:16px">' + T('제목') + '</div>' +
+        '<div class="sub front" style="max-width:235px">' + T('제목설명') + '</div>' +
       '</div>',
 
       /* 보기 카드 — 카드 위 테두리에서 머리만 */
       '<div class="pad" style="padding-top:40px;position:relative">' +
-        peek('bunny_happy', 78, 'left:38px;top:12px;transform:rotate(-9deg)') +
-        peek('cat_cream', 78, 'right:38px;top:12px;transform:rotate(9deg)') +
+        peek('카드왼쪽', 'bunny_happy', 78, 'left:38px;top:12px;transform:rotate(-9deg)') +
+        peek('카드오른쪽', 'cat_cream', 78, 'right:38px;top:12px;transform:rotate(9deg)') +
         '<div class="card front">' +
           '<div style="display:flex;align-items:center;justify-content:space-between">' +
             '<div style="background:#FFE2D6;color:#C4674A;font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:999px">연인 궁합</div>' +
@@ -600,47 +692,46 @@ window.UM_CHARS = {
 
       /* 관계 고르기 — 여기서는 얼굴이 다 보여야 고를 수 있습니다 */
       '<div class="pad" style="margin-top:46px">' +
-        '<div class="jua" style="font-size:25px;color:#3F3A52">누구랑 볼까요?</div>' +
-        '<div style="font-size:13px;color:#A79BC4;margin-top:7px">같은 92점도 관계마다 말이 달라져요</div>' +
+        '<div class="jua" style="font-size:25px;color:#3F3A52">' + T('관계제목') + '</div>' +
+        '<div style="font-size:13px;color:#A79BC4;margin-top:7px">' + T('관계설명') + '</div>' +
         '<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:18px">' +
       '<button class="tile' + (st.rel==='lover' ? ' on' : '') + '" data-rel="lover">' +
-        '<div class="im" style="background:#FCE8F1">' + ch('bunny_pink') + '</div><b>연인</b></button>' +
+        '<div class="im" style="background:#FCE8F1">' + art('연인', 'bunny_pink') + '</div><b>연인</b></button>' +
       '<button class="tile' + (st.rel==='married' ? ' on' : '') + '" data-rel="married">' +
-        '<div class="im" style="background:#E7DEFA">' + ch('bunny_white') + '</div><b>부부</b></button>' +
+        '<div class="im" style="background:#E7DEFA">' + art('부부', 'bunny_white') + '</div><b>부부</b></button>' +
       '<button class="tile' + (st.rel==='friend' ? ' on' : '') + '" data-rel="friend">' +
-        '<div class="im" style="background:#E2F5EE">' + ch('cat_cream') + '</div><b>친구</b></button>' +
+        '<div class="im" style="background:#E2F5EE">' + art('친구', 'cat_cream') + '</div><b>친구</b></button>' +
       '<button class="tile' + (st.rel==='sibling' ? ' on' : '') + '" data-rel="sibling">' +
-        '<div class="im" style="background:#FFEFE2">' + ch('bunny_happy') + '</div><b>형제자매</b></button>' +
+        '<div class="im" style="background:#FFEFE2">' + art('형제자매', 'bunny_happy') + '</div><b>형제자매</b></button>' +
       '<button class="tile' + (st.rel==='parent_child' ? ' on' : '') + '" data-rel="parent_child">' +
-        '<div class="im" style="background:#DCEEF9">' + ch('cow') + '</div><b>부모자녀</b></button>' +
+        '<div class="im" style="background:#DCEEF9">' + art('부모자녀', 'cow') + '</div><b>부모자녀</b></button>' +
       '<button class="tile' + (st.rel==='boss_sub' ? ' on' : '') + '" data-rel="boss_sub">' +
-        '<div class="im" style="background:#F1EBFA">' + ch('bunny_peek') + '</div><b>상사부하</b></button>' +
+        '<div class="im" style="background:#F1EBFA">' + art('상사부하', 'bunny_peek') + '</div><b>상사부하</b></button>' +
       '<button class="tile' + (st.rel==='partner' ? ' on' : '') + '" data-rel="partner">' +
-        '<div class="im" style="background:#FCF3DA">' + ch('cat_cream') + '</div><b>동업자</b></button>' +
+        '<div class="im" style="background:#FCF3DA">' + art('동업자', 'cat_cream') + '</div><b>동업자</b></button>' +
         '</div></div>',
 
-      '<div class="pad" style="margin-top:30px"><button class="btnP" id="go-mine">시작하기</button></div>',
+      '<div class="pad" style="margin-top:30px"><button class="btnP" id="go-mine">' + T('시작버튼') + '</button></div>',
 
       /* 초대 설명 */
       '<div class="pad" style="margin-top:54px;position:relative">' +
-        peek('cow', 84, 'right:28px;top:-44px;transform:rotate(8deg)') +
+        peek('초대위', 'cow', 84, 'right:28px;top:-44px;transform:rotate(8deg)') +
         '<div class="front" style="background:#E7DEFA;border-radius:28px;padding:26px 22px">' +
-          '<div class="jua" style="font-size:25px;line-height:1.3;color:#3F3A52">그 사람 생일,<br>몰라도 괜찮아요</div>' +
-          step(1, '내 생일만 넣고 링크 만들기') +
-          step(2, '카톡으로 툭 보내기') +
-          step(3, '둘 다 결과 보기', true) +
+          '<div class="jua" style="font-size:25px;line-height:1.3;color:#3F3A52">' + T('초대제목') + '</div>' +
+          step(1, T('초대1')) +
+          step(2, T('초대2')) +
+          step(3, T('초대3'), true) +
         '</div>' +
-        peek('bunny_peek', 70, 'left:38px;bottom:-28px;transform:rotate(-10deg);z-index:2') +
+        peek('초대아래', 'bunny_peek', 70, 'left:38px;bottom:-28px;transform:rotate(-10deg);z-index:2') +
       '</div>',
 
       /* 무료라는 것 */
       '<div class="pad" style="margin-top:56px;position:relative">' +
-        peek('bunny_white', 80, 'right:30px;top:-38px;transform:rotate(11deg)') +
+        peek('공짜카드', 'bunny_white', 80, 'right:30px;top:-38px;transform:rotate(11deg)') +
         '<div class="card front">' +
-          '<div class="jua" style="font-size:22px;color:#3F3A52">전부 공짜입니다</div>' +
+          '<div class="jua" style="font-size:22px;color:#3F3A52">' + T('공짜제목') + '</div>' +
           '<div style="font-size:13.5px;line-height:1.8;color:#7C7392;margin-top:9px">' +
-          '점수도, 왜 그 점수인지도 다 보여드려요. 가입도 결제도 없습니다. ' +
-          '생년월일은 서버로 보내지 않고, 링크를 지우면 함께 사라집니다.</div>' +
+          T('공짜설명') + '</div>' +
         '</div></div>',
 
       /* 스텔라사주로 */
@@ -648,7 +739,7 @@ window.UM_CHARS = {
         '<a href="/" style="text-decoration:none"><div style="display:flex;align-items:center;' +
         'justify-content:space-between;padding:20px 22px;background:#100B22;border-radius:24px">' +
         '<div><div style="font-size:11px;color:#B9A2F2;font-weight:700;margin-bottom:5px">스텔라사주</div>' +
-        '<div style="font-size:16px;font-weight:700;color:#F6F1E7">내 사주 제대로 읽어보기</div></div>' +
+        '<div style="font-size:16px;font-weight:700;color:#F6F1E7">' + T('스텔라띠') + '</div></div>' +
         '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C99A55" stroke-width="2" ' +
         'stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' +
         '</div></a></div>');
@@ -975,7 +1066,7 @@ add_action( 'init', function () {
 	if ( ! current_user_can( 'manage_options' ) ) { echo '관리자만 볼 수 있습니다.'; exit; }
 	echo '<h1 style="color:#ffd76a">유앤미 2 · 화면</h1>';
 	echo '<p>이 스니펫은 살아 있습니다.</p>';
-	echo '<p>실어주는 글 : <b>55KB</b></p>';
+	echo '<p>실어주는 글 : <b>59KB</b></p>';
 	echo '<p>유앤미 화면 : <a style="color:#9fd" href="/uandme/">stellasaju.com/uandme/</a></p>';
 	exit;
 } );
