@@ -5,16 +5,19 @@
    StellaSaju.compute() 가 뽑아준 두 사람의 사주를 받아
    0~100 점과 네 항목 점수를 돌려줍니다.
 
-   보는 것 다섯 가지 — 명리에서 실제로 궁합을 볼 때 보는 것들입니다.
-     ① 일간 관계 (천간합 · 상생상극)        25점
-     ② 일지 관계 (육합 · 삼합 · 충 · 형 · 해 · 원진)  30점  ← 부부궁, 가장 큽니다
-     ③ 오행 보완 (내게 없는 것을 그가 가졌나)  20점
-     ④ 십성 관계 (그가 나에게 무엇인가)       15점  ← 관계 유형마다 다릅니다
-     ⑤ 띠 궁합 (년지)                          10점
+   보는 것 셋 — 생년월일 하나로 물어보지 않고 뽑을 수 있는 것들입니다.
+
+     ① 사주   40점  일지(14) · 일간(11) · 오행 보완(8) · 십성(7)
+     ② 별자리 30점  두 별자리의 원소와 각도
+     ③ 띠     30점  삼합 · 육합 · 충 · 형 · 해 · 원진
+
+   사주가 가장 무겁고, 별자리와 띠가 그 옆을 받칩니다.
+   셋을 따로 보여주면 손님이 「사주는 높은데 띠가 낮네」처럼
+   읽을 수 있어 이야깃거리가 생깁니다.
 
    같은 계산이라도 관계(연인 · 부부 · 친구 · 동업 …)에 따라
-   ④의 가중치가 달라집니다. 연인에게 좋은 배치와 동업에 좋은 배치가
-   다르기 때문입니다.
+   사주의 십성 가중치가 달라집니다. 연인에게 좋은 배치와
+   동업에 좋은 배치가 다르기 때문입니다.
 
    주의 · 이 파일 안에서 앰퍼샌드 두 개 연산자를 쓰지 않습니다
           (워드프레스가 엔티티로 바꿔 스크립트를 죽입니다).
@@ -238,24 +241,64 @@
     return { score: tbl[gr], god: g, group: gr, note: say };
   }
 
-  /* ── ⑤ 띠 궁합 ───────────────────────────────────────── */
+  /* ── ② 띠 궁합 (30점) ──────────────────────────────── */
   function animalScore(a, b) {
     var sc, note;
     var na = ANIMAL[a], nb = ANIMAL[b];
     if (inTri(SAMHAP, a, b)) {
-      sc = 10; note = na + '띠와 ' + nb + '띠는 예로부터 삼합이라 하여 가장 잘 맞는 띠로 봅니다.';
+      sc = 30; note = na + '띠와 ' + nb + '띠는 삼합입니다. 예로부터 가장 잘 맞는 띠로 봅니다.';
     } else if (has(YUKHAP, a, b)) {
-      sc = 9;  note = na + '띠와 ' + nb + '띠는 육합입니다. 서로를 편하게 하는 띠예요.';
-    } else if (has(CHUNG, a, b)) {
-      sc = 3;  note = na + '띠와 ' + nb + '띠는 충입니다. 끌리면서도 부딪히는 조합이에요.';
-    } else if (has(WONJIN, a, b)) {
-      sc = 4;  note = na + '띠와 ' + nb + '띠는 원진입니다. 이유 없이 서운해지는 순간이 옵니다.';
+      sc = 27; note = na + '띠와 ' + nb + '띠는 육합입니다. 서로를 편하게 하는 띠예요.';
+    } else if (inTri(BANGHAP, a, b)) {
+      sc = 24; note = na + '띠와 ' + nb + '띠는 같은 계절의 띠입니다. 사는 결이 비슷합니다.';
     } else if (a === b) {
-      sc = 7;  note = '같은 ' + na + '띠입니다. 서로를 잘 알지만 같은 약점도 나눠 갖습니다.';
+      sc = 20; note = '두 분 다 ' + na + '띠입니다. 서로를 잘 알지만 같은 약점도 나눠 갖습니다.';
+    } else if (has(CHUNG, a, b)) {
+      sc = 8;  note = na + '띠와 ' + nb + '띠는 충입니다. 끌리면서도 부딪히는 조합이에요.';
+    } else if (has(WONJIN, a, b)) {
+      sc = 10; note = na + '띠와 ' + nb + '띠는 원진입니다. 이유 없이 서운해지는 순간이 옵니다.';
+    } else if (has(HYUNG, a, b)) {
+      sc = 13; note = na + '띠와 ' + nb + '띠는 형입니다. 가까울수록 말이 날카로워지기 쉽습니다.';
+    } else if (has(HAE, a, b)) {
+      sc = 15; note = na + '띠와 ' + nb + '띠는 해입니다. 큰 탈은 없지만 오해가 쌓이기 쉬워요.';
     } else {
-      sc = 6;  note = na + '띠와 ' + nb + '띠는 특별히 얽히지 않은 사이입니다.';
+      sc = 18; note = na + '띠와 ' + nb + '띠는 특별히 얽히지 않은 사이입니다.';
     }
     return { score: sc, note: note };
+  }
+
+  /* ── ③ 별자리 궁합 (30점) ──────────────────────────── */
+  var SIGNS = ['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리',
+               '천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
+  var SIGN_EL = ['불','흙','공기','물','불','흙','공기','물','불','흙','공기','물'];
+
+  function signIndex(name) {
+    var i = SIGNS.indexOf(name);
+    return i < 0 ? 0 : i;
+  }
+
+  function zodiacScore(a, b) {
+    var d = Math.abs(a - b);
+    if (d > 6) { d = 12 - d; }
+    var na = SIGNS[a], nb = SIGNS[b];
+    var ea = SIGN_EL[a], eb = SIGN_EL[b];
+    var sc, note;
+    if (d === 4) {
+      sc = 30; note = na + '와 ' + nb + '는 같은 ' + ea + ' 기운입니다(120도). 별자리 궁합에서 가장 좋게 보는 자리예요. 말하지 않아도 통합니다.';
+    } else if (d === 2) {
+      sc = 26; note = na + '와 ' + nb + '는 서로를 북돋우는 자리입니다(60도). ' + ea + '과 ' + eb + '은 함께 있으면 힘이 붙어요.';
+    } else if (d === 0) {
+      sc = 22; note = '두 분 다 ' + na + '입니다. 같은 방식으로 세상을 보니 편한 대신, 같은 곳에서 같이 막힙니다.';
+    } else if (d === 6) {
+      sc = 19; note = na + '와 ' + nb + '는 마주 보는 자리입니다(180도). 정반대라서 끌리고, 정반대라서 부딪힙니다.';
+    } else if (d === 1) {
+      sc = 15; note = na + '와 ' + nb + '는 바로 옆자리입니다. 가까운데 결이 달라 묘하게 안 맞을 때가 있어요.';
+    } else if (d === 3) {
+      sc = 12; note = na + '와 ' + nb + '는 직각으로 부딪힙니다(90도). 서로를 자극해서 성장시키지만 편하지는 않습니다.';
+    } else {
+      sc = 10; note = na + '와 ' + nb + '는 서로 어긋난 자리입니다(150도). 이해하려면 설명이 많이 필요합니다.';
+    }
+    return { score: sc, note: note, elements: ea + ' · ' + eb };
   }
 
   /* ── 합쳐서 점수 만들기 ──────────────────────────────── */
@@ -265,64 +308,85 @@
     var ga = chartA.pillars.day.gan, gb = chartB.pillars.day.gan;
     var ja = chartA.pillars.day.ji,  jb = chartB.pillars.day.ji;
     var ya = chartA.pillars.year.ji, yb = chartB.pillars.year.ji;
+    var za = signIndex(chartA.stars.sun.name), zb = signIndex(chartB.stars.sun.name);
 
-    var f1 = ganScore(ga, gb);
-    var f2 = jiScore(ja, jb);
-    var f3 = fiveScore(chartA.five, chartB.five);
-    var gA = godScore(ga, gb, rel);   /* 그가 나에게 */
-    var gB = godScore(gb, ga, rel);   /* 내가 그에게 */
-    var f4 = { score: Math.round((gA.score + gB.score) / 2), a: gA, b: gB };
-    var f5 = animalScore(ya, yb);
+    /* ① 사주 40점 — 네 가지를 각각 제 몫으로 줄입니다 */
+    var f1 = ganScore(ga, gb);                     /* /25 → 11 */
+    var f2 = jiScore(ja, jb);                      /* /30 → 14 */
+    var f3 = fiveScore(chartA.five, chartB.five);  /* /20 →  8 */
+    var gA = godScore(ga, gb, rel);                /* 그가 나에게 */
+    var gB = godScore(gb, ga, rel);                /* 내가 그에게 */
+    var f4raw = (gA.score + gB.score) / 2;         /* /15 →  7 */
 
-    var raw = f1.score + f2.score + f3.score + f4.score + f5.score;
+    var sGan  = f1.score / 25 * 11;
+    var sJi   = f2.score / 30 * 14;
+    var sFive = f3.score / 20 * 8;
+    var sGod  = f4raw / 15 * 7;
+    var saju  = sGan + sJi + sFive + sGod;         /* 0~40 */
 
-    /* 다섯 항목을 그냥 더하면 대개 50~80 사이에만 모입니다.
-       그러면 「천생연분」도 「이번 생은 예능감」도 평생 안 나옵니다.
-       실제로 나올 수 있는 폭(35~92)을 0~100 으로 펴줍니다.
-       순서는 그대로 유지되므로 좋은 궁합이 나쁜 궁합보다 낮게 나오는 일은 없습니다. */
-    var total = Math.round(25 + (raw - 45) * 1.75);
+    /* ② 별자리 30점 · ③ 띠 30점 */
+    var zo = zodiacScore(za, zb);
+    var an = animalScore(ya, yb);
+
+    var raw = saju + zo.score + an.score;          /* 이론상 0~100, 실제로는 중간에 모입니다 */
+
+    /* 세 덩어리를 그냥 더하면 3000쌍 기준으로 36~95, 평균 65 에 모입니다.
+       그대로 쓰면 「천생연분」도 「이번 생은 예능감」도 거의 안 나와서
+       자랑할 맛이 없습니다. 그 폭을 0~100 으로 펴되, 살짝 위로 당깁니다
+       (지수 0.7). 운세는 조금 후한 편이 낫고, 낮은 점수는 드물어야
+       나왔을 때 웃깁니다. 순서는 그대로라 좋은 궁합이 나쁜 궁합보다
+       낮게 나오는 일은 없습니다. */
+    var t = (raw - 36) / 59;
+    if (t < 0) { t = 0; }
+    if (t > 1) { t = 1; }
+    var total = Math.round(100 * Math.pow(t, 0.7));
     total = Math.max(1, Math.min(99, total));
 
     /* 네 항목 — 같은 재료를 다르게 섞습니다 */
-    function pct(v, max) { return v / max; }
-    /* 가중치를 다 더하면 100 이 되므로 그대로가 곧 점수입니다 */
-    var personality = Math.round(
-      pct(f1.score,25) * 55 + pct(f3.score,20) * 30 + pct(f4.score,15) * 15);
-    var love = Math.round(
-      pct(f2.score,30) * 50 + pct(f4.score,15) * 30 + pct(f1.score,25) * 20);
-    var marriage = Math.round(
-      pct(f2.score,30) * 40 + pct(f5.score,10) * 25 + pct(f3.score,20) * 20 + pct(f1.score,25) * 15);
-    var money = Math.round(
-      pct(f3.score,20) * 45 + pct(f4.score,15) * 35 + pct(f2.score,30) * 20);
+    var pGan  = f1.score / 25, pJi = f2.score / 30;
+    var pFive = f3.score / 20, pGod = f4raw / 15;
+    var pZo   = zo.score / 30, pAn = an.score / 30;
 
-    function clamp(x) { return Math.max(0, Math.min(100, x)); }
+    function clamp(x) { return Math.max(1, Math.min(100, Math.round(x))); }
+
+    var personality = clamp(pGan * 35 + pZo * 40 + pFive * 25);
+    var love        = clamp(pJi  * 40 + pGod * 25 + pZo * 25 + pGan * 10);
+    var marriage    = clamp(pJi  * 35 + pAn * 30 + pFive * 20 + pGan * 15);
+    var money       = clamp(pFive * 35 + pGod * 35 + pJi * 20 + pAn * 10);
 
     return {
       total: total,
-      raw: raw,
+      raw: Math.round(raw),
       relationship: rel,
       categories: {
-        personality: clamp(personality),
-        love: clamp(love),
-        marriage: clamp(marriage),
-        money: clamp(money)
+        personality: personality,
+        love: love,
+        marriage: marriage,
+        money: money
       },
+      /* 세 덩어리 — 화면에 막대 셋으로 보여줍니다 */
+      blocks: {
+        saju:   { score: Math.round(saju),     max: 40 },
+        zodiac: { score: zo.score,             max: 30, pair: SIGNS[za] + ' · ' + SIGNS[zb],
+                  elements: zo.elements, note: zo.note },
+        animal: { score: an.score,             max: 30, pair: ANIMAL[ya] + '띠 · ' + ANIMAL[yb] + '띠',
+                  note: an.note }
+      },
+      /* 사주 안쪽 — 「자세히 보기」에서 풀어줍니다 */
       parts: {
-        gan:    { score: f1.score, max: 25, note: f1.note,
-                  pair: GAN_H[ga] + ' · ' + GAN_H[gb] },
-        ji:     { score: f2.score, max: 30, note: f2.note,
-                  pair: JI_H[ja] + ' · ' + JI_H[jb] },
-        five:   { score: f3.score, max: 20, note: f3.note },
-        god:    { score: f4.score, max: 15,
-                  aToB: gA.god, bToA: gB.god,
-                  note: gA.note, noteBack: gB.note },
-        animal: { score: f5.score, max: 10, note: f5.note,
-                  pair: ANIMAL[ya] + '띠 · ' + ANIMAL[yb] + '띠' }
+        gan:  { score: Math.round(sGan * 10) / 10,  max: 11, note: f1.note,
+                pair: GAN_H[ga] + ' · ' + GAN_H[gb] },
+        ji:   { score: Math.round(sJi * 10) / 10,   max: 14, note: f2.note,
+                pair: JI_H[ja] + ' · ' + JI_H[jb] },
+        five: { score: Math.round(sFive * 10) / 10, max: 8,  note: f3.note },
+        god:  { score: Math.round(sGod * 10) / 10,  max: 7,
+                aToB: gA.god, bToA: gB.god,
+                note: gA.note, noteBack: gB.note }
       }
     };
   }
 
-  root.StellaMatch = { match: match, tenGod: tenGod, ANIMAL: ANIMAL };
+  root.StellaMatch = { match: match, tenGod: tenGod, ANIMAL: ANIMAL, SIGNS: SIGNS };
 })(typeof window !== 'undefined' ? window : globalThis);
 
 if (typeof module !== 'undefined') { module.exports = globalThis.StellaMatch; }
