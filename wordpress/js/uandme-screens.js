@@ -505,7 +505,39 @@
      테마가 어떤 이름을 쓰는지 몰라도 되게, 이름이 아니라 구조로 찾습니다.
      페이지에 있는 모든 header · footer 가운데 우리 화면을 품고 있지 않은
      것만 감춥니다. 워드프레스 관리 막대(#wpadminbar)는 div 라서 안 걸립니다. */
+  /* 우리 화면 말고는 전부 감춥니다.
+     #um 에서 body 까지 한 층씩 올라가면서, 우리를 품고 있지 않은 형제를
+     이름과 상관없이 감춥니다. 테마가 무엇을 쓰든 통합니다.
+     관리 막대(#wpadminbar)와 우리 머리말·꼬리말, 그리고 script/style 은
+     건드리지 않습니다. */
+  function isolate(host) {
+    var node = host, parent = host.parentNode, i, k, t, hops = 0;
+    while (parent) {
+      if (hops > 12) { break; }
+      for (i = 0; i < parent.children.length; i++) {
+        k = parent.children[i];
+        if (k === node) { continue; }
+        if (k.id === 'wpadminbar') { continue; }
+        if (k.id === 'um-top') { continue; }
+        if (k.id === 'um-foot') { continue; }
+        if (k.contains(host)) { continue; }
+        t = k.tagName;
+        if (t === 'SCRIPT') { continue; }
+        if (t === 'STYLE') { continue; }
+        if (t === 'LINK') { continue; }
+        if (t === 'NOSCRIPT') { continue; }
+        if (t === 'TEMPLATE') { continue; }
+        k.style.setProperty('display', 'none', 'important');
+      }
+      if (parent === document.body) { break; }
+      node = parent;
+      parent = parent.parentNode;
+      hops++;
+    }
+  }
+
   function hideTheme(host) {
+    isolate(host);
     var i, n;
     /* 워드프레스는 머리띠를 <header> 로 낼 때도 있고 그냥
        <div class="wp-block-template-part"> 로 낼 때도 있습니다.
