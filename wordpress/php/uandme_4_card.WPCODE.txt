@@ -16,6 +16,29 @@
    확인 : https://stellasaju.com/?um_card=1&s=63&r=lover&a=30&b=12&c=24
    ════════════════════════════════════════════════════════════ */
 
+/* ── 카드 파일과 그 CDN 주소 ───────────────────────────
+   카카오가 우리 서버에서 그림을 못 가져오는 듯하여, 카드를 진짜 파일로
+   남기고 워드프레스닷컴 그림 CDN(i0.wp.com) 주소를 알려줍니다.
+   이 CDN 은 소희 님 사이트 그림을 이미 나르고 있는 곳입니다.
+
+   담기는 것은 점수뿐입니다. 이름도 생년월일도 들어가지 않습니다. */
+if ( ! function_exists( 'stella_um_card_name' ) ) {
+	function stella_um_card_name( $score, $rel, $a, $b, $c ) {
+		return intval( $score ) . '-' . preg_replace( '/[^a-z_]/', '', $rel ) . '-' .
+		       intval( $a ) . '-' . intval( $b ) . '-' . intval( $c ) . '.png';
+	}
+}
+if ( ! function_exists( 'stella_um_card_url' ) ) {
+	function stella_um_card_url( $score, $rel, $a, $b, $c ) {
+		$up   = wp_upload_dir();
+		$name = stella_um_card_name( $score, $rel, $a, $b, $c );
+		$url  = $up['baseurl'] . '/uandme/card/' . $name;
+		/* CDN 을 거치면 카카오가 잘 가져갑니다 */
+		$bare = preg_replace( '#^https?://#', '', $url );
+		return 'https://i0.wp.com/' . $bare . '?ssl=1';
+	}
+}
+
 /* ── 점수로 등급 이름 알아내기 ─────────────────────────
    주소에 한글을 싣지 않으려고 서버도 같은 표를 갖습니다.
    유앤미 화면(uandme-tiers.js)과 같은 구간입니다. */
@@ -318,6 +341,13 @@ add_action( 'init', function () {
 	imagedestroy( $im );
 	$png = ob_get_clean();
 
+	/* 파일로도 남겨 둡니다. 다음부터는 CDN 이 이 파일을 나릅니다. */
+	$up  = wp_upload_dir();
+	$dir = $up['basedir'] . '/uandme/card';
+	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
+	$file = $dir . '/' . stella_um_card_name( $score, $rel, $a, $b, $c );
+	if ( ! file_exists( $file ) ) { @file_put_contents( $file, $png ); }
+
 	header( 'Content-Type: image/png' );
 	header( 'Content-Length: ' . strlen( $png ) );
 	header( 'Cache-Control: public, max-age=604800' );
@@ -348,7 +378,7 @@ add_action( 'wp_head', function () {
 	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : stella_um_tier( $score );
 	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
 
-	$img = home_url( '/um-card/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c );
+	$img = stella_um_card_url( $score, $rel, $a, $b, $c );
 
 	$title = '우리 ' . $score . '점' . ( $tier ? ' - ' . $tier : '' );
 	$desc  = '사주 ' . $a . '/40, 별자리 ' . $b . '/30, 띠 ' . $c . '/30. 생일만 넣으면 바로 나와요';
@@ -389,7 +419,7 @@ add_filter( 'jetpack_open_graph_tags', function ( $tags ) {
 	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : stella_um_tier( $score );
 	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
 
-	$img = home_url( '/um-card/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c );
+	$img = stella_um_card_url( $score, $rel, $a, $b, $c );
 
 	$tags['og:title']        = '우리 ' . $score . '점' . ( $tier ? ' - ' . $tier : '' );
 	$tags['og:description']  = '사주 ' . $a . '/40, 별자리 ' . $b . '/30, 띠 ' . $c . '/30. 생일만 넣으면 바로 나와요';
