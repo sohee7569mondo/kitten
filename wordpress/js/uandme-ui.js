@@ -47,7 +47,38 @@
     '#um .sh span{font-size:11.5px;font-weight:700;color:#57506E}',
     '#um .note{font-size:12px;line-height:1.85;color:var(--soft)}',
     '#um .mini{font-size:11.5px;line-height:1.9;color:#B3A9C9}',
-    '@media(max-width:400px){#um .h1{font-size:31px}}'
+    '@media(max-width:400px){#um .h1{font-size:31px}}',
+
+    /* ── 이 페이지에서만 스텔라사주의 머리띠와 꼬리말을 감춥니다 ──
+       body 에 um-page 가 붙은 화면에서만 먹으므로 다른 페이지는 그대로입니다. */
+    'body.um-page header.wp-block-template-part,',
+    'body.um-page footer.wp-block-template-part,',
+    'body.um-page .wp-site-blocks>header,',
+    'body.um-page .wp-site-blocks>footer,',
+    'body.um-page .site-header,body.um-page .site-footer,',
+    'body.um-page #masthead,body.um-page #colophon{display:none!important}',
+    'body.um-page{background:#F7F2FC!important}',
+    'body.um-page .wp-site-blocks{padding:0!important}',
+    'body.um-page .entry-content,body.um-page .wp-block-post-content{',
+    'margin:0!important;padding:0!important;max-width:none!important}',
+    'body.um-page .wp-block-post-title{display:none!important}',
+
+    /* ── 유앤미 머리말 ── */
+    '#um-top{position:sticky;top:0;z-index:50;background:rgba(247,242,252,.92);',
+    'backdrop-filter:saturate(160%) blur(10px);-webkit-backdrop-filter:saturate(160%) blur(10px)}',
+    '#um-top .in{max-width:420px;margin:0 auto;padding:12px 20px;display:flex;',
+    'align-items:center;justify-content:space-between}',
+    '#um-top .lg{display:flex;align-items:center;gap:7px;text-decoration:none}',
+    '#um-top .lg b{font-family:Jua,"Noto Sans KR",sans-serif;font-size:22px;color:#6B5BA8;font-weight:400}',
+    '#um-top a.st{font-size:11.5px;font-weight:700;color:#A79BC4;text-decoration:none;',
+    'background:#EDE6F8;padding:8px 13px;border-radius:999px}',
+
+    /* ── 유앤미 꼬리말 ── */
+    '#um-foot{max-width:420px;margin:0 auto;padding:38px 20px 46px}',
+    '#um-foot .lk{display:flex;gap:8px;flex-wrap:wrap}',
+    '#um-foot .lk a{flex:1;min-width:90px;text-align:center;background:#fff;border-radius:16px;',
+    'padding:14px 10px;font-size:13px;font-weight:700;color:#57506E;text-decoration:none}',
+    '#um-foot p{font-size:11.5px;line-height:1.9;color:#B3A9C9;margin:18px 0 0}'
   ].join('');
 
   function css() {

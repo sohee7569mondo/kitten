@@ -226,8 +226,46 @@
     return '<div style="display:flex;gap:8px">' + b.join('') + '</div>';
   }
 
+  /* ── 유앤미만의 머리말과 꼬리말 ───────────────────────
+     스텔라사주의 검은 머리띠는 이 페이지에서만 감춰집니다(옷 쪽에서). */
+  var BUN = '<svg viewBox="0 0 120 120" width="32" height="32" style="display:block">' +
+    '<g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round">' +
+    '<ellipse cx="45" cy="31" rx="9" ry="25" fill="#fff" transform="rotate(-9 45 31)"/>' +
+    '<ellipse cx="75" cy="31" rx="9" ry="25" fill="#fff" transform="rotate(9 75 31)"/>' +
+    '<ellipse cx="60" cy="88" rx="31" ry="26" fill="#fff"/>' +
+    '<circle cx="60" cy="63" r="27" fill="#fff"/></g>' +
+    '<ellipse cx="45" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(-9 45 30)"/>' +
+    '<ellipse cx="75" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(9 75 30)"/>' +
+    '<circle cx="50" cy="61" r="3.6" fill="#5A4038"/><circle cx="70" cy="61" r="3.6" fill="#5A4038"/>' +
+    '<ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
+    '<ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
+    '<ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg>';
+
+  function chrome() {
+    if (!document.getElementById('um-top')) {
+      var top = X.el('<div id="um-top"><div class="in">' +
+        '<a class="lg" href="/uandme/">' + BUN + '<b>유앤미</b></a>' +
+        '<a class="st" href="/">스텔라사주</a>' +
+        '</div></div>');
+      root.parentNode.insertBefore(top, root);
+    }
+    if (!document.getElementById('um-foot')) {
+      var foot = X.el('<div id="um-foot">' +
+        '<div class="lk">' +
+        '<a href="/uandme/">유앤미</a>' +
+        '<a href="/">스텔라사주</a>' +
+        '<a href="/privacy/">개인정보</a>' +
+        '</div>' +
+        '<p>재미로 보는 궁합입니다. 생년월일은 결과를 만드는 동안에만 쓰이고 ' +
+        '서버로 보내지 않습니다. 링크를 지우면 함께 사라집니다.</p>' +
+        '<p style="margin-top:10px">stellasaju.com</p></div>');
+      root.parentNode.insertBefore(foot, root.nextSibling);
+    }
+  }
+
   function render() {
     root = X.getRoot();
+    chrome();
     var h = [];
     if (st.view === 'home') {
       h.push('<div class="pad" style="padding-top:34px"><div class="h1">우리 둘,<br>몇 점일까?</div>',
@@ -380,6 +418,7 @@
     var host = document.getElementById('um');
     if (!host) { return; }
     X.css(); X.setRoot(host); root = host;
+    document.body.classList.add('um-page');
     U.setEngines(window.StellaSaju, window.StellaMatch);
 
     var q = new URLSearchParams(location.search);
