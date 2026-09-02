@@ -36,7 +36,7 @@ add_action( 'init', function () {
 	$name = sanitize_text_field( wp_unslash( $_GET['um_kimg'] ) );
 
 	/* 「점수-관계-사주-별자리-띠」 꼴만 받습니다 */
-	if ( ! preg_match( '/^(\d{1,2})-([a-z_]{2,14})-(\d{1,2})-(\d{1,2})-(\d{1,2})$/', $name, $m ) ) {
+	if ( ! preg_match( '/^(\d{1,2})-([a-z_]{2,14})-(\d{1,2})-(\d{1,2})-(\d{1,2})(?:-([A-Za-z0-9_-]{1,140}))?$/', $name, $m ) ) {
 		echo wp_json_encode( array( 'ok' => false, 'why' => 'bad-name' ) );
 		exit;
 	}

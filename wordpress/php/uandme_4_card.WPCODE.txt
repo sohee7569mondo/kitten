@@ -23,9 +23,11 @@
 
    담기는 것은 점수뿐입니다. 이름도 생년월일도 들어가지 않습니다. */
 if ( ! function_exists( 'stella_um_card_name' ) ) {
-	function stella_um_card_name( $score, $rel, $a, $b, $c ) {
-		return intval( $score ) . '-' . preg_replace( '/[^a-z_]/', '', $rel ) . '-' .
-		       intval( $a ) . '-' . intval( $b ) . '-' . intval( $c ) . '.png';
+	function stella_um_card_name( $score, $rel, $a, $b, $c, $n = '' ) {
+		$base = intval( $score ) . '-' . preg_replace( '/[^a-z_]/', '', $rel ) . '-' .
+		        intval( $a ) . '-' . intval( $b ) . '-' . intval( $c );
+		if ( $n ) { $base .= '-' . preg_replace( '/[^A-Za-z0-9_-]/', '', $n ); }
+		return $base . '.png';
 	}
 }
 if ( ! function_exists( 'stella_um_card_url' ) ) {
@@ -183,12 +185,13 @@ add_action( 'init', function () {
 	$want = isset( $_GET['um_card'] );
 	if ( ! $want ) {
 		$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
-		if ( preg_match( '#/um-card/(\d{1,2})-([a-z_]{2,14})-(\d{1,2})-(\d{1,2})-(\d{1,2})#', $uri, $mm ) ) {
+		if ( preg_match( '#/um-card/(\d{1,2})-([a-z_]{2,14})-(\d{1,2})-(\d{1,2})-(\d{1,2})(?:-([A-Za-z0-9_-]{1,140}))?#', $uri, $mm ) ) {
 			$_GET['s'] = $mm[1];
 			$_GET['r'] = $mm[2];
 			$_GET['a'] = $mm[3];
 			$_GET['b'] = $mm[4];
 			$_GET['c'] = $mm[5];
+			if ( isset( $mm[6] ) ) { $_GET['n'] = $mm[6]; }
 			$want = true;
 		}
 	}
@@ -217,6 +220,25 @@ add_action( 'init', function () {
 		$keep .= ' ';
 	}
 	$tier = trim( $keep );
+
+	/* 두 사람 이름 — 주소에 담을 때 뒤죽박죽 글자로 싸 두었습니다.
+	   「지은|민호」를 base64 로 싸서 실어 보냅니다. */
+	$who = '';
+	if ( isset( $_GET['n'] ) ) {
+		$raw = strtr( sanitize_text_field( wp_unslash( $_GET['n'] ) ), '-_', '+/' );
+		$pad = strlen( $raw ) % 4;
+		if ( $pad ) { $raw .= str_repeat( '=', 4 - $pad ); }
+		$dec = base64_decode( $raw, true );
+		if ( false !== $dec ) {
+			$dec = wp_strip_all_tags( $dec );
+			if ( mb_check_encoding( $dec, 'UTF-8' ) ) {
+				$two = explode( '|', $dec );
+				$one = isset( $two[0] ) ? mb_substr( trim( $two[0] ), 0, 8 ) : '';
+				$to  = isset( $two[1] ) ? mb_substr( trim( $two[1] ), 0, 8 ) : '';
+				if ( $one ) { if ( $to ) { $who = $one . ' X ' . $to; } }
+			}
+		}
+	}
 
 	$relko = array(
 		'lover' => '연인', 'married' => '부부', 'friend' => '친구',
@@ -307,12 +329,15 @@ add_action( 'init', function () {
 			}
 			imagettftext( $im, $size, 0, intval( ( 800 - $w ) / 2 ), $y, $col, $font, $text );
 		};
-		$mid( 20,  92, '유앤미 - ' . $ko . ' 궁합', $soft, 380 );
-		$mid( 104, 218, (string) $score,           $pur,  380 );
-		$mid( 19,  250, '점',                       $soft, 380 );
-		if ( $tier ) { $mid( 36, 306, $tier, $ink, 420 ); }
-		$mid( 17, 348, '사주 ' . $a . ' / 별자리 ' . $b . ' / 띠 ' . $c, $sub, 420 );
-		$mid( 14, 378, 'stellasaju.com/uandme',    $soft, 420 );
+		/* 카톡에서는 카드가 작게 보이므로 글씨를 큼직하게 씁니다 */
+		/* 좌우 아이가 x 6~202, 598~794 를 차지하므로 글씨는 390 안쪽으로 */
+		$mid( 21,  58, '유앤미 - ' . $ko . ' 궁합', $soft, 380 );
+		if ( $who ) { $mid( 34, 104, $who, $ink, 380 ); }
+		$mid( 116, 230, (string) $score,          $pur,  380 );
+		$mid( 21,  264, '점',                      $soft, 380 );
+		if ( $tier ) { $mid( 46, 320, $tier, $ink, 390 ); }
+		$mid( 21, 360, '사주 ' . $a . ' / 별자리 ' . $b . ' / 띠 ' . $c, $sub, 390 );
+		$mid( 16, 388, 'stellasaju.com/uandme',   $soft, 390 );
 	} else {
 		/* 글꼴을 못 받았을 때 — 숫자만이라도 큼직하게.
 		   작게 그린 뒤 늘려 붙입니다. */
@@ -345,7 +370,8 @@ add_action( 'init', function () {
 	$up  = wp_upload_dir();
 	$dir = $up['basedir'] . '/uandme/card';
 	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
-	$file = $dir . '/' . stella_um_card_name( $score, $rel, $a, $b, $c );
+	$file = $dir . '/' . stella_um_card_name( $score, $rel, $a, $b, $c,
+		isset( $_GET['n'] ) ? $_GET['n'] : '' );
 	if ( ! file_exists( $file ) ) { @file_put_contents( $file, $png ); }
 
 	header( 'Content-Type: image/png' );

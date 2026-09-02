@@ -580,8 +580,16 @@ window.UM_CELEB = {
   function cardName() {
     if (!st.result) { return ''; }
     var r = st.result;
-    return r.total + '-' + st.rel + '-' + r.blocks.saju.score + '-' +
+    var n = r.total + '-' + st.rel + '-' + r.blocks.saju.score + '-' +
       r.blocks.zodiac.score + '-' + r.blocks.animal.score;
+    /* 두 사람 이름을 적어 두면 카드에 크게 나옵니다.
+       한글이 주소에 그대로 들어가지 않게 싸서 보냅니다. */
+    var a = (st.me ? (st.me.name || '') : '').slice(0, 8);
+    var b = (st.you ? (st.you.name || '') : '').slice(0, 8);
+    if (a) { if (b) {
+      try { n += '-' + U.b64enc(a + '|' + b); } catch (e) {}
+    } }
+    return n;
   }
   /* 우리 서버가 그 자리에서 그려 주는 주소 */
   function cardUrl() {
