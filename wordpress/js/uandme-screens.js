@@ -113,8 +113,13 @@
     var r = st.result;
     var n = r.total + '-' + st.rel + '-' + r.blocks.saju.score + '-' +
       r.blocks.zodiac.score + '-' + r.blocks.animal.score;
-    /* 이름은 지금 카드에 그리지 않으므로 주소에도 싣지 않습니다.
-       그려야 할 때가 오면 카드 쪽과 함께 되살립니다. */
+    /* 두 사람 이름 — 카드에 가장 크게 나옵니다.
+       한글이 주소에 그대로 들어가지 않게 싸서 보냅니다. */
+    var a = (st.me ? (st.me.name || '') : '').slice(0, 8);
+    var b = (st.you ? (st.you.name || '') : '').slice(0, 8);
+    if (a) { if (b) {
+      try { n += '-' + U.b64enc(a + '|' + b); } catch (e) {}
+    } }
     return n;
   }
   /* 우리 서버가 그 자리에서 그려 주는 주소 */
@@ -198,15 +203,28 @@
   }
 
   /* 카톡 카드에 들어갈 속 이야기 — 점수가 있으면 알맹이를 넣습니다 */
+  /* 카톡 카드에 들어갈 속 이야기.
+     점수만 늘어놓으면 광고처럼 보여서, 사람이 읽는 말로 적습니다. */
+  function twoNames() {
+    var a = (st.me ? (st.me.name || '') : '');
+    var b = (st.you ? (st.you.name || '') : '');
+    if (a) { if (b) { return a + ' X ' + b; } }
+    return '';
+  }
+  function kakaoTitle() {
+    if (!st.result) { return '우리 궁합, 몇 점일까?'; }
+    var t = '';
+    try { t = window.UANDME_TIER(st.result.total, st.rel).title || ''; } catch (e) { t = ''; }
+    var who = twoNames();
+    if (who) { return who + ' - ' + t; }
+    return '우리 ' + st.result.total + '점 - ' + t;
+  }
   function kakaoDesc() {
     if (!st.result) {
-      return '사주 · 별자리 · 띠 셋을 함께 봅니다. 생일만 넣으면 바로 나와요';
+      return '생일 두 개면 끝. 사주와 별자리와 띠를 함께 봅니다';
     }
-    var r = st.result;
-    return '사주 ' + r.blocks.saju.score + '/40 · 별자리 ' + r.blocks.zodiac.score +
-      '/30 · 띠 ' + r.blocks.animal.score + '/30\n' +
-      '성격 ' + r.categories.personality + ' 연애 ' + r.categories.love +
-      ' 결혼 ' + r.categories.marriage + ' 금전 ' + r.categories.money;
+    return st.result.total + '점 · ' + U.relKo(st.rel) + ' 궁합' +
+      '\n생일만 넣으면 우리 것도 바로 나와요';
   }
 
   function kakao(url, text) {
@@ -231,14 +249,14 @@
         window.Kakao.Share.sendDefault({
           objectType: 'feed',
           content: {
-            title: text || '우리 궁합 몇 점일까?',
+            title: kakaoTitle(),
             description: kakaoDesc(),
             imageUrl: kakaoPic(),
             imageWidth: 800,
             imageHeight: 400,
             link: { mobileWebUrl: url, webUrl: url }
           },
-          buttons: [{ title: st.result ? '나도 해보기' : '내 생일 넣기',
+          buttons: [{ title: '자세히 보기',
                       link: { mobileWebUrl: url, webUrl: url } }]
         });
         return;
