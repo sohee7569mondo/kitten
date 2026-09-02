@@ -33,22 +33,26 @@
   function go(v) { st.view = v; render(); window.scrollTo(0, 0); }
 
   /* ── 공유 ────────────────────────────────────────────── */
-  function inviteUrl() { return X.base() + '?i=' + U.packLink(st.rel, st.me); }
+  /* 링크에 물음표를 쓰지 않습니다.
+     물음표 뒤가 서버에 닿지 않는 일이 이어져, 주소를 경로로 짭니다.
+       초대 : /uandme/i/<싼글>
+       결과 : /uandme/r/<싼글>/<점수-관계-사주-별자리-띠>
+     예전 물음표 주소도 그대로 열립니다. */
+  function umBase() {
+    var b = X.base();
+    var i = b.indexOf('/uandme');
+    if (i >= 0) { b = b.slice(0, i + 7); }
+    return b.replace(/\/+$/, '');
+  }
+  function inviteUrl() {
+    return umBase() + '/i/' + U.packLink(st.rel, st.me);
+  }
   function resultUrl() {
-    var u = X.base() + '?r=' + U.packLink(st.rel, st.me, st.you);
-    /* 점수를 같이 실어 둡니다. 이러면 링크를 스레드·X·디스코드 어디에
-       붙여도 그쪽에서 우리 점수 카드를 미리 보여줍니다.
-       생년월일은 앞의 r 안에만 있고 여기에는 점수뿐입니다. */
+    var u = umBase() + '/r/' + U.packLink(st.rel, st.me, st.you);
     if (st.result) {
-      var r = st.result, t = '';
-      try { t = window.UANDME_TIER(r.total, st.rel).title || ''; } catch (e) { t = ''; }
-      /* 「s」 는 워드프레스가 검색어로 알아듣는 이름이라 페이지가 404 가
-         됩니다. 크롤러는 404 페이지의 og 를 버리므로 「sc」 로 씁니다. */
-      u += '&sc=' + r.total +
-           '&a=' + r.blocks.saju.score +
-           '&b=' + r.blocks.zodiac.score +
-           '&c=' + r.blocks.animal.score +
-           '&t=' + encodeURIComponent(t);
+      var r = st.result;
+      u += '/' + r.total + '-' + st.rel + '-' + r.blocks.saju.score + '-' +
+           r.blocks.zodiac.score + '-' + r.blocks.animal.score;
     }
     return u;
   }
@@ -1341,6 +1345,11 @@
 
     var q = new URLSearchParams(location.search);
     var i = q.get('i'), r = q.get('r');
+    /* 물음표 없는 주소도 읽습니다 — /uandme/r/... · /uandme/i/... */
+    var pm = location.pathname.match(/\/uandme\/(r|i)\/([A-Za-z0-9_-]+)/);
+    if (pm) {
+      if (pm[1] === 'r') { r = pm[2]; } else { i = pm[2]; }
+    }
     if (r) {
       var d2 = U.unpackLink(r);
       if (d2) { if (d2.b) {
