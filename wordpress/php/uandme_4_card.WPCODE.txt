@@ -269,98 +269,129 @@ add_action( 'init', function () {
 	while ( $i <= 12 ) { $pool[] = sprintf( 'animal_2785140635-%02d-300px.png', $i ); $i++; }
 	$right = $pool[ wp_rand( 0, count( $pool ) - 1 ) ];
 
-	$im = imagecreatetruecolor( $W, $H );
+	/* 두 배로 그린 뒤 줄입니다 — 동그라미 가장자리가 매끈해집니다 */
+	$S  = 2;
+	$im = imagecreatetruecolor( $W * $S, $H * $S );
 	imagealphablending( $im, true );
 	imagesavealpha( $im, true );
 
-	/* 파스텔 바탕 — 왼쪽 위에서 오른쪽 아래로 */
-	for ( $y = 0; $y < $H; $y++ ) {
-		$t = $y / ( $H - 1 );
-		$r1 = 251 + ( 255 - 251 ) * $t;
-		$g1 = 246 + ( 237 - 246 ) * $t;
-		$b1 = 255 + ( 226 - 255 ) * $t;
-		$col = imagecolorallocate( $im, intval( $r1 ), intval( $g1 ), intval( $b1 ) );
-		imagefilledrectangle( $im, 0, $y, $W, $y, $col );
+	/* 파스텔 바탕 */
+	for ( $y = 0; $y < $H * $S; $y++ ) {
+		$q  = $y / ( $H * $S - 1 );
+		$col = imagecolorallocate( $im,
+			intval( 246 + ( 252 - 246 ) * $q ),
+			intval( 241 + ( 238 - 241 ) * $q ),
+			intval( 253 + ( 246 - 253 ) * $q ) );
+		imagefilledrectangle( $im, 0, $y, $W * $S, $y, $col );
 	}
-	$ink  = imagecolorallocate( $im, 63, 58, 82 );
-	$pur  = imagecolorallocate( $im, 107, 91, 168 );
-	$soft = imagecolorallocate( $im, 167, 155, 196 );
-	$sub  = imagecolorallocate( $im, 124, 115, 146 );
 
-	/* 아이 둘 — 좌우 끝에 하나씩 */
-	$up = wp_upload_dir();
-	/* 키(높이)를 기준으로 맞춥니다. 상자에 맞추면 세로로 긴 아이가
-	   작아 보입니다. 너비에는 울타리를 둬 옆으로 퍼지지 않게 합니다. */
-	$paste = function ( $file, $cx, $cy, $tall, $wide ) use ( $im, $up ) {
-		$p = $up['basedir'] . '/2026/09/' . $file;
-		if ( ! file_exists( $p ) ) { $p = $up['basedir'] . '/2026/08/' . $file; }
-		if ( ! file_exists( $p ) ) { return; }
-		$src = @imagecreatefrompng( $p );
-		if ( ! $src ) { return; }
-		/* 둘레의 빈 곳을 떼어냅니다. 아이마다 여백이 달라서 그냥 맞추면
-		   어떤 아이는 작아 보입니다. */
-		if ( function_exists( 'imagecropauto' ) ) {
-			$cut = @imagecropauto( $src, IMG_CROP_SIDES );
-			if ( false !== $cut ) { imagedestroy( $src ); $src = $cut; }
-		}
-		$sw = imagesx( $src ); $sh = imagesy( $src );
-		if ( ! $sw ) { imagedestroy( $src ); return; }
-		$k  = min( $tall / $sh, $wide / $sw );
-		$dw = intval( $sw * $k ); $dh = intval( $sh * $k );
-		imagecopyresampled( $im, $src, intval( $cx - $dw / 2 ), intval( $cy - $dh / 2 ),
-			0, 0, $dw, $dh, $sw, $sh );
-		imagedestroy( $src );
+	$ink   = imagecolorallocate( $im, 63, 58, 82 );
+	$pur   = imagecolorallocate( $im, 107, 91, 168 );
+	$soft  = imagecolorallocate( $im, 167, 155, 196 );
+	$sub   = imagecolorallocate( $im, 124, 115, 146 );
+	$white = imagecolorallocate( $im, 255, 255, 255 );
+	$ring0 = imagecolorallocate( $im, 238, 232, 250 );
+	$ring1 = imagecolorallocate( $im, 200, 174, 236 );
+	$ring2 = imagecolorallocate( $im, 245, 178, 205 );
+	$barbg = imagecolorallocate( $im, 238, 232, 250 );
+
+	/* 둥근 흰 판 */
+	$rr = function ( $x1, $y1, $x2, $y2, $r, $col ) use ( $im, $S ) {
+		$x1 *= $S; $y1 *= $S; $x2 *= $S; $y2 *= $S; $r *= $S;
+		imagefilledrectangle( $im, $x1 + $r, $y1, $x2 - $r, $y2, $col );
+		imagefilledrectangle( $im, $x1, $y1 + $r, $x2, $y2 - $r, $col );
+		imagefilledellipse( $im, $x1 + $r, $y1 + $r, $r * 2, $r * 2, $col );
+		imagefilledellipse( $im, $x2 - $r, $y1 + $r, $r * 2, $r * 2, $col );
+		imagefilledellipse( $im, $x1 + $r, $y2 - $r, $r * 2, $r * 2, $col );
+		imagefilledellipse( $im, $x2 - $r, $y2 - $r, $r * 2, $r * 2, $col );
 	};
-	$paste( $left,  104, 212, 224, 196 );
-	$paste( $right, 696, 212, 224, 196 );
+	$rr( 24, 22, 776, 378, 30, $white );
+
+	/* 도넛 — 왼쪽에 점수 */
+	$cx = 156 * $S; $cy = 200 * $S; $d = 208 * $S; $hole = 148 * $S;
+	imagefilledellipse( $im, $cx, $cy, $d, $d, $ring0 );
+	$deg = intval( 360 * min( 100, max( 0, $score ) ) / 100 );
+	if ( $deg > 0 ) {
+		/* 반은 보라, 반은 분홍 — 웹 화면의 그라데이션을 흉내 냅니다 */
+		$half = intval( $deg / 2 );
+		imagefilledarc( $im, $cx, $cy, $d, $d, -90, -90 + $half, $ring1, IMG_ARC_PIE );
+		if ( $deg > $half ) {
+			imagefilledarc( $im, $cx, $cy, $d, $d, -90 + $half, -90 + $deg, $ring2, IMG_ARC_PIE );
+		}
+	}
+	imagefilledellipse( $im, $cx, $cy, $hole, $hole, $white );
 
 	$font = stella_um_font();
 
 	if ( $font ) {
-		/* 가운데 정렬 · 자리가 좁으면 글씨를 줄여 넣습니다 */
-		$mid = function ( $size, $y, $text, $col, $max ) use ( $im, $font ) {
+		/* 가운데 맞춤 · 자리가 좁으면 줄여 넣습니다 */
+		$mid = function ( $size, $cx2, $y, $text, $col, $max ) use ( $im, $font, $S ) {
 			if ( '' === $text ) { return; }
 			$w = 0;
 			while ( $size > 8 ) {
-				$bx = imagettfbbox( $size, 0, $font, $text );
+				$bx = imagettfbbox( $size * $S, 0, $font, $text );
 				$w  = $bx[2] - $bx[0];
-				if ( $w <= $max ) { break; }
+				if ( $w <= $max * $S ) { break; }
 				$size = $size - 1;
 			}
-			imagettftext( $im, $size, 0, intval( ( 800 - $w ) / 2 ), $y, $col, $font, $text );
+			imagettftext( $im, $size * $S, 0, intval( $cx2 * $S - $w / 2 ), $y * $S, $col, $font, $text );
 		};
-		/* 카톡에서는 카드가 작게 보이므로 글씨를 큼직하게 씁니다 */
-		/* 좌우 아이가 x 6~202, 598~794 를 차지하므로 글씨는 390 안쪽으로 */
-		$mid( 21,  58, '유앤미 - ' . $ko . ' 궁합', $soft, 380 );
-		if ( $who ) { $mid( 34, 104, $who, $ink, 380 ); }
-		$mid( 116, 230, (string) $score,          $pur,  380 );
-		$mid( 21,  264, '점',                      $soft, 380 );
-		if ( $tier ) { $mid( 46, 320, $tier, $ink, 390 ); }
-		$mid( 21, 360, '사주 ' . $a . ' / 별자리 ' . $b . ' / 띠 ' . $c, $sub, 390 );
-		$mid( 16, 388, 'stellasaju.com/uandme',   $soft, 390 );
-	} else {
-		/* 글꼴을 못 받았을 때 — 숫자만이라도 큼직하게.
-		   작게 그린 뒤 늘려 붙입니다. */
-		$s  = (string) $score;
-		$tw = imagefontwidth( 5 ) * strlen( $s );
-		$th = imagefontheight( 5 );
-		$tmp = imagecreatetruecolor( $tw, $th );
-		$bg  = imagecolorallocate( $tmp, 251, 246, 255 );
-		imagefill( $tmp, 0, 0, $bg );
-		imagecolortransparent( $tmp, $bg );
-		imagestring( $tmp, 5, 0, 0, $s, imagecolorallocate( $tmp, 107, 91, 168 ) );
-		$k = 9;
-		imagecopyresampled( $im, $tmp, intval( 400 - $tw * $k / 2 ), intval( 210 - $th * $k / 2 ),
-			0, 0, intval( $tw * $k ), intval( $th * $k ), $tw, $th );
-		imagedestroy( $tmp );
-		imagestring( $im, 3, 330, 300, 'stellasaju.com/uandme', $soft );
+		/* 왼쪽 맞춤 */
+		$left = function ( $size, $x, $y, $text, $col, $max ) use ( $im, $font, $S ) {
+			if ( '' === $text ) { return; }
+			while ( $size > 8 ) {
+				$bx = imagettfbbox( $size * $S, 0, $font, $text );
+				if ( ( $bx[2] - $bx[0] ) <= $max * $S ) { break; }
+				$size = $size - 1;
+			}
+			imagettftext( $im, $size * $S, 0, $x * $S, $y * $S, $col, $font, $text );
+		};
+		/* 오른쪽 맞춤 */
+		$right = function ( $size, $x, $y, $text, $col ) use ( $im, $font, $S ) {
+			if ( '' === $text ) { return; }
+			$bx = imagettfbbox( $size * $S, 0, $font, $text );
+			imagettftext( $im, $size * $S, 0, intval( $x * $S - ( $bx[2] - $bx[0] ) ), $y * $S, $col, $font, $text );
+		};
+
+		/* 도넛 속 점수 */
+		$mid( 68, 156, 214, (string) $score, $pur, 130 );
+		$mid( 17, 156, 246, '점', $soft, 130 );
+
+		/* 오른쪽 — 관계 딱지 · 이름 · 등급 */
+		$chip = $ko . ' 궁합';
+		$cb   = imagettfbbox( 17 * $S, 0, $font, $chip );
+		$cw   = intval( ( $cb[2] - $cb[0] ) / $S );
+		$rr( 300, 44, 300 + $cw + 30, 82, 19, imagecolorallocate( $im, 255, 226, 214 ) );
+		$left( 17, 315, 69, $chip, imagecolorallocate( $im, 196, 103, 74 ), 240 );
+
+		/* 누구와 누구인지 — 크게 */
+		if ( $who ) { $left( 27, 300, 124, $who, $sub, 452 ); }
+		$left( 42, 300, ( $who ? 176 : 150 ), $tier, $ink, 452 );
+
+		/* 세 덩어리 막대 */
+		$bar = function ( $y, $name, $got, $full ) use ( $im, $rr, $left, $right, $S, $sub, $pur, $barbg, $ring1, $ring2 ) {
+			$left( 17, 300, $y, $name, $sub, 260 );
+			$right( 17, 752, $y, $got . ' / ' . $full, $pur );
+			$rr( 300, $y + 10, 752, $y + 24, 7, $barbg );
+			$w = intval( 452 * $got / max( 1, $full ) );
+			if ( $w > 14 ) { $rr( 300, $y + 10, 300 + $w, $y + 24, 7, $ring1 ); }
+		};
+		$y0 = $who ? 208 : 194;
+		$bar( $y0,      '사주',   $a, 40 );
+		$bar( $y0 + 50, '별자리', $b, 30 );
+		$bar( $y0 + 100, '띠',    $c, 30 );
+
+		$left( 15, 300, $y0 + 152, 'stellasaju.com/uandme', $soft, 452 );
 	}
 
-	/* 크롤러가 그림을 가져갈 수 있게 아주 평범한 그림처럼 내보냅니다.
-	   nocache_headers() 는 Expires 를 1984년으로 박아 두는데, 그러면
-	   카카오처럼 그림을 자기 쪽에 담아두는 서비스가 담기를 포기합니다.
-	   X-Robots-Tag: noindex 도 「가져가지 말라」는 뜻으로 읽힙니다.
-	   둘 다 뺍니다. */
+	/* 두 배로 그린 것을 제 크기로 줄입니다 */
+	$out = imagecreatetruecolor( $W, $H );
+	imagealphablending( $out, false );
+	imagesavealpha( $out, true );
+	imagecopyresampled( $out, $im, 0, 0, 0, 0, $W, $H, $W * $S, $H * $S );
+	imagedestroy( $im );
+	$im = $out;
+
 	ob_start();
 	imagepng( $im );
 	imagedestroy( $im );
