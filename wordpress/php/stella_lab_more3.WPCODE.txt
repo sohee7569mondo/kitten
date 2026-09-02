@@ -14,7 +14,7 @@
 add_filter( 'stella_lab_more', function ( $js ) {
 	$add = <<<'LABADD'
 TESTS.mouse = {
-    name:'내 손톱을 먹은 들쥐는', cat:'마음', tag:'1분 · 열두 문항',
+    name:'내 손톱을 먹은 들쥐는', cat:'마음', pic:9, tag:'1분 · 열두 문항',
     dek:'밖에서 나 대신 사는 그 아이요.',
     kind:'pick',
     heads:['어떤 들쥐인가','이를테면','들쥐를 쫓아내는 법'],

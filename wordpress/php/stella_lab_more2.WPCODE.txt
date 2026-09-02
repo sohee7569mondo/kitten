@@ -9,7 +9,7 @@
 add_filter( 'stella_lab_more', function ( $js ) {
 	$add = <<<'LABADD'
 TESTS.breakup = {
-    name:'헤어지고 나서 나는', cat:'연애', tag:'1분 · 열두 문항',
+    name:'헤어지고 나서 나는', cat:'연애', pic:5, tag:'1분 · 열두 문항',
     dek:'끝난 뒤에 나오는 진짜 모습이요.',
     kind:'pick',
     q:[
@@ -52,7 +52,7 @@ TESTS.breakup = {
   };
 
 TESTS.stress = {
-    name:'스트레스가 오면 나는 어디로 가는가', cat:'마음', tag:'1분 · 열두 문항',
+    name:'스트레스가 오면 나는 어디로 가는가', cat:'마음', pic:7, tag:'1분 · 열두 문항',
     dek:'힘들 때 몸이 먼저 가는 곳이요.',
     kind:'pick',
     q:[
@@ -95,7 +95,7 @@ TESTS.stress = {
   };
 
 TESTS.katok = {
-    name:'내 카톡 대화 스타일', cat:'성격', tag:'1분 · 열두 문항',
+    name:'내 카톡 대화 스타일', cat:'성격', pic:6, tag:'1분 · 열두 문항',
     dek:'대화창을 열어보면 다 나옵니다.',
     kind:'pick',
     q:[
@@ -138,7 +138,7 @@ TESTS.katok = {
   };
 
 TESTS.color = {
-    name:'내 마음의 색', cat:'마음', tag:'1분 · 열두 문항',
+    name:'내 마음의 색', cat:'마음', pic:8, tag:'1분 · 열두 문항',
     dek:'지금 내 안에서 제일 진한 색이요.',
     kind:'pick',
     q:[
