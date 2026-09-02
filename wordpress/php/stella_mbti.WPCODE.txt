@@ -160,7 +160,7 @@ add_action( 'init', function () {
 			. '.hi{border-radius:6px;padding:0 6px}'
 			. '.hdek{font-size:14.5px;line-height:1.8;color:#7A8290;margin:15px 0 0}'
 			. '.feat{position:relative;overflow:hidden;display:block;margin-top:24px;'
-			. 'border-radius:8px;padding:22px 20px;text-decoration:none}'
+			. 'border-radius:16px;padding:24px 22px 20px;text-decoration:none}'
 			. '.feat .fl{font-size:11.5px;font-weight:700}'
 			. '.feat .fn{font-family:"Noto Sans KR",inherit;font-size:30px;font-weight:900;'
 			. 'line-height:1.22;letter-spacing:-.045em;color:#2F3542;margin-top:9px;'
@@ -168,7 +168,9 @@ add_action( 'init', function () {
 			. '.feat .fgo{position:absolute;right:18px;bottom:20px;width:34px;height:34px;'
 			. 'border-radius:99px;background:rgba(255,255,255,.7);display:flex;'
 			. 'align-items:center;justify-content:center}'
-			. '.feat .fm{font-size:12.5px;font-weight:500;margin-top:13px}'
+			. '.feat .fdek{font-size:13px;line-height:1.7;color:#6E7684;margin-top:11px;'
+			. 'word-break:keep-all;max-width:88%}'
+			. '.feat .fm{font-size:12px;font-weight:700}'
 			. '.sec{font-family:"Noto Sans KR",inherit;font-size:23px;font-weight:900;'
 			. 'letter-spacing:-.04em;color:#2F3542;margin:42px 0 0;line-height:1.3;word-break:keep-all}'
 			. '.secd{font-size:13px;color:#A9B0BC;margin:7px 0 0}'
@@ -182,16 +184,22 @@ add_action( 'init', function () {
 			. '.cats button.on{background:#2F3542;color:#FFFDFA;font-weight:700}'
 			. '.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;'
 			. 'margin-top:14px}'
-			. '.t{position:relative;overflow:hidden;border-radius:8px;padding:15px 14px;'
-			. 'min-height:112px;display:flex;flex-direction:column;'
-			. 'justify-content:space-between;text-decoration:none}'
-			. '.t.w{grid-column:1/-1;min-height:104px}'
+			. '.t{position:relative;overflow:hidden;border-radius:14px;padding:17px 16px 15px;'
+			. 'min-height:182px;display:flex;flex-direction:column;'
+			. 'justify-content:space-between;gap:14px;text-decoration:none}'
+			. '.t.w{grid-column:1/-1;min-height:150px}'
+			. '.tdek{font-size:11.5px;line-height:1.68;color:#6E7684;margin-top:9px;'
+			. 'word-break:keep-all}'
+			. '.tfoot{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}'
+			. '.plus{flex:0 0 27px;width:27px;height:27px;border-radius:99px;'
+			. 'display:flex;align-items:center;justify-content:center}'
 			. '.tcat{font-size:10.5px;font-weight:700;letter-spacing:.02em;margin-bottom:7px}'
-			. '.tn{position:relative;z-index:1;font-family:"Noto Sans KR",inherit;'
-			. 'font-size:15px;font-weight:900;line-height:1.34;letter-spacing:-.035em;'
-			. 'color:#2F3542;word-break:keep-all}'
-			. '.t.w .tn{font-size:22px;letter-spacing:-.045em}'
-			. '.tm{position:relative;z-index:1;font-size:11px;font-weight:500;white-space:nowrap}'
+			. '.tn{font-family:"Noto Sans KR",inherit;font-size:19px;font-weight:900;'
+			. 'line-height:1.3;letter-spacing:-.042em;color:#2F3542;word-break:keep-all;'
+			. 'margin-top:3px}'
+			. '.t.w .tn{font-size:25px;letter-spacing:-.05em}'
+			. '.t.w .tdek{font-size:12.5px;max-width:78%}'
+			. '.tm{font-size:11px;font-weight:700;white-space:nowrap}'
 			. '.tophead{margin:8px -18px 0;padding:20px 18px 18px;border-radius:0 0 18px 18px}'
 			. '.tophead .tl{font-size:11.5px;font-weight:700}'
 			. '.crown{position:relative;overflow:hidden;margin:8px -18px 22px;'
@@ -519,6 +527,14 @@ add_action( 'init', function () {
     if(i < 0){ i = 0; }
     return TCOL[i % TCOL.length];
   }
+  /* 눌러서 열어보는 자리라는 표시 */
+  function plus(c){
+    return '<span class="plus" style="background:' + c + '">' +
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFF" ' +
+      'stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/>' +
+      '<line x1="5" y1="12" x2="19" y2="12"/></svg></span>';
+  }
+
   function twoLine(t){
     /* 타일 제목을 두 줄로 접습니다 */
     var w = t.replace(/\s+/g, ' ').trim(), p = w.lastIndexOf(' ', Math.ceil(w.length / 2) + 3);
@@ -557,11 +573,10 @@ add_action( 'init', function () {
     h += '<a class="feat" style="background:' + fcol[0] + '" href="/lab/' + fk + '/">' +
       '<div class="fl" style="color:' + fcol[1] + '">오늘의 검사</div>' +
       '<div class="fn">' + twoLine(F.name) + '</div>' +
-      '<div class="fgo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" ' +
-      'stroke="' + fcol[1] + '" stroke-width="2.6" stroke-linecap="round" ' +
-      'stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>' +
+      '<div class="fdek">' + (F.dek || '') + '</div>' +
+      '<div class="tfoot" style="margin-top:15px">' +
       '<div class="fm" style="color:' + fcol[1] + '">' + F.q.length + '문항 · ' +
-      Math.max(1, Math.round(F.q.length / 6)) + '분 · 바로 시작</div></a>';
+      Math.max(1, Math.round(F.q.length / 6)) + '분</div>' + plus(fcol[1]) + '</div></a>';
 
     h += '<div class="sec">뭘 해볼까요</div>' +
       '<p class="secd">끝나면 기록이 한 줄 남습니다</p>' +
@@ -593,9 +608,11 @@ add_action( 'init', function () {
       h += '<a class="t' + (wide ? ' w' : '') + '" style="background:' + col[0] +
         '" href="/lab/' + keys[i] + '/">' +
         '<div><div class="tcat" style="color:' + col[1] + '">' + cat + '</div>' +
-        '<div class="tn">' + (wide ? T2.name : twoLine(T2.name)) + '</div></div>' +
+        '<div class="tn">' + (wide ? T2.name : twoLine(T2.name)) + '</div>' +
+        '<div class="tdek">' + (T2.dek || '') + '</div></div>' +
+        '<div class="tfoot">' +
         '<div class="tm" style="color:' + col[1] + '">' + T2.q.length + '문항 · ' +
-        mins + '분</div></a>';
+        mins + '분</div>' + plus(col[1]) + '</div></a>';
       shown += 1;
     }
     h += '</div>';
