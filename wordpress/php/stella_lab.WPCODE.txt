@@ -1,0 +1,291 @@
+/* 스텔라 작업실  ·  https://stellasaju.com/lab/
+   (관리자로 로그인했을 때만 열립니다. 로그아웃 상태에서는 아무것도 안 보입니다.)
+
+   WPCode → 새 스니펫 → PHP Snippet → Auto Insert →
+   Run Everywhere → 저장 → Active
+
+   흩어져 있던 점검 주소를 한자리에 모았습니다.
+     ① 오늘의 상태      잘린 스니펫이 있으면 맨 위에 빨간 띠
+     ② 스니펫 점검      잘린 것을 맨 위로
+     ③ 전자책 열어보기   문 여섯 × 주제를 눌러서 바로 열기
+     ④ 유앤미 시험      점수를 밀면 그 점수 카드가 바로 보임
+     ⑤ 조각 들여다보기   조각 번호를 넣으면 초안으로 떠냄 */
+
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/lab' ) ) { return; }
+	if ( ! preg_match( '#/lab/?(\?|$)#', $uri ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	/* ── 전자책 ─────────────────────────────────────────── */
+	$bookId  = 160;
+	$book    = get_post( $bookId );
+	$blocks  = 0;
+	$bookMod = '';
+	$bookUrl = '';
+	if ( $book ) {
+		$blocks  = substr_count( (string) $book->post_content, '<!-- wp:html -->' );
+		$bookMod = $book->post_modified;
+		$bookUrl = get_permalink( $bookId );
+	}
+	if ( ! $bookUrl ) { $bookUrl = home_url( '/reading-book/' ); }
+
+	/* ── 스니펫 ─────────────────────────────────────────── */
+	$rows = get_posts( array(
+		'post_type'   => 'wpcode',
+		'post_status' => 'any',
+		'numberposts' => 300,
+		'orderby'     => 'modified',
+		'order'       => 'DESC',
+	) );
+
+	$cut  = array();
+	$fine = array();
+	$um   = array();
+	$on   = 0;
+	foreach ( $rows as $r ) {
+		$code = (string) $r->post_content;
+		$len  = strlen( $code );
+		if ( $len < 40 ) { continue; }
+		$tail = trim( substr( $code, -14 ) );
+		$last = substr( $tail, -1 );
+		$ok   = ( ';' === $last || '}' === $last || '>' === $last );
+		$one  = array(
+			'id'   => $r->ID,
+			'name' => $r->post_title,
+			'len'  => $len,
+			'tail' => $tail,
+			'ok'   => $ok,
+			'when' => $r->post_modified,
+			'live' => ( 'publish' === $r->post_status ),
+		);
+		if ( 'publish' === $r->post_status ) { $on++; }
+		if ( $ok ) { $fine[] = $one; } else { $cut[] = $one; }
+
+		$t = $r->post_title;
+		$isum = false;
+		if ( false !== strpos( $t, '유앤미' ) ) { $isum = true; }
+		if ( false !== stripos( $t, 'uandme' ) ) { $isum = true; }
+		if ( false !== strpos( $t, '카톡에 갈' ) ) { $isum = true; }
+		if ( false !== strpos( $t, '화면 그리기' ) ) { $isum = true; }
+		if ( false !== strpos( $t, 'REST' ) ) { $isum = true; }
+		if ( $isum ) { $um[] = $one; }
+	}
+
+	$css = 'body{margin:0;background:#F5F2FA;color:#3F3A52;'
+		. 'font:15px/1.75 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}'
+		. '.wrap{max-width:960px;margin:0 auto;padding:26px 18px 90px}'
+		. 'h1{font-size:23px;margin:0 0 4px}'
+		. '.dek{color:#8C82A6;font-size:13.5px;margin:0 0 24px}'
+		. '.card{background:#fff;border-radius:20px;padding:20px 22px;margin-bottom:16px;'
+		. 'box-shadow:0 2px 10px -6px rgba(90,70,140,.35)}'
+		. 'h2{font-size:15.5px;margin:0 0 14px;color:#6B5BA8}'
+		. '.alert{background:#FFEDE9;color:#B14A3C;border-radius:16px;padding:14px 18px;margin-bottom:16px;font-weight:600}'
+		. '.good{background:#E8F6EF;color:#3E7C64;border-radius:16px;padding:14px 18px;margin-bottom:16px;font-weight:600}'
+		. '.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}'
+		. '.tile{background:#F7F4FD;border-radius:14px;padding:12px 14px}'
+		. '.tile b{display:block;font-size:19px;color:#6B5BA8}'
+		. '.tile span{font-size:12px;color:#8C82A6}'
+		. 'table{border-collapse:collapse;width:100%;font-size:13px}'
+		. 'td,th{padding:6px 10px 6px 0;text-align:left;vertical-align:top}'
+		. 'th{color:#A79BC4;font-weight:600;font-size:12px}'
+		. 'tr.bad td{color:#B14A3C;font-weight:600}'
+		. 'a.btn,button.btn{display:inline-block;background:#F1EBFA;color:#6B5BA8;border:0;'
+		. 'border-radius:12px;padding:9px 14px;font-size:13.5px;text-decoration:none;cursor:pointer;'
+		. 'font-family:inherit;margin:0 6px 8px 0}'
+		. 'a.btn:hover,button.btn:hover{background:#E4D9F8}'
+		. '.door{margin-bottom:14px}'
+		. '.door em{display:block;font-style:normal;font-size:13px;color:#A79BC4;margin-bottom:6px}'
+		. 'input[type=text],input[type=number]{border:1px solid #E2DAF2;border-radius:10px;'
+		. 'padding:8px 11px;font:inherit;font-size:14px;width:120px}'
+		. 'input[type=range]{width:100%;accent-color:#6B5BA8}'
+		. '.mini{font-size:12.5px;color:#A79BC4}';
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!doctype html><meta charset="utf-8">';
+	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
+	echo '<title>스텔라 작업실</title>';
+	echo '<style>' . $css . '</style><div class="wrap">';
+	echo '<h1>스텔라 작업실</h1>';
+	echo '<p class="dek">소희 님만 보이는 자리입니다. 로그아웃하면 아무것도 안 나옵니다.</p>';
+
+	/* ① 오늘의 상태 ------------------------------------------------ */
+	if ( count( $cut ) > 0 ) {
+		echo '<div class="alert">잘린 스니펫이 ' . count( $cut ) . '개 있습니다. 아래 ② 칸 맨 위를 봐주세요.</div>';
+	} else {
+		echo '<div class="good">잘린 스니펫 없음. 전부 제대로 닫혀 있습니다.</div>';
+	}
+
+	echo '<div class="card"><h2>① 오늘의 상태</h2><div class="grid">';
+	echo '<div class="tile"><b>' . intval( $blocks ) . '</b><span>전자책 조각</span></div>';
+	echo '<div class="tile"><b>' . intval( $on ) . '</b><span>켜진 스니펫</span></div>';
+	echo '<div class="tile"><b>' . count( $cut ) . '</b><span>잘린 스니펫</span></div>';
+	echo '<div class="tile"><b style="font-size:13px">' . esc_html( substr( $bookMod, 0, 16 ) ) . '</b><span>전자책 마지막 손질</span></div>';
+	echo '</div>';
+	if ( count( $um ) ) {
+		echo '<table style="margin-top:16px"><tr><th>유앤미 스니펫</th><th>글자수</th><th>끝맺음</th></tr>';
+		foreach ( $um as $u ) {
+			echo '<tr' . ( $u['ok'] ? '' : ' class="bad"' ) . '>';
+			echo '<td>' . esc_html( $u['name'] ) . ( $u['live'] ? '' : ' <span class="mini">(꺼짐)</span>' ) . '</td>';
+			echo '<td>' . number_format( $u['len'] ) . '</td>';
+			echo '<td>' . esc_html( $u['ok'] ? $u['tail'] : '잘림 → ' . $u['tail'] ) . '</td></tr>';
+		}
+		echo '</table>';
+	}
+	echo '</div>';
+
+	/* ② 스니펫 점검 ------------------------------------------------ */
+	echo '<div class="card"><h2>② 스니펫 점검 · 잘린 것이 위로</h2>';
+	echo '<table><tr><th>이름</th><th>글자수</th><th>끝맺음</th><th>고친 때</th></tr>';
+	$all = array_merge( $cut, $fine );
+	foreach ( $all as $r ) {
+		echo '<tr' . ( $r['ok'] ? '' : ' class="bad"' ) . '>';
+		echo '<td>' . esc_html( $r['id'] . ' · ' . $r['name'] ) . ( $r['live'] ? '' : ' <span class="mini">(꺼짐)</span>' ) . '</td>';
+		echo '<td>' . number_format( $r['len'] ) . '</td>';
+		echo '<td>' . esc_html( $r['ok'] ? $r['tail'] : '잘림 → ' . $r['tail'] ) . '</td>';
+		echo '<td class="mini">' . esc_html( substr( $r['when'], 0, 16 ) ) . '</td></tr>';
+	}
+	echo '</table>';
+	echo '<p class="mini" style="margin-top:12px">끝맺음이 빨갛거나 글자수가 유난히 적으면 붙여넣다 잘린 것입니다. 다시 붙여넣어 주세요.</p>';
+	echo '</div>';
+
+	/* ③④⑤ 는 화면에서 움직입니다 ----------------------------------- */
+	echo '<div class="card"><h2>③ 전자책 열어보기</h2>';
+	echo '<p class="mini" style="margin:-6px 0 14px">누르면 그 문 · 그 주제로 책이 열립니다. 소희 님 생년월일은 그대로 쓰고 주제만 바뀝니다.</p>';
+	echo '<p><label class="mini"><input type="checkbox" id="unfold"> 지난번에 본 계산 장도 펼쳐서 보기</label></p>';
+	echo '<div id="doors"></div></div>';
+
+	echo '<div class="card"><h2>④ 유앤미 시험</h2>';
+	echo '<p class="mini" style="margin:-6px 0 12px">밀대를 움직이면 그 점수 카드가 바로 그려집니다.</p>';
+	echo '<p><input type="text" id="na" value="소희" style="width:90px"> <b class="mini">X</b> ';
+	echo '<input type="text" id="nb" value="정호" style="width:90px"> ';
+	echo '<select id="rel" style="border:1px solid #E2DAF2;border-radius:10px;padding:8px;font:inherit">';
+	echo '<option value="lover">연인</option><option value="friend">친구</option>';
+	echo '<option value="work">직장</option><option value="family">가족</option></select></p>';
+	echo '<p><input type="range" id="sc" min="0" max="99" value="63"> <b id="scv" style="color:#6B5BA8">63점</b></p>';
+	echo '<p><img id="cardimg" alt="카드" style="width:100%;max-width:520px;border-radius:16px"></p>';
+	echo '<p><a class="btn" href="/uandme/" target="_blank">유앤미 열기</a>';
+	echo '<a class="btn" href="/uandme/?umall=1" target="_blank">캐릭터 29장 보기</a>';
+	echo '<a class="btn" href="/uandme/?umdebug=1" target="_blank">화면에 남은 것 보기</a></p></div>';
+
+	echo '<div class="card"><h2>⑤ 조각 들여다보기</h2>';
+	echo '<p class="mini" style="margin:-6px 0 12px">전자책 조각 번호를 넣으면 그 내용을 초안 글로 떠냅니다.</p>';
+	echo '<p><input type="number" id="blk" value="12" min="0" max="60" style="width:90px"> ';
+	echo '<button class="btn" id="blkgo">떠내기</button> ';
+	echo '<a class="btn" href="/um-blk/find/" target="_blank">글자 찾기</a></p></div>';
+
+	echo '<p class="mini">이 자리가 불편하면 말씀해 주세요. 칸을 더 넣거나 뺄 수 있습니다.</p>';
+	echo '</div>';
+
+	$bookJs = esc_js( $bookUrl );
+	echo "<script>var BOOKURL='" . $bookJs . "';</script>";
+	echo '<script>';
+	echo <<<'LABJS'
+(function(){
+  'use strict';
+  var DOORS = [
+    ['door-career','직성의 신',['취업운','직장운','이직운','퇴사운','사업운','재물운']],
+    ['door-love','연성의 신',['연애운','결혼운','재회운','이별운','짝사랑','궁합']],
+    ['door-health','강성의 신',['건강운','체질','가족운','부모운','자녀운','형제운']],
+    ['door-fortune','세성의 신',['신년운세','삼재','초년','중년','말년']],
+    ['door-astro','성좌의 신',['별자리']],
+    ['door-tarot','아르카나',['오늘의 선택']]
+  ];
+  var SAMPLE = {
+    order:{ guardian:'직성의 신', guardian_slug:'door-career', topic:'직장운',
+      oneline:'지금 회사에 계속 있어도 될까요?', memo:'', deeps:[], orbs:0,
+      work:{ job:'5년차 개발자', years:'1~3년', want:'팀을 옮기고 싶어요' },
+      profile:{ name:'서준', email:'', sex:'M', year:1994, month:3, day:8,
+        hour:14, minute:40, calendar:'solar', leap:false, country:'대한민국', city:'서울' } },
+    answers:{ risk:'결과가 예상되는 편이 좋다', make:'없던 답을 내가 만들고 싶다',
+      solo:'혼자 몰입하는 게 편하다', form:'눈에 안 보이는 걸 다루고 싶다',
+      many:'하나를 깊게 파고 싶다', mind:'이 일이 안 맞는 것 같다', want1y:'이직' },
+    cards:[7, 12, 17]
+  };
+
+  function read(){
+    try{
+      var raw = localStorage.getItem('stella_demo');
+      if(!raw){ return null; }
+      var o = JSON.parse(raw);
+      if(!o){ return null; }
+      return o;
+    }catch(e){ return null; }
+  }
+  function openBook(slug, name, topic){
+    var o = read();
+    if(!o){ o = JSON.parse(JSON.stringify(SAMPLE)); }
+    if(o.order){
+      o.order.guardian = name;
+      o.order.guardian_slug = slug;
+      o.order.topic = topic;
+    }
+    o.guardian = name;
+    o.guardian_slug = slug;
+    o.topic = topic;
+    try{ localStorage.setItem('stella_demo', JSON.stringify(o)); }catch(e){}
+    var un = document.getElementById('unfold');
+    if(un){ if(un.checked){ try{ localStorage.removeItem('stella_read'); }catch(e2){} } }
+    window.open(BOOKURL, '_blank');
+  }
+
+  var host = document.getElementById('doors');
+  var i, j, box, line, b;
+  for(i=0;i<DOORS.length;i++){
+    box = document.createElement('div');
+    box.className = 'door';
+    line = document.createElement('em');
+    line.textContent = DOORS[i][1];
+    box.appendChild(line);
+    for(j=0;j<DOORS[i][2].length;j++){
+      b = document.createElement('button');
+      b.className = 'btn';
+      b.textContent = DOORS[i][2][j];
+      b.setAttribute('data-s', DOORS[i][0]);
+      b.setAttribute('data-n', DOORS[i][1]);
+      b.setAttribute('data-t', DOORS[i][2][j]);
+      b.addEventListener('click', function(){
+        openBook(this.getAttribute('data-s'), this.getAttribute('data-n'), this.getAttribute('data-t'));
+      });
+      box.appendChild(b);
+    }
+    host.appendChild(box);
+  }
+
+  function key(s){
+    return encodeURIComponent(String(s||'')).replace(/[^A-Za-z0-9]/g,'_');
+  }
+  function safe(s){
+    return String(s||'').replace(/[^가-힣a-zA-Z0-9]/g,'').slice(0,6);
+  }
+  function drawCard(){
+    var sc = document.getElementById('sc').value;
+    var na = safe(document.getElementById('na').value);
+    var nb = safe(document.getElementById('nb').value);
+    var rel = document.getElementById('rel').value;
+    document.getElementById('scv').textContent = sc + '점';
+    var base = sc + '-' + rel + '-30-12-24';
+    var url = '/um-card/' + base;
+    if(na){ if(nb){
+      url = '/um-card/' + base + '-' + key(na) + '-' + key(nb) +
+            '/' + encodeURIComponent(na) + '/' + encodeURIComponent(nb);
+    } }
+    document.getElementById('cardimg').src = url;
+  }
+  var ids = ['sc','na','nb','rel'], k;
+  for(k=0;k<ids.length;k++){
+    document.getElementById(ids[k]).addEventListener('input', drawCard);
+    document.getElementById(ids[k]).addEventListener('change', drawCard);
+  }
+  drawCard();
+
+  document.getElementById('blkgo').addEventListener('click', function(){
+    var n = document.getElementById('blk').value;
+    window.open('/um-blk/' + encodeURIComponent(n) + '/', '_blank');
+  });
+})();
+LABJS;
+	echo '</script>';
+	exit;
+} );
