@@ -7,6 +7,7 @@
    Run Everywhere → 저장 → Active
 
    여는 곳 : https://stellasaju.com/um-blk/14/     ← 성좌의 신(달자리)
+              https://stellasaju.com/um-blk/find/  ← 고칠 자리의 실제 글자
 
    담기는 곳 : 페이지 목록의 「STELLA 14-1」, 「STELLA 14-2」 …
                전부 초안이라 손님에게는 안 보입니다.
@@ -23,12 +24,41 @@ add_action( 'init', function () {
 
 	$want = 14;
 	if ( preg_match( '#/um-blk/([0-9]{1,2})#', $uri, $m ) ) { $want = intval( $m[1] ); }
+	$find = ( false !== strpos( $uri, '/um-blk/find' ) );
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo '<meta charset="utf-8"><body style="font:14px/1.7 system-ui;background:#111;color:#eee;padding:20px">';
 
 	$page = get_post( 160 );
 	if ( ! $page ) { echo '160번 페이지가 없습니다.'; exit; }
+
+	/* 찾기 — 고칠 자리의 실제 글자를 그대로 봅니다.
+	   제 사본과 올려둔 페이지가 다를 수 있어, 자리를 잡을 때는
+	   반드시 여기서 뽑은 글자를 씁니다. */
+	if ( $find ) {
+		$src  = $page->post_content;
+		$needs = array( '정리하면 —', 'sayA', 'QLABEL', 'AXNAME', '묻기 전에 읽은 것' );
+		echo '<h1 style="color:#ffd76a;font-size:19px">고칠 자리 찾기</h1>';
+		foreach ( $needs as $n ) {
+			$at = 0;
+			$hit = 0;
+			echo '<h2 style="color:#9fd;font-size:15px;margin-top:22px">' . esc_html( $n ) . '</h2>';
+			while ( true ) {
+				$at = strpos( $src, $n, $at );
+				if ( false === $at ) { break; }
+				$hit++;
+				$from = max( 0, $at - 200 );
+				$cut  = substr( $src, $from, 700 );
+				$cut  = str_replace( array( "\r\n", "\n", "\r" ), array( '[CRLF]', '[LF]', '[CR]' ), $cut );
+				echo '<p style="color:#888;font-size:12px;margin:12px 0 3px">' . $hit . '번째 · ' . number_format( $at ) . '바이트</p>';
+				echo '<pre style="white-space:pre-wrap;word-break:break-all;background:#1c1c1c;padding:10px;font-size:12px;line-height:1.6">' . esc_html( $cut ) . '</pre>';
+				$at = $at + 1;
+				if ( $hit >= 4 ) { break; }
+			}
+			if ( ! $hit ) { echo '<p style="color:#f88">못 찾았습니다.</p>'; }
+		}
+		exit;
+	}
 
 	$all  = parse_blocks( $page->post_content );
 	$list = array();
