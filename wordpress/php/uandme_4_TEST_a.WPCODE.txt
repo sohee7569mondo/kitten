@@ -1,0 +1,144 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 ④ · 시험판 A
+
+   범인을 가리려고 만든 판입니다. 방금 드린 것과 딱 한 줄만
+   다릅니다 — 주소를 읽는 줄에서 이름 부분을 뺐습니다.
+   크기는 그대로입니다. 그러니
+
+     · 유앤미 화면이 살아나면  → 그 한 줄이 범인
+     · 그래도 스텔라가 보이면  → 한 줄이 아니라 붙여넣기가 잘린 것
+
+   둘 중 뭔지만 알려주시면 됩니다. 이름은 카드에 안 나옵니다.
+
+   확인 ① https://stellasaju.com/uandme/
+   확인 ② https://stellasaju.com/um-card/12-lover-6-3-3
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/um-card/' ) ) { return; }
+	if ( ! preg_match( '#/um-card/([0-9]{1,2})-([a-z_]{2,14})-([0-9]{1,2})-([0-9]{1,2})-([0-9]{1,2})#', $uri, $m ) ) { return; }
+
+	$score = max( 0, min( 99, intval( $m[1] ) ) );
+	$rel   = $m[2];
+	$a     = max( 0, min( 40, intval( $m[3] ) ) );
+	$b     = max( 0, min( 30, intval( $m[4] ) ) );
+	$c     = max( 0, min( 30, intval( $m[5] ) ) );
+	$who   = '';
+	if ( isset( $m[6] ) ) {
+		$who = base64_decode( strtr( $m[6], '-_', '+/' ) );
+		$who = wp_strip_all_tags( (string) $who );
+	}
+
+	/* 점수대마다 멘트 셋 · 「|」는 줄바꿈, 「;」는 다음 멘트 */
+	$M = array(
+		array( 95, '전생에 나라를 구했네|{n}점;이건 하늘이 한 일|{n}점;놓치면 후회할|{n}점' ),
+		array( 90, '붙여 놓으면 안 떨어짐|{n}점;이런 인연 흔치 않아요|{n}점;남들이 부러워할|{n}점' ),
+		array( 80, '같이 있으면 웃는|{n}점;서로를 편하게 하는|{n}점;오래 갈 사이|{n}점' ),
+		array( 70, '크게 싸울 일 없는|{n}점;무난하게 오래 갈|{n}점;잔잔하게 좋은|{n}점' ),
+		array( 60, '천천히 깊어질|{n}점;시간이 편이 되는|{n}점;서두르지 않아도 될|{n}점' ),
+		array( 50, '노력한 만큼 좋아질|{n}점;맞춰가면 되는|{n}점;대화가 답인|{n}점' ),
+		array( 40, '조심하면 괜찮을|{n}점;서로 한 발씩|물러나면 되는 {n}점;아슬아슬해도|놓지 않으면 {n}점' ),
+		array( 30, '로미오 줄리엣도|울고 갈 {n}점;쉽진 않아도|못 갈 길은 아닌 {n}점;서로를 배워가는|{n}점' ),
+		array( 20, '많이 다르지만|그래서 배우는 {n}점;급하지만 않으면 될|{n}점;시간이 필요한|{n}점' ),
+		array(  0, '이건 사랑이 아니라|전우애 {n}점;여기까지 온 게|대단한 {n}점;숫자가 다는 아니니까|{n}점' ),
+	);
+	$pool = '';
+	foreach ( $M as $one ) {
+		if ( $score >= $one[0] ) { $pool = $one[1]; break; }
+	}
+	/* 같은 사람에게는 늘 같은 멘트가 나오도록 점수로 골라 둡니다 */
+	$list = explode( ';', $pool );
+	$pick = $list[ ( $score + $a + $b + $c ) % count( $list ) ];
+	$row  = explode( '|', str_replace( '{n}', (string) $score, $pick ) );
+	$r1   = isset( $row[0] ) ? $row[0] : '';
+	$r2   = isset( $row[1] ) ? $row[1] : '';
+
+	$up   = wp_upload_dir();
+	$font = $up['basedir'] . '/uandme/jua.ttf';
+	if ( ! file_exists( $font ) ) { $font = ''; }
+
+	$W = 800; $H = 400; $S = 2;
+	$im = imagecreatetruecolor( $W * $S, $H * $S );
+	imagealphablending( $im, true );
+	imagesavealpha( $im, true );
+
+	for ( $y = 0; $y < $H * $S; $y++ ) {
+		$q   = $y / ( $H * $S - 1 );
+		$col = imagecolorallocate( $im,
+			intval( 246 + 6 * $q ), intval( 241 - 3 * $q ), intval( 253 - 7 * $q ) );
+		imagefilledrectangle( $im, 0, $y, $W * $S, $y, $col );
+	}
+
+	$ink   = imagecolorallocate( $im, 63, 58, 82 );
+	$pur   = imagecolorallocate( $im, 107, 91, 168 );
+	$soft  = imagecolorallocate( $im, 167, 155, 196 );
+	$sub   = imagecolorallocate( $im, 124, 115, 146 );
+	$white = imagecolorallocate( $im, 255, 255, 255 );
+	$ring0 = imagecolorallocate( $im, 238, 232, 250 );
+	$ring1 = imagecolorallocate( $im, 200, 174, 236 );
+	$ring2 = imagecolorallocate( $im, 245, 178, 205 );
+
+	/* 둥근 흰 판 */
+	$x1 = 24 * $S; $y1 = 22 * $S; $x2 = 776 * $S; $y2 = 378 * $S; $r = 30 * $S;
+	imagefilledrectangle( $im, $x1 + $r, $y1, $x2 - $r, $y2, $white );
+	imagefilledrectangle( $im, $x1, $y1 + $r, $x2, $y2 - $r, $white );
+	imagefilledellipse( $im, $x1 + $r, $y1 + $r, $r * 2, $r * 2, $white );
+	imagefilledellipse( $im, $x2 - $r, $y1 + $r, $r * 2, $r * 2, $white );
+	imagefilledellipse( $im, $x1 + $r, $y2 - $r, $r * 2, $r * 2, $white );
+	imagefilledellipse( $im, $x2 - $r, $y2 - $r, $r * 2, $r * 2, $white );
+
+	/* 도넛 */
+	$cx = 156 * $S; $cy = 200 * $S; $d = 208 * $S;
+	imagefilledellipse( $im, $cx, $cy, $d, $d, $ring0 );
+	$deg = intval( 360 * $score / 100 );
+	if ( $deg > 0 ) {
+		$half = intval( $deg / 2 );
+		imagefilledarc( $im, $cx, $cy, $d, $d, -90, -90 + $half, $ring1, IMG_ARC_PIE );
+		if ( $deg > $half ) {
+			imagefilledarc( $im, $cx, $cy, $d, $d, -90 + $half, -90 + $deg, $ring2, IMG_ARC_PIE );
+		}
+	}
+	imagefilledellipse( $im, $cx, $cy, 148 * $S, 148 * $S, $white );
+
+	if ( $font ) {
+		$put = function ( $size, $x, $y, $text, $col, $center ) use ( $im, $font, $S ) {
+			$bx = imagettfbbox( $size * $S, 0, $font, $text );
+			$w  = $bx[2] - $bx[0];
+			$px = $center ? intval( $x * $S - $w / 2 ) : intval( $x * $S );
+			imagettftext( $im, $size * $S, 0, $px, $y * $S, $col, $font, $text );
+		};
+		$put( 68, 156, 214, (string) $score, $pur, true );
+		$put( 17, 156, 246, '점', $soft, true );
+		if ( $who ) { $put( 30, 300, 108, $who, $sub, false ); }
+		$y1 = $who ? 178 : 156;
+		$put( 34, 300, $y1,      $r1, $ink, false );
+		$put( 34, 300, $y1 + 48, $r2, $ink, false );
+		$put( 24, 300, 296, '그럼 너랑 나는?', $pur, false );
+		$put( 16, 300, 344, 'stellasaju.com/uandme', $soft, false );
+	}
+
+	$out = imagecreatetruecolor( $W, $H );
+	imagealphablending( $out, false );
+	imagesavealpha( $out, true );
+	imagecopyresampled( $out, $im, 0, 0, 0, 0, $W, $H, $W * $S, $H * $S );
+	imagedestroy( $im );
+
+	ob_start();
+	imagepng( $out );
+	imagedestroy( $out );
+	$png = ob_get_clean();
+
+	$dir = $up['basedir'] . '/uandme/card';
+	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
+	$file = $dir . '/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c .
+		( isset( $m[6] ) ? '-' . $m[6] : '' ) . '.png';
+	if ( ! file_exists( $file ) ) { @file_put_contents( $file, $png ); }
+
+	header( 'Content-Type: image/png' );
+	header( 'Content-Length: ' . strlen( $png ) );
+	header( 'Cache-Control: public, max-age=604800' );
+	echo $png;
+	exit;
+} );
