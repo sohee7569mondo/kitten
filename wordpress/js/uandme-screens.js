@@ -169,7 +169,15 @@
     var v = KIMG[n];
     if (!v) { return ''; }
     if (v === 'wait') { return ''; }
-    return v;
+    /* 카카오가 http 로 알려줄 때가 있는데, 그대로 쓰면 안 실릴 수
+       있어 https 로 바꿉니다. */
+    return String(v).replace(/^http:/, 'https:');
+  }
+  /* 그림이 아직 카카오에 안 올라갔는지 */
+  function cardWaiting() {
+    var n = cardName();
+    if (!n) { return false; }
+    return KIMG[n] === 'wait';
   }
 
   function kakaoReady() {
@@ -203,6 +211,14 @@
   }
 
   function kakao(url, text) {
+    /* 그림이 아직 카카오에 안 올라갔으면 잠깐 기다리게 합니다.
+       그냥 보내면 글자만 가고 그림이 빠집니다. */
+    if (st.result) {
+      if (!cardKakao()) { if (cardWaiting()) {
+        toast('그림을 만드는 중이에요. 잠시 뒤 다시 눌러주세요');
+        return;
+      } }
+    }
     if (kakaoReady()) {
       try {
         window.Kakao.Share.sendDefault({
