@@ -100,12 +100,11 @@ add_action( 'init', function () {
 		};
 		$put( 68, 156, 214, (string) $score, $pur, true );
 		$put( 17, 156, 246, '점', $soft, true );
-		$put( 21, 300, 74,  $ko . ' 궁합', $sub, false );
-		$put( 44, 300, 136, $tier, $ink, false );
-		$put( 20, 300, 200, '사주 ' . $a . ' / 40', $sub, false );
-		$put( 20, 300, 246, '별자리 ' . $b . ' / 30', $sub, false );
-		$put( 20, 300, 292, '띠 ' . $c . ' / 30', $sub, false );
-		$put( 15, 300, 344, 'stellasaju.com/uandme', $soft, false );
+		$put( 24, 300, 118, $ko . ' 궁합', $sub, false );
+		$put( 50, 300, 190, $tier, $ink, false );
+		$put( 20, 300, 250, '생일만 넣으면 우리 것도 바로 나와요', $sub, false );
+		$put( 22, 300, 328, '자세히 보기', $pur, false );
+		$put( 17, 300, 358, 'stellasaju.com/uandme', $soft, false );
 	}
 
 	$out = imagecreatetruecolor( $W, $H );
