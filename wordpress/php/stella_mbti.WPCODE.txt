@@ -217,6 +217,9 @@ add_action( 'init', function () {
 			. '.boxo{border:1.5px solid #E7E9ED;border-radius:8px;padding:22px 20px;margin-top:16px}'
 			. '.dark{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;'
 			. 'background:#100B22;border-radius:8px;margin-top:9px;text-decoration:none}'
+			/* 한글 제목이 뚱뚱해 보여서 가로만 90% 로 좁힙니다 */
+			. 'h1,.hero,.sec,.feat .fn,.tn,.crown h1{display:block;'
+			. 'transform:scaleX(.9);transform-origin:left center}'
 			. '.bot{border-top-color:#F0EFEC;color:#A9B0BC}.bot a{color:#8A929E}';
 	}
 	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
