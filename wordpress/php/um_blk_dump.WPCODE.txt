@@ -27,7 +27,10 @@ add_action( 'init', function () {
 	$find = ( false !== strpos( $uri, '/um-blk/find' ) );
 
 	header( 'Content-Type: text/html; charset=utf-8' );
-	echo '<meta charset="utf-8"><body style="font:14px/1.7 system-ui;background:#111;color:#eee;padding:20px">';
+	/* 번역 금지 — 브라우저가 번역하면 sayA 가 「말해」가 되고 return 이
+	   「반환」이 됩니다. 글자가 바뀌면 자리를 잡을 수 없습니다. */
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">';
+	echo '<body class="notranslate" translate="no" style="font:14px/1.7 system-ui;background:#111;color:#eee;padding:20px">';
 
 	$page = get_post( 160 );
 	if ( ! $page ) { echo '160번 페이지가 없습니다.'; exit; }
@@ -37,7 +40,7 @@ add_action( 'init', function () {
 	   반드시 여기서 뽑은 글자를 씁니다. */
 	if ( $find ) {
 		$src  = $page->post_content;
-		$needs = array( '정리하면 —', 'sayA', 'QLABEL', 'AXNAME', '묻기 전에 읽은 것' );
+		$needs = array( 'saySide', 'AXES', 'QLABEL', 'AXNAME' );
 		echo '<h1 style="color:#ffd76a;font-size:19px">고칠 자리 찾기</h1>';
 		foreach ( $needs as $n ) {
 			$at = 0;
@@ -47,13 +50,13 @@ add_action( 'init', function () {
 				$at = strpos( $src, $n, $at );
 				if ( false === $at ) { break; }
 				$hit++;
-				$from = max( 0, $at - 200 );
-				$cut  = substr( $src, $from, 700 );
+				$from = max( 0, $at - 260 );
+				$cut  = substr( $src, $from, 1100 );
 				$cut  = str_replace( array( "\r\n", "\n", "\r" ), array( '[CRLF]', '[LF]', '[CR]' ), $cut );
 				echo '<p style="color:#888;font-size:12px;margin:12px 0 3px">' . $hit . '번째 · ' . number_format( $at ) . '바이트</p>';
-				echo '<pre style="white-space:pre-wrap;word-break:break-all;background:#1c1c1c;padding:10px;font-size:12px;line-height:1.6">' . esc_html( $cut ) . '</pre>';
+				echo '<pre translate="no" class="notranslate" style="white-space:pre-wrap;word-break:break-all;background:#1c1c1c;padding:10px;font-size:12px;line-height:1.6">' . esc_html( $cut ) . '</pre>';
 				$at = $at + 1;
-				if ( $hit >= 4 ) { break; }
+				if ( $hit >= 3 ) { break; }
 			}
 			if ( ! $hit ) { echo '<p style="color:#f88">못 찾았습니다.</p>'; }
 		}
