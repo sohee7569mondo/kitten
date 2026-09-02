@@ -18,7 +18,7 @@
    붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
               Auto Insert → Run Everywhere → 저장 → Active
 
-   확인 : https://stellasaju.com/?um_kimg=63-lover-30-12-24
+   확인 : https://stellasaju.com/um-kimg/63-lover-30-12-24
    ════════════════════════════════════════════════════════════ */
 
 if ( ! defined( 'STELLA_UM_KAKAO_REST' ) ) {
@@ -28,12 +28,21 @@ if ( ! defined( 'STELLA_UM_KAKAO_REST' ) ) {
 /* ── 카드를 카카오에 올리고 그 주소를 돌려줍니다 ────────── */
 add_action( 'init', function () {
 
-	if ( ! isset( $_GET['um_kimg'] ) ) { return; }
+	/* 두 가지 주소를 다 받습니다.
+	     경로식 : /um-kimg/63-lover-30-12-24
+	     쿼리식 : /?um_kimg=63-lover-30-12-24
+	   물음표가 붙은 주소가 막히는 일이 있어 경로식을 먼저 봅니다. */
+	$name = '';
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( preg_match( '#/um-kimg/([A-Za-z0-9_-]{5,180})#', $uri, $mm ) ) {
+		$name = $mm[1];
+	} else if ( isset( $_GET['um_kimg'] ) ) {
+		$name = sanitize_text_field( wp_unslash( $_GET['um_kimg'] ) );
+	}
+	if ( ! $name ) { return; }
 
 	header( 'Content-Type: application/json; charset=utf-8' );
 	header( 'Access-Control-Allow-Origin: *' );
-
-	$name = sanitize_text_field( wp_unslash( $_GET['um_kimg'] ) );
 
 	/* 「점수-관계-사주-별자리-띠」 꼴만 받습니다 */
 	if ( ! preg_match( '/^(\d{1,2})-([a-z_]{2,14})-(\d{1,2})-(\d{1,2})-(\d{1,2})(?:-([A-Za-z0-9_-]{1,140}))?$/', $name, $m ) ) {
@@ -59,7 +68,7 @@ add_action( 'init', function () {
 	$up   = wp_upload_dir();
 	$file = $up['basedir'] . '/uandme/card/' . $name . '.png';
 	if ( ! file_exists( $file ) ) {
-		$made = wp_remote_get( home_url( '/um-card/' . $name ), array( 'timeout' => 30 ) );
+		$made = wp_remote_get( home_url( '/um-card/' . $name ), array( 'timeout' => 40, 'sslverify' => false ) );
 		if ( is_wp_error( $made ) ) {
 			echo wp_json_encode( array( 'ok' => false, 'why' => 'draw-failed' ) );
 			exit;

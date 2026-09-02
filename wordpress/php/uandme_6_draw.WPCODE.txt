@@ -171,7 +171,8 @@ add_action( 'wp_head', function () {
     KIMG[n] = 'wait';
     try {
       var x = new XMLHttpRequest();
-      x.open('GET', location.origin + '/?um_kimg=' + n, true);
+      /* 물음표가 붙은 주소가 막히는 일이 있어 경로식으로 부릅니다 */
+      x.open('GET', location.origin + '/um-kimg/' + n, true);
       x.onload = function () {
         try {
           var j = JSON.parse(x.responseText);
