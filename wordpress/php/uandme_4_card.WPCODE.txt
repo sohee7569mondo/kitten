@@ -585,3 +585,75 @@ add_action( 'parse_query', function ( $q ) {
 	$q->is_search = false;
 	$q->is_404    = false;
 } );
+
+/* ── 경로로 여는 진단 ───────────────────────────────────
+   https://stellasaju.com/um-check
+
+   물음표가 붙은 주소가 막혀 있어도 이건 열립니다.
+   어느 스니펫이 실렸고 어디가 막혔는지 한 화면에 보여줍니다. */
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/um-check' ) ) { return; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.8 system-ui;background:#111;color:#eee;padding:22px;max-width:820px">';
+	echo '<h1 style="color:#ffd76a">유앤미 진단</h1>';
+
+	$yes = '<b style="color:#9f9">있음</b>';
+	$no  = '<b style="color:#f88">없음</b>';
+
+	echo '<h2 style="color:#9fd">① 어느 스니펫이 실렸나</h2><table style="font-size:13px">';
+	$rows = array(
+		'① 계산기'      => function_exists( 'stella_saju_ready' ) || class_exists( 'StellaSaju' ),
+		'②/⑥ 화면'      => function_exists( 'stella_um_here' ),
+		'④ 카드'        => function_exists( 'stella_um_tier' ),
+		'⑤ 카카오 그림'  => defined( 'STELLA_UM_KAKAO_REST' ),
+	);
+	foreach ( $rows as $k => $v ) {
+		echo '<tr><td style="padding:4px 16px 4px 0">' . esc_html( $k ) . '</td><td>' . ( $v ? $yes : $no ) . '</td></tr>';
+	}
+	echo '</table>';
+	echo '<p style="color:#888;font-size:12px">②/⑥ 은 stella_um_here 함수 하나로 봅니다. ' .
+	     '둘 중 하나만 실려도 「있음」이 나오니, 화면이 안 그려지면 둘 다 확인해야 합니다.</p>';
+
+	echo '<h2 style="color:#9fd">② 머리말에 걸린 것</h2>';
+	global $wp_filter;
+	$n = 0;
+	if ( isset( $wp_filter['wp_head'] ) ) {
+		foreach ( $wp_filter['wp_head']->callbacks as $prio => $list ) {
+			$n += count( $list );
+			if ( 20 === $prio || 60 === $prio ) {
+				echo '<p style="color:#9f9">우선순위 ' . intval( $prio ) . ' 에 ' . count( $list ) . '개 — 유앤미 화면입니다</p>';
+			}
+		}
+	}
+	echo '<p>wp_head 에 걸린 것 모두 : <b>' . intval( $n ) . '</b>개</p>';
+
+	echo '<h2 style="color:#9fd">③ 지금 요청</h2><table style="font-size:13px">';
+	echo '<tr><td style="padding:4px 16px 4px 0">주소</td><td>' . esc_html( $uri ) . '</td></tr>';
+	echo '<tr><td style="padding:4px 16px 4px 0">물음표 뒤</td><td>' .
+	     esc_html( isset( $_SERVER['QUERY_STRING'] ) ? $_SERVER['QUERY_STRING'] : '(없음)' ) . '</td></tr>';
+	echo '<tr><td style="padding:4px 16px 4px 0">$_GET 개수</td><td>' . count( $_GET ) . '</td></tr>';
+	echo '<tr><td style="padding:4px 16px 4px 0">로그인</td><td>' .
+	     ( is_user_logged_in() ? $yes . ' (' . esc_html( wp_get_current_user()->user_login ) . ')' : $no ) . '</td></tr>';
+	echo '<tr><td style="padding:4px 16px 4px 0">관리자 권한</td><td>' .
+	     ( current_user_can( 'manage_options' ) ? $yes : $no ) . '</td></tr>';
+	echo '</table>';
+
+	echo '<h2 style="color:#9fd">④ 유앤미 페이지</h2>';
+	$pg = get_page_by_path( 'uandme' );
+	if ( $pg ) {
+		echo '<p>' . $yes . ' · 번호 ' . intval( $pg->ID ) . ' · 상태 ' . esc_html( $pg->post_status ) . '</p>';
+		echo '<p>내용 : <code style="color:#8cf">' . esc_html( trim( $pg->post_content ) ) . '</code></p>';
+	} else {
+		echo '<p>' . $no . '</p>';
+	}
+
+	echo '<h2 style="color:#9fd">⑤ 물음표 시험</h2>';
+	echo '<p>아래를 눌러 열리는지 봐주세요. 안 열리면 물음표가 붙은 주소가 막힌 것입니다.</p>';
+	echo '<p><a style="color:#9fd" href="' . esc_url( home_url( '/um-check?abc=123' ) ) . '">/um-check?abc=123</a></p>';
+
+	echo '<hr style="margin:26px 0;border-color:#333"><p style="color:#888">이 화면을 통째로 찍어 보내주세요.</p>';
+	exit;
+} );
