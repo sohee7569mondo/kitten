@@ -1,4 +1,4 @@
-/* ═══ 계산 다섯 장을 부록으로 뒤로 보냅니다 ═══  APPX-3  2026-09-02
+/* ═══ 계산 다섯 장을 부록으로 뒤로 보냅니다 ═══  APPX-4  2026-09-02
    손님은 자기 이야기를 보러 오는데 여덟 번째 장까지 가야 나옵니다.
    그 앞 다섯 장이 전부 계산 설명입니다 — 진태양시 · 원국 · 오행 ·
    대운 · 태어나던 밤의 하늘. 친구분들이 어렵다고 한 자리가 여기입니다.
@@ -16,17 +16,17 @@
   function two(n){ return (n<10?'0':'')+n; }
 
   function move(){
-    var box=document.getElementById('ssb');
-    if(!box){ return; }
-    if(box.getAttribute('data-appx')==='1'){ return; }
+    var book=document.getElementById('bkBook');
+    if(!book){ return; }
+    if(book.getAttribute('data-appx')==='1'){ return; }
     if(GATE){
       if(String(location.hash).indexOf(GATE)<0){ return; }
     }
 
     /* 접는 조각이 일을 마친 뒤에 손댑니다 */
-    if(box.getAttribute('data-folded')!=='1'){ return; }
+    if(book.getAttribute('data-folded')!=='1'){ return; }
 
-    var pages=[].slice.call(box.getElementsByClassName('page'));
+    var pages=[].slice.call(book.getElementsByClassName('page'));
     if(pages.length<6){ return; }
 
     /* 1부가 시작하는 자리를 찾습니다 */
@@ -63,7 +63,7 @@
     for(i=0;i<take.length;i++){ holder.appendChild(take[i]); }
 
     /* 쪽 번호를 다시 매깁니다 (표지는 번호가 없습니다) */
-    var all=box.getElementsByClassName('page'), f, n=0;
+    var all=book.getElementsByClassName('page'), f, n=0;
     for(i=0;i<all.length;i++){
       n+=1;
       f=all[i].getElementsByClassName('folio')[0];
@@ -73,7 +73,7 @@
     if(bkN){ bkN.textContent=n+'쪽'; }
 
     /* 낱장 높이를 다시 맞춥니다 */
-    var sheets=[].slice.call(box.getElementsByClassName('page'));
+    var sheets=[].slice.call(book.getElementsByClassName('page'));
     sheets.forEach(function(el){ el.style.minHeight=''; });
     var tall=0;
     sheets.forEach(function(el){
@@ -83,7 +83,7 @@
     tall=Math.ceil(tall);
     sheets.forEach(function(el){ el.style.minHeight=tall+'px'; });
 
-    box.setAttribute('data-appx','1');
+    book.setAttribute('data-appx','1');
   }
 
   function go(){
