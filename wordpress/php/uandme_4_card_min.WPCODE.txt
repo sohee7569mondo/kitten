@@ -1,37 +1,20 @@
-/* ════════════════════════════════════════════════════════════
-   유앤미 ④ · 카드 그림  (아주 작은 판 · 5KB)
-
-   ④번을 켜면 유앤미 화면이 가려지는 일이 있어, 무엇이 문제인지
-   가려내려고 뼈대만 남겼습니다.
-
-   · 함수를 하나도 만들지 않습니다 (전부 안쪽에서 처리)
-   · 훅은 하나뿐이고, /um-card/ 로 들어올 때만 깨어납니다
-   · 글꼴은 이미 받아 둔 파일을 그대로 씁니다
-
-   붙여넣기 : WPCode → ④번을 이 내용으로 갈아끼우기 → 저장 → Active
-
-   확인 ① https://stellasaju.com/uandme/          ← 화면이 살아 있나
-   확인 ② https://stellasaju.com/um-card/63-lover-30-12-24
-   ════════════════════════════════════════════════════════════ */
+/* 유앤미 ④ · 카드 그림
+   WPCode → ④번을 이 내용으로 갈아끼우기 → 저장 → Active
+   확인 ① https://stellasaju.com/uandme/
+   확인 ② https://stellasaju.com/um-card/12-lover-6-3-3 */
 
 add_action( 'init', function () {
 
 	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
 	if ( false === strpos( $uri, '/um-card/' ) ) { return; }
-	if ( ! preg_match( '#/um-card/([0-9]{1,2})-([a-z_]{2,14})-([0-9]{1,2})-([0-9]{1,2})-([0-9]{1,2})(?:-([A-Za-z0-9_-]{4,60}))?#', $uri, $m ) ) { return; }
+	if ( ! preg_match( '#/um-card/([0-9]{1,2})-([a-z_]{2,14})-([0-9]{1,2})-([0-9]{1,2})-([0-9]{1,2})#', $uri, $m ) ) { return; }
 
 	$score = max( 0, min( 99, intval( $m[1] ) ) );
 	$rel   = $m[2];
 	$a     = max( 0, min( 40, intval( $m[3] ) ) );
 	$b     = max( 0, min( 30, intval( $m[4] ) ) );
 	$c     = max( 0, min( 30, intval( $m[5] ) ) );
-	$who   = '';
-	if ( isset( $m[6] ) ) {
-		$who = base64_decode( strtr( $m[6], '-_', '+/' ) );
-		$who = wp_strip_all_tags( (string) $who );
-	}
 
-	/* 점수대마다 멘트 셋 · 「|」는 줄바꿈, 「;」는 다음 멘트 */
 	$M = array(
 		array( 95, '전생에 나라를 구했네|{n}점;이건 하늘이 한 일|{n}점;놓치면 후회할|{n}점' ),
 		array( 90, '붙여 놓으면 안 떨어짐|{n}점;이런 인연 흔치 않아요|{n}점;남들이 부러워할|{n}점' ),
@@ -48,7 +31,6 @@ add_action( 'init', function () {
 	foreach ( $M as $one ) {
 		if ( $score >= $one[0] ) { $pool = $one[1]; break; }
 	}
-	/* 같은 사람에게는 늘 같은 멘트가 나오도록 점수로 골라 둡니다 */
 	$list = explode( ';', $pool );
 	$pick = $list[ ( $score + $a + $b + $c ) % count( $list ) ];
 	$row  = explode( '|', str_replace( '{n}', (string) $score, $pick ) );
@@ -111,10 +93,8 @@ add_action( 'init', function () {
 		};
 		$put( 68, 156, 214, (string) $score, $pur, true );
 		$put( 17, 156, 246, '점', $soft, true );
-		if ( $who ) { $put( 30, 300, 108, $who, $sub, false ); }
-		$y1 = $who ? 178 : 156;
-		$put( 34, 300, $y1,      $r1, $ink, false );
-		$put( 34, 300, $y1 + 48, $r2, $ink, false );
+		$put( 36, 300, 152, $r1, $ink, false );
+		$put( 36, 300, 204, $r2, $ink, false );
 		$put( 24, 300, 296, '그럼 너랑 나는?', $pur, false );
 		$put( 16, 300, 344, 'stellasaju.com/uandme', $soft, false );
 	}
@@ -132,8 +112,7 @@ add_action( 'init', function () {
 
 	$dir = $up['basedir'] . '/uandme/card';
 	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
-	$file = $dir . '/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c .
-		( isset( $m[6] ) ? '-' . $m[6] : '' ) . '.png';
+	$file = $dir . '/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c . '.png';
 	if ( ! file_exists( $file ) ) { @file_put_contents( $file, $png ); }
 
 	header( 'Content-Type: image/png' );
