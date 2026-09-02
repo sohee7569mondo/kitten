@@ -102,7 +102,7 @@ add_action( 'wp_head', function () {
   /* ── 오행마다 어떤 사람인가 ──────────────────────────── */
   var PERSON = {
     '목': {
-      pic: 11, color: ['#E2F5EE','#4F8B72'],
+      pic: 11, color: ['#E2F5EE','#4F8B72'], ear: '#BFE3CE',
       one: '곧고 자기 길이 있는 사람',
       body: ['한번 정하면 밀고 나갑니다. 옆에서 흔들어도 잘 안 흔들려요.',
              '말보다 하는 걸로 보여주는 쪽입니다. 약속을 잘 안 어깁니다.',
@@ -111,7 +111,7 @@ add_action( 'wp_head', function () {
       care: '고집이 셉니다. 아니라고 생각하면 안 굽혀요.'
     },
     '화': {
-      pic: 12, color: ['#FFEFE2','#B57744'],
+      pic: 12, color: ['#FFEFE2','#B57744'], ear: '#FFD1B0',
       one: '밝고 표현이 많은 사람',
       body: ['좋으면 좋다고 바로 말합니다. 속을 썩이지 않아요.',
              '있으면 자리가 환해집니다. 사람을 잘 모읍니다.',
@@ -120,7 +120,7 @@ add_action( 'wp_head', function () {
       care: '금방 뜨거워지고 금방 식습니다. 오래 데워줘야 해요.'
     },
     '토': {
-      pic: 13, color: ['#FCF0D9','#A08048'],
+      pic: 13, color: ['#FCF0D9','#A08048'], ear: '#F6DFA8',
       one: '듬직하고 말수 적은 사람',
       body: ['크게 흔들리지 않습니다. 옆에 있으면 마음이 놓여요.',
              '한 말은 지킵니다. 대신 안 될 것은 처음부터 안 된다고 합니다.',
@@ -129,7 +129,7 @@ add_action( 'wp_head', function () {
       care: '느립니다. 답답할 때가 옵니다.'
     },
     '금': {
-      pic: 14, color: ['#F1EBFA','#6B5BA8'],
+      pic: 14, color: ['#F1EBFA','#6B5BA8'], ear: '#D8CBF2',
       one: '깔끔하고 분명한 사람',
       body: ['옳고 그른 것이 분명합니다. 말이 헷갈리지 않아요.',
              '정리를 잘합니다. 같이 있으면 내 생활도 반듯해집니다.',
@@ -138,7 +138,7 @@ add_action( 'wp_head', function () {
       care: '처음에는 차갑게 느껴집니다. 마음을 늦게 엽니다.'
     },
     '수': {
-      pic: 15, color: ['#F3ECFF','#7A6FA8'],
+      pic: 15, color: ['#F3ECFF','#7A6FA8'], ear: '#BFD9F2',
       one: '눈치 빠르고 부드러운 사람',
       body: ['내 기분을 먼저 알아챕니다. 설명하지 않아도 됩니다.',
              '말을 둥글게 합니다. 싸울 일을 잘 만들지 않아요.',
@@ -227,6 +227,31 @@ add_action( 'wp_head', function () {
   }
 
   /* ── 그리기 ─────────────────────────────────────────── */
+  /* 귀염뽕짝 토끼. 그림 파일이 아니라 그려서 넣습니다.
+     그래야 어디서 열어도 항상 보입니다. 귀 안쪽 색만 바꿔 씁니다. */
+  function bunny(ear, sleepy) {
+    var LN = '#5A4038';
+    var eyes = sleepy
+      ? '<path d="M44 60q6 6 12 0" fill="none" stroke="' + LN + '" stroke-width="4" ' +
+        'stroke-linecap="round"/><path d="M64 60q6 6 12 0" fill="none" stroke="' + LN + '" ' +
+        'stroke-width="4" stroke-linecap="round"/>'
+      : '<circle cx="50" cy="61" r="3.6" fill="' + LN + '"/>' +
+        '<circle cx="70" cy="61" r="3.6" fill="' + LN + '"/>';
+    return '<svg viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true" ' +
+      'style="display:block;overflow:visible">' +
+      '<g stroke="' + LN + '" stroke-width="4.5" stroke-linejoin="round">' +
+      '<ellipse cx="45" cy="31" rx="9" ry="25" fill="#FFF" transform="rotate(-9 45 31)"/>' +
+      '<ellipse cx="75" cy="31" rx="9" ry="25" fill="#FFF" transform="rotate(9 75 31)"/>' +
+      '<ellipse cx="60" cy="88" rx="31" ry="26" fill="#FFF"/>' +
+      '<circle cx="60" cy="63" r="27" fill="#FFF"/></g>' +
+      '<ellipse cx="45" cy="30" rx="4" ry="15" fill="' + ear + '" transform="rotate(-9 45 30)"/>' +
+      '<ellipse cx="75" cy="30" rx="4" ry="15" fill="' + ear + '" transform="rotate(9 75 30)"/>' +
+      '<ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/>' + eyes +
+      '<ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
+      '<ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
+      '<ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg>';
+  }
+
   var CHAR = '/wp-content/uploads/2026/08/younme-char-';
   var root = null, st = { y: '', m: '', d: '' };
 
@@ -259,8 +284,12 @@ add_action( 'wp_head', function () {
       '#um-ideal .big .lb{font-size:11.5px;font-weight:700}' +
       '#um-ideal .big .nm{font-size:27px;font-weight:900;letter-spacing:-.04em;' +
       'line-height:1.28;margin-top:8px;padding-right:104px}' +
-      '#um-ideal .big img{position:absolute;right:-8px;bottom:-14px;width:126px;height:126px;' +
-      'object-fit:contain;pointer-events:none}' +
+      '#um-ideal .big .bun{position:absolute;right:4px;bottom:-4px;width:112px;height:112px;' +
+      'pointer-events:none;filter:drop-shadow(0 5px 9px rgba(107,91,168,.16))}' +
+      '#um-ideal .hi .bun{position:absolute;right:-52px;top:-6px;width:46px;height:46px}' +
+      '#um-ideal .peek{display:flex;justify-content:flex-end;margin:2px 2px -14px 0}' +
+      '#um-ideal .peek .bun{width:88px;height:88px;pointer-events:none;' +
+      'filter:drop-shadow(0 4px 8px rgba(107,91,168,.14))}' +
       '#um-ideal .sec{font-size:21px;font-weight:900;letter-spacing:-.04em;margin:38px 0 0}' +
       '#um-ideal .secd{font-size:12.5px;color:#A79BC4;margin:6px 0 0}' +
       '#um-ideal .row{display:flex;gap:13px;align-items:flex-start;background:#FBF6FF;' +
@@ -303,7 +332,8 @@ add_action( 'wp_head', function () {
   }
 
   function home() {
-    var h = '<div class="hero">나에게 맞는<br><span class="hi">이상형</span></div>' +
+    var h = '<div class="peek"><div class="bun">' + bunny('#F7C6D3') + '</div></div>' +
+      '<div class="hero">나에게 맞는<br><span class="hi">이상형</span></div>' +
       '<p class="dek">생년월일만 넣으면 됩니다. 상대는 없어도 돼요.<br>' +
       '나이 차이와 별자리와 띠를 사주로 뽑아 드립니다.</p>' +
       '<div class="ask">' +
@@ -383,7 +413,7 @@ add_action( 'wp_head', function () {
       '<div class="hero">나에게 맞는<br><span class="hi">이상형</span></div>';
 
     h += '<div class="big" style="background:' + P.color[0] + '">' +
-      '<img alt="" src="' + CHAR + P.pic + '.webp">' +
+      '<div class="bun">' + bunny(P.ear) + '</div>' +
       '<div class="lb" style="color:' + P.color[1] + '">한마디로</div>' +
       '<div class="nm">' + P.one + '</div></div>';
 
@@ -465,7 +495,7 @@ add_action( 'wp_head', function () {
     a.id = 'um-ideal-door';
     a.href = '/uandme/ideal/';
     a.innerHTML =
-      '<img alt="" src="' + CHAR + '11.webp">' +
+      '<span class="bun">' + bunny('#F7C6D3') + '</span>' +
       '<div class="tx">' +
       '<div class="lb">혼자서도 볼 수 있어요</div>' +
       '<div class="nm">나에게 맞는 이상형 그리기</div>' +
@@ -486,7 +516,7 @@ add_action( 'wp_head', function () {
       'gap:12px;max-width:430px;margin:6px auto 0;padding:16px 16px 16px 14px;' +
       'background:#F7F2FC;border-radius:16px;text-decoration:none;' +
       "font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif}" +
-      '#um-ideal-door img{flex:0 0 62px;width:62px;height:62px;object-fit:contain}' +
+      '#um-ideal-door .bun{flex:0 0 60px;width:60px;height:60px;display:block}' +
       '#um-ideal-door .tx{flex:1;min-width:0}' +
       '#um-ideal-door .lb{font-size:10.5px;font-weight:700;color:#A79BC4}' +
       '#um-ideal-door .nm{font-size:15.5px;font-weight:900;color:#3F3A52;' +
