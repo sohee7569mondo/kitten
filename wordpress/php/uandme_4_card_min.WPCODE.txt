@@ -1,19 +1,47 @@
 /* 유앤미 ④ · 카드 그림
    WPCode → ④번을 이 내용으로 갈아끼우기 → 저장 → Active
    확인 ① https://stellasaju.com/uandme/
-   확인 ② https://stellasaju.com/um-card/12-lover-6-3-3 */
+   확인 ② https://stellasaju.com/um-card/12-lover-6-3-3
+   확인 ③ https://stellasaju.com/um-card/12-lover-6-3-3-A-B/소희/정호
+
+   2026-09-02 · 두 사람 이름을 카드에 싣습니다.
+   이름은 주소의 뒷칸으로 옵니다 — /um-card/<점수칸>/소희/정호
+   주소 표준 그대로라서 풀어낼 것이 따로 없습니다.
+   (예전에 이름을 실으려다 접었던 것은 이름을 한 덩어리로 싸서
+    보냈기 때문입니다. 이번에는 싸지 않습니다.)
+   이름이 없으면 예전과 똑같은 카드가 나옵니다. */
+
+if ( ! function_exists( 'stella_um_card_name' ) ) {
+	/* 한글·영문·숫자만 남기고 여섯 자까지. 그 밖은 전부 버립니다. */
+	function stella_um_card_name( $raw ) {
+		$s = rawurldecode( (string) $raw );
+		$s = preg_replace( '/[^\x{AC00}-\x{D7A3}A-Za-z0-9]/u', '', $s );
+		if ( ! is_string( $s ) ) { return ''; }
+		if ( ! function_exists( 'mb_substr' ) ) { return ''; }
+		return mb_substr( $s, 0, 6, 'UTF-8' );
+	}
+}
 
 add_action( 'init', function () {
 
 	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
 	if ( false === strpos( $uri, '/um-card/' ) ) { return; }
-	if ( ! preg_match( '#/um-card/([0-9]{1,2})-([a-z_]{2,14})-([0-9]{1,2})-([0-9]{1,2})-([0-9]{1,2})#', $uri, $m ) ) { return; }
+	if ( ! preg_match(
+		'#/um-card/([0-9]{1,2})-([a-z_]{2,14})-([0-9]{1,2})-([0-9]{1,2})-([0-9]{1,2})([A-Za-z0-9_-]*)'
+		. '(?:/([A-Za-z0-9%._-]{1,90}))?(?:/([A-Za-z0-9%._-]{1,90}))?#',
+		$uri, $m ) ) { return; }
 
 	$score = max( 0, min( 99, intval( $m[1] ) ) );
 	$rel   = $m[2];
 	$a     = max( 0, min( 40, intval( $m[3] ) ) );
 	$b     = max( 0, min( 30, intval( $m[4] ) ) );
 	$c     = max( 0, min( 30, intval( $m[5] ) ) );
+	$tag   = isset( $m[6] ) ? $m[6] : '';
+
+	$n1  = isset( $m[7] ) ? stella_um_card_name( $m[7] ) : '';
+	$n2  = isset( $m[8] ) ? stella_um_card_name( $m[8] ) : '';
+	$who = '';
+	if ( '' !== $n1 ) { if ( '' !== $n2 ) { $who = $n1 . '   X   ' . $n2; } }
 
 	$M = array(
 		array( 95, '전생에 나라를 구했네|{n}점;이건 하늘이 한 일|{n}점;놓치면 후회할|{n}점' ),
@@ -93,6 +121,8 @@ add_action( 'init', function () {
 		};
 		$put( 68, 156, 214, (string) $score, $pur, true );
 		$put( 17, 156, 246, '점', $soft, true );
+		/* 두 사람 이름 — 있을 때만 문구 위에 한 줄 */
+		if ( '' !== $who ) { $put( 21, 300, 108, $who, $pur, false ); }
 		$put( 36, 300, 152, $r1, $ink, false );
 		$put( 36, 300, 204, $r2, $ink, false );
 		$put( 24, 300, 296, '그럼 너랑 나는?', $pur, false );
@@ -112,7 +142,7 @@ add_action( 'init', function () {
 
 	$dir = $up['basedir'] . '/uandme/card';
 	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
-	$file = $dir . '/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c . '.png';
+	$file = $dir . '/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c . $tag . '.png';
 	if ( ! file_exists( $file ) ) { @file_put_contents( $file, $png ); }
 
 	header( 'Content-Type: image/png' );

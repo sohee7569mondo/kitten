@@ -19,6 +19,7 @@
               Auto Insert → Run Everywhere → 저장 → Active
 
    확인 : https://stellasaju.com/um-kimg/63-lover-30-12-24
+          이름까지 : /um-kimg/63-lover-30-12-24-A-B/소희/정호
    ════════════════════════════════════════════════════════════ */
 
 if ( ! defined( 'STELLA_UM_KAKAO_REST' ) ) {
@@ -33,9 +34,13 @@ add_action( 'init', function () {
 	     쿼리식 : /?um_kimg=63-lover-30-12-24
 	   물음표가 붙은 주소가 막히는 일이 있어 경로식을 먼저 봅니다. */
 	$name = '';
+	$tail = '';
 	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
-	if ( preg_match( '#/um-kimg/([A-Za-z0-9_-]{5,180})#', $uri, $mm ) ) {
+	/* 뒤에 이름 두 칸이 더 붙어 올 수 있습니다 — /um-kimg/<점수칸>/소희/정호
+	   그 두 칸은 그대로 ④번에 넘겨줍니다. 여기서 풀어볼 것은 없습니다. */
+	if ( preg_match( '#/um-kimg/([A-Za-z0-9_-]{5,180})((?:/[A-Za-z0-9%._-]{1,90}){0,2})#', $uri, $mm ) ) {
 		$name = $mm[1];
+		$tail = isset( $mm[2] ) ? $mm[2] : '';
 	} else if ( isset( $_GET['um_kimg'] ) ) {
 		$name = sanitize_text_field( wp_unslash( $_GET['um_kimg'] ) );
 	}
@@ -68,7 +73,7 @@ add_action( 'init', function () {
 	$up   = wp_upload_dir();
 	$file = $up['basedir'] . '/uandme/card/' . $name . '.png';
 	if ( ! file_exists( $file ) ) {
-		$made = wp_remote_get( home_url( '/um-card/' . $name ), array( 'timeout' => 40, 'sslverify' => false ) );
+		$made = wp_remote_get( home_url( '/um-card/' . $name . $tail ), array( 'timeout' => 40, 'sslverify' => false ) );
 		if ( is_wp_error( $made ) ) {
 			echo wp_json_encode( array( 'ok' => false, 'why' => 'draw-failed' ) );
 			exit;

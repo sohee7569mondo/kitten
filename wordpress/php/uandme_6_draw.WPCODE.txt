@@ -130,20 +130,47 @@ add_action( 'wp_head', function () {
     if (!window.UM_SET.설정) { return ''; }
     return window.UM_SET.설정.카톡그림 || '';
   }
+  /* 카드에 실을 두 사람 이름.
+     한글·영문·숫자만 남기고 여섯 자까지 자릅니다.
+     이름을 서버로 넘기는 방법은 주소의 뒷칸입니다 —
+       /um-card/12-lover-6-3-3/소희/정호
+     주소 표준 그대로라 서버는 풀어낼 것이 없습니다. */
+  function safeName(s) {
+    var t = String(s || '').replace(/[^가-힣a-zA-Z0-9]/g, '');
+    return t.slice(0, 6);
+  }
+  function cardNames() {
+    if (!st.result) { return null; }
+    var a = safeName(st.me ? st.me.name : '');
+    var b = safeName(st.you ? st.you.name : '');
+    if (!a) { return null; }
+    if (!b) { return null; }
+    return [a, b];
+  }
+  /* 파일 이름에 쓸 이름표 — 영문·숫자·밑줄만 남깁니다.
+     서버도 똑같은 규칙으로 만들어서 두 쪽이 늘 같은 파일을 봅니다. */
+  function nameKey(s) {
+    return encodeURIComponent(s).replace(/[^A-Za-z0-9]/g, '_');
+  }
   function cardName() {
     if (!st.result) { return ''; }
     var r = st.result;
     var n = r.total + '-' + st.rel + '-' + r.blocks.saju.score + '-' +
       r.blocks.zodiac.score + '-' + r.blocks.animal.score;
-    /* 이름은 카드 그림에 싣지 않습니다. ④번이 이름을 풀어내는
-       모양이 워드프레스닷컴 보안에 악성코드로 걸리는 듯합니다.
-       두 사람 이름은 카톡 제목에 들어가므로 그것으로 갈음합니다. */
+    var nm = cardNames();
+    if (nm) { n += '-' + nameKey(nm[0]) + '-' + nameKey(nm[1]); }
     return n;
+  }
+  /* 주소 뒤에 붙는 이름 두 칸 */
+  function cardTail() {
+    var nm = cardNames();
+    if (!nm) { return ''; }
+    return '/' + encodeURIComponent(nm[0]) + '/' + encodeURIComponent(nm[1]);
   }
   /* 우리 서버가 그 자리에서 그려 주는 주소 */
   function cardUrl() {
     var n = cardName();
-    return n ? (location.origin + '/um-card/' + n) : '';
+    return n ? (location.origin + '/um-card/' + n + cardTail()) : '';
   }
   /* 워드프레스닷컴 그림 CDN 주소 — 카카오가 우리 서버에서는 그림을
      못 가져가는 듯하여 이쪽을 알려줍니다. 위 주소를 한 번 부르면
@@ -172,7 +199,7 @@ add_action( 'wp_head', function () {
     try {
       var x = new XMLHttpRequest();
       /* 물음표가 붙은 주소가 막히는 일이 있어 경로식으로 부릅니다 */
-      x.open('GET', location.origin + '/um-kimg/' + n, true);
+      x.open('GET', location.origin + '/um-kimg/' + n + cardTail(), true);
       x.onload = function () {
         try {
           var j = JSON.parse(x.responseText);
@@ -1108,6 +1135,15 @@ add_action( 'wp_head', function () {
         '<div style="font-size:13.5px;line-height:1.85;color:#57506E;margin-top:12px">' + esc(r.parts.ji.note) + '</div>',
         '<div style="font-size:13.5px;line-height:1.85;color:#57506E;margin-top:12px">' + esc(r.parts.god.note) + '</div>',
         '</div></div>',
+        (st.joined ? ('<div class="pad" style="margin-top:24px"><div class="lbl">' +
+          esc(st.me.name || '상대') + '님에게 보내기</div>' +
+          '<div class="card" style="padding:20px">' +
+          '<div style="font-size:13.5px;line-height:1.85;color:#57506E">' +
+          esc(st.me.name || '상대') + '님은 아직 이 점수를 못 봤어요. ' +
+          '보내주면 그 사람 화면에도 같은 결과가 그대로 뜹니다.</div>' +
+          '<div style="height:14px"></div>' +
+          '<button class="btnP" id="backto">결과 보내기</button>' +
+          '</div></div>') : ''),
         '<div class="pad" style="margin-top:24px"><div class="lbl">자랑하기</div>',
         shareRow(ru, shareText(), true), '</div>',
         '<div class="pad" style="margin-top:26px"><button class="btnG" id="again">다른 사람과도 보기</button>',
@@ -1222,7 +1258,16 @@ add_action( 'wp_head', function () {
       history.replaceState(null, '', resultUrl());
       go('result');
     });
+    bind('#backto', function () {
+      var url = resultUrl();
+      var nm = (st.you ? (st.you.name || '') : '') || '상대';
+      var txt = nm + '님이 답했어요 · ' + st.result.total + '점';
+      if (kakaoKey()) { kakao(url, txt); return; }
+      if (nativeShare(url, txt)) { return; }
+      copy(url); toast('링크를 복사했어요. 그 사람에게 보내주세요');
+    });
     bind('#again', function () {
+      st.joined = false;
       st.you = null; st.result = null; st.celeb = null;
       history.replaceState(null, '', X.base());
       draft = { sex: 'M', known: true, ampm: '오전' }; go('both');
@@ -1425,7 +1470,7 @@ add_action( 'wp_head', function () {
       } }
     } else if (i) {
       var d1 = U.unpackLink(i);
-      if (d1) { st.rel = d1.rel; st.me = d1.a; st.view = 'joined'; draft = { sex: 'M', known: true, ampm: '오전' }; }
+      if (d1) { st.rel = d1.rel; st.me = d1.a; st.joined = true; st.view = 'joined'; draft = { sex: 'M', known: true, ampm: '오전' }; }
     }
     render();
     if (location.search.indexOf('umdebug') >= 0) {
