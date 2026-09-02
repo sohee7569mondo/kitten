@@ -113,13 +113,9 @@
     var r = st.result;
     var n = r.total + '-' + st.rel + '-' + r.blocks.saju.score + '-' +
       r.blocks.zodiac.score + '-' + r.blocks.animal.score;
-    /* 두 사람 이름 — 카드에 가장 크게 나옵니다.
-       한글이 주소에 그대로 들어가지 않게 싸서 보냅니다. */
-    var a = (st.me ? (st.me.name || '') : '').slice(0, 8);
-    var b = (st.you ? (st.you.name || '') : '').slice(0, 8);
-    if (a) { if (b) {
-      try { n += '-' + U.b64enc(a + '|' + b); } catch (e) {}
-    } }
+    /* 이름은 카드 그림에 싣지 않습니다.
+       그 처리를 ④번에 넣을 때마다 유앤미 화면이 가려졌습니다.
+       두 사람 이름은 카톡 제목에 들어가므로 그것으로 갈음합니다. */
     return n;
   }
   /* 우리 서버가 그 자리에서 그려 주는 주소 */
