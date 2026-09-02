@@ -12,7 +12,7 @@
 add_filter( 'stella_lab_more', function ( $js ) {
 	$add = <<<'LABADD'
 TESTS.agegap = {
-    name:'나에게 맞는 나이 차이는?', tag:'1분 · 열두 문항',
+    name:'나에게 맞는 나이 차이는?', cat:'연애', tag:'1분 · 열두 문항',
     dek:'연상이냐 연하냐 동갑이냐. 답은 정해져 있습니다.',
     kind:'scale',
     q:[
@@ -56,7 +56,7 @@ TESTS.agegap = {
   };
 
 TESTS.drama = {
-    name:'나에게 맞는 드라마 남자주인공은?', tag:'1분 · 열두 문항',
+    name:'나에게 맞는 드라마 남자주인공은?', cat:'연애', tag:'1분 · 열두 문항',
     dek:'현실에는 없지만 그래도 궁금하잖아요.',
     kind:'pick',
     q:[
@@ -103,7 +103,7 @@ TESTS.drama = {
   };
 
 TESTS.love = {
-    name:'연애할 때 나는 어떤 사람인가', tag:'1분 · 열두 문항',
+    name:'연애할 때 나는 어떤 사람인가', cat:'연애', tag:'1분 · 열두 문항',
     dek:'스스로는 잘 모르는 그 모습이요.',
     kind:'pick',
     q:[

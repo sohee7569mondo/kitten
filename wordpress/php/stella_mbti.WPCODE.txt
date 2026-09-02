@@ -135,8 +135,40 @@ add_action( 'init', function () {
 		echo '<title>MBTI 궁합 — 스텔라사주</title>';
 		echo '<meta name="description" content="두 사람의 MBTI를 넣으면 잘 맞는 점과 주의할 점을 알려드립니다. 생년월일 없이 바로 볼 수 있어요.">';
 	}
+	/* 랩은 시안대로 따뜻한 아이보리, 궁합은 유앤미 라벤더 */
+	if ( 'match' !== $mode ) {
+		$css .= 'body{background:#FFFDFA;color:#3E4451}'
+			. '.wrap{max-width:430px;padding:16px 18px 60px}'
+			. 'h1{font-family:"Gowun Dodum",inherit;color:#2F3542;font-size:27px;'
+			. 'letter-spacing:-.045em;line-height:1.24}'
+			. '.dek{color:#A9B0BC;font-size:12.5px}'
+			. '.top .nm{font-family:"Gowun Dodum",inherit;font-size:21px;color:#2F3542}'
+			. '.top .up{font-size:10.5px;color:#A9B0BC}'
+			. '.card{border-radius:16px;box-shadow:none;border:1px solid #F0EFEC}'
+			. '.ghost{background:#F2F3F5;color:#5E6675;border-radius:12px}'
+			. '.big{background:#2F3542;border-radius:12px}'
+			. '.lbl{color:#A9B0BC}'
+			. '.h3{color:#5E6675}'
+			. '.li{border-left-color:#EDEBE6}'
+			. '.bar i{background:#2F3542}.bar{background:#F2F3F5}'
+			. '.mini{color:#A9B0BC}'
+			. '.find{display:flex;align-items:center;gap:9px;height:46px;background:#F2F3F5;'
+			. 'border-radius:12px;padding:0 14px;margin-bottom:12px}'
+			. '.find input{border:0;background:none;outline:none;font:inherit;font-size:13.5px;'
+			. 'width:100%;color:#3E4451}'
+			. '.cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}'
+			. '.cats button{height:40px;border:0;border-radius:12px;padding:0 15px;'
+			. 'background:#F2F3F5;color:#5E6675;font:inherit;font-size:12.5px;cursor:pointer}'
+			. '.cats button.on{background:#2F3542;color:#FFFDFA;font-weight:700}'
+			. '.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}'
+			. '.t{border-radius:16px;padding:15px 14px;min-height:118px;display:flex;'
+			. 'flex-direction:column;justify-content:space-between;text-decoration:none}'
+			. '.tn{font-size:15px;font-weight:900;line-height:1.34;letter-spacing:-.035em;color:#2F3542}'
+			. '.tm{font-size:11px;font-weight:500}'
+			. '.bot{border-top-color:#F0EFEC;color:#A9B0BC}.bot a{color:#8A929E}';
+	}
 	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
-	echo '<link href="https://fonts.googleapis.com/css2?family=Jua' . '&' . 'display=swap" rel="stylesheet">';
+	echo '<link href="https://fonts.googleapis.com/css2?family=Jua' . '&' . 'family=Gowun+Dodum' . '&' . 'display=swap" rel="stylesheet">';
 	echo '<style>' . $css . '</style>';
 	echo '<div class="wrap">';
 	echo '<div class="top"><a href="/lab/"><span class="nm">스텔라 랩</span></a>';
@@ -245,7 +277,7 @@ add_action( 'init', function () {
      문항은 전부 직접 썼습니다. 남의 검사 문항을 옮겨 쓰지 않았습니다. */
   var TESTS = {
   mbti:{
-    name:'MBTI 간이 검사', tag:'1분 · 열여섯 문항',
+    name:'MBTI 간이 검사', cat:'성격', tag:'1분 · 열여섯 문항',
     dek:'유형이 나오면 바로 궁합까지 볼 수 있어요.',
     kind:'axis',
     q:[
@@ -268,6 +300,266 @@ add_action( 'init', function () {
     ]
   }
   };
+
+  /* ══ 지난 기록 ═══════════════════════════════════════════
+     이 브라우저에만 적어둡니다. 서버에 올리지 않습니다.
+     결과가 바뀔 때만 한 줄이 쌓입니다. 같은 결과가 또 나오면
+     날짜와 횟수만 고쳐 씁니다. 그래야 「변한 자리」만 남습니다. */
+  var LOGKEY = 'stella_lab_log';
+  function today(){
+    var d = new Date();
+    function p(n){ return (n < 10 ? '0' : '') + n; }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function logRead(){
+    try{
+      var r = localStorage.getItem(LOGKEY);
+      if(!r){ return []; }
+      var a = JSON.parse(r);
+      return (a instanceof Array) ? a : [];
+    }catch(e){ return []; }
+  }
+  function logWrite(a){
+    try{ localStorage.setItem(LOGKEY, JSON.stringify(a.slice(-60))); }catch(e){}
+  }
+  function logLast(t){
+    var a = logRead(), i;
+    for(i=a.length-1;i>=0;i--){ if(a[i].t === t){ return a[i]; } }
+    return null;
+  }
+  function logAdd(t, r){
+    var a = logRead(), last = null, i;
+    for(i=a.length-1;i>=0;i--){ if(a[i].t === t){ last = a[i]; break; } }
+    if(last){ if(last.r === r){
+      last.l = today();
+      last.n = (last.n || 1) + 1;
+      logWrite(a);
+      return null;
+    } }
+    a.push({ t:t, r:r, d:today(), l:today(), n:1 });
+    logWrite(a);
+    return last;
+  }
+  function logOf(t){
+    var a = logRead(), o = [], i;
+    for(i=0;i<a.length;i++){ if(a[i].t === t){ o.push(a[i]); } }
+    return o;
+  }
+
+  /* 네 축을 쉬운 말로 — 무엇이 바뀌었는지 적을 때 씁니다 */
+  var AXWORD = {
+    'E':'밖에서 기운을 얻는 쪽', 'I':'안에서 기운을 얻는 쪽',
+    'S':'눈에 보이는 것을 보는 쪽', 'N':'떠오르는 것을 보는 쪽',
+    'T':'옳은 쪽을 먼저 보는 쪽', 'F':'마음 쪽을 먼저 보는 쪽',
+    'J':'미리 정해두는 쪽', 'P':'그때 가서 정하는 쪽'
+  };
+  function axisChange(oldT, newT){
+    var i, out = [];
+    for(i=0;i<4;i++){
+      if(oldT.charAt(i) === newT.charAt(i)){ continue; }
+      out.push('<div class="li">' + AXWORD[oldT.charAt(i)] + '이었는데, 지금은 ' +
+        AXWORD[newT.charAt(i)] + '이에요.</div>');
+    }
+    return out.join('');
+  }
+  function changeCard(t, prev, now){
+    if(!prev){ return ''; }
+    var h = '<div class="card" style="background:#FFF6EE">' +
+      '<div class="h3" style="margin-top:0;color:#B5734A">달라졌어요</div>' +
+      '<div class="mini" style="margin-bottom:8px">' + prev.d +
+      ( (prev.l !== prev.d) ? (' ~ ' + prev.l) : '' ) +
+      ' 에는 <b>' + prev.r + '</b> 였습니다' +
+      ( (prev.n > 1) ? (' · ' + prev.n + '번') : '' ) + '</div>';
+    if(TESTS[t].kind === 'axis'){
+      h += axisChange(prev.r, now);
+    } else {
+      var a = TESTS[t].out[prev.r], b = TESTS[t].out[now];
+      if(a){ if(b){
+        h += '<div class="li">' + a[0] + ' 에서 ' + b[0] + ' 으로 옮겨왔어요.</div>';
+      } }
+    }
+    h += '<div class="mini" style="margin-top:8px">사람은 바뀝니다. 어느 쪽이 더 낫다는 뜻은 아니에요.</div></div>';
+    return h;
+  }
+  function logCard(){
+    var a = logRead();
+    if(a.length < 1){ return ''; }
+    var h = '<div class="card"><div class="h3" style="margin-top:0">내 기록</div>', k, i, list;
+    for(k in TESTS){
+      if(!Object.prototype.hasOwnProperty.call(TESTS, k)){ continue; }
+      list = logOf(k);
+      if(!list.length){ continue; }
+      h += '<div class="lbl" style="margin-top:12px">' + TESTS[k].name + '</div>';
+      for(i=0;i<list.length;i++){
+        h += '<div class="row"><i>' + list[i].d + '</i><em>' + list[i].r +
+          ( (list[i].n > 1) ? (' <span class="mini">· ' + list[i].n + '번</span>') : '' ) +
+          '</em>' +
+          ( (i === list.length - 1) ? '<span class="tag same">지금</span>' : '<span class="tag diff">그때</span>' ) +
+          '</div>';
+      }
+    }
+    h += '<div class="mini" style="margin-top:14px">이 기록은 이 브라우저에만 있습니다. ' +
+      '서버에 올리지 않아요. 그래서 브라우저 기록을 지우면 같이 지워집니다.</div>' +
+      '<button class="ghost" id="wipe" style="margin-top:10px">기록 지우기</button></div>';
+    return h;
+  }
+
+  var app = document.getElementById('app');
+  var me = ['E','S','T','J'], you = ['I','N','F','P'];
+
+  function el(h){ var d = document.createElement('div'); d.innerHTML = h; return d.firstChild; }
+  function ring(n){
+    var C = 439.8, on = C * (n / 100);
+    return '<div class="ring"><svg width="150" height="150" viewBox="0 0 168 168">' +
+      '<defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0%" stop-color="#C3B2F0"/><stop offset="50%" stop-color="#F4B9D4"/>' +
+      '<stop offset="100%" stop-color="#FFCBA8"/></linearGradient></defs>' +
+      '<circle cx="84" cy="84" r="70" fill="none" stroke="#F1EBFA" stroke-width="17"/>' +
+      '<circle cx="84" cy="84" r="70" fill="none" stroke="url(#mg)" stroke-width="17" ' +
+      'stroke-linecap="round" stroke-dasharray="' + on.toFixed(1) + ' ' + (C - on + 60).toFixed(1) + '" ' +
+      'transform="rotate(-90 84 84)"/></svg>' +
+      '<div class="num"><b>' + n + '</b><span>점</span></div></div>';
+  }
+
+  function pickBox(title, arr, tag){
+    var h = '<div class="card"><div class="lbl">' + title + '</div>', i, j;
+    for(i=0;i<4;i++){
+      h += '<div class="axis">';
+      for(j=0;j<2;j++){
+        h += '<button data-w="' + tag + '" data-i="' + i + '" data-v="' + AX[i][j] + '"' +
+             (arr[i] === AX[i][j] ? ' class="on"' : '') + '>' + AX[i][j] + '</button>';
+      }
+      h += '</div>';
+    }
+    return h + '</div>';
+  }
+
+  function home(){
+    var h = '<p class="lbl" style="margin-bottom:6px">' +
+      '<a href="/uandme/" style="color:#A79BC4;text-decoration:none">유앤미 · 궁합</a></p>' +
+      '<h1>MBTI 궁합</h1>' +
+      '<p class="dek">생년월일 없이, 네 글자만으로 봅니다. 잘 맞는 점과 주의할 점을 같이 알려드려요.</p>' +
+      pickBox('나', me, 'me') +
+      pickBox('상대', you, 'you') +
+      '<button class="big" id="go">궁합 보기</button>' +
+      '<a class="ghost" href="/lab/mbti/" style="display:block;text-align:center;' +
+      'text-decoration:none;line-height:1.5">내 MBTI를 모르겠어요 · 열여섯 문항 검사</a>' +
+      '<p class="mini" style="margin-top:16px">MBTI는 검사할 때마다 조금씩 달라지기도 해요. 가볍게 참고만 해주세요.</p>';
+    app.innerHTML = h;
+    var bs = app.querySelectorAll('.axis button'), k;
+    for(k=0;k<bs.length;k++){
+      bs[k].addEventListener('click', function(){
+        var w = this.getAttribute('data-w'), i = parseInt(this.getAttribute('data-i'), 10);
+        var arr = (w === 'me') ? me : you;
+        arr[i] = this.getAttribute('data-v');
+        home();
+      });
+    }
+    app.querySelector('#go').addEventListener('click', function(){ result(me.join(''), you.join('')); });
+  }
+
+  /* ── 스텔라 랩 첫 화면 ─────────────────────────────────── */
+  /* ── 랩 목록 · 시안대로 ────────────────────────────────
+     검색 · 갈래 · 두 줄짜리 색 타일 · 아래로 유앤미와 스텔라사주 */
+  var TCOL = [
+    ['#FBE3E8','#B3707F'], ['#DCEFE4','#5E8C72'], ['#C9E6F5','#4E7C99'],
+    ['#FCF0D9','#A88B4C'], ['#E2E4F5','#6E73A3'], ['#F2F3F5','#8A929E']
+  ];
+  var labCat = '전체', labFind = '';
+
+  function twoLine(t){
+    /* 타일 제목을 두 줄로 접습니다 */
+    var w = t.replace(/\s+/g, ' ').trim(), p = w.lastIndexOf(' ', Math.ceil(w.length / 2) + 3);
+    if(p < 3){ p = w.indexOf(' '); }
+    if(p < 1){ return w; }
+    return w.slice(0, p) + '<br>' + w.slice(p + 1);
+  }
+  function banner(href, top, name, bg, c1, c2){
+    return '<a href="' + href + '" style="display:flex;align-items:center;' +
+      'justify-content:space-between;padding:20px;background:' + bg + ';' +
+      'border-radius:16px;text-decoration:none;margin-top:8px">' +
+      '<div><div style="font-size:11px;color:' + c1 + ';font-weight:700;margin-bottom:5px">' + top + '</div>' +
+      '<div style="font-size:16px;font-weight:700;color:' + c2 + ';letter-spacing:-.03em">' + name + '</div></div>' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="' + c1 + '" ' +
+      'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="9 18 15 12 9 6"/></svg></a>';
+  }
+
+  function labHome(){
+    var keys = [], k, cats = ['전체'], i;
+    for(k in TESTS){
+      if(!Object.prototype.hasOwnProperty.call(TESTS, k)){ continue; }
+      keys.push(k);
+      var c = TESTS[k].cat || '성격';
+      if(cats.indexOf(c) < 0){ cats.push(c); }
+    }
+
+    var h = '<h1>오늘은 뭘 해볼까</h1>' +
+      '<p class="dek" style="margin:6px 0 16px">전부 무료 · 로그인 없음 · 1~3분</p>' +
+      '<div class="find">' +
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A9B0BC" ' +
+      'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/></svg>' +
+      '<input id="labfind" placeholder="테스트 찾기" value="' + labFind + '"></div>' +
+      '<div class="cats">';
+    for(i=0;i<cats.length;i++){
+      h += '<button data-c="' + cats[i] + '"' + (cats[i] === labCat ? ' class="on"' : '') +
+           '>' + cats[i] + '</button>';
+    }
+    h += '</div><div class="tiles">';
+
+    var shown = 0;
+    for(i=0;i<keys.length;i++){
+      var T2 = TESTS[keys[i]];
+      var cat = T2.cat || '성격';
+      if(labCat !== '전체'){ if(cat !== labCat){ continue; } }
+      if(labFind){ if(T2.name.indexOf(labFind) < 0){ if(cat.indexOf(labFind) < 0){ continue; } } }
+      var col = TCOL[shown % TCOL.length];
+      var mins = Math.max(1, Math.round(T2.q.length / 6));
+      h += '<a class="t" style="background:' + col[0] + '" href="/lab/' + keys[i] + '/">' +
+        '<div class="tn">' + twoLine(T2.name) + '</div>' +
+        '<div class="tm" style="color:' + col[1] + '">' + T2.q.length + '문항 · ' + mins + '분</div></a>';
+      shown += 1;
+    }
+    h += '</div>';
+    if(!shown){
+      h += '<p class="mini" style="margin-top:14px">찾으시는 검사가 없어요. 다른 말로 찾아보시겠어요?</p>';
+    }
+
+    h += logCard() +
+      '<div style="margin-top:34px">' +
+      banner('/uandme/', '유앤미', '둘이서 궁합도 보고 가세요', '#F7F2FC', '#A79BC4', '#3F3A52') +
+      banner('/', '스텔라사주', '내 사주 제대로 읽어보기', '#100B22', '#B9A2F2', '#F6F1E7') +
+      '</div>' +
+      '<p class="mini" style="margin-top:22px">성격 유형 검사는 재미로 보는 것입니다. ' +
+      '심리 진단이나 의학적 판단이 아닙니다.</p>';
+
+    app.innerHTML = h;
+
+    var bs = app.querySelectorAll('.cats button'), q;
+    for(q=0;q<bs.length;q++){
+      bs[q].addEventListener('click', function(){
+        labCat = this.getAttribute('data-c');
+        labHome();
+      });
+    }
+    var fi = app.querySelector('#labfind');
+    if(fi){
+      fi.addEventListener('input', function(){
+        labFind = this.value;
+        var at = this.selectionStart;
+        labHome();
+        var f2 = app.querySelector('#labfind');
+        if(f2){ f2.focus(); try{ f2.setSelectionRange(at, at); }catch(e){} }
+      });
+    }
+    var w = app.querySelector('#wipe');
+    if(w){ w.addEventListener('click', function(){
+      try{ localStorage.removeItem(LOGKEY); }catch(e){}
+      labHome();
+    }); }
+    window.scrollTo(0, 0);
+  }
 
   /* ══ 지난 기록 ═══════════════════════════════════════════
      이 브라우저에만 적어둡니다. 서버에 올리지 않습니다.
@@ -527,13 +819,14 @@ add_action( 'init', function () {
   function showOut(win, quiet){
     var o = T.out[win], i, prev = null;
     if(!quiet){ prev = logAdd(tkey, win); }
+    var hd = T.heads || ['어떤 사람인가', '이를테면', '조심할 것'];
     var h = '<h1>' + o[0] + '</h1>' +
       '<p class="dek">' + T.name + '</p>' +
       ( prev ? changeCard(tkey, prev, win) : '' ) +
-      '<div class="card"><div class="h3" style="margin-top:0">어떤 사람인가</div>' +
+      '<div class="card"><div class="h3" style="margin-top:0">' + hd[0] + '</div>' +
       '<div class="li">' + o[1] + '</div>' +
-      '<div class="h3">이를테면</div><div class="li">' + o[2] + '</div>' +
-      '<div class="h3">조심할 것</div><div class="li">' + o[3] + '</div></div>';
+      '<div class="h3">' + hd[1] + '</div><div class="li">' + o[2] + '</div>' +
+      '<div class="h3">' + hd[2] + '</div><div class="li">' + o[3] + '</div></div>';
     if(T.go){
       h += '<a class="big" href="' + T.go[1] + '" style="display:block;text-align:center;' +
            'text-decoration:none;line-height:1.5">' + T.go[0] + '</a>';
@@ -584,6 +877,9 @@ add_action( 'init', function () {
     }
     var q = T.q[qi];
     app.innerHTML = '<h1 style="font-size:19px">' + T.name + '</h1>' +
+      ( (qi === 0 ? (T.intro || '') : '') ?
+        ('<div class="card" style="margin-bottom:12px"><div class="mini" style="line-height:1.9">' +
+         T.intro + '</div></div>') : '' ) +
       '<p class="dek" style="margin-bottom:10px">' + (qi + 1) + ' / ' + T.q.length + '</p>' +
       '<div class="bar"><i style="width:' + Math.round(qi * 100 / T.q.length) + '%"></i></div>' +
       '<div class="card"><div class="q">' + q[0] + '</div>' +
