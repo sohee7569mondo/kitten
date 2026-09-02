@@ -113,13 +113,8 @@
     var r = st.result;
     var n = r.total + '-' + st.rel + '-' + r.blocks.saju.score + '-' +
       r.blocks.zodiac.score + '-' + r.blocks.animal.score;
-    /* 두 사람 이름을 적어 두면 카드에 크게 나옵니다.
-       한글이 주소에 그대로 들어가지 않게 싸서 보냅니다. */
-    var a = (st.me ? (st.me.name || '') : '').slice(0, 8);
-    var b = (st.you ? (st.you.name || '') : '').slice(0, 8);
-    if (a) { if (b) {
-      try { n += '-' + U.b64enc(a + '|' + b); } catch (e) {}
-    } }
+    /* 이름은 지금 카드에 그리지 않으므로 주소에도 싣지 않습니다.
+       그려야 할 때가 오면 카드 쪽과 함께 되살립니다. */
     return n;
   }
   /* 우리 서버가 그 자리에서 그려 주는 주소 */
