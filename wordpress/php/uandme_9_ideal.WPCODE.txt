@@ -49,9 +49,11 @@ add_action( 'wp_head', function () {
    ⑥번(60)보다 늦게 실어서 가운데만 갈아 끼웁니다. */
 add_action( 'wp_head', function () {
 
-	if ( empty( $GLOBALS['stella_um_ideal'] ) ) { return; }
+	if ( ! stella_um_here() ) { return; }
 
-	echo "\n<style>#um{display:none !important}</style>\n";
+	$on = empty( $GLOBALS['stella_um_ideal'] ) ? '0' : '1';
+	if ( '1' === $on ) { echo "\n<style>#um{display:none !important}</style>\n"; }
+	echo "<script>var UM_IDEAL_ON=" . $on . ";</script>\n";
 	echo "<script>\n";
 	echo <<<'STELLA_IDEAL'
 (function () {
@@ -228,10 +230,13 @@ add_action( 'wp_head', function () {
       '#um-ideal .dek{font-size:14px;color:#8C82A6;margin:14px 0 0}' +
       '#um-ideal .mini{font-size:11.5px;color:#A79BC4;line-height:1.85}' +
       '#um-ideal .ask{display:flex;gap:7px;margin-top:20px}' +
-      '#um-ideal .ask input{flex:1;height:56px;border:1.5px solid #E7DEFA;border-radius:12px;' +
-      'background:#FFF;font:inherit;font-size:17px;text-align:center;color:#3F3A52;' +
-      'outline:none;-moz-appearance:textfield}' +
-      '#um-ideal .ask input:focus{border-color:#B8A6E8}' +
+      '#um-ideal .fld{flex:1}' +
+      '#um-ideal .fld span{display:block;font-size:11.5px;color:#A79BC4;' +
+      'margin:0 0 5px 3px;font-weight:700}' +
+      '#um-ideal .fld input{width:100%;height:58px;border:1.5px solid #E7DEFA;' +
+      'border-radius:12px;background:#FFF;font:inherit;font-size:19px;text-align:center;' +
+      'color:#3F3A52;outline:none;padding:0}' +
+      '#um-ideal .fld input:focus{border-color:#B8A6E8;background:#FBF6FF}' +
       '#um-ideal .go{width:100%;height:56px;margin-top:10px;border:0;border-radius:12px;' +
       'background:#6B5BA8;color:#FFF;font:inherit;font-size:16px;font-weight:700;cursor:pointer}' +
       '#um-ideal .go[disabled]{background:#D7CEEC;cursor:default}' +
@@ -280,10 +285,16 @@ add_action( 'wp_head', function () {
       '<p class="dek">생년월일만 넣으면 됩니다. 상대는 없어도 돼요.<br>' +
       '나이 차이와 별자리와 띠를 사주로 뽑아 드립니다.</p>' +
       '<div class="ask">' +
-      '<input id="iy" type="number" inputmode="numeric" placeholder="1996">' +
-      '<input id="im" type="number" inputmode="numeric" placeholder="3">' +
-      '<input id="id" type="number" inputmode="numeric" placeholder="14"></div>' +
-      '<p class="mini" style="margin-top:8px">태어난 해 · 달 · 날. 시간은 안 물어봅니다.</p>' +
+      '<label class="fld"><span>태어난 해</span>' +
+      '<input id="iy" type="text" inputmode="numeric" pattern="[0-9]*" ' +
+      'maxlength="4" autocomplete="off" placeholder="1996"></label>' +
+      '<label class="fld"><span>달</span>' +
+      '<input id="im" type="text" inputmode="numeric" pattern="[0-9]*" ' +
+      'maxlength="2" autocomplete="off" placeholder="3"></label>' +
+      '<label class="fld"><span>날</span>' +
+      '<input id="id" type="text" inputmode="numeric" pattern="[0-9]*" ' +
+      'maxlength="2" autocomplete="off" placeholder="14"></label></div>' +
+      '<p class="mini" style="margin-top:9px">태어난 시간은 안 물어봅니다.</p>' +
       '<button class="go" id="igo">이상형 보기</button>' +
       '<p class="mini" style="margin-top:22px">넣으신 생년월일은 이 화면에서 계산에만 씁니다. ' +
       '서버에 올리지 않아요.</p>';
@@ -292,12 +303,32 @@ add_action( 'wp_head', function () {
   }
 
   function bind() {
+    /* 숫자만 받고, 다 채우면 다음 칸으로 넘어갑니다 */
+    var ids = ['#iy', '#im', '#id'], caps = [4, 2, 2], q;
+    for (q = 0; q < ids.length; q++) {
+      (function (n, cap, nextSel) {
+        if (!n) { return; }
+        n.addEventListener('input', function () {
+          var v = this.value.replace(/[^0-9]/g, '');
+          if (v !== this.value) { this.value = v; }
+          if (v.length >= cap) {
+            if (nextSel) {
+              var nx = root.querySelector(nextSel);
+              if (nx) { nx.focus(); }
+            }
+          }
+        });
+      }(root.querySelector(ids[q]), caps[q], ids[q + 1]));
+    }
     var b = root.querySelector('#igo');
     if (!b) { return; }
     b.addEventListener('click', function () {
-      var y = parseInt((root.querySelector('#iy') || {}).value, 10);
-      var m = parseInt((root.querySelector('#im') || {}).value, 10);
-      var d = parseInt((root.querySelector('#id') || {}).value, 10);
+      function num(sel) {
+        var n = root.querySelector(sel);
+        if (!n) { return 0; }
+        return parseInt(String(n.value).replace(/[^0-9]/g, ''), 10) || 0;
+      }
+      var y = num('#iy'), m = num('#im'), d = num('#id');
       var ok = true;
       if (!y) { ok = false; }
       if (!m) { ok = false; }
@@ -399,7 +430,56 @@ add_action( 'wp_head', function () {
     window.scrollTo(0, 0);
   }
 
+  /* 유앤미 어느 화면에서든 보이는 들어가는 길.
+     ⑥번이 다시 그려도 안 지워지도록 #um 바깥에 답니다. */
+  function doorway() {
+    if (document.getElementById('um-ideal-door')) { return; }
+    var um = document.getElementById('um');
+    if (!um) { return; }
+    var a = document.createElement('a');
+    a.id = 'um-ideal-door';
+    a.href = '/uandme/ideal/';
+    a.innerHTML =
+      '<img alt="" src="' + CHAR + '11.webp">' +
+      '<div class="tx">' +
+      '<div class="lb">혼자서도 볼 수 있어요</div>' +
+      '<div class="nm">나에게 맞는 이상형 그리기</div>' +
+      '<div class="dk">생일 하나로 나이 차이와 별자리와 띠를 뽑아 드립니다</div>' +
+      '</div>' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C82A6" ' +
+      'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="9 18 15 12 9 6"/></svg>';
+    um.parentNode.insertBefore(a, um.nextSibling);
+  }
+
+  function doorCss() {
+    if (document.getElementById('um-door-css')) { return; }
+    var s = document.createElement('style');
+    s.id = 'um-door-css';
+    s.textContent =
+      '#um-ideal-door{position:relative;overflow:hidden;display:flex;align-items:center;' +
+      'gap:12px;max-width:430px;margin:6px auto 0;padding:16px 16px 16px 14px;' +
+      'background:#F7F2FC;border-radius:16px;text-decoration:none;' +
+      "font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif}" +
+      '#um-ideal-door img{flex:0 0 62px;width:62px;height:62px;object-fit:contain}' +
+      '#um-ideal-door .tx{flex:1;min-width:0}' +
+      '#um-ideal-door .lb{font-size:10.5px;font-weight:700;color:#A79BC4}' +
+      '#um-ideal-door .nm{font-size:15.5px;font-weight:900;color:#3F3A52;' +
+      'letter-spacing:-.035em;margin-top:3px;word-break:keep-all}' +
+      '#um-ideal-door .dk{font-size:11.5px;color:#8C82A6;line-height:1.6;' +
+      'margin-top:4px;word-break:keep-all}';
+    document.head.appendChild(s);
+  }
+
   function boot() {
+    if (!window.UM_IDEAL_ON) {
+      /* 여기는 그냥 유앤미입니다. 들어가는 길만 달아 둡니다. */
+      doorCss();
+      doorway();
+      setTimeout(doorway, 1200);
+      setTimeout(doorway, 3000);
+      return;
+    }
     css();
     var um = document.getElementById('um');
     if (um) { um.style.display = 'none'; }
