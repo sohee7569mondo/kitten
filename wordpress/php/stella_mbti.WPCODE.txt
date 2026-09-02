@@ -311,6 +311,109 @@ add_action( 'init', function () {
   }
   };
 
+  /* ══ 지난 기록 ═══════════════════════════════════════════
+     이 브라우저에만 적어둡니다. 서버에 올리지 않습니다.
+     결과가 바뀔 때만 한 줄이 쌓입니다. 같은 결과가 또 나오면
+     날짜와 횟수만 고쳐 씁니다. 그래야 「변한 자리」만 남습니다. */
+  var LOGKEY = 'stella_lab_log';
+  function today(){
+    var d = new Date();
+    function p(n){ return (n < 10 ? '0' : '') + n; }
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function logRead(){
+    try{
+      var r = localStorage.getItem(LOGKEY);
+      if(!r){ return []; }
+      var a = JSON.parse(r);
+      return (a instanceof Array) ? a : [];
+    }catch(e){ return []; }
+  }
+  function logWrite(a){
+    try{ localStorage.setItem(LOGKEY, JSON.stringify(a.slice(-60))); }catch(e){}
+  }
+  function logLast(t){
+    var a = logRead(), i;
+    for(i=a.length-1;i>=0;i--){ if(a[i].t === t){ return a[i]; } }
+    return null;
+  }
+  function logAdd(t, r){
+    var a = logRead(), last = null, i;
+    for(i=a.length-1;i>=0;i--){ if(a[i].t === t){ last = a[i]; break; } }
+    if(last){ if(last.r === r){
+      last.l = today();
+      last.n = (last.n || 1) + 1;
+      logWrite(a);
+      return null;
+    } }
+    a.push({ t:t, r:r, d:today(), l:today(), n:1 });
+    logWrite(a);
+    return last;
+  }
+  function logOf(t){
+    var a = logRead(), o = [], i;
+    for(i=0;i<a.length;i++){ if(a[i].t === t){ o.push(a[i]); } }
+    return o;
+  }
+
+  /* 네 축을 쉬운 말로 — 무엇이 바뀌었는지 적을 때 씁니다 */
+  var AXWORD = {
+    'E':'밖에서 기운을 얻는 쪽', 'I':'안에서 기운을 얻는 쪽',
+    'S':'눈에 보이는 것을 보는 쪽', 'N':'떠오르는 것을 보는 쪽',
+    'T':'옳은 쪽을 먼저 보는 쪽', 'F':'마음 쪽을 먼저 보는 쪽',
+    'J':'미리 정해두는 쪽', 'P':'그때 가서 정하는 쪽'
+  };
+  function axisChange(oldT, newT){
+    var i, out = [];
+    for(i=0;i<4;i++){
+      if(oldT.charAt(i) === newT.charAt(i)){ continue; }
+      out.push('<div class="li">' + AXWORD[oldT.charAt(i)] + '이었는데, 지금은 ' +
+        AXWORD[newT.charAt(i)] + '이에요.</div>');
+    }
+    return out.join('');
+  }
+  function changeCard(t, prev, now){
+    if(!prev){ return ''; }
+    var h = '<div class="card" style="background:#FFF6EE">' +
+      '<div class="h3" style="margin-top:0;color:#B5734A">달라졌어요</div>' +
+      '<div class="mini" style="margin-bottom:8px">' + prev.d +
+      ( (prev.l !== prev.d) ? (' ~ ' + prev.l) : '' ) +
+      ' 에는 <b>' + prev.r + '</b> 였습니다' +
+      ( (prev.n > 1) ? (' · ' + prev.n + '번') : '' ) + '</div>';
+    if(TESTS[t].kind === 'axis'){
+      h += axisChange(prev.r, now);
+    } else {
+      var a = TESTS[t].out[prev.r], b = TESTS[t].out[now];
+      if(a){ if(b){
+        h += '<div class="li">' + a[0] + ' 에서 ' + b[0] + ' 으로 옮겨왔어요.</div>';
+      } }
+    }
+    h += '<div class="mini" style="margin-top:8px">사람은 바뀝니다. 어느 쪽이 더 낫다는 뜻은 아니에요.</div></div>';
+    return h;
+  }
+  function logCard(){
+    var a = logRead();
+    if(a.length < 1){ return ''; }
+    var h = '<div class="card"><div class="h3" style="margin-top:0">내 기록</div>', k, i, list;
+    for(k in TESTS){
+      if(!Object.prototype.hasOwnProperty.call(TESTS, k)){ continue; }
+      list = logOf(k);
+      if(!list.length){ continue; }
+      h += '<div class="lbl" style="margin-top:12px">' + TESTS[k].name + '</div>';
+      for(i=0;i<list.length;i++){
+        h += '<div class="row"><i>' + list[i].d + '</i><em>' + list[i].r +
+          ( (list[i].n > 1) ? (' <span class="mini">· ' + list[i].n + '번</span>') : '' ) +
+          '</em>' +
+          ( (i === list.length - 1) ? '<span class="tag same">지금</span>' : '<span class="tag diff">그때</span>' ) +
+          '</div>';
+      }
+    }
+    h += '<div class="mini" style="margin-top:14px">이 기록은 이 브라우저에만 있습니다. ' +
+      '서버에 올리지 않아요. 그래서 브라우저 기록을 지우면 같이 지워집니다.</div>' +
+      '<button class="ghost" id="wipe" style="margin-top:10px">기록 지우기</button></div>';
+    return h;
+  }
+
   var app = document.getElementById('app');
   var me = ['E','S','T','J'], you = ['I','N','F','P'];
 
@@ -380,8 +483,14 @@ add_action( 'init', function () {
     }
     h += tile('/mbti/', '네 글자 둘', 'MBTI 궁합', '잘 맞는 점과 주의할 점을 같이 알려드립니다.') +
       tile('/uandme/', '생일 둘', '사주 궁합 · 유앤미', '사주와 별자리와 띠를 함께 봅니다. 연예인과도 볼 수 있어요.') +
+      logCard() +
       '<a class="foot" href="/"><b>스텔라사주</b>내 사주 제대로 읽어보기</a>';
     app.innerHTML = h;
+    var w = app.querySelector('#wipe');
+    if(w){ w.addEventListener('click', function(){
+      try{ localStorage.removeItem(LOGKEY); }catch(e){}
+      labHome();
+    }); }
     window.scrollTo(0, 0);
   }
 
@@ -445,10 +554,12 @@ add_action( 'init', function () {
     return best;
   }
 
-  function showOut(win){
-    var o = T.out[win], i;
+  function showOut(win, quiet){
+    var o = T.out[win], i, prev = null;
+    if(!quiet){ prev = logAdd(tkey, win); }
     var h = '<h1>' + o[0] + '</h1>' +
       '<p class="dek">' + T.name + '</p>' +
+      ( prev ? changeCard(tkey, prev, win) : '' ) +
       '<div class="card"><div class="h3" style="margin-top:0">어떤 사람인가</div>' +
       '<div class="li">' + o[1] + '</div>' +
       '<div class="h3">이를테면</div><div class="li">' + o[2] + '</div>' +
@@ -461,7 +572,8 @@ add_action( 'init', function () {
       '<button class="ghost" id="copy">이 결과 링크 복사하기</button>' +
       '<a class="ghost" href="/lab/" style="display:block;text-align:center;' +
       'text-decoration:none;line-height:1.5">스텔라 랩으로</a>' +
-      '<p class="mini" style="margin-top:16px">짧은 검사예요. 그날 기분에 따라 다르게 나오기도 합니다. 가볍게 참고만 해주세요.</p>';
+      '<p class="mini" style="margin-top:16px">짧은 검사예요. 그날 기분에 따라 다르게 나오기도 합니다. ' +
+      '그 달라지는 모습이 재미있어서 <a href="/lab/" style="color:#8C82A6">지난 기록</a>을 남겨둡니다.</p>';
     app.innerHTML = h;
     try{ history.replaceState(null, '', '/lab/' + tkey + '/' + encodeURIComponent(win)); }catch(e){}
     app.querySelector('#re').addEventListener('click', function(){ startTest(tkey); });
@@ -478,14 +590,17 @@ add_action( 'init', function () {
     for(i=0;i<4;i++){ out += (ax[i] >= 0) ? AX[i][0] : AX[i][1]; }
     me = out.split('');
     try{ localStorage.setItem('stella_mbti_me', out); }catch(e2){}
+    var prev = logAdd(tkey, out);
     app.innerHTML = '<h1>' + out + '</h1>' +
       '<p class="dek">이 유형으로 궁합을 보시겠어요? 「나」 칸에 저절로 채워집니다.</p>' +
+      ( prev ? changeCard(tkey, prev, out) : '' ) +
       '<a class="big" href="/mbti/" style="display:block;text-align:center;' +
       'text-decoration:none;line-height:1.5">이 유형으로 궁합 보기</a>' +
       '<button class="ghost" id="re">다시 검사하기</button>' +
       '<a class="ghost" href="/lab/" style="display:block;text-align:center;' +
       'text-decoration:none;line-height:1.5">스텔라 랩으로</a>' +
-      '<p class="mini" style="margin-top:16px">열여섯 문항짜리 간이 검사예요. 정식 검사보다 짧아서 다르게 나올 수도 있습니다.</p>';
+      '<p class="mini" style="margin-top:16px">열여섯 문항짜리 간이 검사예요. 정식 검사보다 짧아서 다르게 나올 수도 있습니다. ' +
+      '지난번 결과는 <a href="/lab/" style="color:#8C82A6">스텔라 랩</a>에 남아 있어요.</p>';
     app.querySelector('#re').addEventListener('click', function(){ startTest(tkey); });
     window.scrollTo(0, 0);
   }
@@ -526,7 +641,7 @@ add_action( 'init', function () {
   if(MODE === 'test'){
     if(!TESTS[TID]){ labHome(); return; }
     if(RES){ if(TESTS[TID].out){ if(TESTS[TID].out[RES]){
-      T = TESTS[TID]; tkey = TID; showOut(RES); return;
+      T = TESTS[TID]; tkey = TID; showOut(RES, 1); return;
     } } }
     startTest(TID);
     return;
