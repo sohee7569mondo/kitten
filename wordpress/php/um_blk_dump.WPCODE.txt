@@ -1,0 +1,65 @@
+/* 스텔라 · 전자책 조각 떼어 보기  (관리자만 · 보고 나면 지우세요)
+
+   전자책(160)은 937KB 라 한 번에 못 읽습니다. 조각 하나만 골라
+   밑글(초안) 여러 개에 나눠 담아 두면 제가 그것만 읽어갑니다.
+
+   WPCode → 새 스니펫 → PHP Snippet → Auto Insert →
+   Run Everywhere → 저장 → Active
+
+   여는 곳 : https://stellasaju.com/um-blk/14/     ← 성좌의 신(달자리)
+
+   담기는 곳 : 페이지 목록의 「STELLA 14-1」, 「STELLA 14-2」 …
+               전부 초안이라 손님에게는 안 보입니다.
+               다 쓰고 나면 지우시면 됩니다. */
+
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/um-blk' ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	$want = 14;
+	if ( preg_match( '#/um-blk/([0-9]{1,2})#', $uri, $m ) ) { $want = intval( $m[1] ); }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.7 system-ui;background:#111;color:#eee;padding:20px">';
+
+	$page = get_post( 160 );
+	if ( ! $page ) { echo '160번 페이지가 없습니다.'; exit; }
+
+	$all  = parse_blocks( $page->post_content );
+	$list = array();
+	foreach ( $all as $b ) {
+		if ( empty( $b['blockName'] ) ) { continue; }
+		$list[] = $b;
+	}
+
+	echo '<h1 style="color:#ffd76a;font-size:19px">전자책 조각 ' . count( $list ) . '개</h1>';
+
+	if ( ! isset( $list[ $want ] ) ) { echo $want . '번 조각이 없습니다.'; exit; }
+
+	$src = (string) $list[ $want ]['innerHTML'];
+	$len = strlen( $src );
+	$cut = 30000;
+	$cnt = intval( ceil( $len / $cut ) );
+
+	echo '<p>' . $want . '번 조각 : <b>' . number_format( $len ) . '</b> 바이트 · 밑글 ' . $cnt . '개로 나눕니다</p>';
+
+	for ( $i = 0; $i < $cnt; $i++ ) {
+		$slug = 'stella-blk' . $want . '-' . ( $i + 1 );
+		$args = array(
+			'post_title'   => 'STELLA ' . $want . '-' . ( $i + 1 ),
+			'post_name'    => $slug,
+			'post_type'    => 'page',
+			'post_status'  => 'draft',
+			'post_content' => base64_encode( substr( $src, $i * $cut, $cut ) ),
+		);
+		$old = get_page_by_path( $slug, OBJECT, 'page' );
+		if ( $old ) { $args['ID'] = $old->ID; wp_update_post( $args ); $id = $old->ID; }
+		else { $id = wp_insert_post( $args ); }
+		echo '<p style="color:#9fd">' . esc_html( $slug ) . ' · 글번호 ' . intval( $id ) . '</p>';
+	}
+
+	echo '<p style="color:#888;margin-top:16px">다 담았습니다. 이제 제가 읽어가겠습니다.</p>';
+	exit;
+} );
