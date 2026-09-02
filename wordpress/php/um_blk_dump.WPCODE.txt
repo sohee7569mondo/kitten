@@ -40,7 +40,7 @@ add_action( 'init', function () {
 	   반드시 여기서 뽑은 글자를 씁니다. */
 	if ( $find ) {
 		$src  = $page->post_content;
-		$needs = array( 'saySide', 'AXES', 'QLABEL', 'AXNAME' );
+		$needs = array( 'function saySide', 'function sideWord', 'function axTitle', '정리하면 —' );
 		echo '<h1 style="color:#ffd76a;font-size:19px">고칠 자리 찾기</h1>';
 		foreach ( $needs as $n ) {
 			$at = 0;
@@ -50,13 +50,16 @@ add_action( 'init', function () {
 				$at = strpos( $src, $n, $at );
 				if ( false === $at ) { break; }
 				$hit++;
-				$from = max( 0, $at - 260 );
-				$cut  = substr( $src, $from, 1100 );
+				$from = max( 0, $at - 300 );
+				$cut  = substr( $src, $from, 1900 );
+				/* 바이트로 자르면 한글 한 글자가 중간에서 잘려 통째로 버려집니다.
+				   깨진 조각을 걷어내고 나서 씁니다. */
+				$cut  = mb_convert_encoding( $cut, 'UTF-8', 'UTF-8' );
 				$cut  = str_replace( array( "\r\n", "\n", "\r" ), array( '[CRLF]', '[LF]', '[CR]' ), $cut );
 				echo '<p style="color:#888;font-size:12px;margin:12px 0 3px">' . $hit . '번째 · ' . number_format( $at ) . '바이트</p>';
 				echo '<pre translate="no" class="notranslate" style="white-space:pre-wrap;word-break:break-all;background:#1c1c1c;padding:10px;font-size:12px;line-height:1.6">' . esc_html( $cut ) . '</pre>';
 				$at = $at + 1;
-				if ( $hit >= 3 ) { break; }
+				if ( $hit >= 2 ) { break; }
 			}
 			if ( ! $hit ) { echo '<p style="color:#f88">못 찾았습니다.</p>'; }
 		}
