@@ -1,4 +1,4 @@
-/* ═══ 계산 다섯 장을 부록으로 뒤로 보냅니다 ═══  APPX-1  2026-09-02
+/* ═══ 계산 다섯 장을 부록으로 뒤로 보냅니다 ═══  APPX-2  2026-09-02
    손님은 자기 이야기를 보러 오는데 여덟 번째 장까지 가야 나옵니다.
    그 앞 다섯 장이 전부 계산 설명입니다 — 진태양시 · 원국 · 오행 ·
    대운 · 태어나던 밤의 하늘. 친구분들이 어렵다고 한 자리가 여기입니다.
@@ -23,8 +23,11 @@
       if(String(location.hash).indexOf(GATE)<0){ return; }
     }
 
+    /* 접는 조각이 일을 마친 뒤에 손댑니다 */
+    if(box.getAttribute('data-folded')!=='1'){ return; }
+
     var pages=[].slice.call(box.getElementsByClassName('page'));
-    if(pages.length<8){ return; }
+    if(pages.length<6){ return; }
 
     /* 1부가 시작하는 자리를 찾습니다 */
     var i, eb, at=-1;
