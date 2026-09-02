@@ -1,0 +1,132 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 ④ · 카드 그림  (아주 작은 판 · 5KB)
+
+   ④번을 켜면 유앤미 화면이 가려지는 일이 있어, 무엇이 문제인지
+   가려내려고 뼈대만 남겼습니다.
+
+   · 함수를 하나도 만들지 않습니다 (전부 안쪽에서 처리)
+   · 훅은 하나뿐이고, /um-card/ 로 들어올 때만 깨어납니다
+   · 글꼴은 이미 받아 둔 파일을 그대로 씁니다
+
+   붙여넣기 : WPCode → ④번을 이 내용으로 갈아끼우기 → 저장 → Active
+
+   확인 ① https://stellasaju.com/uandme/          ← 화면이 살아 있나
+   확인 ② https://stellasaju.com/um-card/63-lover-30-12-24
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/um-card/' ) ) { return; }
+	if ( ! preg_match( '#/um-card/([0-9]{1,2})-([a-z_]{2,14})-([0-9]{1,2})-([0-9]{1,2})-([0-9]{1,2})#', $uri, $m ) ) { return; }
+
+	$score = max( 0, min( 99, intval( $m[1] ) ) );
+	$rel   = $m[2];
+	$a     = max( 0, min( 40, intval( $m[3] ) ) );
+	$b     = max( 0, min( 30, intval( $m[4] ) ) );
+	$c     = max( 0, min( 30, intval( $m[5] ) ) );
+
+	$relko = array(
+		'lover' => '연인', 'married' => '부부', 'friend' => '친구',
+		'sibling' => '형제자매', 'parent_child' => '부모와 자녀',
+		'boss_sub' => '상사와 부하', 'partner' => '동업자',
+	);
+	$ko = isset( $relko[ $rel ] ) ? $relko[ $rel ] : '연인';
+
+	if ( $score >= 95 )      { $tier = '천생연분'; }
+	else if ( $score >= 90 ) { $tier = '완전 찰떡궁합'; }
+	else if ( $score >= 80 ) { $tier = '환상의 케미'; }
+	else if ( $score >= 70 ) { $tier = '좋은 궁합'; }
+	else if ( $score >= 60 ) { $tier = '무난한 사이'; }
+	else if ( $score >= 50 ) { $tier = '노력형 궁합'; }
+	else if ( $score >= 40 ) { $tier = '위태위태'; }
+	else if ( $score >= 30 ) { $tier = '친구가 나을지도'; }
+	else if ( $score >= 20 ) { $tier = '재고요망'; }
+	else                     { $tier = '이번 생은 예능감'; }
+
+	$up   = wp_upload_dir();
+	$font = $up['basedir'] . '/uandme/jua.ttf';
+	if ( ! file_exists( $font ) ) { $font = ''; }
+
+	$W = 800; $H = 400; $S = 2;
+	$im = imagecreatetruecolor( $W * $S, $H * $S );
+	imagealphablending( $im, true );
+	imagesavealpha( $im, true );
+
+	for ( $y = 0; $y < $H * $S; $y++ ) {
+		$q   = $y / ( $H * $S - 1 );
+		$col = imagecolorallocate( $im,
+			intval( 246 + 6 * $q ), intval( 241 - 3 * $q ), intval( 253 - 7 * $q ) );
+		imagefilledrectangle( $im, 0, $y, $W * $S, $y, $col );
+	}
+
+	$ink   = imagecolorallocate( $im, 63, 58, 82 );
+	$pur   = imagecolorallocate( $im, 107, 91, 168 );
+	$soft  = imagecolorallocate( $im, 167, 155, 196 );
+	$sub   = imagecolorallocate( $im, 124, 115, 146 );
+	$white = imagecolorallocate( $im, 255, 255, 255 );
+	$ring0 = imagecolorallocate( $im, 238, 232, 250 );
+	$ring1 = imagecolorallocate( $im, 200, 174, 236 );
+	$ring2 = imagecolorallocate( $im, 245, 178, 205 );
+
+	/* 둥근 흰 판 */
+	$x1 = 24 * $S; $y1 = 22 * $S; $x2 = 776 * $S; $y2 = 378 * $S; $r = 30 * $S;
+	imagefilledrectangle( $im, $x1 + $r, $y1, $x2 - $r, $y2, $white );
+	imagefilledrectangle( $im, $x1, $y1 + $r, $x2, $y2 - $r, $white );
+	imagefilledellipse( $im, $x1 + $r, $y1 + $r, $r * 2, $r * 2, $white );
+	imagefilledellipse( $im, $x2 - $r, $y1 + $r, $r * 2, $r * 2, $white );
+	imagefilledellipse( $im, $x1 + $r, $y2 - $r, $r * 2, $r * 2, $white );
+	imagefilledellipse( $im, $x2 - $r, $y2 - $r, $r * 2, $r * 2, $white );
+
+	/* 도넛 */
+	$cx = 156 * $S; $cy = 200 * $S; $d = 208 * $S;
+	imagefilledellipse( $im, $cx, $cy, $d, $d, $ring0 );
+	$deg = intval( 360 * $score / 100 );
+	if ( $deg > 0 ) {
+		$half = intval( $deg / 2 );
+		imagefilledarc( $im, $cx, $cy, $d, $d, -90, -90 + $half, $ring1, IMG_ARC_PIE );
+		if ( $deg > $half ) {
+			imagefilledarc( $im, $cx, $cy, $d, $d, -90 + $half, -90 + $deg, $ring2, IMG_ARC_PIE );
+		}
+	}
+	imagefilledellipse( $im, $cx, $cy, 148 * $S, 148 * $S, $white );
+
+	if ( $font ) {
+		$put = function ( $size, $x, $y, $text, $col, $center ) use ( $im, $font, $S ) {
+			$bx = imagettfbbox( $size * $S, 0, $font, $text );
+			$w  = $bx[2] - $bx[0];
+			$px = $center ? intval( $x * $S - $w / 2 ) : intval( $x * $S );
+			imagettftext( $im, $size * $S, 0, $px, $y * $S, $col, $font, $text );
+		};
+		$put( 68, 156, 214, (string) $score, $pur, true );
+		$put( 17, 156, 246, '점', $soft, true );
+		$put( 21, 300, 74,  $ko . ' 궁합', $sub, false );
+		$put( 44, 300, 136, $tier, $ink, false );
+		$put( 20, 300, 200, '사주 ' . $a . ' / 40', $sub, false );
+		$put( 20, 300, 246, '별자리 ' . $b . ' / 30', $sub, false );
+		$put( 20, 300, 292, '띠 ' . $c . ' / 30', $sub, false );
+		$put( 15, 300, 344, 'stellasaju.com/uandme', $soft, false );
+	}
+
+	$out = imagecreatetruecolor( $W, $H );
+	imagealphablending( $out, false );
+	imagesavealpha( $out, true );
+	imagecopyresampled( $out, $im, 0, 0, 0, 0, $W, $H, $W * $S, $H * $S );
+	imagedestroy( $im );
+
+	ob_start();
+	imagepng( $out );
+	imagedestroy( $out );
+	$png = ob_get_clean();
+
+	$dir = $up['basedir'] . '/uandme/card';
+	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
+	$file = $dir . '/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c . '.png';
+	if ( ! file_exists( $file ) ) { @file_put_contents( $file, $png ); }
+
+	header( 'Content-Type: image/png' );
+	header( 'Content-Length: ' . strlen( $png ) );
+	header( 'Cache-Control: public, max-age=604800' );
+	echo $png;
+	exit;
+} );
