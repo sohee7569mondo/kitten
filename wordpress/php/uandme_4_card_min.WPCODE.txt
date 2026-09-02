@@ -1,15 +1,21 @@
 /* 유앤미 ④ · 카드 그림
    WPCode → ④번을 이 내용으로 갈아끼우기 → 저장 → Active
    확인 ① https://stellasaju.com/uandme/
-   확인 ② https://stellasaju.com/um-card/12-lover-6-3-3
-   확인 ③ https://stellasaju.com/um-card/12-lover-6-3-3-A-B/소희/정호
+   확인 ② https://stellasaju.com/um-card/63-lover-30-12-24
+   확인 ③ https://stellasaju.com/um-card/63-lover-30-12-24-A-B/소희/정호
 
-   2026-09-02 · 두 사람 이름을 카드에 싣습니다.
+   2026-09-02 밤 · 카드를 다시 그렸습니다.
+   · 왼쪽에 연보라 판을 깔고 도넛을 그 위에 올립니다 (두 칸으로 나뉜 카드)
+   · 도넛 고리에 보라에서 분홍, 살구로 이어지는 그러데이션을 넣습니다
+   · 두 사람 이름은 알약 모양 칸에
+   · 「그럼 너랑 나는?」은 눌러보고 싶은 보라 단추 모양으로
+   · 흰 판 아래에 옅은 그림자
+   · 오른쪽 아래에 캐릭터
+   · 이름 칸과 문구 사이를 벌렸습니다
+
    이름은 주소의 뒷칸으로 옵니다 — /um-card/<점수칸>/소희/정호
    주소 표준 그대로라서 풀어낼 것이 따로 없습니다.
-   (예전에 이름을 실으려다 접었던 것은 이름을 한 덩어리로 싸서
-    보냈기 때문입니다. 이번에는 싸지 않습니다.)
-   이름이 없으면 예전과 똑같은 카드가 나옵니다. */
+   이름이 없으면 이름 칸만 빠지고 나머지는 그대로입니다. */
 
 if ( ! function_exists( 'stella_um_card_name' ) ) {
 	/* 한글·영문·숫자만 남기고 여섯 자까지. 그 밖은 전부 버립니다. */
@@ -41,7 +47,7 @@ add_action( 'init', function () {
 	$n1  = isset( $m[7] ) ? stella_um_card_name( $m[7] ) : '';
 	$n2  = isset( $m[8] ) ? stella_um_card_name( $m[8] ) : '';
 	$who = '';
-	if ( '' !== $n1 ) { if ( '' !== $n2 ) { $who = $n1 . '   X   ' . $n2; } }
+	if ( '' !== $n1 ) { if ( '' !== $n2 ) { $who = $n1 . '  X  ' . $n2; } }
 
 	$M = array(
 		array( 95, '전생에 나라를 구했네|{n}점;이건 하늘이 한 일|{n}점;놓치면 후회할|{n}점' ),
@@ -74,43 +80,108 @@ add_action( 'init', function () {
 	imagealphablending( $im, true );
 	imagesavealpha( $im, true );
 
-	for ( $y = 0; $y < $H * $S; $y++ ) {
-		$q   = $y / ( $H * $S - 1 );
-		$col = imagecolorallocate( $im,
-			intval( 246 + 6 * $q ), intval( 241 - 3 * $q ), intval( 253 - 7 * $q ) );
-		imagefilledrectangle( $im, 0, $y, $W * $S, $y, $col );
+	/* ── 바탕 · 왼쪽 위 연보라에서 오른쪽 아래 살구로 ────────── */
+	$WS = $W * $S; $HS = $H * $S;
+	for ( $y = 0; $y < $HS; $y++ ) {
+		for ( $x = 0; $x < $WS; $x += 8 ) {
+			$q = ( $x / $WS + $y / $HS ) / 2;
+			if ( $q < 0.5 ) {
+				$t = $q / 0.5;
+				$rr = 246 + ( 253 - 246 ) * $t;
+				$gg = 241 + ( 240 - 241 ) * $t;
+				$bb = 253 + ( 246 - 253 ) * $t;
+			} else {
+				$t = ( $q - 0.5 ) / 0.5;
+				$rr = 253 + ( 255 - 253 ) * $t;
+				$gg = 240 + ( 243 - 240 ) * $t;
+				$bb = 246 + ( 236 - 246 ) * $t;
+			}
+			$col = imagecolorallocate( $im, intval( $rr ), intval( $gg ), intval( $bb ) );
+			imagefilledrectangle( $im, $x, $y, $x + 8, $y, $col );
+		}
 	}
 
 	$ink   = imagecolorallocate( $im, 63, 58, 82 );
 	$pur   = imagecolorallocate( $im, 107, 91, 168 );
 	$soft  = imagecolorallocate( $im, 167, 155, 196 );
-	$sub   = imagecolorallocate( $im, 124, 115, 146 );
 	$white = imagecolorallocate( $im, 255, 255, 255 );
-	$ring0 = imagecolorallocate( $im, 238, 232, 250 );
-	$ring1 = imagecolorallocate( $im, 200, 174, 236 );
-	$ring2 = imagecolorallocate( $im, 245, 178, 205 );
+	$panel = imagecolorallocate( $im, 247, 243, 253 );
+	$track = imagecolorallocate( $im, 233, 225, 248 );
+	$chipbg = imagecolorallocate( $im, 243, 236, 255 );
+	$sh1    = imagecolorallocatealpha( $im, 120, 100, 160, 123 );
+	$sh2    = imagecolorallocatealpha( $im, 120, 100, 160, 121 );
+	$sh3    = imagecolorallocatealpha( $im, 120, 100, 160, 119 );
 
-	/* 둥근 흰 판 */
-	$x1 = 24 * $S; $y1 = 22 * $S; $x2 = 776 * $S; $y2 = 378 * $S; $r = 30 * $S;
-	imagefilledrectangle( $im, $x1 + $r, $y1, $x2 - $r, $y2, $white );
-	imagefilledrectangle( $im, $x1, $y1 + $r, $x2, $y2 - $r, $white );
-	imagefilledellipse( $im, $x1 + $r, $y1 + $r, $r * 2, $r * 2, $white );
-	imagefilledellipse( $im, $x2 - $r, $y1 + $r, $r * 2, $r * 2, $white );
-	imagefilledellipse( $im, $x1 + $r, $y2 - $r, $r * 2, $r * 2, $white );
-	imagefilledellipse( $im, $x2 - $r, $y2 - $r, $r * 2, $r * 2, $white );
+	/* 둥근 네모 그리기 */
+	$rr = function ( $x1, $y1, $x2, $y2, $r, $col ) use ( $im, $S ) {
+		$x1 *= $S; $y1 *= $S; $x2 *= $S; $y2 *= $S; $r *= $S;
+		imagefilledrectangle( $im, $x1 + $r, $y1, $x2 - $r, $y2, $col );
+		imagefilledrectangle( $im, $x1, $y1 + $r, $x2, $y2 - $r, $col );
+		imagefilledellipse( $im, $x1 + $r, $y1 + $r, $r * 2, $r * 2, $col );
+		imagefilledellipse( $im, $x2 - $r, $y1 + $r, $r * 2, $r * 2, $col );
+		imagefilledellipse( $im, $x1 + $r, $y2 - $r, $r * 2, $r * 2, $col );
+		imagefilledellipse( $im, $x2 - $r, $y2 - $r, $r * 2, $r * 2, $col );
+	};
 
-	/* 도넛 */
-	$cx = 156 * $S; $cy = 200 * $S; $d = 208 * $S;
-	imagefilledellipse( $im, $cx, $cy, $d, $d, $ring0 );
+	/* 흰 판 아래 옅은 그림자 — 세 겹으로 부드럽게 */
+	$rr( 22, 24, 782, 394, 40, $sh1 );
+	$rr( 24, 23, 780, 391, 38, $sh2 );
+	$rr( 26, 22, 778, 388, 36, $sh3 );
+	/* 흰 판 */
+	$rr( 20, 18, 780, 382, 36, $white );
+	/* 왼쪽 연보라 칸 — 오른쪽 모서리는 각지게 */
+	$rr( 20, 18, 300, 382, 36, $panel );
+	imagefilledrectangle( $im, 264 * $S, 18 * $S, 300 * $S, 382 * $S, $panel );
+
+	/* ── 도넛 · 보라에서 분홍, 살구로 ─────────────────────── */
+	$cx = 160 * $S; $cy = 200 * $S; $d = 212 * $S;
+	imagefilledellipse( $im, $cx, $cy, $d, $d, $track );
 	$deg = intval( 360 * $score / 100 );
 	if ( $deg > 0 ) {
-		$half = intval( $deg / 2 );
-		imagefilledarc( $im, $cx, $cy, $d, $d, -90, -90 + $half, $ring1, IMG_ARC_PIE );
-		if ( $deg > $half ) {
-			imagefilledarc( $im, $cx, $cy, $d, $d, -90 + $half, -90 + $deg, $ring2, IMG_ARC_PIE );
+		for ( $i = 0; $i < $deg; $i++ ) {
+			$q = ( $deg > 1 ) ? ( $i / ( $deg - 1 ) ) : 0;
+			if ( $q < 0.5 ) {
+				$t  = $q / 0.5;
+				$cr = 195 + ( 244 - 195 ) * $t;
+				$cg = 178 + ( 185 - 178 ) * $t;
+				$cb = 240 + ( 212 - 240 ) * $t;
+			} else {
+				$t  = ( $q - 0.5 ) / 0.5;
+				$cr = 244 + ( 255 - 244 ) * $t;
+				$cg = 185 + ( 203 - 185 ) * $t;
+				$cb = 212 + ( 168 - 212 ) * $t;
+			}
+			$seg = imagecolorallocate( $im, intval( $cr ), intval( $cg ), intval( $cb ) );
+			imagefilledarc( $im, $cx, $cy, $d, $d, -90 + $i, -90 + $i + 2, $seg, IMG_ARC_PIE );
 		}
 	}
-	imagefilledellipse( $im, $cx, $cy, 148 * $S, 148 * $S, $white );
+	imagefilledellipse( $im, $cx, $cy, 152 * $S, 152 * $S, $white );
+
+	/* ── 캐릭터 · 오른쪽 아래에 세웁니다 ──────────────────────
+	   그림이 없으면 그냥 건너뜁니다. 카드는 그대로 나옵니다. */
+	$pic   = '';
+	$cands = array(
+		'/2026/09/uandme_cha-02-300px.png',
+		'/2026/08/animal-01-300px.png',
+	);
+	foreach ( $cands as $one ) {
+		if ( file_exists( $up['basedir'] . $one ) ) { $pic = $up['basedir'] . $one; break; }
+	}
+	if ( $pic ) {
+		$src = @imagecreatefrompng( $pic );
+		if ( $src ) {
+			imagealphablending( $src, true );
+			$sw = imagesx( $src ); $sh = imagesy( $src );
+			if ( $sw > 0 ) { if ( $sh > 0 ) {
+				$th = 152;
+				$tw = intval( $sw * $th / $sh );
+				$dx = intval( ( 770 - $tw ) * $S );
+				$dy = intval( ( 380 - $th ) * $S );
+				imagecopyresampled( $im, $src, $dx, $dy, 0, 0, $tw * $S, $th * $S, $sw, $sh );
+			} }
+			imagedestroy( $src );
+		}
+	}
 
 	if ( $font ) {
 		$put = function ( $size, $x, $y, $text, $col, $center ) use ( $im, $font, $S ) {
@@ -119,14 +190,35 @@ add_action( 'init', function () {
 			$px = $center ? intval( $x * $S - $w / 2 ) : intval( $x * $S );
 			imagettftext( $im, $size * $S, 0, $px, $y * $S, $col, $font, $text );
 		};
-		$put( 68, 156, 214, (string) $score, $pur, true );
-		$put( 17, 156, 246, '점', $soft, true );
-		/* 두 사람 이름 — 있을 때만 문구 위에 한 줄 */
-		if ( '' !== $who ) { $put( 21, 300, 108, $who, $pur, false ); }
-		$put( 36, 300, 152, $r1, $ink, false );
-		$put( 36, 300, 204, $r2, $ink, false );
-		$put( 24, 300, 296, '그럼 너랑 나는?', $pur, false );
-		$put( 16, 300, 344, 'stellasaju.com/uandme', $soft, false );
+		$wid = function ( $size, $text ) use ( $font, $S ) {
+			$bx = imagettfbbox( $size * $S, 0, $font, $text );
+			return ( $bx[2] - $bx[0] ) / $S;
+		};
+
+		/* 점수 */
+		$put( 70, 160, 218, (string) $score, $pur, true );
+		$put( 16, 160, 250, '점', $soft, true );
+
+		$x0 = 312;
+
+		/* 두 사람 이름 — 알약 칸 */
+		if ( '' !== $who ) {
+			$w = $wid( 18, $who );
+			$rr( $x0, 54, $x0 + $w + 30, 90, 18, $chipbg );
+			$put( 18, $x0 + 15, 78, $who, $pur, false );
+		}
+
+		/* 문구 */
+		$put( 37, $x0, 172, $r1, $ink, false );
+		$put( 37, $x0, 222, $r2, $ink, false );
+
+		/* 「그럼 너랑 나는?」 단추 */
+		$cta = '그럼 너랑 나는?';
+		$w2  = $wid( 21, $cta );
+		$rr( $x0, 262, $x0 + $w2 + 44, 308, 23, $pur );
+		$put( 21, $x0 + 22, 292, $cta, $white, false );
+
+		$put( 15, $x0, 344, 'stellasaju.com/uandme', $soft, false );
 	}
 
 	$out = imagecreatetruecolor( $W, $H );
@@ -143,7 +235,7 @@ add_action( 'init', function () {
 	$dir = $up['basedir'] . '/uandme/card';
 	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
 	$file = $dir . '/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c . $tag . '.png';
-	if ( ! file_exists( $file ) ) { @file_put_contents( $file, $png ); }
+	@file_put_contents( $file, $png );
 
 	header( 'Content-Type: image/png' );
 	header( 'Content-Length: ' . strlen( $png ) );
