@@ -148,6 +148,20 @@ add_action( 'wp_head', function () {
     }
   };
 
+  /* 별자리가 언제부터 언제까지인지 — 「쌍둥이자리? 그게 언제지?」 안 찾게 */
+  var SIGN_DAY = ['3.21~4.19','4.20~5.20','5.21~6.21','6.22~7.22',
+                  '7.23~8.22','8.23~9.22','9.23~10.23','10.24~11.22',
+                  '11.23~12.21','12.22~1.19','1.20~2.18','2.19~3.20'];
+
+  /* 그 띠가 몇 년생인지 — 내 나이 언저리로 두세 해만 보여줍니다 */
+  function yearsOf(ji, myYear) {
+    var out = [], y;
+    for (y = myYear - 14; y <= myYear + 14; y++) {
+      if (((y - 4) % 12 + 12) % 12 === ji) { out.push(y); }
+    }
+    return out.join(' · ') + '년생';
+  }
+
   /* 별자리 성질 한 줄 */
   var SIGN_ONE = ['앞장서고 시원시원한','한결같고 감각 좋은','말이 재미있는','정이 깊은',
                   '자신감 있고 너그러운','꼼꼼하고 다정한','균형을 잘 잡는','속이 깊고 진한',
@@ -253,6 +267,14 @@ add_action( 'wp_head', function () {
       'border-radius:12px;padding:15px 16px;margin-top:9px}' +
       '#um-ideal .row b{flex:0 0 62px;font-size:16px;font-weight:900;color:#6B5BA8;' +
       'letter-spacing:-.03em}' +
+      '#um-ideal .sg{flex:0 0 84px}' +
+      '#um-ideal .sg b{display:block;flex:none;font-size:15px;font-weight:900;' +
+      'color:#6B5BA8;letter-spacing:-.035em;line-height:1.3}' +
+      '#um-ideal .sg i{display:block;font-style:normal;font-size:10.5px;' +
+      'color:#A79BC4;margin-top:3px;white-space:nowrap;' +
+      'font-variant-numeric:tabular-nums}' +
+      '#um-ideal .warn .yr{display:block;font-style:normal;font-size:10.5px;' +
+      'color:#C08C9C;margin-top:2px;font-variant-numeric:tabular-nums}' +
       '#um-ideal .row .tx{font-size:12.5px;color:#57506E;line-height:1.7}' +
       '#um-ideal .rank{flex:0 0 21px;height:21px;border-radius:7px;background:#E7DEFA;' +
       'color:#6B5BA8;font-size:11px;font-weight:900;display:flex;align-items:center;' +
@@ -369,7 +391,8 @@ add_action( 'wp_head', function () {
       '<p class="secd">내 배우자 자리와 맞는 띠에서 나온 나이입니다</p>';
     for (i = 0; i < r.ages.length; i++) {
       h += '<div class="row"><div class="rank">' + (i + 1) + '</div>' +
-        '<b>' + ageWord(r.ages[i].gap) + '</b>' +
+        '<div class="sg" style="flex:0 0 68px"><b>' + ageWord(r.ages[i].gap) + '</b>' +
+        '<i>' + (y - r.ages[i].gap) + '년생</i></div>' +
         '<div class="tx">' + ANIMAL[r.ages[i].ji] + '띠. ' + r.why[i] + '</div></div>';
     }
 
@@ -377,7 +400,8 @@ add_action( 'wp_head', function () {
       '<p class="secd">내 별자리와 각도가 좋은 자리입니다</p>';
     for (i = 0; i < r.signs.length; i++) {
       h += '<div class="row"><div class="rank">' + (i + 1) + '</div>' +
-        '<b style="flex:0 0 76px">' + SIGNS[r.signs[i]] + '</b>' +
+        '<div class="sg"><b>' + SIGNS[r.signs[i]] + '</b>' +
+        '<i>' + SIGN_DAY[r.signs[i]] + '</i></div>' +
         '<div class="tx">' + SIGN_ONE[r.signs[i]] + ' 사람. ' + r.swhy[i] + '</div></div>';
     }
 
@@ -393,6 +417,7 @@ add_action( 'wp_head', function () {
       '<p class="secd">처음에 제일 끌리는 자리이기도 합니다</p>';
     for (i = 0; i < r.bad.length; i++) {
       h += '<div class="warn"><b>' + ANIMAL[r.bad[i].ji] + '띠</b>' +
+        '<i class="yr">' + yearsOf(r.bad[i].ji, y) + '</i>' +
         '<div class="tx" style="margin-top:5px">' + r.bad[i].why + '</div></div>';
     }
     h += '<div class="sec">이 사람의 그늘</div>' +
