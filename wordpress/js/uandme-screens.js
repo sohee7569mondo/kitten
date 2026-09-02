@@ -113,9 +113,17 @@
     var r = st.result;
     var n = r.total + '-' + st.rel + '-' + r.blocks.saju.score + '-' +
       r.blocks.zodiac.score + '-' + r.blocks.animal.score;
-    /* 이름은 카드 그림에 싣지 않습니다.
-       그 처리를 ④번에 넣을 때마다 유앤미 화면이 가려졌습니다.
-       두 사람 이름은 카톡 제목에 들어가므로 그것으로 갈음합니다. */
+    /* 두 사람 이름도 카드 그림에 싣습니다.
+       ④번이 글자 너비를 재지 않아도 되도록 여기서 다섯 자로
+       잘라 보냅니다. 그래야 긴 이름이 카드 밖으로 안 나갑니다. */
+    var na = (st.me ? (st.me.name || '') : '').slice(0, 5);
+    var nb = (st.you ? (st.you.name || '') : '').slice(0, 5);
+    if (na) { if (nb) {
+      try {
+        n += '-' + btoa(unescape(encodeURIComponent(na + ' X ' + nb)))
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      } catch (e) {}
+    } }
     return n;
   }
   /* 우리 서버가 그 자리에서 그려 주는 주소 */

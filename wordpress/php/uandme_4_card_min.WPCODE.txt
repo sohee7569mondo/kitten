@@ -18,13 +18,18 @@ add_action( 'init', function () {
 
 	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
 	if ( false === strpos( $uri, '/um-card/' ) ) { return; }
-	if ( ! preg_match( '#/um-card/([0-9]{1,2})-([a-z_]{2,14})-([0-9]{1,2})-([0-9]{1,2})-([0-9]{1,2})#', $uri, $m ) ) { return; }
+	if ( ! preg_match( '#/um-card/([0-9]{1,2})-([a-z_]{2,14})-([0-9]{1,2})-([0-9]{1,2})-([0-9]{1,2})(?:-([A-Za-z0-9_-]{4,60}))?#', $uri, $m ) ) { return; }
 
 	$score = max( 0, min( 99, intval( $m[1] ) ) );
 	$rel   = $m[2];
 	$a     = max( 0, min( 40, intval( $m[3] ) ) );
 	$b     = max( 0, min( 30, intval( $m[4] ) ) );
 	$c     = max( 0, min( 30, intval( $m[5] ) ) );
+	$who   = '';
+	if ( isset( $m[6] ) ) {
+		$who = base64_decode( strtr( $m[6], '-_', '+/' ) );
+		$who = wp_strip_all_tags( (string) $who );
+	}
 
 	$relko = array(
 		'lover' => '연인', 'married' => '부부', 'friend' => '친구',
@@ -100,11 +105,17 @@ add_action( 'init', function () {
 		};
 		$put( 68, 156, 214, (string) $score, $pur, true );
 		$put( 17, 156, 246, '점', $soft, true );
-		$put( 24, 300, 118, $ko . ' 궁합', $sub, false );
-		$put( 50, 300, 190, $tier, $ink, false );
-		$put( 20, 300, 250, '생일만 넣으면 우리 것도 바로 나와요', $sub, false );
-		$put( 22, 300, 328, '자세히 보기', $pur, false );
-		$put( 17, 300, 358, 'stellasaju.com/uandme', $soft, false );
+		if ( $who ) {
+			$put( 22, 300, 106, $ko . ' 궁합', $sub, false );
+			$put( 36, 300, 166, $who, $ink, false );
+			$put( 46, 300, 232, $tier, $pur, false );
+			$put( 19, 300, 280, '생일만 넣으면 우리 것도 바로 나와요', $sub, false );
+		} else {
+			$put( 24, 300, 118, $ko . ' 궁합', $sub, false );
+			$put( 50, 300, 190, $tier, $ink, false );
+			$put( 20, 300, 250, '생일만 넣으면 우리 것도 바로 나와요', $sub, false );
+		}
+		$put( 17, 300, 348, 'stellasaju.com/uandme', $soft, false );
 	}
 
 	$out = imagecreatetruecolor( $W, $H );
@@ -120,7 +131,8 @@ add_action( 'init', function () {
 
 	$dir = $up['basedir'] . '/uandme/card';
 	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
-	$file = $dir . '/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c . '.png';
+	$file = $dir . '/' . $score . '-' . $rel . '-' . $a . '-' . $b . '-' . $c .
+		( isset( $m[6] ) ? '-' . $m[6] : '' ) . '.png';
 	if ( ! file_exists( $file ) ) { @file_put_contents( $file, $png ); }
 
 	header( 'Content-Type: image/png' );
