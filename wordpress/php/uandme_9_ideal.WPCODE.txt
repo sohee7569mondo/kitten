@@ -5,57 +5,80 @@
    그래서 링크가 훨씬 잘 퍼집니다.
 
    보여주는 것
-     · 나이 차이 셋      · 별자리 셋      · 띠 셋
-     · 이런 사람이에요   · 드라마로 치면  · 조심할 사람
+     · 나이 차이 셋   · 별자리 셋   · 띠 셋
+     · 이런 사람이에요   · 드라마로 치면   · 조심할 사람
 
    흔한 띠 궁합표는 태어난 해로 봅니다. 우리는 일지(배우자 자리)로
    봅니다. 그래서 다른 답이 나옵니다. 이게 우리만의 자리입니다.
 
-   ①번 계산기를 그대로 씁니다. 새로 계산하는 것이 없습니다.
-   ⑥번이 그린 머리말과 꼬리말은 그대로 두고 가운데만 바꿔 답니다.
+   이 스니펫은 스텔라 랩(/lab/)과 같은 방식으로, 화면을 스스로 그리고
+   끝냅니다. 워드프레스 주소 찾기에 기대지 않으므로 확실히 열립니다.
+   사주도 이 화면에 필요한 만큼만 여기서 셈합니다.
+
+   같이 하는 일 하나 더 — 유앤미 화면 아래에 「이상형 그리기」 띠를
+   답니다. ⑥번(75KB)을 건드리지 않아도 됩니다.
 
    붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
               Auto Insert → Run Everywhere → 저장 → Active
 
    확인 : stellasaju.com/uandme/ideal/
+          stellasaju.com/?stella_um9=1   (살아 있는지)
 
    주의 · 이 파일 안 script 에서 앰퍼샌드를 쓰지 않습니다
           (워드프레스가 엔티티로 바꿔 스크립트를 죽입니다).
    ════════════════════════════════════════════════════════════ */
 
-/* ── 주소 열어주기 ─────────────────────────────────────────
-   워드프레스는 /uandme/ideal/ 을 모릅니다. 조용히 /uandme/ 로
-   돌려놓고 깃발만 세웁니다. 그러면 ①②⑥번이 다 실립니다. */
+/* ── 이상형 화면 ─────────────────────────────────────────── */
 add_action( 'init', function () {
-	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
-	if ( ! preg_match( '#/uandme/ideal/?(\?|$)#', $uri ) ) { return; }
-	$GLOBALS['stella_um_ideal'] = 1;
-	$_SERVER['REQUEST_URI'] = '/uandme/';
-	$_SERVER['PATH_INFO']   = '/uandme/';
-	if ( isset( $_SERVER['QUERY_STRING'] ) ) { $_SERVER['QUERY_STRING'] = ''; }
-}, 1 );
 
-/* 검색에 걸릴 제목 */
-add_filter( 'pre_get_document_title', function ( $t ) {
-	if ( empty( $GLOBALS['stella_um_ideal'] ) ) { return $t; }
-	return '나에게 맞는 이상형 — 생년월일로 보는 나이차 · 별자리 · 띠';
-} );
-add_action( 'wp_head', function () {
-	if ( empty( $GLOBALS['stella_um_ideal'] ) ) { return; }
-	echo '<meta name="description" content="내 생년월일 하나면 됩니다. 사주로 보는 나에게 맞는 나이 차이와 별자리와 띠를 알려드립니다. 무료예요.">' . "\n";
-}, 2 );
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	$path = parse_url( $uri, PHP_URL_PATH );
+	$path = is_string( $path ) ? $path : '';
+	if ( ! preg_match( '#^/uandme/ideal/?$#', $path ) ) { return; }
 
-/* ── 화면 ─────────────────────────────────────────────────
-   ⑥번(60)보다 늦게 실어서 가운데만 갈아 끼웁니다. */
-add_action( 'wp_head', function () {
+	header( 'Content-Type: text/html; charset=utf-8' );
 
-	if ( ! stella_um_here() ) { return; }
+	$priv = '';
+	$term = '';
+	$pg = get_page_by_path( 'privacy' );
+	if ( $pg ) { $priv = get_permalink( $pg ); }
+	$pg2 = get_page_by_path( 'terms' );
+	if ( $pg2 ) { $term = get_permalink( $pg2 ); }
 
-	$on = empty( $GLOBALS['stella_um_ideal'] ) ? '0' : '1';
-	if ( '1' === $on ) { echo "\n<style>#um{display:none !important}</style>\n"; }
-	echo "<script>var UM_IDEAL_ON=" . $on . ";</script>\n";
-	echo "<script>\n";
+	echo '<!doctype html><meta charset="utf-8">';
+	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
+	echo '<title>나에게 맞는 이상형 — 생년월일로 보는 나이차 · 별자리 · 띠</title>';
+	echo '<meta name="description" content="내 생년월일 하나면 됩니다. 사주로 보는 나에게 맞는 나이 차이와 별자리와 띠를 알려드립니다. 무료예요.">';
+	echo '<link rel="canonical" href="' . esc_url( home_url( '/uandme/ideal/' ) ) . '">';
+	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+	echo '<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum' . '&' . 'display=swap" rel="stylesheet">';
+	echo '<style>'
+		. 'body{margin:0;background:#FFFDFA;color:#3E4451;'
+		. "font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;"
+		. 'line-height:1.75}'
+		. '.top{max-width:430px;margin:0 auto;padding:16px 18px 0;display:flex;'
+		. 'align-items:center;justify-content:space-between}'
+		. '.top a{text-decoration:none}'
+		. '.top .nm{font-size:21px;color:#3F3A52}'
+		. '.top .up{font-size:10.5px;color:#A79BC4}'
+		. '.bot{max-width:430px;margin:34px auto 0;padding:18px 18px 60px;'
+		. 'border-top:1px solid #EDE5FA;font-size:12px;color:#A79BC4;line-height:1.9}'
+		. '.bot a{color:#8C82A6;text-decoration:none;margin-right:10px}'
+		. 'a:focus-visible,button:focus-visible,input:focus-visible{'
+		. 'outline:2px solid #6B5BA8;outline-offset:2px}'
+		. '</style>';
+	echo '<div class="top"><a href="/uandme/"><span class="nm">유앤미</span></a>';
+	echo '<a class="up" href="/">스텔라사주</a></div>';
+	echo '<div class="bot">';
+	if ( $priv ) { echo '<a href="' . esc_url( $priv ) . '">개인정보처리방침</a>'; }
+	if ( $term ) { echo '<a href="' . esc_url( $term ) . '">이용약관</a>'; }
+	echo '<a href="/uandme/">유앤미</a><a href="/">스텔라사주</a>';
+	echo '<p style="margin:6px 0 0">스텔라사주에서 만든 서비스입니다. 결과는 재미로 봐주세요.</p>';
+	echo '</div>';
+	echo '<script>var UM_IDEAL_ON=1;</script>';
+	echo "\n<script>\n";
 	echo <<<'STELLA_IDEAL'
+
 (function () {
   'use strict';
 
@@ -167,15 +190,87 @@ add_action( 'wp_head', function () {
                   '자신감 있고 너그러운','꼼꼼하고 다정한','균형을 잘 잡는','속이 깊고 진한',
                   '솔직하고 잘 웃는','책임감 있는','생각이 남다른','마음이 여린'];
 
+  /* ── 사주 · 이 화면에 필요한 만큼만 ────────────────────
+     일주는 날짜만으로 정확히 나옵니다. 연주는 입춘, 월주는 절기로
+     갈리는데 여기서는 널리 쓰는 날짜로 끊습니다. 절기가 하루쯤
+     당겨지거나 밀리는 해가 있어, 그 경계에 태어나신 분은 한 칸
+     달라질 수 있습니다. 정확한 것은 유앤미 궁합에서 봅니다. */
+  var GAN_ELS = ['목','목','화','화','토','토','금','금','수','수'];
+  var JI_ELS  = ['수','토','목','목','토','화','화','토','금','금','토','수'];
+  /* 절기가 바뀌는 날 — 인월(2월)부터 축월(1월)까지 */
+  var TERM = [[2,4],[3,6],[4,5],[5,6],[6,6],[7,7],
+              [8,8],[9,8],[10,8],[11,7],[12,7],[1,6]];
+  /* 별자리가 바뀌는 날 */
+  var SIGN_FROM = [[3,21],[4,20],[5,21],[6,22],[7,23],[8,23],
+                   [9,23],[10,24],[11,23],[12,22],[1,20],[2,19]];
+
+  function dayNumber(y, m, d) {
+    return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(1900, 0, 1)) / 86400000);
+  }
+  function before(m, d, tm, td) {
+    if (m < tm) { return true; }
+    if (m > tm) { return false; }
+    return d < td;
+  }
+  function myChart(y, m, d) {
+    /* 일주 — 1900년 1월 1일을 갑술일로 잡습니다 */
+    var n = dayNumber(y, m, d);
+    var dg = ((n % 10) + 10) % 10;
+    var dz = (((n + 10) % 12) + 12) % 12;
+
+    /* 연주 — 입춘 앞이면 지난해로 봅니다 */
+    var sy = y;
+    if (before(m, d, 2, 4)) { sy = y - 1; }
+    var yg = (((sy - 4) % 10) + 10) % 10;
+    var yz = (((sy - 4) % 12) + 12) % 12;
+
+    /* 월주 — 절기로 끊고 오호둔으로 천간을 얻습니다 */
+    var mz = 11, i;
+    for (i = 0; i < 12; i++) {
+      var t = TERM[i];
+      if (i === 11) {
+        if (m === 1) { if (d >= t[1]) { mz = 1; } }
+      } else if (!before(m, d, t[0], t[1])) {
+        mz = (i + 2) % 12;
+      }
+    }
+    if (m === 1) { mz = (d >= 6) ? 1 : 0; }
+    if (m === 2) { mz = before(m, d, 2, 4) ? 1 : 2; }
+    var startGan = [2, 4, 6, 8, 0][yg % 5];
+    var mg = ((startGan + (((mz - 2) % 12) + 12) % 12) % 10 + 10) % 10;
+
+    /* 오행 — 여섯 글자를 셉니다 */
+    var els = ['목','화','토','금','수'], cnt = {}, k;
+    for (k = 0; k < els.length; k++) { cnt[els[k]] = 0; }
+    cnt[GAN_ELS[yg]] += 1; cnt[GAN_ELS[mg]] += 1; cnt[GAN_ELS[dg]] += 1;
+    cnt[JI_ELS[yz]] += 1;  cnt[JI_ELS[mz]] += 1;  cnt[JI_ELS[dz]] += 1;
+    var five = [];
+    for (k = 0; k < els.length; k++) {
+      five.push({ element: els[k], percent: Math.round(cnt[els[k]] / 6 * 100) });
+    }
+
+    /* 별자리 */
+    var si = 11;
+    for (i = 0; i < 12; i++) {
+      var f = SIGN_FROM[i];
+      if (f[0] === 1) { if (m === 1) { if (d >= f[1]) { si = i; } } }
+      else if (f[0] === 2) { if (m === 2) { if (d >= f[1]) { si = i; } } }
+      else if (!before(m, d, f[0], f[1])) { si = i; }
+    }
+    if (m === 1) { si = (d >= 20) ? 10 : 9; }
+    if (m === 2) { si = (d >= 19) ? 11 : 10; }
+    if (m === 3) { si = (d >= 21) ? 0 : 11; }
+
+    return { dg: dg, dz: dz, yz: yz, five: five, sun: si,
+             myEl: GAN_ELS[dg] };
+  }
+
   /* ── 계산 ───────────────────────────────────────────── */
   function ideal(y, m, d) {
-    var S = window.StellaSaju;
-    if (!S) { return null; }
-    var c = S.compute({ year: y, month: m, day: d, hour: null });
-
-    var dayJi  = c.pillars.day.ji;
-    var yearJi = c.pillars.year.ji;
-    var myEl   = c.dayMaster.element;
+    var c = myChart(y, m, d);
+    var dayJi  = c.dz;
+    var yearJi = c.yz;
+    var myEl   = c.myEl;
 
     /* ① 채워야 할 기운 — 제일 얇은 것. 다 고르면 나를 살려주는 기운. */
     var thin = null, low = 999, i, e;
@@ -209,8 +304,7 @@ add_action( 'wp_head', function () {
     }
 
     /* ④ 별자리 셋 — 같은 기운(120도) 둘, 북돋우는 자리(60도) 하나 */
-    var sun = SIGNS.indexOf(c.stars.sun.name);
-    if (sun < 0) { sun = 0; }
+    var sun = c.sun;
     var signs = [(sun + 4) % 12, (sun + 8) % 12, (sun + 2) % 12];
     var swhy = ['나와 같은 기운의 자리입니다(120도). 말하지 않아도 통합니다.',
                 '여기도 같은 기운입니다(120도). 사는 결이 비슷해요.',
@@ -426,7 +520,7 @@ add_action( 'wp_head', function () {
 
   function show(y, m, d) {
     var r = ideal(y, m, d);
-    if (!r) { mount().innerHTML = '<p class="dek">계산기를 못 불러왔어요. 새로고침해 보시겠어요?</p>'; return; }
+    if (!r) { mount().innerHTML = '<p class="dek">날짜를 다시 봐주세요.</p>'; return; }
     var P = PERSON[r.el], i, h;
 
     h = '<p class="mini" style="margin-bottom:4px">' + y + '년 ' + m + '월 ' + d + '일생 · ' +
@@ -574,7 +668,110 @@ add_action( 'wp_head', function () {
     document.addEventListener('DOMContentLoaded', boot);
   } else { boot(); }
 })();
+
 STELLA_IDEAL;
+	echo "\n</script>\n";
+	exit;
+
+}, 10 );
+
+/* ── 유앤미 화면 아래에 들어가는 띠 ─────────────────────── */
+add_action( 'wp_head', function () {
+
+	if ( ! stella_um_here() ) { return; }
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false !== strpos( $uri, '/uandme/ideal' ) ) { return; }
+
+	echo "\n<script>var UM_IDEAL_ON=0;</script>\n";
+	echo "<script>\n";
+	echo <<<'STELLA_DOOR'
+(function () {
+  'use strict';
+  var PIC = '/wp-content/uploads/2026/08/animal-03-300px.png';
+
+  function bunny() {
+    var LN = '#5A4038';
+    return '<svg viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true" ' +
+      'style="display:block"><g stroke="' + LN + '" stroke-width="4.5" stroke-linejoin="round">' +
+      '<ellipse cx="45" cy="31" rx="9" ry="25" fill="#FFF" transform="rotate(-9 45 31)"/>' +
+      '<ellipse cx="75" cy="31" rx="9" ry="25" fill="#FFF" transform="rotate(9 75 31)"/>' +
+      '<ellipse cx="60" cy="88" rx="31" ry="26" fill="#FFF"/>' +
+      '<circle cx="60" cy="63" r="27" fill="#FFF"/></g>' +
+      '<ellipse cx="45" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(-9 45 30)"/>' +
+      '<ellipse cx="75" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(9 75 30)"/>' +
+      '<ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/>' +
+      '<circle cx="50" cy="61" r="3.6" fill="' + LN + '"/>' +
+      '<circle cx="70" cy="61" r="3.6" fill="' + LN + '"/>' +
+      '<ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
+      '<ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
+      '<ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg>';
+  }
+
+  function css() {
+    if (document.getElementById('um-door-css')) { return; }
+    var s = document.createElement('style');
+    s.id = 'um-door-css';
+    s.textContent =
+      '#um-ideal-door{display:flex;align-items:center;gap:12px;max-width:430px;' +
+      'margin:10px auto 0;padding:16px 16px 16px 14px;background:#F7F2FC;' +
+      'border-radius:16px;text-decoration:none;' +
+      "font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif}" +
+      '#um-ideal-door .bun{flex:0 0 62px;width:62px;height:62px;display:block}' +
+      '#um-ideal-door .bun img{display:block;width:100%;height:100%;object-fit:contain}' +
+      '#um-ideal-door .tx{flex:1;min-width:0}' +
+      '#um-ideal-door .lb{font-size:10.5px;font-weight:700;color:#A79BC4}' +
+      '#um-ideal-door .nm{font-size:15.5px;font-weight:900;color:#3F3A52;' +
+      'letter-spacing:-.035em;margin-top:3px;word-break:keep-all}' +
+      '#um-ideal-door .dk{font-size:11.5px;color:#8C82A6;line-height:1.6;' +
+      'margin-top:4px;word-break:keep-all}';
+    document.head.appendChild(s);
+  }
+
+  /* ⑥번이 화면을 다시 그려도 안 지워지도록 #um 바깥에 답니다.
+     #um 을 아직 못 찾으면 잠시 뒤 다시 봅니다. */
+  function put() {
+    if (document.getElementById('um-ideal-door')) { return true; }
+    var um = document.getElementById('um');
+    if (!um) { return false; }
+    if (!um.parentNode) { return false; }
+    css();
+    var a = document.createElement('a');
+    a.id = 'um-ideal-door';
+    a.href = '/uandme/ideal/';
+    a.innerHTML = '<span class="bun"><img alt="" src="' + PIC + '"></span>' +
+      '<div class="tx">' +
+      '<div class="lb">혼자서도 볼 수 있어요</div>' +
+      '<div class="nm">나에게 맞는 이상형 그리기</div>' +
+      '<div class="dk">생일 하나로 나이 차이와 별자리와 띠를 뽑아 드립니다</div>' +
+      '</div>' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C82A6" ' +
+      'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="9 18 15 12 9 6"/></svg>';
+    um.parentNode.insertBefore(a, um.nextSibling);
+    var im = a.querySelector('img');
+    if (im) {
+      im.addEventListener('error', function () {
+        if (this.parentNode) { this.parentNode.innerHTML = bunny(); }
+      });
+    }
+    return true;
+  }
+
+  function watch() {
+    if (put()) { return; }
+    var n = 0;
+    var t = setInterval(function () {
+      n += 1;
+      if (put()) { clearInterval(t); }
+      if (n > 40) { clearInterval(t); }
+    }, 250);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch);
+  } else { watch(); }
+})();
+STELLA_DOOR;
 	echo "\n</script>\n";
 
 }, 70 );
@@ -600,4 +797,4 @@ add_action( 'init', function () {
 	echo '<p>이 스니펫은 살아 있습니다.</p>';
 	echo '<p>화면 : <a style="color:#9fd" href="/uandme/ideal/">stellasaju.com/uandme/ideal/</a></p>';
 	exit;
-} );
+}, 5 );
