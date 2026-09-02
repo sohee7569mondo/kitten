@@ -34,7 +34,8 @@ add_action( 'init', function () {
 	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
 	$path = parse_url( $uri, PHP_URL_PATH );
 	$path = is_string( $path ) ? $path : '';
-	if ( ! preg_match( '#^/uandme/ideal/?$#', $path ) ) { return; }
+	if ( ! preg_match( '#^/uandme/(ideal|blood)/?$#', $path, $mm ) ) { return; }
+	$screen = $mm[1];
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 
@@ -47,9 +48,14 @@ add_action( 'init', function () {
 
 	echo '<!doctype html><meta charset="utf-8">';
 	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
-	echo '<title>나에게 맞는 이상형 — 생년월일로 보는 나이차 · 별자리 · 띠</title>';
-	echo '<meta name="description" content="내 생년월일 하나면 됩니다. 사주로 보는 나에게 맞는 나이 차이와 별자리와 띠를 알려드립니다. 무료예요.">';
-	echo '<link rel="canonical" href="' . esc_url( home_url( '/uandme/ideal/' ) ) . '">';
+	if ( 'blood' === $screen ) {
+		echo '<title>혈액형 궁합 — 우리 둘은 어떤 사이일까</title>';
+		echo '<meta name="description" content="A형 B형 O형 AB형, 열 가지 조합을 다 풀어 드립니다. 가입 없이 무료로 바로 보세요.">';
+	} else {
+		echo '<title>나에게 맞는 이상형 — 생년월일로 보는 나이차 · 별자리 · 띠</title>';
+		echo '<meta name="description" content="내 생년월일 하나면 됩니다. 사주로 보는 나에게 맞는 나이 차이와 별자리와 띠를 알려드립니다. 무료예요.">';
+	}
+	echo '<link rel="canonical" href="' . esc_url( home_url( '/uandme/' . $screen . '/' ) ) . '">';
 	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
 	echo '<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum' . '&' . 'display=swap" rel="stylesheet">';
 	echo '<style>'
@@ -69,13 +75,14 @@ add_action( 'init', function () {
 		. '</style>';
 	echo '<div class="top"><a href="/uandme/"><span class="nm">유앤미</span></a>';
 	echo '<a class="up" href="/">스텔라사주</a></div>';
+	echo '<div id="um-ideal"></div>';
 	echo '<div class="bot">';
 	if ( $priv ) { echo '<a href="' . esc_url( $priv ) . '">개인정보처리방침</a>'; }
 	if ( $term ) { echo '<a href="' . esc_url( $term ) . '">이용약관</a>'; }
 	echo '<a href="/uandme/">유앤미</a><a href="/">스텔라사주</a>';
 	echo '<p style="margin:6px 0 0">스텔라사주에서 만든 서비스입니다. 결과는 재미로 봐주세요.</p>';
 	echo '</div>';
-	echo '<script>var UM_IDEAL_ON=1;</script>';
+	echo '<script>var UM_SCREEN="' . esc_js( $screen ) . '";var UM_IDEAL_ON=1;</script>';
 	echo "\n<script>\n";
 	echo <<<'STELLA_IDEAL'
 
@@ -320,6 +327,159 @@ add_action( 'init', function () {
              bad: bad, sun: sun };
   }
 
+
+  /* ══ 혈액형 궁합 ════════════════════════════════════════
+     열 가지 조합입니다. 점수는 매기지 않습니다. 점수는 사주 궁합의
+     자리이고, 여기는 「이런 사이」를 말해 주는 자리입니다. */
+  var BT = ['A', 'B', 'O', 'AB'];
+  var BNAME = {
+    'A': '조심스러운 쪽',
+    'B': '내 마음대로 쪽',
+    'O': '먼저 다가가는 쪽',
+    'AB': '알 수 없는 쪽'
+  };
+  var BCOL = {
+    'A': ['#FBE3E8', '#B3707F'],
+    'B': ['#DCEFE4', '#5E8C72'],
+    'O': ['#FCF0D9', '#A88B4C'],
+    'AB': ['#E2E4F5', '#6E73A3']
+  };
+  function bkey(a, b) {
+    var ia = BT.indexOf(a), ib = BT.indexOf(b);
+    if (ia > ib) { return b + a; }
+    return a + b;
+  }
+  var BOUT = {
+    'AA': ['서로를 너무 잘 아는 사이',
+      '둘 다 눈치를 봅니다. 그래서 편합니다. 상대가 불편할 짓을 서로 안 해요.',
+      '싸울 일이 거의 없는 대신, 심심하다는 말이 나올 수 있습니다. 먼저 나서는 사람이 없어서 데이트도 늘 가던 데로 갑니다.',
+      '둘 다 속으로 삭입니다. 그러다 한참 뒤에 「그때 그거」가 튀어나옵니다. 쌓인 게 오래된 것일수록 크게 터집니다.',
+      '한 달에 한 번은 서운했던 걸 그 자리에서 말하기로 약속해 두세요.'],
+    'BB': ['각자 살다가 만나는 사이',
+      '둘 다 자기 세계가 있습니다. 붙어 있지 않아도 서운해하지 않아요. 이게 은근히 큰 장점입니다.',
+      '재미있습니다. 갑자기 떠나자고 하면 갑자기 떠나는 연애예요. 대신 챙겨주는 사람이 아무도 없습니다.',
+      '둘 다 그 자리에서 다 말하고 금방 잊습니다. 시원한데, 상처 주는 말도 그 자리에서 다 나옵니다.',
+      '화날 때 쓰지 않을 말을 미리 두세 개 정해 두세요. 그것만 안 쓰면 됩니다.'],
+    'OO': ['처음부터 뜨거운 사이',
+      '둘 다 표현을 합니다. 좋으면 좋다고 하고 서운하면 서운하다고 해요. 헷갈릴 일이 없습니다.',
+      '시작이 빠릅니다. 대신 둘 다 주도하고 싶어 해서 어디 갈지 정하는 데서부터 부딪힙니다.',
+      '바로 붙습니다. 큰 소리가 나지만 그날 안에 풉니다. 뒤끝이 없는 게 이 조합의 힘이에요.',
+      '번갈아 가며 정하기로 하세요. 이번엔 네가, 다음엔 내가.'],
+    'ABAB': ['말이 잘 통하는 사이',
+      '둘 다 감정보다 이유를 먼저 봅니다. 설명하면 알아듣는 상대라서 답답할 일이 적어요.',
+      '조용한데 깊습니다. 남들이 보기엔 심심해 보여도 둘은 재미있습니다.',
+      '싸우지 않고 정리합니다. 그런데 그게 무서운 겁니다. 마음이 식어도 조용히 식어요.',
+      '가끔은 논리를 접고 「그냥 서운했어」라고 말해보세요.'],
+    'AB_': ['다른 결이 만나는 사이',
+      '조심스러운 쪽과 내 마음대로인 쪽입니다. 처음엔 신기하고 나중엔 이해가 안 됩니다.',
+      'A가 계획하고 B가 뒤집습니다. 그게 재미있을 때가 있고 화날 때가 있어요.',
+      'A는 담아두고 B는 바로 뱉습니다. B는 이미 잊었는데 A는 아직 아픕니다. 이 차이가 제일 큽니다.',
+      'B는 잔소리 대신 자유를, A는 다그침 대신 시간을 주면 훨씬 수월해집니다.'],
+    'AO': ['자연스럽게 굴러가는 사이',
+      '먼저 다가가는 쪽과 받아주는 쪽입니다. 역할이 안 겹쳐서 편합니다.',
+      'O가 끌고 A가 챙깁니다. 흔히 잘 맞는다고 하는 조합이 이겁니다.',
+      'O는 바로 풀고 싶어 하고 A는 시간이 필요합니다. O가 재촉하면 A는 더 닫힙니다.',
+      'O는 하루만 기다려 주세요. A는 「내일 얘기하자」고 말해 주세요.'],
+    'AAB': ['서로 조심하는 사이',
+      '둘 다 앞에 나서지 않습니다. 조용하고 부딪힘이 없습니다.',
+      '천천히 가까워집니다. 대신 어느 쪽도 먼저 고백하지 않아 시간이 오래 걸려요.',
+      'A는 마음이 상하고 AB는 이유를 찾습니다. A가 원하는 건 이유가 아니라 미안하다는 말입니다.',
+      'AB는 분석하기 전에 먼저 미안하다고 해보세요. 그 한마디로 끝날 일이 많습니다.'],
+    'BO': ['같이 놀기 좋은 사이',
+      '둘 다 밝고 움직입니다. 만나면 뭐라도 하러 갑니다. 심심할 틈이 없어요.',
+      '연애가 재미있습니다. 대신 둘 다 지루한 건 못 견뎌서 잔잔해지면 위기가 옵니다.',
+      '둘 다 바로 말합니다. 크게 붙고 크게 풉니다. 다행히 오래 안 갑니다.',
+      '재미있는 일이 없는 날에도 만나는 연습을 해두세요. 그날이 진짜입니다.'],
+    'BAB': ['자유로운 사이',
+      '둘 다 남 눈치를 안 봅니다. 서로 간섭하지 않는 게 이 조합의 예의예요.',
+      '각자 사는데 만나면 반갑습니다. 매달리는 연애를 원하는 분에게는 안 맞습니다.',
+      'B는 감정으로 AB는 논리로 갑니다. 말이 자꾸 어긋나는데 둘 다 사과는 잘 안 합니다.',
+      '먼저 사과하는 사람이 지는 게 아니라는 걸 둘 다 외워두세요.'],
+    'OAB': ['끌리는데 어려운 사이',
+      '먼저 다가가는 쪽과 속을 안 보이는 쪽입니다. O는 답답하고 AB는 부담스럽습니다.',
+      'O가 다가가고 AB가 한 발 물러섭니다. 그게 더 궁금해서 O가 또 다가갑니다.',
+      'O는 지금 풀자고 하고 AB는 혼자 정리할 시간을 원합니다. 이때 O가 밀어붙이면 AB는 닫힙니다.',
+      'AB는 「생각할 시간이 필요해」라고 말로 해주세요. 말 없이 사라지는 게 제일 아픕니다.']
+  };
+  function bloodOut(a, b) {
+    var k = bkey(a, b);
+    if (k === 'AB') { k = 'AB_'; }          /* A 와 B — AB형 과 헷갈리지 않게 */
+    return BOUT[k] || BOUT['AA'];
+  }
+
+  var bMe = '', bYou = '';
+
+  function bloodHome() {
+    var h = '<div class="peek">' + pic('bun') + '</div>' +
+      '<div class="hero">우리 둘은<br><span class="hi">몇 형</span>일까</div>' +
+      '<p class="hdek">혈액형만 고르면 됩니다. 열 가지 조합을 다 풀어 뒀어요.</p>';
+    h += '<div class="bsec">나</div>' + bRow('me', bMe) +
+      '<div class="bsec">상대</div>' + bRow('you', bYou);
+    h += '<button class="go" id="bgo"' + ((bMe && bYou) ? '' : ' disabled') +
+      '>궁합 보기</button>';
+    h += '<p class="mini" style="margin-top:22px">혈액형 궁합은 재미로 보는 것입니다. ' +
+      '진짜 궁합은 생년월일로 보는 사주 궁합에서 봐주세요.</p>';
+    mount().innerHTML = h;
+    pixFix();
+    bBind();
+  }
+  function bRow(who, on) {
+    var h = '<div class="btr">', i, t;
+    for (i = 0; i < BT.length; i++) {
+      t = BT[i];
+      h += '<button class="bt' + (on === t ? ' on' : '') + '" data-w="' + who +
+        '" data-t="' + t + '" style="' +
+        (on === t ? ('background:' + BCOL[t][0] + ';border-color:' + BCOL[t][1] +
+                     ';color:' + BCOL[t][1]) : '') + '">' + t + '형</button>';
+    }
+    return h + '</div>';
+  }
+  function bBind() {
+    var bs = root.querySelectorAll('.bt'), i;
+    for (i = 0; i < bs.length; i++) {
+      bs[i].addEventListener('click', function () {
+        if (this.getAttribute('data-w') === 'me') { bMe = this.getAttribute('data-t'); }
+        else { bYou = this.getAttribute('data-t'); }
+        bloodHome();
+      });
+    }
+    var g = root.querySelector('#bgo');
+    if (g) { g.addEventListener('click', function () { bloodShow(); }); }
+  }
+  function bloodShow() {
+    if (!bMe) { return; }
+    if (!bYou) { return; }
+    var o = bloodOut(bMe, bYou), c = BCOL[bMe];
+    var h = '<p class="mini" style="margin-bottom:4px">' + bMe + '형 · ' + bYou + '형</p>' +
+      '<div class="big" style="background:' + c[0] + '">' + pic('bun') +
+      '<div class="lb" style="color:' + c[1] + '">한마디로</div>' +
+      '<div class="nm">' + o[0] + '</div></div>';
+    h += '<div class="sec">이런 사이예요</div>' +
+      '<div class="li">' + o[1] + '</div>' +
+      '<div class="sec">연애하면</div>' +
+      '<div class="li">' + o[2] + '</div>' +
+      '<div class="sec">싸울 때</div>' +
+      '<div class="li">' + o[3] + '</div>' +
+      '<div class="sec">이것만 지키면</div>' +
+      '<div class="warn" style="background:#FBF6FF"><div class="tx" ' +
+      'style="font-size:14px">' + o[4] + '</div></div>';
+    h += '<a class="cta" href="/uandme/">' +
+      '<div><div style="font-size:11px;color:#C9BEEA;font-weight:700;margin-bottom:5px">유앤미</div>' +
+      '<div style="font-size:16px;font-weight:700;color:#FFF;letter-spacing:-.02em">' +
+      '생년월일로 진짜 궁합 보기</div></div>' +
+      '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C9BEEA" ' +
+      'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="9 18 15 12 9 6"/></svg></a>';
+    h += '<button class="ghost" id="bagain">다른 혈액형으로 보기</button>';
+    h += '<p class="mini" style="margin-top:22px">혈액형과 성격이 이어져 있다는 과학적 근거는 없습니다. ' +
+      '오래 전해 내려온 이야기로 재미있게만 봐주세요.</p>';
+    mount().innerHTML = h;
+    pixFix();
+    var ag = root.querySelector('#bagain');
+    if (ag) { ag.addEventListener('click', bloodHome); }
+    window.scrollTo(0, 0);
+  }
+
   /* ── 그리기 ─────────────────────────────────────────── */
   /* 귀염뽕짝 토끼. 그림 파일이 아니라 그려서 넣습니다.
      그래야 어디서 열어도 항상 보입니다. 귀 안쪽 색만 바꿔 씁니다. */
@@ -380,6 +540,12 @@ add_action( 'init', function () {
       '#um-ideal .hi{background:#E7DEFA;border-radius:6px;padding:0 6px}' +
       '#um-ideal .dek{font-size:14px;color:#8C82A6;margin:14px 0 0}' +
       '#um-ideal .mini{font-size:11.5px;color:#A79BC4;line-height:1.85}' +
+      '#um-ideal .bsec{font-size:12.5px;font-weight:700;color:#8C82A6;' +
+      'margin:22px 0 9px 2px}' +
+      '#um-ideal .btr{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}' +
+      '#um-ideal .bt{height:56px;border:1.5px solid #E7DEFA;border-radius:12px;' +
+      'background:#FFF;font:inherit;font-size:16px;font-weight:700;color:#8C82A6;' +
+      'cursor:pointer}' +
       '#um-ideal .ask{display:flex;gap:7px;margin-top:20px}' +
       '#um-ideal .fld{flex:1}' +
       '#um-ideal .fld span{display:block;font-size:11.5px;color:#A79BC4;' +
@@ -436,6 +602,9 @@ add_action( 'init', function () {
   }
 
   function mount() {
+    if (root) { return root; }
+    /* 스스로 그린 화면에는 자리가 이미 있습니다 */
+    root = document.getElementById('um-ideal');
     if (root) { return root; }
     root = document.createElement('div');
     root.id = 'um-ideal';
@@ -650,6 +819,7 @@ add_action( 'init', function () {
   }
 
   function boot() {
+    if (window.UM_SCREEN === 'blood') { css(); bloodHome(); return; }
     if (!window.UM_IDEAL_ON) {
       /* 여기는 그냥 유앤미입니다. 들어가는 길만 달아 둡니다. */
       doorCss();
@@ -712,33 +882,69 @@ add_action( 'wp_head', function () {
     var s = document.createElement('style');
     s.id = 'um-door-css';
     s.textContent =
-      '#um-ideal-door{display:flex;align-items:center;gap:12px;max-width:430px;' +
-      'margin:10px auto 0;padding:16px 16px 16px 14px;background:#F7F2FC;' +
-      'border-radius:16px;text-decoration:none;' +
+      '#um-more{max-width:430px;margin:22px auto 0;padding:0 18px;' +
       "font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif}" +
-      '#um-ideal-door .bun{flex:0 0 62px;width:62px;height:62px;display:block}' +
-      '#um-ideal-door .bun img{display:block;width:100%;height:100%;object-fit:contain}' +
-      '#um-ideal-door .tx{flex:1;min-width:0}' +
-      '#um-ideal-door .lb{font-size:10.5px;font-weight:700;color:#A79BC4}' +
-      '#um-ideal-door .nm{font-size:15.5px;font-weight:900;color:#3F3A52;' +
+      '#um-more .hd{font-size:20px;font-weight:900;color:#3F3A52;' +
+      'letter-spacing:-.04em;margin:0 0 3px 2px}' +
+      '#um-more .hdd{font-size:12px;color:#A79BC4;margin:0 0 14px 2px}' +
+      '#um-more .solo{display:flex;align-items:center;gap:12px;padding:16px 16px 16px 14px;' +
+      'background:#F7F2FC;border-radius:16px;text-decoration:none;margin-bottom:10px}' +
+      '#um-more .solo .bun{flex:0 0 62px;width:62px;height:62px;display:block}' +
+      '#um-more .solo .bun img{display:block;width:100%;height:100%;object-fit:contain}' +
+      '#um-more .solo .tx{flex:1;min-width:0}' +
+      '#um-more .lb{font-size:10.5px;font-weight:700;color:#A79BC4}' +
+      '#um-more .nm{font-size:15.5px;font-weight:900;color:#3F3A52;' +
       'letter-spacing:-.035em;margin-top:3px;word-break:keep-all}' +
-      '#um-ideal-door .dk{font-size:11.5px;color:#8C82A6;line-height:1.6;' +
-      'margin-top:4px;word-break:keep-all}';
+      '#um-more .dk{font-size:11.5px;color:#8C82A6;line-height:1.6;' +
+      'margin-top:4px;word-break:keep-all}' +
+      '#um-more .gr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}' +
+      '#um-more .c{display:flex;flex-direction:column;justify-content:space-between;' +
+      'gap:12px;min-height:150px;padding:16px 15px 14px;border-radius:14px;' +
+      'text-decoration:none}' +
+      '#um-more .c .kd{font-size:10.5px;font-weight:700;letter-spacing:.02em}' +
+      '#um-more .c .tt{font-size:17px;font-weight:900;color:#3F3A52;' +
+      'letter-spacing:-.04em;line-height:1.3;margin-top:4px;word-break:keep-all}' +
+      '#um-more .c .dd{font-size:11.5px;color:#6E6880;line-height:1.65;' +
+      'margin-top:8px;word-break:keep-all}' +
+      '#um-more .c .ft{display:flex;align-items:flex-end;justify-content:space-between}' +
+      '#um-more .c .fr{font-size:10.5px;font-weight:700}' +
+      '#um-more .c .pl{flex:0 0 26px;width:26px;height:26px;border-radius:99px;' +
+      'display:flex;align-items:center;justify-content:center}' +
+      '#um-more .note{font-size:11px;color:#B3A9C9;line-height:1.8;margin:14px 2px 0}';
     document.head.appendChild(s);
   }
 
   /* ⑥번이 화면을 다시 그려도 안 지워지도록 #um 바깥에 답니다.
      #um 을 아직 못 찾으면 잠시 뒤 다시 봅니다. */
+  /* 여기에 한 줄만 더 쓰면 궁합이 하나 늘어납니다.
+     [주소, 갈래, 이름, 한 줄, 바탕색, 글자색] */
+  var WAYS = [
+    ['/uandme/',      '생일 둘',   '사주 궁합',
+     '사주와 별자리와 띠를 함께 봅니다.',        '#F1EBFA', '#6B5BA8'],
+    ['/uandme/mbti/', '네 글자 둘', 'MBTI 궁합',
+     '잘 맞는 점과 주의할 점을 같이 알려드려요.', '#DCEFE4', '#5E8C72'],
+    ['/uandme/blood/','A B O AB',  '혈액형 궁합',
+     '열 가지 조합을 다 풀어 뒀습니다.',         '#FBE3E8', '#B3707F']
+  ];
+
+  function plus(c) {
+    return '<span class="pl" style="background:' + c + '">' +
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFF" ' +
+      'stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/>' +
+      '<line x1="5" y1="12" x2="19" y2="12"/></svg></span>';
+  }
+
   function put() {
-    if (document.getElementById('um-ideal-door')) { return true; }
+    if (document.getElementById('um-more')) { return true; }
     var um = document.getElementById('um');
     if (!um) { return false; }
     if (!um.parentNode) { return false; }
     css();
-    var a = document.createElement('a');
-    a.id = 'um-ideal-door';
-    a.href = '/uandme/ideal/';
-    a.innerHTML = '<span class="bun"><img alt="" src="' + PIC + '"></span>' +
+    var box = document.createElement('div');
+    box.id = 'um-more';
+
+    var h = '<a class="solo" href="/uandme/ideal/">' +
+      '<span class="bun"><img alt="" src="' + PIC + '"></span>' +
       '<div class="tx">' +
       '<div class="lb">혼자서도 볼 수 있어요</div>' +
       '<div class="nm">나에게 맞는 이상형 그리기</div>' +
@@ -746,9 +952,26 @@ add_action( 'wp_head', function () {
       '</div>' +
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C82A6" ' +
       'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<polyline points="9 18 15 12 9 6"/></svg>';
-    um.parentNode.insertBefore(a, um.nextSibling);
-    var im = a.querySelector('img');
+      '<polyline points="9 18 15 12 9 6"/></svg></a>';
+
+    h += '<div class="hd">다른 궁합도 보기</div>' +
+      '<p class="hdd">전부 무료 · 가입 없음</p><div class="gr">';
+    var i, w;
+    for (i = 0; i < WAYS.length; i++) {
+      w = WAYS[i];
+      h += '<a class="c" style="background:' + w[4] + '" href="' + w[0] + '">' +
+        '<div><div class="kd" style="color:' + w[5] + '">' + w[1] + '</div>' +
+        '<div class="tt">' + w[2] + '</div>' +
+        '<div class="dd">' + w[3] + '</div></div>' +
+        '<div class="ft"><div class="fr" style="color:' + w[5] + '">무료</div>' +
+        plus(w[5]) + '</div></a>';
+    }
+    h += '</div><p class="note">궁합은 재미로 보는 것입니다. ' +
+      '점수가 낮아도 잘 지내는 사이가 훨씬 많아요.</p>';
+    box.innerHTML = h;
+    um.parentNode.insertBefore(box, um.nextSibling);
+
+    var im = box.querySelector('img');
     if (im) {
       im.addEventListener('error', function () {
         if (this.parentNode) { this.parentNode.innerHTML = bunny(); }
