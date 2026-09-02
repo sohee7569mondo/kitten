@@ -152,28 +152,59 @@ add_action( 'init', function () {
 			. '.li{border-left-color:#EDEBE6}'
 			. '.bar i{background:#2F3542}.bar{background:#F2F3F5}'
 			. '.mini{color:#A9B0BC}'
+			/* 유앤미 두 번째 시안(파스텔 블록) 짜임 — 각진 모서리, 굵은 고딕,
+			   큰 제목 · 넓은 띠 · 색칠한 칸이 리듬을 만듭니다. */
+			. '.hero{font-family:"Noto Sans KR",inherit;font-size:40px;font-weight:900;'
+			. 'line-height:1.16;letter-spacing:-.045em;color:#2F3542;margin:22px 0 0;'
+			. 'word-break:keep-all}'
+			. '.hi{border-radius:6px;padding:0 6px}'
+			. '.hdek{font-size:14.5px;line-height:1.8;color:#7A8290;margin:15px 0 0}'
+			. '.feat{position:relative;overflow:hidden;display:block;margin-top:24px;'
+			. 'border-radius:8px;padding:22px 20px;text-decoration:none}'
+			. '.feat .fl{font-size:11.5px;font-weight:700}'
+			. '.feat .fn{font-family:"Noto Sans KR",inherit;font-size:26px;font-weight:900;'
+			. 'line-height:1.26;letter-spacing:-.042em;color:#2F3542;margin-top:7px;'
+			. 'padding-right:104px;word-break:keep-all}'
+			. '.feat .fm{font-size:12.5px;font-weight:500;margin-top:13px}'
+			. '.feat .fc{position:absolute;right:-6px;bottom:-12px;width:116px;height:116px;'
+			. 'object-fit:contain;pointer-events:none}'
+			. '.sec{font-family:"Noto Sans KR",inherit;font-size:23px;font-weight:900;'
+			. 'letter-spacing:-.04em;color:#2F3542;margin:42px 0 0;line-height:1.3;word-break:keep-all}'
+			. '.secd{font-size:13px;color:#A9B0BC;margin:7px 0 0}'
 			. '.find{display:flex;align-items:center;gap:9px;height:46px;background:#F2F3F5;'
-			. 'border-radius:12px;padding:0 14px;margin-bottom:12px}'
+			. 'border-radius:8px;padding:0 14px;margin-top:16px}'
 			. '.find input{border:0;background:none;outline:none;font:inherit;font-size:13.5px;'
 			. 'width:100%;color:#3E4451}'
-			. '.cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}'
-			. '.cats button{height:40px;border:0;border-radius:12px;padding:0 15px;'
+			. '.cats{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 0}'
+			. '.cats button{height:38px;border:0;border-radius:8px;padding:0 15px;'
 			. 'background:#F2F3F5;color:#5E6675;font:inherit;font-size:12.5px;cursor:pointer}'
 			. '.cats button.on{background:#2F3542;color:#FFFDFA;font-weight:700}'
-			. '.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}'
-			. '.t{position:relative;overflow:hidden;border-radius:16px;padding:15px 14px;'
-			. 'min-height:118px;display:flex;flex-direction:column;'
+			. '.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;'
+			. 'margin-top:14px}'
+			. '.t{position:relative;overflow:hidden;border-radius:8px;padding:15px 14px;'
+			. 'min-height:112px;display:flex;flex-direction:column;'
 			. 'justify-content:space-between;text-decoration:none}'
-			. '.tc{position:absolute;right:-12px;bottom:-14px;width:74px;height:74px;'
-			. 'object-fit:contain;opacity:.95;pointer-events:none;'
-			. 'filter:drop-shadow(0 3px 6px rgba(47,53,66,.10))}'
-			. '.tn{position:relative;z-index:1;padding-right:34px;font-size:15px;font-weight:900;'
-			. 'line-height:1.34;letter-spacing:-.035em;color:#2F3542}'
-			. '.tm{position:relative;z-index:1;font-size:11px;font-weight:500}'
+			. '.t.w{grid-column:1/-1;min-height:104px}'
+			. '.tc{position:absolute;right:-10px;bottom:-12px;width:70px;height:70px;'
+			. 'object-fit:contain;pointer-events:none}'
+			. '.t.w .tc{width:94px;height:94px;right:2px;bottom:-16px}'
+			. '.tn{position:relative;z-index:1;padding-right:34px;font-family:"Noto Sans KR",inherit;'
+			. 'font-size:15px;font-weight:900;line-height:1.34;letter-spacing:-.035em;'
+			. 'color:#2F3542;word-break:keep-all}'
+			. '.t.w .tn{font-size:19px;padding-right:108px}'
+			. '.tm{position:relative;z-index:1;font-size:11px;font-weight:500;white-space:nowrap}'
+			. '.band{margin:42px -18px 0;padding:32px 18px;background:#F7F8FA}'
+			. '.step{display:flex;gap:12px;align-items:center;background:#FFFDFA;border-radius:8px;'
+			. 'padding:14px 16px;margin-top:10px;font-size:14px;color:#46505F}'
+			. '.step i{flex:0 0 24px;height:24px;border-radius:6px;font-size:12px;font-weight:900;'
+			. 'font-style:normal;display:flex;align-items:center;justify-content:center}'
+			. '.boxo{border:1.5px solid #E7E9ED;border-radius:8px;padding:22px 20px;margin-top:16px}'
+			. '.dark{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;'
+			. 'background:#100B22;border-radius:8px;margin-top:9px;text-decoration:none}'
 			. '.bot{border-top-color:#F0EFEC;color:#A9B0BC}.bot a{color:#8A929E}';
 	}
 	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
-	echo '<link href="https://fonts.googleapis.com/css2?family=Jua' . '&' . 'family=Gowun+Dodum' . '&' . 'display=swap" rel="stylesheet">';
+	echo '<link href="https://fonts.googleapis.com/css2?family=Jua' . '&' . 'family=Gowun+Dodum' . '&' . 'family=Noto+Sans+KR:wght@500;700;900' . '&' . 'display=swap" rel="stylesheet">';
 	echo '<style>' . $css . '</style>';
 	echo '<div class="wrap">';
 	echo '<div class="top"><a href="/lab/"><span class="nm">스텔라 랩</span></a>';
@@ -507,8 +538,23 @@ add_action( 'init', function () {
       if(cats.indexOf(c) < 0){ cats.push(c); }
     }
 
-    var h = '<h1>오늘은 뭘 해볼까</h1>' +
-      '<p class="dek" style="margin:6px 0 16px">전부 무료 · 로그인 없음 · 1~3분</p>' +
+    /* 오늘의 검사 — 날짜로 하나 골라 맨 위에 크게 깔니다 */
+    var day = Math.floor(Date.now() / 864e5), fk = keys[day % keys.length];
+    var F = TESTS[fk], fcol = TCOL[day % TCOL.length];
+
+    var h = '<div class="hero">오늘은<br>뭘 <span class="hi" style="background:' +
+      fcol[0] + '">해볼까</span></div>' +
+      '<p class="hdek">가입도 앱도 없어요. 한 개에 일이분이면 끝나고, 전부 공짜입니다.</p>';
+
+    h += '<a class="feat" style="background:' + fcol[0] + '" href="/lab/' + fk + '/">' +
+      '<img class="fc" alt="" src="' + picOf(F, day) + '">' +
+      '<div class="fl" style="color:' + fcol[1] + '">오늘의 검사</div>' +
+      '<div class="fn">' + twoLine(F.name) + '</div>' +
+      '<div class="fm" style="color:' + fcol[1] + '">' + F.q.length + '문항 · ' +
+      Math.max(1, Math.round(F.q.length / 6)) + '분 · 바로 시작</div></a>';
+
+    h += '<div class="sec">뭘 해볼까요</div>' +
+      '<p class="secd">끝나면 기록이 한 줄 남습니다</p>' +
       '<div class="find">' +
       '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A9B0BC" ' +
       'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
@@ -521,18 +567,26 @@ add_action( 'init', function () {
     }
     h += '</div><div class="tiles">';
 
+    /* 같은 칸을 줄지어 놓지 않습니다.
+       네 칸마다 한 칸은 가로로 넓게, 색은 여섯 가지를 돌려 씁니다.
+       색칠한 칸과 회색 칸이 섞이면 눈이 쉬어 갑니다. */
     var shown = 0;
     for(i=0;i<keys.length;i++){
       var T2 = TESTS[keys[i]];
+      if(keys[i] === fk){ continue; }
       var cat = T2.cat || '성격';
       if(labCat !== '전체'){ if(cat !== labCat){ continue; } }
       if(labFind){ if(T2.name.indexOf(labFind) < 0){ if(cat.indexOf(labFind) < 0){ continue; } } }
-      var col = TCOL[shown % TCOL.length];
+      var wide = (shown % 3 === 2);
+      var grey = (shown % 4 === 3);
+      var col = grey ? ['#F2F3F5', '#8A929E'] : TCOL[shown % TCOL.length];
       var mins = Math.max(1, Math.round(T2.q.length / 6));
-      h += '<a class="t" style="background:' + col[0] + '" href="/lab/' + keys[i] + '/">' +
+      h += '<a class="t' + (wide ? ' w' : '') + '" style="background:' + col[0] +
+        '" href="/lab/' + keys[i] + '/">' +
         '<img class="tc" alt="" src="' + picOf(T2, shown) + '">' +
-        '<div class="tn">' + twoLine(T2.name) + '</div>' +
-        '<div class="tm" style="color:' + col[1] + '">' + T2.q.length + '문항 · ' + mins + '분</div></a>';
+        '<div class="tn">' + (wide ? T2.name : twoLine(T2.name)) + '</div>' +
+        '<div class="tm" style="color:' + col[1] + '">' + T2.q.length + '문항 · ' +
+        mins + '분</div></a>';
       shown += 1;
     }
     h += '</div>';
@@ -540,13 +594,50 @@ add_action( 'init', function () {
       h += '<p class="mini" style="margin-top:14px">찾으시는 검사가 없어요. 다른 말로 찾아보시겠어요?</p>';
     }
 
-    h += logCard() +
-      '<div style="margin-top:34px">' +
-      banner('/uandme/', '유앤미', '둘이서 궁합도 보고 가세요', '#F7F2FC', '#A79BC4', '#3F3A52') +
-      banner('/', '스텔라사주', '내 사주 제대로 읽어보기', '#100B22', '#B9A2F2', '#F6F1E7') +
-      '</div>' +
-      '<p class="mini" style="margin-top:22px">성격 유형 검사는 재미로 보는 것입니다. ' +
-      '심리 진단이나 의학적 판단이 아닙니다.</p>';
+    /* 기록 — 회색 통짜 띠로 묶습니다 */
+    var lg = logCard();
+    h += '<div class="band">' +
+      '<div class="sec" style="margin:0">그때의 나,<br>지금의 나</div>';
+    if(lg){
+      h += '<p class="secd" style="margin-bottom:14px">결과가 바뀔 때만 한 줄씩 쌓입니다</p>' + lg;
+    } else {
+      h += '<p class="secd">검사를 하시면 여기에 날짜가 한 줄씩 쌓입니다. ' +
+        '몇 달 뒤에 다시 해보면 내가 어느 쪽으로 움직였는지 보입니다.</p>' +
+        '<div class="step"><i style="background:#DCEFE4;color:#4A7A5E">1</i>' +
+        '오늘 하나 해보고</div>' +
+        '<div class="step"><i style="background:#FCF0D9;color:#9A7C3E">2</i>' +
+        '가끔 생각나면 또 해보고</div>' +
+        '<div class="step"><i style="background:#C9E6F5;color:#3E6C88">3</i>' +
+        '달라진 자리만 따로 보여드립니다</div>';
+    }
+    h += '</div>';
+
+    /* 둘이서 보는 것은 유앤미로 */
+    h += '<div class="sec">둘이서는<br>유앤미에서</div>' +
+      '<div class="boxo">' +
+      '<div style="font-size:16px;font-weight:900;color:#2F3542;letter-spacing:-.03em">' +
+      '생일 둘로 보는 사주 궁합</div>' +
+      '<p class="secd" style="line-height:1.75">사주와 별자리와 띠를 함께 봅니다. ' +
+      '상대 생일을 몰라도 링크를 보내면 됩니다.</p>' +
+      '<div style="display:flex;gap:8px;margin-top:16px">' +
+      '<a href="/uandme/" style="flex:1;display:flex;align-items:center;justify-content:center;' +
+      'height:46px;background:#2F3542;color:#FFFDFA;border-radius:8px;font-size:14px;' +
+      'font-weight:700;text-decoration:none">사주 궁합</a>' +
+      '<a href="/uandme/mbti/" style="flex:1;display:flex;align-items:center;justify-content:center;' +
+      'height:46px;background:#F2F3F5;color:#5E6675;border-radius:8px;font-size:14px;' +
+      'font-weight:700;text-decoration:none">MBTI 궁합</a></div></div>';
+
+    h += '<a class="dark" href="/">' +
+      '<div><div style="font-size:11px;color:#B9A2F2;font-weight:700;margin-bottom:5px">' +
+      '스텔라사주</div>' +
+      '<div style="font-size:16px;font-weight:700;color:#F6F1E7;letter-spacing:-.02em">' +
+      '내 사주 제대로 읽어보기</div></div>' +
+      '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C99A55" ' +
+      'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="9 18 15 12 9 6"/></svg></a>';
+
+    h += '<p class="mini" style="margin-top:24px;line-height:1.9">성격 유형 검사는 ' +
+      '재미로 보는 것입니다. 심리 진단이나 의학적 판단이 아닙니다.</p>';
 
     app.innerHTML = h;
 
@@ -557,245 +648,17 @@ add_action( 'init', function () {
         labHome();
       });
     }
-    var fi = app.querySelector('#labfind');
-    if(fi){
-      fi.addEventListener('input', function(){
-        labFind = this.value;
-        var at = this.selectionStart;
-        labHome();
-        var f2 = app.querySelector('#labfind');
-        if(f2){ f2.focus(); try{ f2.setSelectionRange(at, at); }catch(e){} }
-      });
+    var fd = app.querySelector('#labfind');
+    if(fd){
+      fd.addEventListener('input', function(){ labFind = this.value; labHome(); });
+      if(labFind){ fd.focus(); fd.setSelectionRange(labFind.length, labFind.length); }
     }
     var w = app.querySelector('#wipe');
     if(w){ w.addEventListener('click', function(){
       try{ localStorage.removeItem(LOGKEY); }catch(e){}
       labHome();
     }); }
-    window.scrollTo(0, 0);
-  }
-
-  /* ══ 지난 기록 ═══════════════════════════════════════════
-     이 브라우저에만 적어둡니다. 서버에 올리지 않습니다.
-     결과가 바뀔 때만 한 줄이 쌓입니다. 같은 결과가 또 나오면
-     날짜와 횟수만 고쳐 씁니다. 그래야 「변한 자리」만 남습니다. */
-  var LOGKEY = 'stella_lab_log';
-  function today(){
-    var d = new Date();
-    function p(n){ return (n < 10 ? '0' : '') + n; }
-    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
-  }
-  function logRead(){
-    try{
-      var r = localStorage.getItem(LOGKEY);
-      if(!r){ return []; }
-      var a = JSON.parse(r);
-      return (a instanceof Array) ? a : [];
-    }catch(e){ return []; }
-  }
-  function logWrite(a){
-    try{ localStorage.setItem(LOGKEY, JSON.stringify(a.slice(-60))); }catch(e){}
-  }
-  function logLast(t){
-    var a = logRead(), i;
-    for(i=a.length-1;i>=0;i--){ if(a[i].t === t){ return a[i]; } }
-    return null;
-  }
-  function logAdd(t, r){
-    var a = logRead(), last = null, i;
-    for(i=a.length-1;i>=0;i--){ if(a[i].t === t){ last = a[i]; break; } }
-    if(last){ if(last.r === r){
-      last.l = today();
-      last.n = (last.n || 1) + 1;
-      logWrite(a);
-      return null;
-    } }
-    a.push({ t:t, r:r, d:today(), l:today(), n:1 });
-    logWrite(a);
-    return last;
-  }
-  function logOf(t){
-    var a = logRead(), o = [], i;
-    for(i=0;i<a.length;i++){ if(a[i].t === t){ o.push(a[i]); } }
-    return o;
-  }
-
-  /* 네 축을 쉬운 말로 — 무엇이 바뀌었는지 적을 때 씁니다 */
-  var AXWORD = {
-    'E':'밖에서 기운을 얻는 쪽', 'I':'안에서 기운을 얻는 쪽',
-    'S':'눈에 보이는 것을 보는 쪽', 'N':'떠오르는 것을 보는 쪽',
-    'T':'옳은 쪽을 먼저 보는 쪽', 'F':'마음 쪽을 먼저 보는 쪽',
-    'J':'미리 정해두는 쪽', 'P':'그때 가서 정하는 쪽'
-  };
-  function axisChange(oldT, newT){
-    var i, out = [];
-    for(i=0;i<4;i++){
-      if(oldT.charAt(i) === newT.charAt(i)){ continue; }
-      out.push('<div class="li">' + AXWORD[oldT.charAt(i)] + '이었는데, 지금은 ' +
-        AXWORD[newT.charAt(i)] + '이에요.</div>');
-    }
-    return out.join('');
-  }
-  function changeCard(t, prev, now){
-    if(!prev){ return ''; }
-    var h = '<div class="card" style="background:#FFF6EE">' +
-      '<div class="h3" style="margin-top:0;color:#B5734A">달라졌어요</div>' +
-      '<div class="mini" style="margin-bottom:8px">' + prev.d +
-      ( (prev.l !== prev.d) ? (' ~ ' + prev.l) : '' ) +
-      ' 에는 <b>' + prev.r + '</b> 였습니다' +
-      ( (prev.n > 1) ? (' · ' + prev.n + '번') : '' ) + '</div>';
-    if(TESTS[t].kind === 'axis'){
-      h += axisChange(prev.r, now);
-    } else {
-      var a = TESTS[t].out[prev.r], b = TESTS[t].out[now];
-      if(a){ if(b){
-        h += '<div class="li">' + a[0] + ' 에서 ' + b[0] + ' 으로 옮겨왔어요.</div>';
-      } }
-    }
-    h += '<div class="mini" style="margin-top:8px">사람은 바뀝니다. 어느 쪽이 더 낫다는 뜻은 아니에요.</div></div>';
-    return h;
-  }
-  function logCard(){
-    var a = logRead();
-    if(a.length < 1){ return ''; }
-    var h = '<div class="card"><div class="h3" style="margin-top:0">내 기록</div>', k, i, list;
-    for(k in TESTS){
-      if(!Object.prototype.hasOwnProperty.call(TESTS, k)){ continue; }
-      list = logOf(k);
-      if(!list.length){ continue; }
-      h += '<div class="lbl" style="margin-top:12px">' + TESTS[k].name + '</div>';
-      for(i=0;i<list.length;i++){
-        h += '<div class="row"><i>' + list[i].d + '</i><em>' + list[i].r +
-          ( (list[i].n > 1) ? (' <span class="mini">· ' + list[i].n + '번</span>') : '' ) +
-          '</em>' +
-          ( (i === list.length - 1) ? '<span class="tag same">지금</span>' : '<span class="tag diff">그때</span>' ) +
-          '</div>';
-      }
-    }
-    h += '<div class="mini" style="margin-top:14px">이 기록은 이 브라우저에만 있습니다. ' +
-      '서버에 올리지 않아요. 그래서 브라우저 기록을 지우면 같이 지워집니다.</div>' +
-      '<button class="ghost" id="wipe" style="margin-top:10px">기록 지우기</button></div>';
-    return h;
-  }
-
-  var app = document.getElementById('app');
-  var me = ['E','S','T','J'], you = ['I','N','F','P'];
-
-  function el(h){ var d = document.createElement('div'); d.innerHTML = h; return d.firstChild; }
-  function ring(n){
-    var C = 439.8, on = C * (n / 100);
-    return '<div class="ring"><svg width="150" height="150" viewBox="0 0 168 168">' +
-      '<defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1">' +
-      '<stop offset="0%" stop-color="#C3B2F0"/><stop offset="50%" stop-color="#F4B9D4"/>' +
-      '<stop offset="100%" stop-color="#FFCBA8"/></linearGradient></defs>' +
-      '<circle cx="84" cy="84" r="70" fill="none" stroke="#F1EBFA" stroke-width="17"/>' +
-      '<circle cx="84" cy="84" r="70" fill="none" stroke="url(#mg)" stroke-width="17" ' +
-      'stroke-linecap="round" stroke-dasharray="' + on.toFixed(1) + ' ' + (C - on + 60).toFixed(1) + '" ' +
-      'transform="rotate(-90 84 84)"/></svg>' +
-      '<div class="num"><b>' + n + '</b><span>점</span></div></div>';
-  }
-
-  function pickBox(title, arr, tag){
-    var h = '<div class="card"><div class="lbl">' + title + '</div>', i, j;
-    for(i=0;i<4;i++){
-      h += '<div class="axis">';
-      for(j=0;j<2;j++){
-        h += '<button data-w="' + tag + '" data-i="' + i + '" data-v="' + AX[i][j] + '"' +
-             (arr[i] === AX[i][j] ? ' class="on"' : '') + '>' + AX[i][j] + '</button>';
-      }
-      h += '</div>';
-    }
-    return h + '</div>';
-  }
-
-  function home(){
-    var h = '<p class="lbl" style="margin-bottom:6px">' +
-      '<a href="/uandme/" style="color:#A79BC4;text-decoration:none">유앤미 · 궁합</a></p>' +
-      '<h1>MBTI 궁합</h1>' +
-      '<p class="dek">생년월일 없이, 네 글자만으로 봅니다. 잘 맞는 점과 주의할 점을 같이 알려드려요.</p>' +
-      pickBox('나', me, 'me') +
-      pickBox('상대', you, 'you') +
-      '<button class="big" id="go">궁합 보기</button>' +
-      '<a class="ghost" href="/lab/mbti/" style="display:block;text-align:center;' +
-      'text-decoration:none;line-height:1.5">내 MBTI를 모르겠어요 · 열여섯 문항 검사</a>' +
-      '<p class="mini" style="margin-top:16px">MBTI는 검사할 때마다 조금씩 달라지기도 해요. 가볍게 참고만 해주세요.</p>';
-    app.innerHTML = h;
-    var bs = app.querySelectorAll('.axis button'), k;
-    for(k=0;k<bs.length;k++){
-      bs[k].addEventListener('click', function(){
-        var w = this.getAttribute('data-w'), i = parseInt(this.getAttribute('data-i'), 10);
-        var arr = (w === 'me') ? me : you;
-        arr[i] = this.getAttribute('data-v');
-        home();
-      });
-    }
-    app.querySelector('#go').addEventListener('click', function(){ result(me.join(''), you.join('')); });
-  }
-
-  /* ── 스텔라 랩 첫 화면 ─────────────────────────────────── */
-  function tile(href, top, name, dek){
-    return '<a href="' + href + '" style="display:block;text-decoration:none;color:inherit">' +
-      '<div class="card" style="margin-bottom:12px">' +
-      '<div class="lbl" style="margin-bottom:4px">' + top + '</div>' +
-      '<div style="font-size:18px;font-weight:700;color:#3F3A52">' + name + '</div>' +
-      '<div class="mini" style="margin-top:4px">' + dek + '</div></div></a>';
-  }
-  function labHome(){
-    var h = '<h1>스텔라 랩</h1>' +
-      '<p class="dek">1분이면 끝나는 짧은 검사들. 전부 무료예요.</p>', k;
-    for(k in TESTS){
-      if(!Object.prototype.hasOwnProperty.call(TESTS, k)){ continue; }
-      h += tile('/lab/' + k + '/', TESTS[k].tag, TESTS[k].name, TESTS[k].dek);
-    }
-    h += tile('/uandme/mbti/', '네 글자 둘', 'MBTI 궁합 · 유앤미', '잘 맞는 점과 주의할 점을 같이 알려드립니다.') +
-      tile('/uandme/', '생일 둘', '사주 궁합 · 유앤미', '사주와 별자리와 띠를 함께 봅니다. 연예인과도 볼 수 있어요.') +
-      logCard() +
-      '<a class="foot" href="/"><b>스텔라사주</b>내 사주 제대로 읽어보기</a>';
-    app.innerHTML = h;
-    var w = app.querySelector('#wipe');
-    if(w){ w.addEventListener('click', function(){
-      try{ localStorage.removeItem(LOGKEY); }catch(e){}
-      labHome();
-    }); }
-    window.scrollTo(0, 0);
-  }
-
-  function result(a, b){
-    var n = score(a, b), i, h;
-    h = '<p class="lbl" style="margin-bottom:6px">' +
-        '<a href="/uandme/" style="color:#A79BC4;text-decoration:none">유앤미 · 궁합</a></p>' +
-        '<h1>' + a + ' 와 ' + b + '</h1>' +
-        '<p class="dek">' + tierOf(n) + '</p>' +
-        '<div class="card">' + ring(n) +
-        '<div class="tier">' + tierOf(n) + '</div>' +
-        '<div class="who">' + a + '  X  ' + b + '</div>';
-    for(i=0;i<4;i++){
-      var same = (a.charAt(i) === b.charAt(i));
-      h += '<div class="row"><i>' + AXNAME[i] + '</i>' +
-           '<em>' + a.charAt(i) + ' · ' + b.charAt(i) + '</em>' +
-           '<span class="tag ' + (same ? 'same' : 'diff') + '">' + (same ? '같음' : '다름') + '</span></div>';
-    }
-    h += '</div><div class="card"><div class="h3">잘 맞는 점</div>';
-    for(i=0;i<4;i++){ h += '<div class="li">' + TXT[pairKey(a, b, i)][0] + '</div>'; }
-    h += '<div class="h3">주의할 점</div>';
-    for(i=0;i<4;i++){ h += '<div class="li">' + TXT[pairKey(a, b, i)][1] + '</div>'; }
-    h += '</div>' +
-      '<button class="ghost" id="copy">이 결과 링크 복사하기</button>' +
-      '<button class="ghost" id="again">다시 고르기</button>' +
-      '<a class="foot" href="/uandme/"><b>유앤미</b>' +
-      '생년월일로 보는 사주 궁합도 무료예요</a>' +
-      '<p class="mini" style="margin-top:12px;text-align:center">' +
-      '<a href="/lab/" style="color:#8C82A6">스텔라 랩에서 다른 테스트도 해보세요</a></p>' +
-      '<p class="mini" style="margin-top:14px">MBTI 궁합은 재미로 보는 것입니다. 같은 유형이라도 사람은 다 다르니, 사주 궁합과 같이 보시면 훨씬 잘 맞아요.</p>';
-    app.innerHTML = h;
-    try{ history.replaceState(null, '', '/uandme/mbti/' + a + '-' + b); }catch(e){}
-    app.querySelector('#again').addEventListener('click', home);
-    app.querySelector('#copy').addEventListener('click', function(){
-      var u = location.origin + '/uandme/mbti/' + a + '-' + b;
-      if(navigator.clipboard){ navigator.clipboard.writeText(u); this.textContent = '복사했어요'; }
-      else { prompt('이 주소를 복사하세요', u); }
-    });
-    window.scrollTo(0, 0);
+    if(!labFind){ window.scrollTo(0, 0); }
   }
 
   /* ── 검사 화면 · 두 가지 짜임을 다 그립니다 ─────────────── */
