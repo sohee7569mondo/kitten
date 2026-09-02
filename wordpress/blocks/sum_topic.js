@@ -214,7 +214,7 @@
         if(!Object.prototype.hasOwnProperty.call(EASY,key)){ continue; }
         if(t.indexOf(key)!==0){ continue; }
         if(t.indexOf('—')>=0){ continue; }
-        h3[i].innerHTML = t+' <span style="font-weight:400;opacity:.72">— '+EASY[key]+'</span>';
+        h3[i].innerHTML = EASY[key]+' <span style="font-weight:400;opacity:.72">— '+t+'</span>';
       }
     }
 
