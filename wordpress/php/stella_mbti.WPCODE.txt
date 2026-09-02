@@ -1,11 +1,15 @@
-/* MBTI 궁합 + 간이 검사  ·  https://stellasaju.com/mbti/
+/* 스텔라 랩 + MBTI 궁합
 
    WPCode → 새 스니펫 → PHP Snippet → Auto Insert →
    Run Everywhere → 저장 → Active
 
-   · /mbti/            두 사람 MBTI 를 골라 궁합 보기
+   · /lab/             스텔라 랩 — 가볍게 해보는 테스트가 모이는 곳
+   · /lab/mbti/        MBTI 간이 검사 (열여섯 문항)
+   · /mbti/            두 사람 MBTI 를 골라 궁합 보기 — 궁합만 합니다
    · /mbti/INFJ-ENTP   그 조합으로 바로 열기 (공유용 주소)
-   · /mbti/test        내 유형을 모를 때 하는 열여섯 문항 검사
+
+   검사에서 나온 유형은 이 브라우저에 적어두었다가 궁합 화면의
+   「나」 칸에 저절로 채워집니다.
 
    생년월일이 필요 없습니다. 그래서 문턱이 제일 낮은 입구가 됩니다.
    결과 맨 아래에서 유앤미(사주 궁합)로 넘어갑니다.
@@ -18,7 +22,15 @@ add_action( 'init', function () {
 	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
 	$path = parse_url( $uri, PHP_URL_PATH );
 	$path = is_string( $path ) ? $path : '';
-	if ( ! preg_match( '#^/mbti(/.*)?$#', $path ) ) { return; }
+	if ( ! preg_match( '#^/(mbti|lab)(/.*)?$#', $path ) ) { return; }
+
+	/* 어느 화면인지 — 랩 목록 · 간이 검사 · 궁합 */
+	$mode = 'match';
+	if ( preg_match( '#^/lab/mbti#', $path ) ) {
+		$mode = 'test';
+	} else if ( preg_match( '#^/lab(/.*)?$#', $path ) ) {
+		$mode = 'lab';
+	}
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 
@@ -26,7 +38,6 @@ add_action( 'init', function () {
 	if ( preg_match( '#/mbti/([A-Za-z]{4})-([A-Za-z]{4})#', $path, $mm ) ) {
 		$pre = strtoupper( $mm[1] ) . '-' . strtoupper( $mm[2] );
 	}
-	$test = ( false !== strpos( $path, '/test' ) ) ? '1' : '';
 
 	$css = 'body{margin:0;background:#F7F3FD;color:#3F3A52;'
 		. 'font:16px/1.8 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}'
@@ -68,11 +79,19 @@ add_action( 'init', function () {
 
 	echo '<!doctype html><meta charset="utf-8">';
 	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
-	echo '<title>MBTI 궁합 — 스텔라사주</title>';
-	echo '<meta name="description" content="두 사람의 MBTI를 넣으면 잘 맞는 점과 주의할 점을 알려드립니다. 생년월일 없이 바로 볼 수 있어요.">';
+	if ( 'lab' === $mode ) {
+		echo '<title>스텔라 랩 — 가볍게 해보는 테스트</title>';
+		echo '<meta name="description" content="MBTI 간이 검사, 사주 궁합, MBTI 궁합. 전부 무료로 가볍게 해보세요.">';
+	} else if ( 'test' === $mode ) {
+		echo '<title>MBTI 간이 검사 — 스텔라 랩</title>';
+		echo '<meta name="description" content="열여섯 문항으로 보는 간이 MBTI 검사. 1분이면 끝나고 바로 궁합까지 볼 수 있어요.">';
+	} else {
+		echo '<title>MBTI 궁합 — 스텔라사주</title>';
+		echo '<meta name="description" content="두 사람의 MBTI를 넣으면 잘 맞는 점과 주의할 점을 알려드립니다. 생년월일 없이 바로 볼 수 있어요.">';
+	}
 	echo '<style>' . $css . '</style>';
 	echo '<div class="wrap" id="app"></div>';
-	echo "<script>var PRE='" . esc_js( $pre ) . "';var GOTEST='" . esc_js( $test ) . "';</script>";
+	echo "<script>var PRE='" . esc_js( $pre ) . "';var MODE='" . esc_js( $mode ) . "';</script>";
 	echo '<script>';
 	echo <<<'MBJS'
 (function(){
@@ -217,7 +236,8 @@ add_action( 'init', function () {
       pickBox('나', me, 'me') +
       pickBox('상대', you, 'you') +
       '<button class="big" id="go">궁합 보기</button>' +
-      '<button class="ghost" id="totest">내 MBTI를 모르겠어요 · 열여섯 문항 검사</button>' +
+      '<a class="ghost" href="/lab/mbti/" style="display:block;text-align:center;' +
+      'text-decoration:none;line-height:1.5">내 MBTI를 모르겠어요 · 열여섯 문항 검사</a>' +
       '<p class="mini" style="margin-top:16px">MBTI는 검사할 때마다 조금씩 달라지기도 해요. 가볍게 참고만 해주세요.</p>';
     app.innerHTML = h;
     var bs = app.querySelectorAll('.axis button'), k;
@@ -230,7 +250,24 @@ add_action( 'init', function () {
       });
     }
     app.querySelector('#go').addEventListener('click', function(){ result(me.join(''), you.join('')); });
-    app.querySelector('#totest').addEventListener('click', function(){ qi = 0; qs = [0,0,0,0]; quiz(); });
+  }
+
+  /* ── 스텔라 랩 첫 화면 ─────────────────────────────────── */
+  function tile(href, top, name, dek){
+    return '<a href="' + href + '" style="display:block;text-decoration:none;color:inherit">' +
+      '<div class="card" style="margin-bottom:12px">' +
+      '<div class="lbl" style="margin-bottom:4px">' + top + '</div>' +
+      '<div style="font-size:18px;font-weight:700;color:#3F3A52">' + name + '</div>' +
+      '<div class="mini" style="margin-top:4px">' + dek + '</div></div></a>';
+  }
+  function labHome(){
+    app.innerHTML = '<h1>스텔라 랩</h1>' +
+      '<p class="dek">가볍게 해보는 테스트들. 전부 무료예요.</p>' +
+      tile('/lab/mbti/', '1분', 'MBTI 간이 검사', '열여섯 문항. 유형이 나오면 바로 궁합까지 볼 수 있어요.') +
+      tile('/mbti/', '네 글자 둘', 'MBTI 궁합', '잘 맞는 점과 주의할 점을 같이 알려드립니다.') +
+      tile('/uandme/', '생일 둘', '사주 궁합 · 유앤미', '사주와 별자리와 띠를 함께 봅니다. 연예인과도 볼 수 있어요.') +
+      '<a class="foot" href="/"><b>스텔라사주</b>내 사주 제대로 읽어보기</a>';
+    window.scrollTo(0, 0);
   }
 
   function result(a, b){
@@ -255,6 +292,8 @@ add_action( 'init', function () {
       '<button class="ghost" id="again">다시 고르기</button>' +
       '<a class="foot" href="/uandme/"><b>유앤미</b>' +
       '생년월일로 보는 사주 궁합도 무료예요</a>' +
+      '<p class="mini" style="margin-top:12px;text-align:center">' +
+      '<a href="/lab/" style="color:#8C82A6">스텔라 랩에서 다른 테스트도 해보세요</a></p>' +
       '<p class="mini" style="margin-top:14px">MBTI 궁합은 재미로 보는 것입니다. 같은 유형이라도 사람은 다 다르니, 사주 궁합과 같이 보시면 훨씬 잘 맞아요.</p>';
     app.innerHTML = h;
     try{ history.replaceState(null, '', '/mbti/' + a + '-' + b); }catch(e){}
@@ -272,12 +311,15 @@ add_action( 'init', function () {
       var i, out = '';
       for(i=0;i<4;i++){ out += (qs[i] >= 0) ? AX[i][0] : AX[i][1]; }
       me = out.split('');
+      try{ localStorage.setItem('stella_mbti_me', out); }catch(e2){}
       app.innerHTML = '<h1>' + out + '</h1>' +
-        '<p class="dek">이 결과로 궁합을 보시겠어요? 아니면 다시 고르셔도 됩니다.</p>' +
-        '<button class="big" id="ok">이 유형으로 궁합 보기</button>' +
+        '<p class="dek">이 유형으로 궁합을 보시겠어요? 「나」 칸에 저절로 채워집니다.</p>' +
+        '<a class="big" href="/mbti/" style="display:block;text-align:center;' +
+        'text-decoration:none;line-height:1.5">이 유형으로 궁합 보기</a>' +
         '<button class="ghost" id="re">다시 검사하기</button>' +
+        '<a class="ghost" href="/lab/" style="display:block;text-align:center;' +
+        'text-decoration:none;line-height:1.5">스텔라 랩으로</a>' +
         '<p class="mini" style="margin-top:16px">열여섯 문항짜리 간이 검사예요. 정식 검사보다 짧아서 다르게 나올 수도 있습니다.</p>';
-      app.querySelector('#ok').addEventListener('click', home);
       app.querySelector('#re').addEventListener('click', function(){ qi = 0; qs = [0,0,0,0]; quiz(); });
       window.scrollTo(0, 0);
       return;
@@ -288,7 +330,8 @@ add_action( 'init', function () {
       '<div class="card"><div class="q">' + q[0] + '</div>' +
       '<button class="ghost" data-p="1" style="text-align:left;padding:14px 16px">' + q[1] + '</button>' +
       '<button class="ghost" data-p="0" style="text-align:left;padding:14px 16px">' + q[2] + '</button>' +
-      '</div><button class="ghost" id="back">그만두기</button>';
+      '</div><a class="ghost" href="/lab/" style="display:block;text-align:center;' +
+      'text-decoration:none;line-height:1.5">그만두기</a>';
     var bs = app.querySelectorAll('[data-p]'), k;
     for(k=0;k<bs.length;k++){
       bs[k].addEventListener('click', function(){
@@ -298,12 +341,17 @@ add_action( 'init', function () {
         quiz();
       });
     }
-    app.querySelector('#back').addEventListener('click', home);
     window.scrollTo(0, 0);
   }
 
   var ok = /^[EI][SN][TF][JP]$/;
-  if(GOTEST){ qi = 0; qs = [0,0,0,0]; quiz(); return; }
+  if(MODE === 'lab'){ labHome(); return; }
+  if(MODE === 'test'){ qi = 0; qs = [0,0,0,0]; quiz(); return; }
+  /* 검사에서 나온 유형이 있으면 「나」 칸을 채워둡니다 */
+  try{
+    var saved = localStorage.getItem('stella_mbti_me');
+    if(saved){ if(ok.test(saved)){ me = saved.split(''); } }
+  }catch(e){}
   if(PRE){
     var p = PRE.split('-');
     if(p.length === 2){ if(ok.test(p[0])){ if(ok.test(p[1])){

@@ -1,10 +1,11 @@
-/* 스텔라 작업실  ·  https://stellasaju.com/lab/
+/* 스텔라 작업실  ·  https://stellasaju.com/works/
    (관리자로 로그인했을 때만 열립니다. 로그아웃 상태에서는 아무것도 안 보입니다.)
 
    WPCode → 새 스니펫 → PHP Snippet → Auto Insert →
    Run Everywhere → 저장 → Active
 
    흩어져 있던 점검 주소를 한자리에 모았습니다.
+   (손님이 들어오는 「스텔라 랩」은 /lab/ 입니다. 여기는 소희 님 전용입니다.)
      ① 오늘의 상태      잘린 스니펫이 있으면 맨 위에 빨간 띠
      ② 스니펫 점검      잘린 것을 맨 위로
      ③ 전자책 열어보기   문 여섯 × 주제를 눌러서 바로 열기
@@ -14,8 +15,8 @@
 add_action( 'init', function () {
 
 	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
-	if ( false === strpos( $uri, '/lab' ) ) { return; }
-	if ( ! preg_match( '#/lab/?(\?|$)#', $uri ) ) { return; }
+	if ( false === strpos( $uri, '/works' ) ) { return; }
+	if ( ! preg_match( '#/works/?(\?|$)#', $uri ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	/* ── 전자책 ─────────────────────────────────────────── */
