@@ -469,6 +469,84 @@
     });
   }
 
+  /* 어떤 요소가 들어 있는 section 을 찾습니다 */
+  function sectionOf(el){
+    var s=el;
+    while(s){ if(s.tagName==='SECTION'){ return s; } s=s.parentNode; }
+    return null;
+  }
+
+  /* 이 브라우저에 저장된 사주 정보가 있는지 */
+  function hasLocal(){
+    try{
+      var raw=localStorage.getItem('stella_demo');
+      if(!raw){ return false; }
+      var o=JSON.parse(raw);
+      if(!o){ return false; }
+      return !!o.profile;
+    }catch(e){ return false; }
+  }
+
+  function two(x){ return (x<10?'0':'')+x; }
+
+  /* 다음에 오실 때는 첫 번째 블록이 알아서 그리도록 씨앗을 심습니다 */
+  function seedLocal(p){
+    try{ localStorage.setItem('stella_demo', JSON.stringify({ profile:p })); }catch(e){}
+  }
+
+  /* 서버가 알려준 정보로 사주 정보 칸을 채웁니다 */
+  function paintProfile(p){
+    function put(id, text){ var e=document.getElementById(id); if(e){ e.textContent=text; } }
+    put('vName', p.name || '—');
+    put('vSex', p.sex==='M' ? '남성' : '여성');
+    var d=p.year+'년 '+p.month+'월 '+p.day+'일';
+    if(p.calendar==='lunar'){ d='음력 '+d; }
+    put('vDate', d);
+    var knows=true;
+    if(p.hour===null){ knows=false; }
+    if(p.hour===undefined){ knows=false; }
+    if(p.hour===''){ knows=false; }
+    put('vTime', knows ? (two(p.hour)+':'+two(p.minute||0)) : '모름 (시주 없이 여섯 글자로 봅니다)');
+    put('vPlace', p.city || '—');
+  }
+
+  /* ── 다른 기기에서 들어오신 회원 ─────────────────────────
+     첫 번째 블록은 이 브라우저에 남은 것만 읽습니다. 폰을 바꾸셨거나
+     시크릿 창이면 아무것도 없어서 「아직 넣으신 정보가 없어요」가 뜨고,
+     구슬 · 친구 추천 · 받으신 풀이 칸이 전부 감춰집니다.
+
+     그런데 서버는 이분을 알고 있습니다. 그래서 회원이면 감춰둔 칸을
+     열어 서버 값으로 채웁니다. 회원가입을 한 보람이 여기서 납니다. */
+  function revealForMember(me){
+    if(hasLocal()){ return; }
+    var has=document.getElementById('mHas');
+    if(!has){ return; }
+
+    if(me.profile){
+      paintProfile(me.profile);
+      seedLocal(me.profile);
+      var empty=document.getElementById('mEmpty');
+      if(empty){ empty.classList.add('hidden'); }
+      /* 첫 번째 블록이 일찍 멈춰서 고치기 화면이 없습니다.
+         한 번 새로 불러오면 그때부터 제대로 열립니다. */
+      var edit=document.getElementById('mEdit');
+      if(edit){ edit.addEventListener('click', function(){ location.reload(); }); }
+    } else {
+      var view=document.getElementById('mView');
+      if(view){
+        var sec=sectionOf(view);
+        if(sec){ sec.style.display='none'; }
+      }
+    }
+
+    /* 이 브라우저에는 마지막 풀이 기록이 없습니다.
+       화면에 박혀 있는 예시가 남으면 거짓말이 되니 감춥니다. */
+    var last=document.getElementById('mLastSec');
+    if(last){ last.style.display='none'; }
+
+    has.classList.remove('hidden');
+  }
+
   /* ── 아직 가입 안 하신 분께 ──────────────────────────────
      여기 보이는 것은 이 브라우저에 남은 것뿐입니다.
      폰을 바꾸거나 시크릿 창으로 오시면 사라지는 것들이라,
@@ -530,6 +608,7 @@
         if(!me){ return; }
         if(!me.member){ askLogin(); return; }
         MEMBER=me;
+        revealForMember(me);
         paintMe(me);
         afterPay();
       })
