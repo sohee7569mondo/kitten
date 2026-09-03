@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>쇼핑 쇼츠 자동 제작기</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --card:#fff; --line:#e3e8f0; --ink:#1a2233; --dim:#6b7688;
+    --blue:#2563eb; --blue-dark:#1d4ed8; --red:#e11d48; --ok:#0f9d58;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+       word-break:keep-all;font-size:14px}
+  header{background:#fff;border-bottom:1px solid var(--line);padding:12px 20px;
+         display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+  header h1{font-size:16px;margin:0;font-weight:700}
+  .layout{display:grid;grid-template-columns:1fr 340px;gap:16px;padding:16px;align-items:start}
+  @media(max-width:1000px){.layout{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:14px;margin:0 0 12px;font-weight:700}
+  label{display:block;font-size:12px;color:var(--dim);margin:8px 0 4px}
+  input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);
+        border-radius:8px;font:inherit;background:#fbfcfe}
+  textarea{resize:vertical;line-height:1.5}
+  button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;
+         font:inherit;cursor:pointer}
+  button:hover{background:#f0f4ff}
+  button.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+  button.primary:hover{background:var(--blue-dark)}
+  button.danger{color:var(--red);border-color:#f3c6d1}
+  button:disabled{opacity:.5;cursor:default}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .scene{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:#fff}
+  .scene.on{border-color:var(--blue);box-shadow:0 0 0 2px #dbe6ff}
+  .scene-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .badge{background:#eef2ff;color:var(--blue);border-radius:6px;padding:2px 8px;font-size:12px;font-weight:700}
+  .meta{font-size:12px;color:var(--dim)}
+  .spacer{flex:1}
+  .num{display:flex;align-items:center;gap:4px}
+  .num input{width:64px;text-align:center}
+  .preview{position:sticky;top:64px}
+  .phone{width:100%;aspect-ratio:9/16;background:#0d1220;border-radius:14px;overflow:hidden;
+         display:flex;align-items:center;justify-content:center;color:#6b7688;font-size:13px}
+  .phone video{width:100%;height:100%;object-fit:contain;background:#000}
+  .bar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);
+       padding:12px 16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .prog{height:6px;background:#e8edf6;border-radius:99px;overflow:hidden;flex:1;min-width:120px}
+  .prog i{display:block;height:100%;background:var(--blue);width:0;transition:width .3s}
+  .msg{font-size:12px;color:var(--dim);min-height:16px}
+  .err{color:var(--red)}
+  .hide{display:none}
+  .steps{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--dim)}
+  .steps b{color:var(--blue)}
+  code{background:#eef2f8;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎬 쇼핑 쇼츠 자동 제작기</h1>
+  <div class="steps"><b>①</b> 주제·소재 → <b>②</b> 대본 검수 → <b>③</b> 렌더</div>
+  <div class="spacer"></div>
+  <select id="projectPick" style="width:220px"></select>
+  <button id="btnReload">새로고침</button>
+</header>
+
+<div class="layout">
+  <div>
+    <!-- ① 새 프로젝트 -->
+    <div class="card" id="newCard">
+      <h2>① 새 프로젝트 만들기</h2>
+      <div class="grid2">
+        <div>
+          <label>프로젝트 이름 (폴더 이름이 됩니다)</label>
+          <input id="nName" placeholder="예: 녹제거페인트">
+        </div>
+        <div>
+          <label>영상 주제 (키워드)</label>
+          <input id="nKeyword" placeholder="예: 녹 제거 및 방수 페인트">
+        </div>
+      </div>
+      <label>소재 — 내 컴퓨터의 파일 경로나 주소를 한 줄에 하나씩</label>
+      <textarea id="nSources" rows="3" placeholder="C:\소재\상품영상.mp4
+C:\소재\상품사진1.jpg
+https://……/detail.mp4"></textarea>
+      <div class="grid3">
+        <div>
+          <label>컷 수</label>
+          <input id="nCount" type="number" value="8" min="2" max="20">
+        </div>
+        <div>
+          <label>영상 스타일</label>
+          <select id="nStyle">
+            <option>정보 전달 (뉴스형)</option>
+            <option>친근한 후기형</option>
+            <option>문제 해결형</option>
+            <option>비교 추천형</option>
+          </select>
+        </div>
+        <div>
+          <label>목소리</label>
+          <select id="nVoice"></select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="primary" id="btnNew">대본 만들기</button>
+        <span class="msg" id="newMsg"></span>
+      </div>
+    </div>
+
+    <!-- ② 대본 검수 -->
+    <div class="card hide" id="reviewCard">
+      <h2>② 대본 검수 (리터치) — <span id="title"></span></h2>
+      <div class="meta" id="summary"></div>
+      <div id="scenes" style="margin-top:12px"></div>
+      <button id="btnAddScene">+ 컷 추가</button>
+    </div>
+
+    <!-- 자막 스타일 -->
+    <div class="card hide" id="styleCard">
+      <h2>자막 스타일</h2>
+      <div class="grid3">
+        <div><label>폰트 (비우면 자동)</label><input id="sFont" placeholder="Malgun Gothic"></div>
+        <div><label>크기</label><input id="sSize" type="number"></div>
+        <div><label>글자색</label><input id="sColor" type="color"></div>
+        <div><label>외곽선 굵기</label><input id="sOutline" type="number"></div>
+        <div><label>외곽선 색</label><input id="sOutColor" type="color"></div>
+        <div><label>그림자</label><input id="sShadow" type="number"></div>
+        <div>
+          <label>세로 위치</label>
+          <select id="sPos"><option value="top">위</option><option value="middle">가운데</option><option value="bottom">아래</option></select>
+        </div>
+        <div>
+          <label>가로 정렬</label>
+          <select id="sAlign"><option value="left">왼쪽</option><option value="center">가운데</option><option value="right">오른쪽</option></select>
+        </div>
+        <div><label>화면 끝 여백</label><input id="sMargin" type="number"></div>
+      </div>
+      <div class="grid3" style="margin-top:10px">
+        <div><label>배경음악 파일 (선택)</label><input id="pBgm" placeholder="C:\소재\bgm.mp3"></div>
+        <div><label>배경음 크기 (0~1)</label><input id="pBgmVol" type="number" step="0.01"></div>
+        <div><label>컷마다 뒤 여유(초)</label><input id="pPad" type="number" step="0.05"></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="btnStyleApply">스타일 저장하고 전체 다시 굽기</button>
+        <span class="meta">자막 모양을 바꾸면 컷을 다시 구워야 화면에 반영됩니다.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 미리보기 패널 -->
+  <div class="preview">
+    <div class="card">
+      <h2>🖥 미리보기 패널</h2>
+      <div class="phone" id="phone">컷을 <b>&nbsp;재생&nbsp;</b> 하면 여기에 나옵니다</div>
+      <div class="row" style="margin-top:10px">
+        <button class="primary" id="btnPlayAll" style="flex:1">전체 재생</button>
+        <button id="btnOpenFolder">폴더 열기 안내</button>
+      </div>
+      <div class="meta" id="previewMsg" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="bar hide" id="bottomBar">
+  <button id="btnSave">임시저장</button>
+  <button id="btnVoiceAll">전체 음성 다시 만들기</button>
+  <button class="primary" id="btnRender">대본 확정 · 영상 만들기</button>
+  <div class="prog"><i id="progBar"></i></div>
+  <div class="msg" id="jobMsg"></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let DIR = null, P = null, polling = null;
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  const t = await r.text();
+  let d; try { d = JSON.parse(t); } catch { throw new Error(t.slice(0, 300)); }
+  if (!r.ok || d.error) throw new Error(d.error || ("오류 " + r.status));
+  return d;
+}
+const post = (path, body) => api(path, {
+  method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)
+});
+const esc = (s) => (s || "").replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mediaUrl = (rel) => `/media?dir=${encodeURIComponent(DIR)}&path=${encodeURIComponent(rel)}&t=${Date.now()}`;
+
+// --- 목록 --------------------------------------------------------------
+async function loadProjects() {
+  const d = await api("/api/projects");
+  const pick = $("projectPick");
+  pick.innerHTML = '<option value="">— 프로젝트 선택 —</option>' +
+    d.projects.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+  if (DIR) pick.value = DIR;
+}
+
+async function loadVoices() {
+  const d = await api("/api/voices");
+  $("nVoice").innerHTML = Object.entries(d.voices)
+    .map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("");
+}
+
+// --- 대본 그리기 --------------------------------------------------------
+function sceneCard(s) {
+  const cut = P._cuts[s.index];
+  return `
+  <div class="scene" id="sc${s.index}">
+    <div class="scene-head">
+      <span class="badge">장면 ${s.index}</span>
+      ${s.group ? `<span class="meta">${esc(s.group)}</span>` : ""}
+      <span class="meta">오디오 ${(s.audio_duration || 0).toFixed(1)}초</span>
+      <div class="num"><span class="meta">컷 길이(초)</span>
+        <button data-act="minus" data-i="${s.index}">−</button>
+        <input data-fld="duration" data-i="${s.index}" type="number" step="0.1" value="${s.duration.toFixed(1)}">
+        <button data-act="plus" data-i="${s.index}">+</button>
+      </div>
+      <div class="spacer"></div>
+      <button data-act="listen" data-i="${s.index}" ${s.audio ? "" : "disabled"}>▶ 미리듣기</button>
+      <button data-act="voice" data-i="${s.index}">🎙 음성 다시</button>
+      <button data-act="cut" data-i="${s.index}">🎞 이 컷 굽기</button>
+      <button data-act="play" data-i="${s.index}" ${cut ? "" : "disabled"}>▶ 재생</button>
+      <button class="danger" data-act="del" data-i="${s.index}">삭제</button>
+    </div>
+    <label>자막 (화면 표시) — 줄바꿈한 대로 나옵니다</label>
+    <textarea data-fld="caption" data-i="${s.index}" rows="2">${esc(s.caption)}</textarea>
+    <label>오디오 대본 (실제 읽음)</label>
+    <textarea data-fld="narration" data-i="${s.index}" rows="2">${esc(s.narration)}</textarea>
+    <div class="grid2" style="margin-top:8px">
+      <div>
+        <label>이 컷의 화면 소재 (파일 경로/주소를 넣고 Enter)</label>
+        <input data-fld="mediapath" data-i="${s.index}" value="${esc(s.media.path)}"
+               placeholder="${s.media.type === 'color' ? '비어 있음 — 단색 배경' : ''}">
+      </div>
+      <div class="grid2">
+        <div><label>소재 시작(초)</label>
+          <input data-fld="mediastart" data-i="${s.index}" type="number" step="0.1" value="${s.media.start}"></div>
+        <div><label>효과음 (선택)</label>
+          <input data-fld="sfx" data-i="${s.index}" value="${esc(s.sfx || '')}"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function draw() {
+  $("newCard").classList.add("hide");
+  $("reviewCard").classList.remove("hide");
+  $("styleCard").classList.remove("hide");
+  $("bottomBar").classList.remove("hide");
+  $("title").textContent = P.title;
+  const total = P.scenes.reduce((a, s) => a + s.duration, 0);
+  $("summary").textContent =
+    `총 ${P.scenes.length}컷 · ${total.toFixed(1)}초 · 목소리 ${P.voice}` +
+    (P._out ? " · 완성본 out.mp4 있음" : "");
+  $("scenes").innerHTML = P.scenes.map(sceneCard).join("");
+
+  const st = P.subtitle;
+  $("sFont").value = st.font; $("sSize").value = st.size;
+  $("sColor").value = "#" + st.color; $("sOutColor").value = "#" + st.outline_color;
+  $("sOutline").value = st.outline; $("sShadow").value = st.shadow;
+  $("sPos").value = st.position; $("sAlign").value = st.align; $("sMargin").value = st.margin_v;
+  $("pBgm").value = P.bgm; $("pBgmVol").value = P.bgm_volume; $("pPad").value = P.pad;
+}
+
+function collect() {
+  document.querySelectorAll("[data-fld]").forEach(el => {
+    const i = +el.dataset.i, f = el.dataset.fld;
+    const s = P.scenes.find(x => x.index === i);
+    if (!s) return;
+    if (f === "duration") s.duration = Math.max(0.4, parseFloat(el.value) || s.duration);
+    else if (f === "mediapath") { s.media.path = el.value.trim(); if (s.media.path && s.media.type === "color") s.media.type = "image"; }
+    else if (f === "mediastart") s.media.start = parseFloat(el.value) || 0;
+    else if (f === "sfx") s.sfx = el.value.trim();
+    else s[f] = el.value;
+  });
+  P.subtitle.font = $("sFont").value.trim();
+  P.subtitle.size = +$("sSize").value;
+  P.subtitle.color = $("sColor").value.replace("#", "").toUpperCase();
+  P.subtitle.outline_color = $("sOutColor").value.replace("#", "").toUpperCase();
+  P.subtitle.outline = +$("sOutline").value;
+  P.subtitle.shadow = +$("sShadow").value;
+  P.subtitle.position = $("sPos").value;
+  P.subtitle.align = $("sAlign").value;
+  P.subtitle.margin_v = +$("sMargin").value;
+  P.bgm = $("pBgm").value.trim();
+  P.bgm_volume = parseFloat($("pBgmVol").value) || 0;
+  P.pad = parseFloat($("pPad").value) || 0;
+  return P;
+}
+
+async function save() {
+  const body = JSON.parse(JSON.stringify(collect()));
+  delete body._cuts; delete body._out; delete body._dir;
+  await post("/api/save", {dir: DIR, project: body});
+}
+
+async function load(dir) {
+  DIR = dir;
+  P = await api("/api/state?dir=" + encodeURIComponent(dir));
+  draw();
+}
+
+// --- 미리보기 ----------------------------------------------------------
+function show(rel, msg) {
+  $("phone").innerHTML = `<video src="${mediaUrl(rel)}" controls autoplay playsinline></video>`;
+  $("previewMsg").textContent = msg || "";
+}
+
+// --- 이벤트 ------------------------------------------------------------
+$("projectPick").onchange = (e) => e.target.value && load(e.target.value);
+$("btnReload").onclick = () => DIR ? load(DIR) : loadProjects();
+
+$("btnNew").onclick = async () => {
+  try {
+    $("newMsg").textContent = "만드는 중… (대본과 음성을 만듭니다)";
+    const d = await post("/api/new", {
+      name: $("nName").value.trim(),
+      keyword: $("nKeyword").value.trim(),
+      sources: $("nSources").value.split("\n"),
+      scene_count: +$("nCount").value,
+      style: $("nStyle").value,
+      voice: $("nVoice").value,
+    });
+    watchJob(async () => { await loadProjects(); await load(d.dir); $("newMsg").textContent = ""; });
+  } catch (e) { $("newMsg").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+};
+
+$("scenes").onclick = async (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  const i = +b.dataset.i, act = b.dataset.act;
+  const s = P.scenes.find(x => x.index === i);
+  const input = document.querySelector(`input[data-fld="duration"][data-i="${i}"]`);
+  try {
+    if (act === "plus" || act === "minus") {
+      const v = Math.max(0.4, (parseFloat(input.value) || 2) + (act === "plus" ? 0.1 : -0.1));
+      input.value = v.toFixed(1); s.duration = v; return;
+    }
+    if (act === "listen") {
+      $("phone").innerHTML = `<audio src="${mediaUrl(s.audio)}" controls autoplay style="width:90%"></audio>`;
+      $("previewMsg").textContent = `장면 ${i} 음성 (${(s.audio_duration||0).toFixed(1)}초)`; return;
+    }
+    if (act === "play") { show(`cuts/cut_${String(i).padStart(3,"0")}.mp4`, `장면 ${i} 컷`); return; }
+    b.disabled = true; b.textContent = "…";
+    if (act === "voice") {
+      await save();
+      const d = await post("/api/voice", {dir: DIR, scene: i, fit: true});
+      P = Object.assign(P, d.project); draw();
+      $("previewMsg").textContent = `장면 ${i} 음성을 다시 만들었습니다.`;
+    } else if (act === "cut") {
+      await save();
+      await post("/api/cut", {dir: DIR, scene: i});
+      P._cuts[i] = true; draw();
+      show(`cuts/cut_${String(i).padStart(3,"0")}.mp4`, `장면 ${i} 다시 구웠습니다.`);
+    } else if (act === "del") {
+      if (!confirm(`장면 ${i}을 지울까요?`)) { b.disabled = false; draw(); return; }
+      await save();
+      const d = await post("/api/scene", {dir: DIR, action: "delete", scene: i});
+      P = Object.assign(P, d.project); await load(DIR);
+    }
+  } catch (err) { alert(err.message); }
+  finally { if (P) draw(); }
+};
+
+$("btnAddScene").onclick = async () => {
+  await save();
+  const d = await post("/api/scene", {dir: DIR, action: "add"});
+  P = Object.assign(P, d.project); await load(DIR);
+};
+
+$("btnSave").onclick = async () => {
+  try { await save(); $("jobMsg").textContent = "저장했습니다."; }
+  catch (e) { $("jobMsg").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+};
+
+$("btnVoiceAll").onclick = async () => {
+  try {
+    await save();
+    $("jobMsg").textContent = "전체 음성을 다시 만드는 중…";
+    const d = await post("/api/voice", {dir: DIR, fit: true});
+    P = Object.assign(P, d.project); draw();
+    $("jobMsg").textContent = "음성을 다시 만들고 컷 길이를 맞췄습니다.";
+  } catch (e) { $("jobMsg").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+};
+
+$("btnStyleApply").onclick = async () => {
+  try {
+    await save();
+    $("jobMsg").textContent = "스타일을 저장했습니다. 전체 굽기를 눌러 반영하세요.";
+  } catch (e) { $("jobMsg").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+};
+
+$("btnRender").onclick = async () => {
+  try {
+    await save();
+    await post("/api/render", {dir: DIR});
+    watchJob(async () => { await load(DIR); show("out.mp4", "완성했습니다 — out.mp4"); });
+  } catch (e) { $("jobMsg").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+};
+
+$("btnPlayAll").onclick = () => {
+  if (!P) return;
+  if (!P._out) { $("previewMsg").textContent = "아직 완성본이 없습니다. 아래 '영상 만들기'를 눌러주세요."; return; }
+  show("out.mp4", "완성본 out.mp4");
+};
+
+$("btnOpenFolder").onclick = () => {
+  alert("프로젝트 폴더:\n" + (P ? P._dir : "(선택 안 됨)") + "\n\n완성본은 그 폴더의 out.mp4 입니다.");
+};
+
+// --- 작업 진행률 --------------------------------------------------------
+function watchJob(onDone) {
+  clearInterval(polling);
+  polling = setInterval(async () => {
+    const j = await api("/api/job");
+    const pct = j.total ? Math.round(j.done / j.total * 100) : (j.running ? 30 : 0);
+    $("progBar").style.width = pct + "%";
+    $("jobMsg").textContent = j.message || "";
+    $("newMsg").textContent = j.running ? (j.message || "만드는 중…") : "";
+    if (j.error) {
+      clearInterval(polling);
+      $("jobMsg").innerHTML = `<span class="err">${esc(j.error)}</span>`;
+      $("newMsg").innerHTML = `<span class="err">${esc(j.error)}</span>`;
+      return;
+    }
+    if (!j.running) {
+      clearInterval(polling);
+      $("progBar").style.width = "100%";
+      if (onDone) await onDone();
+    }
+  }, 700);
+}
+
+loadVoices().then(loadProjects);
+</script>
+</body>
+</html>
