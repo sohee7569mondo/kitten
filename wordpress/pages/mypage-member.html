@@ -111,6 +111,8 @@
 #ssm .guest a{display:inline-block; margin-top:12px; padding:12px 20px; border-radius:6px;
   background:linear-gradient(135deg,#D4AF6A,#B98A47); color:#070512;
   font-weight:700; font-size:.92rem; text-decoration:none;}
+#ssm .guest a.alt{margin-left:10px; background:none; color:#D4AF6A;
+  border:1px solid rgba(212,175,106,.45); font-weight:600;}
 </style>
 
 <script>
@@ -120,8 +122,10 @@
   /* 서버가 알려준 내 정보를 담아둡니다 (나라 같은 것을 잃지 않으려고) */
   var MEMBER=null;
 
+  /* 워드프레스가 본문 속 앰퍼샌드를 고쳐 쓰기 때문에, 글자로 직접 쓰지 않습니다 */
+  var AMP=String.fromCharCode(38);
   function esc(s){ return String(s==null?'':s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    .split(AMP).join(AMP+'amp;').split('<').join(AMP+'lt;').split('>').join(AMP+'gt;'); }
 
   function section(title, sub, inner){
     var s=document.createElement('section');
@@ -465,19 +469,20 @@
     });
   }
 
-  /* ── 로그인 안 하신 분께 ──────────────────────────────────
+  /* ── 아직 가입 안 하신 분께 ──────────────────────────────
      여기 보이는 것은 이 브라우저에 남은 것뿐입니다.
      폰을 바꾸거나 시크릿 창으로 오시면 사라지는 것들이라,
-     들어오시는 길을 먼저 알려드립니다. */
+     가입하시는 길을 먼저 알려드립니다. */
   function askLogin(){
     var wrap=root.querySelector('.wrap');
     if(!wrap){ return; }
     var box=document.createElement('div');
     box.className='guest';
     box.innerHTML='<p><b>지금 보시는 것은 이 브라우저에 남은 것뿐이에요.</b><br>'
-      + '가입하신 적이 있다면 들어오세요. 받으신 풀이와 구슬이 그대로 있습니다. '
-      + '비밀번호는 묻지 않아요 — 이메일만 넣으시면 링크를 보내드립니다.</p>'
-      + '<a href="/login/">이메일로 들어오기 →</a>';
+      + '가입해 두시면 폰을 바꾸셔도 받으신 풀이와 구슬이 그대로 남습니다. '
+      + '이메일과 비밀번호만 정하시면 됩니다 — 삼십 초면 끝나요.</p>'
+      + '<a href="/signin/?join=1">가입하기 →</a>'
+      + '<a class="alt" href="/signin/">이미 가입했어요</a>';
 
     /* 제목 아래에 놓습니다 */
     var dek=wrap.querySelector('.dek');
