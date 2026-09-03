@@ -174,13 +174,11 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .rail.w-free > *{width:192px;}
 #stellar-home .rail.w-door > *{width:264px;}
 #stellar-home .rail.w-ask  > *{width:318px;}
-#stellar-home .rail.w-phil > *{width:250px;}
 @media(max-width:700px){
   #stellar-home .rail.w-free > *{width:158px;}
   #stellar-home .rail.w-door > *{width:214px;}
   #stellar-home .rail.w-ask  > *{width:272px;}
-  #stellar-home .rail.w-phil > *{width:212px;}
-}
+  }
 
 #stellar-home .railbar{
   display:flex !important; align-items:center; justify-content:space-between;
@@ -252,25 +250,25 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   border-radius:3px; padding:3px 7px; text-transform:uppercase;}
 #stellar-home .free-kicker{font-size:.78rem; font-weight:300; letter-spacing:-.01em;
   color:rgba(246,241,231,.38); line-height:1.4;}
-#stellar-home .free-sub{margin-top:5px; font-size:1.42rem; color:var(--star);
+#stellar-home .free-sub{margin-top:6px; font-size:1.62rem; color:var(--star);
   font-weight:300; letter-spacing:-.02em; line-height:1.24; word-break:keep-all;}
 /* 오늘의 운세 카드 ─ 맨 앞에 서는 자리라 글씨를 키웠습니다.
    날짜는 매일 자동으로 바뀝니다. */
 #stellar-home .free-card.today{justify-content:center; padding:20px 16px;}
-#stellar-home .free-card.today .free-line{font-size:1.5rem; font-weight:300;
+#stellar-home .free-card.today .free-line{font-size:1.62rem; font-weight:300;
   letter-spacing:-.02em; line-height:1.34; color:var(--star); word-break:keep-all;}
-#stellar-home .free-card.today .free-date{font-size:1.62rem; color:#E89A44;
+#stellar-home .free-card.today .free-date{font-size:1.74rem; color:#E89A44;
   font-variant-numeric:tabular-nums;}
 @media(max-width:700px){
   #stellar-home .free-card.today{padding:16px 13px;}
-  #stellar-home .free-card.today .free-line{font-size:1.3rem;}
-  #stellar-home .free-card.today .free-date{font-size:1.4rem;}
+  #stellar-home .free-card.today .free-line{font-size:1.42rem;}
+  #stellar-home .free-card.today .free-date{font-size:1.52rem;}
 }
 @media(max-width:700px){
   #stellar-home .free-card{min-height:150px; padding:15px 13px 17px;}
   #stellar-home .free-tag{top:11px; right:11px; font-size:.55rem; padding:2px 6px;}
   #stellar-home .free-kicker{font-size:.72rem;}
-  #stellar-home .free-sub{font-size:1.22rem;}
+  #stellar-home .free-sub{font-size:1.44rem;}
 }
 
 /* ══ 가벼운 질문 ═══════════════════════════════════════════
@@ -321,13 +319,32 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 }
 
 /* ══ 운명의 비율 ═══════════════════════════════════════════ */
-#stellar-home .phil-card{background:var(--card); border:1px solid var(--line); border-radius:12px;
-  padding:24px 22px; text-align:center; box-shadow:var(--lift);}
-#stellar-home .phil-num{font-family:'Cinzel',serif; font-size:2.3rem; color:var(--tone); line-height:1.2;
-  font-variant-numeric:tabular-nums;}
-#stellar-home .phil-num span{font-size:1.1rem; color:var(--ink-dim); margin-left:2px;}
-#stellar-home .phil-label{margin-top:6px; font-weight:700; font-size:1.02rem;}
-#stellar-home .phil-desc{margin-top:8px; font-size:.82rem; color:var(--ink-soft);}
+/* 운명 비율 ─ 2026-09-03 · 숫자 카드 석 장 대신 케이크를 나누듯
+   동그란 그림 하나로 바꿨습니다. 한눈에 비율이 보입니다. */
+#stellar-home .phil-wrap{display:flex !important; align-items:center; justify-content:center;
+  gap:34px; flex-wrap:wrap; background:var(--card); border:1px solid var(--line);
+  border-radius:16px; padding:30px 28px; box-shadow:var(--lift);}
+#stellar-home .phil-chart{position:relative; flex:0 0 auto; width:184px; height:184px;}
+#stellar-home .phil-chart svg{display:block; width:100%; height:100%;}
+#stellar-home .phil-center{position:absolute; inset:0; display:flex !important;
+  align-items:center; justify-content:center; font-family:'Noto Serif KR',serif;
+  font-weight:700; font-size:1.2rem; color:var(--gold-lite); letter-spacing:.06em;}
+#stellar-home .phil-legend{flex:1 1 240px; max-width:330px; margin:0; padding:0; list-style:none;}
+#stellar-home .phil-legend li{position:relative; padding-left:17px; padding-bottom:16px; line-height:1.5;}
+#stellar-home .phil-legend li:last-child{padding-bottom:0;}
+#stellar-home .phil-legend li::before{content:''; position:absolute; left:0; top:.55em;
+  width:7px; height:7px; border-radius:50%; background:var(--tone);}
+#stellar-home .pl-pct{font-family:'Cinzel',serif; font-size:1.4rem; color:var(--tone);
+  margin-right:9px; font-variant-numeric:tabular-nums;}
+#stellar-home .pl-name{font-weight:700; font-size:1.02rem; color:var(--star);}
+#stellar-home .pl-desc{display:block; margin-top:1px; font-size:.85rem; color:var(--ink-soft);}
+@media(max-width:700px){
+  #stellar-home .phil-wrap{gap:20px; padding:24px 18px;}
+  #stellar-home .phil-chart{width:152px; height:152px;}
+  #stellar-home .phil-center{font-size:1.06rem;}
+  #stellar-home .pl-pct{font-size:1.24rem;}
+  #stellar-home .phil-legend li{padding-bottom:13px;}
+}
 #stellar-home .phil-quote{margin-top:24px; text-align:center; font-family:'Noto Serif KR',serif;
   font-size:1.04rem; color:var(--star); max-width:520px; margin-left:auto; margin-right:auto; line-height:1.8;}
 #stellar-home .phil-quote span{color:var(--gold);}
@@ -407,15 +424,15 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
           <span class="free-line free-date" id="tfD">&mdash;</span>
           <span class="free-line">오늘의 운세</span></a>
         <a href="/saju/" class="free-card" style="--bg:#3F1C3A"><span class="free-tag">Free</span>
-          <span class="free-kicker">간단한</span><span class="free-sub">나의 사주풀이</span></a>
+          <span class="free-kicker">간단한</span><span class="free-sub">나의<br>사주풀이</span></a>
         <a href="/lotto/" class="free-card" style="--bg:#12291E"><span class="free-tag">Free</span>
-          <span class="free-kicker">심심풀이</span><span class="free-sub">이번주 로또번호</span></a>
+          <span class="free-kicker">심심풀이</span><span class="free-sub">이번주<br>로또번호</span></a>
         <a href="/zodiac/" class="free-card" style="--bg:#2E1C12"><span class="free-tag">Free</span>
-          <span class="free-kicker">간단한</span><span class="free-sub">이번주 별자리운세</span></a>
+          <span class="free-kicker">간단한</span><span class="free-sub">이번주<br>별자리운세</span></a>
         <a href="/zodiac-year/" class="free-card" style="--bg:#12272E"><span class="free-tag">Free</span>
-          <span class="free-kicker">심심풀이</span><span class="free-sub">올해 띠별 운세</span></a>
+          <span class="free-kicker">심심풀이</span><span class="free-sub">올해<br>띠별 운세</span></a>
         <a href="/weekly-summary/" class="free-card" style="--bg:#262A14"><span class="free-tag">Free</span>
-          <span class="free-kicker">간단한</span><span class="free-sub">이번주 총평</span></a>
+          <span class="free-kicker">간단한</span><span class="free-sub">이번주<br>총평</span></a>
       </div>
       <div class="railbar reveal">
         <div class="dots" data-dots="1" aria-hidden="true"></div>
@@ -487,17 +504,25 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   <!-- ══ 운명의 비율 ═══════════════════════════════════════ -->
   <section class="sh-section" id="philosophy" style="padding-top:0;">
     <div class="wrap">
-      <div class="rail w-phil reveal" data-rail="1">
-        <div class="phil-card" style="--tone:#9B85D6"><div class="phil-num">30<span>%</span></div><div class="phil-label">사주</div><div class="phil-desc">타고난 기질과 흐름</div></div>
-        <div class="phil-card" style="--tone:#C99A5E"><div class="phil-num">50<span>%</span></div><div class="phil-label">노력</div><div class="phil-desc">오늘 당신이 내리는 선택</div></div>
-        <div class="phil-card" style="--tone:#5FA98C"><div class="phil-num">20<span>%</span></div><div class="phil-label">인연</div><div class="phil-desc">만나는 사람과 타이밍</div></div>
-      </div>
-      <div class="railbar reveal">
-        <div class="dots" data-dots="1" aria-hidden="true"></div>
-        <div class="arrows">
-          <button type="button" data-go="-1" aria-label="이전 카드">&#8249;</button>
-          <button type="button" data-go="1" aria-label="다음 카드">&#8250;</button>
+      <div class="phil-wrap reveal">
+        <div class="phil-chart">
+          <svg viewBox="0 0 160 160" aria-hidden="true">
+            <circle cx="80" cy="80" r="62" fill="none" stroke="rgba(246,241,231,.055)" stroke-width="21"></circle>
+            <g transform="rotate(-90 80 80)" fill="none" stroke-width="21">
+              <circle cx="80" cy="80" r="62" stroke="#9B85D6" stroke-dasharray="109.87 389.56" stroke-dashoffset="0"></circle>
+              <circle cx="80" cy="80" r="62" stroke="#E0BC7C" stroke-dasharray="187.78 389.56" stroke-dashoffset="-116.87"></circle>
+              <circle cx="80" cy="80" r="62" stroke="#5FA98C" stroke-dasharray="70.91 389.56" stroke-dashoffset="-311.65"></circle>
+            </g>
+          </svg>
+          <!-- 【문구】 원 가운데 -->
+          <div class="phil-center">운명</div>
         </div>
+        <ul class="phil-legend">
+          <!-- 【문구】 운명 비율 -->
+          <li style="--tone:#9B85D6"><span class="pl-pct">30%</span><span class="pl-name">사주</span><span class="pl-desc">타고난 기질과 흐름</span></li>
+          <li style="--tone:#E0BC7C"><span class="pl-pct">50%</span><span class="pl-name">노력</span><span class="pl-desc">오늘 당신이 내리는 선택</span></li>
+          <li style="--tone:#5FA98C"><span class="pl-pct">20%</span><span class="pl-name">인연</span><span class="pl-desc">만나는 사람과 타이밍</span></li>
+        </ul>
       </div>
       <!-- 【문구】 운명 비율 아래 한 줄 -->
       <div class="phil-quote reveal">사주는 당신을 가두는 벽이 아니라, <span>지도</span>예요.</div>
