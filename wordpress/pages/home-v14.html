@@ -66,7 +66,10 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 
 #stellar-home *{margin:0; padding:0; box-sizing:border-box;}
 #stellar-home h1,#stellar-home h2,#stellar-home h3{
-  font-family:'Noto Serif KR',serif; color:var(--star); font-weight:700; letter-spacing:normal;}
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  color:var(--star); font-weight:700; letter-spacing:-.01em;}
+/* 첫 화면 큰 글씨만 명조로 남깁니다 — 이 사이트의 목소리라서요 */
+#stellar-home .hero h1{font-family:'Noto Serif KR',serif; letter-spacing:normal;}
 #stellar-home a{color:inherit; text-decoration:none;}
 #stellar-home img{display:block; max-width:100%; height:auto;}
 #stellar-home svg{display:block;}
@@ -202,8 +205,11 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .arrows button:disabled{opacity:.28; cursor:default;}
 
 /* ══ 여섯 개의 문 ══════════════════════════════════════════
-   2026-09-03 · 제목과 설명을 뺐습니다. 문이 열리면 바로 이 그림들이
-   나오는 것이 이 사이트가 무엇인지 제일 빨리 설명해 줍니다. */
+   2026-09-03 · 위에 붙던 영문 딱지와 아래 설명 문단은 뺐습니다.
+   제목 한 줄만 남깁니다. */
+#stellar-home .doors-head{font-size:clamp(1.16rem,2.8vw,1.5rem); margin-bottom:20px;
+  text-align:center; text-wrap:balance;}
+@media(max-width:700px){ #stellar-home .doors-head{margin-bottom:16px;} }
 #stellar-home .door-card{position:relative; border-radius:12px; overflow:hidden; border:1px solid var(--line);
   background:var(--card); box-shadow:var(--lift); display:block;
   transition:transform .35s ease, box-shadow .35s ease, border-color .35s ease;}
@@ -218,7 +224,7 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .door-card .imgwrap::after{content:''; position:absolute; inset:0; z-index:3;
   background:linear-gradient(to top, rgba(20,14,42,.94) 0%, rgba(20,14,42,.16) 58%, transparent 82%);}
 #stellar-home .door-card .info{position:absolute; left:0; right:0; bottom:0; padding:16px 15px; z-index:4;}
-#stellar-home .door-card .titlekr{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.06rem;}
+#stellar-home .door-card .titlekr{font-weight:700; font-size:1.06rem; letter-spacing:-.01em;}
 #stellar-home .door-card .topics{margin-top:8px; display:flex !important; flex-wrap:wrap; gap:5px;}
 #stellar-home .door-card .topics span{font-size:.66rem; color:var(--gold-lite);
   background:rgba(163,124,246,.14); border:1px solid rgba(212,175,106,.4);
@@ -230,11 +236,11 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .today-banner{
   position:relative; display:flex !important; align-items:center; gap:20px;
   background:linear-gradient(115deg, rgba(232,180,92,.26) 0%, #3B2D70 46%, #271E4E 100%);
-  border:1px solid rgba(232,180,92,.5); border-radius:16px; padding:22px 26px 26px;
+  border:1px solid rgba(232,180,92,.5); border-radius:16px; padding:20px 24px 30px;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.09), 0 18px 44px -22px rgba(232,180,92,.5);
   transition:transform .25s ease, border-color .25s ease;}
 #stellar-home a.today-banner:hover{transform:translateY(-3px); border-color:var(--c-sun);}
-#stellar-home .tb-day{flex:0 0 auto; width:66px; height:66px; border-radius:14px;
+#stellar-home .tb-day{flex:0 0 auto; width:60px; height:60px; border-radius:14px;
   background:rgba(10,7,24,.42); border:1px solid rgba(232,180,92,.45);
   display:flex !important; flex-direction:column; align-items:center; justify-content:center; line-height:1.12;}
 #stellar-home .tb-day .m{font-family:'IBM Plex Mono',monospace; font-size:.6rem;
@@ -243,36 +249,40 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   font-variant-numeric:tabular-nums;}
 #stellar-home .tb-txt{flex:1 1 auto; text-align:left;}
 #stellar-home .tb-txt h3{font-size:1.32rem;}
-#stellar-home .tb-go{flex:0 0 auto; width:38px; height:38px; border-radius:50%;
-  border:1px solid rgba(232,180,92,.5); color:var(--gold-lite);
-  display:flex !important; align-items:center; justify-content:center;}
-#stellar-home .tb-mark{position:absolute; left:20px; bottom:9px; color:rgba(232,180,92,.72);}
+#stellar-home .tb-mark{position:absolute; left:24px; bottom:8px; color:rgba(232,180,92,.72); line-height:0;}
 @media(max-width:560px){
-  #stellar-home .today-banner{padding:16px 16px 22px; gap:13px;}
-  #stellar-home .tb-day{width:54px; height:54px; border-radius:12px;}
+  #stellar-home .today-banner{padding:16px 16px 26px; gap:13px;}
+  #stellar-home .tb-day{width:52px; height:52px; border-radius:12px;}
   #stellar-home .tb-day .d{font-size:1.3rem;}
   #stellar-home .tb-txt h3{font-size:1.1rem;}
-  #stellar-home .tb-mark{left:14px; bottom:7px;}
+  #stellar-home .tb-mark{left:16px; bottom:5px;}
 }
 
 /* ══ 심심풀이 ══════════════════════════════════════════════
-   2026-09-03 · 섹션 제목과 설명을 뺐습니다. 카드마다 FREE 표가
-   왼쪽 위에 붙고, 한자 대신 그림이 들어갑니다. 색은 여섯 가지. */
-#stellar-home .free-card{position:relative; background:var(--card); border:1px solid var(--line);
-  border-radius:14px; padding:34px 16px 20px; text-align:center; box-shadow:var(--lift);
-  transition:border-color .25s ease, transform .25s ease, background .25s ease;
-  display:block; cursor:pointer;}
-#stellar-home .free-card:hover{border-color:var(--tone); transform:translateY(-4px); background:var(--card-hi);}
-#stellar-home .free-tag{position:absolute; top:10px; left:10px;
-  font-family:'IBM Plex Mono',monospace; font-size:.58rem; letter-spacing:.14em;
-  color:var(--void-deep); background:var(--tone); border-radius:4px; padding:2px 7px;
-  text-transform:uppercase; font-weight:500;}
-#stellar-home .free-ico{margin:0 auto; color:var(--tone);}
-#stellar-home .free-sub{margin-top:14px; font-size:.94rem; color:var(--star);
-  font-family:'Noto Serif KR',serif; font-weight:500;}
+   2026-09-03 · FREE 표와 아이콘이 정작 주제보다 더 눈에 띄었습니다.
+   순서를 뒤집었습니다 — 제목이 제일 밝고, 아이콘은 한 단계 뒤로,
+   FREE 표는 여섯 장 모두 같은 색 같은 크기로 조용히 붙습니다.
+   대신 카드 바탕색에 변화를 줬습니다. 어둡기는 같고 색조만 다릅니다. */
+#stellar-home .free-card{position:relative; background:var(--bg);
+  border:1px solid var(--rim); border-radius:14px;
+  padding:36px 16px 20px; text-align:center; box-shadow:var(--lift);
+  transition:border-color .25s ease, transform .25s ease, filter .25s ease;
+  display:flex !important; flex-direction:column; align-items:center;
+  justify-content:center; min-height:128px; cursor:pointer;}
+/* 아이콘을 뺀 카드는 제목만 가운데에 놓습니다 */
+#stellar-home .free-card.noico .free-sub{margin-top:0;}
+#stellar-home .free-card:hover{border-color:var(--tone); transform:translateY(-4px); filter:brightness(1.14);}
+#stellar-home .free-tag{position:absolute; top:11px; left:11px;
+  font-family:'IBM Plex Mono',monospace; font-size:.56rem; letter-spacing:.16em;
+  color:rgba(224,188,124,.78); background:rgba(224,188,124,.10);
+  border:1px solid rgba(224,188,124,.26); border-radius:4px; padding:2px 7px;
+  text-transform:uppercase;}
+#stellar-home .free-ico{margin:0 auto; color:var(--tone); opacity:.72;}
+#stellar-home .free-sub{margin-top:14px; font-size:1.02rem; color:var(--star);
+  font-weight:700; letter-spacing:-.01em; line-height:1.4;}
 @media(max-width:700px){
-  #stellar-home .free-card{padding:30px 12px 17px;}
-  #stellar-home .free-sub{font-size:.86rem;}
+  #stellar-home .free-card{padding:32px 12px 17px;}
+  #stellar-home .free-sub{font-size:.94rem;}
 }
 
 /* ══ 가벼운 질문 ═══════════════════════════════════════════
@@ -281,15 +291,13 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .ask{
   display:flex !important; flex-direction:column; justify-content:space-between;
   min-height:186px; padding:20px 22px 16px; border-radius:14px;
-  background:var(--card); border:1px solid var(--line); box-shadow:var(--lift);
-  transition:border-color .25s ease, background .25s ease, transform .25s ease;}
-#stellar-home a.ask:hover{border-color:var(--tone); background:var(--card-hi); transform:translateY(-3px);}
-#stellar-home .ask .ico{color:var(--tone);}
-#stellar-home .ask .q{margin-top:14px;
-  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
-  font-size:1.22rem; font-weight:700; line-height:1.48; letter-spacing:-.01em;
+  background:var(--bg); border:1px solid var(--rim); box-shadow:var(--lift);
+  transition:border-color .25s ease, filter .25s ease, transform .25s ease;}
+#stellar-home a.ask:hover{border-color:var(--tone); filter:brightness(1.14); transform:translateY(-3px);}
+#stellar-home .ask .ico{color:var(--tone); opacity:.78;}
+#stellar-home .ask .q{margin-top:14px; font-size:1.22rem; font-weight:700; line-height:1.48; letter-spacing:-.01em;
   color:var(--star); flex:1 1 auto;}
-#stellar-home .ask .go{margin-top:16px; font-size:.84rem; font-weight:500; color:var(--tone);
+#stellar-home .ask .go{margin-top:16px; font-size:.84rem; font-weight:500; color:var(--tone); opacity:.92;
   display:flex !important; align-items:center; gap:7px;}
 @media(max-width:700px){
   #stellar-home .ask{min-height:170px; padding:17px 18px 14px;}
@@ -330,7 +338,7 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .phil-num{font-family:'Cinzel',serif; font-size:2.3rem; color:var(--tone); line-height:1.2;
   font-variant-numeric:tabular-nums;}
 #stellar-home .phil-num span{font-size:1.1rem; color:var(--ink-dim); margin-left:2px;}
-#stellar-home .phil-label{margin-top:6px; font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.02rem;}
+#stellar-home .phil-label{margin-top:6px; font-weight:700; font-size:1.02rem;}
 #stellar-home .phil-desc{margin-top:8px; font-size:.82rem; color:var(--ink-soft);}
 #stellar-home .phil-quote{margin-top:24px; text-align:center; font-family:'Noto Serif KR',serif;
   font-size:1.04rem; color:var(--star); max-width:520px; margin-left:auto; margin-right:auto; line-height:1.8;}
@@ -381,6 +389,8 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   <!-- ══ 여섯 개의 문 · 제목 없이 바로 그림 ═══════════════ -->
   <section class="sh-section" id="doors" style="padding-top:34px;">
     <div class="wrap">
+      <!-- 【문구】 문 제목 -->
+      <h2 class="doors-head reveal">궁금한 문, 주제를 열어보세요</h2>
       <div class="rail w-door reveal" data-rail="1">
         <a class="door-card" href="/door-career/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="직성의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorarchitect.jpg?resize=640%2C953"></div><div class="info"><div class="titlekr">직성의 신</div><div class="topics"><span>취업</span><span>직장</span><span>이직</span><span>사업</span><span>재물</span></div></div></a>
         <a class="door-card" href="/door-love/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="연성의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorlovers.webp?resize=640%2C953"></div><div class="info"><div class="titlekr">연성의 신</div><div class="topics"><span>결혼</span><span>연애</span><span>재회</span><span>이별</span><span>짝사랑</span></div></div></a>
@@ -408,11 +418,8 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
           <!-- 【문구】 오늘의 운세 -->
           <h3>오늘의 운세</h3>
         </div>
-        <div class="tb-go" aria-hidden="true">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"></path><path d="M12 6l6 6-6 6"></path></svg>
-        </div>
         <span class="tb-mark" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V12a7 7 0 0 1 14 0v9"></path><path d="M3 21h18"></path><path d="M12 8.5l1.1 2.2 2.2 1.1-2.2 1.1L12 15.1l-1.1-2.2L8.7 11.8l2.2-1.1z"></path></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M12 7.7 13.13 10.24 16.09 10.47 13.84 12.4 14.53 15.28 12 13.73 9.47 15.28 10.16 12.4 7.91 10.47 10.87 10.24Z"></path></svg>
         </span>
       </a>
     </div>
@@ -422,22 +429,20 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   <section class="sh-section" id="freebies">
     <div class="wrap">
       <div class="rail w-free reveal" data-rail="1">
-        <a href="/today/" class="free-card" style="--tone:#E8B45C"><span class="free-tag">Free</span>
-          <span class="free-ico"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="13" r="4"></circle><path d="M12 4v2"></path><path d="M5.6 6.6l1.4 1.4"></path><path d="M18.4 6.6L17 8"></path><path d="M3 13h2"></path><path d="M19 13h2"></path><path d="M4 20h16"></path></svg></span>
+        <a href="/today/" class="free-card noico" style="--tone:#C99A5E; --rim:rgba(201,154,94,.32); --bg:linear-gradient(158deg,#2A1C14 0%,#1C1730 100%)"><span class="free-tag">Free</span>
           <span class="free-sub">오늘의 운세</span></a>
-        <a href="/saju/" class="free-card" style="--tone:#5FBFA0"><span class="free-tag">Free</span>
-          <span class="free-ico"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="7" height="7" rx="1.4"></rect><rect x="14" y="4" width="7" height="7" rx="1.4"></rect><rect x="3" y="14" width="7" height="7" rx="1.4"></rect><rect x="14" y="14" width="7" height="7" rx="1.4"></rect></svg></span>
+        <a href="/saju/" class="free-card noico" style="--tone:#5FA98C; --rim:rgba(95,169,140,.30); --bg:linear-gradient(158deg,#16241F 0%,#1A1730 100%)"><span class="free-tag">Free</span>
           <span class="free-sub">나의 사주풀이</span></a>
-        <a href="/lotto/" class="free-card" style="--tone:#E8836F"><span class="free-tag">Free</span>
+        <a href="/lotto/" class="free-card" style="--tone:#C4718A; --rim:rgba(196,113,138,.32); --bg:linear-gradient(158deg,#3A1730 0%,#211738 100%)"><span class="free-tag">Free</span>
           <span class="free-ico"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="9" r="4"></circle><circle cx="16" cy="9" r="4"></circle><circle cx="12" cy="16" r="4"></circle></svg></span>
           <span class="free-sub">이번주 로또</span></a>
-        <a href="/zodiac/" class="free-card" style="--tone:#7BA4F0"><span class="free-tag">Free</span>
+        <a href="/zodiac/" class="free-card" style="--tone:#7B92D8; --rim:rgba(123,146,216,.30); --bg:linear-gradient(158deg,#1A1A32 0%,#181430 100%)"><span class="free-tag">Free</span>
           <span class="free-ico"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l5-8 4 5 3-6 4 4"></path><circle cx="4" cy="17" r="1.5" fill="currentColor"></circle><circle cx="9" cy="9" r="1.5" fill="currentColor"></circle><circle cx="13" cy="14" r="1.5" fill="currentColor"></circle><circle cx="16" cy="8" r="1.5" fill="currentColor"></circle><circle cx="20" cy="12" r="1.5" fill="currentColor"></circle></svg></span>
           <span class="free-sub">별자리 운세</span></a>
-        <a href="/zodiac-year/" class="free-card" style="--tone:#A98CF5"><span class="free-tag">Free</span>
+        <a href="/zodiac-year/" class="free-card" style="--tone:#9B85D6; --rim:rgba(155,133,214,.30); --bg:linear-gradient(158deg,#241A38 0%,#1A1533 100%)"><span class="free-tag">Free</span>
           <span class="free-ico"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 3.5v2"></path><path d="M12 18.5v2"></path><path d="M3.5 12h2"></path><path d="M18.5 12h2"></path><path d="M6 6l1.4 1.4"></path><path d="M16.6 16.6L18 18"></path><path d="M18 6l-1.4 1.4"></path><path d="M7.4 16.6L6 18"></path><circle cx="12" cy="12" r="2.6"></circle></svg></span>
           <span class="free-sub">띠별 운세</span></a>
-        <a href="/weekly-summary/" class="free-card" style="--tone:#CBB775"><span class="free-tag">Free</span>
+        <a href="/weekly-summary/" class="free-card" style="--tone:#B0A468; --rim:rgba(176,164,104,.30); --bg:linear-gradient(158deg,#2A2416 0%,#1C1730 100%)"><span class="free-tag">Free</span>
           <span class="free-ico"><svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6"></path><path d="M6 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2"></path><path d="M9 8h7"></path><path d="M9 12h7"></path><path d="M9 16h4"></path></svg></span>
           <span class="free-sub">이번주 총평</span></a>
       </div>
@@ -456,30 +461,30 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
     <div class="wrap">
       <div class="rail w-ask reveal" data-rail="1">
         <!-- 【문구】 가벼운 질문 여섯 줄 -->
-        <a class="ask" href="/door-career/" style="--tone:#E8B45C">
+        <a class="ask" href="/door-career/" style="--tone:#C99A5E; --rim:rgba(201,154,94,.32); --bg:linear-gradient(158deg,#2A1C14 0%,#1C1730 100%)">
           <span class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2"></rect><path d="M2.5 10h19"></path><path d="M6 14.5h4"></path></svg></span>
           <span class="q">이번 달 카드값,<br>사주한테 하소연해도 될까요?</span>
-          <span class="go">열어보기 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V12a7 7 0 0 1 14 0v9"></path><path d="M3 21h18"></path><path d="M12 8.5l1.1 2.2 2.2 1.1-2.2 1.1L12 15.1l-1.1-2.2L8.7 11.8l2.2-1.1z"></path></svg></span></a>
-        <a class="ask" href="/door-love/" style="--tone:#E8836F">
+          <span class="go">열어보기 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M12 7.7 13.13 10.24 16.09 10.47 13.84 12.4 14.53 15.28 12 13.73 9.47 15.28 10.16 12.4 7.91 10.47 10.87 10.24Z"></path></svg></span></a>
+        <a class="ask" href="/door-love/" style="--tone:#C4718A; --rim:rgba(196,113,138,.32); --bg:linear-gradient(158deg,#3A1730 0%,#211738 100%)">
           <span class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.6-7-9.4A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7 2.6C19 15.4 12 20 12 20z"></path></svg></span>
           <span class="q">고백 타이밍,<br>사주한테 물어보고 정할까요?</span>
-          <span class="go">열어보기 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V12a7 7 0 0 1 14 0v9"></path><path d="M3 21h18"></path><path d="M12 8.5l1.1 2.2 2.2 1.1-2.2 1.1L12 15.1l-1.1-2.2L8.7 11.8l2.2-1.1z"></path></svg></span></a>
-        <a class="ask" href="/door-health/" style="--tone:#5FBFA0">
+          <span class="go">열어보기 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M12 7.7 13.13 10.24 16.09 10.47 13.84 12.4 14.53 15.28 12 13.73 9.47 15.28 10.16 12.4 7.91 10.47 10.87 10.24Z"></path></svg></span></a>
+        <a class="ask" href="/door-health/" style="--tone:#5FA98C; --rim:rgba(95,169,140,.30); --bg:linear-gradient(158deg,#16241F 0%,#1A1730 100%)">
           <span class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16"></path><path d="M5 12a7 7 0 0 0 14 0"></path><path d="M9 4v3"></path><path d="M12 3.4V7"></path><path d="M15 4v3"></path><path d="M3 20h18"></path></svg></span>
           <span class="q">어젯밤도<br>배달앱 켜셨죠?</span>
-          <span class="go">열어보기 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V12a7 7 0 0 1 14 0v9"></path><path d="M3 21h18"></path><path d="M12 8.5l1.1 2.2 2.2 1.1-2.2 1.1L12 15.1l-1.1-2.2L8.7 11.8l2.2-1.1z"></path></svg></span></a>
-        <a class="ask" href="/door-fortune/" style="--tone:#CBB775">
+          <span class="go">열어보기 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M12 7.7 13.13 10.24 16.09 10.47 13.84 12.4 14.53 15.28 12 13.73 9.47 15.28 10.16 12.4 7.91 10.47 10.87 10.24Z"></path></svg></span></a>
+        <a class="ask" href="/door-fortune/" style="--tone:#B0A468; --rim:rgba(176,164,104,.30); --bg:linear-gradient(158deg,#2A2416 0%,#1C1730 100%)">
           <span class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12"></path><path d="M6 21h12"></path><path d="M7 3v3.2c0 2 5 3.9 5 5.8s-5 3.8-5 5.8V21"></path><path d="M17 3v3.2c0 2-5 3.9-5 5.8s5 3.8 5 5.8V21"></path></svg></span>
           <span class="q">지금 질러도 되는 때인지,<br>좀 더 버텨야 하는 때인지</span>
-          <span class="go">열어보기 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V12a7 7 0 0 1 14 0v9"></path><path d="M3 21h18"></path><path d="M12 8.5l1.1 2.2 2.2 1.1-2.2 1.1L12 15.1l-1.1-2.2L8.7 11.8l2.2-1.1z"></path></svg></span></a>
-        <a class="ask" href="/door-astro/" style="--tone:#7BA4F0">
+          <span class="go">열어보기 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M12 7.7 13.13 10.24 16.09 10.47 13.84 12.4 14.53 15.28 12 13.73 9.47 15.28 10.16 12.4 7.91 10.47 10.87 10.24Z"></path></svg></span></a>
+        <a class="ask" href="/door-astro/" style="--tone:#7B92D8; --rim:rgba(123,146,216,.30); --bg:linear-gradient(158deg,#1A1A32 0%,#181430 100%)">
           <span class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.3 5.3 5.7.5-4.3 3.8 1.3 5.6L12 15.8 7 18.7l1.3-5.6L4 9.3l5.7-.5z"></path></svg></span>
           <span class="q">오늘 별자리 운세<br>이미 세 번 보셨죠?</span>
-          <span class="go">열어보기 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V12a7 7 0 0 1 14 0v9"></path><path d="M3 21h18"></path><path d="M12 8.5l1.1 2.2 2.2 1.1-2.2 1.1L12 15.1l-1.1-2.2L8.7 11.8l2.2-1.1z"></path></svg></span></a>
-        <a class="ask" href="/door-tarot/" style="--tone:#A98CF5">
+          <span class="go">열어보기 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M12 7.7 13.13 10.24 16.09 10.47 13.84 12.4 14.53 15.28 12 13.73 9.47 15.28 10.16 12.4 7.91 10.47 10.87 10.24Z"></path></svg></span></a>
+        <a class="ask" href="/door-tarot/" style="--tone:#9B85D6; --rim:rgba(155,133,214,.30); --bg:linear-gradient(158deg,#241A38 0%,#1A1533 100%)">
           <span class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7.5" y="3.5" width="12" height="17" rx="2"></rect><path d="M4.5 6.5v12a2 2 0 0 0 2 2"></path><path d="M13.5 9.5v.2"></path><path d="M13.5 12.5v2.5"></path></svg></span>
           <span class="q">질문 하나만<br>딱 떠올려보세요</span>
-          <span class="go">열어보기 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V12a7 7 0 0 1 14 0v9"></path><path d="M3 21h18"></path><path d="M12 8.5l1.1 2.2 2.2 1.1-2.2 1.1L12 15.1l-1.1-2.2L8.7 11.8l2.2-1.1z"></path></svg></span></a>
+          <span class="go">열어보기 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M12 7.7 13.13 10.24 16.09 10.47 13.84 12.4 14.53 15.28 12 13.73 9.47 15.28 10.16 12.4 7.91 10.47 10.87 10.24Z"></path></svg></span></a>
       </div>
       <div class="railbar reveal">
         <div class="dots" data-dots="1" aria-hidden="true"></div>
@@ -512,9 +517,9 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   <section class="sh-section" id="philosophy" style="padding-top:0;">
     <div class="wrap">
       <div class="rail w-phil reveal" data-rail="1">
-        <div class="phil-card" style="--tone:#A98CF5"><div class="phil-num">30<span>%</span></div><div class="phil-label">사주</div><div class="phil-desc">타고난 기질과 흐름</div></div>
-        <div class="phil-card" style="--tone:#E8B45C"><div class="phil-num">50<span>%</span></div><div class="phil-label">노력</div><div class="phil-desc">오늘 당신이 내리는 선택</div></div>
-        <div class="phil-card" style="--tone:#5FBFA0"><div class="phil-num">20<span>%</span></div><div class="phil-label">인연</div><div class="phil-desc">만나는 사람과 타이밍</div></div>
+        <div class="phil-card" style="--tone:#9B85D6"><div class="phil-num">30<span>%</span></div><div class="phil-label">사주</div><div class="phil-desc">타고난 기질과 흐름</div></div>
+        <div class="phil-card" style="--tone:#C99A5E"><div class="phil-num">50<span>%</span></div><div class="phil-label">노력</div><div class="phil-desc">오늘 당신이 내리는 선택</div></div>
+        <div class="phil-card" style="--tone:#5FA98C"><div class="phil-num">20<span>%</span></div><div class="phil-label">인연</div><div class="phil-desc">만나는 사람과 타이밍</div></div>
       </div>
       <div class="railbar reveal">
         <div class="dots" data-dots="1" aria-hidden="true"></div>
@@ -535,7 +540,7 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
         <!-- 【문구】 마지막 -->
         <h2>문은 언제나 열려 있어요</h2>
         <a href="#doors" class="btn">여섯 개의 문 보기
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V12a7 7 0 0 1 14 0v9"></path><path d="M3 21h18"></path><path d="M12 8.5l1.1 2.2 2.2 1.1-2.2 1.1L12 15.1l-1.1-2.2L8.7 11.8l2.2-1.1z"></path></svg>
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M12 7.7 13.13 10.24 16.09 10.47 13.84 12.4 14.53 15.28 12 13.73 9.47 15.28 10.16 12.4 7.91 10.47 10.87 10.24Z"></path></svg>
         </a>
       </div>
     </div>
