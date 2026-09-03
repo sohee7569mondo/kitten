@@ -207,7 +207,9 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 /* ══ 여섯 개의 문 ══════════════════════════════════════════
    2026-09-03 · 위에 붙던 영문 딱지와 아래 설명 문단은 뺐습니다.
    제목 한 줄만 남깁니다. */
-#stellar-home .doors-head{font-size:clamp(1.16rem,2.8vw,1.5rem); margin-bottom:20px;
+/* 「궁금한 문」 제목과 가디언 이름은 명조로 둡니다 — 잘 어울립니다. */
+#stellar-home .doors-head{font-family:'Noto Serif KR',serif; letter-spacing:normal;
+  font-size:clamp(1.18rem,2.9vw,1.54rem); margin-bottom:20px;
   text-align:center; text-wrap:balance;}
 @media(max-width:700px){ #stellar-home .doors-head{margin-bottom:16px;} }
 #stellar-home .door-card{position:relative; border-radius:12px; overflow:hidden; border:1px solid var(--line);
@@ -224,7 +226,8 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .door-card .imgwrap::after{content:''; position:absolute; inset:0; z-index:3;
   background:linear-gradient(to top, rgba(20,14,42,.94) 0%, rgba(20,14,42,.16) 58%, transparent 82%);}
 #stellar-home .door-card .info{position:absolute; left:0; right:0; bottom:0; padding:16px 15px; z-index:4;}
-#stellar-home .door-card .titlekr{font-weight:700; font-size:1.06rem; letter-spacing:-.01em;}
+#stellar-home .door-card .titlekr{font-family:'Noto Serif KR',serif; font-weight:700;
+  font-size:1.1rem; letter-spacing:normal;}
 #stellar-home .door-card .topics{margin-top:8px; display:flex !important; flex-wrap:wrap; gap:5px;}
 #stellar-home .door-card .topics span{font-size:.66rem; color:var(--gold-lite);
   background:rgba(163,124,246,.14); border:1px solid rgba(212,175,106,.4);
