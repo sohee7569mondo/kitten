@@ -230,34 +230,6 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   background:rgba(163,124,246,.14); border:1px solid rgba(212,175,106,.4);
   border-radius:20px; padding:2px 8px; line-height:1.6;}
 
-/* ══ 오늘의 운세 ═══════════════════════════════════════════
-   2026-09-03 · 날짜와 이름만 남겼습니다. 설명은 뺐고, 왼쪽 아래에
-   작은 문 아이콘을 놓았습니다 — 누르면 열린다는 표시입니다. */
-#stellar-home .today-banner{
-  position:relative; display:flex !important; align-items:center; gap:20px;
-  background:linear-gradient(115deg, rgba(232,180,92,.26) 0%, #3B2D70 46%, #271E4E 100%);
-  border:1px solid rgba(232,180,92,.5); border-radius:16px; padding:20px 24px 30px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.09), 0 18px 44px -22px rgba(232,180,92,.5);
-  transition:transform .25s ease, border-color .25s ease;}
-#stellar-home a.today-banner:hover{transform:translateY(-3px); border-color:var(--c-sun);}
-#stellar-home .tb-day{flex:0 0 auto; width:60px; height:60px; border-radius:14px;
-  background:rgba(10,7,24,.42); border:1px solid rgba(232,180,92,.45);
-  display:flex !important; flex-direction:column; align-items:center; justify-content:center; line-height:1.12;}
-#stellar-home .tb-day .m{font-family:'IBM Plex Mono',monospace; font-size:.6rem;
-  letter-spacing:.12em; color:var(--c-sun);}
-#stellar-home .tb-day .d{font-family:'Cinzel',serif; font-size:1.6rem; color:var(--gold-lite);
-  font-variant-numeric:tabular-nums;}
-#stellar-home .tb-txt{flex:1 1 auto; text-align:left;}
-#stellar-home .tb-txt h3{font-size:1.32rem;}
-#stellar-home .tb-mark{position:absolute; left:24px; bottom:8px; color:rgba(232,180,92,.72); line-height:0;}
-@media(max-width:560px){
-  #stellar-home .today-banner{padding:16px 16px 26px; gap:13px;}
-  #stellar-home .tb-day{width:52px; height:52px; border-radius:12px;}
-  #stellar-home .tb-day .d{font-size:1.3rem;}
-  #stellar-home .tb-txt h3{font-size:1.1rem;}
-  #stellar-home .tb-mark{left:16px; bottom:5px;}
-}
-
 /* ══ 심심풀이 ══════════════════════════════════════════════
    2026-09-03 · 소희 님이 보내주신 시안대로 다시 짰습니다.
    아이콘은 전부 뺐고, 글씨로만 보여줍니다.
@@ -279,6 +251,18 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   color:rgba(246,241,231,.38); line-height:1.4;}
 #stellar-home .free-sub{margin-top:5px; font-size:1.42rem; color:var(--star);
   font-weight:300; letter-spacing:-.02em; line-height:1.24; word-break:keep-all;}
+/* 오늘의 운세 카드 ─ 맨 앞에 서는 자리라 글씨를 키웠습니다.
+   날짜는 매일 자동으로 바뀝니다. */
+#stellar-home .free-card.today{justify-content:center; padding:20px 16px;}
+#stellar-home .free-card.today .free-line{font-size:1.5rem; font-weight:300;
+  letter-spacing:-.02em; line-height:1.34; color:var(--star); word-break:keep-all;}
+#stellar-home .free-card.today .free-date{font-size:1.62rem; color:#E89A44;
+  font-variant-numeric:tabular-nums;}
+@media(max-width:700px){
+  #stellar-home .free-card.today{padding:16px 13px;}
+  #stellar-home .free-card.today .free-line{font-size:1.3rem;}
+  #stellar-home .free-card.today .free-date{font-size:1.4rem;}
+}
 @media(max-width:700px){
   #stellar-home .free-card{min-height:150px; padding:15px 13px 17px;}
   #stellar-home .free-tag{top:11px; right:11px; font-size:.55rem; padding:2px 6px;}
@@ -410,28 +394,15 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
     </div>
   </section>
 
-  <!-- ══ 오늘의 운세 ═══════════════════════════════════════ -->
-  <section class="sh-section" id="today" style="padding-top:0; padding-bottom:0;">
-    <div class="wrap">
-      <a class="today-banner reveal" href="/today/">
-        <div class="tb-day"><span class="m" id="tbMon">&mdash;</span><span class="d" id="tbDay">&mdash;</span></div>
-        <div class="tb-txt">
-          <!-- 【문구】 오늘의 운세 -->
-          <h3>오늘의 운세</h3>
-        </div>
-        <span class="tb-mark" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M12 7.7 13.13 10.24 16.09 10.47 13.84 12.4 14.53 15.28 12 13.73 9.47 15.28 10.16 12.4 7.91 10.47 10.87 10.24Z"></path></svg>
-        </span>
-      </a>
-    </div>
-  </section>
 
   <!-- ══ 심심풀이 · 제목 없이 배너만 ═══════════════════════ -->
   <section class="sh-section" id="freebies">
     <div class="wrap">
       <div class="rail w-free reveal" data-rail="1">
-        <a href="/today/" class="free-card" style="--bg:#232240"><span class="free-tag">Free</span>
-          <span class="free-kicker">심심풀이</span><span class="free-sub">오늘의 운세</span></a>
+        <a href="/today/" class="free-card today" style="--bg:#171C34"><span class="free-tag">Free</span>
+          <span class="free-line" id="tfY">&mdash;</span>
+          <span class="free-line free-date" id="tfD">&mdash;</span>
+          <span class="free-line">오늘의 운세</span></a>
         <a href="/saju/" class="free-card" style="--bg:#3F1C3A"><span class="free-tag">Free</span>
           <span class="free-kicker">간단한</span><span class="free-sub">나의 사주풀이</span></a>
         <a href="/lotto/" class="free-card" style="--bg:#12291E"><span class="free-tag">Free</span>
@@ -646,10 +617,10 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   /* ── 오늘 날짜 ───────────────────────────────────────────── */
   try{
     var d0 = new Date();
-    var em = document.getElementById('tbMon');
-    var ed = document.getElementById('tbDay');
-    if(em){ em.textContent = (d0.getMonth() + 1) + '월'; }
-    if(ed){ ed.textContent = d0.getDate(); }
+    var ey = document.getElementById('tfY');
+    var ed = document.getElementById('tfD');
+    if(ey){ ey.textContent = d0.getFullYear() + '년'; }
+    if(ed){ ed.textContent = (d0.getMonth() + 1) + '월' + d0.getDate() + '일'; }
   }catch(err){}
 
   /* ── 이번주 스타 ─────────────────────────────────────────
