@@ -115,7 +115,7 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
           mask-image:linear-gradient(to bottom, transparent 0%, black 14%, black 72%, transparent 96%),
                      linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
           mask-composite:intersect;
-  animation:sh-figureFade 1.8s ease 1.2s backwards;}
+  animation:sh-figureFade 1.6s ease .2s backwards;}
 @keyframes sh-figureFade{ from{opacity:0;} to{opacity:.4;} }
 #stellar-home .hero::after{
   content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
@@ -124,44 +124,53 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .hero-portrait{
   width:104px; height:104px; margin:0 auto 22px; border-radius:50%; overflow:hidden;
   border:2px solid var(--gold-soft); box-shadow:0 0 50px var(--purple-glow);
-  animation:sh-fadeUp 1s ease 1.9s backwards;}
+  animation:sh-fadeUp 1s ease .5s backwards;}
 #stellar-home .hero-portrait img{width:100%; height:100%; object-fit:cover; object-position:center 15%;}
 @media(max-width:700px){ #stellar-home .hero-portrait{width:88px; height:88px; margin-bottom:18px;} }
 
-/* 첫 화면 문 ─ 2026-09-03 · 문짝 두 짝이 맞닿는 자리에 별 하나를
-   걸쳐놓았습니다. 닫혀 있을 땐 온전한 별 하나, 문이 열리면 반씩
-   갈라져 나갑니다. 문 아이콘에 쓴 그 별과 같은 모양입니다. */
+/* 문이 열리며 가디언이 나옵니다 ─ 2026-09-03
+   첫 화면에서는 글이 바로 보이고, 아래로 내려와 「궁금한 문」에
+   닿으면 그때 문짝 두 짝이 갈라지며 여섯 가디언이 드러납니다.
+   문짝은 자바스크립트가 켜져 있을 때만 나타납니다. 꺼져 있으면
+   가디언이 처음부터 그냥 보입니다. */
+#stellar-home .doorgate{position:relative;}
+#stellar-home .gate-clip{display:none;}
+#stellar-home.js-on .gate-clip{
+  display:block; position:absolute; top:-4px; bottom:-6px; left:-28px; right:-28px;
+  overflow:hidden; pointer-events:none; z-index:6;}
+@media(max-width:700px){ #stellar-home.js-on .gate-clip{left:-20px; right:-20px;} }
 #stellar-home .gate-leaf{
-  position:absolute; top:0; bottom:0; width:52%; z-index:5; overflow:hidden;
+  position:absolute; top:0; bottom:0; width:52%;
   background:linear-gradient(160deg, #3B2D70, var(--void-deep));
-  border:1px solid var(--line);}
-#stellar-home .gate-leaf::before{content:''; position:absolute; inset:18px; border:1px solid rgba(212,175,106,.35);}
-#stellar-home .gate-leaf::after{content:''; position:absolute; top:50%; width:190px; height:190px;
+  border:1px solid var(--line);
+  transition:transform 1.5s cubic-bezier(.62,0,.2,1);}
+#stellar-home .gate-leaf::before{content:''; position:absolute; inset:14px; border:1px solid rgba(212,175,106,.35);}
+#stellar-home .gate-leaf::after{content:''; position:absolute; top:50%; width:170px; height:170px;
   transform:translateY(-50%); border-radius:50%; pointer-events:none;
   background:radial-gradient(circle, rgba(224,188,124,.20) 0%, transparent 68%);}
-#stellar-home .gate-star{position:absolute; top:50%; width:132px; height:132px;
+#stellar-home .gate-star{position:absolute; top:50%; width:116px; height:116px;
   transform:translateY(-50%); color:var(--gold-lite); opacity:.9;
   filter:drop-shadow(0 0 20px rgba(224,188,124,.55));}
 #stellar-home .gate-star svg{display:block; width:100%; height:100%;}
-#stellar-home .gate-left{left:0;  transform:translateX(-102%); animation:sh-openLeft  1.4s cubic-bezier(.6,0,.2,1) .3s backwards;}
-#stellar-home .gate-left::after{right:calc(3.846% - 95px);}
-#stellar-home .gate-left .gate-star{right:calc(3.846% - 66px);}
-#stellar-home .gate-right{right:0; transform:translateX(102%);  animation:sh-openRight 1.4s cubic-bezier(.6,0,.2,1) .3s backwards;}
-#stellar-home .gate-right::after{left:calc(3.846% - 95px);}
-#stellar-home .gate-right .gate-star{left:calc(3.846% - 66px);}
+#stellar-home .gate-left{left:0;}
+#stellar-home .gate-left::after{right:calc(3.846% - 85px);}
+#stellar-home .gate-left .gate-star{right:calc(3.846% - 58px);}
+#stellar-home .gate-right{right:0;}
+#stellar-home .gate-right::after{left:calc(3.846% - 85px);}
+#stellar-home .gate-right .gate-star{left:calc(3.846% - 58px);}
+#stellar-home .gate-clip.open .gate-left{transform:translateX(-102%);}
+#stellar-home .gate-clip.open .gate-right{transform:translateX(102%);}
 @media(max-width:700px){
-  #stellar-home .gate-star{width:104px; height:104px;}
-  #stellar-home .gate-left .gate-star{right:calc(3.846% - 52px);}
-  #stellar-home .gate-right .gate-star{left:calc(3.846% - 52px);}
-  #stellar-home .gate-leaf::after{width:150px; height:150px;}
-  #stellar-home .gate-left::after{right:calc(3.846% - 75px);}
-  #stellar-home .gate-right::after{left:calc(3.846% - 75px);}
+  #stellar-home .gate-star{width:92px; height:92px;}
+  #stellar-home .gate-left .gate-star{right:calc(3.846% - 46px);}
+  #stellar-home .gate-right .gate-star{left:calc(3.846% - 46px);}
+  #stellar-home .gate-leaf::after{width:132px; height:132px;}
+  #stellar-home .gate-left::after{right:calc(3.846% - 66px);}
+  #stellar-home .gate-right::after{left:calc(3.846% - 66px);}
 }
-@keyframes sh-openLeft { from{transform:translateX(0);} to{transform:translateX(-102%);} }
-@keyframes sh-openRight{ from{transform:translateX(0);} to{transform:translateX(102%);} }
 
 #stellar-home .hero-content{position:relative; z-index:2; text-align:center; max-width:720px;
-  padding:0 28px 92px; animation:sh-fadeUp 1s ease 1.6s backwards;}
+  padding:0 28px 92px; animation:sh-fadeUp 1s ease .25s backwards;}
 @media(max-width:700px){ #stellar-home .hero-content{padding:0 22px 78px;} }
 @keyframes sh-fadeUp{ from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
 #stellar-home .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.24em;
@@ -171,7 +180,7 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .hero h1 em{font-style:normal; color:var(--gold);}
 #stellar-home .scroll-hint{position:absolute; bottom:28px; left:50%; transform:translateX(-50%); z-index:3;
   font-family:'IBM Plex Mono',monospace; font-size:.66rem; color:var(--ink-dim); text-align:center;
-  animation:sh-fadeUp 1s ease 2s backwards;}
+  animation:sh-fadeUp 1s ease .8s backwards;}
 #stellar-home .scroll-hint .arrow{margin-top:6px; animation:sh-bob 1.8s ease-in-out infinite;}
 @keyframes sh-bob{0%,100%{transform:translateY(0);} 50%{transform:translateY(6px);}}
 
@@ -253,7 +262,7 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
    2026-09-03 · 소희 님이 보내주신 시안대로 다시 짰습니다.
    아이콘은 전부 뺐고, 글씨로만 보여줍니다.
    위에 작은 말머리 한 줄, 아래 큰 제목, FREE는 오른쪽 위 검은 표.
-   바탕은 그러데이션 없이 단색이고 여섯 장이 색조만 다릅니다. */
+   바탕은 여섯 장이 색조만 다른 그러데이션입니다. */
 #stellar-home .free-card{position:relative; background:var(--bg);
   border:1px solid rgba(246,241,231,.07); border-radius:12px;
   padding:18px 16px 20px; text-align:left; box-shadow:var(--lift);
@@ -290,7 +299,7 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 }
 
 /* ══ 가벼운 질문 ═══════════════════════════════════════════
-   2026-09-03 · 위 심심풀이와 카드 크기를 맞췄습니다. 어차피
+   2026-09-03 · 위 심심풀이와 카드 크기를 맞추었습니다. 어차피
    여섯 개의 문으로 들어가는 또 하나의 창구라서, 아래에
    「열어보기」 대신 그 문을 지키는 가디언 이름을 넣었습니다.
    글은 혼잣말처럼 짧게 줄였고 아이콘은 그대로 뒀습니다. */
@@ -439,8 +448,6 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   <!-- ══ 첫 화면 ══════════════════════════════════════════ -->
   <section class="hero">
     <img decoding="async" class="hero-figure" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellarherofigure.webp?resize=900%2C1340" alt="스텔라사주 가디언" width="900" height="1340" fetchpriority="high">
-    <div class="gate-leaf gate-left" aria-hidden="true"><span class="gate-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.5 14.47 8.6 21.99 8.76 15.99 13.3 18.17 20.49 12 16.2 5.83 20.49 8.01 13.3 2.01 8.76 9.53 8.6Z"></path></svg></span></div>
-    <div class="gate-leaf gate-right" aria-hidden="true"><span class="gate-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.5 14.47 8.6 21.99 8.76 15.99 13.3 18.17 20.49 12 16.2 5.83 20.49 8.01 13.3 2.01 8.76 9.53 8.6Z"></path></svg></span></div>
     <div class="hero-content">
       <div class="eyebrow">STELLA SAJU</div>
       <div class="hero-portrait"><img loading="lazy" decoding="async" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellarportrait.webp?resize=420%2C625" alt="스텔라사주 가디언" width="420" height="625"></div>
@@ -456,13 +463,19 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
     <div class="wrap">
       <!-- 【문구】 문 제목 -->
       <h2 class="doors-head reveal">궁금한 문, 주제를 열어보세요</h2>
-      <div class="rail w-door reveal" data-rail="1">
-        <a class="door-card" href="/door-career/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="직성의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorarchitect.jpg?resize=640%2C953"></div><div class="info"><div class="titlekr">직성의 신</div><div class="topics"><span>취업</span><span>직장</span><span>이직</span><span>사업</span><span>재물</span></div></div></a>
-        <a class="door-card" href="/door-love/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="연성의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorlovers.webp?resize=640%2C953"></div><div class="info"><div class="titlekr">연성의 신</div><div class="topics"><span>결혼</span><span>연애</span><span>재회</span><span>이별</span><span>짝사랑</span></div></div></a>
-        <a class="door-card" href="/door-health/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="강성의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoornurturer.webp?resize=640%2C953"></div><div class="info"><div class="titlekr">강성의 신</div><div class="topics"><span>건강</span><span>체질</span><span>가족</span></div></div></a>
-        <a class="door-card" href="/door-fortune/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="세성의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorseasons.webp?resize=640%2C953"></div><div class="info"><div class="titlekr">세성의 신</div><div class="topics"><span>대운</span><span>평생 흐름</span><span>신년운세</span></div></div></a>
-        <a class="door-card" href="/door-astro/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="성좌의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorastraios.webp?resize=640%2C953"></div><div class="info"><div class="titlekr">성좌의 신</div><div class="topics"><span>별자리</span><span>서양 점성술</span></div></div></a>
-        <a class="door-card" href="/door-tarot/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="아르카나" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorarcana.webp?resize=640%2C953"></div><div class="info"><div class="titlekr">아르카나</div><div class="topics"><span>타로 보기</span></div></div></a>
+      <div class="doorgate">
+        <div class="rail w-door reveal" data-rail="1">
+          <a class="door-card" href="/door-career/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="직성의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorarchitect.jpg?resize=640%2C953"></div><div class="info"><div class="titlekr">직성의 신</div><div class="topics"><span>취업</span><span>직장</span><span>이직</span><span>사업</span><span>재물</span></div></div></a>
+          <a class="door-card" href="/door-love/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="연성의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorlovers.webp?resize=640%2C953"></div><div class="info"><div class="titlekr">연성의 신</div><div class="topics"><span>결혼</span><span>연애</span><span>재회</span><span>이별</span><span>짝사랑</span></div></div></a>
+          <a class="door-card" href="/door-health/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="강성의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoornurturer.webp?resize=640%2C953"></div><div class="info"><div class="titlekr">강성의 신</div><div class="topics"><span>건강</span><span>체질</span><span>가족</span></div></div></a>
+          <a class="door-card" href="/door-fortune/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="세성의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorseasons.webp?resize=640%2C953"></div><div class="info"><div class="titlekr">세성의 신</div><div class="topics"><span>대운</span><span>평생 흐름</span><span>신년운세</span></div></div></a>
+          <a class="door-card" href="/door-astro/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="성좌의 신" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorastraios.webp?resize=640%2C953"></div><div class="info"><div class="titlekr">성좌의 신</div><div class="topics"><span>별자리</span><span>서양 점성술</span></div></div></a>
+          <a class="door-card" href="/door-tarot/"><div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="953" alt="아르카나" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorarcana.webp?resize=640%2C953"></div><div class="info"><div class="titlekr">아르카나</div><div class="topics"><span>타로 보기</span></div></div></a>
+        </div>
+        <div class="gate-clip" id="doorGate" aria-hidden="true">
+          <div class="gate-leaf gate-left"><span class="gate-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.5 14.47 8.6 21.99 8.76 15.99 13.3 18.17 20.49 12 16.2 5.83 20.49 8.01 13.3 2.01 8.76 9.53 8.6Z"></path></svg></span></div>
+          <div class="gate-leaf gate-right"><span class="gate-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.5 14.47 8.6 21.99 8.76 15.99 13.3 18.17 20.49 12 16.2 5.83 20.49 8.01 13.3 2.01 8.76 9.53 8.6Z"></path></svg></span></div>
+        </div>
       </div>
       <div class="railbar reveal">
         <div class="dots" data-dots="1" aria-hidden="true"></div>
@@ -705,6 +718,27 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
       setTimeout(paint, 1500);
       paint();
     });
+  }catch(err){}
+
+  /* ── 문 열기 ─────────────────────────────────────────────
+     「궁금한 문」이 화면에 들어오면 문짝 두 짝이 갈라집니다.
+     뭐가 잘못돼도 6초 뒤에는 무조건 열립니다. */
+  try{
+    var gate = document.getElementById('doorGate');
+    if(gate){
+      var openGate = function(){ gate.classList.add('open'); };
+      if(!('IntersectionObserver' in window)){
+        setTimeout(openGate, 300);
+      } else {
+        var gio = new IntersectionObserver(function(es){
+          es.forEach(function(e){
+            if(e.isIntersecting){ setTimeout(openGate, 420); gio.unobserve(e.target); }
+          });
+        }, {threshold:.32});
+        gio.observe(gate);
+      }
+      setTimeout(openGate, 6000);
+    }
   }catch(err){}
 
   /* ── 오늘 날짜 ───────────────────────────────────────────── */
