@@ -337,6 +337,41 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 }
 
 /* ══ 운명의 비율 ═══════════════════════════════════════════ */
+/* ══ 보는 순서 ═════════════════════════════════════════════
+   2026-09-03 · 번호를 매긴 네 칸입니다. 넓은 화면에서는 가로로
+   늘어서고 폰에서는 세로로 쌓입니다. 칸 사이를 가는 선이 잇습니다. */
+#stellar-home .steps-head{font-size:clamp(1.1rem,2.6vw,1.34rem); margin-bottom:26px;
+  text-align:center; color:var(--ink-soft); font-weight:500; letter-spacing:.01em;}
+#stellar-home .steps{display:grid !important; grid-template-columns:repeat(4,1fr);
+  gap:16px; margin:0; padding:0; list-style:none;}
+#stellar-home .step{position:relative; text-align:center; padding:0 6px;
+  display:flex !important; flex-direction:column; align-items:center;}
+#stellar-home .st-no{position:relative; z-index:1; width:46px; height:46px; border-radius:50%;
+  border:1px solid var(--tone); color:var(--tone); background:var(--void-deep);
+  font-family:'Cinzel',serif; font-weight:600; font-size:1.02rem; letter-spacing:.02em;
+  display:flex !important; align-items:center; justify-content:center;}
+#stellar-home .step:not(:last-child)::after{content:''; position:absolute; top:23px; z-index:0;
+  left:calc(50% + 27px); right:calc(-50% + 27px); height:1px;
+  background:linear-gradient(90deg, rgba(212,175,106,.34), rgba(212,175,106,.10));}
+#stellar-home .st-t{margin-top:14px; font-weight:700; font-size:1.02rem; color:var(--star);
+  letter-spacing:-.01em; white-space:nowrap;}
+#stellar-home .st-d{margin-top:5px; font-size:.82rem; color:var(--ink-soft); line-height:1.55;}
+@media(max-width:700px){
+  #stellar-home .steps-head{margin-bottom:20px;}
+  #stellar-home .steps{grid-template-columns:1fr; gap:0;}
+  /* 폰에서는 번호를 왼쪽에 두고 글을 오른쪽에 두 줄로 앉힙니다 */
+  #stellar-home .step{display:grid !important; grid-template-columns:42px 1fr;
+    grid-template-areas:"no t" "no d"; column-gap:15px; align-items:start;
+    text-align:left; padding:0 0 24px;}
+  #stellar-home .step:last-child{padding-bottom:0;}
+  #stellar-home .st-no{grid-area:no; width:42px; height:42px; font-size:.96rem;}
+  #stellar-home .st-t{grid-area:t; margin-top:5px; font-size:1.02rem;}
+  #stellar-home .st-d{grid-area:d; margin-top:2px;}
+  #stellar-home .step:not(:last-child)::after{top:48px; bottom:2px; left:21px; right:auto;
+    width:1px; height:auto;
+    background:linear-gradient(180deg, rgba(212,175,106,.34), rgba(212,175,106,.08));}
+}
+
 /* 운명 비율 ─ 2026-09-03 · 바탕 판 없이 가는 띠 하나입니다.
    띠를 30 · 50 · 20으로 나누고, 그 아래 같은 자리에 숫자와 이름만
    놓았습니다. 두툼한 색 덩어리보다 이쪽이 단정합니다. */
@@ -369,7 +404,9 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 }
 
 #stellar-home .final-cta{text-align:center; padding:44px 28px 10px;}
-#stellar-home .final-cta h2{font-size:clamp(1.3rem,3vw,1.8rem);}
+/* 마지막 한 줄은 명조입니다 ─ 첫 화면과 짝을 맞춥니다. */
+#stellar-home .final-cta h2{font-family:'Noto Serif KR',serif; letter-spacing:normal;
+  font-size:clamp(1.34rem,3.1vw,1.86rem);}
 #stellar-home .final-cta .btn{margin-top:20px; padding:14px 26px; border-radius:999px;
   font-size:.9rem; font-weight:700; display:inline-flex; align-items:center; gap:9px;
   border:1px solid var(--gold); color:var(--gold-lite); background:rgba(163,124,246,.10);
@@ -517,6 +554,25 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   </section>
 
   <!-- ══ 운명의 비율 ═══════════════════════════════════════ -->
+  <!-- ══ 보는 순서 ═════════════════════════════════════════ -->
+  <section class="sh-section" id="steps" style="padding-top:0;">
+    <div class="wrap">
+      <!-- 【문구】 순서 제목 -->
+      <h2 class="steps-head reveal">사주 보는 순서</h2>
+      <ol class="steps reveal">
+        <!-- 【문구】 순서 네 칸 -->
+        <li class="step" style="--tone:#A78FE0"><span class="st-no">01</span>
+          <span class="st-t">문 고르기</span><span class="st-d">궁금한 주제를 고릅니다</span></li>
+        <li class="step" style="--tone:#E0BC7C"><span class="st-no">02</span>
+          <span class="st-t">생년월일 넣기</span><span class="st-d">태어난 날과 시간이면 돼요</span></li>
+        <li class="step" style="--tone:#6FBFA0"><span class="st-no">03</span>
+          <span class="st-t">여덟 글자 펴기</span><span class="st-d">스텔라가 사주를 풉니다</span></li>
+        <li class="step" style="--tone:#E8956F"><span class="st-no">04</span>
+          <span class="st-t">풀이 받기</span><span class="st-d">언제든 다시 볼 수 있어요</span></li>
+      </ol>
+    </div>
+  </section>
+
   <section class="sh-section" id="philosophy" style="padding-top:0;">
     <div class="wrap">
       <div class="ratio reveal">
