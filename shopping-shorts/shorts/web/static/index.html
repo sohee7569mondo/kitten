@@ -267,17 +267,22 @@ function draw() {
   $("pBgm").value = P.bgm; $("pBgmVol").value = P.bgm_volume; $("pPad").value = P.pad;
 }
 
+// 칸 하나를 대본(P)에 반영합니다. 화면을 다시 그려도 방금 친 글자가 날아가지
+// 않도록, 타이핑하는 즉시 이 함수가 돕니다.
+function syncField(el) {
+  if (!P) return;
+  const i = +el.dataset.i, f = el.dataset.fld;
+  const s = P.scenes.find(x => x.index === i);
+  if (!s) return;
+  if (f === "duration") s.duration = Math.max(0.4, parseFloat(el.value) || s.duration);
+  else if (f === "mediapath") { s.media.path = el.value.trim(); if (s.media.path && s.media.type === "color") s.media.type = "image"; }
+  else if (f === "mediastart") s.media.start = parseFloat(el.value) || 0;
+  else if (f === "sfx") s.sfx = el.value.trim();
+  else s[f] = el.value;
+}
+
 function collect() {
-  document.querySelectorAll("[data-fld]").forEach(el => {
-    const i = +el.dataset.i, f = el.dataset.fld;
-    const s = P.scenes.find(x => x.index === i);
-    if (!s) return;
-    if (f === "duration") s.duration = Math.max(0.4, parseFloat(el.value) || s.duration);
-    else if (f === "mediapath") { s.media.path = el.value.trim(); if (s.media.path && s.media.type === "color") s.media.type = "image"; }
-    else if (f === "mediastart") s.media.start = parseFloat(el.value) || 0;
-    else if (f === "sfx") s.sfx = el.value.trim();
-    else s[f] = el.value;
-  });
+  document.querySelectorAll("[data-fld]").forEach(syncField);
   P.subtitle.font = $("sFont").value.trim();
   P.subtitle.size = +$("sSize").value;
   P.subtitle.color = $("sColor").value.replace("#", "").toUpperCase();
@@ -330,6 +335,11 @@ $("btnNew").onclick = async () => {
   } catch (e) { $("newMsg").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
 };
 
+$("scenes").oninput = (e) => {
+  const el = e.target.closest("[data-fld]");
+  if (el) syncField(el);
+};
+
 $("scenes").onclick = async (e) => {
   const b = e.target.closest("button"); if (!b) return;
   const i = +b.dataset.i, act = b.dataset.act;
@@ -357,13 +367,15 @@ $("scenes").onclick = async (e) => {
       P._cuts[i] = true; draw();
       show(`cuts/cut_${String(i).padStart(3,"0")}.mp4`, `장면 ${i} 다시 구웠습니다.`);
     } else if (act === "del") {
-      if (!confirm(`장면 ${i}을 지울까요?`)) { b.disabled = false; draw(); return; }
+      if (!confirm(`장면 ${i}을 지울까요?`)) { b.disabled = false; b.textContent = "삭제"; return; }
       await save();
       const d = await post("/api/scene", {dir: DIR, action: "delete", scene: i});
       P = Object.assign(P, d.project); await load(DIR);
     }
-  } catch (err) { alert(err.message); }
-  finally { if (P) draw(); }
+  } catch (err) {
+    alert(err.message);
+    draw();   // 버튼 표시를 되돌립니다
+  }
 };
 
 $("btnAddScene").onclick = async () => {
