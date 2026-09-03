@@ -128,17 +128,35 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .hero-portrait img{width:100%; height:100%; object-fit:cover; object-position:center 15%;}
 @media(max-width:700px){ #stellar-home .hero-portrait{width:88px; height:88px; margin-bottom:18px;} }
 
+/* 첫 화면 문 ─ 2026-09-03 · 문짝 두 짝이 맞닿는 자리에 별 하나를
+   걸쳐놓았습니다. 닫혀 있을 땐 온전한 별 하나, 문이 열리면 반씩
+   갈라져 나갑니다. 문 아이콘에 쓴 그 별과 같은 모양입니다. */
 #stellar-home .gate-leaf{
-  position:absolute; top:0; bottom:0; width:52%; z-index:5;
+  position:absolute; top:0; bottom:0; width:52%; z-index:5; overflow:hidden;
   background:linear-gradient(160deg, #3B2D70, var(--void-deep));
   border:1px solid var(--line);}
 #stellar-home .gate-leaf::before{content:''; position:absolute; inset:18px; border:1px solid rgba(212,175,106,.35);}
-#stellar-home .gate-leaf::after{content:'\2726'; position:absolute; top:50%; color:var(--gold);
-  font-size:1.6rem; transform:translateY(-50%); opacity:.7;}
+#stellar-home .gate-leaf::after{content:''; position:absolute; top:50%; width:190px; height:190px;
+  transform:translateY(-50%); border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle, rgba(224,188,124,.20) 0%, transparent 68%);}
+#stellar-home .gate-star{position:absolute; top:50%; width:132px; height:132px;
+  transform:translateY(-50%); color:var(--gold-lite); opacity:.9;
+  filter:drop-shadow(0 0 20px rgba(224,188,124,.55));}
+#stellar-home .gate-star svg{display:block; width:100%; height:100%;}
 #stellar-home .gate-left{left:0;  transform:translateX(-102%); animation:sh-openLeft  1.4s cubic-bezier(.6,0,.2,1) .3s backwards;}
-#stellar-home .gate-left::after{right:26px;}
+#stellar-home .gate-left::after{right:calc(3.846% - 95px);}
+#stellar-home .gate-left .gate-star{right:calc(3.846% - 66px);}
 #stellar-home .gate-right{right:0; transform:translateX(102%);  animation:sh-openRight 1.4s cubic-bezier(.6,0,.2,1) .3s backwards;}
-#stellar-home .gate-right::after{left:26px;}
+#stellar-home .gate-right::after{left:calc(3.846% - 95px);}
+#stellar-home .gate-right .gate-star{left:calc(3.846% - 66px);}
+@media(max-width:700px){
+  #stellar-home .gate-star{width:104px; height:104px;}
+  #stellar-home .gate-left .gate-star{right:calc(3.846% - 52px);}
+  #stellar-home .gate-right .gate-star{left:calc(3.846% - 52px);}
+  #stellar-home .gate-leaf::after{width:150px; height:150px;}
+  #stellar-home .gate-left::after{right:calc(3.846% - 75px);}
+  #stellar-home .gate-right::after{left:calc(3.846% - 75px);}
+}
 @keyframes sh-openLeft { from{transform:translateX(0);} to{transform:translateX(-102%);} }
 @keyframes sh-openRight{ from{transform:translateX(0);} to{transform:translateX(102%);} }
 
@@ -171,11 +189,11 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 @media(max-width:700px){
   #stellar-home .rail{padding:4px 20px 6px; margin:0 -20px; scroll-padding-left:20px; gap:12px;}
 }
-#stellar-home .rail.w-free > *{width:192px;}
+#stellar-home .rail.w-free > *{width:242px;}
 #stellar-home .rail.w-door > *{width:264px;}
 #stellar-home .rail.w-ask  > *{width:318px;}
 @media(max-width:700px){
-  #stellar-home .rail.w-free > *{width:158px;}
+  #stellar-home .rail.w-free > *{width:192px;}
   #stellar-home .rail.w-door > *{width:214px;}
   #stellar-home .rail.w-ask  > *{width:272px;}
   }
@@ -241,34 +259,34 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   padding:18px 16px 20px; text-align:left; box-shadow:var(--lift);
   transition:transform .25s ease, filter .25s ease, border-color .25s ease;
   display:flex !important; flex-direction:column; align-items:flex-start;
-  justify-content:flex-start; min-height:172px; cursor:pointer; overflow:hidden;}
+  justify-content:flex-start; min-height:206px; cursor:pointer; overflow:hidden;}
 #stellar-home .free-card:hover{transform:translateY(-4px); filter:brightness(1.22);
   border-color:rgba(246,241,231,.2);}
 #stellar-home .free-tag{position:absolute; top:14px; right:14px;
   font-family:'IBM Plex Mono',monospace; font-size:.6rem; font-weight:500;
   letter-spacing:.06em; color:#F6F1E7; background:#080511;
   border-radius:3px; padding:3px 7px; text-transform:uppercase;}
-#stellar-home .free-kicker{font-size:.78rem; font-weight:300; letter-spacing:-.01em;
+#stellar-home .free-kicker{font-size:1.01rem; font-weight:300; letter-spacing:-.01em;
   color:rgba(246,241,231,.38); line-height:1.4;}
-#stellar-home .free-sub{margin-top:6px; font-size:1.62rem; color:var(--star);
+#stellar-home .free-sub{margin-top:7px; font-size:2.1rem; color:var(--star);
   font-weight:300; letter-spacing:-.02em; line-height:1.24; word-break:keep-all;}
 /* 오늘의 운세 카드 ─ 맨 앞에 서는 자리라 글씨를 키웠습니다.
    날짜는 매일 자동으로 바뀝니다. */
 #stellar-home .free-card.today{justify-content:center; padding:20px 16px;}
-#stellar-home .free-card.today .free-line{font-size:1.62rem; font-weight:300;
+#stellar-home .free-card.today .free-line{font-size:2.1rem; font-weight:300;
   letter-spacing:-.02em; line-height:1.34; color:var(--star); word-break:keep-all;}
-#stellar-home .free-card.today .free-date{font-size:1.74rem; color:#E89A44;
+#stellar-home .free-card.today .free-date{font-size:2.26rem; color:#E89A44;
   font-variant-numeric:tabular-nums;}
 @media(max-width:700px){
   #stellar-home .free-card.today{padding:16px 13px;}
-  #stellar-home .free-card.today .free-line{font-size:1.42rem;}
-  #stellar-home .free-card.today .free-date{font-size:1.52rem;}
+  #stellar-home .free-card.today .free-line{font-size:1.85rem;}
+  #stellar-home .free-card.today .free-date{font-size:1.98rem;}
 }
 @media(max-width:700px){
-  #stellar-home .free-card{min-height:150px; padding:15px 13px 17px;}
+  #stellar-home .free-card{min-height:178px; padding:15px 13px 17px;}
   #stellar-home .free-tag{top:11px; right:11px; font-size:.55rem; padding:2px 6px;}
-  #stellar-home .free-kicker{font-size:.72rem;}
-  #stellar-home .free-sub{font-size:1.44rem;}
+  #stellar-home .free-kicker{font-size:.94rem;}
+  #stellar-home .free-sub{font-size:1.87rem;}
 }
 
 /* ══ 가벼운 질문 ═══════════════════════════════════════════
@@ -290,66 +308,66 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   #stellar-home .ask .q{font-size:1.1rem;}
 }
 
-/* ══ 스타 운세 · 광고 배너 ═════════════════════════════════
-   2026-09-03 · 다른 칸과 완전히 다른 모양으로 갔습니다. 밤하늘을
-   벗어난 밝은 판때기 하나 — 잡지 사이에 낀 광고지처럼 보이게. */
-#stellar-home .ad{position:relative; overflow:hidden; border-radius:18px;
-  background:linear-gradient(104deg,#F0D9A8 0%,#E8B45C 42%,#D98F4E 100%);
-  color:#241634; padding:30px 34px; display:grid !important;
-  grid-template-columns:1fr auto; gap:22px; align-items:center;
-  box-shadow:0 26px 60px -26px rgba(232,180,92,.6);}
-#stellar-home .ad::before{content:''; position:absolute; inset:0; pointer-events:none;
-  background:repeating-linear-gradient(115deg, rgba(255,255,255,.16) 0 2px, transparent 2px 26px);}
-#stellar-home .ad-flag{position:relative; display:inline-block; font-family:'IBM Plex Mono',monospace;
-  font-size:.62rem; letter-spacing:.2em; text-transform:uppercase;
-  background:#241634; color:#F0D9A8; border-radius:3px; padding:3px 9px;}
-#stellar-home .ad h3{position:relative; margin-top:12px; color:#1B0F2C;
-  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo',sans-serif;
-  font-weight:700; font-size:clamp(1.35rem,3.4vw,2rem); line-height:1.34; letter-spacing:-.015em;}
-#stellar-home .ad h3 em{font-style:normal; border-bottom:3px solid rgba(36,22,52,.42);}
-#stellar-home .ad .ad-sub{position:relative; margin-top:8px; font-size:.86rem; color:rgba(36,22,52,.78);}
-#stellar-home .ad .ad-go{position:relative; justify-self:end; white-space:nowrap;
-  background:#241634; color:#F0D9A8; border-radius:999px; padding:14px 24px;
-  font-weight:700; font-size:.92rem; display:flex !important; align-items:center; gap:9px;
-  transition:transform .2s ease;}
-#stellar-home .ad:hover .ad-go{transform:translateX(4px);}
+/* ══ 스타 운세 배너 ════════════════════════════════════════
+   2026-09-03 · 소희 님이 보내주신 시안대로. 밝은 판 대신
+   짙은 보라 바탕에 금색 테두리, 금색 제목, 금색 버튼입니다.
+   글씨는 전부 고딕입니다. */
+#stellar-home .ad{position:relative; overflow:hidden; display:block; border-radius:18px;
+  background:linear-gradient(122deg,#3A1848 0%,#241436 48%,#120C22 100%);
+  border:1px solid rgba(212,176,106,.35); padding:30px 34px;
+  box-shadow:0 26px 60px -30px rgba(163,124,246,.45);
+  transition:border-color .25s ease, transform .25s ease;}
+#stellar-home a.ad:hover{border-color:rgba(212,176,106,.72); transform:translateY(-3px);}
+#stellar-home .ad h3{display:flex !important; align-items:flex-start; gap:11px;
+  color:#E8C98A; font-weight:700; font-size:clamp(1.32rem,3.6vw,1.86rem);
+  line-height:1.32; letter-spacing:-.015em;}
+#stellar-home .ad .ad-star{flex:0 0 auto; margin-top:.12em; color:#E8C98A;}
+#stellar-home .ad h3 em{font-style:normal;}
+#stellar-home .ad .ad-sub{margin-top:11px; font-size:.88rem; line-height:1.7;
+  color:rgba(246,241,231,.6); max-width:62ch;}
+#stellar-home .ad .ad-go{margin-top:22px; display:inline-flex !important; align-items:center; gap:9px;
+  background:#D4B06A; color:#1B0F2C; border-radius:8px; padding:12px 22px;
+  font-weight:700; font-size:.94rem;
+  transition:background .2s ease, transform .2s ease;}
+#stellar-home a.ad:hover .ad-go{background:#E4C58A; transform:translateX(3px);}
 @media(max-width:640px){
-  #stellar-home .ad{grid-template-columns:1fr; padding:24px 22px; gap:18px;}
-  #stellar-home .ad .ad-go{justify-self:stretch; justify-content:center;}
+  #stellar-home .ad{padding:24px 20px;}
+  #stellar-home .ad .ad-sub{font-size:.84rem;}
+  #stellar-home .ad .ad-go{margin-top:18px; padding:11px 19px;}
 }
 
 /* ══ 운명의 비율 ═══════════════════════════════════════════ */
-/* 운명 비율 ─ 2026-09-03 · 숫자 카드 석 장 대신 케이크를 나누듯
-   동그란 그림 하나로 바꿨습니다. 한눈에 비율이 보입니다. */
-#stellar-home .phil-wrap{display:flex !important; align-items:center; justify-content:center;
-  gap:34px; flex-wrap:wrap; background:var(--card); border:1px solid var(--line);
-  border-radius:16px; padding:30px 28px; box-shadow:var(--lift);}
-#stellar-home .phil-chart{position:relative; flex:0 0 auto; width:184px; height:184px;}
-#stellar-home .phil-chart svg{display:block; width:100%; height:100%;}
-#stellar-home .phil-center{position:absolute; inset:0; display:flex !important;
-  align-items:center; justify-content:center; font-family:'Noto Serif KR',serif;
-  font-weight:700; font-size:1.2rem; color:var(--gold-lite); letter-spacing:.06em;}
-#stellar-home .phil-legend{flex:1 1 240px; max-width:330px; margin:0; padding:0; list-style:none;}
-#stellar-home .phil-legend li{position:relative; padding-left:17px; padding-bottom:16px; line-height:1.5;}
-#stellar-home .phil-legend li:last-child{padding-bottom:0;}
-#stellar-home .phil-legend li::before{content:''; position:absolute; left:0; top:.55em;
-  width:7px; height:7px; border-radius:50%; background:var(--tone);}
-#stellar-home .pl-pct{font-family:'Cinzel',serif; font-size:1.4rem; color:var(--tone);
-  margin-right:9px; font-variant-numeric:tabular-nums;}
-#stellar-home .pl-name{font-weight:700; font-size:1.02rem; color:var(--star);}
-#stellar-home .pl-desc{display:block; margin-top:1px; font-size:.85rem; color:var(--ink-soft);}
-@media(max-width:700px){
-  #stellar-home .phil-wrap{gap:20px; padding:24px 18px;}
-  #stellar-home .phil-chart{width:152px; height:152px;}
-  #stellar-home .phil-center{font-size:1.06rem;}
-  #stellar-home .pl-pct{font-size:1.24rem;}
-  #stellar-home .phil-legend li{padding-bottom:13px;}
-}
-#stellar-home .phil-quote{margin-top:24px; text-align:center; font-family:'Noto Serif KR',serif;
-  font-size:1.04rem; color:var(--star); max-width:520px; margin-left:auto; margin-right:auto; line-height:1.8;}
+/* 운명 비율 ─ 2026-09-03 · 바탕 판 없이 가는 띠 하나입니다.
+   띠를 30 · 50 · 20으로 나누고, 그 아래 같은 자리에 숫자와 이름만
+   놓았습니다. 두툼한 색 덩어리보다 이쪽이 단정합니다. */
+#stellar-home .ratio{max-width:600px; margin:0 auto;}
+#stellar-home .ratio-bar{display:flex !important; height:13px; border-radius:999px;
+  overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), 0 12px 30px -16px rgba(163,124,246,.75);}
+#stellar-home .ratio-bar .rb{
+  background:linear-gradient(180deg, rgba(255,255,255,.28) 0%, rgba(255,255,255,0) 64%), var(--tone);
+  box-shadow:inset -1.5px 0 0 rgba(16,11,34,.6);}
+#stellar-home .ratio-bar .rb:last-child{box-shadow:none;}
+#stellar-home .ratio-keys{display:flex !important; margin-top:15px;}
+#stellar-home .rk{min-width:0; line-height:1.3;
+  display:flex !important; flex-direction:column; align-items:center;}
+#stellar-home .rk::before{content:''; width:5px; height:5px; border-radius:50%;
+  background:var(--tone); margin-bottom:8px;}
+#stellar-home .rk b{font-family:'Cinzel',serif; font-weight:600; font-size:1.2rem;
+  color:var(--tone); font-variant-numeric:tabular-nums; letter-spacing:.01em;}
+#stellar-home .rk i{font-style:normal; margin-top:3px; font-size:.84rem; font-weight:500;
+  color:var(--ink-soft); white-space:nowrap;}
+#stellar-home .phil-quote{margin-top:26px; text-align:center; font-family:'Noto Serif KR',serif;
+  font-size:1.02rem; color:var(--ink-soft); line-height:1.7; text-wrap:balance;}
 #stellar-home .phil-quote span{color:var(--gold);}
+@media(max-width:700px){
+  #stellar-home .ratio-bar{height:11px;}
+  #stellar-home .ratio-keys{margin-top:13px;}
+  #stellar-home .rk b{font-size:1.06rem;}
+  #stellar-home .rk i{font-size:.78rem;}
+  #stellar-home .phil-quote{margin-top:20px; font-size:.94rem;}
+}
 
-/* ══ 마지막 ════════════════════════════════════════════════ */
 #stellar-home .final-cta{text-align:center; padding:44px 28px 10px;}
 #stellar-home .final-cta h2{font-size:clamp(1.3rem,3vw,1.8rem);}
 #stellar-home .final-cta .btn{margin-top:20px; padding:14px 26px; border-radius:999px;
@@ -379,8 +397,8 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   <!-- ══ 첫 화면 ══════════════════════════════════════════ -->
   <section class="hero">
     <img decoding="async" class="hero-figure" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellarherofigure.webp?resize=900%2C1340" alt="스텔라사주 가디언" width="900" height="1340" fetchpriority="high">
-    <div class="gate-leaf gate-left" aria-hidden="true"></div>
-    <div class="gate-leaf gate-right" aria-hidden="true"></div>
+    <div class="gate-leaf gate-left" aria-hidden="true"><span class="gate-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.5 14.47 8.6 21.99 8.76 15.99 13.3 18.17 20.49 12 16.2 5.83 20.49 8.01 13.3 2.01 8.76 9.53 8.6Z"></path></svg></span></div>
+    <div class="gate-leaf gate-right" aria-hidden="true"><span class="gate-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1.5 14.47 8.6 21.99 8.76 15.99 13.3 18.17 20.49 12 16.2 5.83 20.49 8.01 13.3 2.01 8.76 9.53 8.6Z"></path></svg></span></div>
     <div class="hero-content">
       <div class="eyebrow">STELLA SAJU</div>
       <div class="hero-portrait"><img loading="lazy" decoding="async" src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellarportrait.webp?resize=420%2C625" alt="스텔라사주 가디언" width="420" height="625"></div>
@@ -488,13 +506,10 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   <section class="sh-section" id="stars" style="padding-top:0;">
     <div class="wrap">
       <a class="ad reveal" href="/star-saju/" id="starGo">
-        <div>
-          <span class="ad-flag">This Week</span>
-          <!-- 【문구】 스타 운세 — 이름 자리는 매주 바뀝니다 -->
-          <h3><em id="starName">스타</em>의<br>여덟 글자를 펴 봅니다</h3>
-          <div class="ad-sub">매주 한 사람씩. 궁금한 사람은 직접 찾아보셔도 돼요.</div>
-        </div>
-        <span class="ad-go">보러 가기
+        <!-- 【문구】 스타 운세 — 이름 자리는 매주 바뀝니다 -->
+        <h3><span class="ad-star" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.6 14.3 9.7 22.4 12 14.3 14.3 12 22.4 9.7 14.3 1.6 12 9.7 9.7Z"></path></svg></span><span>이번주 <em id="starName">스타</em>의 운세</span></h3>
+        <div class="ad-sub">매주 한 사람씩, 그 사람의 여덟 글자를 펴 봅니다. 궁금한 사람은 직접 찾아보셔도 돼요.</div>
+        <span class="ad-go">사주 보러가기
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"></path><path d="M12 6l6 6-6 6"></path></svg>
         </span>
       </a>
@@ -504,28 +519,21 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   <!-- ══ 운명의 비율 ═══════════════════════════════════════ -->
   <section class="sh-section" id="philosophy" style="padding-top:0;">
     <div class="wrap">
-      <div class="phil-wrap reveal">
-        <div class="phil-chart">
-          <svg viewBox="0 0 160 160" aria-hidden="true">
-            <circle cx="80" cy="80" r="62" fill="none" stroke="rgba(246,241,231,.055)" stroke-width="21"></circle>
-            <g transform="rotate(-90 80 80)" fill="none" stroke-width="21">
-              <circle cx="80" cy="80" r="62" stroke="#9B85D6" stroke-dasharray="109.87 389.56" stroke-dashoffset="0"></circle>
-              <circle cx="80" cy="80" r="62" stroke="#E0BC7C" stroke-dasharray="187.78 389.56" stroke-dashoffset="-116.87"></circle>
-              <circle cx="80" cy="80" r="62" stroke="#5FA98C" stroke-dasharray="70.91 389.56" stroke-dashoffset="-311.65"></circle>
-            </g>
-          </svg>
-          <!-- 【문구】 원 가운데 -->
-          <div class="phil-center">운명</div>
+      <div class="ratio reveal">
+        <div class="ratio-bar" aria-hidden="true">
+          <span class="rb" style="--tone:#A78FE0; flex:30 1 0"></span>
+          <span class="rb" style="--tone:#E0BC7C; flex:50 1 0"></span>
+          <span class="rb" style="--tone:#6FBFA0; flex:20 1 0"></span>
         </div>
-        <ul class="phil-legend">
+        <div class="ratio-keys">
           <!-- 【문구】 운명 비율 -->
-          <li style="--tone:#9B85D6"><span class="pl-pct">30%</span><span class="pl-name">사주</span><span class="pl-desc">타고난 기질과 흐름</span></li>
-          <li style="--tone:#E0BC7C"><span class="pl-pct">50%</span><span class="pl-name">노력</span><span class="pl-desc">오늘 당신이 내리는 선택</span></li>
-          <li style="--tone:#5FA98C"><span class="pl-pct">20%</span><span class="pl-name">인연</span><span class="pl-desc">만나는 사람과 타이밍</span></li>
-        </ul>
+          <span class="rk" style="--tone:#A78FE0; flex:30 1 0"><b>30%</b><i>사주</i></span>
+          <span class="rk" style="--tone:#E0BC7C; flex:50 1 0"><b>50%</b><i>노력</i></span>
+          <span class="rk" style="--tone:#6FBFA0; flex:20 1 0"><b>20%</b><i>인연</i></span>
+        </div>
+        <!-- 【문구】 비율 아래 한 줄 -->
+        <div class="phil-quote">사주는 당신을 가두는 벽이 아니라, <span>지도</span>예요.</div>
       </div>
-      <!-- 【문구】 운명 비율 아래 한 줄 -->
-      <div class="phil-quote reveal">사주는 당신을 가두는 벽이 아니라, <span>지도</span>예요.</div>
     </div>
   </section>
 
@@ -535,9 +543,6 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
       <div class="final-cta reveal">
         <!-- 【문구】 마지막 -->
         <h2>문은 언제나 열려 있어요</h2>
-        <a href="#doors" class="btn">여섯 개의 문 보기
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"></rect><path d="M12 7.7 13.13 10.24 16.09 10.47 13.84 12.4 14.53 15.28 12 13.73 9.47 15.28 10.16 12.4 7.91 10.47 10.87 10.24Z"></path></svg>
-        </a>
       </div>
     </div>
   </section>
