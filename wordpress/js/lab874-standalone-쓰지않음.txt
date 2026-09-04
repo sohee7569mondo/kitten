@@ -1,3 +1,19 @@
+<!--
+[쓰지 않습니다]
+
+2026-09-04 에 제가 /lab/ 을 새로 만든다고 착각하고 짠 파일입니다.
+스텔라 랩은 이미 wordpress/php/stella_mbti.WPCODE.txt 에 있었고,
+검사도 stella_lab_more1/2/3 에 일곱 개가 더 있었습니다.
+
+이 파일 이름을 stella_lab 으로 쓰면 안 됩니다.
+stella_lab 은 소희 님 전용 작업실(/works/)의 이름입니다.
+
+안에 든 검사 중 쓸 만한 것 두 개
+  · 오행 검사        stella_mbti 머리말에 /lab/ohaeng/ 로 예고만 되어 있고 아직 없음
+  · 여섯 가디언 추천   결과가 각 문 페이지로 이어짐. 새로 만든 것
+
+나중에 stella_lab_more4 형식으로 옮길 때 여기서 가져다 쓰면 됩니다.
+-->
 <script>
 /*  STELLA SAJU — 스텔라 랩 (/lab/) 전용 스크립트   BUILD: L1
     WPCode 스니펫 이름: stella_lab
