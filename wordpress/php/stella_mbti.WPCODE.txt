@@ -336,22 +336,22 @@ add_action( 'init', function () {
     dek:'유형이 나오면 바로 궁합까지 볼 수 있어요.',
     kind:'axis',
     q:[
-      ['사람 많은 모임이 끝나고 집에 오면','아직 아쉽다, 더 놀고 싶다','이제야 살 것 같다',0],
-      ['처음 보는 사람들 사이에서','먼저 말을 건다','누가 말 걸어주길 기다린다',0],
-      ['고민이 생기면','누구한테든 말하면서 푼다','혼자 정리한 다음에 말한다',0],
-      ['주말에 약속이 하나도 없으면','허전해서 연락을 돌린다','완벽한 주말이다',0],
-      ['이야기를 들을 때 더 궁금한 것','언제 어디서 누가','그래서 무슨 뜻인지',1],
-      ['「나무가 많은 길」이라고 하면','실제로 가본 그 길이 떠오른다','없는 길이 하나 그려진다',1],
-      ['일을 시작할 때','해봤던 방법부터 쓴다','이번엔 다르게 해볼 데가 없나 본다',1],
-      ['설명을 들을 때','순서대로 차근차근이 편하다','큰 그림부터 알려주는 게 편하다',1],
-      ['친구가 힘들다고 하면 먼저','어떻게 하면 되는지 말한다','많이 힘들었겠다고 한다',2],
-      ['누가 내 의견에 반대하면','어디가 틀렸는지 따져본다','기분이 상했나 먼저 살핀다',2],
-      ['정할 때 더 중요한 것','무엇이 맞는가','누가 다치는가',2],
-      ['칭찬을 들으면','정확히 뭘 잘했는지 궁금하다','그냥 기분이 좋다',2],
-      ['여행 전날 나에게는','일정표가 있다','가서 정하면 된다',3],
-      ['할 일이 생기면','미리 해두어야 마음이 편하다','마감 앞에서 제일 잘된다',3],
-      ['방 정리는','물건마다 자리가 정해져 있다','필요한 게 손에 닿으면 된다',3],
-      ['계획이 갑자기 바뀌면','살짝 짜증난다','오히려 재미있다',3]
+      ['사람 많은 모임이 끝나고 집에 왔습니다.','아쉽다. 2차 갈걸 그랬나','드디어 끝났다. 이제 좀 살겠다',0],
+      ['처음 보는 사람들 사이에 있으면','내가 먼저 말을 건다','누가 말 걸어주기를 기다린다',0],
+      ['고민이 생기면','일단 누구한테든 말하면서 푼다','혼자 정리한 다음에 말한다',0],
+      ['주말에 약속이 하나도 없습니다.','허전해서 여기저기 연락해 본다','완벽한 주말이다. 아무도 찾지 마라',0],
+      ['남 얘기를 들을 때 더 궁금한 것은','누가 언제 어디서 그랬는지','그래서 결국 무슨 얘기인지',1],
+      ['「나무가 많은 길」이라고 하면','실제로 걸어봤던 그 길이 떠오른다','상상의 길을 마음속으로 그려본다',1],
+      ['일을 시작할 때','전에 했던 걸 떠올려서 그 방식대로 간다','이번엔 어떻게 새롭게 해볼까 생각한다',1],
+      ['설명을 들을 때','순서대로 차근차근 알려주는 게 편하다','최종 목표부터 알려주는 게 편하다',1],
+      ['친구가 힘들다고 합니다. 나는 먼저','어떻게 하면 덜 힘들지를 말해준다','많이 힘들었겠다고 말해준다',2],
+      ['누가 내 의견에 반대하면','그 말이 맞는 말인지부터 따져본다','나 때문에 기분이 상했나 먼저 살핀다',2],
+      ['여행 계획을 짤 때 더 중요한 것은','동선에 맞춰 뭘 먹고 뭘 볼지','같이 가는 사람이 뭘 하고 싶은지',2],
+      ['칭찬을 들으면','정확히 어떤 점이 좋았는지 궁금하다','이유는 됐고 그냥 기분이 좋다',2],
+      ['여행 전날 밤, 나에게는','시간표가 이미 있다','가서 정하면 된다',3],
+      ['할 일이 생기면','미리 해둬야 마음이 편하다','마감이 코앞이어야 제일 잘된다',3],
+      ['방 정리는','물건마다 자리가 정해져 있다','필요한 게 손에 닿으면 그만이다',3],
+      ['계획이 갑자기 바뀌면','머리가 하얘진다','뭐, 어떻게든 되겠지',3]
     ]
   }
   };
@@ -692,10 +692,12 @@ add_action( 'init', function () {
 
   /* ── 검사 화면 · 두 가지 짜임을 다 그립니다 ─────────────── */
   var T = null, tkey = '', qi = 0, ax = [0,0,0,0], pick = {}, sum = 0;
+  /* 되돌리기용 기록. 이전 질문으로 갈 때 방금 더한 점수를 빼냅니다. */
+  var hist = [];
 
   function startTest(id){
     if(!TESTS[id]){ labHome(); return; }
-    T = TESTS[id]; tkey = id; qi = 0; ax = [0,0,0,0]; pick = {}; sum = 0;
+    T = TESTS[id]; tkey = id; qi = 0; ax = [0,0,0,0]; pick = {}; sum = 0; hist = [];
     quiz();
   }
 
@@ -783,6 +785,19 @@ add_action( 'init', function () {
     window.scrollTo(0, 0);
   }
 
+  /* 다음 질문을 읽다가 앞의 답을 바꾸고 싶을 때가 있습니다. */
+  function back(){
+    if(qi === 0){ return; }
+    qi -= 1;
+    var u = hist.pop();
+    if(u){
+      if(u.t === 'axis'){ ax[u.i] -= u.v; }
+      else if(u.t === 'scale'){ sum -= u.v; }
+      else { pick[u.k] = (pick[u.k] || 1) - 1; }
+    }
+    quiz();
+  }
+
   function quiz(){
     if(qi >= T.q.length){
       if(T.kind === 'axis'){ showAxis(); }
@@ -805,20 +820,30 @@ add_action( 'init', function () {
       '<div class="q" style="margin-top:20px">' + q[0] + '</div>' +
       '<button class="ghost" data-p="1" style="' + abtn + '">' + q[1] + '</button>' +
       '<button class="ghost" data-p="0" style="' + abtn + '">' + q[2] + '</button>' +
+      ( qi > 0 ?
+        ('<button class="ghost" id="prev" style="margin-top:16px;border:0;background:none;' +
+         'color:#8C82A6;text-align:center">\u2190 앞 질문으로 돌아가기</button>') : '' ) +
       '<a class="ghost" href="/lab/" style="display:block;text-align:center;' +
-      'text-decoration:none;line-height:1.5;margin-top:16px;border:0;background:none;' +
+      'text-decoration:none;line-height:1.5;margin-top:9px;border:0;background:none;' +
       'color:#A9B0BC">그만두기</a>';
+    var pv = app.querySelector('#prev');
+    if(pv){ pv.addEventListener('click', function(){ back(); }); }
     var bs = app.querySelectorAll('[data-p]'), k;
     for(k=0;k<bs.length;k++){
       bs[k].addEventListener('click', function(){
         var q2 = T.q[qi], left = (this.getAttribute('data-p') === '1');
         if(T.kind === 'axis'){
-          ax[q2[3]] += left ? 1 : -1;
+          var av = left ? 1 : -1;
+          ax[q2[3]] += av;
+          hist.push({ t:'axis', i:q2[3], v:av });
         } else if(T.kind === 'scale'){
-          sum += left ? q2[3] : q2[4];
+          var sv = left ? q2[3] : q2[4];
+          sum += sv;
+          hist.push({ t:'scale', v:sv });
         } else {
           var key = left ? q2[3] : q2[4];
           pick[key] = (pick[key] || 0) + 1;
+          hist.push({ t:'pick', k:key });
         }
         qi += 1;
         quiz();
