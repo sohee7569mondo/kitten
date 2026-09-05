@@ -1,0 +1,133 @@
+/* ════════════════════════════════════════════════════════════
+   지금 상태 보기 + 구슬 잠깐 비우기 · 소희 님께
+
+   왜 필요한가
+     결제창이 뜨는지 보려면 구슬이 모자라야 합니다. 그런데 소희 님
+     계정엔 구슬이 넉넉해서 풀이가 그냥 열립니다.
+     이 도구로 구슬을 잠깐 옆에 치워두고 결제창을 확인한 뒤,
+     단추 한 번으로 그대로 되돌립니다. 하나도 없어지지 않습니다.
+
+   주소 열쇠말을 stella_patch 가 아니라 stella_now 로 씁니다.
+   아까 stella_patch 주소가 홈으로 튕겼는데, 그게 열쇠말 탓인지
+   아닌지도 이걸로 같이 알 수 있습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere →
+              첫 줄 PHP 태그 아래에 붙여넣기 → 저장 → 활성
+
+        https://stellasaju.com/?stella_now=1
+
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_now'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다. 관리자로 로그인한 창에서 열어주세요.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다. 지금 로그인한 계정은 관리자가 아닙니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	$uid = get_current_user_id();
+	$act = isset( $_GET['orbs'] ) ? $_GET['orbs'] : '';
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:16px/1.9 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:26px;max-width:860px">';
+	echo '<h1 style="color:#ffd76a">지금 상태</h1>';
+	echo '<p style="color:#7bff9b">이 화면이 보인다는 것은 스니펫이 돌고 있다는 뜻입니다.</p>';
+
+	$have = function ( $f ) {
+		return function_exists( $f );
+	};
+
+	/* ── 구슬 옮기기 ── */
+	if ( 'zero' === $act || 'back' === $act ) {
+		if ( ! $have( 'stella_orb_lots' ) || ! $have( 'stella_orb_save_lots' ) ) {
+			echo '<p style="color:#ff7b7b">구슬 함수를 못 찾았습니다. 「회원가입 + 구슬」 스니펫이 꺼져 있는지 확인해주세요.</p></body>';
+			exit;
+		}
+		if ( 'zero' === $act ) {
+			$lots = stella_orb_lots( $uid );
+			if ( ! get_user_meta( $uid, 'stella_orb_parked', true ) ) {
+				update_user_meta( $uid, 'stella_orb_parked', $lots );
+			}
+			stella_orb_save_lots( $uid, array() );
+			echo '<h2 style="color:#ffd76a">구슬을 옆에 치워뒀습니다</h2>';
+		} else {
+			$parked = get_user_meta( $uid, 'stella_orb_parked', true );
+			if ( is_array( $parked ) ) {
+				stella_orb_save_lots( $uid, $parked );
+				delete_user_meta( $uid, 'stella_orb_parked' );
+				echo '<h2 style="color:#7bff9b">구슬을 되돌렸습니다</h2>';
+			} else {
+				echo '<h2 style="color:#ffd76a">치워둔 구슬이 없습니다</h2>';
+			}
+		}
+	}
+
+	/* ── 값들 ── */
+	echo '<h2 style="color:#9fd">값</h2><table cellpadding="8" style="border-collapse:collapse">';
+	foreach ( array( 'STELLA_TRIAL', 'STELLA_ORB_KRW', 'STELLA_PRICE_BASE', 'STELLA_PRICE_FULL', 'STELLA_WELCOME_ORBS', 'STELLA_EVENT_ORBS', 'STELLA_PORTONE_ON' ) as $k ) {
+		if ( defined( $k ) ) {
+			$v = constant( $k );
+			$v = is_bool( $v ) ? ( $v ? 'true' : 'false' ) : (string) $v;
+			$warn = ( 'STELLA_TRIAL' === $k && 'true' === $v );
+			printf(
+				'<tr style="border-top:1px solid #333"><td>%s</td><td style="color:%s"><b>%s</b>%s</td></tr>',
+				esc_html( $k ),
+				$warn ? '#ff7b7b' : '#7bff9b',
+				esc_html( $v ),
+				$warn ? ' ← 켜져 있으면 모든 값이 0원입니다' : ''
+			);
+		} else {
+			printf( '<tr style="border-top:1px solid #333"><td>%s</td><td style="color:#ff7b7b">없음</td></tr>', esc_html( $k ) );
+		}
+	}
+	echo '</table>';
+
+	/* ── 내 구슬 ── */
+	echo '<h2 style="color:#9fd">내 구슬</h2>';
+	if ( $have( 'stella_orb_balance' ) ) {
+		$bal    = (int) stella_orb_balance( $uid );
+		$parked = get_user_meta( $uid, 'stella_orb_parked', true );
+		printf( '<p style="font-size:22px">지금 잔액 : <b style="color:%s">%d개</b></p>', $bal ? '#ffd76a' : '#7bff9b', $bal );
+		if ( is_array( $parked ) ) {
+			$n = 0;
+			foreach ( $parked as $lot ) {
+				$n += (int) $lot['left'];
+			}
+			printf( '<p style="color:#9fd">옆에 치워둔 구슬 : <b>%d개</b> — 되돌릴 수 있습니다</p>', $n );
+		}
+	} else {
+		echo '<p style="color:#ff7b7b">구슬 함수를 못 찾았습니다.</p>';
+	}
+
+	echo '<h2 style="color:#9fd">할 일</h2><p style="font-size:18px;line-height:2.2">';
+	echo '<a style="color:#ffd76a" href="?stella_now=1&orbs=zero">① 구슬 비우기</a> — 치워두기만 합니다, 없어지지 않습니다<br>';
+	echo '<a style="color:#ffd76a" href="/">② 사이트에서 풀이 하나 열어보기</a> — 990원 결제창이 떠야 정상<br>';
+	echo '<a style="color:#ffd76a" href="?stella_now=1&orbs=back">③ 구슬 되돌리기</a> — 확인 끝나면 꼭 눌러주세요';
+	echo '</p>';
+
+	echo '<h2 style="color:#9fd">스니펫이 살아 있는지</h2><table cellpadding="8" style="border-collapse:collapse">';
+	foreach ( array(
+		'stella_orb_balance' => '구슬 엔진',
+		'stella_price'       => '값 계산',
+		'stella_place_order' => '주문',
+		'stella_po_ready'    => '포트원 백엔드',
+		'stella_pay_pick_phone' => '결제 휴대폰번호 (제가 넣은 것)',
+	) as $f => $label ) {
+		printf(
+			'<tr style="border-top:1px solid #333"><td>%s</td><td style="color:%s">%s</td></tr>',
+			esc_html( $label ),
+			$have( $f ) ? '#7bff9b' : '#ff7b7b',
+			$have( $f ) ? '있음' : '없음'
+		);
+	}
+	echo '</table>';
+
+	echo '</body>';
+	exit;
+} );

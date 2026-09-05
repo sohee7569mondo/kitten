@@ -1,0 +1,90 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 ③ · 페이지 만들기 (한 번만 쓰고 끄시면 됩니다)
+
+   /uandme/ 페이지를 만듭니다. 페이지 내용은 딱 한 줄입니다 —
+   <div id="um"></div>
+   나머지는 ①②번 스니펫이 머리말로 실어줍니다. 그래서 나중에
+   화면을 고칠 때 페이지는 손대지 않고 스니펫만 바꾸면 됩니다.
+
+   같은 이름의 페이지가 이미 있으면 그 페이지를 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   ① 미리보기  https://stellasaju.com/?stella_um3=1
+   ② 만들기    https://stellasaju.com/?stella_um3=1&go=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_um3'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.9 system-ui;background:#111;color:#eee;padding:24px;max-width:800px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	$go   = isset( $_GET['go'] );
+	$slug = 'uandme';
+	$body = '<!-- wp:html --><div id="um"></div><!-- /wp:html -->';
+
+	$page = get_page_by_path( $slug, OBJECT, 'page' );
+
+	printf( '<h1 style="color:#ffd76a">유앤미 페이지 — %s</h1>',
+		$go ? '만들기' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' );
+
+	echo '<table cellpadding="8" style="border-collapse:collapse">';
+	printf( '<tr><td>주소</td><td><b>/%s/</b></td></tr>', $slug );
+	printf( '<tr><td>이미 있나</td><td>%s</td></tr>',
+		$page ? '<span style="color:#9fd">있음 · 번호 ' . $page->ID . '</span>' : '없음 · 새로 만듭니다' );
+	printf( '<tr><td>페이지 내용</td><td><code>%s</code></td></tr>', esc_html( $body ) );
+	echo '</table>';
+
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_um3=1&go=1">→ 이대로 만들기</a></p>';
+		exit;
+	}
+
+	if ( $page ) {
+		$id = $page->ID;
+		wp_update_post( array(
+			'ID'           => $id,
+			'post_content' => $body,
+			'post_status'  => 'publish',
+		) );
+		echo '<h2 style="color:#7bff9b">있던 페이지를 고쳤습니다.</h2>';
+	} else {
+		$id = wp_insert_post( array(
+			'post_title'   => '유앤미',
+			'post_name'    => $slug,
+			'post_content' => $body,
+			'post_status'  => 'publish',
+			'post_type'    => 'page',
+			'comment_status' => 'closed',
+			'ping_status'    => 'closed',
+		) );
+		echo '<h2 style="color:#7bff9b">페이지를 만들었습니다.</h2>';
+	}
+
+	if ( is_wp_error( $id ) ) {
+		echo '<h2 style="color:#ff7b7b">못 만들었습니다 — ' . esc_html( $id->get_error_message() ) . '</h2>';
+		exit;
+	}
+
+	clean_post_cache( $id );
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	printf( '<p>페이지 번호 <b>%d</b></p>', $id );
+	printf( '<p style="font-size:18px"><a style="color:#ffd76a" href="%s">→ 유앤미 열어보기</a></p>',
+		esc_url( get_permalink( $id ) ) );
+	echo '<p style="color:#888">이 스니펫은 이제 꺼두셔도 됩니다.</p>';
+	exit;
+} );

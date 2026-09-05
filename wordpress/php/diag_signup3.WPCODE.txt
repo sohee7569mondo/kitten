@@ -1,0 +1,75 @@
+/* ════════════════════════════════════════════════════════════
+   가입 화면 속 보기 · 소희 님께
+
+   문 페이지의 줄이 아주 길어서(CSS 한 줄이 수천 자) 줄 단위로는
+   못 봤습니다. 이번엔 글자 위치를 기준으로 앞뒤를 잘라냅니다.
+
+   페이지 130(직성의 신)만 봅니다. 다섯 문이 같은 틀입니다.
+   아무것도 고치지 않습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere → 저장 → 활성
+
+   ★ 저장 직후 먼저  https://stellasaju.com/wp-json/stella/v1/me
+   그 다음          https://stellasaju.com/?stella_form3=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_form3'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+	$pid = 130;
+	$c   = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	if ( ! $c ) {
+		echo "페이지 130 을 못 읽었습니다.\n";
+		exit;
+	}
+
+	printf( "페이지 130 · 전체 %d 바이트\n", strlen( $c ) );
+	echo str_repeat( '=', 62 ) . "\n";
+
+	/* 자를 자리 — 이 말이 나오는 곳마다 앞뒤를 떠냅니다 */
+	$marks = array(
+		'gEmail'    => 900,
+		'v1/signup' => 1400,
+		'가입하고'  => 900,
+	);
+
+	$n = 0;
+	foreach ( $marks as $m => $span ) {
+		$pos = 0;
+		while ( ( $pos = strpos( $c, $m, $pos ) ) !== false ) {
+			$n++;
+			$from = max( 0, $pos - (int) ( $span / 2 ) );
+			$cut  = substr( $c, $from, $span );
+
+			echo "\n";
+			echo str_repeat( '-', 62 ) . "\n";
+			printf( "%d) 「%s」 · %d번째 글자 앞뒤\n", $n, $m, $pos );
+			echo str_repeat( '-', 62 ) . "\n";
+			echo $cut . "\n";
+
+			$pos += strlen( $m );
+			if ( $n >= 9 ) {
+				break 2;
+			}
+		}
+	}
+
+	echo "\n" . str_repeat( '=', 62 ) . "\n";
+	printf( "모두 %d 조각\n", $n );
+	echo "끝\n";
+	exit;
+} );

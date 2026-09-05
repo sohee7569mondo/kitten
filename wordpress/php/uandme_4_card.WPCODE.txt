@@ -1,0 +1,376 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 ④ · 카톡에 갈 점수 그림  (덜어낸 판)
+
+   유앤미 화면이 안 뜨던 일이 있어, 문제가 될 만한 것을 모두 덜어냈습니다.
+   지금 남은 일은 하나뿐입니다 — 카드 그림을 그려 내보내는 것.
+
+   덜어낸 것 (나중에 따로 만들 것들)
+     · og 태그 넣기          → 스레드·X 카드
+     · 젯팩 og 갈아끼우기
+     · parse_query 손대기     ← 이것이 유앤미 페이지를 가린 듯합니다
+     · 진단 셋 (?um_font · ?um_og · /um-check)
+
+   붙여넣기 : WPCode → ④번 스니펫 → 통째로 갈아끼우기 → 저장 → Active
+
+   확인 : https://stellasaju.com/um-card/63-lover-30-12-24
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 카드 파일과 그 CDN 주소 ───────────────────────────
+   카카오가 우리 서버에서 그림을 못 가져오는 듯하여, 카드를 진짜 파일로
+   남기고 워드프레스닷컴 그림 CDN(i0.wp.com) 주소를 알려줍니다.
+   이 CDN 은 소희 님 사이트 그림을 이미 나르고 있는 곳입니다.
+
+   담기는 것은 점수뿐입니다. 이름도 생년월일도 들어가지 않습니다. */
+if ( ! function_exists( 'stella_um_card_name' ) ) {
+	function stella_um_card_name( $score, $rel, $a, $b, $c, $n = '' ) {
+		$base = intval( $score ) . '-' . preg_replace( '/[^a-z_]/', '', $rel ) . '-' .
+		        intval( $a ) . '-' . intval( $b ) . '-' . intval( $c );
+		if ( $n ) { $base .= '-' . preg_replace( '/[^A-Za-z0-9_-]/', '', $n ); }
+		return $base . '.png';
+	}
+}
+if ( ! function_exists( 'stella_um_card_url' ) ) {
+	function stella_um_card_url( $score, $rel, $a, $b, $c ) {
+		$up   = wp_upload_dir();
+		$name = stella_um_card_name( $score, $rel, $a, $b, $c );
+		$url  = $up['baseurl'] . '/uandme/card/' . $name;
+		/* CDN 을 거치면 카카오가 잘 가져갑니다 */
+		$bare = preg_replace( '#^https?://#', '', $url );
+		return 'https://i0.wp.com/' . $bare . '?ssl=1';
+	}
+}
+
+/* ── 점수로 등급 이름 알아내기 ─────────────────────────
+   주소에 한글을 싣지 않으려고 서버도 같은 표를 갖습니다.
+   유앤미 화면(uandme-tiers.js)과 같은 구간입니다. */
+if ( ! function_exists( 'stella_um_tier' ) ) {
+	function stella_um_tier( $n ) {
+		if ( $n >= 95 ) { return '천생연분'; }
+		if ( $n >= 90 ) { return '완전 찰떡궁합'; }
+		if ( $n >= 80 ) { return '환상의 케미'; }
+		if ( $n >= 70 ) { return '좋은 궁합'; }
+		if ( $n >= 60 ) { return '무난한 사이'; }
+		if ( $n >= 50 ) { return '노력형 궁합'; }
+		if ( $n >= 40 ) { return '위태위태'; }
+		if ( $n >= 30 ) { return '친구가 나을지도'; }
+		if ( $n >= 20 ) { return '재고요망'; }
+		return '이번 생은 예능감';
+	}
+}
+
+/* ── 글꼴 한 벌 마련하기 ────────────────────────────────
+   서버에 한글 글꼴이 없어서 한 번만 받아 uploads 에 둡니다.
+   받는 곳을 여러 군데 두고 되는 데까지 가 봅니다. */
+if ( ! function_exists( 'stella_um_font_path' ) ) {
+	function stella_um_font_path() {
+		$up = wp_upload_dir();
+		return $up['basedir'] . '/uandme/jua.ttf';
+	}
+}
+if ( ! function_exists( 'stella_um_font_try' ) ) {
+	/* 한 곳에서 받아 봅니다. 무슨 일이 있었는지 글로 돌려줍니다. */
+	function stella_um_font_try( $url, &$log ) {
+
+		$r = wp_remote_get( $url, array(
+			'timeout'    => 30,
+			'user-agent' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)',
+		) );
+		if ( is_wp_error( $r ) ) {
+			$log[] = array( $url, '못 감', $r->get_error_message() );
+			return '';
+		}
+		$code = wp_remote_retrieve_response_code( $r );
+		$body = wp_remote_retrieve_body( $r );
+		$log[] = array( $url, '응답 ' . $code, strlen( $body ) . ' 바이트' );
+		if ( 200 !== intval( $code ) ) { return ''; }
+
+		/* 글꼴 파일이면 앞 네 글자가 0x00010000 이거나 true/OTTO 입니다 */
+		$head = substr( $body, 0, 4 );
+		if ( strlen( $body ) > 40000 ) {
+			if ( "\x00\x01\x00\x00" === $head || 'true' === $head || 'ttcf' === $head ) {
+				return $body;
+			}
+		}
+		/* 글꼴이 아니면 안에서 ttf 주소를 찾아 다시 가 봅니다 */
+		if ( preg_match( '#https://[^)\'"\s]+\.ttf#', $body, $m ) ) {
+			$log[] = array( $m[0], '안에서 찾음', '따라갑니다' );
+			return stella_um_font_try( $m[0], $log );
+		}
+		$log[] = array( $url, '글꼴 아님', substr( strip_tags( $body ), 0, 120 ) );
+		return '';
+	}
+}
+if ( ! function_exists( 'stella_um_font' ) ) {
+	function stella_um_font( &$log = null ) {
+
+		if ( null === $log ) { $log = array(); }
+		$ttf = stella_um_font_path();
+
+		if ( file_exists( $ttf ) ) {
+			if ( filesize( $ttf ) > 40000 ) {
+				$log[] = array( $ttf, '이미 있음', filesize( $ttf ) . ' 바이트' );
+				return $ttf;
+			}
+		}
+		$dir = dirname( $ttf );
+		if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
+
+		$where = array(
+			'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/jua/Jua-Regular.ttf',
+			'https://raw.githubusercontent.com/google/fonts/main/ofl/jua/Jua-Regular.ttf',
+			'https://fonts.googleapis.com/css?family=Jua',
+			'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosanskr/NotoSansKR%5Bwght%5D.ttf',
+			'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/gothica1/GothicA1-Bold.ttf',
+		);
+		foreach ( $where as $u ) {
+			$raw = stella_um_font_try( $u, $log );
+			if ( ! $raw ) { continue; }
+			$ok = @file_put_contents( $ttf, $raw );
+			$log[] = array( $ttf, $ok ? '저장함' : '저장 못 함', strlen( $raw ) . ' 바이트' );
+			if ( $ok ) { return $ttf; }
+		}
+		return '';
+	}
+}
+
+/* ── 그림 그리기 ──────────────────────────────────────── */
+add_action( 'init', function () {
+
+	/* 두 가지 주소를 다 받습니다.
+	     예쁜 주소 : /um-card/63-lover-30-12-24
+	     예전 주소 : /?um_card=1&s=63&r=lover&a=30&b=12&c=24
+	   .png 를 붙이면 웹서버가 그림 파일로 여겨 가로채 404 를 냅니다. */
+	$want = isset( $_GET['um_card'] );
+	if ( ! $want ) {
+		$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+		if ( preg_match( '#/um-card/(\d{1,2})-([a-z_]{2,14})-(\d{1,2})-(\d{1,2})-(\d{1,2})(?:-([A-Za-z0-9_-]{1,140}))?#', $uri, $mm ) ) {
+			$_GET['s'] = $mm[1];
+			$_GET['r'] = $mm[2];
+			$_GET['a'] = $mm[3];
+			$_GET['b'] = $mm[4];
+			$_GET['c'] = $mm[5];
+			if ( isset( $mm[6] ) ) { $_GET['n'] = $mm[6]; }
+			$want = true;
+		}
+	}
+	if ( ! $want ) { return; }
+
+	$W = 800; $H = 400;
+
+	$score = isset( $_GET['s'] ) ? max( 0, min( 99, intval( $_GET['s'] ) ) ) : 0;
+	$a     = isset( $_GET['a'] ) ? max( 0, min( 40, intval( $_GET['a'] ) ) ) : 0;
+	$b     = isset( $_GET['b'] ) ? max( 0, min( 30, intval( $_GET['b'] ) ) ) : 0;
+	$c     = isset( $_GET['c'] ) ? max( 0, min( 30, intval( $_GET['c'] ) ) ) : 0;
+	$rel   = isset( $_GET['r'] ) ? sanitize_key( $_GET['r'] ) : 'lover';
+	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : stella_um_tier( $score );
+	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
+	/* Jua 가 그릴 줄 아는 글자만 남깁니다 — 한글·영문·숫자·기본 부호.
+	   그러지 않으면 네모난 두부가 나옵니다. */
+	$keep = '';
+	$len  = mb_strlen( $tier );
+	for ( $i = 0; $i < $len; $i++ ) {
+		$ch = mb_substr( $tier, $i, 1 );
+		$cp = mb_ord( $ch, 'UTF-8' );
+		if ( false === $cp ) { continue; }
+		if ( $cp >= 0x20 ) { if ( $cp <= 0x7E ) { $keep .= $ch; continue; } }
+		if ( $cp >= 0xAC00 ) { if ( $cp <= 0xD7A3 ) { $keep .= $ch; continue; } }
+		if ( $cp >= 0x3131 ) { if ( $cp <= 0x318E ) { $keep .= $ch; continue; } }
+		$keep .= ' ';
+	}
+	$tier = trim( $keep );
+
+	/* 두 사람 이름 — 주소에 담을 때 뒤죽박죽 글자로 싸 두었습니다.
+	   「지은|민호」를 base64 로 싸서 실어 보냅니다. */
+	$who = '';
+	if ( isset( $_GET['n'] ) ) {
+		$raw = strtr( sanitize_text_field( wp_unslash( $_GET['n'] ) ), '-_', '+/' );
+		$pad = strlen( $raw ) % 4;
+		if ( $pad ) { $raw .= str_repeat( '=', 4 - $pad ); }
+		$dec = base64_decode( $raw, true );
+		if ( false !== $dec ) {
+			$dec = wp_strip_all_tags( $dec );
+			if ( mb_check_encoding( $dec, 'UTF-8' ) ) {
+				$two = explode( '|', $dec );
+				$one = isset( $two[0] ) ? mb_substr( trim( $two[0] ), 0, 8 ) : '';
+				$to  = isset( $two[1] ) ? mb_substr( trim( $two[1] ), 0, 8 ) : '';
+				if ( $one ) { if ( $to ) { $who = $one . ' X ' . $to; } }
+			}
+		}
+	}
+
+	$relko = array(
+		'lover' => '연인', 'married' => '부부', 'friend' => '친구',
+		'sibling' => '형제자매', 'parent_child' => '부모와 자녀',
+		'boss_sub' => '상사와 부하', 'partner' => '동업자',
+	);
+	$ko = isset( $relko[ $rel ] ) ? $relko[ $rel ] : '연인';
+
+	/* 관계마다 다른 아이가 나옵니다 */
+	$pics = array(
+		'lover'        => 'animal_2785140635-01-300px.png',
+		'married'      => 'animal_2785140635-02-300px.png',
+		'friend'       => 'animal_2785140635-03-300px.png',
+		'sibling'      => 'animal_2785140635-04-300px.png',
+		'parent_child' => 'animal_2785140635-05-300px.png',
+		'boss_sub'     => 'animal_2785140635-06-300px.png',
+		'partner'      => 'animal_2785140635-07-300px.png',
+	);
+	$left = isset( $pics[ $rel ] ) ? $pics[ $rel ] : $pics['lover'];
+
+	/* 오른쪽은 그때그때 다른 아이가 나옵니다 — 스물아홉 중 하나 */
+	$pool = array( 'uandme_cha-02-300px.png' );
+	$i = 1;
+	while ( $i <= 6 )  { $pool[] = sprintf( 'animal-%02d-300px.png', $i ); $i++; }
+	$i = 1;
+	while ( $i <= 11 ) { $pool[] = sprintf( 'animal_2785140636-%02d-300px.png', $i ); $i++; }
+	$i = 1;
+	while ( $i <= 12 ) { $pool[] = sprintf( 'animal_2785140635-%02d-300px.png', $i ); $i++; }
+	$right = $pool[ wp_rand( 0, count( $pool ) - 1 ) ];
+
+	/* 두 배로 그린 뒤 줄입니다 — 동그라미 가장자리가 매끈해집니다 */
+	$S  = 2;
+	$im = imagecreatetruecolor( $W * $S, $H * $S );
+	imagealphablending( $im, true );
+	imagesavealpha( $im, true );
+
+	/* 파스텔 바탕 */
+	for ( $y = 0; $y < $H * $S; $y++ ) {
+		$q  = $y / ( $H * $S - 1 );
+		$col = imagecolorallocate( $im,
+			intval( 246 + ( 252 - 246 ) * $q ),
+			intval( 241 + ( 238 - 241 ) * $q ),
+			intval( 253 + ( 246 - 253 ) * $q ) );
+		imagefilledrectangle( $im, 0, $y, $W * $S, $y, $col );
+	}
+
+	$ink   = imagecolorallocate( $im, 63, 58, 82 );
+	$pur   = imagecolorallocate( $im, 107, 91, 168 );
+	$soft  = imagecolorallocate( $im, 167, 155, 196 );
+	$sub   = imagecolorallocate( $im, 124, 115, 146 );
+	$white = imagecolorallocate( $im, 255, 255, 255 );
+	$ring0 = imagecolorallocate( $im, 238, 232, 250 );
+	$ring1 = imagecolorallocate( $im, 200, 174, 236 );
+	$ring2 = imagecolorallocate( $im, 245, 178, 205 );
+	$barbg = imagecolorallocate( $im, 238, 232, 250 );
+
+	/* 둥근 흰 판 */
+	$rr = function ( $x1, $y1, $x2, $y2, $r, $col ) use ( $im, $S ) {
+		$x1 *= $S; $y1 *= $S; $x2 *= $S; $y2 *= $S; $r *= $S;
+		imagefilledrectangle( $im, $x1 + $r, $y1, $x2 - $r, $y2, $col );
+		imagefilledrectangle( $im, $x1, $y1 + $r, $x2, $y2 - $r, $col );
+		imagefilledellipse( $im, $x1 + $r, $y1 + $r, $r * 2, $r * 2, $col );
+		imagefilledellipse( $im, $x2 - $r, $y1 + $r, $r * 2, $r * 2, $col );
+		imagefilledellipse( $im, $x1 + $r, $y2 - $r, $r * 2, $r * 2, $col );
+		imagefilledellipse( $im, $x2 - $r, $y2 - $r, $r * 2, $r * 2, $col );
+	};
+	$rr( 24, 22, 776, 378, 30, $white );
+
+	/* 도넛 — 왼쪽에 점수 */
+	$cx = 156 * $S; $cy = 200 * $S; $d = 208 * $S; $hole = 148 * $S;
+	imagefilledellipse( $im, $cx, $cy, $d, $d, $ring0 );
+	$deg = intval( 360 * min( 100, max( 0, $score ) ) / 100 );
+	if ( $deg > 0 ) {
+		/* 반은 보라, 반은 분홍 — 웹 화면의 그라데이션을 흉내 냅니다 */
+		$half = intval( $deg / 2 );
+		imagefilledarc( $im, $cx, $cy, $d, $d, -90, -90 + $half, $ring1, IMG_ARC_PIE );
+		if ( $deg > $half ) {
+			imagefilledarc( $im, $cx, $cy, $d, $d, -90 + $half, -90 + $deg, $ring2, IMG_ARC_PIE );
+		}
+	}
+	imagefilledellipse( $im, $cx, $cy, $hole, $hole, $white );
+
+	$font = stella_um_font();
+
+	if ( $font ) {
+		/* 가운데 맞춤 · 자리가 좁으면 줄여 넣습니다 */
+		$mid = function ( $size, $cx2, $y, $text, $col, $max ) use ( $im, $font, $S ) {
+			if ( '' === $text ) { return; }
+			$w = 0;
+			while ( $size > 8 ) {
+				$bx = imagettfbbox( $size * $S, 0, $font, $text );
+				$w  = $bx[2] - $bx[0];
+				if ( $w <= $max * $S ) { break; }
+				$size = $size - 1;
+			}
+			imagettftext( $im, $size * $S, 0, intval( $cx2 * $S - $w / 2 ), $y * $S, $col, $font, $text );
+		};
+		/* 왼쪽 맞춤 */
+		$left = function ( $size, $x, $y, $text, $col, $max ) use ( $im, $font, $S ) {
+			if ( '' === $text ) { return; }
+			while ( $size > 8 ) {
+				$bx = imagettfbbox( $size * $S, 0, $font, $text );
+				if ( ( $bx[2] - $bx[0] ) <= $max * $S ) { break; }
+				$size = $size - 1;
+			}
+			imagettftext( $im, $size * $S, 0, $x * $S, $y * $S, $col, $font, $text );
+		};
+		/* 오른쪽 맞춤 */
+		$right = function ( $size, $x, $y, $text, $col ) use ( $im, $font, $S ) {
+			if ( '' === $text ) { return; }
+			$bx = imagettfbbox( $size * $S, 0, $font, $text );
+			imagettftext( $im, $size * $S, 0, intval( $x * $S - ( $bx[2] - $bx[0] ) ), $y * $S, $col, $font, $text );
+		};
+
+		/* 도넛 속 점수 */
+		$mid( 68, 156, 214, (string) $score, $pur, 130 );
+		$mid( 17, 156, 246, '점', $soft, 130 );
+
+		/* 오른쪽 — 관계 딱지 · 이름 · 등급 */
+		$chip = $ko . ' 궁합';
+		$cb   = imagettfbbox( 17 * $S, 0, $font, $chip );
+		$cw   = intval( ( $cb[2] - $cb[0] ) / $S );
+		$rr( 300, 44, 300 + $cw + 30, 82, 19, imagecolorallocate( $im, 255, 226, 214 ) );
+		$left( 17, 315, 69, $chip, imagecolorallocate( $im, 196, 103, 74 ), 240 );
+
+		/* 누구와 누구인지 — 크게 */
+		if ( $who ) { $left( 27, 300, 124, $who, $sub, 452 ); }
+		$left( 42, 300, ( $who ? 176 : 150 ), $tier, $ink, 452 );
+
+		/* 세 덩어리 막대 */
+		$bar = function ( $y, $name, $got, $full ) use ( $im, $rr, $left, $right, $S, $sub, $pur, $barbg, $ring1, $ring2 ) {
+			$left( 17, 300, $y, $name, $sub, 260 );
+			$right( 17, 752, $y, $got . ' / ' . $full, $pur );
+			$rr( 300, $y + 10, 752, $y + 24, 7, $barbg );
+			$w = intval( 452 * $got / max( 1, $full ) );
+			if ( $w > 14 ) { $rr( 300, $y + 10, 300 + $w, $y + 24, 7, $ring1 ); }
+		};
+		$y0 = $who ? 208 : 194;
+		$bar( $y0,      '사주',   $a, 40 );
+		$bar( $y0 + 50, '별자리', $b, 30 );
+		$bar( $y0 + 100, '띠',    $c, 30 );
+
+		$left( 15, 300, $y0 + 152, 'stellasaju.com/uandme', $soft, 452 );
+	}
+
+	/* 두 배로 그린 것을 제 크기로 줄입니다 */
+	$out = imagecreatetruecolor( $W, $H );
+	imagealphablending( $out, false );
+	imagesavealpha( $out, true );
+	imagecopyresampled( $out, $im, 0, 0, 0, 0, $W, $H, $W * $S, $H * $S );
+	imagedestroy( $im );
+	$im = $out;
+
+	ob_start();
+	imagepng( $im );
+	imagedestroy( $im );
+	$png = ob_get_clean();
+
+	/* 파일로도 남겨 둡니다. 다음부터는 CDN 이 이 파일을 나릅니다. */
+	$up  = wp_upload_dir();
+	$dir = $up['basedir'] . '/uandme/card';
+	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
+	$file = $dir . '/' . stella_um_card_name( $score, $rel, $a, $b, $c,
+		isset( $_GET['n'] ) ? $_GET['n'] : '' );
+	if ( ! file_exists( $file ) ) { @file_put_contents( $file, $png ); }
+
+	header( 'Content-Type: image/png' );
+	header( 'Content-Length: ' . strlen( $png ) );
+	header( 'Cache-Control: public, max-age=604800' );
+	header( 'Accept-Ranges: none' );
+	header_remove( 'Expires' );
+	header_remove( 'Pragma' );
+	header_remove( 'X-Robots-Tag' );
+	echo $png;
+	exit;
+} );
+

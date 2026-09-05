@@ -1,0 +1,178 @@
+/* ════════════════════════════════════════════════════════════
+   가입할 때 휴대폰 번호 받기 · 소희 님께
+
+   왜
+     지금 결제창에 나가는 번호는 예비 번호 01000000000 입니다.
+     이니시스가 그 번호로 보내는 결제 안내를 손님이 못 받습니다.
+     가입할 때 진짜 번호를 받아 결제에 그대로 씁니다.
+
+   무엇을 바꾸나 — 다섯 문 페이지에 세 군데씩
+     1. 이메일 칸 바로 아래에 휴대폰 칸을 넣습니다
+     2. 자바스크립트가 그 값을 읽게 합니다
+     3. 비어 있으면 「휴대폰 번호를 적어주세요」로 막고,
+        가입 정보에 담아 보냅니다
+
+   손대는 페이지
+     130 직성의 신 · 141 연성의 신 · 169 강성의 신
+     170 세성의 신 · 171 성좌의 신
+
+   ★ 이 패치만으로는 절반입니다
+     받은 번호를 저장하는 스니펫을 따로 드립니다. 둘 다 넣으셔야
+     결제창에 진짜 번호가 나갑니다.
+
+   ★ 개인정보처리방침에 휴대폰을 수집 항목으로 적으셔야 합니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere → 저장 → 활성
+
+   ★ 저장 직후 먼저  https://stellasaju.com/wp-json/stella/v1/me
+   ① 미리보기  https://stellasaju.com/?stella_tel=1
+   ② 적용      https://stellasaju.com/?stella_tel=1&go=1
+   되돌리기    https://stellasaju.com/?stella_tel=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_tel'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	$ids = array( 130, 141, 169, 170, 171 );
+
+	$html_old = '<input type="email" id="gEmail" maxlength="60" placeholder="you@example.com"></div></div>';
+	$html_new = $html_old
+		. '<div class="frow one"><div class="f"><label for="gPhone">휴대폰 번호 '
+		. '<span style="color:var(--ink-dim);font-weight:400">· 필수 (결제와 안내에 씁니다)</span></label>'
+		. '<input type="tel" id="gPhone" maxlength="20" inputmode="numeric" placeholder="010-1234-5678"></div></div>';
+
+	$js1_old = "var name=\$('gName').value.trim(),email=\$('gEmail').value.trim();";
+	$js1_new = $js1_old . "var __pe=\$('gPhone');var phone=__pe?__pe.value.trim():'';";
+
+	$js2_old = "payload.profile={name:name,email:email,sex:\$('gSex').value,";
+	$js2_new = "if(!phone){say('휴대폰 번호를 적어주세요. 결제와 안내에 씁니다.','err');return;}"
+		. "payload.profile={name:name,email:email,phone:phone,sex:\$('gSex').value,";
+
+	$pairs = array(
+		array( '휴대폰 칸 넣기',      $html_old, $html_new ),
+		array( '번호 읽어오기',        $js1_old,  $js1_new ),
+		array( '비었으면 막고 담기',   $js2_old,  $js2_new ),
+	);
+
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:920px">';
+	printf(
+		'<h1 style="color:#ffd76a">가입할 때 휴대폰 번호 받기 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>ID</td><td>제목</td><td>휴대폰 칸</td><td>읽어오기</td><td>담기</td></tr>';
+
+	$ready = true;
+	$done  = true;
+
+	foreach ( $ids as $pid ) {
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+		if ( ! $row ) {
+			printf( '<tr style="border-top:1px solid #333"><td>%d</td><td colspan="4" style="color:#ff7b7b">못 읽었습니다</td></tr>', $pid );
+			$ready = false;
+			continue;
+		}
+
+		if ( $undo ) {
+			$bak = get_post_meta( $pid, '_stella_tel_backup', true );
+			if ( $bak ) {
+				$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+				delete_post_meta( $pid, '_stella_tel_backup' );
+				clean_post_cache( $pid );
+				printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td colspan="3" style="color:#7bff9b">되돌렸습니다</td></tr>', $pid, esc_html( $row->post_title ) );
+			} else {
+				printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td colspan="3" style="color:#888">사본 없음</td></tr>', $pid, esc_html( $row->post_title ) );
+			}
+			continue;
+		}
+
+		$c    = $row->post_content;
+		$cell = '';
+		$okp  = true;
+		foreach ( $pairs as $p ) {
+			$n = substr_count( $c, $p[1] );
+			$m = substr_count( $c, $p[2] );
+			if ( $m > 0 ) {
+				$cell .= '<td style="color:#9fd">이미 있음</td>';
+			} else {
+				$done = false;
+				if ( 1 !== $n ) {
+					$okp = false;
+					$ready = false;
+				}
+				$cell .= sprintf( '<td style="color:%s"><b>%d</b></td>', 1 === $n ? '#7bff9b' : '#ff7b7b', $n );
+			}
+		}
+		printf(
+			'<tr style="border-top:1px solid #333"><td><b>%d</b></td><td>%s</td>%s</tr>',
+			$pid,
+			esc_html( $row->post_title ),
+			$cell
+		);
+
+		if ( $go && $okp ) {
+			if ( ! get_post_meta( $pid, '_stella_tel_backup', true ) ) {
+				update_post_meta( $pid, '_stella_tel_backup', $c );
+			}
+			$new = $c;
+			foreach ( $pairs as $p ) {
+				if ( substr_count( $new, $p[2] ) ) {
+					continue;
+				}
+				$new = str_replace( $p[1], $p[2], $new );
+			}
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+			clean_post_cache( $pid );
+		}
+	}
+	echo '</table>';
+
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	if ( $undo ) {
+		echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2></body>';
+		exit;
+	}
+	if ( $done ) {
+		echo '<h2 style="color:#7bff9b">이미 다 들어가 있습니다.</h2></body>';
+		exit;
+	}
+	if ( ! $ready ) {
+		echo '<h2 style="color:#ff7b7b">붙일 자리를 정확히 못 찾은 페이지가 있어 그 페이지는 건드리지 않았습니다.</h2>'
+			. '<p>이 화면을 저에게 보내주세요.</p></body>';
+		exit;
+	}
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다. 아무것도 바뀌지 않았습니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_tel=1&go=1">→ 이대로 넣기</a></p></body>';
+		exit;
+	}
+
+	echo '<h2 style="color:#7bff9b">넣었습니다</h2>';
+	echo '<div style="background:#1a1408;border-left:4px solid #ffd76a;padding:16px 18px;margin-top:16px">'
+		. '<p style="margin:0 0 8px"><b style="color:#ffd76a">아직 절반입니다</b></p>'
+		. '<p style="margin:0">화면에서 번호를 받기 시작했지만, 아직 저장은 안 됩니다. '
+		. '「번호 저장하기」 스니펫을 함께 넣으셔야 결제창에 진짜 번호가 나갑니다.</p></div>';
+	echo '<p style="margin-top:16px"><a style="color:#ffd76a" href="/door-career/">→ 문 페이지에서 휴대폰 칸이 보이는지 확인</a></p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_tel=1&undo=1</p></body>';
+	exit;
+} );

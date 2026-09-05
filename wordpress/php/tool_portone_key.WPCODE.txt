@@ -1,0 +1,145 @@
+/* ════════════════════════════════════════════════════════════
+   포트원 열쇠가 맞는지 서버가 직접 물어봅니다 · 소희 님께
+
+   왜
+     서버 기록에 [stella portone] 401 unknown 이 찍혀 있습니다.
+     401 은 포트원이 우리 열쇠를 거절했다는 뜻입니다.
+     콘솔에서 눈으로 견주는 것보다, 사이트가 실제로 포트원에
+     물어보게 하는 것이 확실합니다.
+
+   무엇을 하나
+     지금 사이트에 들어 있는 API Secret 으로 포트원에 로그인을
+     시도하고, 포트원이 뭐라고 답하는지 그대로 보여줍니다.
+     결제를 만들지도, 돈을 움직이지도 않습니다. 물어보기만 합니다.
+     열쇠 값은 화면에 안 찍습니다. 길이와 앞 네 글자만 보여줍니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere →
+              첫 줄 PHP 태그 아래에 붙여넣기 → 저장 → 활성
+
+   ★ 저장한 직후 반드시 아래를 먼저 확인해주세요.
+        https://stellasaju.com/wp-json/stella/v1/me
+     {"ok":false,...} 면 정상입니다.
+     rest_no_route 가 나오면 이 스니펫을 즉시 꺼주세요.
+
+   그 다음
+        https://stellasaju.com/?stella_key=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_key'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다. 관리자로 로그인한 창에서 열어주세요.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.9 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:26px;max-width:900px">';
+	echo '<h1 style="color:#ffd76a">포트원 열쇠 확인</h1>';
+
+	/* 값 꺼내기 — 스니펫이 쓰는 함수가 있으면 그걸 쓰고, 없으면 상수를 봅니다 */
+	$secret  = '';
+	$store   = '';
+	$channel = '';
+	if ( function_exists( 'stella_po_key' ) ) {
+		$secret  = (string) stella_po_key( 'secret' );
+		$store   = (string) stella_po_key( 'store' );
+		$channel = (string) stella_po_key( 'channel' );
+	}
+	if ( '' === $secret && defined( 'STELLA_PORTONE_SECRET' ) ) {
+		$secret = (string) constant( 'STELLA_PORTONE_SECRET' );
+	}
+	if ( '' === $store && defined( 'STELLA_PORTONE_STORE' ) ) {
+		$store = (string) constant( 'STELLA_PORTONE_STORE' );
+	}
+	if ( '' === $channel && defined( 'STELLA_PORTONE_CHANNEL' ) ) {
+		$channel = (string) constant( 'STELLA_PORTONE_CHANNEL' );
+	}
+
+	$peek = function ( $s ) {
+		$s = (string) $s;
+		$n = strlen( $s );
+		if ( 0 === $n ) {
+			return '<span style="color:#ff7b7b">비어 있음</span>';
+		}
+		return esc_html( substr( $s, 0, 4 ) ) . '…' . esc_html( substr( $s, -2 ) ) . ' <span style="color:#888">(' . $n . '자)</span>';
+	};
+
+	echo '<h2 style="color:#9fd">지금 들어 있는 값</h2><table cellpadding="8" style="border-collapse:collapse">';
+	printf( '<tr><td>상점아이디</td><td>%s</td></tr>', $peek( $store ) );
+	printf( '<tr style="border-top:1px solid #333"><td>채널키</td><td>%s</td></tr>', $peek( $channel ) );
+	printf( '<tr style="border-top:1px solid #333"><td>API Secret</td><td>%s</td></tr>', $peek( $secret ) );
+	echo '</table>';
+
+	/* 앞뒤에 눈에 안 보이는 글자가 붙었는지 */
+	$trimmed = trim( $secret );
+	if ( $trimmed !== $secret ) {
+		printf(
+			'<p style="color:#ff7b7b"><b>주의</b> · API Secret 앞뒤에 공백이나 줄바꿈이 붙어 있습니다. (%d자 → 다듬으면 %d자) 이것만으로도 401 이 납니다.</p>',
+			strlen( $secret ),
+			strlen( $trimmed )
+		);
+	}
+
+	if ( '' === $trimmed ) {
+		echo '<h2 style="color:#ff7b7b">API Secret 이 비어 있어 물어볼 수 없습니다.</h2></body>';
+		exit;
+	}
+
+	/* ── 포트원에 직접 물어봅니다 ─────────────────────────── */
+	echo '<h2 style="color:#9fd">포트원에 물어본 결과</h2>';
+
+	$res = wp_remote_post(
+		'https://api.portone.io/login/api-secret',
+		array(
+			'timeout' => 20,
+			'headers' => array( 'Content-Type' => 'application/json' ),
+			'body'    => wp_json_encode( array( 'apiSecret' => $trimmed ) ),
+		)
+	);
+
+	if ( is_wp_error( $res ) ) {
+		printf(
+			'<p style="color:#ff7b7b">포트원에 닿지 못했습니다 — %s</p>'
+			. '<p>사이트에서 바깥으로 나가는 길이 막혔을 수 있습니다.</p></body>',
+			esc_html( $res->get_error_message() )
+		);
+		exit;
+	}
+
+	$code = (int) wp_remote_retrieve_response_code( $res );
+	$body = (string) wp_remote_retrieve_body( $res );
+	$json = json_decode( $body, true );
+
+	printf( '<p>응답 코드 : <b style="color:%s">%d</b></p>', 200 === $code ? '#7bff9b' : '#ff7b7b', $code );
+
+	if ( 200 === $code && is_array( $json ) && ! empty( $json['accessToken'] ) ) {
+		echo '<h2 style="color:#7bff9b">열쇠가 맞습니다</h2>'
+			. '<p>포트원이 우리를 알아봤습니다. API Secret 은 문제가 아닙니다.</p>'
+			. '<p>그러면 401 은 다른 데서 났다는 뜻입니다 — 채널과 시크릿이 서로 다른 상점의 것이거나, '
+			. '결제 확인을 부를 때 헤더를 잘못 붙였을 수 있습니다. 이 화면을 저에게 보내주세요.</p>';
+	} else {
+		echo '<h2 style="color:#ff7b7b">포트원이 거절했습니다</h2>';
+		echo '<p>포트원이 보낸 말 그대로입니다.</p>';
+		printf(
+			'<pre style="white-space:pre-wrap;background:#000;padding:12px;border-left:3px solid #ff7b7b">%s</pre>',
+			esc_html( mb_substr( $body, 0, 1200 ) )
+		);
+		echo '<p style="margin-top:14px">흔한 원인 셋입니다.</p><ul>'
+			. '<li><b>V1 시크릿을 V2 자리에 넣음</b> — 포트원은 V1 과 V2 의 열쇠가 아예 다릅니다</li>'
+			. '<li>다른 상점의 시크릿</li>'
+			. '<li>복사할 때 글자가 빠지거나 섞임</li>'
+			. '</ul>'
+			. '<p>포트원 콘솔 → <b>결제연동 → 식별코드 · API Keys</b> 에서 '
+			. '<b>V2 API Secret</b> 을 새로 복사해 스니펫 264번에 넣고 다시 열어보세요.</p>';
+	}
+
+	echo '<p style="color:#888;margin-top:20px">이 확인은 결제를 만들지 않습니다. 돈은 움직이지 않았습니다.</p>';
+	echo '</body>';
+	exit;
+} );

@@ -1,0 +1,194 @@
+/* ════════════════════════════════════════════════════════════
+   마이페이지의 「구슬 충전」 칸 감추기 · 소희 님께
+
+   왜
+     가격 안내에는 「미리 충전해 두는 것이 없습니다」라고 적혀 있는데,
+     마이페이지에는 구슬 묶음을 미리 사는 칸이 있습니다. 서로 어긋나고,
+     카카오페이 심사관이 물어본 「구슬은 어디서 사나요?」가 여기입니다.
+
+     그 칸 안에 「결제창은 스트라이프(Stripe)가 띄웁니다」라는 문장도
+     들어 있습니다. 지금은 포트원 · KG이니시스로 결제하시니 사실과
+     다릅니다. 칸을 감추면 이 문장도 같이 사라집니다.
+
+   무엇을 하나
+     ① 마이페이지의 「구슬 충전」 칸을 그리지 않게 합니다
+        (코드는 지우지 않고 멈추기만 합니다 — 나중에 되살릴 수 있습니다)
+     ② 「충전 내역」 이라는 표 제목을 「결제 내역」 으로 바꿉니다
+
+   손대는 페이지
+     185 · 내 자리 (마이페이지)
+
+   결제 자체는 건드리지 않습니다. 풀이를 볼 때 뜨는 1,000원 결제창과
+   결제를 마치고 돌아오는 길은 그대로입니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Insert Method 는 Auto Insert, Location 은 Run Everywhere →
+              저장 → 오른쪽 위 토글을 Active 로
+
+   ★ 저장 직후 먼저  https://stellasaju.com/wp-json/stella/v1/me
+   ① 미리보기  https://stellasaju.com/?stella_nopay=1
+   ② 적용      https://stellasaju.com/?stella_nopay=1&go=1
+   되돌리기    https://stellasaju.com/?stella_nopay=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_nopay'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:960px">';
+
+	if ( ! is_user_logged_in() ) {
+		echo '<h1 style="color:#ff7b7b">로그인이 안 되어 있습니다.</h1></body>';
+		exit;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1></body>';
+		exit;
+	}
+
+	global $wpdb;
+
+	$pid = 185;
+
+	$pairs = array(
+		array(
+			'name' => '① 「구슬 충전」 칸을 그리지 않게',
+			'old'  => 'function paintPay(me, host){',
+			'new'  => 'function paintPay(me, host){ return;',
+		),
+		array(
+			'name' => '② 「충전 내역」 → 「결제 내역」',
+			'old'  => '>충전 내역</div>',
+			'new'  => '>결제 내역</div>',
+		),
+	);
+
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	printf(
+		'<h1 style="color:#ffd76a">마이페이지 「구슬 충전」 감추기 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	$row = $wpdb->get_row( $wpdb->prepare( "SELECT post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) {
+		echo '<h2 style="color:#ff7b7b">185 를 못 읽었습니다.</h2></body>';
+		exit;
+	}
+
+	if ( $undo ) {
+		$bak = get_post_meta( $pid, '_stella_nopay_backup', true );
+		if ( $bak ) {
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+			delete_post_meta( $pid, '_stella_nopay_backup' );
+			clean_post_cache( $pid );
+			if ( function_exists( 'wp_cache_flush' ) ) {
+				wp_cache_flush();
+			}
+			echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2></body>';
+		} else {
+			echo '<h2 style="color:#888">사본이 없습니다. 되돌릴 것이 없습니다.</h2></body>';
+		}
+		exit;
+	}
+
+	$c = $row->post_content;
+
+	printf( '<p>185 · %s · %d자</p>', esc_html( $row->post_title ), mb_strlen( $c, 'UTF-8' ) );
+
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>바꿀 것</td><td>찾음</td><td>이미 됨</td></tr>';
+
+	$ready = true;
+	$done  = true;
+
+	foreach ( $pairs as $p ) {
+		$n = substr_count( $c, $p['old'] );
+		$m = substr_count( $c, $p['new'] );
+
+		if ( $m > 0 ) {
+			printf(
+				'<tr style="border-top:1px solid #333"><td>%s</td><td style="color:#888">%d</td><td style="color:#9fd">이미 됨</td></tr>',
+				esc_html( $p['name'] ),
+				$n
+			);
+			continue;
+		}
+		$done = false;
+		if ( 1 !== $n ) {
+			$ready = false;
+		}
+		printf(
+			'<tr style="border-top:1px solid #333"><td>%s</td><td style="color:%s"><b>%d</b></td><td></td></tr>',
+			esc_html( $p['name'] ),
+			1 === $n ? '#7bff9b' : '#ff7b7b',
+			$n
+		);
+	}
+	echo '</table>';
+
+	/* 스트라이프 자취도 함께 세어 봅니다 */
+	echo '<h2 style="color:#9fd">사이트에 남아 있는 「스트라이프 / Stripe」</h2>';
+	$st = $wpdb->get_results(
+		"SELECT ID, post_title, post_content FROM {$wpdb->posts}
+		  WHERE post_status IN ('publish','draft','private')
+		    AND post_type IN ('page','post')
+		    AND ( post_content LIKE '%스트라이프%' OR post_content LIKE '%Stripe%' )
+		  ORDER BY ID"
+	);
+	if ( ! $st ) {
+		echo '<p style="color:#7bff9b">없습니다.</p>';
+	} else {
+		echo '<table cellpadding="8" style="border-collapse:collapse"><tr style="color:#ffd76a"><td>ID</td><td>제목</td><td>스트라이프</td><td>Stripe</td></tr>';
+		foreach ( $st as $r ) {
+			printf(
+				'<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td>%d</td><td>%d</td></tr>',
+				$r->ID,
+				esc_html( $r->post_title ),
+				substr_count( $r->post_content, '스트라이프' ),
+				substr_count( $r->post_content, 'Stripe' )
+			);
+		}
+		echo '</table><p style="color:#888">이 목록은 참고용입니다. 감춰지는 칸 밖에 남은 것은 따로 정리하겠습니다.</p>';
+	}
+
+	if ( $done ) {
+		echo '<h2 style="color:#7bff9b">이미 다 되어 있습니다.</h2></body>';
+		exit;
+	}
+	if ( ! $ready ) {
+		echo '<h2 style="color:#ff7b7b">딱 한 번씩이 아닌 것이 있어 아무것도 바꾸지 않았습니다.</h2>'
+			. '<p>이 화면을 저에게 보내주세요.</p></body>';
+		exit;
+	}
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_nopay=1&go=1">→ 이대로 바꾸기</a></p></body>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, '_stella_nopay_backup', true ) ) {
+		update_post_meta( $pid, '_stella_nopay_backup', $c );
+	}
+	$out = $c;
+	foreach ( $pairs as $p ) {
+		if ( substr_count( $out, $p['new'] ) > 0 ) {
+			continue;
+		}
+		$out = str_replace( $p['old'], $p['new'], $out );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $out ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	echo '<h2 style="color:#7bff9b">바꿨습니다</h2>';
+	echo '<p><a style="color:#ffd76a" href="/mypage/">→ 마이페이지에서 확인</a></p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_nopay=1&undo=1</p></body>';
+	exit;
+} );

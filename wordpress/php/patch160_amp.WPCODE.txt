@@ -1,0 +1,190 @@
+/* ════════════════════════════════════════════════════════════
+   전자책 백지 고치기 · 소희 님께
+
+   왜 백지였나
+     저장된 글은 멀쩡했습니다. 워드프레스가 화면에 뿌릴 때
+     wptexturize 라는 기능이 스크립트 안의 앰퍼샌드(&)를
+     &#038; 로 바꿔버리는 것이 원인이었습니다.
+     그 탓에   var t=(o&&o.topic)?...   한 줄이 문법 오류가 되고,
+     책을 만드는 덩어리 전체가 통째로 멈춰 여섯 문이 모두 백지가 됩니다.
+
+   이 스니펫이 하는 일
+     1. 앰퍼샌드를 안 쓰는 문법으로 아홉 군데를 바꿉니다.
+     2. 앞으로도 다시 안 깨지도록, 이 페이지에서만 wptexturize 를 뗍니다.
+
+   붙여넣기
+     1) WPCode → 새 스니펫 → 「Add Your Custom Code (New Snippet)」
+     2) 종류(Code Type) 는 반드시  PHP Snippet
+     3) 편집창 첫 줄에 이미 PHP 여는 태그가 한 줄 들어 있습니다.
+        그건 그대로 두시고, 그 아래에 이 파일 내용을 통째로 붙여넣으세요.
+     4) 저장 → 활성(Active) → 주소창에
+
+          https://stellasaju.com/?stella_patch=amp160
+
+     5) 표가 전부 초록으로 나오면 끝입니다. 그 다음 전자책을 열어보세요.
+
+   중요
+     이 스니펫은 지우지 말고 계속 활성으로 두세요.
+     글을 바꾸는 부분은 ?stella_patch= 를 붙였을 때만 동작하고,
+     평소에는 페이지 160 을 wptexturize 로부터 지켜주기만 합니다.
+
+   되돌리기
+     혹시 문제가 생기면   ?stella_patch=amp160_undo
+   ════════════════════════════════════════════════════════════ */
+
+define( 'STELLA_AMP_PAGE', 160 );
+define( 'STELLA_AMP_SHA', '2913f8d5a1d1b0e3b5edac5e7ec79c4f9732b89d' );
+
+/* ── 상시 · 이 페이지만 wptexturize 에서 빼줍니다 ────────── */
+add_action( 'wp', function () {
+	if ( is_page( STELLA_AMP_PAGE ) ) {
+		remove_filter( 'the_content', 'wptexturize' );
+	}
+} );
+
+/* ── 요청했을 때만 · 글 안의 앰퍼샌드를 걷어냅니다 ───────── */
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_patch'] ) ) {
+		return;
+	}
+	$mode = $_GET['stella_patch'];
+	if ( 'amp160' !== $mode && 'amp160_undo' !== $mode ) {
+		return;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	global $wpdb;
+	$pid = STELLA_AMP_PAGE;
+	$cur = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.8 monospace;background:#111;color:#eee;padding:24px">';
+
+	if ( ! $cur ) {
+		echo '<p style="color:#ff7b7b">글을 못 읽었습니다.</p></body>';
+		exit;
+	}
+
+	/* ── 되돌리기 ── */
+	if ( 'amp160_undo' === $mode ) {
+		$bak = get_post_meta( $pid, '_stella_amp_backup', true );
+		if ( ! $bak ) {
+			echo '<p style="color:#ff7b7b">되돌릴 사본이 없습니다.</p></body>';
+			exit;
+		}
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		if ( function_exists( 'wp_cache_flush' ) ) {
+			wp_cache_flush();
+		}
+		printf(
+			'<h2 style="color:#ffd76a">되돌렸습니다</h2><p>%d 바이트로 복원 · sha1 %s</p></body>',
+			strlen( $bak ),
+			substr( sha1( $bak ), 0, 12 )
+		);
+		exit;
+	}
+
+	/* ── 고치기 ── */
+	$pairs = array(
+		array( '7LmY66qF7KCBIMK3IOuNqeyWtOumrDEwIGxvdmVUb3BpY09mIOKAlCBvJiZvLnRvcGljIOydtCDtmZTrqbTsl5DshJwg66y467KV7Jik66WY6rCAIOuQqeuLiOuLpA==', 'ICAgICAgdmFyIHQ9KG8mJm8udG9waWMpP1N0cmluZyhvLnRvcGljKS50cmltKCk6Jyc7', 'ICAgICAgdmFyIHQ9Jyc7IGlmKG8peyBpZihvLnRvcGljKXsgdD1TdHJpbmcoby50b3BpYykudHJpbSgpOyB9IH0=' ),
+		array( '642p7Ja066asMTAgQVhJU19XQVJNX1RPUElDIOqyuey5mOq4sCDigJQg64Ko7J2AICYmIOuPhCDsl4bslbHri4jri6Q=', 'ICAgIGlmKF9fbHQgJiYgQVhJU19XQVJNX1RPUElDW19fbHRdICYmIEFYSVNfV0FSTV9UT1BJQ1tfX2x0XVtrZXldKXs=', 'ICAgIHZhciBfX3d0ID0gX19sdCA/IEFYSVNfV0FSTV9UT1BJQ1tfX2x0XSA6IG51bGw7IGlmKF9fd3QgPyBfX3d0W2tleV0gOiBmYWxzZSl7' ),
+		array( '642p7Ja066asMiBlc2MoKSDigJQg7KCV6rec7Iud7J2YIOunqOyVsO2NvOyDjOuTnOqwgCDtmZTrqbTsl5DshJwg67CU64Cd64uI64uk', 'ICAgIHJldHVybiBTdHJpbmcocykucmVwbGFjZSgvJi9nLCcmYW1wOycpLnJlcGxhY2UoLzwvZywnJmx0OycpLnJlcGxhY2UoLz4vZywnJmd0OycpOw==', 'ICAgIHJldHVybiBTdHJpbmcocykucmVwbGFjZSgvXHgyNi9nLCdceDI2YW1wOycpLnJlcGxhY2UoLzwvZywnXHgyNmx0OycpLnJlcGxhY2UoLz4vZywnXHgyNmd0OycpOw==' ),
+		array( 'ZXNjKCkg65CY7IK066as6riwIDEg4oCUIC91MDAyNi8g64qUIOyXreyKrOuemOyLnOqwgCDruaDsoLgg7JWw7Y287IOM65Oc66W8IOuquyDssL7sirXri4jri6Q=', 'ICAgIHJldHVybiBTdHJpbmcocykucmVwbGFjZSgvdTAwMjYvZywnJmFtcDsnKS5yZXBsYWNlKC88L2csICcmbHQ7JykucmVwbGFjZSgvPi9nLCAnJmd0OycpOw==', 'ICAgIHJldHVybiBTdHJpbmcocykucmVwbGFjZSgvXHgyNi9nLCdceDI2YW1wOycpLnJlcGxhY2UoLzwvZywgJ1x4MjZsdDsnKS5yZXBsYWNlKC8+L2csICdceDI2Z3Q7Jyk7' ),
+		array( 'ZXNjKCkg65CY7IK066as6riwIDI=', 'ICBmdW5jdGlvbiBlc2Mocyl7IHJldHVybiBTdHJpbmcocykucmVwbGFjZSgvdTAwMjYvZywnJmFtcDsnKS5yZXBsYWNlKC88L2csJyZsdDsnKS5yZXBsYWNlKC8+L2csJyZndDsnKTsgfQ==', 'ICBmdW5jdGlvbiBlc2Mocyl7IHJldHVybiBTdHJpbmcocykucmVwbGFjZSgvXHgyNi9nLCdceDI2YW1wOycpLnJlcGxhY2UoLzwvZywnXHgyNmx0OycpLnJlcGxhY2UoLz4vZywnXHgyNmd0OycpOyB9' ),
+		array( 'ZXNjKCkg65CY7IK066as6riwIDM=', 'ICAgICAgcmV0dXJuIFN0cmluZyh4KS5yZXBsYWNlKC91MDAyNi9nLCcmYW1wOycpLnJlcGxhY2UoLzwvZywnJmx0OycpLnJlcGxhY2UoLz4vZywnJmd0OycpOw==', 'ICAgICAgcmV0dXJuIFN0cmluZyh4KS5yZXBsYWNlKC9ceDI2L2csJ1x4MjZhbXA7JykucmVwbGFjZSgvPC9nLCdceDI2bHQ7JykucmVwbGFjZSgvPi9nLCdceDI2Z3Q7Jyk7' ),
+		array( 'ZXNjKCkg65CY7IK066as6riwIDQ=', 'ICAgIHJldHVybiBTdHJpbmcocykucmVwbGFjZSgvdTAwMjYvZywnJmFtcDsnKS5yZXBsYWNlKC88L2csJyZsdDsnKS5yZXBsYWNlKC8+L2csJyZndDsnKTs=', 'ICAgIHJldHVybiBTdHJpbmcocykucmVwbGFjZSgvXHgyNi9nLCdceDI2YW1wOycpLnJlcGxhY2UoLzwvZywnXHgyNmx0OycpLnJlcGxhY2UoLz4vZywnXHgyNmd0OycpOw==' ),
+		array( '7LC47KeE7YOc7JaR7IucIO2RnCDCtyDsgqzsnbTrnYTqsJwgMQ==', 'KyfrtoQgJm5ic3A7PHNwYW4gY2xhc3M9Im1pbmkiPicr', 'KyfrtoQgXHgyNm5ic3A7PHNwYW4gY2xhc3M9Im1pbmkiPicr' ),
+		array( '7LC47KeE7YOc7JaR7IucIO2RnCDCtyDsgqzsnbTrnYTqsJwgMg==', 'KGNoYXJ0LnBpbGxhcnMuaG91cj8nICZuYnNwOzxzcGFuIGNsYXNzPSJtaW5pIj7snbQg7Iuc6rCB7J20IOyLnOyjvOulvCDsoJXtlanri4jri6Q8L3NwYW4+JzonJyk=', 'KGNoYXJ0LnBpbGxhcnMuaG91cj8nIFx4MjZuYnNwOzxzcGFuIGNsYXNzPSJtaW5pIj7snbQg7Iuc6rCB7J20IOyLnOyjvOulvCDsoJXtlanri4jri6Q8L3NwYW4+JzonJyk=' ),
+	);
+
+	echo '<h2 style="color:#ffd76a">페이지 160 · 앰퍼샌드 걷어내기</h2>';
+	printf( '<p>지금 글 : %d 바이트 · sha1 <b>%s</b></p>', strlen( $cur ), substr( sha1( $cur ), 0, 12 ) );
+
+	/* 먼저 전부 딱 한 번씩 있는지 세어봅니다. 하나라도 어긋나면 손대지 않습니다. */
+	$ready    = true;
+	$done_all = true;
+	echo '<table cellpadding="6" style="border-collapse:collapse"><tr style="color:#ffd76a"><td>번</td><td>찾음</td><td>자리</td></tr>';
+	foreach ( $pairs as $i => $p ) {
+		$desc = base64_decode( $p[0] );
+		$old  = base64_decode( $p[1] );
+		$new  = base64_decode( $p[2] );
+		$n    = substr_count( $cur, $old );
+		$m    = substr_count( $cur, $new );
+		if ( 1 !== $n ) {
+			$ready = false;
+		}
+		if ( 1 !== $m ) {
+			$done_all = false;
+		}
+		printf(
+			'<tr style="border-top:1px solid #333"><td>%d</td><td style="color:%s"><b>%d</b></td><td>%s</td></tr>',
+			$i,
+			1 === $n ? '#7bff9b' : ( 1 === $m ? '#9fd' : '#ff7b7b' ),
+			$n,
+			esc_html( $desc )
+		);
+	}
+	echo '</table>';
+
+	if ( ! $ready ) {
+		if ( $done_all ) {
+			echo '<h3 style="color:#7bff9b">이미 다 고쳐져 있습니다. 아무것도 바꾸지 않았습니다.</h3>';
+			echo '<p><a style="color:#ffd76a" href="/reading-book/">전자책 열어보기</a></p>';
+		} else {
+			echo '<h3 style="color:#ff7b7b">딱 한 번씩이 아니라 손대지 않았습니다. 글은 그대로입니다.</h3>';
+		}
+		echo '</body>';
+		exit;
+	}
+
+	/* 사본을 미리 넣어둡니다 */
+	update_post_meta( $pid, '_stella_amp_backup', $cur );
+
+	$new = $cur;
+	foreach ( $pairs as $p ) {
+		$new = str_replace( base64_decode( $p[1] ), base64_decode( $p[2] ), $new );
+	}
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	$after = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+
+	printf(
+		'<h3 style="color:#7bff9b">바꿨습니다 · %d 바이트 (%+d)</h3>',
+		strlen( $after ),
+		strlen( $after ) - strlen( $cur )
+	);
+	printf(
+		'<p>제가 로컬에서 만든 것과 맞아야 하는 sha1 <b>%s</b><br>지금 글의 sha1 <b>%s</b> → %s</p>',
+		substr( STELLA_AMP_SHA, 0, 16 ),
+		substr( sha1( $after ), 0, 16 ),
+		sha1( $after ) === STELLA_AMP_SHA
+			? '<b style="color:#7bff9b">똑같습니다</b>'
+			: '<b style="color:#ffd76a">다릅니다 — 그래도 아홉 군데 치환은 다 되었습니다</b>'
+	);
+
+	/* 고친 뒤 확인 · 화면에 뿌렸을 때 script 안에 앰퍼샌드가 깨져 남는지 */
+	$rendered = apply_filters( 'the_content', $after );
+	preg_match_all( '#<script\b[^>]*>(.*?)</script>#s', $rendered, $mv );
+	$ent = 0;
+	foreach ( $mv[1] as $blk ) {
+		$ent += substr_count( $blk, '&#038;' ) + substr_count( $blk, '&amp;' );
+	}
+	printf(
+		'<p>화면에 뿌렸을 때 script 안에 깨진 앰퍼샌드 : <b style="color:%s">%d개</b> %s</p>',
+		0 === $ent ? '#7bff9b' : '#ff7b7b',
+		$ent,
+		0 === $ent ? '(0 이어야 정상입니다)' : ''
+	);
+
+	echo '<p style="margin-top:18px;font-size:16px"><a style="color:#ffd76a" href="/reading-book/">→ 이제 전자책을 열어보세요</a></p></body>';
+	exit;
+} );

@@ -1,0 +1,104 @@
+/* 스텔라 · 전자책 조각 떼어 보기  (관리자만 · 보고 나면 지우세요)
+
+   전자책(160)은 937KB 라 한 번에 못 읽습니다. 조각 하나만 골라
+   밑글(초안) 여러 개에 나눠 담아 두면 제가 그것만 읽어갑니다.
+
+   WPCode → 새 스니펫 → PHP Snippet → Auto Insert →
+   Run Everywhere → 저장 → Active
+
+   여는 곳 : https://stellasaju.com/um-blk/14/     ← 성좌의 신(달자리)
+              https://stellasaju.com/um-blk/find/  ← 고칠 자리의 실제 글자
+
+   담기는 곳 : 페이지 목록의 「STELLA 14-1」, 「STELLA 14-2」 …
+               전부 초안이라 손님에게는 안 보입니다.
+               다 쓰고 나면 지우시면 됩니다.
+
+   글자를 그대로 담되 꺾쇠만 바꿔 둡니다. 그래야 워드프레스가
+   대본으로 오해해서 지우지 않습니다. */
+
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/um-blk' ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	$want = 14;
+	if ( preg_match( '#/um-blk/([0-9]{1,2})#', $uri, $m ) ) { $want = intval( $m[1] ); }
+	$find = ( false !== strpos( $uri, '/um-blk/find' ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	/* 번역 금지 — 브라우저가 번역하면 sayA 가 「말해」가 되고 return 이
+	   「반환」이 됩니다. 글자가 바뀌면 자리를 잡을 수 없습니다. */
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">';
+	echo '<body class="notranslate" translate="no" style="font:14px/1.7 system-ui;background:#111;color:#eee;padding:20px">';
+
+	$page = get_post( 160 );
+	if ( ! $page ) { echo '160번 페이지가 없습니다.'; exit; }
+
+	/* 찾기 — 고칠 자리의 실제 글자를 그대로 봅니다.
+	   제 사본과 올려둔 페이지가 다를 수 있어, 자리를 잡을 때는
+	   반드시 여기서 뽑은 글자를 씁니다. */
+	if ( $find ) {
+		$src  = $page->post_content;
+		$needs = array( 'function saySide', 'function sideWord', 'function axTitle', '정리하면 —' );
+		echo '<h1 style="color:#ffd76a;font-size:19px">고칠 자리 찾기</h1>';
+		foreach ( $needs as $n ) {
+			$at = 0;
+			$hit = 0;
+			echo '<h2 style="color:#9fd;font-size:15px;margin-top:22px">' . esc_html( $n ) . '</h2>';
+			while ( true ) {
+				$at = strpos( $src, $n, $at );
+				if ( false === $at ) { break; }
+				$hit++;
+				$from = max( 0, $at - 300 );
+				$cut  = substr( $src, $from, 1900 );
+				/* 바이트로 자르면 한글 한 글자가 중간에서 잘려 통째로 버려집니다.
+				   깨진 조각을 걷어내고 나서 씁니다. */
+				$cut  = mb_convert_encoding( $cut, 'UTF-8', 'UTF-8' );
+				$cut  = str_replace( array( "\r\n", "\n", "\r" ), array( '[CRLF]', '[LF]', '[CR]' ), $cut );
+				echo '<p style="color:#888;font-size:12px;margin:12px 0 3px">' . $hit . '번째 · ' . number_format( $at ) . '바이트</p>';
+				echo '<pre translate="no" class="notranslate" style="white-space:pre-wrap;word-break:break-all;background:#1c1c1c;padding:10px;font-size:12px;line-height:1.6">' . esc_html( $cut ) . '</pre>';
+				$at = $at + 1;
+				if ( $hit >= 2 ) { break; }
+			}
+			if ( ! $hit ) { echo '<p style="color:#f88">못 찾았습니다.</p>'; }
+		}
+		exit;
+	}
+
+	$all  = parse_blocks( $page->post_content );
+	$list = array();
+	foreach ( $all as $b ) {
+		if ( empty( $b['blockName'] ) ) { continue; }
+		$list[] = $b;
+	}
+
+	echo '<h1 style="color:#ffd76a;font-size:19px">전자책 조각 ' . count( $list ) . '개</h1>';
+
+	if ( ! isset( $list[ $want ] ) ) { echo $want . '번 조각이 없습니다.'; exit; }
+
+	$src = (string) $list[ $want ]['innerHTML'];
+	$len = strlen( $src );
+	$cut = 50000;
+	$cnt = intval( ceil( $len / $cut ) );
+
+	echo '<p>' . $want . '번 조각 : <b>' . number_format( $len ) . '</b> 바이트 · 밑글 ' . $cnt . '개로 나눕니다</p>';
+
+	for ( $i = 0; $i < $cnt; $i++ ) {
+		$slug = 'stella-blk' . $want . '-' . ( $i + 1 );
+		$args = array(
+			'post_title'   => 'STELLA ' . $want . '-' . ( $i + 1 ),
+			'post_name'    => $slug,
+			'post_type'    => 'page',
+			'post_status'  => 'draft',
+			'post_content' => htmlspecialchars( substr( $src, $i * $cut, $cut ), ENT_QUOTES, 'UTF-8' ),
+		);
+		$old = get_page_by_path( $slug, OBJECT, 'page' );
+		if ( $old ) { $args['ID'] = $old->ID; wp_update_post( $args ); $id = $old->ID; }
+		else { $id = wp_insert_post( $args ); }
+		echo '<p style="color:#9fd">' . esc_html( $slug ) . ' · 글번호 ' . intval( $id ) . '</p>';
+	}
+
+	echo '<p style="color:#888;margin-top:16px">다 담았습니다. 이제 제가 읽어가겠습니다.</p>';
+	exit;
+} );
