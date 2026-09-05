@@ -914,9 +914,12 @@ add_action( 'init', function () {
       '<div class="card" style="margin-top:14px">' + bars +
         '<p class="mini" style="margin-top:16px;line-height:1.85">' +
         '이건 당신이 어떤 사람이라고 못 박는 게 아니라, ' +
-        '<b>이 자리들에서 그쪽 답이 더 많이 나왔다</b>는 뜻이에요. ' +
-        '자리가 바뀌면 반대쪽이 나오기도 합니다. ' +
+        '<b>이 질문들에서 그쪽 답이 더 많이 나왔다</b>는 뜻이에요. ' +
+        '상황에 따라 반대쪽이 나오기도 합니다. ' +
         '100퍼센트 T 인 사람도, 100퍼센트 F 인 사람도 없습니다.</p>' +
+        '<p class="mini" style="margin-top:11px;line-height:1.85">' +
+        '그리고 이건 <b>지금 이 순간의 결과</b>예요. 나중에 다시 해보면 달라질 수 있습니다. ' +
+        '사람은 지금의 자기보다 자기가 바라는 쪽으로 답을 고르는 경우가 많다고 하니까요.</p>' +
       '</div>' +
       ( M ? ('<div class="h3" style="color:' + c3[1] + '">어떤 사람인가</div>' +
              '<div class="li" style="border-left-color:' + c3[0] + '">' + M[1] + '</div>' +
