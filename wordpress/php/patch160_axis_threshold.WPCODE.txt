@@ -7,7 +7,7 @@
    고른 답과 다르면 「여기가 어긋나는 자리입니다」라고까지
    말합니다. 한 글자로 손님에게 자기를 잘못 알고 있다고 하는 셈입니다.
 
-   바꾸는 것 여섯
+   바꾸는 것 열
 
      ① 기우는 기준   차이 1 → 기울지 않은 것으로 봅니다 (2부터 기욺)
      ② 기울기의 말   차이 2·3 은 「조금」, 4 이상은 「크게」
@@ -24,6 +24,14 @@
                      하시는 것인지」를 한 마디씩 적어둡니다
      ⑤ 한 줄 질문    「그쪽으로 답하시는 게」 대신 그 한 마디를 넣고,
                      「몸이」를 「몸과 마음이」로 고칩니다
+     ⑥⑦ 대운 겹치기 대운 두 글자가 다섯 줄다리기를 어느 쪽으로
+                     당기는지 재서 밖으로 내보냅니다
+     ⑧ 맺음말 세 칸  앞 장을 줄여 다시 쓰던 것을 그만두고, 타고난 결과
+                     지금 판과 답해주신 것을 여기서 처음 겹칩니다.
+                     ① 결과 지금 판이 같은 쪽인가 반대쪽인가
+                     ② 어긋난 곳이 가장 센 줄인가 곁줄인가
+                     ③ 다음 판은 결을 밀어주는가 거스르는가
+     ⑨ 맺음말 여는 말 「줄인 것뿐」이라는 말을 「여기서 처음 겹친다」로
 
    페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
    지워버립니다. 그래서 데이터베이스에 바로 씁니다.
@@ -77,7 +85,7 @@ add_action( 'template_redirect', function () {
 	$c = $row->post_content;
 	$before = strlen( $c );
 
-	/* ── 고칠 자리 여섯 ───────────────────────────────────── */
+	/* ── 고칠 자리 열 ───────────────────────────────────── */
 	$jobs = array();
 
 	/* ① 기우는 기준 — 차이 2부터 */
@@ -98,21 +106,21 @@ add_action( 'template_redirect', function () {
 	$jobs[] = array(
 		'name' => '③ 기울지 않았을 때 하는 말',
 		'find' => '/out\+=\'<p>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다<\/em> — \'\+A\.a\+\' 대 \'\+A\.b\+\'\. \'\+\s*\'이 축은 그때그때 상황에 맞추셔도 크게 무리가 없습니다\. \'\+\s*\'반대로 말하면, 여기서는 남들이 부러워할 만큼 유연하실 수 있어요\.<\/p>\';/u',
-		'to'   => "var sum=A.a+A.b;\n      var hi=(A.a>=A.b)?'A':'B', lo=(A.a>=A.b)?'B':'A';\n      var hn=Math.max(A.a,A.b), ln=Math.min(A.a,A.b);\n      var hName=otherName(key,hi), lName=otherName(key,lo);\n      var ro=(hn===0||hn===3||hn===6)?'으로':'로';\n      if(sum===0){\n        out+='<p>여덟 글자 가운데 <em>이 줄다리기를 하는 글자가 하나도 없습니다</em>. '+\n             '타고나기를 어느 쪽으로도 정해두지 않았다는 뜻이라, 이 자리는 살면서 스스로 정하시게 됩니다.</p>';\n      } else if(d===0){\n        out+='<p>이 줄다리기는 <em>팽팽합니다</em> — '+A.a+' 대 '+A.b+'. '+\n             '상황에 따라 '+hName+' 쪽일 때도 있고 '+lName+' 쪽일 때도 있다는 뜻이에요.</p>';\n      } else if(ln===0){\n        out+='<p>이 줄다리기는 <em>한쪽에 한 글자</em>뿐입니다 — '+A.a+' 대 '+A.b+'. '+\n             '글자 하나로는 게임이 안 된다고 생각하시면 됩니다. '+\n             hName+' 쪽 기운이 조금 있으니 '+(AXACT[hName]||'그쪽으로 가시는 것이')+' 조금 편하실 거예요.</p>';\n      } else {\n        out+='<p><em>'+hName+'</em>'+(R.hasBatchim(hName)?'이':'가')+' '+hn+ro+' 조금 많지만 '+\n             lName+'도 '+ln+'입니다. 한 글자 차이면 거의 팽팽한 겁니다. '+\n             '경우에 따라 '+lName+' 쪽으로도 가시는 자리예요.</p>';\n      }\n      if(sum>0){\n        out+='<p>어느 것을 선택해도 힘들지 않으실 거예요. '+\n             '남들이 부러워할 만큼 유연하실 수 있는 자리입니다.</p>';\n      }",
+		'to'   => "var sum=A.a+A.b;\n      var hi=(A.a>=A.b)?'A':'B', lo=(A.a>=A.b)?'B':'A';\n      var hn=Math.max(A.a,A.b), ln=Math.min(A.a,A.b);\n      var hName=otherName(key,hi), lName=otherName(key,lo);\n      var ro=(hn===0||hn===3||hn===6)?'으로':'로';\n      if(sum===0){\n        out+='<p>여덟 글자 가운데 <em>이 줄다리기를 하는 글자가 하나도 없습니다</em>. '+\n             '타고나기를 어느 쪽으로도 정해두지 않았다는 뜻이라, 이 자리는 살면서 스스로 정하시게 됩니다.</p>';\n      } else if(d===0){\n        out+='<p>이 줄다리기는 <em>팽팽합니다</em> — '+A.a+' 대 '+A.b+'. '+\n             '상황에 따라 '+hName+' 쪽일 때도 있고 '+lName+' 쪽일 때도 있다는 뜻이에요.</p>';\n      } else if(ln===0){\n        out+='<p>이 줄다리기는 <em>한쪽에 한 글자</em>뿐입니다 — '+A.a+' 대 '+A.b+'. '+\n             '글자 하나로는 게임이 안 된다고 생각하시면 됩니다. '+\n             hName+' 쪽 기운이 조금 있으니 '+(R.AXACT[hName]||'그쪽으로 가시는 것이')+' 조금 편하실 거예요.</p>';\n      } else {\n        out+='<p><em>'+hName+'</em>'+(R.hasBatchim(hName)?'이':'가')+' '+hn+ro+' 조금 많지만 '+\n             lName+'도 '+ln+'입니다. 한 글자 차이면 거의 팽팽한 겁니다. '+\n             '경우에 따라 '+lName+' 쪽으로도 가시는 자리예요.</p>';\n      }\n      if(sum>0){\n        out+='<p>어느 것을 선택해도 힘들지 않으실 거예요. '+\n             '남들이 부러워할 만큼 유연하실 수 있는 자리입니다.</p>';\n      }",
 	);
 
 	/* ⓪ 한쪽으로 갈 때 하시는 일을 말로 적어둔 표 */
 	$jobs[] = array(
 		'name' => '⓪ 다섯 줄다리기 양쪽의 「하시는 일」 표를 넣습니다',
-		'find' => '/sayB:\'여러\\s+개를\\s+동시에\\s+굴리는\\s+구조\'\\s+\\}\\s+\\};/u',
-		'to'   => "$0\n\n  /* 한쪽 이름 → 그쪽으로 갈 때 하시는 일 */\n  var AXACT={\n    '안정':'하던 대로 가시는 것이',\n    '변화':'새로운 쪽을 고르시는 것이',\n    '정답':'있는 답을 따라가시는 것이',\n    '창조':'새로운 변화를 선택하시는 것이',\n    '혼자':'혼자 파고드시는 것이',\n    '함께':'사람들과 나누면서 푸시는 것이',\n    '실물':'눈에 보이는 것을 선택하시는 것이',\n    '무형':'눈에 안 보이는 것을 선택하시는 것이',\n    '하나':'하나를 골라 깊이 가시는 것이',\n    '여럿':'여러 개를 같이 굴리시는 것이'\n  };",
+		'find' => '/root\\.StellaRead=\\{\\s+interpret:interpret,\\s+SIP:SIP,\\s+DAY:DAY,\\s+AXES:AXES,/u',
+		'to'   => "/* 한쪽 이름 → 그쪽으로 갈 때 하시는 일 */\n  var AXACT={\n    '안정':'하던 대로 가시는 것이',\n    '변화':'새로운 쪽을 고르시는 것이',\n    '정답':'있는 답을 따라가시는 것이',\n    '창조':'새로운 변화를 선택하시는 것이',\n    '혼자':'혼자 파고드시는 것이',\n    '함께':'사람들과 나누면서 푸시는 것이',\n    '실물':'눈에 보이는 것을 선택하시는 것이',\n    '무형':'눈에 안 보이는 것을 선택하시는 것이',\n    '하나':'하나를 골라 깊이 가시는 것이',\n    '여럿':'여러 개를 같이 굴리시는 것이'\n  };\n\n  root.StellaRead={ interpret:interpret, SIP:SIP, DAY:DAY, AXES:AXES, AXACT:AXACT,",
 	);
 
 	/* ⑤ 한 줄 질문에 답하는 자리 */
 	$jobs[] = array(
 		'name' => '⑤ 한 줄 질문에 답하는 자리',
 		'find' => '/\'<hr><p>물으신\\s+것\\s+—\\s+<em>\'\\+esc\\(order\\.oneline\\)\\+\'<\\/em>\\s+—\\s+에\\s+대해서는,\\s+\'\\+\\s+\'앞의\\s+1부와\\s+2부가\\s+이미\\s+답의\\s+재료를\\s+다\\s+꺼내\\s+놓았습니다\\.\\s+\'\\+\\s+\'가장\\s+크게\\s+기운\\s+저울이\\s+<em>\'\\+esc\\(topLean\\(\\)\\)\\+\'<\\/em>\\s+쪽이니,\\s+\'\\+\\s+\'그쪽으로\\s+답하시는\\s+게\\s+몸이\\s+덜\\s+상합니다\\.<\\/p>\'/u',
-		'to'   => "'<hr><p>물으신 것 — <em>'+esc(order.oneline)+'</em> — 에 대해서는, '+\n          '앞의 1부와 2부가 이미 답의 재료를 다 꺼내 놓았습니다. '+\n          '가장 세게 당기는 쪽이 <em>'+esc(topLean())+'</em>'+\n          (R.hasBatchim(topLean())?'이니, ':'니, ')+\n          (AXACT[topLean()] ? AXACT[topLean()]+' 몸과 마음이 덜 상합니다.'\n                            : '그쪽으로 답하시는 게 몸과 마음이 덜 상합니다.')+'</p>'",
+		'to'   => "'<hr><p>물으신 것 — <em>'+esc(order.oneline)+'</em> — 에 대해서는, '+\n          '앞의 1부와 2부가 이미 답의 재료를 다 꺼내 놓았습니다. '+\n          '가장 세게 당기는 쪽이 <em>'+esc(topLean())+'</em>'+\n          (R.hasBatchim(topLean())?'이니, ':'니, ')+\n          (R.AXACT[topLean()] ? R.AXACT[topLean()]+' 몸과 마음이 덜 상합니다.'\n                            : '그쪽으로 답하시는 게 몸과 마음이 덜 상합니다.')+'</p>'",
 	);
 
 	/* ④ 근거가 얇을 때 한 줄 */
@@ -120,6 +128,33 @@ add_action( 'template_redirect', function () {
 		'name' => '④ 기울기를 말로 옮기는 둘째 자리 · 근거가 얇을 때 한 줄',
 		'find' => '/\\(d>=3\\s+\\?\\s+\'기울기가\\s+큰\\s+편이라\\s+이\\s+차이는\\s+시간이\\s+지나도\\s+잘\\s+줄지\\s+않습니다\\.\'\\s+:\\s+\'기울기가\\s+아주\\s+크지는\\s+않아서,\\s+버틸\\s+만한\\s+정도로\\s+지나갈\\s+수도\\s+있습니다\\.\'\\)\\+\'<\\/p>\';/u',
 		'to'   => "(d>=4 ? '당기는 힘이 세서 이 차이는 시간이 지나도 잘 줄지 않습니다.'\n                 : '당기는 힘이 아주 세지는 않아서, 반대쪽으로 가야 할 때가 와도 그럭저럭 넘기실 거예요.')+'</p>';\n      if(A.a+A.b<=2){ out+='<p>다만 이 줄다리기는 여덟 글자 가운데 '+(A.a+A.b)+'자만 말을 하고 있습니다. 다른 줄다리기보다 약하게 읽어주세요.</p>'; }",
+	);
+
+	/* ⑥⑦ 대운 두 글자가 줄다리기를 어느 쪽으로 당기는지 재둘니다 */
+	$jobs[] = array(
+		'name' => '⑥ 대운이 당기는 쪽을 재는 자리',
+		'find' => '/var\\s+most=chart\\.five\\.slice\\(\\)\\.sort\\(function\\(a,b\\)\\{\\s+return\\s+b\\.count\\-a\\.count;\\s+\\}\\)\\[0\\];/u',
+		'to'   => "/* 대운 두 글자가 다섯 줄다리기를 어느 쪽으로 당기는지 */\n    var luckPull=[];\n    if(chart.luck){ if(chart.luck.list){\n      chart.luck.list.forEach(function(L){\n        var two=[ sipsung(dayEl, dayYin, GAN_EL[L.gan], GAN_YIN[L.gan]),\n                  sipsung(dayEl, dayYin, JI_EL[L.ji],   JI_YIN[L.ji]) ];\n        var o={};\n        Object.keys(AXES).forEach(function(k){\n          var X=AXES[k], pa=0, pb=0;\n          two.forEach(function(s){\n            if(X.a.indexOf(s)>=0){ pa++; }\n            if(X.b.indexOf(s)>=0){ pb++; }\n          });\n          o[k]={ a:pa, b:pb };\n        });\n        luckPull.push(o);\n      });\n    }}\n\n    var most=chart.five.slice().sort(function(a,b){ return b.count-a.count; })[0];",
+	);
+
+	$jobs[] = array(
+		'name' => '⑦ 재본 것을 밖으로 내보내는 줄',
+		'find' => '/axis:\\s+axis,\\s+mostEl:\\s+most,/u',
+		'to'   => "axis: axis,\n      luckPull: luckPull,\n      mostEl: most,",
+	);
+
+	/* ⑧ 맺음말 세 칸 — 앞 장을 줄이는 대신 셋을 겹칩니다 */
+	$jobs[] = array(
+		'name' => '⑧ 맺음말 세 칸',
+		'find' => '/var\\s+keep=\'<div\\s+class="keep">\';\\s+keep\\+=\'<div\\s+class="k"><div\\s+class="kt">결은\\s+\'\\+\\(leanAxis\\&\\&leanAxis\\.lean\\s+\\?\\s+leanAxis\\.name\\+\'\\s+쪽입니다\'\\s+:\\s+\'어느\\s+쪽으로도\\s+크게\\s+기울지\\s+않았습니다\'\\)\\+\'<\\/div>\'\\+\\s+\'<p>\'\\+\\(leanAxis\\&\\&leanAxis\\.lean\\s+\\?\\s+\'여덟\\s+글자에서\\s+가장\\s+크게\\s+기운\\s+저울이\\s+\'\\+AXNAME\\[leanKey\\]\\+\'였고,\\s+\'\\+leanAxis\\.say\\+\'로\\s+나왔습니다\\.\\s+\'\\+\\s+\'고르실\\s+일이\\s+생기면\\s+이\\s+쪽을\\s+기본값으로\\s+두세요\\.\\s+반대쪽으로\\s+갈\\s+때는\\s+그만큼\\s+힘을\\s+더\\s+쓸\\s+각오를\\s+하시면\\s+됩니다\\.\'\\s+:\\s+\'다섯\\s+저울이\\s+고르게\\s+나왔습니다\\.\\s+어느\\s+쪽이든\\s+갈\\s+수\\s+있다는\\s+뜻이라\\s+좋기도\\s+하지만,\\s+\'\\+\\s+\'남이\\s+정해주는\\s+대로\\s+흘러가기도\\s+쉽습니다\\.\\s+기준은\\s+스스로\\s+정하셔야\\s+합니다\\.\'\\)\\+\'<\\/p><\\/div>\';\\s+var\\s+COUNTW=\\[\'\',\'한\',\'두\',\'세\',\'네\',\'다섯\'\\];\\s+keep\\+=\'<div\\s+class="k"><div\\s+class="kt">\'\\+\\(gapKeys\\.length\\s+\\?\\s+\'어긋난\\s+자리가\\s+\'\\+\\(COUNTW\\[gapKeys\\.length\\]\\|\\|gapKeys\\.length\\)\\+\'\\s+군데\\s+있었습니다\'\\s+:\\s+\'어긋난\\s+자리는\\s+없었습니다\'\\)\\+\'<\\/div>\'\\+\\s+\'<p>\'\\+\\(gapKeys\\.length\\s+\\?\\s+gapKeys\\.map\\(function\\(k\\)\\{\\s+return\\s+AXNAME\\[k\\];\\s+\\}\\)\\.join\\(\',\\s+\'\\)\\+\'\\s+—\\s+여기서\\s+사주가\\s+가리키는\\s+쪽과\\s+\'\\+\\s+\'답해주신\\s+쪽이\\s+달랐습니다\\.\\s+고치라는\\s+뜻이\\s+아닙니다\\.\\s+이\\s+자리에서\\s+유난히\\s+힘이\\s+든다면\\s+\'\\+\\s+\'<em>원래\\s+두\\s+배로\\s+드는\\s+자리<\\/em>라는\\s+걸\\s+기억하시면\\s+됩니다\\.\'\\s+:\\s+\'답해주신\\s+것이\\s+사주가\\s+가리키는\\s+쪽과\\s+모두\\s+같았습니다\\.\\s+스스로를\\s+꽤\\s+정확히\\s+알고\\s+계신다는\\s+뜻이에요\\.\\s+\'\\+\\s+\'지금\\s+하고\\s+계신\\s+판단을\\s+크게\\s+의심하지\\s+않으셔도\\s+됩니다\\.\'\\)\\+\'<\\/p><\\/div>\';\\s+keep\\+=\'<div\\s+class="k"><div\\s+class="kt">\'\\+\\(nowIdx>=0\\s+\\?\\s+\'지금\\s+판은\\s+\'\\+lk\\.list\\[nowIdx\\]\\.han\\+\'\\s+대운입니다\'\\s+:\\s+\'대운의\\s+판은\\s+아직\\s+시작\\s+전입니다\'\\)\\+\'<\\/div>\'\\+\\s+\'<p>\'\\+\\(nowIdx>=0\\s+\\?\\s+\'앞으로\\s+\'\\+Math\\.max\\(0,\\s+Math\\.round\\(lk\\.list\\[nowIdx\\]\\.to\\-age\\)\\)\\+\'년쯤\\s+이\\s+판이\\s+이어집니다\\.\\s+\'\\+\\s+\'큰\\s+결정은\\s+판이\\s+바뀌는\\s+시점을\\s+하나\\s+알고\\s+내리는\\s+것과\\s+모르고\\s+내리는\\s+것이\\s+아주\\s+다릅니다\\.\'\\s+:\\s+\'아직\\s+첫\\s+대운에\\s+들어서기\\s+전입니다\\.\\s+지금은\\s+판보다\\s+타고난\\s+결이\\s+훨씬\\s+크게\\s+작용하는\\s+시기예요\\.\'\\)\\+\'<\\/p><\\/div>\';\\s+keep\\+=\'<\\/div>\';/u',
+		'to'   => "var LEAN = (leanAxis ? leanAxis.lean : '');\n  var AX   = (leanKey ? R.AXES[leanKey] : null);\n  var yrsLeft = (nowIdx>=0 ? Math.max(0, Math.round(lk.list[nowIdx].to-age)) : 0);\n\n  /* 지금 판 두 글자가 가장 센 줄을 어느 쪽으로 당기는지 */\n  function pullOf(i){\n    if(!it.luckPull){ return null; }\n    if(!leanKey){ return null; }\n    if(i<0){ return null; }\n    if(!it.luckPull[i]){ return null; }\n    return it.luckPull[i][leanKey];\n  }\n  function sideOf(p){\n    if(!p){ return ''; }\n    if(p.a>p.b){ return 'A'; }\n    if(p.b>p.a){ return 'B'; }\n    return '';\n  }\n  function nameOf(sd){\n    if(!AX){ return ''; }\n    if(sd==='A'){ return AX.A; }\n    if(sd==='B'){ return AX.B; }\n    return '';\n  }\n  var pNow=pullOf(nowIdx), sNow=sideOf(pNow), nNow=nameOf(sNow);\n  var pNext=pullOf(nowIdx+1), sNext=sideOf(pNext), nNext=nameOf(sNext);\n\n  var keep='<div class=\"keep\">';\n\n  /* ① 결 × 지금 판 */\n  var t1='', b1='';\n  if(!LEAN){\n    t1='다섯 줄이 모두 팽팽했습니다';\n    b1='어느 쪽으로도 크게 당겨지지 않았습니다. 어느 쪽이든 갈 수 있다는 뜻이라 좋기도 하지만, '+\n       '남이 정해주는 대로 흘러가기도 쉽습니다. 기준은 스스로 정하셔야 합니다.';\n  } else if(sNow===LEAN){\n    t1='결도 지금 판도 '+leanAxis.name+' 쪽입니다';\n    b1='여덟 글자에서 가장 세게 당긴 쪽이 '+leanAxis.name+(R.hasBatchim(leanAxis.name)?'이었는데':'였는데')+', 지금 판의 두 글자도 같은 쪽에 붙었습니다. '+\n       '결하고 판이 같은 쪽에 서는 때는 자주 오지 않아요. 미뤄두신 일이 있으면 이 판 안에 하시는 게 낫습니다.';\n  } else if(sNow){\n    t1='결은 '+leanAxis.name+' 쪽인데 지금 판은 '+nNow+' 쪽입니다';\n    b1='여덟 글자에서 가장 세게 당긴 쪽은 '+leanAxis.name+'입니다. 그런데 지금 판의 두 글자가 '+nNow+' 쪽에 붙어 있어요. '+\n       '결은 그대로인데 판이 반대로 밀고 있는 겁니다. 요즘 스스로가 애매하게 느껴지셨다면 그래서예요. '+\n       '결을 바꾸지 마세요. 판은 지나가고 결은 남습니다.';\n  } else {\n    t1='결은 '+leanAxis.name+' 쪽입니다';\n    b1='여덟 글자에서 가장 세게 당긴 쪽이 '+leanAxis.name+'입니다. 지금 판은 이 줄에 손을 대지 않아요. '+\n       '밀지도 막지도 않으니, 고르실 일이 생기면 '+(R.AXACT[leanAxis.name]||'이 쪽으로 가시는 것이')+' 편하십니다.';\n  }\n  keep+='<div class=\"k\"><div class=\"kt\">'+t1+'</div><p>'+b1+'</p></div>';\n\n  /* ② 어긋난 자리 × 그게 어느 줄인가 */\n  var COUNTW=['','한','두','세','네','다섯'];\n  var t2='', b2='';\n  var gapNames=gapKeys.map(function(k){ return AXNAME[k]; }).join(', ');\n  var onLean=false;\n  if(leanKey){ if(gapKeys.indexOf(leanKey)>=0){ onLean=true; } }\n  if(!gapKeys.length){\n    t2='어긋난 자리는 없었습니다';\n    b2='답해주신 것이 사주가 가리키는 쪽과 모두 같았습니다. 스스로를 꽤 정확히 알고 계신다는 뜻이에요. '+\n       '지금 하고 계신 판단을 크게 의심하지 않으셔도 됩니다.';\n  } else if(onLean){\n    t2='가장 센 줄에서 어긋나 있습니다';\n    b2=AXNAME[leanKey]+' — 여덟 글자가 가장 세게 당기는 줄인데, 답해주신 쪽은 반대였습니다. '+\n       '어긋난 '+(COUNTW[gapKeys.length]||gapKeys.length)+' 군데 가운데 여기가 제일 무겁습니다. '+\n       '다른 데를 다 맞춰도 여기가 어긋나 있으면 계속 힘이 듭니다. 고치라는 뜻은 아니고, '+\n       '이 자리에서 드는 힘은 <em>원래 두 배</em>라는 걸 기억하시면 됩니다.';\n  } else if(leanKey){\n    t2='어긋난 곳은 곁줄입니다';\n    b2=gapNames+' — 여기서 답해주신 쪽이 사주와 달랐습니다. 다만 가장 세게 당기는 '+AXNAME[leanKey]+'에서는 '+\n       '맞게 잡고 계십니다. 큰 방향은 맞고 곁가지가 어긋난 거라, 여기서 힘이 든다면 '+\n       '방향을 바꿀 일이 아니라 방식을 하나 바꾸면 됩니다.';\n  } else {\n    t2='어긋난 자리가 '+(COUNTW[gapKeys.length]||gapKeys.length)+' 군데 있었습니다';\n    b2=gapNames+' — 여기서 사주가 가리키는 쪽과 답해주신 쪽이 달랐습니다. 고치라는 뜻이 아닙니다. '+\n       '이 자리에서 유난히 힘이 든다면 <em>원래 두 배로 드는 자리</em>라는 걸 기억하시면 됩니다.';\n  }\n  keep+='<div class=\"k\"><div class=\"kt\">'+t2+'</div><p>'+b2+'</p></div>';\n\n  /* ③ 판이 바뀔 때 무엇이 달라지는가 */\n  var t3='', b3='';\n  if(nowIdx<0){\n    t3='대운의 판은 아직 시작 전입니다';\n    b3='아직 첫 대운에 들어서기 전입니다. 지금은 판보다 타고난 결이 훨씬 크게 작용하는 시기예요.';\n  } else if(nNext){\n    t3='판은 '+yrsLeft+'년 뒤에 바뀝니다';\n    b3='지금 '+lk.list[nowIdx].han+' 대운이 '+yrsLeft+'년쯤 더 이어지고, 그다음 '+lk.list[nowIdx+1].han+' 대운은 '+\n       '이 줄을 '+nNext+' 쪽으로 당깁니다. '+\n       (sNext===LEAN\n          ? '결하고 같은 쪽이에요. 그때부터는 지금보다 수월해집니다.'\n          : (sNow===LEAN\n              ? '결하고 반대쪽이에요. 지금은 판이 결을 밀어주고 있으니, 하실 일이 있으면 그 전에 해두시는 게 낫습니다.'\n              : '그때도 결하고는 반대쪽이라, 이 흐름이 한 판 더 이어집니다. 대신 무엇이 힘든지는 이미 아시게 됩니다.'))+' '+\n       '큰 결정은 이 시점을 하나 알고 내리는 것과 모르고 내리는 것이 아주 다릅니다.';\n  } else {\n    t3='판은 '+yrsLeft+'년 뒤에 바뀝니다';\n    b3='지금 '+lk.list[nowIdx].han+' 대운이 '+yrsLeft+'년쯤 더 이어집니다. 다음 판은 이 줄에 손을 대지 않아요. '+\n       '큰 결정은 판이 바뀌는 시점을 하나 알고 내리는 것과 모르고 내리는 것이 아주 다릅니다.';\n  }\n  keep+='<div class=\"k\"><div class=\"kt\">'+t3+'</div><p>'+b3+'</p></div>';\n  keep+='</div>';",
+	);
+
+	/* ⑨ 맺음말 여는 말 — 줄이는 자리가 아니라 겹치는 자리로 */
+	$jobs[] = array(
+		'name' => '⑨ 맺음말 여는 말',
+		'find' => '/\'<p\\s+class="dek">이\\s+책에서\\s+나온\\s+것을\\s+셋으로\\s+줄이면\\s+이렇습니다<\\/p>\'\\+\\s+\'<p>여기\\s+적은\\s+셋은\\s+새로\\s+지어낸\\s+말이\\s+아닙니다\\.\\s+앞\\s+장에서\\s+이미\\s+계산되어\\s+나온\\s+것을\\s+\'\\+\\s+\'가장\\s+짧게\\s+줄인\\s+것뿐이에요\\.\\s+다른\\s+건\\s+다\\s+잊으셔도\\s+이\\s+셋만\\s+남으면\\s+충분합니다\\.<\\/p>\'\\+/u',
+		'to'   => "'<p class=\"dek\">앞에서 따로 나온 것을 여기서 처음 겹칩니다</p>'+\n    '<p>여기 적은 셋은 앞 장을 줄인 것이 아닙니다. 타고난 결, 지금 판, 답해주신 것 — '+\n    '앞에서 따로따로 나온 것을 여기서 처음 포갭니다. 겹쳐놓고 보면 앞 장에서는 '+\n    '안 보이던 것이 하나씩 보여요. 다른 건 다 잊으셔도 이 셋만 남으면 충분합니다.</p>'+",
 	);
 
 	$apply = ( 'apply' === $mode );
@@ -141,7 +176,7 @@ add_action( 'template_redirect', function () {
 	}
 
 	if ( ! $ok ) {
-		echo '<p class="no">여섯 자리가 모두 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		echo '<p class="no">열 자리가 모두 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
 		exit;
 	}
 
