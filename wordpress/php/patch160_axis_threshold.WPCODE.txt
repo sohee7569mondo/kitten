@@ -1,0 +1,156 @@
+/* ════════════════════════════════════════════════════════════
+   저울이 한 글자 차이로 단정하던 것을 고칩니다
+
+   여덟 글자 중 4 대 3이면 한 글자 차이입니다. 태어난 시각을 한
+   시간만 다르게 넣어도 뒤집히는 차이예요. 그런데 지금 엔진은
+   이것을 「하나 쪽으로 기울어 있습니다」라고 단정하고, 손님이
+   고른 답과 다르면 「여기가 어긋나는 자리입니다」라고까지
+   말합니다. 한 글자로 손님에게 자기를 잘못 알고 있다고 하는 셈입니다.
+
+   바꾸는 것 넷
+
+     ① 기우는 기준   차이 1 → 기울지 않은 것으로 봅니다 (2부터 기욺)
+     ② 기울기의 말   차이 2·3 은 「조금」, 4 이상은 「크게」
+                     (「뚜렷하게」「아주 크게」는 뺍니다)
+     ③ 반반일 때 말  「어느 쪽으로도 기울지 않았습니다」 대신
+                     0 이면 「양쪽이 똑같습니다」, 1 이면 「거의 반반입니다」
+                     — 한 글자 차이라는 것을 그대로 알려줍니다
+     ④ 근거가 얇을 때 양쪽 합이 2자 이하면 한 줄 덧붙입니다
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   ① 먼저 보기   https://stellasaju.com/?stella_axis=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_axis=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_axis=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_axis'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_axis_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_axis'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'pre{background:#0A0718;border:1px solid rgba(212,175,106,.24);padding:12px 14px;'
+	   . 'overflow-x:auto;font-size:.82rem;white-space:pre-wrap;word-break:break-all}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	/* ── 되돌리기 ───────────────────────────────────────── */
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		echo '<p><a href="/reading-book/">책 보기</a></p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	/* ── 고칠 자리 넷 ───────────────────────────────────── */
+	$jobs = array();
+
+	/* ① 기우는 기준 — 차이 2부터 */
+	$jobs[] = array(
+		'name' => '① 기우는 기준을 차이 2 이상으로',
+		'find' => '/if\(\s*sa\s*>\s*sb\s*\)\s*lean\s*=\s*\'A\';\s*if\(\s*sb\s*>\s*sa\s*\)\s*lean\s*=\s*\'B\';/u',
+		'to'   => "if(sa-sb>=2) lean='A';\n      if(sb-sa>=2) lean='B';",
+	);
+
+	/* ② 기울기의 말 */
+	$jobs[] = array(
+		'name' => '② 기울기를 말로 옮기는 곳',
+		'find' => '/if\(d>=4\)\{\s*return\s*\'아주 크게\';\s*\}\s*if\(d===3\)\{\s*return\s*\'크게\';\s*\}\s*if\(d===2\)\{\s*return\s*\'뚜렷하게\';\s*\}\s*return\s*\'조금\';/u',
+		'to'   => "if(d>=4){ return '크게'; }\n    return '조금';",
+	);
+
+	/* ③ 반반일 때 하는 말 */
+	$jobs[] = array(
+		'name' => '③ 반반일 때 하는 말',
+		'find' => '/out\+=\'<p>사주는 이 저울에서 <em>어느 쪽으로도 기울지 않았습니다<\/em> — \'\+A\.a\+\' 대 \'\+A\.b\+\'\. \'\+/u',
+		'to'   => "out+='<p>사주는 이 저울에서 <em>'+(d===0?'양쪽이 똑같습니다':'거의 반반입니다')+'</em> — '+A.a+' 대 '+A.b+'. '+"
+		        . "(d===1?'여덟 글자 가운데 한 글자 차이라, 어느 쪽이라고 말씀드리기 어렵습니다. ':'')+",
+	);
+
+	/* ④ 근거가 얇을 때 한 줄 */
+	$jobs[] = array(
+		'name' => '④ 글자가 둘 이하일 때 덧붙이는 줄',
+		'find' => '/(\'기울기가 아주 크지는 않아서, 버틸 만한 정도로 지나갈 수도 있습니다\.\'\)\+\'<\/p>\';)/u',
+		'to'   => '$1' . "\n      if(A.a+A.b<=2){ out+='<p>다만 이 저울은 여덟 글자 가운데 '+(A.a+A.b)+'자만 말을 하고 있습니다. 다른 저울보다 약하게 읽어주세요.</p>'; }",
+	);
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '저울 기준을 바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">네 자리가 모두 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], $j['to'], $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<h2>바뀐 뒤</h2><pre>' . esc_html( "if(sa-sb>=2) lean='A';\nif(sb-sa>=2) lean='B';\n\n"
+		. "tiltWord : 4 이상 → 「크게」 · 그 밖 → 「조금」\n\n"
+		. "반반일 때 : 0 이면 「양쪽이 똑같습니다」, 1 이면 「거의 반반입니다」\n"
+		. "            + 「여덟 글자 가운데 한 글자 차이라, 어느 쪽이라고 말씀드리기 어렵습니다.」\n\n"
+		. "합이 2 이하 : 「이 저울은 여덟 글자 가운데 n자만 말을 하고 있습니다.」" ) . '</pre>';
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_axis=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_axis=undo</code></p>';
+	echo '<p><a href="/reading-book/">책 보기</a></p>';
+	exit;
+} );
