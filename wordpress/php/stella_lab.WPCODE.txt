@@ -186,15 +186,15 @@ add_action( 'init', function () {
 (function(){
   'use strict';
   var DOORS = [
-    ['door-career','직성의 신',['취업운','직장운','이직운','퇴사운','사업운','재물운']],
-    ['door-love','연성의 신',['연애운','결혼운','재회운','이별운','짝사랑','궁합']],
-    ['door-health','강성의 신',['건강운','체질','가족운','부모운','자녀운','형제운']],
-    ['door-fortune','세성의 신',['신년운세','삼재','초년','중년','말년']],
-    ['door-astro','성좌의 신',['별자리']],
+    ['door-career','일을 짓는 신',['취업운','직장운','이직운','퇴사운','사업운','재물운']],
+    ['door-love','인연을 잇는 신',['연애운','결혼운','재회운','이별운','짝사랑','궁합']],
+    ['door-health','몸을 지키는 신',['건강운','체질','가족운','부모운','자녀운','형제운']],
+    ['door-fortune','때를 아는 신',['신년운세','삼재','초년','중년','말년']],
+    ['door-astro','별을 읽는 신',['별자리']],
     ['door-tarot','아르카나',['오늘의 선택']]
   ];
   var SAMPLE = {
-    order:{ guardian:'직성의 신', guardian_slug:'door-career', topic:'직장운',
+    order:{ guardian:'일을 짓는 신', guardian_slug:'door-career', topic:'직장운',
       oneline:'지금 회사에 계속 있어도 될까요?', memo:'', deeps:[], orbs:0,
       work:{ job:'5년차 개발자', years:'1~3년', want:'팀을 옮기고 싶어요' },
       profile:{ name:'서준', email:'', sex:'M', year:1994, month:3, day:8,

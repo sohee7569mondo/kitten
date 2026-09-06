@@ -7,7 +7,7 @@
    조각 차례를 바꾸는 대신, 다 그려진 뒤에 그 세 문단만 긴 글로 갈아끼웁니다.
    글은 window.StellaGuide[문].lens 에서 그대로 가져오므로
    여기에는 글이 한 줄도 들어 있지 않습니다.
-   직성의 신은 갈아끼우는 함수를 한 번 불러 줘야 lens 가 채워집니다.
+   일을 짓는 신은 갈아끼우는 함수를 한 번 불러 줘야 lens 가 채워집니다.
    이 안에서 두 글자짜리 논리기호를 쓰지 않습니다. */
 (function(){
   'use strict';
@@ -26,7 +26,7 @@
     if(!g){ return null; }
     return g.lens || null;
   }
-  /* 직성의 신은 갈아끼우는 함수가 아직 안 불렸을 수 있습니다 */
+  /* 일을 짓는 신은 갈아끼우는 함수가 아직 안 불렸을 수 있습니다 */
   function warm(){
     if(!window.__stellaCareerLens){ return; }
     try{ window.__stellaCareerLens(); }catch(e){}

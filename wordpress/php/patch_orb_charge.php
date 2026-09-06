@@ -32,8 +32,8 @@ add_action( 'init', function () {
 	global $wpdb;
 	$bak_key = 'stella_bak_orb_charge';
 	$doors   = array(
-		130 => '직성의 신',  141 => '연성의 신',  169 => '강성의 신',
-		170 => '세성의 신',  171 => '성좌의 신',  172 => '아르카나',
+		130 => '일을 짓는 신',  141 => '인연을 잇는 신',  169 => '몸을 지키는 신',
+		170 => '때를 아는 신',  171 => '별을 읽는 신',  172 => '아르카나',
 	);
 
 	header( 'Content-Type: text/html; charset=utf-8' );

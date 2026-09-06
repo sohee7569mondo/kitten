@@ -30,8 +30,8 @@
  * STELLA SAJU — 페이지 137 (/reading-start/) 응급 수정
  *
  *  증상 : 「시작할게요」 버튼이 안 눌립니다. 어느 가디언이든 마찬가지입니다.
- *         (스크립트가 죽으면 화면은 붙박이로 적힌 「직성의 신」에서 멈춥니다.
- *          그래서 직성의 신만 고장난 것처럼 보입니다.)
+ *         (스크립트가 죽으면 화면은 붙박이로 적힌 「일을 짓는 신」에서 멈춥니다.
+ *          그래서 일을 짓는 신만 고장난 것처럼 보입니다.)
  *
  *  원인 : script 안에 앰퍼샌드 두 개(&&)가 두 군데 들어가 있습니다.
  *         이 파일의 머리말이 직접 금지해 둔 것입니다 —
@@ -111,7 +111,7 @@ add_action( 'init', function () {
 
 	$edits = array(
 		array(
-			'name' => '직성의 신 · 주제 문항 고르는 줄',
+			'name' => '일을 짓는 신 · 주제 문항 고르는 줄',
 			'find' => "var CAREER_TOPIC=(ORDER && ORDER.topic) ? ORDER.topic : '';",
 			'rep'  => "var CAREER_TOPIC='';\n    if(ORDER){ if(ORDER.topic){ CAREER_TOPIC=ORDER.topic; } }",
 		),

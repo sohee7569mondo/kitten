@@ -6,7 +6,7 @@
    WPCode → 새 스니펫 → PHP Snippet → Auto Insert →
    Run Everywhere → 저장 → Active
 
-   여는 곳 : https://stellasaju.com/um-blk/14/     ← 성좌의 신(달자리)
+   여는 곳 : https://stellasaju.com/um-blk/14/     ← 별을 읽는 신(달자리)
               https://stellasaju.com/um-blk/find/  ← 고칠 자리의 실제 글자
 
    담기는 곳 : 페이지 목록의 「STELLA 14-1」, 「STELLA 14-2」 …

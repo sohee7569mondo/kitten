@@ -1,14 +1,14 @@
 <?php
 /**
- * STELLA SAJU — 페이지 160 · 직성의 신 여섯 주제 갈라 쓰기
+ * STELLA SAJU — 페이지 160 · 일을 짓는 신 여섯 주제 갈라 쓰기
  *
  *  증상 : 직장운과 사업운의 풀이가 똑같이 나옵니다. 나머지 네 주제도 마찬가지입니다.
- *  원인 : 주제별 표를 보는 문이 네 군데인데 모두 「연성의 신일 때만」으로
- *         빗장이 걸려 있었습니다. 직성의 신은 표를 아예 쳐다보지 않았습니다.
+ *  원인 : 주제별 표를 보는 문이 네 군데인데 모두 「인연을 잇는 신일 때만」으로
+ *         빗장이 걸려 있었습니다. 일을 짓는 신은 표를 아예 쳐다보지 않았습니다.
  *  고치는 법
  *    1) 네 군데 빗장을 걷고 표에만 물어보게 합니다.
  *       (주제 이름은 문마다 겹치지 않으므로 이것으로 충분합니다)
- *    2) 직성의 신 저울 대사(AXIS_SAY)가 통째로 빠져 있던 것을 채웁니다.
+ *    2) 일을 짓는 신 저울 대사(AXIS_SAY)가 통째로 빠져 있던 것을 채웁니다.
  *    3) 여섯 주제 × 다섯 저울 × 세 칸 = 90칸의 글을 새로 넣습니다.
  *
  *  쓰는 법 (WPCode Lite) — PHP · 자동 실행 안 함
@@ -37,7 +37,7 @@ add_action( 'init', function () {
 	echo '<meta charset="utf-8"><style>body{font:15px/1.7 -apple-system,"Apple SD Gothic Neo",sans-serif;max-width:940px;margin:40px auto;padding:0 20px}';
 	echo 'code{background:#f4f4f4;padding:1px 5px;border-radius:3px}';
 	echo '.ok{color:#0a7a2f}.no{color:#c0392b;font-weight:700}.box{border:1px solid #ddd;border-radius:8px;padding:14px 18px;margin:14px 0}</style>';
-	echo '<h2>페이지 160 · 직성의 신 여섯 주제 갈라 쓰기</h2>';
+	echo '<h2>페이지 160 · 일을 짓는 신 여섯 주제 갈라 쓰기</h2>';
 
 	if ( 'undo' === $mode ) {
 		$bak = get_option( $bak_key );

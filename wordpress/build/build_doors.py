@@ -67,7 +67,7 @@ def build(master, g):
     s = master
 
     # 머리말 주석
-    s = s.replace('  STELLA SAJU — 직성의 신 (THE ARCHITECT) · 일과 돈',
+    s = s.replace('  STELLA SAJU — 일을 짓는 신 (THE ARCHITECT) · 일과 돈',
                   '  STELLA SAJU — ' + g['head'])
     s = s.replace('  가디언 상세페이지 공통 틀  BUILD: G9',
                   '  이 파일은 자동 생성됩니다. 여기서 직접 고치지 마세요.\n'
@@ -81,11 +81,11 @@ def build(master, g):
     s = s.replace('style="--g-accent:#C9A66B"', 'style="--g-accent:%s"' % g['accent'])
     s = s.replace('uploads/2026/08/stellardoorarchitect.jpg',
                   'uploads/2026/08/%s' % g['img'])
-    s = s.replace('alt="직성의 신" width="784" height="1168"',
+    s = s.replace('alt="일을 짓는 신" width="784" height="1168"',
                   'alt="%s" width="%d" height="%d"' % (g['name'], g['img_w'], g['img_h']))
     s = s.replace('<div class="g-theme">The Architect</div>',
                   '<div class="g-theme">%s</div>' % g['theme'])
-    s = s.replace('<div class="g-name">직성의 신</div>',
+    s = s.replace('<div class="g-name">일을 짓는 신</div>',
                   '<div class="g-name">%s</div>' % g['name'])
     s = s.replace('<div class="g-en">Career and Wealth</div>',
                   '<div class="g-en">%s</div>' % g['en'])
@@ -106,9 +106,9 @@ def build(master, g):
 
     s = s.replace('placeholder="예: 올해 안에 이직해도 괜찮을까요?"',
                   'placeholder="%s"' % g['oneline_ph'])
-    s = s.replace('<button type="button" class="go" id="goBtn">직성의 신에게 물어보기 →</button>',
+    s = s.replace('<button type="button" class="go" id="goBtn">일을 짓는 신에게 물어보기 →</button>',
                   '<button type="button" class="go" id="goBtn">%s</button>' % g['btn'])
-    s = s.replace("guardian:'직성의 신', guardian_slug:'door-career'",
+    s = s.replace("guardian:'일을 짓는 신', guardian_slug:'door-career'",
                   "guardian:'%s', guardian_slug:'%s'" % (g['name'], g['slug']))
     return s
 
@@ -116,8 +116,8 @@ def main():
     master = open(MASTER, encoding='utf-8').read()
     for g in GUARDIANS:
         out = build(master, g)
-        # 안전장치 — 직성의 신 흔적이 남아 있으면 멈춥니다
-        for bad in ['직성의 신', 'door-career', 'stellardoorarchitect', 'The Architect']:
+        # 안전장치 — 일을 짓는 신 흔적이 남아 있으면 멈춥니다
+        for bad in ['일을 짓는 신', 'door-career', 'stellardoorarchitect', 'The Architect']:
             if bad in out.replace('door-career.html', ''):
                 raise SystemExit('!! %s 에 "%s" 가 남아 있습니다' % (g['slug'], bad))
         path = os.path.join(PAGES, g['slug'] + '.html')
