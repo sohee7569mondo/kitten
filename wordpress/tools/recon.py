@@ -3,7 +3,7 @@
 import io, re, sys, subprocess, os
 S='/tmp/claude-0/-home-user-kitten/c2a43b1d-0c4f-566e-ae2a-79f351d35055/scratchpad/'
 PH='/home/user/kitten/wordpress/php/'
-ORDER=['patch160_tail','patch160_split','patch160_amp','patch160_divider','patch160_name']
+ORDER=['patch160_tail','patch160_split','patch160_amp','patch160_divider','patch160_name','patch160_paper','patch160_say']
 
 src=S+'recon_in.html'
 import shutil
@@ -35,5 +35,5 @@ shutil.move(src, S+'live_recon.html')
 n=os.path.getsize(S+'live_recon.html')
 print()
 print('되살린 크기 :', format(n,','), '바이트')
-print('사이트 크기 : 1,145,431 바이트 (patch160_name 적용 뒤 확인한 값)')
-print('일치' if n==1145431 else '★ 다릅니다 — 차이 %d' % (n-1145431))
+print('사이트 크기 : 1,132,716 바이트 (paper · say 까지 적용된 값)')
+print('일치' if n==1132716 else '★ 다릅니다 — 차이 %d' % (n-1132716))
