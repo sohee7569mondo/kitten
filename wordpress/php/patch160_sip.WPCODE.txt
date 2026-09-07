@@ -1,0 +1,171 @@
+/* ════════════════════════════════════════════════════════════
+   십성 열 자리를 다 보여줍니다 · 비어 있는 자리를 새로 씁니다
+
+   소희 님이 견본을 읽다가 짚으신 것 둘을 고칩니다.
+
+   ① 지금 나가는 문장이 거짓입니다
+        「상관과 편관이 가장 강합니다. 이 상관과 편관이 뼈대입니다」
+      편관은 한 자뿐입니다. 개수 순으로 앞에서 둘을 자르니, 2개짜리
+      하나와 1개짜리 하나가 나란히 서고 한 자짜리가 뼈대가 됩니다.
+      견본 열둘 가운데 여섯이 이 꼴입니다.
+
+   ② 「나는 안 그런데」 자리가 걸린다 — 비어 있는 자리를 말해주면
+      좋겠다고 하셨습니다.
+
+   ── 새 차례 ────────────────────────────────────────
+     ① 십성은 열 개의 자리입니다 (틀을 먼저 알려줍니다)
+     ② 당신은 그중 N 자리에 들어 있고 M 자리는 비어 있습니다
+        + 몰림 / 가운데 / 퍼짐 한 줄
+     ③ 두 자 이상 겹친 것만 뼈대로 크게 (지금 있는 설명 그대로)
+     ④ 한 자씩인 것은 이름만 나란히
+     ⑤ 비어 있는 자리 — 뜻 한 문단 + 하나씩 열 줄 (새 글)
+     ⑥ 「나는 안 그런데」 (지금 글 그대로)
+
+   일곱 글자가 한 자도 안 남고 이름을 얻습니다. 지금은 서넛만
+   불리고 나머지는 이름도 안 나옵니다 — 연애운 견본이 3/7 입니다.
+
+   ── 몇 자리에 흩어져 있나가 곧 풀이입니다 ──────────────
+   견본을 세어보니 3/10 에 몰린 분부터 6/10 에 퍼진 분까지 있습니다.
+   같은 일곱 글자인데 사람이 꽤 다른데, 지금 책은 이 차이를 한 글자도
+   말하지 않습니다. 세 갈래로 나눠 한 줄씩 답니다.
+
+     몰림   3자리 이하   한 방향으로 깊게 파인 결
+     가운데 4~5자리      두어 가지가 뼈대, 나머지는 조금씩
+     퍼짐   6자리 이상   두드러지는 하나는 없되 어디서도 안 막힘
+
+   ── 비어 있는 자리 열 줄 ──────────────────────────
+   책에 이미 있는 오행 「없을 때」 표(EL_NONE)와 같은 걸음입니다 —
+   없다 → 그래서 이런 일이 생긴다 → 그래서 이렇게 하면 된다.
+   열 줄 모두 흠으로 끝내지 않고 「대신 이건 없다」나 「이렇게 하면
+   된다」로 닫습니다.
+
+   ── 숫자 ──────────────────────────────────────
+   두 자 이상은 채운 알약, 한 자는 테두리만. 색이 아니라 채웠나
+   비었나로 갈립니다. 빨강을 안 쓴 이유는 이 책에서 빨강이 이미
+   화(火)라, 바로 위 여덟 글자 표의 빨간 네모와 부딪히기 때문입니다.
+   빨강으로 바꾸고 싶으시면 CSS 의 .cnt.on 한 줄만 고치면 됩니다.
+
+   ★ patch160_head 가 먼저 들어가 있어야 합니다 (제목을 그 패치에서
+     바꿨습니다). paper 도요.
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로 바꾸세요.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_sip=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_sip=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_sip=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_sip'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_sip_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_sip'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	$jobs = array();
+
+	$jobs[] = array(
+		'name' => '① 열 자리를 다 보여주기',
+		'find' => '/var\\s+topSip\\s+=\\s+it\\.top\\.map\\(function\\(t\\)\\{\\s+return\\s+t\\.sip;\\s+\\}\\);\\s+page\\(\\s+\'<p\\s+class="eyebrow">1부\\s+·\\s+묻기\\s+전에\\s+읽은\\s+것<\/p>\'\\+\\s+\'<h2>여덟\\s+글자에서\\s+제일\\s+센\\s+것<\/h2>\'\\+\\s+\'<p\\s+class="dek">여기까지는\\s+태어난\\s+시각\\s+하나만\\s+보고\\s+쓴\\s+것입니다<\/p>\'\\+\\s+\'<p>일곱\\s+글자를\\s+일간과의\\s+관계로\\s+세어보니,\\s+\'\\+R\\.joinWa\\(topSip,\'<em>\',\'<\/em>\'\\)\\+\'이\\s+가장\\s+강합니다\\.\\s+\'\\+\\s+\'이\\s+\'\\+R\\.joinWa\\(topSip,\'\',\'\'\\)\\+\'이\\s+당신의\\s+뼈대입니다\\.<\/p>\'\\+\\s+topSip\\.map\\(function\\(s\\)\\{\\s+var\\s+d=sipFor\\(s\\);\\s+if\\(!d\\)\\s+return\\s+\'\';\\s+return\\s+\'<h3>\'\\+d\\.t\\+\'\\s+·\\s+\'\\+it\\.count\\[s\\]\\+\'개<\/h3><p>\'\\+d\\.d\\+\'<\/p>\';\\s+\\}\\)\\.join\\(\'\'\\)\\+\\s+\/\\*\\s+2026\\-08\\-24\\s+·\\s+「나는\\s+안\\s+그런데」\\s+하실\\s+때를\\s+위한\\s+자리\\.\\s+여덟\\s+글자는\\s+그\\s+힘이\\s+있다고만\\s+말하지,\\s+어디에서\\s+쓰고\\s+계신지는\\s+말하지\\s+않습니다\\.\\s+힘이\\s+없는\\s+게\\s+아니라\\s+쓰는\\s+방이\\s+다른\\s+경우가\\s+훨씬\\s+많습니다\\.\\s+이\\s+문단이\\s+없으면\\s+손님은\\s+한\\s+줄\\s+안\\s+맞는\\s+것을\\s+보고\\s+책\\s+전체를\\s+접습니다\\.\\s+\\*\//u',
+		'to'   => "  /* ══ 2026-09-07 · 십성 열 자리를 다 보여줍니다 ═══════════════\n     지금까지는 개수 순으로 앞에서 둘만 뽑아 「가장 강합니다 · 뼈대입니다」\n     라고 했습니다. 그런데 둘째가 한 자뿐인 분이 견본 열둘 중 여섯입니다.\n     한 자짜리를 뼈대라고 부르는 것은 거짓입니다.\n\n     이제 열 자리를 다 셉니다.\n       ① 열 자리 가운데 몇 자리가 채워졌나 — 그 자체가 풀이입니다\n       ② 두 자 이상 겹친 것만 뼈대로 크게\n       ③ 한 자씩인 것은 이름만 나란히\n       ④ 비어 있는 자리는 하나씩 뜻까지\n     일곱 글자가 한 자도 안 남고 이름을 얻습니다. */\n  var SIP_ALL=['비견','겁재','식신','상관','편재','정재','편관','정관','편인','정인'];\n  var sipHave=[], sipBone=[], sipOne=[], sipNone=[], sipI, sipK, sipN;\n  for(sipI=0; sipI<SIP_ALL.length; sipI++){\n    sipK=SIP_ALL[sipI]; sipN=it.count[sipK] || 0;\n    if(sipN===0){ sipNone.push(sipK); continue; }\n    sipHave.push(sipK);\n    if(sipN>=2){ sipBone.push(sipK); } else { sipOne.push(sipK); }\n  }\n  sipBone.sort(function(a,b){ return (it.count[b]||0)-(it.count[a]||0); });\n\n  /* 숫자를 눈에 세웁니다 — 두 자 이상은 채우고, 한 자는 테두리만.\n     색을 새로 만들지 않은 이유: 빨강은 이 책에서 이미 화(火)라\n     바로 위 여덟 글자 표의 빨간 네모와 부딪힙니다. */\n  function sipCnt(n){\n    return '<span class=\"cnt'+(n>=2 ? ' on' : '')+'\">'+n+'</span>';\n  }\n  function sipName(s){\n    var d=sipFor(s);\n    return d ? d.t : s;\n  }\n\n  var KO=['','한','두','세','네','다섯','여섯','일곱','여덟','아홉','열'];\n  var sipSpread = sipHave.length<=3 ? '몰림' : (sipHave.length>=6 ? '퍼짐' : '가운데');\n  var SPREAD={\n    '몰림':'한 방향으로 깊게 파인 결입니다. 그쪽 일에서는 남들이 잘 못 따라오는데, '+\n           '비어 있는 자리 쪽 일이 오면 유난히 오래 걸립니다.',\n    '가운데':'두어 가지가 뼈대를 이루고 나머지가 조금씩 섞인 결입니다. '+\n             '어느 쪽으로도 크게 치우치지 않아서, 자리에 맞춰 골라 쓰실 수 있습니다.',\n    '퍼짐':'한 가지가 크게 두드러지지는 않는 결입니다. 「이게 나야」 하고 내놓을 한마디는 없는 대신, '+\n           '어느 자리에 놓여도 크게 막히지 않습니다.'\n  };\n\n  page(\n    '<p class=\"eyebrow\">1부 · 묻기 전에 읽은 것</p>'+\n    '<h2>여덟 글자에서 제일 센 것</h2>'+\n    '<p class=\"dek\">여기까지는 태어난 시각 하나만 보고 쓴 것입니다</p>'+\n\n    '<p>십성은 사주를 읽는 <em>열 개의 자리</em>입니다. '+\n    '일간을 뺀 일곱 글자가 그 열 자리 가운데 어딘가에 하나씩 들어갑니다.</p>'+\n\n    '<p>당신의 일곱 글자는 <em>'+KO[sipHave.length]+' 자리</em>에 들어 있고, '+\n    '<em>'+KO[sipNone.length]+' 자리는 비어 있습니다</em>. '+SPREAD[sipSpread]+'</p>'+\n\n    (sipBone.length\n      ? '<p>이 가운데 <em>두 자 이상 겹친 것</em>이 뼈대입니다.</p>'+\n        sipBone.map(function(s){\n          var d=sipFor(s); if(!d){ return ''; }\n          return '<h3>'+d.t+' '+sipCnt(it.count[s])+'</h3><p>'+d.d+'</p>';\n        }).join('')\n      : '<p>그런데 <em>두 자 이상 겹친 것이 하나도 없습니다.</em> '+\n        '일곱 글자가 전부 다른 자리에 한 자씩 놓였어요. 드문 쪽입니다. '+\n        '뼈대라고 부를 만한 것이 없는 대신, 한쪽으로 무너지는 일도 없습니다.</p>')+\n\n    (sipOne.length\n      ? '<p class=\"sipone\"><b>한 자씩만 있는 것</b> — '+\n        sipOne.map(function(s){ return '<em>'+s+'</em> '+sipCnt(1); }).join(' · ')+\n        '<br>뼈대는 아니지만 이 결도 섞여 있습니다. 어느 자리에서 나올지는 그때그때 달라요.</p>'\n      : '')+\n\n    (sipNone.length\n      ? '<hr>'+\n        '<h3>비어 있는 자리</h3>'+\n        '<p>비어 있다는 건 그 일을 <em>못 한다</em>는 뜻이 아닙니다. '+\n        '<em>타고난 것으로는 안 나온다</em>는 뜻이에요. 그래서 그쪽 일이 오면 '+\n        '남들보다 한 번 더 배우고 한 번 더 확인하게 됩니다. 해내고 나면 잘하는데 시작이 느립니다.</p>'+\n        sipNone.map(function(s){\n          var t=it.sipNoText ? it.sipNoText[s] : null; if(!t){ return ''; }\n          return '<p class=\"sipno\"><em>'+sipName(s)+'</em><br>'+t+'</p>';\n        }).join('')\n      : '')+\n",
+	);
+
+	$jobs[] = array(
+		'name' => '② 비어 있는 자리 열 줄',
+		'find' => '/\/\\*\\s+──\\s+오행이\\s+넘칠\\s+때와\\s+없을\\s+때\\s+─────────────────────────────\\s+\\*\//u',
+		'to'   => "  /* ── 2026-09-07 · 비어 있는 자리 열 ─────────────────────────\n     위의 SIP 이 「있을 때」라면 이것은 그 짝, 「없을 때」입니다.\n     오행의 EL_NONE 과 같은 걸음으로 씁니다 —\n     없다 → 그래서 이런 일이 생긴다 → 그래서 이렇게 하면 된다.\n     열 줄 모두 흠으로 끝내지 않습니다. */\n  var NO_SIP={\n    '비견':'나와 같은 높이에 설 사람이 없는 자리입니다. 혼자 정하고 혼자 짊어지는 데 익숙해서 편하기는 한데, <em>기댈 어깨도 같이 없습니다.</em> 나와 같은 자리에서 말해줄 사람 하나는 일부러 만들어두셔야 합니다.',\n    '겁재':'겨루면서 미는 힘이 없는 자리입니다. 손에 쥔 것이 잘 안 새는 대신, <em>남과 부딪혀야 하는 자리에서 한 발 물러섭니다.</em> 이기실 필요는 없어요. 다만 물러선 자리를 나중에 아까워하지만 않으시면 됩니다.',\n    '식신':'밖으로 풀어내고 즐기는 자리가 없습니다. 잘 쉬지 못하고, 쉬면서도 뭔가 해야 할 것 같습니다. 즐거운 일이 저절로 굴러오지 않으니 <em>미리 정해두고 하시는 편</em>이 낫습니다. 정해두면 그때는 마음 놓고 쉬어집니다.',\n    '상관':'하던 방식을 뒤집는 자리가 없습니다. 부딪히는 일이 적어 편한데, 「이건 좀 이상한데」 싶어도 말이 잘 안 나옵니다. <em>뒤집는 것은 남에게 맡기고, 다듬는 쪽에서 값을 받으시면 됩니다.</em> 뒤집은 것을 쓸 만하게 만드는 사람이 더 귀합니다.',\n    '편재':'크게 움직이는 돈의 자리가 없습니다. 한 번에 크게 버는 일은 잘 안 생기는 대신 <em>크게 잃는 일도 잘 안 생깁니다.</em> 남이 크게 벌었다는 말을 들은 날만 조심하시면 됩니다. 그 말에 흔들려 들어가시면 대개 그때가 꼭대기예요.',\n    '정재':'정해진 때에 정해진 몫이 들어오는 자리가 없습니다. 들어오는 때가 고르지 않아 계획을 세우기가 어렵습니다. <em>버는 쪽보다 새는 쪽을 먼저 막는 편</em>이 빠릅니다. 이 결은 수입이 아니라 지출에서 판가름 납니다.',\n    '편관':'밖에서 몰아붙이는 힘이 없습니다. 급한 일이 없어 몸은 편한데, <em>마감이 없으면 끝까지 안 갑니다.</em> 스스로 날짜를 하나 박아두는 것이 이 자리를 대신합니다. 남이 정해준 날짜보다 내가 정한 날짜가 이 결에는 더 잘 듣습니다.',\n    '정관':'지켜야 할 틀이 안에 없습니다. 남이 정해주지 않으면 자유로운 대신 늦어집니다. 규칙이 싫어서가 아니에요. <em>기댈 규칙이 없어서 매번 처음부터 정하게 되는 것</em>입니다. 한 번 정한 방식을 적어두시면 다음부터 그게 틀이 됩니다.',\n    '편인':'한쪽으로 깊이 파고드는 자리가 없습니다. 넓게 보는 대신 <em>남들이 안 가는 데까지는 잘 안 갑니다.</em> 깊이가 필요한 일에는 시간을 남보다 넉넉히 잡아두시면 됩니다. 늦게 도착할 뿐, 못 가는 자리는 아니에요.',\n    '정인':'받아들이고 기대는 자리가 없습니다. 남에게 묻기보다 스스로 알아내려 해서 <em>아는 데까지 오래 걸립니다.</em> 물어보는 것은 실력이 모자란 표시가 아니라 시간을 아끼는 방법입니다. 이 결은 물어본 만큼 빨라집니다.'\n  };\n\n  /* ── 오행이 넘칠 때와 없을 때 ───────────────────────────── */\n",
+	);
+
+	$jobs[] = array(
+		'name' => '③ 「없을 때」 표 내보내기',
+		'find' => '/sipText:\\s+SIP,/u',
+		'to'   => "      sipText: SIP,\n      /* 2026-09-07 · 「없을 때」 표도 같이 내보냅니다. 책을 만드는 쪽은\n         다른 방이라, 여기서 넘겨주지 않으면 못 봅니다. */\n      sipNoText: NO_SIP,",
+	);
+
+	$jobs[] = array(
+		'name' => '④ 숫자 모양 (CSS)',
+		'find' => '/<\/style>\\s+<div\\s+id="ssb">/u',
+		'to'   => "\n/* ══ 2026-09-07 · 십성 개수를 눈에 세웁니다 ═══════════════════\n   두 자 이상은 채우고, 한 자는 테두리만 둡니다. 색이 아니라\n   「채웠나 비었나」로 갈려서 스치듯 봐도 진한 게 몇 개인지 보입니다.\n   빨강을 안 쓴 이유 — 이 책에서 빨강은 이미 화(火)라, 바로 위\n   여덟 글자 표의 빨간 네모와 부딪힙니다. */\n#ssb .cnt{\n  display:inline-block; min-width:1.6em; text-align:center;\n  margin-left:7px; padding:1px 7px; border-radius:999px;\n  font-family:var(--mono); font-size:.7rem; font-weight:500;\n  border:1px solid var(--rule); color:var(--dim);\n  vertical-align:2px; letter-spacing:0;\n}\n#ssb .cnt.on{\n  background:var(--gold); border-color:var(--gold);\n  color:var(--page); font-weight:700;\n}\n#ssb .sipone{ color:var(--soft); }\n#ssb .sipone b{ color:var(--star); font-weight:700; }\n#ssb .sipno{ margin-top:18px; }\n#ssb .sipno em{ font-weight:700; }\n</style>\n<div id=\"ssb\">\n",
+	);
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], str_replace( '\\', '\\\\', $j['to'] ), $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_sip=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_sip=undo</code></p>';
+	echo '<p><a href="/reading-book/?demo=door-love-2">책 보기</a></p>';
+	exit;
+} );
