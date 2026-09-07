@@ -282,6 +282,18 @@ add_action( 'template_redirect', function () {
 		'to'   => "  /* 2026-09-07 · 소희 님 — 눈썹줄 「근거 둘」 삭제.\n     뒤로 옮기는 목록(BACK)은 근거 하나·셋·넷·여섯만 쓰므로\n     이 줄은 아무 코드도 딛고 있지 않습니다. 그냥 빼면 됩니다. */\n  page(\n    '<h2>여덟 글자</h2>'+\n",
 	);
 
+	$jobs[] = array(
+		'name' => '㉜ 「성좌의 신에게 가기」를 우리 말로',
+		'find' => '/\\s+\'<p><a\\s+class="mgo"\\s+href="\/door\\-astro\/">\'\\+\\s+\\(\\(G\\[\'door\\-astro\'\\]\\s+\\?\\s+G\\[\'door\\-astro\'\\]\\.name\\s+:\\s+\'별자리\\s+문\'\\)\\)\\+\'에게\\s+가기\\s+→<\/a><\/p>\'\\+/u',
+		'to'   => "      /* 2026-09-07 · 소희 님 — 「성좌의 신에게 가기는 우리 언어로 바꿔야 하고\n         별도 버튼이어야 하지. 그 자리엔 원래 결제하기가 있는 거지?」\n         맞습니다. /door-astro/ 는 주문 화면이라 이 줄이 책 안에서\n         다른 문을 사러 보내는 유일한 자리입니다. 그런데 밑줄 그은 글씨라\n         그냥 문장처럼 읽혔습니다.\n         ① 표에서 가디언 이름을 꺼내 쓰던 것을 그만둡니다 — 「성좌의 신」이\n            나오고 있었습니다. 우리 말로 직접 적습니다.\n         ② 글씨 링크가 아니라 버튼으로 세웁니다. */\n      '<p><a class=\"mgo\" href=\"/door-astro/\">별자리로 더 보러 가기 →</a></p>'+\n",
+	);
+
+	$jobs[] = array(
+		'name' => '㉝ 그 자리를 버튼으로 (CSS)',
+		'find' => '/\\#ssb\\s+\\.more\\s+\\.mgo:hover\\{\\s+color:var\\(\\-\\-star\\);\\s+\\}/u',
+		'to'   => "/* 2026-09-07 · 이 자리는 다른 문을 사러 가는 길입니다.\n   밑줄 그은 글씨가 아니라 눌러야 할 것처럼 보여야 합니다. */\n#ssb .more .mgo{\n  display:inline-block; margin-top:14px;\n  padding:12px 22px; border:0; border-radius:10px;\n  background:var(--speak); color:var(--page);\n  font-family:var(--serif); font-size:.98rem; font-weight:700;\n  letter-spacing:0; text-decoration:none;\n}\n#ssb .more .mgo:hover{ background:var(--speak-lite); color:var(--page); }\n#ssb .more .mgo:focus-visible{ outline:2px solid var(--speak-lite); outline-offset:3px; }\n",
+	);
+
 	$apply = ( 'apply' === $mode );
 	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
 
