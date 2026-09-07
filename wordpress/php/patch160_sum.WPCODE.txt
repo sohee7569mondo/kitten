@@ -246,6 +246,12 @@ add_action( 'template_redirect', function () {
 		'to'   => "#ssb .sipno em{ font-weight:700; }\n\n/* ══ 2026-09-07 · 작은 글씨가 작지 않았습니다 ═══════════════\n   소희 님 — 「남자 기준으로 옮겼습니다… 글씨 작게」.\n   보니 그 줄에는 이미 class=\"mini\" 가 붙어 있었습니다. 그런데\n   책 전체에서 mini 규칙이 이것 하나뿐이었어요.\n\n     #ssb td .mini{ ... }        ← 표 칸 안에서만\n\n   그래서 표 밖에 있는 <p class=\"mini\"> 열여섯 줄이 전부 본문\n   크기로 나가고 있었습니다. 「절기 기준입니다」 네 줄, 「여기까지가\n   묻기 전에 읽은 전부입니다」, 「태어난 시각을 모르셔서…」 같은\n   덧붙이는 말이 본문과 같은 무게로 읽혔습니다.\n   한 줄 더해서 열여섯 군데가 같이 고쳐집니다. */\n#ssb p.mini{\n  margin-top:22px;\n  font-size:.84rem; line-height:1.85;\n  color:var(--dim);\n}\n#ssb p.mini em{ color:var(--dim); font-weight:700; }\n</style>\n<div id=\"ssb\">\n",
 	);
 
+	$jobs[] = array(
+		'name' => '㉖ 제3장 제목을 앞 두 장과 나란히',
+		'find' => '/\\s+sheet\\(\'제\\s+3\\s+장\',\'현재의\\s+모습\',/u',
+		'to'   => "        sheet('제 3 장','현실에서의 '+esc(name)+'님 모습',",
+	);
+
 	$apply = ( 'apply' === $mode );
 	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
 
