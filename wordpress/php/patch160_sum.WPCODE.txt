@@ -240,6 +240,12 @@ add_action( 'template_redirect', function () {
 		'to'   => "    if (w.back) { out += '<p>' + w.back + '</p>'; }\n    /* 2026-09-07 · 절기 이야기를 작은 글씨로 맨 아래에 내립니다.\n       책의 다른 네 군데는 이미 이 문장을 <p class=\"mini\">로 달고 있는데\n       여기만 본문 크기로, 그것도 표 앞에 있었습니다.\n       달 이름을 읽기도 전에 절기부터 설명받는 꼴이었어요. */\n    out += '<p class=\"mini\">절기 기준입니다. 달력의 1일이 아니라 절기가 드는 날에 달이 바뀝니다.</p>';\n    return out;\n  }\n",
 	);
 
+	$jobs[] = array(
+		'name' => '㉕ 작은 글씨 규칙이 표 안에만 있었습니다',
+		'find' => '/\\#ssb\\s+\\.sipno\\s+em\\{\\s+font\\-weight:700;\\s+\\}\\s+<\/style>\\s+<div\\s+id="ssb">/u',
+		'to'   => "#ssb .sipno em{ font-weight:700; }\n\n/* ══ 2026-09-07 · 작은 글씨가 작지 않았습니다 ═══════════════\n   소희 님 — 「남자 기준으로 옮겼습니다… 글씨 작게」.\n   보니 그 줄에는 이미 class=\"mini\" 가 붙어 있었습니다. 그런데\n   책 전체에서 mini 규칙이 이것 하나뿐이었어요.\n\n     #ssb td .mini{ ... }        ← 표 칸 안에서만\n\n   그래서 표 밖에 있는 <p class=\"mini\"> 열여섯 줄이 전부 본문\n   크기로 나가고 있었습니다. 「절기 기준입니다」 네 줄, 「여기까지가\n   묻기 전에 읽은 전부입니다」, 「태어난 시각을 모르셔서…」 같은\n   덧붙이는 말이 본문과 같은 무게로 읽혔습니다.\n   한 줄 더해서 열여섯 군데가 같이 고쳐집니다. */\n#ssb p.mini{\n  margin-top:22px;\n  font-size:.84rem; line-height:1.85;\n  color:var(--dim);\n}\n#ssb p.mini em{ color:var(--dim); font-weight:700; }\n</style>\n<div id=\"ssb\">\n",
+	);
+
 	$apply = ( 'apply' === $mode );
 	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
 
