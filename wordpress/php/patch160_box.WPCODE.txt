@@ -76,9 +76,21 @@ add_action( 'template_redirect', function () {
 	$jobs = array();
 
 	$jobs[] = array(
-		'name' => '① 여덟 글자를 색 네모로 (CSS)',
+		'name' => '① 네모 안에 오행·한자·음 세 줄',
+		'find' => '/function\\s+elSpan\\(ch\\)\\{\\s+var\\s+e=EL5\\[ch\\]\\s+\\|\\|\\s+\'\';\\s+return\\s+\'<span\\s+data\\-el="\'\\+e\\+\'">\'\\+ch\\+\'<\/span>\';\\s+\\}/u',
+		'to'   => "  /* 2026-09-07 · 한 글자마다 오행 이름과 한글 음을 같이 답니다.\n     색만으로는 「내 화가 어느 글자였지」를 되짚기 어려워서,\n     네모 안에 위는 오행(화), 가운데는 한자(丁), 아래는 음(정)을\n     넣습니다. 색을 못 가리는 분도 글자로 읽을 수 있습니다. */\n  function elSpan(ch, kr){\n    var e=EL5[ch] || '';\n    return '<span data-el=\"'+e+'\">'+\n           (e ? '<i>'+e+'</i>' : '')+ch+\n           (kr ? '<b>'+kr+'</b>' : '')+\n           '</span>';\n  }",
+	);
+
+	$jobs[] = array(
+		'name' => '② 한글 음도 같이 넘기기',
+		'find' => '/elSpan\\(c\\.han\\.charAt\\(0\\)\\)\\+elSpan\\(c\\.han\\.charAt\\(1\\)\\)/u',
+		'to'   => "elSpan(c.han.charAt(0), c.kor.charAt(0))+elSpan(c.han.charAt(1), c.kor.charAt(1))",
+	);
+
+	$jobs[] = array(
+		'name' => '③ 색 네모 모양 (CSS)',
 		'find' => '/<\/style>\\s+<div\\s+id="ssb">/u',
-		'to'   => "\n/* ══ 2026-09-07 · 여덟 글자를 색 네모로 ═══════════════════════\n   글자에 색만 입히니 연한 바탕에서 색이 잘 안 보였습니다.\n   네모를 색으로 채우고 글자를 희게 뺍니다. 여덟 칸의 색만 보고도\n   무엇이 많고 무엇이 없는지 한눈에 들어옵니다. 바로 다음 쪽\n   오행 저울이 같은 색이라 되짚기도 쉽습니다. */\n#ssb .chart .han{ letter-spacing:0; line-height:1; }\n#ssb .chart .han span{\n  display:inline-flex; align-items:center; justify-content:center;\n  width:1.5em; height:1.5em; margin:0 2px;\n  border-radius:6px;\n  color:#FFFFFF;\n  background:rgba(23,20,32,.32);\n}\n#ssb .chart .han span[data-el=\"목\"]{ background:var(--e-mok); }\n#ssb .chart .han span[data-el=\"화\"]{ background:var(--e-hwa); }\n#ssb .chart .han span[data-el=\"토\"]{ background:var(--e-to); }\n#ssb .chart .han span[data-el=\"금\"]{ background:var(--e-geum); }\n#ssb .chart .han span[data-el=\"수\"]{ background:var(--e-su); }\n#ssb .chart > div{ padding:20px 5px 18px; }\n#ssb .chart .kor{ margin-top:9px; }\n@media(max-width:640px){\n  #ssb .chart .han{ font-size:1.34rem; }\n  #ssb .chart .han span{ width:1.46em; height:1.46em; margin:0 1px; border-radius:5px; }\n  #ssb .chart > div{ padding:13px 2px 12px; }\n}\n\n/* 안내줄도 같은 네모로 맞춥니다 */\n#ssb .ellegend span::before{ border-radius:3px; }\n</style>\n<div id=\"ssb\">\n",
+		'to'   => "\n/* ══ 2026-09-07 · 여덟 글자를 색 네모로 ═══════════════════════\n   글자에만 색을 입히니 연한 종이에서 색이 묻힙니다. 네모를 색으로\n   채우고 글자를 희게 뺍니다. 네모 여덟 개만 보고도 무엇이 많고\n   무엇이 없는지 한눈에 들어옵니다.\n   네모 안은 세 줄입니다 — 위에 오행, 가운데 한자, 아래 한글 음.\n   색을 못 가리는 분도 글자로 읽을 수 있어야 하니까요. */\n#ssb .chart .han{\n  display:flex; justify-content:center; align-items:center; gap:7px;\n  letter-spacing:0; line-height:1;\n  font-family:var(--han); font-size:1.72rem; min-height:74px;\n}\n#ssb .chart .han span{\n  display:flex; flex-direction:column; align-items:center; justify-content:center;\n  width:74px; height:74px; border-radius:17px;\n  font-family:var(--han); font-size:1.72rem; font-weight:700;\n  color:#FFFFFF; background:rgba(23,20,32,.30);\n}\n#ssb .chart .han span i{\n  font-style:normal; font-family:var(--serif); font-weight:500;\n  font-size:.6rem; letter-spacing:.06em; opacity:.8; margin-bottom:4px;\n}\n#ssb .chart .han span b{\n  font-family:var(--serif); font-weight:500;\n  font-size:.64rem; letter-spacing:.02em; opacity:.86; margin-top:5px;\n}\n#ssb .chart .han span[data-el=\"목\"]{ background:var(--e-mok); }\n#ssb .chart .han span[data-el=\"화\"]{ background:var(--e-hwa); }\n#ssb .chart .han span[data-el=\"토\"]{ background:var(--e-to); }\n#ssb .chart .han span[data-el=\"금\"]{ background:var(--e-geum); }\n#ssb .chart .han span[data-el=\"수\"]{ background:var(--e-su); }\n#ssb .chart > div{ padding:20px 4px 18px; }\n#ssb .chart .kor{ display:none; }\n@media(max-width:640px){\n  #ssb .chart .han{ gap:4px; }\n  #ssb .chart .han span{ width:58px; height:58px; border-radius:13px; font-size:1.3rem; }\n  #ssb .chart .han span i{ font-size:.52rem; margin-bottom:3px; }\n  #ssb .chart .han span b{ font-size:.55rem; margin-top:3px; }\n  #ssb .chart > div{ padding:13px 2px 12px; }\n}\n\n/* 안내줄도 같은 네모로 */\n#ssb .ellegend span::before{ border-radius:3px; }\n</style>\n<div id=\"ssb\">\n",
 	);
 
 	$apply = ( 'apply' === $mode );
