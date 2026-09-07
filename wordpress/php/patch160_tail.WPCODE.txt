@@ -1,0 +1,189 @@
+/* ════════════════════════════════════════════════════════════
+   대사를 주제마다 다른 말로 바꿉니다
+
+   지금은 사랑 문 열 칸(다섯 주제 × 두 줄다리기)에서 손님이 읽는 대사가
+   주제와 상관없이 똑같습니다. 결혼운을 물어보신 분도, 이별운을 물어보신
+   분도, 짝사랑을 물어보신 분도 같은 문장을 받습니다.
+
+     「화난 게 아니라 생각 중이야. 정리되면 말할게.」
+     「집착하는 게 아니라, 언제 연락되는지만 알면 나는 편해져.」
+
+   게다가 한 칸 안에서 앞글과 대사가 같은 말을 두 번 합니다.
+   결혼운 · 혼자 칸을 예로 들면 —
+
+     앞글  그래서 「나는 하루쯤 생각하고 나서 이야기하는 게 편하다」고 …
+     아래  「화난 게 아니라 생각 중이야. 정리되면 말할게.」
+
+   둘 다 「생각할 시간을 달라고 미리 말해라」입니다.
+
+   그래서 세 가지를 합니다.
+
+     하나 · 앞글에서 대사를 뺍니다 (다섯 군데)
+            뜻은 그대로 두고 따옴표만 풀어 씁니다.
+     둘   · 몸통은 「한마디 남겨두시면 좋습니다」까지만 합니다
+     셋   · 실제 대사는 주제마다 다른 말로 아래에 붙입니다 (아홉 개)
+
+   대사의 뼈대
+     혼자 쪽 · 「지금 바로 답하지 말고, 생각할 시간을 달라」
+     안정 쪽 · 「~하자는 건 아니야. 무엇을, 언제쯤인지만 알면 기다릴 수 있다」
+
+   짝사랑 · 혼자 는 꼬리가 아니라 몸통째로 갈아 끼웁니다.
+   몸통이 「다투고 나서 상대에게 남기는 한마디」인데, 짝사랑에는 다툴
+   상대도 말 남길 상대도 없습니다. 혼자 쪽 사람한테 「남한테 털어놓으세요」
+   하는 것도 안 맞아서, 일기장이나 나에게 보내는 카톡에 그 사람 얘기를
+   한 번 적어보시라고 씁니다. 사람이 아니라 종이가 약입니다.
+
+   바뀌는 것
+     · 손님이 따라 할 대사   열 칸에 스무 줄(같은 말 반복) → 아홉 줄, 전부 다른 말
+     · 겹치는 말             다섯 칸 → 없음
+     · 「당신」              한 곳 → {{이름}}
+
+   주제를 안 고르셨거나 궁합을 고르신 분한테는 꼬리가 안 붙습니다.
+   그래서 몸통만 읽어도 문장이 끊기지 않게 써두었습니다.
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   ① 먼저 보기   https://stellasaju.com/?stella_tail=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_tail=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_tail=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_tail'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_tail_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_tail'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		echo '<p><a href="/reading-book/">책 보기</a></p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	$jobs = array();
+	$jobs[] = array(
+		'name' => '① 몸통 · 혼자 쪽에서 대사 빼기',
+		'find' => '/\'다만\\s+상대는\\s+그\\s+시간을\\s+<em>벌\\s+받는\\s+시간<\\/em>처럼\\s+느낄\\s+수\\s+있습니다\\.\\s+「화난\\s+게\\s+아니라\\s+생각\\s+중이야\\.\\s+정리되면\\s+말할게\\.」\\s+한마디만\\s+남겨도,\\s+같은\\s+시간이\\s+상대에게는\\s+기다림이\\s+됩니다\\.\'\\]/u',
+		'to'   => "'다만 상대는 그 시간을 <em>벌 받는 시간</em>처럼 느낄 수 있습니다. 한마디만 남기고 들어가시면, 같은 시간이 상대에게는 기다림이 됩니다.']",
+	);
+
+	$jobs[] = array(
+		'name' => '② 몸통 · 안정 쪽에서 대사 빼기',
+		'find' => '/,\\s+\'연락이\\s+들쭉날쭉해서\\s+힘드실\\s+때는\\s+<em>이렇게\\s+말해보세요\\.<\\/em><br>「집착하는\\s+게\\s+아니라,\\s+언제\\s+연락되는지만\\s+알면\\s+나는\\s+편해져\\.」\\s+이\\s+한마디면\\s+상대도\\s+알아듣습니다\\.\'\\]/u',
+		'to'   => ", '다음이 어떻게 될지 안 보여서 불안하실 때는, 상대가 알아들을 수 있게 한마디 남겨두시면 좋습니다.']",
+	);
+
+	$jobs[] = array(
+		'name' => '③ 주제별 대사 아홉 개 넣기',
+		'find' => '/\\s+\\};\\s+\\/\\*\\s+어떤\\s+주제를\\s+고르셨는지\\s+—\\s+가디언이\\s+연성의\\s+신일\\s+때만\\s+봅니다\\.\\s+엔진\\s+안의\\s+slug\\s+를\\s+그대로\\s+쓰므로\\s+가디언\\s+판별은\\s+틀릴\\s+수\\s+없고,/u',
+		'to'   => "\n  };\n\n  /* 2026-09-07 · 주제별 대사 아홉 개 (꼬리).\n     몸통은 「한마디 남겨두시면 좋습니다」까지만 하고, 실제 대사는 주제마다\n     다릅니다. 혼자 쪽은 「생각할 시간을 달라」, 안정 쪽은 「~하자는 건 아니야,\n     언제쯤인지만 알면 기다릴 수 있다」가 뼈대입니다.\n     짝사랑 · 혼자 는 몸통(다투고 나서 상대에게 남기는 한마디)이 아예 안 맞아서\n     꼬리가 아니라 몸통째로 갈아 끼웁니다. */\n  (function(){\n    var CUE='<em>이렇게요.</em><br>';\n    var L={\n      '결혼운': {\n        solo: { '혼자': { matchTail: CUE+'「오늘은 결론 내리지 말고, 하루만 생각해볼게.」' } },\n        risk: { '안정': { gapTail: CUE+'「당장 결혼하자는 건 아니야. 우리가 앞으로 어떻게 할 생각인지, 언제쯤 결정할지만 알면 기다리는 동안은 마음이 편할 것 같아.」' } }\n      },\n      '연애운': {\n        solo: { '혼자': { matchTail: CUE+'「지금 바로 대답하기보다, 조금 생각하고 이야기하고 싶어.」' } },\n        risk: { '안정': { gapTail: CUE+'「매일 연락해달라는 건 아니야. 다음에 언제 연락할지, 언제쯤 볼 수 있을지만 알면 기다리는 동안은 마음이 편할 것 같아.」' } }\n      },\n      '재회운': {\n        solo: { '혼자': { matchTail: CUE+'「다시 만나자는 말이 싫은 건 아니야. 그런데 지금 바로 답하면 내 마음도 제대로 모른 채 결정할 것 같아. 며칠 혼자 생각해보고 이야기하고 싶어.」' } },\n        risk: { '안정': { gapTail: CUE+'「지금 다시 만나자는 건 아니야. 우리가 어떻게 지낼지, 언제쯤 다시 이야기할 수 있을지만 알면 그때까지는 기다릴 수 있을 것 같아.」' } }\n      },\n      '이별운': {\n        solo: { '혼자': { matchTail: CUE+'「지금은 누구랑 이야기하기보다, 나부터 좀 정리하고 싶어.」' } },\n        risk: { '안정': { gapTail: CUE+'「지금 당장 결정하자는 건 아니야. 우리 사이를 어떻게 할지, 언제쯤 이야기할 수 있을지만 정해두면 그때까지는 기다릴 수 있을 것 같아.」' } }\n      },\n      '짝사랑': {\n        solo: { '혼자': { match: [\n          '답해주신 것도 <em>혼자</em> 쪽이었습니다.',\n          '이 마음을 남에게 털어놓기보다 혼자 품고 계셨을 거예요. <em>이 결에는 그게 맞습니다.</em> 남의 말로 정리되는 자리가 아니라, 혼자 오래 들여다보다 어느 날 스스로 답이 나오는 자리니까요.',\n          '다만 안에서만 굴리면 같은 자리를 계속 돕니다. 일기장이든 나에게 보내는 카톡이든, <em>그 사람 얘기를 한 번만 적어보세요.</em> 사람한테 말하는 게 아니라서 부담도 없고, 쓰는 동안 정리가 됩니다.'\n        ] } },\n        risk: { '안정': { gapTail: CUE+'「당장 대답해달라는 건 아니야. 나를 어떻게 생각하는지, 언제쯤 답해줄 수 있는지만 말해주면 기다리는 동안은 마음이 편할 것 같아.」' } }\n      }\n    };\n    var tp, k, sd, f;\n    for(tp in L){\n      if(!Object.prototype.hasOwnProperty.call(L,tp)){ continue; }\n      if(!AXIS_WARM_TOPIC[tp]){ continue; }\n      for(k in L[tp]){\n        if(!Object.prototype.hasOwnProperty.call(L[tp],k)){ continue; }\n        if(!AXIS_WARM_TOPIC[tp][k]){ AXIS_WARM_TOPIC[tp][k]={}; }\n        for(sd in L[tp][k]){\n          if(!Object.prototype.hasOwnProperty.call(L[tp][k],sd)){ continue; }\n          if(!AXIS_WARM_TOPIC[tp][k][sd]){ AXIS_WARM_TOPIC[tp][k][sd]={}; }\n          for(f in L[tp][k][sd]){\n            if(Object.prototype.hasOwnProperty.call(L[tp][k][sd],f)){\n              AXIS_WARM_TOPIC[tp][k][sd][f]=L[tp][k][sd][f];\n            }\n          }\n        }\n      }\n    }\n  })();\n\n\n  /* 어떤 주제를 고르셨는지 — 가디언이 연성의 신일 때만 봅니다.\n     엔진 안의 slug 를 그대로 쓰므로 가디언 판별은 틀릴 수 없고,",
+	);
+
+	$jobs[] = array(
+		'name' => '④ 결혼운 · 혼자 · 앞글에서 대사 빼기',
+		'find' => '/그래서\\s+「나는\\s+하루쯤\\s+생각하고\\s+나서\\s+이야기하는\\s+게\\s+편하다」고\\s+미리\\s+말해두시는\\s+게\\s+좋습니다\\./u',
+		'to'   => "그래서 하루쯤 생각하고 나서 이야기하는 편이 낫다고 미리 말해두시는 게 좋습니다.",
+	);
+
+	$jobs[] = array(
+		'name' => '⑤ 연애운 · 혼자 · 앞글에서 대사 빼기',
+		'find' => '/「지금은\\s+좀\\s+정리할\\s+시간이\\s+필요해,\\s+너\\s+때문이\\s+아니야」\\s+이\\s+한마디만\\s+미리\\s+해두시면\\s+오해가\\s+크게\\s+줄어듭니다\\./u',
+		'to'   => "마음이 식은 게 아니라 정리 중이라는 것만 미리 알려두시면 오해가 크게 줄어듭니다.",
+	);
+
+	$jobs[] = array(
+		'name' => '⑥ 이별운 · 혼자 · 대사 빼고 이름 넣기',
+		'find' => '/「지금은\\s+혼자\\s+있고\\s+싶다」고\\s+말해도\\s+괜찮아요\\.\\s+그건\\s+마음을\\s+닫는\\s+게\\s+아니라\\s+당신에게\\s+맞는\\s+방식입니다\\./u',
+		'to'   => "혼자 있고 싶다고 말해도 괜찮아요. 그건 마음을 닫는 게 아니라 {{이름}}에게 맞는 방식입니다.",
+	);
+
+	$jobs[] = array(
+		'name' => '⑦ 결혼운 · 안정 · 앞글에서 대사 빼기',
+		'find' => '/반대로\\s+「다음\\s+달부터\\s+이렇게\\s+해보자」처럼\\s+미리\\s+이야기를\\s+나누고\\s+준비할\\s+시간이\\s+있다면/u',
+		'to'   => "반대로 다음 달부터 이렇게 해보자는 식으로 미리 이야기를 나누고 준비할 시간이 있다면",
+	);
+
+	$jobs[] = array(
+		'name' => '⑧ 짝사랑 · 안정 · 앞글에서 대사 빼기',
+		'find' => '/<em>「나는\\s+너를\\s+좋아하는데,\\s+너는\\s+어떻게\\s+생각해\\?」\\s+하고\\s+한번\\s+확인하는\\s+것<\\/em>/u',
+		'to'   => "<em>어떻게 생각하는지 한번 확인해보는 것</em>",
+	);
+
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], $j['to'], $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_tail=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_tail=undo</code></p>';
+	echo '<p><a href="/reading-book/">책 보기</a></p>';
+	exit;
+} );
