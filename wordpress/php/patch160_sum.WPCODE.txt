@@ -261,7 +261,19 @@ add_action( 'template_redirect', function () {
 	$jobs[] = array(
 		'name' => '㉘ 계산한 자리 속표지 · 안 보셔도 → 깊숙이',
 		'find' => '/\\s+\'앞의\\s+풀이가\\s+어디서\\s+나온\\s+셈인지\\s+궁금하시면\\s+여기를\\s+보세요\\.\\s+안\\s+보셔도\\s+풀이는\\s+그대로입니다\\.\',\'\'\\)\\],/u',
-		'to'   => "          '앞의 풀이가 어디서 나온 셈인지 궁금하시면 여기를 보세요. '+esc(name)+'님을 자세히, 깊숙이 알게 될 수 있습니다.','')],",
+		'to'   => "          '앞의 풀이가 어디서 나온 셈인지 궁금하시면 여기를 보세요. '+esc(name)+'님을 자세히, 깊숙이 알게 될 수 있습니다. 이 네 쪽은 사주 자체를 셈한 것이라 어떤 주제로 보셔도 같습니다 — 한 번만 읽어두시면 됩니다.','')],",
+	);
+
+	$jobs[] = array(
+		'name' => '㉙ 물으신 말에 답하는 자리를 상자로',
+		'find' => '/\\s+\\(answers\\.mind\\s+\\?\\s+\'<hr>\'\\+\\s+\'<p>요즘\\s+마음에\\s+걸린다고\\s+하신\\s+것은\\s+<em>\'\\+esc\\(answers\\.mind\\)\\+\'<\/em>였습니다\\.\\s+\'\\+\\s+\'이게\\s+이\\s+셋\\s+가운데\\s+어디에\\s+걸려\\s+있는지부터\\s+보세요\\.\\s+\'\\+\\s+\'대개는\\s+두\\s+번째\\s+—\\s+<em>어긋난\\s+자리<\/em>\\s+—\\s+에\\s+답이\\s+있습니다\\.\\s+\'\\+\\s+\'내가\\s+힘든\\s+이유는\\s+사주가\\s+가리키는\\s+길과\\s+다른\\s+방향으로\\s+서\\s+있기\\s+때문입니다\\.<\/p>\'\\s+:\\s+\'\'\\),\\s+null,\\s+\'two\'\\);/u',
+		'to'   => "    /* 2026-09-07 · 소희 님 — 「이 부분은 질문한 내용에 대한 내용이잖아.\n       테두리를 한다든가 따옴표를 크게 넣든가 해서 조금 다른 디자인이면\n       좋겠어.」\n       맞습니다. 책 한 권에서 손님이 적어 보낸 말에 대고 직접 답하는\n       자리는 여기뿐인데, 본문과 같은 모양이라 그냥 흘러갔습니다.\n       테두리를 두르고 큰 따옴표를 얹습니다.\n       마지막 한 문장은 문마다 다르게 갑니다 — 「사주가 가리키는 길과\n       다른 방향으로 서 있기 때문입니다」는 어느 문에서나 같은 말이었고,\n       단정이 너무 셌습니다. 「~일 수 있습니다」로 닫습니다. */\n    (answers.mind\n      ? '<div class=\"asked\">'+\n        '<p class=\"ak\">요즘 마음에 걸린다고 하신 것</p>'+\n        '<p class=\"aq\">'+esc(answers.mind)+'</p>'+\n        '<p>이게 이 셋 가운데 어디에 걸려 있는지부터 보세요. '+\n        '대개는 두 번째 — <em>어긋난 자리</em> — 에 답이 있습니다. '+\n        (slug==='door-love'\n          ? '내가 힘든 것은 사랑을 많이 해서가 아니라, <em>내가 사랑을 쓰는 방식과 '+\n            '상대에게 사랑이 닿는 방식이 다르기 때문</em>일 수 있습니다.'\n          : (slug==='door-career'\n            ? '내가 힘든 것은 일을 못 해서가 아니라, <em>내가 힘을 쓰는 방식과 '+\n              '그 자리가 요구하는 방식이 다르기 때문</em>일 수 있습니다.'\n            : '내가 힘든 것은 모자라서가 아니라, <em>타고난 결과 지금 서 있는 자리가 '+\n              '다르기 때문</em>일 수 있습니다.'))+\n        '</p>'+\n        '</div>'\n      : ''), null, 'two');\n",
+	);
+
+	$jobs[] = array(
+		'name' => '㉚ 그 상자 모양 (CSS)',
+		'find' => '/\\#ssb\\s+\\.sipno\\s+em\\{\\s+font\\-weight:700;\\s+\\}/u',
+		'to'   => "#ssb .sipno em{ font-weight:700; }\n\n/* ══ 2026-09-07 · 물으신 말에 답하는 자리 ═══════════════════\n   책 한 권에서 손님이 적어 보낸 말을 그대로 옮겨놓고 거기에 대고\n   답하는 자리는 맺음말의 이 한 덩어리뿐입니다. 그런데 본문과 똑같이\n   생겨서 그냥 흘러갔습니다. 테두리를 두르고 큰 따옴표를 얹습니다.\n   빛깔은 2부 쪽(보라)입니다 — 손님이 하신 말에서 나온 자리니까요. */\n#ssb .asked{\n  position:relative;\n  margin:34px 0 0; padding:30px 26px 24px 30px;\n  border:1px solid var(--rule-s); border-radius:14px;\n  background:rgba(90,67,164,.05);\n}\n#ssb .asked::before{\n  content:'「';\n  position:absolute; left:10px; top:10px;\n  font-family:var(--han); font-size:2.6rem; line-height:1;\n  color:var(--speak); opacity:.22;\n}\n#ssb .asked .ak{\n  margin:0 0 7px;\n  font-family:var(--mono); font-size:.7rem; letter-spacing:.2em;\n  color:var(--speak-lite);\n}\n#ssb .asked .aq{\n  margin:0 0 15px;\n  font-size:1.2rem; font-weight:700; line-height:1.6;\n  color:var(--star);\n}\n#ssb .asked p:last-child{ margin:0; color:var(--soft); }\n#ssb .asked em{ color:var(--speak-lite); }\n@media(max-width:640px){\n  #ssb .asked{ padding:26px 20px 20px 24px; }\n  #ssb .asked .aq{ font-size:1.08rem; }\n}\n",
 	);
 
 	$apply = ( 'apply' === $mode );
