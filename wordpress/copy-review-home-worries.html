@@ -74,6 +74,38 @@ p{margin:14px 0 0}
   display:flex; align-items:flex-end; justify-content:center; padding-bottom:5px;
   font-size:.54rem; color:rgba(246,241,231,.6)}
 
+
+/* ── 카드 두 가지 ── */
+.cards{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin:24px 0 0}
+@media(max-width:620px){ .cards{grid-template-columns:1fr} }
+.dcard{background:var(--void); border:1px solid rgba(224,188,124,.28); border-radius:12px;
+  overflow:hidden; color:var(--star)}
+.dcard .art{aspect-ratio:2/3; position:relative; display:flex; align-items:flex-end;
+  background:radial-gradient(58% 62% at 50% 30%, rgba(163,124,246,.40), rgba(37,28,72,0) 72%),
+             linear-gradient(158deg,#2E2358 0%,#221A42 100%)}
+.dcard .art:after{content:''; position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(20,14,42,.94) 0%, rgba(20,14,42,.14) 56%, transparent 80%)}
+.dcard .art b{position:absolute; top:42%; left:0; right:0; text-align:center;
+  font-family:var(--disp); font-size:.74rem; color:var(--lilac); opacity:.8; font-weight:400}
+.dcard .info{position:relative; z-index:2; padding:14px 14px 16px; width:100%}
+.big{font-family:var(--disp); font-weight:700; font-size:1.5rem; line-height:1.25; margin:0}
+.small{font-family:var(--disp); font-weight:700; font-size:1.02rem; margin:0}
+.who{display:flex; align-items:center; gap:7px; margin:9px 0 0}
+.who .av{width:26px; height:26px; border-radius:50%; flex:0 0 auto;
+  background:linear-gradient(158deg,#3B2D70,#2B2054); border:1px solid rgba(224,188,124,.45);
+  display:flex; align-items:center; justify-content:center; font-size:.5rem; color:var(--gold-lite)}
+.who .txt{font-size:.7rem; line-height:1.5; color:rgba(246,241,231,.66)}
+.who .txt em{font-style:normal; color:var(--gold-lite)}
+.pills{display:flex; flex-wrap:wrap; gap:5px; margin:10px 0 0}
+.pills span{font-size:.64rem; color:var(--gold-lite); background:rgba(163,124,246,.16);
+  border:1px solid rgba(212,175,106,.4); border-radius:20px; padding:2px 8px}
+.pills span.soon{color:rgba(246,241,231,.45); border-color:rgba(246,241,231,.2);
+  background:rgba(246,241,231,.05)}
+.tag{position:absolute; top:10px; right:10px; z-index:3; font-family:var(--disp);
+  font-size:.6rem; letter-spacing:.08em; padding:3px 8px; border-radius:20px;
+  background:rgba(224,188,124,.92); color:#211836}
+.tag.soon{background:rgba(246,241,231,.16); color:rgba(246,241,231,.7)}
+
 /* ── 배너 문구표 ── */
 table{border-collapse:collapse; width:100%; font-size:.93rem; margin:16px 0 0}
 td,th{border-bottom:1px solid var(--paper-3); padding:9px 6px; text-align:left; color:var(--ink-2);
@@ -140,6 +172,65 @@ ol{margin:10px 0 0; padding-left:20px} li{margin:6px 0}
 </div>
 
 <p>가디언 그림은 <b>그대로 둡니다.</b> 그게 이 사이트의 얼굴이니까요. 다만 그 밑에 <b>한 줄</b>과 <b>고민 배너</b>가 들어가면, 스크롤을 내리기 전에 이미 「여기는 사주 보는 곳이고, 내 고민을 물어보는 곳이구나」가 전해집니다.</p>
+
+
+<h2 class="sec">문 카드 — 담당을 밑으로
+<span>손님이 사는 건 「벼리」가 아니라 「애정운」입니다</span></h2>
+
+<p>지금 카드는 <b>「인연을 잇는 신」</b>이 제일 큰 글씨입니다. 처음 온 사람은 그게 사랑이라는 걸 모릅니다. 순서를 뒤집으면 됩니다 — <b>주제가 크고, 담당이 밑에.</b></p>
+
+<div class="cards">
+  <div>
+    <p class="mocklb now">지금 <em>· 담당이 제일 큼</em></p>
+    <div class="dcard"><div class="art"><b>가디언 그림</b>
+      <div class="info">
+        <p class="big">인연을 잇는 신</p>
+        <div class="pills"><span>연애</span><span>결혼</span><span>재회</span><span>이별</span><span>짝사랑</span></div>
+      </div></div></div>
+  </div>
+  <div>
+    <p class="mocklb new">바꾸면 <em>· 주제가 크고 담당은 밑에</em></p>
+    <div class="dcard"><div class="art"><b>가디언 그림</b>
+      <div class="info">
+        <p class="big">애정운</p>
+        <div class="who"><span class="av">벼리</span>
+          <span class="txt">담당 · 사랑을 잇는 신 <em>벼리</em></span></div>
+        <div class="pills"><span>연애</span><span>결혼</span><span>재회</span><span>이별</span><span class="soon">이혼 준비 중</span></div>
+      </div></div></div>
+  </div>
+</div>
+
+<p>담당 자리의 동그라미에 <b>벼리 얼굴</b>이 들어갑니다. 26px짜리 작은 원이라 초상 하나를 잘라 쓰면 됩니다. 속표지 동그라미하고 같은 그림을 쓰면 <b>책을 펼쳤을 때 같은 얼굴이 다시 나와서</b> 이어집니다.</p>
+
+<h2 class="sec">그럼 카드 한 장이 문일까, 책일까
+<span>「책별로 오픈」을 하시려면 여기서 갈립니다</span></h2>
+
+<div class="cards">
+  <div>
+    <p class="mocklb now">문이 한 장 <em>· 여섯 장</em></p>
+    <div class="dcard"><div class="art"><span class="tag soon">준비 중</span><b>가디언 그림</b>
+      <div class="info">
+        <p class="big">건강운</p>
+        <div class="who"><span class="av">담당</span>
+          <span class="txt">담당 · 몸을 지키는 신</span></div>
+      </div></div></div>
+    <p style="font-size:.88rem;color:var(--ink-3);margin-top:10px">지금은 사랑 하나만 열려서 <b>여섯 장 중 다섯 장에 「준비 중」</b>이 붙습니다. 가게가 비어 보입니다.</p>
+  </div>
+  <div>
+    <p class="mocklb new">책이 한 장 <em>· 열린 것만 · 권함</em></p>
+    <div class="dcard"><div class="art"><span class="tag">지금 열림</span><b>가디언 그림</b>
+      <div class="info">
+        <p class="big">재회운</p>
+        <div class="who"><span class="av">벼리</span>
+          <span class="txt">담당 · 사랑을 잇는 신 <em>벼리</em><br>39쪽</span></div>
+      </div></div></div>
+    <p style="font-size:.88rem;color:var(--ink-3);margin-top:10px">사랑 문 여섯 권만 깔아도 <b>여섯 장이 다 찹니다.</b> 일 문을 채우면 여섯 권이 더 붙고요. 늘어나는 게 보입니다.</p>
+  </div>
+</div>
+
+<p><b>지금은 오른쪽을 권합니다.</b> 왼쪽은 문이 다 채워진 뒤에 쓰면 좋은 구조인데, 지금 쓰면 「다섯 개가 준비 중인 가게」로 보입니다. 오른쪽은 같은 사실을 「여섯 권이 나와 있는 가게」로 보여줍니다. <b>거짓말이 아니라 진열을 바꾸는 것</b>입니다.</p>
+
+<p>그리고 책별 카드는 소희 님이 말씀하신 <b>책별 오픈</b>하고 그대로 맞습니다. 한 권 다 쓰면 카드 한 장이 늘어요. 문 단위면 여섯 권을 다 써야 카드 하나가 켜집니다.</p>
 
 <h2 class="sec">배너에 넣을 고민 열둘
 <span>누르면 그 문의 질문 화면으로, 주제까지 골라진 채로 들어갑니다</span></h2>
