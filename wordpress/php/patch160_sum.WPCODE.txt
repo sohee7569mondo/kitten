@@ -276,6 +276,12 @@ add_action( 'template_redirect', function () {
 		'to'   => "#ssb .sipno em{ font-weight:700; }\n\n/* ══ 2026-09-07 · 물으신 말에 답하는 자리 ═══════════════════\n   책 한 권에서 손님이 적어 보낸 말을 그대로 옮겨놓고 거기에 대고\n   답하는 자리는 맺음말의 이 한 덩어리뿐입니다. 그런데 본문과 똑같이\n   생겨서 그냥 흘러갔습니다. 테두리를 두르고 큰 따옴표를 얹습니다.\n   빛깔은 2부 쪽(보라)입니다 — 손님이 하신 말에서 나온 자리니까요. */\n#ssb .asked{\n  position:relative;\n  margin:34px 0 0; padding:30px 26px 24px 30px;\n  border:1px solid var(--rule-s); border-radius:14px;\n  background:rgba(90,67,164,.05);\n}\n#ssb .asked::before{\n  content:'「';\n  position:absolute; left:10px; top:10px;\n  font-family:var(--han); font-size:2.6rem; line-height:1;\n  color:var(--speak); opacity:.22;\n}\n#ssb .asked .ak{\n  margin:0 0 7px;\n  font-family:var(--mono); font-size:.7rem; letter-spacing:.2em;\n  color:var(--speak-lite);\n}\n#ssb .asked .aq{\n  margin:0 0 15px;\n  font-size:1.2rem; font-weight:700; line-height:1.6;\n  color:var(--star);\n}\n#ssb .asked p:last-child{ margin:0; color:var(--soft); }\n#ssb .asked em{ color:var(--speak-lite); }\n@media(max-width:640px){\n  #ssb .asked{ padding:26px 20px 20px 24px; }\n  #ssb .asked .aq{ font-size:1.08rem; }\n}\n",
 	);
 
+	$jobs[] = array(
+		'name' => '㉛ 눈썹줄 「근거 둘」 빼기',
+		'find' => '/\\s+page\\(\\s+\'<p\\s+class="eyebrow">근거\\s+둘<\/p>\'\\+\\s+\'<h2>여덟\\s+글자<\/h2>\'\\+/u',
+		'to'   => "  /* 2026-09-07 · 소희 님 — 눈썹줄 「근거 둘」 삭제.\n     뒤로 옮기는 목록(BACK)은 근거 하나·셋·넷·여섯만 쓰므로\n     이 줄은 아무 코드도 딛고 있지 않습니다. 그냥 빼면 됩니다. */\n  page(\n    '<h2>여덟 글자</h2>'+\n",
+	);
+
 	$apply = ( 'apply' === $mode );
 	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
 
