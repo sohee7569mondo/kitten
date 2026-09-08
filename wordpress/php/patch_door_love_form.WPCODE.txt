@@ -1,29 +1,33 @@
 /* ════════════════════════════════════════════════════════════
-   연애 문 · 넣는 칸 정리  (door-love)
+   연애 문 · 넣는 칸 정리  (door-love)   ★ 2026-09-08 다시 만듦
 
-   소희 님 —
-     「입력폼에서 더 깊이 보기는 삭제. 이미 해설에 있어 선택 안 해도 돼.
-       왼쪽 인연을 잇는 신 삭제 — 앞에 인삿말 있어서 그냥 정보만 넣는 걸로.
-       한줄로 더 물어보기도 뺄까? 위에 지금의 마음에 이미 질문이 있는데?」
+   ── 왜 다시 만들었나 ──────────────────────────────
+   처음 만든 판은 제 저장소 사본을 보고 자리를 잡았는데, 사이트의
+   진짜 글이 많이 달랐습니다. 이번에는 사이트에서 그대로 읽어와
+   맞췄습니다.
 
-   ── 하는 일 넷 ──────────────────────────────────
+   달랐던 것 —
+     · 「더 깊이 보기」는 사이트에 이미 없습니다. 대신 세 가지가
+       늘 들어갑니다 (올해 인연의 흐름 · 나와 맞는 사람의 결 ·
+       관계에서 되풀이되는 자리).
+     · 견본 상자에 style 이 붙어 있어 자리를 못 찾았습니다.
+     · 안내 문구 끝에 「따로 값을 받지 않습니다」가 붙어 있습니다.
+     · 가디언 이름이 아직 「연성의 신」입니다.
+
+   ── 하는 일 다섯 ────────────────────────────────
    ① 왼쪽 가디언 소개 칸을 뺍니다. 폼이 가운데로 옵니다.
-   ② 「더 깊이 보기」(STEP 5) 를 통째로 뺍니다.
-   ③ 「한 줄로 더 물어보기」를 「가장 궁금한 한 가지」로 바꾸고,
-      아래 메모 칸을 감춥니다.
-   ④ 견본 두 장(직업운 · 재물운)을 연애운 한 장으로 바꿉니다.
+   ② 「한 줄로 더 물어보기」를 「가장 궁금한 한 가지」로.
+   ③ 그 아래 안내를 한 줄로 줄입니다.
+   ④ 견본 두 장(덕선 · 선우)을 연애운 한 장으로.
+   ⑤ 단추를 「벼리에게 물어보기」로.
+   그리고 폼을 가운데로 놓고 메모 칸을 감춥니다 (CSS).
 
    ★ 한 줄 질문은 남깁니다. 책에서 제일 많이 쓰이는 칸입니다 —
-     「말한 것」 표에 한 번, 그리고 마지막 편지에서 그 질문을 그대로
-     받아서 답합니다. 「바라는 결말」은 바람이지 질문이 아니라
-     그 자리를 대신하지 못합니다.
+     「말한 것」 표에 한 번, 마지막 편지에서 그 질문을 그대로 받아
+     답합니다.
 
-   ★ 메모 칸은 지우지 않고 감춥니다. 페이지 안 코드가 그 칸을
-     읽고 있어서, 없애면 「물어보기」 단추가 멈춥니다.
-     감추면 손님에게는 없는 것과 같고, 코드는 그대로 돕니다.
-
-   ★ 「더 깊이 보기」를 빼도 값 계산은 멈추지 않습니다.
-     셈에 쓰는 줄(심화 질문 0개)은 원래 0일 때 감춰지게 되어 있습니다.
+   ★ 메모 칸은 지우지 않고 감춥니다. 페이지 코드가 그 칸을 읽고
+     있어서, 없애면 「물어보기」 단추가 멈춥니다.
 
    붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
    ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
@@ -52,10 +56,7 @@ add_action( 'template_redirect', function () {
 	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
 
 	$page = get_page_by_path( 'door-love' );
-	if ( ! $page ) {
-		echo '<h1 class="no">door-love 쪽을 못 찾았습니다.</h1>';
-		exit;
-	}
+	if ( ! $page ) { echo '<h1 class="no">door-love 쪽을 못 찾았습니다.</h1>'; exit; }
 	$pid = $page->ID;
 
 	if ( 'undo' === $mode ) {
@@ -78,38 +79,38 @@ add_action( 'template_redirect', function () {
 
 	$jobs[] = array(
 		'name' => '① 왼쪽 가디언 소개 칸 빼기',
-		'find' => '/\s*<aside class="g-card">.*?<\/aside>/su',
+		'find' => '/<aside class="g-card">.*?<\/aside>/su',
 		'to'   => "",
 	);
 
 	$jobs[] = array(
-		'name' => '② 「더 깊이 보기」 통째로 빼기',
-		'find' => '/\s*<section class="step">\s*<div class="step-head">\s*<span class="step-no">[^<]*<\/span>\s*<span class="step-title">더 깊이 보기<\/span>.*?<\/section>/su',
-		'to'   => "",
-	);
-
-	$jobs[] = array(
-		'name' => '③ 한 줄 질문 — 제목과 안내 고치기',
+		'name' => '② 「한 줄로 더 물어보기」 → 「가장 궁금한 한 가지」',
 		'find' => '/<span class="step-title">한 줄로 더 물어보기<\/span>/u',
 		'to'   => "<span class=\"step-title\">가장 궁금한 한 가지</span>",
 	);
 
 	$jobs[] = array(
-		'name' => '④ 한 줄 질문 — 아래 안내 한 줄',
-		'find' => '/<p class="hint">짧게 적어주실수록 더 깊이 답해드릴 수 있어요\. 적지 않으셔도 괜찮아요\.<\/p>/u',
-		'to'   => "<p class=\"hint\">이 한 줄은 책 마지막 편지에서 그대로 받아 답해드립니다. 비워두셔도 괜찮아요.</p>",
+		'name' => '③ 그 아래 안내를 한 줄로',
+		'find' => '/<p class="hint">짧게 적어주실수록.*?<\/p>/su',
+		'to'   => "<p class=\"hint\">이 한 줄은 책 마지막 편지에서 그대로 받아 답해드립니다. "
+		        . "비워두셔도 괜찮아요. <b>따로 값을 받지 않습니다.</b></p>",
 	);
 
 	$jobs[] = array(
-		'name' => '⑤ 견본 두 장을 연애운 한 장으로',
-		'find' => '/<div class="samples">.*?<\/a>\s*<\/div>/su',
-		'to'   => "<div class=\"samples one\">\n"
-		        . "          <a class=\"sample\" href=\"/reading-love/\">\n"
-		        . "            <div class=\"sample-k\">Sample</div>\n"
-		        . "            <div class=\"sample-t\">연애운 전자책 미리보기</div>\n"
-		        . "            <div class=\"sample-d\">실제로 발행되는 책을 그대로 보실 수 있어요 &rarr;</div>\n"
-		        . "          </a>\n"
-		        . "        </div>",
+		'name' => '④ 견본 두 장을 연애운 한 장으로',
+		'find' => '/<div class="samples"[^>]*>.*?<\/a>\s*<\/div>/su',
+		'to'   => "<div class=\"samples one\" style=\"margin-bottom:18px;\">"
+		        . "<a class=\"sample\" href=\"/reading-love/\">"
+		        . "<div class=\"sample-k\">Sample &middot; 정보 입력 전 미리 보기</div>"
+		        . "<div class=\"sample-t\">완성본 미리보기 &middot; 정환</div>"
+		        . "<div class=\"sample-d\">실제로 발행되는 책을 그대로 보실 수 있어요 &rarr;</div>"
+		        . "</a></div>",
+	);
+
+	$jobs[] = array(
+		'name' => '⑤ 단추를 「벼리에게 물어보기」로',
+		'find' => '/연성의 신에게 물어보기/u',
+		'to'   => "벼리에게 물어보기",
 	);
 
 	$jobs[] = array(
@@ -121,7 +122,7 @@ add_action( 'template_redirect', function () {
 		        . "#ssg .g-cols{ grid-template-columns:1fr !important; max-width:760px; margin:0 auto; }\n"
 		        . "#ssg .memo{ display:none !important; }\n"
 		        . "#ssg .samples.one{ grid-template-columns:1fr !important; }\n"
-		        . "</style>\n<div id=\"ssg\"",
+		        . "</style><div id=\"ssg\"",
 	);
 
 	$apply = ( 'apply' === $mode );
