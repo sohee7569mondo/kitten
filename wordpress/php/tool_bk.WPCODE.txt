@@ -1,0 +1,185 @@
+/* ════════════════════════════════════════════════════════════
+   책과 아르카나를 자로 재는 도구 · 소희 님께
+
+   두 가지를 짐작 없이 알아냅니다.
+
+   ① 장 속표지가 정말 안 커졌나
+        책을 열면 아래에 작은 상자가 뜨고 이렇게 적힙니다 —
+          새 규칙 있음 / 없음
+          장 속표지 7장 · 높이 321 321 321 …
+          화면 높이 880
+        「새 규칙 없음」이면 캐시입니다.
+        「있음」인데 높이가 작으면 다른 규칙이 이기고 있는 겁니다.
+        그때는 무엇이 이기고 있는지도 같이 적힙니다.
+
+        여는 법 — 책 주소 뒤에 붙이세요
+        https://stellasaju.com/reading-book/?demo=door-health&stella_bk=1
+
+   ② 아르카나(172)에 겉모습 덩어리가 몇 개이고 무슨 표가 붙어 있나
+        흰 바탕 덩어리를 못 찾은 이유를 여기서 알 수 있습니다.
+
+        https://stellasaju.com/?stella_styles=172
+
+   ★ 둘 다 아무것도 고치지 않습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 → 저장 → 활성
+   ════════════════════════════════════════════════════════════ */
+
+/* ── ② 어떤 쪽의 겉모습 덩어리들을 훑어봅니다 ── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_styles'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$pid = (int) $_GET['stella_styles'];
+	if ( $pid < 1 ) { $pid = 172; }
+
+	$safe = function ( $s ) {
+		if ( function_exists( 'mb_convert_encoding' ) ) {
+			$s = mb_convert_encoding( $s, 'UTF-8', 'UTF-8' );
+		}
+		return esc_html( $s );
+	};
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.7 -apple-system,system-ui,sans-serif;'
+		. 'background:#111;color:#eee;padding:24px;max-width:1000px">';
+	printf( '<h1 style="color:#ffd76a">%d 쪽의 겉모습 덩어리</h1>', $pid );
+	echo '<p style="color:#ff9b9b">브라우저 번역을 꺼주세요.</p>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<p style="color:#ff7b7b">못 읽었습니다.</p></body>'; exit; }
+
+	$c = $row->post_content;
+	printf( '<p>%s · %s 글자</p>', esc_html( $row->post_title ), number_format( strlen( $c ) ) );
+
+	$off = 0;
+	$i   = 0;
+	while ( ( $s1 = strpos( $c, '<style', $off ) ) !== false ) {
+		$s2 = strpos( $c, '>', $s1 );
+		$s3 = strpos( $c, '</style>', $s2 );
+		if ( false === $s2 ) { break; }
+		if ( false === $s3 ) { break; }
+		$i++;
+		$body = substr( $c, $s2 + 1, $s3 - $s2 - 1 );
+		$head = substr( ltrim( $body ), 0, 260 );
+		printf(
+			'<p style="margin:16px 0 4px;color:#ffd76a">덩어리 %d · %s 글자 · 시작 %d</p>'
+			. '<pre style="white-space:pre-wrap;background:#000;padding:10px;'
+			. 'border-left:3px solid #ffd76a;font:12px/1.5 monospace">%s</pre>',
+			$i, number_format( strlen( $body ) ), $s1, $safe( $head )
+		);
+		$off = $s3 + 8;
+	}
+	printf( '<p style="color:#9fd">모두 <b>%d</b> 덩어리.</p>', $i );
+
+	echo '<h2 style="color:#9fd">찾는 말이 있나</h2><table cellpadding="7" style="border-collapse:collapse">';
+	$words = array(
+		'2026-09-08 · 문을 흰 바탕으로',
+		'2026-09-08 · 남은 쪽을 흰 바탕으로',
+		'흰 바탕으로',
+		'--void:#F1EDE3',
+		'밤하늘 별은 흰 바탕에서',
+	);
+	foreach ( $words as $w ) {
+		$n = substr_count( $c, $w );
+		printf(
+			'<tr style="border-top:1px solid #333"><td><code>%s</code></td>'
+			. '<td style="color:%s"><b>%d</b></td></tr>',
+			esc_html( $w ), $n ? '#7bff9b' : '#888', $n
+		);
+	}
+	echo '</table>';
+	echo '<h2 style="color:#7bff9b">끝났습니다. 아무것도 바뀌지 않았습니다.</h2></body>';
+	exit;
+}, 0 );
+
+
+/* ── ① 책 안에서 장 속표지를 재봅니다 ── */
+add_action( 'wp_footer', function () {
+
+	if ( ! isset( $_GET['stella_bk'] ) ) { return; }
+	if ( ! is_user_logged_in() ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	?>
+<style id="stella-bk-css">
+#stellaBk{position:fixed; left:8px; right:8px; bottom:8px; z-index:999999;
+  background:#101018; color:#e9e6ff; border:2px solid #ffd76a; border-radius:10px;
+  padding:12px 14px; font:12px/1.6 ui-monospace,Menlo,Consolas,monospace;
+  max-height:56vh; overflow:auto; white-space:pre-wrap;
+  -webkit-user-select:all; user-select:all;}
+#stellaBk.big{font-size:15px; line-height:1.8;}
+</style>
+<script id="stella-bk-js">
+(function(){
+  var tries = 0;
+
+  function look(){
+    var box = document.getElementById('ssb');
+    if(!box){ return false; }
+    var dv = box.querySelectorAll('.page.divider');
+    if(dv.length < 1){ return false; }
+
+    var out = [];
+    out.push('화면 높이 ' + window.innerHeight + ' · 폭 ' + window.innerWidth);
+
+    /* 새 규칙이 문서에 들어와 있나 */
+    var found = 0;
+    var st = document.querySelectorAll('style');
+    var i;
+    for(i = 0; i < st.length; i++){
+      if(st[i].textContent.indexOf('min-height:82vh') >= 0){ found = found + 1; }
+    }
+    out.push('새 규칙(min-height:82vh) ' + (found ? ('있음 ' + found + '군데') : '없음 ← 캐시입니다'));
+
+    out.push('');
+    out.push('장 속표지 ' + dv.length + '장');
+    var n = dv.length;
+    if(n > 8){ n = 8; }
+    for(i = 0; i < n; i++){
+      var cs = getComputedStyle(dv[i]);
+      out.push('  ' + (i + 1) + '  높이 ' + Math.round(dv[i].getBoundingClientRect().height) +
+               '  min-height ' + cs.minHeight +
+               '  display ' + cs.display);
+    }
+
+    out.push('');
+    out.push('첫 쪽(표지)');
+    var cover = box.querySelector('.page.cover');
+    if(!cover){ cover = box.querySelector('.page'); }
+    if(cover){
+      out.push('  class ' + (cover.className || '-'));
+      out.push('  높이 ' + Math.round(cover.getBoundingClientRect().height));
+      var h1 = cover.querySelector('h1');
+      out.push('  h1 ' + (h1 ? h1.textContent.trim().slice(0, 40) : '없음'));
+      out.push('  그림 ' + cover.querySelectorAll('img').length + '장');
+    } else {
+      out.push('  못 찾았습니다');
+    }
+
+    out.push('');
+    out.push('차례 쪽 ' + (document.getElementById('ssTocPage') ? '있음' : '없음'));
+    out.push('목차 단추 ' + (document.getElementById('bkTocBtn') ? '있음' : '없음'));
+    out.push('전체 쪽 ' + box.querySelectorAll('.page').length + '장');
+
+    var el = document.createElement('div');
+    el.id = 'stellaBk';
+    el.textContent = out.join('\n');
+    el.addEventListener('click', function(){ el.classList.toggle('big'); });
+    document.body.appendChild(el);
+    return true;
+  }
+
+  var t = setInterval(function(){
+    tries = tries + 1;
+    if(look()){ clearInterval(t); return; }
+    if(tries > 60){ clearInterval(t); }
+  }, 400);
+})();
+</script>
+	<?php
+}, 99 );
