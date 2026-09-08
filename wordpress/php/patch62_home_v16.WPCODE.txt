@@ -71,7 +71,7 @@ add_action( 'template_redirect', function () {
 	$new = <<<'HTML'
 <!-- wp:html -->
 <!--
-  STELLA SAJU — 홈 (/)   BUILD: v16   2026-09-08
+  STELLA SAJU — 홈 (/)   BUILD: v16b  2026-09-08
 
   ┌─────────────────────────────────────────────────────────────────┐
   │  문구를 고치고 싶으실 때                                        │
@@ -262,7 +262,15 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .ferr{margin-top:10px; font-size:.83rem; color:#C4453A; display:none;}
 #stellar-home .ferr.on{display:block;}
 #stellar-home .fnote{margin-top:13px; font-size:.78rem; color:var(--ink-dim); text-align:center; line-height:1.7;}
-#stellar-home .formsec.hide{display:none;}
+
+/* 2026-09-08 · 폼은 접어둡니다. 첫 화면은 배너 한 장으로.
+   단추를 누르면 그때 펼쳐집니다.
+   ★ 자바스크립트가 안 도는 분에게는 그냥 펼쳐진 채로 둡니다 —
+     접어놓고 못 펴면 아무것도 못 하시니까요. */
+#stellar-home.js-on .formsec{display:none;}
+#stellar-home.js-on .formsec.open{display:block; animation:sh-open .45s ease;}
+@keyframes sh-open{ from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:none;} }
+@media(prefers-reduced-motion:reduce){ #stellar-home.js-on .formsec.open{animation:none;} }
 
 /* ══ 옆으로 미는 카드 (레일) ═══════════════════════════════ */
 #stellar-home .rail{
@@ -276,12 +284,12 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 @media(max-width:700px){
   #stellar-home .rail{padding:4px 20px 8px; margin:0 -20px; scroll-padding-left:20px; gap:12px;}
 }
+/* 2026-09-08 · 「그 밖에」 넷도 위 카드와 같은 크기입니다.
+   스텔라사주보기 안에서는 열여섯 장이 다 같은 크기여야 한 묶음으로 보입니다. */
 #stellar-home .rail.w-ask  > *{width:268px;}
-#stellar-home .rail.w-door > *{width:212px;}
 #stellar-home .rail.w-free > *{width:236px;}
 @media(max-width:700px){
   #stellar-home .rail.w-ask  > *{width:230px;}
-  #stellar-home .rail.w-door > *{width:174px;}
   #stellar-home .rail.w-free > *{width:188px;}
 }
 #stellar-home .railbar{
@@ -351,14 +359,14 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   background:var(--card); box-shadow:var(--shadow); display:block;
   transition:transform .35s ease, box-shadow .35s ease;}
 #stellar-home a.door-card:hover{transform:translateY(-6px); box-shadow:var(--shadow-up);}
-#stellar-home .door-card .imgwrap{position:relative; aspect-ratio:3/4; overflow:hidden; background:var(--paper-2);}
+#stellar-home .door-card .imgwrap{position:relative; aspect-ratio:2/3; overflow:hidden; background:var(--paper-2);}
 #stellar-home .door-card img{position:absolute; inset:0; z-index:2; width:100%; height:100%;
   object-fit:cover; object-position:center 12%;}
 #stellar-home .door-card .imgwrap::after{content:''; position:absolute; inset:0; z-index:3;
   background:linear-gradient(to top, rgba(16,11,34,.94) 2%, rgba(16,11,34,.2) 58%, transparent 82%);}
-#stellar-home .door-card .info{position:absolute; left:0; right:0; bottom:0; padding:13px 12px; z-index:4; color:#FFFDF9;}
-#stellar-home .door-card .titlekr{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1rem;}
-#stellar-home .door-card .topics{margin-top:6px; font-size:.72rem; color:var(--gold-lite);}
+#stellar-home .door-card .info{position:absolute; left:0; right:0; bottom:0; padding:18px 15px 16px; z-index:4; color:#FFFDF9;}
+#stellar-home .door-card .titlekr{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.14rem;}
+#stellar-home .door-card .topics{margin-top:8px; font-size:.75rem; color:var(--gold-lite);}
 
 /* ══ 무료로 보는 것 ════════════════════════════════════════ */
 #stellar-home .freesec{background:var(--paper-2); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
@@ -420,7 +428,7 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
           <p class="bsub">태어난 날과 시간을 넣으시면 여덟 글자를 펴서 보여드립니다.
             가입하지 않으셔도 됩니다.</p>
 
-          <a class="bgo" href="#formsec">무료로 내 사주 펴보기</a>
+          <a class="bgo" href="#formsec" id="bOpen">무료로 내 사주 펴보기</a>
           <a class="bthin" href="#saju">스텔라사주보기 &rsaquo;</a>
         </div>
 
@@ -659,25 +667,25 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
         </div>
       </div>
 
-      <div class="rail w-door reveal" data-rail="1">
+      <div class="rail w-ask reveal" data-rail="1">
         <a class="door-card" href="/door-health/">
-          <div class="imgwrap"><img loading="lazy" decoding="async" width="480" height="640" alt="건강 · 가족"
-            src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoornurturer.webp?resize=480%2C640"></div>
-          <div class="info"><div class="titlekr">건강 · 가족</div><div class="topics">몸 · 체질 · 집안</div></div>
+          <div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="960" alt="건강 · 가족"
+            src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoornurturer.webp?resize=640%2C960"></div>
+          <div class="info"><div class="titlekr">건강 · 가족</div><div class="topics">건강 · 체질 · 가족사주</div></div>
         </a>
         <a class="door-card" href="/door-fortune/">
-          <div class="imgwrap"><img loading="lazy" decoding="async" width="480" height="640" alt="흐름 · 시기"
-            src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorseasons.webp?resize=480%2C640"></div>
+          <div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="960" alt="흐름 · 시기"
+            src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorseasons.webp?resize=640%2C960"></div>
           <div class="info"><div class="titlekr">흐름 · 시기</div><div class="topics">대운 · 평생 흐름 · 신년운세</div></div>
         </a>
         <a class="door-card" href="/door-astro/">
-          <div class="imgwrap"><img loading="lazy" decoding="async" width="480" height="640" alt="점성술"
-            src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorastraios.webp?resize=480%2C640"></div>
-          <div class="info"><div class="titlekr">점성술</div><div class="topics">태양 · 달 · 상승궁</div></div>
+          <div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="960" alt="점성술"
+            src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorastraios.webp?resize=640%2C960"></div>
+          <div class="info"><div class="titlekr">점성술</div><div class="topics">연애운 · 직업운 · 건강운 · 올해운</div></div>
         </a>
         <a class="door-card" href="/door-tarot/">
-          <div class="imgwrap"><img loading="lazy" decoding="async" width="480" height="640" alt="스텔라타로"
-            src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorarcana.webp?resize=480%2C640"></div>
+          <div class="imgwrap"><img loading="lazy" decoding="async" width="640" height="960" alt="스텔라타로"
+            src="https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/08/stellardoorarcana.webp?resize=640%2C960"></div>
           <div class="info"><div class="titlekr">스텔라타로</div><div class="topics">카드 세 장으로 보기</div></div>
         </a>
       </div>
@@ -754,7 +762,7 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
     <div class="sub">같은 글인데 두 번째에 다르게 읽힙니다.</div>
   </section>
 
-  <div class="build-stamp">BUILD v16 &middot; 2026-09-08</div>
+  <div class="build-stamp">BUILD v16b &middot; 2026-09-08</div>
 </div>
 <script>
 (function(){
@@ -978,8 +986,16 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 
     $h('bNew').classList.remove('on');
     $h('bBack').classList.add('on');
+  }
+
+  /* 폼 펼치기 — 배너 단추와 「정보 고치기」가 같이 씁니다 */
+  function openForm(){
     var fs = document.getElementById('formsec');
-    if(fs){ fs.classList.add('hide'); }
+    if(!fs){ return; }
+    fs.classList.add('open');
+    setTimeout(function(){
+      fs.scrollIntoView({ behavior:'smooth', block:'start' });
+    }, 40);
   }
 
   /* ══ 폼 ═══════════════════════════════════════════════════
@@ -1070,16 +1086,18 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
       }
     }
 
+    $h('bOpen').addEventListener('click', function(ev){
+      ev.preventDefault();
+      openForm();
+      setTimeout(function(){ nameIn.focus(); }, 520);
+    });
+
     $h('bEdit').addEventListener('click', function(ev){
       ev.preventDefault();
       var box = readBox();
       if(box){ fillForm(box.profile); }
-      var fs = document.getElementById('formsec');
-      if(fs){
-        fs.classList.remove('hide');
-        fs.scrollIntoView({ behavior:'smooth', block:'start' });
-      }
-      nameIn.focus();
+      openForm();
+      setTimeout(function(){ nameIn.focus(); }, 520);
     });
 
     var err = $h('hErr');
