@@ -11,13 +11,13 @@
 
    쓰는 법 — 찾을 말을 주소 뒤에 붙이세요.
 
-     https://stellasaju.com/?stella_find=수비학
-     https://stellasaju.com/?stella_find=라이프패스
-     https://stellasaju.com/?stella_find=명성의 신
+     https://stellasaju.com/?stella_look=수비학
+     https://stellasaju.com/?stella_look=라이프패스
+     https://stellasaju.com/?stella_look=명성의 신
 
    여러 말을 한 번에 보시려면 세로줄로 나눠 적으세요.
 
-     https://stellasaju.com/?stella_find=수비학|라이프패스
+     https://stellasaju.com/?stella_look=수비학|라이프패스
 
    ★ 이 스니펫은 켜두셔도 안전합니다. 읽기만 하고,
      관리자로 들어오신 분에게만 보입니다.
@@ -28,12 +28,12 @@
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_find'] ) ) { return; }
+	if ( ! isset( $_GET['stella_look'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
 
-	$raw = wp_unslash( $_GET['stella_find'] );
+	$raw = wp_unslash( $_GET['stella_look'] );
 	$raw = wp_strip_all_tags( $raw );
 	$words = array();
 	foreach ( explode( '|', $raw ) as $w ) {
@@ -54,7 +54,7 @@ add_action( 'template_redirect', function () {
 
 	if ( ! $words ) {
 		echo '<h1>찾을 말을 적어주세요</h1>';
-		echo '<p>예 : <code>/?stella_find=수비학</code></p>';
+		echo '<p>예 : <code>/?stella_look=수비학</code></p>';
 		exit;
 	}
 

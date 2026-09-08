@@ -3,6 +3,25 @@
 import io, re, sys, subprocess, os
 S='/tmp/claude-0/-home-user-kitten/c2a43b1d-0c4f-566e-ae2a-79f351d35055/scratchpad/'
 PH='/home/user/kitten/wordpress/php/'
+# ══ 2026-09-08 · 이 되살리기는 이제 믿으면 안 됩니다 ══════════════
+# 사이트에서 「어느 쪽에 무엇이 들어갔나」(?stella_state=1)를 읽어보니
+# 160 번 쪽에 자국이 서른한 개 있습니다 —
+#   amp ask body box break byline dbg div ev fortune fortune2 gap2
+#   head health lens lock love money name paper rope sip span3 split
+#   sum tail taste tiny topics2 twice voice
+# 아래 ORDER 에는 열일곱 개만 있습니다. 빠진 것 열넷 —
+#   body(patch160_body20) break(sentence_break) fortune fortune2
+#   health(health_topics) lens(lens_career) lock love(love_topics)
+#   money(money_topics) rope(rope4) span3(life_span3)
+#   topics2(career_rest2) tiny dbg(파일 없음)
+# 그래서 되살린 크기 1,193,838 과 사이트의 1,211,058 이 17,220 만큼
+# 다릅니다. 넣은 차례도 모릅니다.
+#
+# ★ 앞으로 160 번 쪽에 패치를 만들 때는 이걸로 자리를 잡지 마세요.
+#   사이트에서 곧장 읽는 ?stella_look= 로 진짜 글을 보고 잡으세요.
+#   (wordpress/php/patch_find.WPCODE.txt)
+# ═══════════════════════════════════════════════════════════════
+
 ORDER=['patch160_tail','patch160_split','patch160_amp','patch160_divider','patch160_name','patch160_paper','patch160_say',
        'patch160_byline','patch160_taste','patch160_evidence',
        'patch160_box','patch160_voice','patch160_ask',

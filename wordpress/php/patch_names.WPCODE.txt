@@ -39,20 +39,20 @@
    붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
    ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
 
-   ① 먼저 보기   https://stellasaju.com/?stella_name=1
-   ② 정말 바꾸기 https://stellasaju.com/?stella_name=apply
-   ③ 되돌리기    https://stellasaju.com/?stella_name=undo
+   ① 먼저 보기   https://stellasaju.com/?stella_guardian=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_guardian=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_guardian=undo
    ════════════════════════════════════════════════════════════ */
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_name'] ) ) { return; }
+	if ( ! isset( $_GET['stella_guardian'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
 
-	$META = '_stella_name_backup';
-	$mode = sanitize_key( wp_unslash( $_GET['stella_name'] ) );
+	$META = '_stella_guardian_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_guardian'] ) );
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
@@ -194,10 +194,10 @@ add_action( 'template_redirect', function () {
 	   . ' &middot; ' . intval( $skip ) . '쪽 건너뜀 &middot; '
 	   . intval( $quiet ) . '쪽은 칭호가 없습니다</p>';
 	if ( ! $apply ) {
-		echo '<p>정말 바꾸시려면 <code>/?stella_name=apply</code> 를 여세요.</p>';
+		echo '<p>정말 바꾸시려면 <code>/?stella_guardian=apply</code> 를 여세요.</p>';
 	} else {
 		echo '<p><a href="/door-career/">일 문 열어보기</a> &middot; <a href="/mypage/">내 자리</a></p>';
-		echo '<p class="ok">되돌리시려면 <code>/?stella_name=undo</code> 를 여세요.</p>';
+		echo '<p class="ok">되돌리시려면 <code>/?stella_guardian=undo</code> 를 여세요.</p>';
 	}
 	exit;
 }, 0 );

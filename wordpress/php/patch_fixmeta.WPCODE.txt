@@ -1,0 +1,102 @@
+/* ════════════════════════════════════════════════════════════
+   자국 이름이 겹쳤습니다 — 고칩니다   ★ 2026-09-08   ※ 급합니다
+
+   ── 무슨 일이 있었나 ───────────────────────────
+   오늘 넣은 「가디언 이름 넷」 패치가 되돌리기용 자국을
+   `_stella_name_backup` 이라는 이름으로 남겼습니다.
+   그런데 8월에 넣으신 patch160_name 이 **똑같은 이름**을
+   이미 쓰고 있었습니다.
+
+   ── 왜 급한가 ──────────────────────────────────
+   지금 `/?stella_name=undo` 를 열면 —
+
+     · 다른 스물넷 쪽은 이름 바꾸기 전으로 (여기까진 뜻대로)
+     · 그런데 「나의 전자책」(160)은 **8월의 patch160_name 이
+       남긴 자국**으로 돌아갑니다. 그 뒤에 넣으신 서른 개
+       패치가 통째로 사라집니다.
+
+   ★ 이 스니펫을 넣기 전에는 `/?stella_name=undo` 를 절대
+     열지 마세요.
+
+   ── 하는 일 ────────────────────────────────────
+   160번 쪽은 건드리지 않고, 나머지 쪽의 자국 이름만
+   `_stella_name_backup` → `_stella_guardian_backup` 으로
+   옮깁니다. 글은 한 글자도 안 건드립니다.
+
+   옮기고 나면 —
+     `/?stella_name=undo`      patch160_name 것만 (원래 주인)
+     `/?stella_guardian=undo`  가디언 이름 넷 되돌리기
+
+   ★ 옮긴 뒤에는 「가디언 이름 넷」 스니펫도 새 판으로
+     갈아끼워 주세요. 열쇠말이 stella_guardian 으로 바뀝니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_fixmeta=1
+   ② 정말 옮기기 https://stellasaju.com/?stella_fixmeta=apply
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_fixmeta'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$OLD  = '_stella_name_backup';
+	$NEW  = '_stella_guardian_backup';
+	$KEEP = 160;   /* 이 쪽의 자국은 patch160_name 것입니다 */
+
+	$mode = sanitize_key( wp_unslash( $_GET['stella_fixmeta'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:880px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '옮겼습니다' : '옮기면 이렇게 됩니다 (아직 안 옮겼습니다)' ) . '</h1>';
+
+	$ids = $wpdb->get_col( $wpdb->prepare(
+		"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s ORDER BY post_id", $OLD ) );
+
+	if ( ! $ids ) {
+		echo '<p class="no">옮길 자국이 없습니다. 이미 옮기셨거나 아직 안 넣으신 것입니다.</p>';
+		exit;
+	}
+
+	$move = 0; $keep = 0;
+
+	foreach ( $ids as $id ) {
+		$title = get_the_title( $id );
+		if ( (int) $id === $KEEP ) {
+			echo '<p class="dim">' . esc_html( $title ) . ' (' . intval( $id )
+			   . ') — <b>그대로 둡니다.</b> patch160_name 의 자국입니다.</p>';
+			$keep++; continue;
+		}
+		echo '<p class="ok">' . esc_html( $title ) . ' (' . intval( $id ) . ') — 옮깁니다.</p>';
+		$move++;
+		if ( ! $apply ) { continue; }
+		$wpdb->update( $wpdb->postmeta,
+			array( 'meta_key' => $NEW ),
+			array( 'post_id' => $id, 'meta_key' => $OLD ) );
+	}
+
+	if ( $apply ) { wp_cache_flush(); }
+
+	echo '<h2>정리</h2>';
+	echo '<p>' . intval( $move ) . '쪽 ' . ( $apply ? '옮겼습니다' : '옮깁니다' )
+	   . ' &middot; ' . intval( $keep ) . '쪽 그대로</p>';
+	if ( ! $apply ) {
+		echo '<p>정말 옮기시려면 <code>/?stella_fixmeta=apply</code> 를 여세요.</p>';
+	} else {
+		echo '<p class="ok">이제 <code>/?stella_name=undo</code> 는 patch160_name 것만 되돌립니다.<br>'
+		   . '가디언 이름 넷은 <code>/?stella_guardian=undo</code> 로 되돌립니다 — '
+		   . '새 판 스니펫을 넣으신 뒤에요.</p>';
+	}
+	exit;
+}, 0 );
