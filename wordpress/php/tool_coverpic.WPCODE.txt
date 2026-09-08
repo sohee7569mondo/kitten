@@ -5,8 +5,12 @@
    그림이 한 장도 없습니다.
 
    이 화면에서 주제마다 사진을 고르면, 그 주제로 나온 책의
-   표지에 그 사진이 깔립니다. 글자는 사진 위에 그대로 얹히고,
-   읽히도록 옅은 막을 한 겹 씌웁니다.
+   표지에 아치 창이 하나 생기고 그 안에 사진이 들어갑니다.
+   글자는 사진 위가 아니라 깨끗한 종이 위에 그대로 남습니다.
+
+   ★ 사진을 아치 모양으로 미리 오려두실 필요 없습니다.
+     네모 사진을 넣으셔도 화면에서 아치로 오려 보여줍니다.
+     세로로 긴 사진(3:4쯤)이 제일 잘 맞습니다.
 
    ★ 파일 이름은 아무래도 됩니다. 목록에서 고르는 방식입니다.
    ★ 저장하면 그 자리에서 책에 들어갑니다. 패치를 따로 안 넣으셔도 됩니다.
@@ -118,14 +122,16 @@ add_action( 'template_redirect', function () {
 
 			$block  = "\n<!-- " . $MARK . " -->\n";
 			$block .= "<style>\n";
-			$block .= "#ssb .page.cover.haspic{position:relative; overflow:hidden;\n";
-			$block .= "  min-height:74vh; background-size:cover; background-position:center;\n";
-			$block .= "  display:flex; flex-direction:column; justify-content:center;}\n";
-			$block .= "#ssb .page.cover.haspic:before{content:''; position:absolute; inset:0;\n";
-			$block .= "  background:linear-gradient(180deg, rgba(247,243,235,.90) 0%,\n";
-			$block .= "    rgba(247,243,235,.74) 42%, rgba(247,243,235,.95) 100%);}\n";
-			$block .= "#ssb .page.cover.haspic > *{position:relative; z-index:1;}\n";
-			$block .= "@media print{#ssb .page.cover.haspic{min-height:auto;}}\n";
+			$block .= "/* 표지 아치 창 — 사진은 창 안에, 글자는 종이 위에 */\n";
+			$block .= "#ssb .page.cover .coverpic{\n";
+			$block .= "  width:min(62%, 268px); margin:4px auto 26px;\n";
+			$block .= "  aspect-ratio:3/4; overflow:hidden;\n";
+			$block .= "  border-radius:50% 50% 12px 12px / 40% 40% 5px 5px;\n";
+			$block .= "  box-shadow:0 12px 34px -20px rgba(40,32,20,.6);}\n";
+			$block .= "#ssb .page.cover .coverpic img{\n";
+			$block .= "  width:100%; height:100%; object-fit:cover; display:block;}\n";
+			$block .= "@media (max-width:420px){\n";
+			$block .= "  #ssb .page.cover .coverpic{width:min(70%, 230px); margin-bottom:20px;}}\n";
 			$block .= "</style>\n";
 			$block .= "<script>\n";
 			$block .= "/* 표지 주제 사진 — 이 안에 홑 앰퍼샌드를 쓰지 않습니다 */\n";
@@ -137,7 +143,7 @@ add_action( 'template_redirect', function () {
 			$block .= "    if(!box){ return false; }\n";
 			$block .= "    var cv = box.querySelector('.page.cover');\n";
 			$block .= "    if(!cv){ return false; }\n";
-			$block .= "    if(cv.classList.contains('haspic')){ return true; }\n";
+			$block .= "    if(cv.querySelector('.coverpic')){ return true; }\n";
 			$block .= "    var h1 = cv.querySelector('h1');\n";
 			$block .= "    if(!h1){ return false; }\n";
 			$block .= "    var t = h1.textContent.replace(/\\s+/g, '');\n";
@@ -149,8 +155,16 @@ add_action( 'template_redirect', function () {
 			$block .= "      k  = keys[i];\n";
 			$block .= "      kk = k.replace(/\\s+/g, '');\n";
 			$block .= "      if(t.slice(-kk.length) === kk){\n";
-			$block .= "        cv.style.backgroundImage = 'url(' + map[k] + ')';\n";
-			$block .= "        cv.classList.add('haspic');\n";
+			$block .= "        var wrap = document.createElement('div');\n";
+			$block .= "        wrap.className = 'coverpic';\n";
+			$block .= "        var im = document.createElement('img');\n";
+			$block .= "        im.src = map[k];\n";
+			$block .= "        im.alt = k;\n";
+			$block .= "        im.loading = 'lazy';\n";
+			$block .= "        wrap.appendChild(im);\n";
+			$block .= "        var mk = cv.querySelector('.mark');\n";
+			$block .= "        if(mk){ mk.parentNode.insertBefore(wrap, mk.nextSibling); }\n";
+			$block .= "        else { cv.insertBefore(wrap, cv.firstChild); }\n";
 			$block .= "        return true;\n";
 			$block .= "      }\n";
 			$block .= "    }\n";
@@ -202,8 +216,11 @@ add_action( 'template_redirect', function () {
 		. 'padding:14px 30px;font:inherit;font-weight:700;cursor:pointer}'
 		. '.ok{color:#9AD1A5}a{color:#D4AF6A}</style>';
 	echo '<body><h1>책 표지에 넣을 주제 사진</h1>';
-	echo '<p class="dim">주제마다 사진을 고르면 그 주제로 나온 책 표지에 깔립니다. '
-		. '글자는 사진 위에 얹히고, 읽히도록 옅은 막을 한 겹 씌웁니다. '
+	echo '<p class="dim">주제마다 사진을 고르면 그 주제로 나온 책 표지에 '
+		. '<b>아치 창</b>이 하나 생기고 그 안에 사진이 들어갑니다. '
+		. '글자는 사진 위가 아니라 깨끗한 종이 위에 그대로 남습니다.<br>'
+		. '아치 모양으로 미리 오려두실 필요 없습니다 — 네모 사진도 화면에서 아치로 오립니다. '
+		. '세로로 긴 사진(3:4쯤)이 제일 잘 맞습니다. '
 		. '안 고른 주제는 지금처럼 글자만 나옵니다.</p>';
 
 	if ( $saved ) {
