@@ -1,0 +1,271 @@
+/* ════════════════════════════════════════════════════════════
+   남은 쪽 열다섯을 흰 바탕으로   ★ 2026-09-08
+
+   문 여섯 · 무료 여덟에 이어 나머지입니다.
+   앞의 색표를 지우지 않고 뒤에서 덮어씁니다.
+
+   ── 바꾸는 쪽 ──────────────────────────────────
+     내 자리        /mypage/        가격 안내   /price/
+     로그인         /login/         결제        /pay/
+     나의 사주와 별자리 /guide/      소개        /about/
+     문의           /contact/       스타 사주   /star-saju/
+     내 띠와 오행   /tti/           유앤미      /uandme/
+     자료를 다 세웠습니다 /reading-ready/
+     가디언이 묻습니다   /reading-start/
+     이용약관 /terms/  개인정보 /privacy/  환불 /refund/
+
+   ── 아직 안 건드리는 쪽 ────────────────────────
+     책 쪽 일곱 (/reading-book/ 과 견본 책들)
+     /tarot/
+   짜임이 아주 달라서 따로 봐야 합니다.
+
+   ── 어떻게 되나 ────────────────────────────────
+   이 쪽들도 색을 거의 다 색표(--void · --nebula)로 쓰고 있습니다.
+   색표를 든 상자 이름을 글에서 찾아내(#ssm · #ssl · #ssi …)
+   그 이름으로 종이빛을 덮습니다.
+
+   ★ 색표가 없는 쪽은 「못 찾음 · 건너뜀」으로 나오고 아무것도
+     건드리지 않습니다. 그래서 먼저 보기(①)가 곧 정찰입니다.
+
+   ── 두 번째 판부터 ─────────────────────────────
+   이미 넣은 쪽은 앞서 넣은 덩이를 걷어내고 새로 넣습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_rest=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_rest=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_rest=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_rest'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_rest_backup';
+	$MARK = '2026-09-08 · 남은 쪽을 흰 바탕으로';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_rest'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$pages = array(
+		'mypage'         => '내 자리',
+		'login'          => '로그인',
+		'price'          => '가격 안내',
+		'pay'            => '결제',
+		'guide'          => '나의 사주와 별자리',
+		'about'          => '소개',
+		'contact'        => '문의',
+		'star-saju'      => '스타 사주',
+		'tti'            => '내 띠와 오행',
+		'uandme'         => '유앤미',
+		'reading-ready'  => '자료를 다 세웠습니다',
+		'reading-start'  => '가디언이 묻습니다',
+		'terms'          => '이용약관',
+		'privacy'        => '개인정보처리방침',
+		'refund'         => '환불 · 청약철회 안내',
+	);
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$back = 0;
+		foreach ( $pages as $slug => $nm ) {
+			$p = get_page_by_path( $slug );
+			if ( ! $p ) { continue; }
+			$old = get_post_meta( $p->ID, $META, true );
+			if ( ! $old ) { echo '<p class="no">' . esc_html( $nm ) . ' — 되돌릴 것이 없습니다.</p>'; continue; }
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $p->ID ) );
+			clean_post_cache( $p->ID );
+			delete_post_meta( $p->ID, $META );
+			echo '<p class="ok">' . esc_html( $nm ) . ' — 되돌렸습니다.</p>';
+			$back++;
+		}
+		echo '<h2>정리</h2><p>' . intval( $back ) . '쪽 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$done = 0; $skip = 0;
+
+	foreach ( $pages as $slug => $nm ) {
+
+		echo '<h2>' . esc_html( $slug ) . ' &middot; ' . esc_html( $nm ) . '</h2>';
+
+		$p = get_page_by_path( $slug );
+		if ( ! $p ) { echo '<p class="no">쪽을 못 찾았습니다. 건너뜁니다.</p>'; $skip++; continue; }
+
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+		if ( ! $row ) { echo '<p class="no">내용을 못 읽었습니다. 건너뜁니다.</p>'; $skip++; continue; }
+		$c = $row->post_content;
+
+		/* 앞서 넣은 덩이가 있으면 걷어냅니다 */
+		$again = false;
+		$ms = strpos( $c, '/* ══ ' . $MARK );
+		if ( false !== $ms ) {
+			$again  = true;
+			$bstart = $ms;
+			$hadtag = false;
+			$head   = substr( $c, max( 0, $ms - 16 ), $ms - max( 0, $ms - 16 ) );
+			if ( preg_match( '/<style>\s*$/u', $head, $hm ) ) {
+				$bstart = $ms - strlen( $hm[0] );
+				$hadtag = true;
+			}
+			$me = strpos( $c, '</style>', $ms );
+			if ( false === $me ) {
+				echo '<p class="no">앞서 넣은 덩이의 끝을 못 찾았습니다. 건너뜁니다.</p>';
+				$skip++; continue;
+			}
+			$bend = $hadtag ? ( $me + strlen( '</style>' ) ) : $me;
+			$c    = substr( $c, 0, $bstart ) . substr( $c, $bend );
+			if ( "\n" === substr( $c, $bstart, 1 ) ) {
+				$c = substr( $c, 0, $bstart ) . substr( $c, $bstart + 1 );
+			}
+		}
+
+		/* 감싸는 상자 이름 찾기 — 색표(--void)를 든 CSS 자리에서 찾습니다.
+		   글 안의 첫 상자를 찍으면 엉뚱한 것(#ssLock 같은 덮개)을
+		   집을 수 있어서, 색표를 든 이름을 곧장 읽습니다. */
+		$ID = '';
+		if ( preg_match( '/#([A-Za-z0-9_-]+)\s*\{[^}]*--void\s*:/us', $c, $mm ) ) {
+			$ID = $mm[1];
+		} elseif ( preg_match( '/<div id="(ss[A-Za-z0-9_-]*)"/u', $c, $mm ) ) {
+			$ID = $mm[1];
+		}
+		if ( '' === $ID ) {
+			$first = '(못 찾음)';
+			if ( preg_match( '/<div id="([A-Za-z0-9_-]+)"/u', $c, $mm ) ) { $first = $mm[1]; }
+			echo '<p class="no">색표를 든 상자를 못 찾았습니다. 이 쪽은 건드리지 않습니다. '
+			   . '(첫 상자 이름 : <b>' . esc_html( $first ) . '</b>)</p>';
+			$skip++; continue;
+		}
+
+		$where = '';
+		$at    = strpos( $c, '<div id="' . $ID . '"' );
+		if ( false !== $at ) {
+			$where = 'box';
+		} else {
+			$at = strrpos( $c, '</style>' );
+			if ( false !== $at ) { $where = 'style'; }
+		}
+		if ( '' === $where ) {
+			echo '<p class="no">붙일 자리를 못 찾았습니다. 건너뜁니다.</p>';
+			$skip++; continue;
+		}
+
+		$css = "<style>\n/* ══ " . $MARK . " ═══════════════════════════════\n"
+		     . "   앞의 색표를 지우지 않고 뒤에서 덮어씁니다. 되돌리기가 쉽습니다.\n"
+		     . "   문 여섯 · 무료 여덟과 같은 종이빛입니다. */\n"
+		     . "%%ID%%{\n"
+		     . "  --void:#F1EDE3; --void-deep:#FBF8F2;\n"
+		     . "  --nebula:#FFFFFF; --nebula-soft:#F7F3EA;\n"
+		     . "  --card:#FFFFFF; --card-hi:#FAF7F0;\n"
+		     . "  --lift:0 2px 4px -2px rgba(34,28,51,.10),\n"
+		     . "         0 12px 30px -16px rgba(34,28,51,.26);\n"
+		     . "  --purple-glow:rgba(107,79,176,.16); --lilac:#6B4FB0;\n"
+		     . "  --speak:#6B4FB0; --speak-lite:#8A6FD0;\n"
+		     . "  --gold:#A9791F; --gold-soft:#B98A47; --gold-lite:#8A6520;\n"
+		     . "  --star:#221C33;\n"
+		     . "  --ink-soft:#4E4763; --ink-dim:#8B849C;\n"
+		     . "  --line:#E2DACB;\n"
+		     . "  background:#F1EDE3 !important;\n"
+		     . "  color:var(--star);\n"
+		     . "}\n"
+		     . "/* 밤하늘 별은 흰 바탕에서 안 보입니다. 아주 옅은 결만 남깁니다. */\n"
+		     . "%%ID%% .q-stars, %%ID%% .g-stars, %%ID%% .ssp-stars, %%ID%% .sky{\n"
+		     . "  background:\n"
+		     . "    radial-gradient(58vw 44vw at 12% 2%, rgba(107,79,176,.05), transparent 62%),\n"
+		     . "    radial-gradient(52vw 40vw at 92% 24%, rgba(169,121,31,.05), transparent 60%),\n"
+		     . "    #F1EDE3 !important;}\n"
+		     . "/* 상자는 바닥보다 밝은 흰 종이. 테와 그림자를 또렷하게. */\n"
+		     . "%%ID%% .card, %%ID%% .last, %%ID%% .price, %%ID%% .why div,\n"
+		     . "%%ID%% .doors a, %%ID%% .pick, %%ID%% .one, %%ID%% .g-face,\n"
+		     . "%%ID%% .item{\n"
+		     . "  background:#FFFFFF !important; border:1px solid #E2DACB !important;\n"
+		     . "  color:var(--star) !important;\n"
+		     . "  box-shadow:0 2px 4px -2px rgba(34,28,51,.10),\n"
+		     . "             0 12px 30px -16px rgba(34,28,51,.26) !important;}\n"
+		     . "/* 카드 안의 작은 상자는 한 톤 낮춥니다. 흰 위에 흰이면 안 걸립니다. */\n"
+		     . "%%ID%% .pil, %%ID%% .calc div, %%ID%% .saved, %%ID%% .face{\n"
+		     . "  background:#FAF7F0 !important; border:1px solid #EAE2D2 !important;\n"
+		     . "  box-shadow:none !important;}\n"
+		     . "/* 넣는 칸 */\n"
+		     . "%%ID%% input, %%ID%% select, %%ID%% textarea{\n"
+		     . "  background:#FAF7F0 !important; color:var(--star) !important;\n"
+		     . "  border-color:#D5CCB8 !important;}\n"
+		     . "%%ID%% select option{ background:#FFFFFF !important; color:#221C33 !important; }\n"
+		     . "%%ID%% ::placeholder{ color:#B7B0C4 !important; }\n"
+		     . "/* 단추 — 금빛 바탕에 어두운 글자였습니다. 남색 바탕에 흰 글자로. */\n"
+		     . "%%ID%% .btn, %%ID%% .go, %%ID%% .join a, %%ID%% .cta a{\n"
+		     . "  color:#FFFDF9 !important;\n"
+		     . "  background:linear-gradient(120deg,#3A2E77,#241C4E) !important;\n"
+		     . "  box-shadow:0 16px 34px -16px rgba(36,28,78,.7) !important;}\n"
+		     . "/* 테만 있는 단추는 그대로 둡니다 */\n"
+		     . "%%ID%% .btn.ghost{\n"
+		     . "  background:none !important; color:var(--star) !important;\n"
+		     . "  border:1px solid #D5CCB8 !important; box-shadow:none !important;}\n"
+		     . "/* 번호 딱지 — 금빛 바탕에 밝은 글자라 안 보입니다 */\n"
+		     . "%%ID%% .num, %%ID%% .why .n, %%ID%% .step-no{ color:#FFFFFF !important; }\n"
+		     . "/* 막대의 홈 — 흰 바탕에서 사라집니다 */\n"
+		     . "%%ID%% .bar-t, %%ID%% .ebar, %%ID%% .track{\n"
+		     . "  background:rgba(34,28,51,.08) !important;}\n"
+		     . "/* 알림 글씨 — 어두운 바탕에서만 읽히던 색이었습니다 */\n"
+		     . "%%ID%% .say.ok{ background:#EDF7F0 !important; border-color:#BFE0C9 !important;\n"
+		     . "  color:#2F7D4A !important; }\n"
+		     . "%%ID%% .say.err, %%ID%% .again, %%ID%% .err{\n"
+		     . "  background:#FBEFEE !important; border-color:#EBC7C3 !important;\n"
+		     . "  color:#C4453A !important; }\n"
+		     . "%%ID%% .join{ background:#F3EFFA !important; border-color:#D9CFF2 !important; }\n"
+		     . "";
+
+		$css = str_replace( '%%ID%%', '#' . $ID, $css );
+		if ( 'box' === $where ) {
+			$ins = $css . "</style>\n";
+		} else {
+			$ins = substr( $css, strlen( '<style>' ) );
+		}
+
+		if ( ! $apply ) {
+			echo '<p class="ok">'
+			   . ( $again ? '앞서 넣은 것을 걷어내고 <b>새로 다시</b> 넣습니다. ' : '자리를 찾았습니다. ' )
+			   . '(상자 <b>' . esc_html( $ID ) . '</b> · '
+			   . ( 'box' === $where ? '상자 앞' : '색표 끝' ) . ')</p>';
+			$done++;
+			continue;
+		}
+
+		$new = substr( $c, 0, $at ) . $ins . substr( $c, $at );
+
+		if ( ! get_post_meta( $p->ID, $META, true ) ) {
+			update_post_meta( $p->ID, $META, $row->post_content );
+		}
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $p->ID ) );
+		clean_post_cache( $p->ID );
+
+		echo '<p class="ok">' . number_format( strlen( $row->post_content ) ) . ' → '
+		   . number_format( strlen( $new ) ) . ' 바이트</p>';
+		$done++;
+	}
+
+	echo '<h2>정리</h2>';
+	echo '<p>' . intval( $done ) . '쪽 ' . ( $apply ? '바꿨습니다' : '바꿀 수 있습니다' )
+	   . ' &middot; ' . intval( $skip ) . '쪽 건너뜀</p>';
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_rest=apply</code> 를 여세요.</p>';
+	} else {
+		echo '<p><a href="/mypage/">내 자리 열어보기</a> &middot; <a href="/guide/">나의 사주와 별자리</a></p>';
+		echo '<p class="ok">되돌리시려면 <code>/?stella_rest=undo</code> 를 여세요.</p>';
+	}
+	exit;
+}, 0 );
