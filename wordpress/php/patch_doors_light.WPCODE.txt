@@ -103,7 +103,11 @@ add_action( 'template_redirect', function () {
 			echo '<p class="no">이미 흰 바탕입니다. 건너뜁니다.</p>'; $skip++; continue;
 		}
 
-		$find = '/<\/style>\s*<div id="ssg"/u';
+		/* 2026-09-08 · 자리를 <div id="ssg"> 하나로 잡습니다.
+		   전에는 </style> 바로 뒤라고 봤는데, 타로 문은 그 사이에
+		   소개 블록이 끼어 있어서 못 찾았습니다. 이 자리는 어느 문에나
+		   딱 한 번 나오고, 바로 앞에 넣으면 앞의 색표를 덮습니다. */
+		$find = '/<div id="ssg"/u';
 		$n = preg_match_all( $find, $c );
 		if ( 1 !== $n ) {
 			echo '<p class="no">붙일 자리를 ' . intval( $n ) . '군데 찾았습니다. '
@@ -111,7 +115,7 @@ add_action( 'template_redirect', function () {
 			$skip++; continue;
 		}
 
-		$css = "\n/* ══ " . $MARK . " ═══════════════════════════════\n"
+		$css = "<style>\n/* ══ " . $MARK . " ═══════════════════════════════\n"
 		     . "   앞의 색표를 지우지 않고 뒤에서 덮어씁니다. 되돌리기가 쉽습니다.\n"
 		     . "   홈과 같은 종이빛을 씁니다. */\n"
 		     . "#ssg{\n"
@@ -164,7 +168,7 @@ add_action( 'template_redirect', function () {
 		     . "#ssg .pay-note, #ssg .gunghap-box, #ssg .g-greet, #ssg .g-method{\n"
 		     . "  background:#FAF6EE !important; border-color:#E7E1D6 !important; }\n"
 		     . "#ssg .pay-note b{ color:var(--gold) !important; }\n"
-		     . "</style><div id=\"ssg\"";
+		     . "</style>\n<div id=\"ssg\"";
 
 		if ( ! $apply ) {
 			echo '<p class="ok">한 군데 찾았습니다 — 빛깔 <b>' . esc_html( $accent )
