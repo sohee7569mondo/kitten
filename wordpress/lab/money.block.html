@@ -1,0 +1,601 @@
+<!--
+  한 달 머니 스타일 — 워드프레스 「사용자 정의 HTML」 블록용
+  ------------------------------------------------------
+  · /lab/money/ 페이지 편집 → 블록 추가 → 「사용자 정의 HTML」 → 아래 전체 붙여넣기
+  · 겉모습 규칙은 모두 .stq-lab 안쪽으로 묶어 테마와 부딪히지 않습니다
+  · 스크립트 안의 두 겹 앰퍼샌드는 없앴습니다 (워드프레스가 바꿔치기해 망가뜨립니다)
+  · 그림 20장을 먼저 미디어 라이브러리에 올려주세요 (money-images 폴더)
+-->
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+.stq-lab{
+    --cream:#F6F3EA;
+    --cream-deep:#EAE6D6;
+    --paper:#FFFEFA;
+    --ink:#3E3F36;
+    --ink-soft:#84826F;
+    --mint:#6E9A82;
+    --mint-deep:#527A64;
+    --gold:#E0AE52;
+    --gold-deep:#C08F36;
+    --line:#DAD6C4;
+  }
+.stq-lab *{box-sizing:border-box;}
+.stq-lab, .stq-lab{margin:0;padding:0;}
+.stq-lab{
+    background:
+      radial-gradient(circle at 15% 10%, rgba(110,154,130,0.10), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(224,174,82,0.12), transparent 40%),
+      var(--cream);
+    font-family:'Noto Sans KR', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:28px 14px 60px;
+  }
+.stq-lab .app{ width:100%; max-width:460px; }
+.stq-lab .brand{ text-align:center; margin-bottom:18px; }
+.stq-lab .brand .icon{ font-size:22px; display:inline-block; }
+.stq-lab .brand h1{
+    font-family:'Gaegu', sans-serif;
+    font-size:15px;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+    margin:6px 0 0;
+    font-weight:700;
+  }
+.stq-lab .route{ position:relative; height:34px; margin:6px 0 22px; }
+.stq-lab .route-line{
+    position:absolute; top:16px; left:6px; right:6px; height:2px;
+    background-image:linear-gradient(to right, var(--line) 60%, rgba(0,0,0,0) 0%);
+    background-size:10px 2px; background-repeat:repeat-x;
+  }
+.stq-lab .route-fill{
+    position:absolute; top:16px; left:6px; height:2px;
+    background:var(--gold); transition:width .5s ease;
+  }
+.stq-lab .route-plane{
+    position:absolute; top:2px; transform:translateX(-50%); font-size:20px;
+    transition:left .5s ease;
+  }
+.stq-lab .route-dots{ position:absolute; top:12px; left:6px; right:6px; display:flex; justify-content:space-between; }
+.stq-lab .route-dots span{
+    width:8px;height:8px;border-radius:50%; background:var(--paper);
+    border:2px solid var(--line); transition:all .3s ease;
+  }
+.stq-lab .route-dots span.done{ background:var(--gold); border-color:var(--gold); }
+.stq-lab .route-dots span.now{ border-color:var(--gold-deep); transform:scale(1.3); }
+.stq-lab .card{
+    background:var(--paper); border-radius:22px; padding:22px 20px 26px;
+    box-shadow:0 10px 30px rgba(90,80,50,0.10); position:relative; overflow:hidden;
+  }
+.stq-lab .qhead{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+.stq-lab .backbtn{
+    background:none; border:none; color:var(--ink-soft); font-family:'Noto Sans KR', sans-serif;
+    font-size:13px; cursor:pointer; padding:5px 8px 5px 0; display:flex; align-items:center; gap:4px;
+    transition:color .15s ease; flex-shrink:0;
+  }
+.stq-lab .backbtn:hover{ color:var(--mint-deep); }
+.stq-lab .stamp{
+    display:inline-flex; align-items:baseline; gap:8px; background:var(--cream-deep);
+    border:1.5px dashed var(--gold-deep); border-radius:100px; padding:5px 14px; margin-bottom:14px;
+  }
+.stq-lab .stamp .day{ font-family:'Gaegu', sans-serif; font-weight:700; font-size:15px; color:var(--mint-deep); }
+.stq-lab .stamp .phase{ font-size:12px; color:var(--ink-soft); }
+.stq-lab .qtext{ font-size:18px; line-height:1.5; font-weight:700; margin:2px 4px 18px; }
+.stq-lab .options{ display:flex; flex-direction:column; gap:14px; }
+.stq-lab .opt{
+    text-align:left; background:var(--cream); border:2px solid transparent; border-radius:16px;
+    padding:10px; cursor:pointer; display:flex; flex-direction:column; gap:10px;
+    transition:transform .15s ease, border-color .15s ease, background .15s ease; font-family:inherit;
+  }
+.stq-lab .opt:hover{ border-color:var(--mint); transform:translateY(-2px); }
+.stq-lab .opt:active{ transform:translateY(0); }
+.stq-lab .opt.picked{ border-color:var(--gold-deep); background:#FBF1DE; }
+.stq-lab .opt img{ width:100%; display:block; border-radius:12px; aspect-ratio:16/10; object-fit:cover; background:var(--line); }
+.stq-lab .opt p{ margin:0 4px 6px; font-size:14px; line-height:1.55; color:var(--ink); }
+.stq-lab .intro{ text-align:center; padding:10px 6px 4px; }
+.stq-lab .intro .hero{ font-size:42px; margin-bottom:10px; }
+.stq-lab .intro h2{ font-family:'Gaegu', sans-serif; font-size:23px; margin:0 0 10px; line-height:1.4; }
+.stq-lab .intro p{ font-size:14px; color:var(--ink-soft); line-height:1.6; margin:0 0 24px; }
+.stq-lab .btn{
+    display:inline-block; background:var(--mint-deep); color:#fff; border:none; border-radius:100px;
+    padding:14px 30px; font-size:15px; font-weight:700; font-family:'Noto Sans KR', sans-serif;
+    cursor:pointer; box-shadow:0 6px 16px rgba(82,122,100,0.30); transition:transform .15s ease;
+  }
+.stq-lab .btn:hover{ transform:translateY(-2px); }
+.stq-lab .btn.ghost{ background:transparent; color:var(--mint-deep); border:2px solid var(--mint-deep); box-shadow:none; }
+.stq-lab .result{ text-align:center; padding:6px 4px 2px; }
+.stq-lab .result .ticket{
+    background:var(--cream-deep); border-radius:18px; padding:22px 16px 26px; margin-bottom:20px; position:relative;
+  }
+.stq-lab .result .ticket:before, .stq-lab .result .ticket:after{
+    content:''; position:absolute; width:20px;height:20px; background:var(--paper); border-radius:50%;
+    top:50%; transform:translateY(-50%);
+  }
+.stq-lab .result .ticket:before{ left:-10px; }
+.stq-lab .result .ticket:after{ right:-10px; }
+.stq-lab .result .rimg{
+    width:100%; border-radius:14px; display:block; margin-bottom:14px;
+    aspect-ratio:16/10; object-fit:cover; box-shadow:0 6px 16px rgba(90,80,50,0.15);
+  }
+.stq-lab .result .type{
+    font-family:'Gaegu', sans-serif; font-size:22px; font-weight:700; color:var(--gold-deep);
+    letter-spacing:0.01em; margin:0;
+  }
+.stq-lab .result .nick{ font-size:19px; font-weight:700; margin:6px 0 0; color:var(--ink); }
+.stq-lab .result .punch{
+    font-family:'Gaegu', sans-serif; font-size:19px; font-weight:700;
+    color:var(--gold-deep); margin:10px 0 0; line-height:1.4;
+  }
+.stq-lab .result .desc{ font-size:14px; line-height:1.7; color:var(--ink-soft); text-align:left; margin:0 0 22px; }
+.stq-lab .uplink{ display:inline-block; margin-bottom:10px; font-size:13px; color:var(--ink-soft); text-decoration:none; }
+.stq-lab .footer-note a{ color:inherit; text-decoration:none; }
+.stq-lab .footer-note a:hover{ text-decoration:underline; }
+.stq-lab .footer-note .disclaimer{ margin-top:6px; opacity:0.75; }
+.stq-lab .footer-note{ text-align:center; font-size:11px; color:var(--ink-soft); margin-top:18px; opacity:0.7; }
+
+
+  @media (max-width:360px){.stq-lab .qtext{ font-size:16.5px; }
+.stq-lab .result .nick{ font-size:17px; }}
+.stq-lab .share-title{ font-family:'Gaegu', sans-serif; font-size:16px; color:var(--ink-soft); margin:0 0 12px; }
+.stq-lab .share-row{ display:flex; justify-content:center; gap:16px; margin:0 0 18px; }
+.stq-lab .share-item{
+    background:none; border:none; padding:0; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:6px; font-family:inherit;
+  }
+.stq-lab .share-item .ic{
+    width:48px;height:48px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;font-weight:700;
+    box-shadow:0 4px 12px rgba(90,80,50,0.14);
+    transition:transform .15s ease;
+  }
+.stq-lab .share-item:hover .ic{ transform:translateY(-2px); }
+.stq-lab .share-item .lb{ font-size:11px; color:var(--ink-soft); }
+.stq-lab .ic.kakao{ background:#FEE500; color:#3C1E1E; }
+.stq-lab .ic.x{ background:#141414; color:#fff; font-size:17px; }
+.stq-lab .ic.link, .stq-lab .ic.more{ background:var(--cream-deep); color:var(--ink-soft); }
+.stq-lab .ic.more{ letter-spacing:1px; }
+</style>
+
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+
+<div class="stq-lab">
+<div class="app">
+  <a class="uplink" href="https://stellasaju.com/lab/">← 스텔라 랩</a>
+  <div class="brand">
+    <span class="icon">💰</span>
+    <h1 id="brandTitle"></h1>
+  </div>
+  <div class="route" id="routeBar" style="display:none;">
+    <div class="route-line"></div>
+    <div class="route-fill" id="routeFill"></div>
+    <div class="route-dots" id="routeDots"></div>
+    <div class="route-plane" id="routePlane">💰</div>
+  </div>
+  <div class="card" id="card"></div>
+  <div class="footer-note">
+    <a href="https://stellasaju.com/lab/">스텔라 랩</a> ·
+    <a href="https://stellasaju.com/">스텔라사주</a> ·
+    <a href="https://stellasaju.com/uandme/">유앤미</a> ·
+    <a href="https://stellasaju.com/privacy/">개인정보처리방침</a> ·
+    <a href="https://stellasaju.com/terms/">이용약관</a>
+    <div class="disclaimer">스텔라사주에서 만든 서비스입니다. 검사 결과는 재미로 봐주세요.</div>
+  </div>
+</div>
+
+<script type="application/json" id="quiz-data">
+{
+ "images": {
+  "q1_save": "https://stellasaju.com/wp-content/uploads/2026/09/money-q1_save.jpg",
+  "q1_spend": "https://stellasaju.com/wp-content/uploads/2026/09/money-q1_spend.jpg",
+  "q2_stable": "https://stellasaju.com/wp-content/uploads/2026/09/money-q2_stable.jpg",
+  "q2_bold": "https://stellasaju.com/wp-content/uploads/2026/09/money-q2_bold.jpg",
+  "q3_save": "https://stellasaju.com/wp-content/uploads/2026/09/money-q3_save.jpg",
+  "q3_spend": "https://stellasaju.com/wp-content/uploads/2026/09/money-q3_spend.jpg",
+  "q4_stable": "https://stellasaju.com/wp-content/uploads/2026/09/money-q4_stable.jpg",
+  "q4_bold": "https://stellasaju.com/wp-content/uploads/2026/09/money-q4_bold.jpg",
+  "q5_save": "https://stellasaju.com/wp-content/uploads/2026/09/money-q5_save.jpg",
+  "q5_spend": "https://stellasaju.com/wp-content/uploads/2026/09/money-q5_spend.jpg",
+  "q6_stable": "https://stellasaju.com/wp-content/uploads/2026/09/money-q6_stable.jpg",
+  "q6_bold": "https://stellasaju.com/wp-content/uploads/2026/09/money-q6_bold.jpg",
+  "q7_save": "https://stellasaju.com/wp-content/uploads/2026/09/money-q7_save.jpg",
+  "q7_spend": "https://stellasaju.com/wp-content/uploads/2026/09/money-q7_spend.jpg",
+  "q8_stable": "https://stellasaju.com/wp-content/uploads/2026/09/money-q8_stable.jpg",
+  "q8_bold": "https://stellasaju.com/wp-content/uploads/2026/09/money-q8_bold.jpg"
+ },
+ "questions": [
+  {
+   "day": "Day 0",
+   "phase": "월급날 아침",
+   "q": "월급이 들어왔다! 나는 지금...",
+   "axis": "save_spend",
+   "options": [
+    {
+     "trait": "save",
+     "img": "q1_save",
+     "text": "자동이체 걸어둔 적금·투자 계좌로 바로 빠져나가는 거 확인하고 뿌듯"
+    },
+    {
+     "trait": "spend",
+     "img": "q1_spend",
+     "text": "스벅 가서 제일 비싼 케이크 하나 주문한다, “이 정도는 나에게 주는 선물”"
+    }
+   ]
+  },
+  {
+   "day": "Day 0",
+   "phase": "월급 기념하는 저녁",
+   "q": "오늘만큼은 나를 위해...",
+   "axis": "stable_bold",
+   "options": [
+    {
+     "trait": "stable",
+     "img": "q2_stable",
+     "text": "집에서 좋아하는 반찬 시켜먹으며 소소하게 축하"
+    },
+    {
+     "trait": "bold",
+     "img": "q2_bold",
+     "text": "“인생 한번인데” 하며 평소 안 가던 파인다이닝 예약"
+    }
+   ]
+  },
+  {
+   "day": "Day 3",
+   "phase": "갖고 싶던 물건 발견",
+   "q": "평소에 눈여겨보던 그 가방/신발이 세일 중이다",
+   "axis": "save_spend",
+   "options": [
+    {
+     "trait": "save",
+     "img": "q3_save",
+     "text": "장바구니에 담아두고 “다음 달 예산 짜서 다시 보자”"
+    },
+    {
+     "trait": "spend",
+     "img": "q3_spend",
+     "text": "이미 결제 완료, “지금 아니면 못 사”"
+    }
+   ]
+  },
+  {
+   "day": "Day 5",
+   "phase": "친구의 투자 제안",
+   "q": "“이거 요즘 난리났대, 너도 좀 넣어봐”",
+   "axis": "stable_bold",
+   "options": [
+    {
+     "trait": "stable",
+     "img": "q4_stable",
+     "text": "“원금 지키는 게 먼저지” 하며 정중히 패스"
+    },
+    {
+     "trait": "bold",
+     "img": "q4_bold",
+     "text": "바로 검색 들어가서 얼마 넣을지 계산 중"
+    }
+   ]
+  },
+  {
+   "day": "Day 10",
+   "phase": "카드값 명세서 도착",
+   "q": "생각보다 많이 나온 카드값을 보고",
+   "axis": "save_spend",
+   "options": [
+    {
+     "trait": "save",
+     "img": "q5_save",
+     "text": "바로 이번 달 나머지 지출 항목 다 손보기 시작"
+    },
+    {
+     "trait": "spend",
+     "img": "q5_spend",
+     "text": "“다 필요했던 거잖아” 하며 대수롭지 않게 넘긴다"
+    }
+   ]
+  },
+  {
+   "day": "Day 15",
+   "phase": "블랙프라이데이 세일",
+   "q": "장바구니가 어느새 가득 찼다",
+   "axis": "stable_bold",
+   "options": [
+    {
+     "trait": "stable",
+     "img": "q6_stable",
+     "text": "리스트에 있던 딱 필요한 것만 골라서 결제"
+    },
+    {
+     "trait": "bold",
+     "img": "q6_bold",
+     "text": "“이 김에 다” 하며 할부까지 걸어서 다 지른다"
+    }
+   ]
+  },
+  {
+   "day": "Day 20",
+   "phase": "예상치 못한 보너스",
+   "q": "회사에서 예상 못한 보너스가 들어왔다",
+   "axis": "save_spend",
+   "options": [
+    {
+     "trait": "save",
+     "img": "q7_save",
+     "text": "고민 없이 바로 저축/투자 계좌로 이체"
+    },
+    {
+     "trait": "spend",
+     "img": "q7_spend",
+     "text": "“이건 원래 없던 돈이니까” 하며 쓸 계획부터 세운다"
+    }
+   ]
+  },
+  {
+   "day": "Day 30",
+   "phase": "월말 잔고 확인",
+   "q": "이번 달 마지막 날, 통장을 열어본다",
+   "axis": "stable_bold",
+   "options": [
+    {
+     "trait": "stable",
+     "img": "q8_stable",
+     "text": "마이너스 안 나게 항상 여유자금을 남겨두는 편"
+    },
+    {
+     "trait": "bold",
+     "img": "q8_bold",
+     "text": "좀 빠듯해도 “다음 달에 더 벌면 되지” 하고 넘긴다"
+    }
+   ]
+  }
+ ],
+ "results": {
+  "save_stable": {
+   "nick": "티끌모아 파이어족",
+   "desc": "매달 정해진 만큼 꾸준히 모으는 게 제일 든든한 타입이에요. 화려한 한방 같은 건 애초에 관심이 없고, \"이번 달도 무사히\"에서 안심을 느낍니다. 남들이 코인으로 하루에 얼마 벌었다고 할 때 조용히 적금 만기일을 확인하는 사람이죠. 문제는 통장에 돈은 쌓이는데 정작 자기한테는 커피 한 잔도 잘 안 사준다는 거예요. 가끔은 좀 쓰셔도 됩니다. 진짜로요.",
+   "img": "https://stellasaju.com/wp-content/uploads/2026/09/money-save_stable.jpg",
+   "punch": "이대로 가면 40대에 은퇴하시겠는데요?"
+  },
+  "save_bold": {
+   "nick": "묻고 더블로 가는 전략가",
+   "desc": "모으긴 모으는데 그냥 통장에 재워두진 않는 타입이에요. 차트 보고 공부하고 계산기 두드리는 게 취미에 가깝고, 본인은 이걸 \"계산된 리스크\"라고 부릅니다. 실제로 계산은 하고 있어요. 다만 그 계산이 항상 맞는 건 아니라는 게 유일한 변수죠. 잘 풀리면 주변에서 제일 먼저 은퇴하고, 안 풀리면 그 이야기를 술자리 안주로 10년쯤 우려먹게 됩니다.",
+   "img": "https://stellasaju.com/wp-content/uploads/2026/09/money-save_bold.jpg",
+   "punch": "재벌 아니면 쪽박, 중간이 없으시네요"
+  },
+  "spend_stable": {
+   "nick": "똑똑한 실속 소비러",
+   "desc": "쓸 땐 쓰는데 \"이게 진짜 필요한가\"를 반드시 한 번 거치는 타입이에요. 세일 정보는 빠삭하고, 산 물건은 본전 뽑을 때까지 씁니다. 친구들이 뭐 살까 고민하면 자연스럽게 상담을 맡게 되고, 정작 본인은 실패한 소비가 거의 없어요. 재미없다는 소리를 가끔 듣지만, 월말에 웃고 있는 건 대체로 이쪽입니다.",
+   "img": "https://stellasaju.com/wp-content/uploads/2026/09/money-spend_stable.jpg",
+   "punch": "얄밉게 잘 쓰고 잘 남기시네요"
+  },
+  "spend_bold": {
+   "nick": "오늘이 제일 젊다 플렉서",
+   "desc": "인생 한 번이라는 마음으로 사는 타입이에요. 갖고 싶은 게 생기면 일단 지르고, 그 순간의 기분을 제일 중요하게 칩니다. 카드값은 내일의 내가 알아서 할 거라 믿는데, 내일의 나도 똑같은 사람이라는 게 함정이에요. 대신 이 타입 덕분에 주변 사람들 인생에 재미있는 사건이 확실히 늘어납니다. 그 값을 본인이 치르고 있을 뿐이죠.",
+   "img": "https://stellasaju.com/wp-content/uploads/2026/09/money-spend_bold.jpg",
+   "punch": "이러다 월말에 라면만 드시겠는데요?"
+  }
+ },
+ "introTitle": "한 달로 알아보는 나의 소비 성향",
+ "introSub": "월급날부터 월말까지, 여덟 번의 선택으로 나의 진짜 머니 스타일을 확인해보세요"
+}
+</script>
+<script>
+const DATA = JSON.parse(document.getElementById('quiz-data').textContent);
+
+/* 카카오 개발자 > 앱 > 플랫폼 키 > JavaScript 키
+   해당 키의 [JavaScript SDK 도메인]에 이 페이지 도메인을 등록해야 작동합니다. */
+const KAKAO_JS_KEY = '7806d048aad9905e98fb7dd4217236d2';
+const OG_IMAGE = 'https://stellasaju.com/og/money-style.png';
+function initKakao(){
+  if(!KAKAO_JS_KEY || !window.Kakao) return false;
+  if(!window.Kakao.isInitialized()) window.Kakao.init(KAKAO_JS_KEY);
+  return true;
+}
+const Q = DATA.questions;
+const IMG = DATA.images;
+const RESULTS = DATA.results;
+
+let state = { step: -1, answers: [] };
+
+const brandTitle = document.getElementById('brandTitle');
+const card = document.getElementById('card');
+const routeBar = document.getElementById('routeBar');
+const routeFill = document.getElementById('routeFill');
+const routeDots = document.getElementById('routeDots');
+const routePlane = document.getElementById('routePlane');
+
+function buildRouteDots(){
+  routeDots.innerHTML = '';
+  for(let i=0;i<Q.length;i++){
+    const s = document.createElement('span');
+    routeDots.appendChild(s);
+  }
+}
+buildRouteDots();
+
+function updateRoute(step){
+  const total = Q.length;
+  const pct = total <= 1 ? 0 : (step/(total-1))*100;
+  routeFill.style.width = 'calc(' + pct + '% )';
+  routePlane.style.left = pct + '%';
+  const dots = routeDots.children;
+  for(let i=0;i<dots.length;i++){
+    dots[i].classList.remove('done','now');
+    if(i < step) dots[i].classList.add('done');
+    else if(i === step) dots[i].classList.add('now');
+  }
+}
+
+function renderIntro(){
+  brandTitle.textContent = '';
+  routeBar.style.display = 'none';
+  card.innerHTML = `
+    <div class="intro">
+      <div class="hero">💸</div>
+      <h2>${DATA.introTitle}</h2>
+      <p>${DATA.introSub}</p>
+      <button class="btn" id="startBtn">테스트 시작하기</button>
+    </div>
+  `;
+  document.getElementById('startBtn').onclick = () => {
+    state = { step: 0, answers: [] };
+    renderQuestion();
+  };
+}
+
+function renderQuestion(){
+  const q = Q[state.step];
+  brandTitle.textContent = '한 달 머니 스타일';
+  routeBar.style.display = 'block';
+  updateRoute(state.step);
+
+  const optsHtml = q.options.map((opt, i) => `
+    <button class="opt" data-trait="${opt.trait}" data-idx="${i}">
+      <img src="${IMG[opt.img]}" alt="">
+      <p>${opt.text}</p>
+    </button>
+  `).join('');
+
+  card.innerHTML = `
+    <div class="qhead">
+      <button class="backbtn" id="backBtn">← 이전</button>
+      <div class="stamp" style="margin-bottom:0;">
+        <span class="day">${q.day}</span>
+        <span class="phase">${q.phase}</span>
+      </div>
+    </div>
+    <div class="qtext">${q.q}</div>
+    <div class="options">${optsHtml}</div>
+  `;
+
+  document.getElementById('backBtn').onclick = () => {
+    if(card.dataset.locked === '1') return;
+    if(state.step === 0){
+      state = { step: -1, answers: [] };
+      renderIntro();
+    } else {
+      state.answers.pop();
+      state.step -= 1;
+      renderQuestion();
+    }
+  };
+
+  Array.from(card.querySelectorAll('.opt')).forEach(btn => {
+    btn.onclick = () => {
+      if(card.dataset.locked === '1') return;
+      card.dataset.locked = '1';
+      btn.classList.add('picked');
+      state.answers.push({ axis: q.axis, trait: btn.dataset.trait });
+      setTimeout(() => {
+        card.dataset.locked = '0';
+        if(state.step < Q.length - 1){
+          state.step += 1;
+          renderQuestion();
+        } else {
+          renderResult();
+        }
+      }, 320);
+    };
+  });
+}
+
+function computeType(){
+  const c = { save:0, spend:0, stable:0, bold:0 };
+  state.answers.forEach(a => { c[a.trait] = (c[a.trait]||0) + 1; });
+  const axis1 = c.save >= c.spend ? 'save' : 'spend';
+  const axis2 = c.stable >= c.bold ? 'stable' : 'bold';
+  return axis1 + '_' + axis2;
+}
+
+function renderResult(forcedType){
+  routeBar.style.display = 'none';
+  brandTitle.textContent = '나의 머니 스타일';
+  const type = forcedType || computeType();
+  const r = RESULTS[type] || { nick: '유니크한 머니 스타일', desc: '아직 준비 중인 결과예요.' };
+  const imgHtml = r.img ? `<img class="rimg" src="${r.img}" alt="${type}">` : '';
+  card.innerHTML = `
+    <div class="result">
+      <div class="ticket">
+        ${imgHtml}
+        <p class="nick">${r.nick}</p>
+        ${r.punch ? `<p class="punch">${r.punch}</p>` : ''}
+      </div>
+      <p class="desc">${r.desc}</p>
+      <p class="share-title">친구는 어떤 스타일일까?</p>
+      <div class="share-row">
+        <button class="share-item" id="shKakao"><span class="ic kakao">톡</span><span class="lb">카카오톡</span></button>
+        <button class="share-item" id="shX"><span class="ic x">𝕏</span><span class="lb">X</span></button>
+        <button class="share-item" id="shLink"><span class="ic link">🔗</span><span class="lb" id="lbLink">링크 복사</span></button>
+        <button class="share-item" id="shMore" style="display:none;"><span class="ic more">···</span><span class="lb">다른 앱</span></button>
+      </div>
+      <button class="btn ghost" id="retryBtn">다시 테스트하기</button>
+      <div style="margin-top:12px;">
+        <button class="backbtn" id="backFromResult" style="margin:0 auto;">← 마지막 질문 다시 보기</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('retryBtn').onclick = () => {
+    state = { step: -1, answers: [] };
+    renderIntro();
+  };
+  const backRes = document.getElementById('backFromResult');
+  if(state.answers.length === Q.length){
+    backRes.onclick = () => {
+      state.answers.pop();
+      state.step = Q.length - 1;
+      renderQuestion();
+    };
+  } else {
+    backRes.style.display = 'none';   /* 공유 링크로 바로 들어온 경우 */
+  }
+
+  /* ── 공유 ─────────────────────────────── */
+  const shareUrl  = location.origin + location.pathname + '?r=' + type;
+  const shareText = `내 머니 스타일은 '${r.nick}'`;
+
+  document.getElementById('shKakao').onclick = () => {
+    if(!initKakao()){ alert('카카오 공유는 등록된 도메인에서만 작동해요.'); return; }
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: r.nick,
+        description: shareText,
+        imageUrl: OG_IMAGE,
+        link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
+      },
+      buttons: [{ title: '나도 테스트하기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl } }]
+    });
+  };
+
+  document.getElementById('shX').onclick = () => {
+    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) +
+      '&url=' + encodeURIComponent(shareUrl), '_blank', 'noopener,width=560,height=520');
+  };
+
+  const lbLink = document.getElementById('lbLink');
+  document.getElementById('shLink').onclick = () => {
+    const done = (m) => { lbLink.textContent = m; setTimeout(()=>lbLink.textContent='링크 복사', 1600); };
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(shareText + '\n' + shareUrl).then(()=>done('복사됨')).catch(()=>done('복사 실패'));
+    } else { done('복사 실패'); }
+  };
+
+  /* 인스타그램은 외부 웹에서 바로 올릴 방법이 없어 기본 공유 시트로 대체 */
+  if(navigator.share){
+    const more = document.getElementById('shMore');
+    more.style.display = 'flex';
+    more.onclick = () => navigator.share({ text: shareText, url: shareUrl }).catch(()=>{});
+  }
+
+}
+
+/* 공유 링크(?r=유형)로 들어오면 해당 결과를 먼저 보여줍니다 */
+const shared = new URLSearchParams(location.search).get('r');
+if(shared){ if(RESULTS[shared]){ renderResult(shared); } else { renderIntro(); } }
+else renderIntro();
+</script>
+</div>
