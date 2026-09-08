@@ -1,0 +1,272 @@
+<title>궁합 십성 열 칸</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{
+  --night:#0C1024; --paper:#F6F4EE; --paper-2:#E9EAF2; --paper-3:#D6D9E6;
+  --ink:#1B2030; --ink-2:#454C63; --ink-3:#5A6178;
+  --indigo:#2C3A7E; --indigo-2:#5A68B4; --red:#A83232;
+  --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --disp:"Nanum Myeongjo",serif;
+}
+*{box-sizing:border-box}
+body{background:var(--night); color:var(--ink); font-family:var(--sans);
+  font-size:17px; line-height:1.86; letter-spacing:-.005em; margin:0; padding:0 16px 72px;
+  word-break:keep-all;}
+.wrap{max-width:760px; margin:0 auto; background:var(--paper); padding:44px 38px 52px;
+  box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.top{border-bottom:2px solid var(--indigo); padding-bottom:22px}
+.eyebrow{font-family:var(--disp); font-weight:700; font-size:.84rem; letter-spacing:.18em;
+  color:var(--indigo); margin:0 0 10px}
+h1{font-family:var(--disp); font-weight:800; font-size:1.58rem; line-height:1.45; margin:0 0 14px;
+  text-wrap:balance}
+.top p{font-size:.95rem; color:var(--ink-2); margin:0 0 .7em}
+.why{background:var(--paper-2); padding:16px 18px; margin:18px 0 0; font-size:.92rem; color:var(--ink-2)}
+.why b{color:var(--ink)}
+.why p{margin:0 0 .7em} .why p:last-child{margin:0}
+.old{border-left:3px solid var(--red); background:#F3EEEC; padding:14px 16px;
+  margin:22px 0 0; font-size:.92rem; color:var(--ink-3)}
+.old .lb{font-family:var(--disp); font-weight:700; font-size:.74rem; letter-spacing:.06em;
+  color:var(--red); display:block; margin-bottom:6px}
+.old p{margin:0 0 .6em} .old p:last-child{margin:0}
+h2.ax{font-family:var(--disp); font-weight:700; font-size:1.06rem; color:var(--indigo);
+  margin:46px 0 0; padding-bottom:7px; border-bottom:1px solid var(--paper-3)}
+h2.ax span{display:block; font-family:var(--sans); font-weight:400; font-size:.84rem;
+  color:var(--ink-3); margin-top:5px; letter-spacing:0}
+.shape{margin-top:20px; display:grid; gap:1px; background:var(--paper-3);
+  border:1px solid var(--paper-3); font-size:.92rem}
+.shape > div{background:var(--paper); padding:11px 14px; display:grid;
+  grid-template-columns:74px 1fr; gap:12px; align-items:baseline}
+.shape .k{font-family:var(--disp); font-weight:700; font-size:.8rem; color:var(--indigo);
+  letter-spacing:.04em}
+.shape .cut{color:var(--ink-3)}
+.shape .cut .k{color:var(--red)}
+.grid{margin-top:22px; display:grid; grid-template-columns:repeat(2,1fr); gap:1px;
+  background:var(--paper-3); border:1px solid var(--paper-3)}
+.sg{background:var(--paper); padding:15px 16px 13px}
+.sg .nm{font-family:var(--disp); font-weight:700; font-size:.94rem; color:var(--indigo);
+  margin-bottom:5px}
+.sg p{margin:0; font-size:.93rem; line-height:1.8; color:var(--ink-2)}
+em{font-style:normal; font-weight:700; color:var(--ink)}
+.foot{margin-top:46px; padding-top:22px; border-top:2px solid var(--indigo);
+  font-size:.93rem; color:var(--ink-2)}
+.foot b{color:var(--ink)}
+.foot h3{font-family:var(--disp); font-size:.95rem; color:var(--indigo); margin:20px 0 8px}
+.foot ul{margin:0; padding-left:1.1em} .foot li{margin:0 0 .45em}
+@media(max-width:560px){
+  body{font-size:16px; padding:0 10px 56px}
+  .wrap{padding:32px 20px 40px}
+  .grid{grid-template-columns:1fr}
+  .shape > div{grid-template-columns:1fr; gap:2px}
+}
+</style><style>
+/* 이 검토지에서만 쓰는 것 */
+.cell{margin-top:26px; border:1px solid var(--paper-3); background:var(--paper)}
+.cell > .hd{background:var(--paper-2); padding:12px 16px; border-bottom:1px solid var(--paper-3)}
+.cell > .hd .nm{font-family:var(--disp); font-weight:800; font-size:1.12rem; color:var(--indigo)}
+.cell > .hd .sub{font-size:.86rem; color:var(--ink-3); margin-top:3px}
+.cell .bd{padding:14px 16px 4px}
+.cell .bd p{margin:0 0 1em; font-size:.95rem; line-height:1.85; color:var(--ink-2)}
+.tag{display:inline-block; font-family:var(--disp); font-weight:700; font-size:.72rem;
+  letter-spacing:.06em; color:var(--paper); background:var(--indigo);
+  padding:2px 9px; margin-right:8px; vertical-align:2px}
+.tag.no{background:var(--red)}
+.calc{font-size:.82rem; color:var(--ink-3); background:var(--paper-2);
+  padding:9px 14px; margin:0; border-top:1px solid var(--paper-3)}
+</style>
+
+<div class="wrap">
+
+  <div class="top">
+    <p class="eyebrow">궁합 · 제 6 장</p>
+    <h1>서로에게 무엇이 되는가</h1>
+    <p>두 사람의 일간을 견주면 열 가지 가운데 하나가 나옵니다. 그 사람이 나에게
+      무엇으로 오는지를 말하는 자리예요. <em>낱권에서는 쓸 수 없는 글입니다</em> —
+      상대가 있어야 나오는 값이라서요.</p>
+
+    <div class="why">
+      <p><b>이 장이 왜 중요한가.</b> 궁합에서 점수를 가르는 것은 합이냐 충이냐인데,
+        그건 <b>맞다 안 맞다</b>까지만 말합니다. 십성은 다릅니다 —
+        <b>어떻게 맞는지, 어떻게 안 맞는지</b>를 말해요.</p>
+      <p>그리고 <b>방향이 있습니다.</b> 덕선이가 정환이에게 식신이라고 해서
+        정환이도 덕선이에게 식신인 것은 아닙니다. 한 사람에게는 편한 사이가
+        다른 사람에게는 어려운 사이일 수 있어요. <b>책에는 두 방향을 다 씁니다.</b></p>
+    </div>
+
+    <div class="old">
+      <span class="lb">지금은 이렇게 한 줄뿐입니다</span>
+      <p>「상대가 당신에게 <b>기댈 수 있는 사람</b>으로 옵니다. 편안한 대신 설렘은 덜합니다.」</p>
+      <p>다섯 묶음(재성·관성·인성·식상·비겁)으로만 갈라서 열 가지가 다섯으로 뭉쳐 있고,
+        한 줄이라 읽고 나면 남는 게 없습니다. 아래는 <b>열 가지로 갈라 세 문단씩</b> 쓴 것입니다.</p>
+    </div>
+  </div>
+
+  <h2 class="ax">나와 같은 오행<span>비견 · 겁재 — 같은 자리에 서는 사람</span></h2>
+
+  <div class="cell">
+    <div class="hd"><div class="nm">비견 · 같은 자리에 선 사람</div>
+      <div class="sub">같은 오행, 같은 음양</div></div>
+    <div class="bd">
+      <p>그 사람이 도윤님과 같은 자리에 섭니다. 길게 설명하지 않아도 무슨 뜻인지 압니다.
+        좋아하는 것도 움직이는 속도도 비슷해서, 처음부터 어색한 시기가 짧아요.</p>
+      <p><span class="tag">잘 되면</span>둘이 한편이 됩니다. 밖에서 무슨 일이 있어도
+        집에 오면 같은 편이 하나 있어요. 이 조합이 오래 가는 이유가 그것입니다.</p>
+      <p><span class="tag no">걸리면</span>둘 다 같은 것을 못 합니다. 미루는 일이 있으면
+        아무도 손을 안 대요. 그 하나만 누가 맡을지 정해두면 빈자리가 채워집니다.</p>
+    </div>
+    <p class="calc">계산 · 상대 일간이 내 일간과 같은 오행이고 음양도 같을 때</p>
+  </div>
+
+  <div class="cell">
+    <div class="hd"><div class="nm">겁재 · 같은 것을 원하는 사람</div>
+      <div class="sub">같은 오행, 다른 음양</div></div>
+    <div class="bd">
+      <p>같은 기운인데 결이 다릅니다. 같은 것을 좋아하고 같은 것을 원해요.
+        그래서 가까울 때는 누구보다 든든하고, 겨룰 일이 생기면 누구보다 예민해집니다.</p>
+      <p><span class="tag">잘 되면</span>서로를 밀어 올립니다. 혼자였으면 안 했을 일을
+        이 사람 때문에 합니다. 나란히 갈 때 제일 빨라지는 조합이에요.</p>
+      <p><span class="tag no">걸리면</span>하나를 두고 마주 서면 물러서는 쪽이 없습니다.
+        나눌 수 있는 것과 나눌 수 없는 것을 미리 갈라두면, 그 힘이 전부 이쪽 편이 됩니다.</p>
+    </div>
+    <p class="calc">계산 · 같은 오행이고 음양이 다를 때</p>
+  </div>
+
+  <h2 class="ax">내가 내어주는 자리<span>식신 · 상관 — 말과 표현이 늘어나는 사람</span></h2>
+
+  <div class="cell">
+    <div class="hd"><div class="nm">식신 · 말이 늘어나는 사람</div>
+      <div class="sub">내가 생하는 오행, 같은 음양</div></div>
+    <div class="bd">
+      <p>그 사람 앞에서 말이 많아집니다. 평소 안 하던 이야기가 나오고, 하고 싶은 것이 생겨요.
+        만나고 오면 기운이 도는 쪽입니다.</p>
+      <p><span class="tag">잘 되면</span>표현이 늘어납니다. 속으로 삼키던 사람도
+        이 사람 앞에서는 꺼내놓게 돼요.</p>
+      <p><span class="tag no">걸리면</span>편해서 말을 고르지 않게 됩니다.
+        편한 것과 함부로 하는 것 사이에 선 하나만 그으면 이 조합은 오래 갑니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간이 생하는 오행이고 음양이 같을 때</p>
+  </div>
+
+  <div class="cell">
+    <div class="hd"><div class="nm">상관 · 나를 드러내게 하는 사람</div>
+      <div class="sub">내가 생하는 오행, 다른 음양</div></div>
+    <div class="bd">
+      <p>그 사람 앞에서 더 잘하고 싶어집니다. 재미있는 말을 하게 되고, 없던 재주도 꺼내게 돼요.
+        관계에 생기가 도는 자리입니다.</p>
+      <p><span class="tag">잘 되면</span>서로의 재능을 꺼내줍니다.
+        이 사람을 만나고 나서 시작한 일이 하나쯤 생깁니다.</p>
+      <p><span class="tag no">걸리면</span>하고 싶은 말을 참기가 어려워집니다.
+        그때 나온 한마디가 오래 남고요. 한 박자만 늦추면 그 말이 훨씬 좋은 말로 나옵니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간이 생하는 오행이고 음양이 다를 때</p>
+  </div>
+
+  <h2 class="ax">내가 쥐는 자리<span>편재 · 정재 — 챙기고 싶어지는 사람</span></h2>
+
+  <div class="cell">
+    <div class="hd"><div class="nm">편재 · 크게 쓰게 되는 사람</div>
+      <div class="sub">내가 극하는 오행, 같은 음양</div></div>
+    <div class="bd">
+      <p>그 사람이 도윤님 손이 가는 자리에 옵니다. 뭘 해주고 싶고, 사주고 싶고,
+        데려가고 싶어져요. 아끼지 않게 되는 조합입니다.</p>
+      <p><span class="tag">잘 되면</span>베푸는 것이 즐겁습니다.
+        인색해지지 않는 연애가 됩니다.</p>
+      <p><span class="tag no">걸리면</span>쓰는 쪽만 계속 쓰게 됩니다.
+        주고받는 저울을 가끔 들여다보시면 이 마음이 오래 갑니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간이 극하는 오행이고 음양이 같을 때</p>
+  </div>
+
+  <div class="cell">
+    <div class="hd"><div class="nm">정재 · 곁에 두고 싶은 사람</div>
+      <div class="sub">내가 극하는 오행, 다른 음양</div></div>
+    <div class="bd">
+      <p>화려하게 끌리기보다 <em>곁에 두고 싶다</em>는 마음이 먼저 옵니다.
+        오래 갈 것을 먼저 생각하게 되는 조합이에요.</p>
+      <p><span class="tag">잘 되면</span>계획이 서기 시작합니다.
+        다음 달 이야기, 내년 이야기가 자연스럽게 나옵니다.</p>
+      <p><span class="tag no">걸리면</span>아끼다가 표현이 줄어듭니다.
+        마음은 있는데 말을 안 하게 되는 자리라, 말로 한 번 더 해주시면 그대로 채워집니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간이 극하는 오행이고 음양이 다를 때</p>
+  </div>
+
+  <h2 class="ax">나를 누르는 자리<span>편관 · 정관 — 어렵고도 끌리는 사람</span></h2>
+
+  <div class="cell">
+    <div class="hd"><div class="nm">편관 · 긴장하게 하는 사람</div>
+      <div class="sub">나를 극하는 오행, 같은 음양</div></div>
+    <div class="bd">
+      <p>그 사람 앞에서 어깨가 조금 올라갑니다. 편하지만은 않은데 눈이 가요.
+        어려운 사람에게 끌리는 자리입니다.</p>
+      <p><span class="tag">잘 되면</span>이 사람 때문에 자세가 잡힙니다.
+        미루던 일을 하게 되고, 느슨해지지 않아요.</p>
+      <p><span class="tag no">걸리면</span>늘 시험받는 기분이 듭니다.
+        그 긴장이 마음에서 온 것인지 버릇에서 온 것인지, 한 번 물어보시면 답이 나옵니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간을 극하는 오행이고 음양이 같을 때</p>
+  </div>
+
+  <div class="cell">
+    <div class="hd"><div class="nm">정관 · 기준이 되는 사람</div>
+      <div class="sub">나를 극하는 오행, 다른 음양</div></div>
+    <div class="bd">
+      <p>그 사람이 도윤님에게 기준으로 옵니다. 무슨 일이 생기면
+        <em>이 사람이라면 어떻게 할까</em>를 먼저 생각하게 돼요. 존중이 먼저 서는 조합입니다.</p>
+      <p><span class="tag">잘 되면</span>관계가 반듯해집니다.
+        서로에게 예의가 남아 있어서 오래 가도 상하지 않아요.</p>
+      <p><span class="tag no">걸리면</span>반듯한 것이 답답해지는 날이 옵니다.
+        규칙을 느슨하게 두는 날을 하나 만들어두면 숨이 트입니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간을 극하는 오행이고 음양이 다를 때</p>
+  </div>
+
+  <h2 class="ax">나를 살리는 자리<span>편인 · 정인 — 기대게 되는 사람</span></h2>
+
+  <div class="cell">
+    <div class="hd"><div class="nm">편인 · 속을 알아보는 사람</div>
+      <div class="sub">나를 생하는 오행, 같은 음양</div></div>
+    <div class="bd">
+      <p>그 사람이 도윤님을 설명 없이 알아봅니다. 남들이 못 보는 자리를 봐요.
+        그래서 편하고, 가끔은 들킨 것 같기도 합니다.</p>
+      <p><span class="tag">잘 되면</span>혼자 있던 자리에 한 사람이 들어옵니다.
+        애쓰지 않아도 되는 사이가 됩니다.</p>
+      <p><span class="tag no">걸리면</span>둘 다 안으로 들어가서 말이 줄어듭니다.
+        아는 것과 말하는 것은 다르니, 아는 것도 한 번은 소리 내어 말해주시면 좋습니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간을 생하는 오행이고 음양이 같을 때</p>
+  </div>
+
+  <div class="cell">
+    <div class="hd"><div class="nm">정인 · 기댈 수 있는 사람</div>
+      <div class="sub">나를 생하는 오행, 다른 음양</div></div>
+    <div class="bd">
+      <p>다치고 왔을 때 먼저 떠오르는 사람입니다. 편안한 자리예요.
+        대신 설렘은 크지 않습니다.</p>
+      <p><span class="tag">잘 되면</span>무너지지 않습니다.
+        무슨 일이 있어도 돌아갈 자리가 하나 생깁니다.</p>
+      <p><span class="tag no">걸리면</span>편안한 것이 무덤덤해지기도 합니다.
+        익숙한 사이에 새로운 것을 하나씩 넣어두면 그 편안함이 오래 갑니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간을 생하는 오행이고 음양이 다를 때</p>
+  </div>
+
+  <div class="foot">
+    <h3>덕선이와 정환이는 이렇게 나옵니다</h3>
+    <p>덕선 일간 <b>乙</b> · 정환 일간 <b>丁</b>. 목이 화를 생하니
+      <b>덕선이가 정환이에게는 식신</b>이고, <b>정환이가 덕선이에게는 편인</b>입니다.</p>
+    <p>덕선이는 정환이 앞에서 말이 많아지고 표현이 늘어납니다.
+      정환이한테 덕선이는 설명 없이 속을 알아보는 사람이에요.
+      <b>한쪽은 꺼내놓고 한쪽은 알아보는</b> 조합입니다. 드라마 그대로네요.</p>
+
+    <h3>봐주실 것</h3>
+    <ul>
+      <li>열 칸 가운데 <b>말이 어색하거나 우리 결이 아닌 것</b>이 있으면 표시해 주세요.</li>
+      <li><b>「걸리면」 문단</b>이 남을 깎는 말로 읽히는 곳이 없는지 봐주세요.
+        상대를 흠잡지 않고 <b>자리 탓으로만</b> 쓰려고 했습니다.</li>
+      <li>이름은 <b>도윤님</b>으로 두었습니다. 실제로는 손님 이름이 들어갑니다.</li>
+      <li>지금은 <b>연인</b> 기준입니다. 부부 · 동업 · 부모자녀는 같은 열 칸을
+        다르게 써야 합니다. 연인부터 확정하고 나머지를 붙이겠습니다.</li>
+    </ul>
+  </div>
+
+</div>
