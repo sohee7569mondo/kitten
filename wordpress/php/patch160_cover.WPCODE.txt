@@ -15,9 +15,15 @@
      · 소희 님이 쓰신 금빛(#dfbb7f) 그대로입니다.
 
    ── 크기 ───────────────────────────────────────
-   보내주신 그림은 A4 (595 x 842, 비율 0.707) 입니다.
+   소희 님 :「이 그림을 페이지에 완전히 채워줘 테두리의 느낌이라서」
+   낱장 끝에서 끝까지 꽉 채웁니다. 여백을 두지 않습니다.
+
+   보내주신 그림은 A4 (595 x 842, 비율 0.707) 이고
    책 낱장은 780 x 1100 (비율 0.709) 이라 거의 똑같습니다.
-   그래서 늘려도 해 · 달 무늬가 안 찌그러집니다.
+   그래서 끝까지 늘려도 해 · 달 무늬가 안 찌그러집니다.
+
+   낱장의 원래 테두리 한 줄은 아주 흐리게 낮춥니다 —
+   이제 이 그림이 테두리이니 두 겹이 되면 안 됩니다.
 
    ── 같이 손보는 것 ─────────────────────────────
    · 표지 종이만 한 톤 낮춥니다. 속지보다 살짝 진해야 책을
@@ -96,15 +102,16 @@ add_action( 'template_redirect', function () {
 	     . "  background-image:url(\"data:image/svg+xml," . $FRAME . "\");\n"
 	     . "  background-repeat:no-repeat;\n"
 	     . "  background-position:center;\n"
-	     . "  background-size:calc(100% - 26px) calc(100% - 26px);\n"
+	     . "  background-size:100% 100%;\n"
 	     . "  padding:120px 92px 120px;\n"
+	     . "  border-color:rgba(138,106,36,.14);\n"
 	     . "}\n"
 	     . "/* 원래 표지 왼쪽에 있던 금빛 막대는 테두리와 겹쳐서 뺍니다 */\n"
 	     . "#ssb .page[data-part=\"cover\"]::before{ display:none !important; }\n"
 	     . "@media(max-width:640px){\n"
 	     . "  #ssb .page[data-part=\"cover\"]{\n"
 	     . "    padding:74px 44px 74px;\n"
-	     . "    background-size:calc(100% - 14px) calc(100% - 14px);\n"
+	     . "    background-size:100% 100%;\n"
 	     . "  }\n"
 	     . "}\n"
 	     . "/* 종이에 뽑을 때도 테두리가 같이 나가야 합니다 */\n"
