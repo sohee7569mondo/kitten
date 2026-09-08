@@ -378,6 +378,18 @@ add_action( 'template_redirect', function () {
 		'to'   => "    var p2=findMark('이제 이 답들을 위의 사주와 맞대어 봅니다');\n",
 	);
 
+	$jobs[] = array(
+		'name' => '㊽ ★ 별자리 쪽 끼우는 자리 되살리기',
+		'find' => '/\\s+for\\(i=0;i<pages\\.length;i\\+\\+\\)\\{\\s+eb=pages\\[i\\]\\.getElementsByClassName\\(\'eyebrow\'\\)\\[0\\];\\s+if\\(!eb\\)\\{\\s+continue;\\s+\\}\\s+if\\(eb\\.textContent===\'마지막에\\s+놓는\\s+세\\s+장\'\\)\\{\\s+anchor=pages\\[i\\];\\s+break;\\s+\\}\\s+\\}/u',
+		'to'   => "    /* ★ 2026-09-08 · 여기가 눈썹줄 「마지막에 놓는 세 장」을 딛고\n       있었습니다. 그 줄을 뺐으니(sum ㊴㊵㊶) 이제 못 찾습니다.\n       못 찾으면 아래 「맺음말」로 물러나서 별자리 쪽들이 카드 뒤로\n       밀려 들어갑니다 — 사라지지는 않지만 자리가 틀립니다.\n       그 쪽의 제목을 딛게 옮깁니다. 자리가 그대로 돌아옵니다.\n       ※ 이 자리는 화면에서 DOM 을 고쳐 끼우는 후처리라, 견본 그리기\n         틀로는 확인이 안 됩니다. 사이트에서 별자리 문을 눈으로\n         봐주셔야 합니다. */\n    for(i=0;i<pages.length;i++){\n      eb=pages[i].getElementsByTagName('h2')[0];\n      if(!eb){ continue; }\n      if(eb.textContent==='앞으로 여섯 달'){ anchor=pages[i]; break; }\n    }\n",
+	);
+
+	$jobs[] = array(
+		'name' => '㊾ 속표지 · 마지막에 놓는 타로 세 장',
+		'find' => '/\\s+put\\(t5,\\s+sheet\\(\'제\\s+5\\s+장\',\'마지막에\\s+놓는\\s+세\\s+장\',/u',
+		'to'   => "      put(t5, sheet('제 5 장','마지막에 놓는 타로 세 장',",
+	);
+
 	$apply = ( 'apply' === $mode );
 	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
 
