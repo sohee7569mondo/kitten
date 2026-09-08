@@ -1,0 +1,122 @@
+/* ════════════════════════════════════════════════════════════
+   시험용 구슬 넣기 · 소희 님께
+
+   왜
+     여는 날 전에 주인이 여섯 문을 다 읽어봐야 합니다.
+     한 권이 3구슬이니 네 권을 읽으려면 12개가 필요합니다.
+
+   무엇을 하나
+     지금 로그인한 관리자 계정에 구슬을 넣습니다.
+     내역에 「주인 시험용」이라고 적히니, 나중에 매출과
+     헷갈리지 않습니다.
+
+   ★ 관리자에게만, 자기 자신에게만 넣습니다.
+     다른 회원에게는 못 넣습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 → 저장 → 활성
+
+        https://stellasaju.com/?stella_give=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_give'] ) ) { return; }
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 쓸 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! function_exists( 'stella_orb_add' ) ) {
+		wp_die( '구슬 함수를 못 찾았습니다. 「회원가입 + 구슬」 스니펫이 켜져 있는지 봐주세요.',
+			'스텔라', array( 'response' => 200 ) );
+	}
+
+	$uid  = get_current_user_id();
+	$WHY  = '주인 시험용';
+	$done = '';
+
+	if ( isset( $_GET['add'] ) ) {
+		check_admin_referer( 'stella_give' );
+		$n = (int) $_GET['add'];
+		if ( $n > 0 ) {
+			if ( $n > 60 ) { $n = 60; }
+			stella_orb_add( $uid, $n, $WHY );
+			$done = $n . '개를 넣었습니다.';
+		}
+	}
+
+	if ( isset( $_GET['clear'] ) ) {
+		check_admin_referer( 'stella_give' );
+		$lots = stella_orb_lots( $uid );
+		$keep = array();
+		$gone = 0;
+		foreach ( $lots as $lot ) {
+			$why = isset( $lot['why'] ) ? (string) $lot['why'] : '';
+			if ( $why === $WHY ) { $gone += (int) $lot['left']; continue; }
+			$keep[] = $lot;
+		}
+		stella_orb_save_lots( $uid, $keep );
+		$done = '시험용 구슬 ' . $gone . '개를 걷어냈습니다.';
+	}
+
+	$bal   = stella_orb_balance( $uid );
+	$price = defined( 'STELLA_PRICE_BASE' ) ? (int) STELLA_PRICE_BASE : 3;
+	$books = $price > 0 ? (int) floor( $bal / $price ) : 0;
+
+	$u = function ( $q ) {
+		return wp_nonce_url( home_url( '/?stella_give=1' . $q ), 'stella_give' );
+	};
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">';
+	echo '<style>body{background:#12101B;color:#F2ECE0;'
+		. 'font:16px/1.8 -apple-system,"Apple SD Gothic Neo",system-ui,sans-serif;'
+		. 'padding:26px 18px;max-width:640px;margin:0 auto}'
+		. 'h1{color:#D4AF6A;font-size:1.3rem;margin:0 0 14px}'
+		. '.big{font-size:2.4rem;color:#F0D9A8;font-weight:700}'
+		. '.dim{color:#8B849C;font-size:.9rem}'
+		. 'a.btn{display:inline-block;background:#D4AF6A;color:#1A1230;'
+		. 'border-radius:8px;padding:12px 20px;margin:6px 8px 6px 0;'
+		. 'text-decoration:none;font-weight:700}'
+		. 'a.thin{background:none;color:#8B849C;border:1px solid #3A3350}'
+		. '.ok{color:#9AD1A5}'
+		. 'ul{padding-left:20px}li{margin:6px 0}a{color:#D4AF6A}</style>';
+	echo '<body><h1>시험용 구슬</h1>';
+
+	if ( $done ) { printf( '<p class="ok">%s</p>', esc_html( $done ) ); }
+
+	printf(
+		'<p class="big">%d개</p><p class="dim">한 권 %d구슬 · 지금 <b>%d권</b> 읽으실 수 있습니다.</p>',
+		$bal, $price, $books
+	);
+
+	echo '<p>';
+	printf( '<a class="btn" href="%s">3개 (한 권)</a>', esc_url( $u( '&add=3' ) ) );
+	printf( '<a class="btn" href="%s">9개 (세 권)</a>', esc_url( $u( '&add=9' ) ) );
+	printf( '<a class="btn" href="%s">12개 (네 권)</a>', esc_url( $u( '&add=12' ) ) );
+	echo '</p>';
+
+	echo '<p class="dim">내역에 「주인 시험용」이라고 적힙니다. 매출과 안 섞입니다.</p>';
+
+	echo '<h1 style="margin-top:30px">아직 안 읽어보신 문</h1><ul>';
+	$doors = array(
+		'/door-health/'  => '아람 · 건강과 가족',
+		'/door-fortune/' => '미르 · 흐름과 시기',
+		'/door-astro/'   => '아라 · 점성술',
+		'/door-tarot/'   => '아르카나 · 스텔라타로',
+	);
+	foreach ( $doors as $href => $name ) {
+		printf( '<li><a href="%s">%s</a></li>', esc_url( $href ), esc_html( $name ) );
+	}
+	echo '</ul>';
+
+	echo '<p style="margin-top:26px">';
+	printf( '<a class="btn thin" href="%s">시험용 구슬 도로 걷어내기</a>', esc_url( $u( '&clear=1' ) ) );
+	echo '</p>';
+	echo '<p class="dim">걷어내면 「주인 시험용」으로 넣은 것만 사라집니다. '
+		. '값을 치르고 받으신 구슬은 그대로 있습니다.</p>';
+	echo '</body>';
+	exit;
+}, 0 );
