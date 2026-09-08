@@ -1,0 +1,255 @@
+/* ════════════════════════════════════════════════════════════
+   주문 기록에 남은 옛 가디언 이름 고치기 · 소희 님께
+
+   무엇이 문제인가
+     가디언 이름을 바꾼 패치는 페이지 글자만 고쳤습니다.
+     이미 저장된 주문과 구슬 내역은 옛 이름을 그대로 들고 있습니다.
+     마이페이지를 열면 이런 줄이 섞여 보입니다.
+
+        직성의 신 퇴사운      ← 지금 없는 이름
+        성좌의 신 별자리로 보는 나
+        연성의 신 연애운
+
+   어떻게 고치나
+     주문에는 문 주소(slug)가 같이 들어 있어서, 그걸로 어느 문인지
+     정확히 알 수 있습니다. 이름을 짐작하지 않습니다.
+
+        door-career  → 마루      door-fortune → 미르
+        door-love    → 벼리      door-astro   → 아라
+        door-health  → 아람      door-tarot   → 아르카나
+
+     구슬 내역에는 주소가 없어서 이름으로 바꿉니다.
+
+        직성의 신 → 마루    세성의 신 → 미르
+        연성의 신 → 벼리    성좌의 신 → 아라
+        강성의 신 → 아람
+
+   손대는 곳 — 회원마다 저장된 것 넷
+        stella_orders     지난 주문
+        stella_order_now  지금 보고 계신 주문
+        stella_orb_log    구슬 내역
+        stella_bills      결제 내역
+
+   사본을 회원마다 따로 떠두고 통째로 되돌릴 수 있습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 → 저장 → 활성
+
+   ① 미리보기 — 아무것도 바뀌지 않습니다
+        https://stellasaju.com/?stella_gname=1
+   ② 적용
+        https://stellasaju.com/?stella_gname=1&go=1
+   되돌리기
+        https://stellasaju.com/?stella_gname=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_gname'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다. 관리자로 로그인한 창에서 열어주세요.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	$META = '_stella_gname_backup';
+	$KEYS = array( 'stella_orders', 'stella_order_now', 'stella_orb_log', 'stella_bills' );
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	$BY_SLUG = array(
+		'door-career'  => '마루',
+		'door-love'    => '벼리',
+		'door-health'  => '아람',
+		'door-fortune' => '미르',
+		'door-astro'   => '아라',
+		'door-tarot'   => '아르카나',
+	);
+	$BY_NAME = array(
+		'직성의 신' => '마루',
+		'연성의 신' => '벼리',
+		'강성의 신' => '아람',
+		'세성의 신' => '미르',
+		'성좌의 신' => '아라',
+	);
+
+	/* 배열 속 모든 글자에서 옛 이름을 바꿉니다 */
+	$sweep = function ( $v ) use ( &$sweep, $BY_NAME ) {
+		if ( is_string( $v ) ) {
+			return strtr( $v, $BY_NAME );
+		}
+		if ( is_array( $v ) ) {
+			$out = array();
+			foreach ( $v as $k => $x ) {
+				$out[ $k ] = $sweep( $x );
+			}
+			return $out;
+		}
+		return $v;
+	};
+
+	/* 주문 하나 — 문 주소로 이름을 정확히 맞춥니다 */
+	$fix_order = function ( $o ) use ( $BY_SLUG, $sweep ) {
+		if ( ! is_array( $o ) ) {
+			return $sweep( $o );
+		}
+		$slug = isset( $o['slug'] ) ? (string) $o['slug'] : '';
+		if ( isset( $BY_SLUG[ $slug ] ) ) {
+			$o['guardian'] = $BY_SLUG[ $slug ];
+		}
+		return $sweep( $o );
+	};
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 -apple-system,system-ui,sans-serif;'
+		. 'background:#111;color:#eee;padding:24px;max-width:1000px">';
+	printf(
+		'<h1 style="color:#ffd76a">주문 기록의 옛 이름 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	$uids = $wpdb->get_col( "SELECT ID FROM {$wpdb->users} ORDER BY ID" );
+	printf( '<p>회원 <b style="color:#9fd">%d</b>분을 봅니다.</p>', count( $uids ) );
+
+	/* ── 되돌리기 ── */
+	if ( $undo ) {
+		$n = 0;
+		foreach ( $uids as $uid ) {
+			$bak = get_user_meta( $uid, $META, true );
+			if ( ! is_array( $bak ) ) {
+				continue;
+			}
+			foreach ( $KEYS as $k ) {
+				if ( array_key_exists( $k, $bak ) ) {
+					update_user_meta( $uid, $k, $bak[ $k ] );
+				}
+			}
+			delete_user_meta( $uid, $META );
+			$n++;
+		}
+		printf( '<h2 style="color:#7bff9b">%d 분을 되돌렸습니다.</h2></body>', $n );
+		exit;
+	}
+
+	/* ── 셈하고 보여주기 ── */
+	$changed = 0;
+	$hits    = 0;
+	$sample  = array();
+
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>회원</td><td>메일</td><td>고칠 곳</td></tr>';
+
+	foreach ( $uids as $uid ) {
+		$plan = array();
+		$cnt  = 0;
+
+		foreach ( $KEYS as $k ) {
+			$cur = get_user_meta( $uid, $k, true );
+			if ( '' === $cur || null === $cur ) {
+				continue;
+			}
+
+			if ( 'stella_orders' === $k && is_array( $cur ) ) {
+				$new = array();
+				foreach ( $cur as $i => $o ) {
+					$new[ $i ] = $fix_order( $o );
+				}
+			} elseif ( 'stella_order_now' === $k ) {
+				$new = $fix_order( $cur );
+			} else {
+				$new = $sweep( $cur );
+			}
+
+			if ( $new !== $cur ) {
+				$plan[ $k ] = array( $cur, $new );
+				$cnt++;
+
+				/* 보기 좋게 몇 개만 뽑아둡니다 */
+				if ( count( $sample ) < 8 && is_array( $cur ) ) {
+					foreach ( $cur as $i => $o ) {
+						if ( count( $sample ) >= 8 ) {
+							break;
+						}
+						$a = is_array( $o ) ? ( isset( $o['guardian'] ) ? $o['guardian'] : ( isset( $o['why'] ) ? $o['why'] : '' ) ) : '';
+						$b = isset( $new[ $i ] ) && is_array( $new[ $i ] )
+							? ( isset( $new[ $i ]['guardian'] ) ? $new[ $i ]['guardian'] : ( isset( $new[ $i ]['why'] ) ? $new[ $i ]['why'] : '' ) )
+							: '';
+						if ( '' !== $a && $a !== $b ) {
+							$sample[] = array( $k, $a, $b );
+						}
+					}
+				}
+			}
+		}
+
+		if ( ! $plan ) {
+			continue;
+		}
+		$changed++;
+		$hits += $cnt;
+
+		$u = get_userdata( $uid );
+		printf(
+			'<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td style="color:#7bff9b">%s</td></tr>',
+			$uid,
+			esc_html( $u ? $u->user_email : '?' ),
+			esc_html( implode( ' · ', array_keys( $plan ) ) )
+		);
+
+		if ( $go ) {
+			$bak = get_user_meta( $uid, $META, true );
+			if ( ! is_array( $bak ) ) {
+				$bak = array();
+			}
+			foreach ( $plan as $k => $pair ) {
+				if ( ! array_key_exists( $k, $bak ) ) {
+					$bak[ $k ] = $pair[0];
+				}
+				update_user_meta( $uid, $k, $pair[1] );
+			}
+			update_user_meta( $uid, $META, $bak );
+		}
+	}
+	echo '</table>';
+
+	if ( $sample ) {
+		echo '<h2 style="color:#9fd">이렇게 바뀝니다</h2>';
+		echo '<table cellpadding="8" style="border-collapse:collapse">';
+		foreach ( $sample as $s ) {
+			printf(
+				'<tr style="border-top:1px solid #333"><td style="color:#888">%s</td>'
+				. '<td style="color:#ff9b9b">%s</td><td>→</td><td style="color:#7bff9b">%s</td></tr>',
+				esc_html( $s[0] ), esc_html( $s[1] ), esc_html( $s[2] )
+			);
+		}
+		echo '</table>';
+	}
+
+	printf(
+		'<p style="margin-top:16px">회원 <b style="color:#ffd76a">%d</b>분 · 고칠 곳 <b style="color:#ffd76a">%d</b>군데</p>',
+		$changed, $hits
+	);
+
+	if ( 0 === $changed ) {
+		echo '<h2 style="color:#7bff9b">고칠 것이 없습니다. 이미 다 새 이름입니다.</h2></body>';
+		exit;
+	}
+
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다. 아무것도 바뀌지 않았습니다.</h2>';
+		echo '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_gname=1&go=1">'
+			. '→ 이대로 바꾸기</a></p></body>';
+		exit;
+	}
+
+	echo '<h2 style="color:#7bff9b">바꿨습니다</h2>';
+	echo '<p style="font-size:17px"><a style="color:#ffd76a" href="/mypage/">내 자리</a>를 열어 '
+		. '옛 이름이 사라졌는지 봐주세요.</p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_gname=1&undo=1</p></body>';
+	exit;
+} );
