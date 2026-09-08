@@ -1,0 +1,193 @@
+/* ════════════════════════════════════════════════════════════
+   표지 높이 · 장 제목 크게 · 얼굴을 위로 · 소희 님께
+
+   소희 님 :「장 들어간 부분은 확실히 보여. 그런데 표지가 아직도
+             짧아. 그리고 제1장은 제목은 가운데인데 그림과 글씨가
+             작아서 빈 공간으로 느껴져. 글씨가 크게 들어가고
+             벼리 그림과 이름이 조금 위쪽으로 올라왔으면 좋겠어.」
+
+   ── 하는 일 셋 ─────────────────────────────────
+   ① 표지도 한 쪽을 다 씁니다 (지금 486px 밖에 안 됩니다)
+
+   ② 장 속표지에서 얼굴과 이름을 맨 위로 올립니다
+        지금  제1장 → 제목 → 설명 → 얼굴 → 이름
+        바뀜  얼굴 → 이름 → 제1장 → 제목 → 설명
+      그리고 가운데에 뭉쳐 있던 것을 위쪽에서 시작하게 해서
+      빈 자리가 아래로 몰리게 합니다.
+
+   ③ 크기를 키웁니다
+        「제 1 장」 작은 곁글자 → 18px ~ 25px · 금빛
+                   이 쪽이 있는 이유입니다. 쉼터 표지판이라
+                   제일 커야 합니다. 작으면 그냥 지나갑니다.
+        장 제목   26px ~ 37px
+        얼굴      88px → 132px
+        이름과 설명도 한 눈금씩
+
+   ★ 글은 한 글자도 안 건드립니다. 겉모습 규칙만 뒤에 붙입니다.
+   ★ 먼저 ?stella_dvfull=apply 와 ?stella_dvfix=apply 를 넣으신
+     뒤에 이것을 쓰세요.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_dvbig=1
+   ② 정말 넣기   https://stellasaju.com/?stella_dvbig=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_dvbig=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_dvbig'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_dvbig_backup';
+	$MARK = '2026-09-08 · 표지와 장 속표지 크게';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_dvbig'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:880px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}'
+	   . 'h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.86rem}a{color:#D4AF6A}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.55 monospace;border-left:3px solid #D4AF6A}</style>';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<h1 class="no">이미 들어가 있습니다.</h1>';
+		echo '<p><code>/?stella_dvbig=undo</code> 로 걷어낸 뒤 다시 넣으세요.</p>';
+		exit;
+	}
+
+	$TAIL = <<<'TAILX'
+
+<style>
+/* ══ 2026-09-08 · 표지와 장 속표지 크게 ═════════════════════
+   ① 표지도 한 쪽을 다 쓰게
+   ② 장 속표지에서 얼굴과 이름을 맨 위로, 위쪽에서 시작
+   ③ 얼굴 · 장 제목 · 이름 · 설명을 한 눈금씩 크게
+   글은 한 글자도 안 건드립니다. */
+
+/* ① 표지 */
+#ssb .page.cover{
+  min-height:82vh !important;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+@media print{
+  #ssb .page.cover{ min-height:auto !important; }
+}
+
+/* ② 장 속표지 — 가운데보다 조금 위에 놓습니다.
+   아래를 비워두면 「여기서 한 번 쉬어간다」가 됩니다. */
+#ssb .page.divider{
+  justify-content:center;
+  padding-bottom:11vh;
+}
+
+/* 차례 · 얼굴이 맨 위 */
+#ssb .page.divider .dvmark{ order:1; }
+#ssb .page.divider .dvwho{  order:2; }
+#ssb .page.divider .dvno{   order:3; }
+#ssb .page.divider h2{      order:4; }
+#ssb .page.divider .dvrule{ order:5; }
+#ssb .page.divider .dvwhat{ order:6; }
+#ssb .page.divider .folio{  order:7; }
+
+/* ③ 크기 */
+#ssb .page.divider .dvmark img{
+  width:132px !important;
+  height:132px !important;
+}
+#ssb .page.divider .dvwho{
+  font-size:1.02rem;
+  margin-top:14px;
+}
+/* 「제 1 장」 — 이 쪽이 있는 이유입니다. 쉼터 표지판이라
+   제일 커야 합니다. 작은 곁글자로 두면 그냥 지나갑니다. */
+#ssb .page.divider .dvno{
+  font-size:clamp(1.14rem, 3.8vw, 1.56rem) !important;
+  letter-spacing:.48em;
+  margin-top:38px;
+  color:var(--gold);
+}
+#ssb .page.divider h2{
+  font-size:clamp(1.62rem, 5.4vw, 2.3rem);
+  line-height:1.42;
+  margin-top:16px;
+  word-break:keep-all;
+}
+#ssb .page.divider .dvrule{ margin-top:24px; }
+#ssb .page.divider .dvwhat{
+  font-size:1rem;
+  margin-top:20px;
+}
+
+@media (max-height:620px){
+  #ssb .page.divider{ padding-bottom:6vh; }
+  #ssb .page.divider .dvmark img{ width:104px !important; height:104px !important; }
+}
+</style>
+TAILX;
+
+	$new = $c . $TAIL;
+	$nd  = substr_count( $c, 'class="page divider"' );
+
+	echo '<h1>' . ( 'apply' === $mode ? '넣었습니다' : '넣으면 이렇게 됩니다 (아직 안 넣었습니다)' ) . '</h1>';
+	echo '<h2>바뀌는 차례</h2>';
+	echo '<pre>지금    제 1 장  →  제목  →  설명  →  얼굴  →  이름' . "\n"
+	   . '바뀜    얼굴  →  이름  →  제 1 장  →  제목  →  설명</pre>';
+	echo '<h2>바뀌는 크기</h2>';
+	echo '<pre>「제 1 장」  작은 곁글자  →  18px ~ 25px · 금빛' . "\n"
+	   . '장 제목     작음         →  26px ~ 37px' . "\n"
+	   . '얼굴        88px         →  132px' . "\n"
+	   . '표지 높이   486px        →  화면의 82%</pre>';
+	echo '<h2>넣는 것</h2><pre>' . esc_html( $TAIL ) . '</pre>';
+	printf( '<p class="dim">코드에 적힌 장 속표지 자리 %d 군데. '
+	   . '함수 하나가 만들어내므로 화면에서는 여섯 장이 다 바뀝니다.</p>', $nd );
+	echo '<p class="dim">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 넣으시려면 <code>/?stella_dvbig=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<p class="ok">넣었습니다.</p>';
+	echo '<p><a href="/reading-book/?demo=door-health&stella_bk=1">책 열고 재보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_dvbig=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );
