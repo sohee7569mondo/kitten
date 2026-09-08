@@ -1,0 +1,146 @@
+/* ════════════════════════════════════════════════════════════
+   수비학 — 안 보는 것을 본다고 적어둔 자리   ★ 2026-09-08
+
+   지금 책은 수비학을 안 봅니다. 되살린 책 글에서 「수비학」도
+   「라이프패스」도 한 글자도 안 나옵니다. 8월 견본에는 「수비학 ·
+   라이프패스 1」 장이 실제로 있었는데, 책을 다시 짜면서 빠졌고
+   문 쪽의 소개 글만 남았습니다.
+
+   /guide/ 에서 「이 책의 모든 문장은 계산된 값에서 나옵니다」라고
+   못을 박아두셨습니다. 그 옆에서 계산하지 않는 것을 한다고
+   적어두면 안 됩니다.
+
+   ── 하는 일 ────────────────────────────────────
+   ① 「, <b>수비학</b>으로 …를 함께 봅니다.」 에서 수비학 토막만
+      들어냅니다. 앞 문장은 그대로 살아서 이어집니다.
+
+        전통 사주명리학으로 A를, 서양점성술로 B를,
+        수비학으로 C를 함께 봅니다.
+          ↓
+        전통 사주명리학으로 A를, 서양점성술로 B를 함께 봅니다.
+
+   ② 그 뒤의 「세 체계」를 「두 체계」로 바꿉니다.
+
+   ★ 「수비학」이라는 말을 아예 지우는 것이 아니라, 그 말이 든
+     토막 하나만 들어냅니다. 나머지 문장은 소희 님이 쓰신 그대로
+     남습니다.
+
+   ★ 먼저 보기에서 바뀐 문장을 통째로 보여드립니다. 읽어보시고
+     어색하면 그 쪽만 손으로 고치시면 됩니다.
+
+   ── 어디에 ─────────────────────────────────────
+   사이트 전체를 돌면서 그 토막이 있는 쪽만 손봅니다.
+   (2026-09-08 기준 : 문 넷과 문구 테스트 쪽 하나)
+
+   ── 나중에 ─────────────────────────────────────
+   수비학을 진짜로 넣기로 하시면 라이프패스는 생년월일 자릿수를
+   더하는 것이라 계산은 쉽습니다. 다만 1~9 아홉 개의 글을 새로
+   쓰고, 사주·별자리와 겹쳐 읽는 규칙도 만들어야 합니다.
+   그때 이 스니펫을 되돌리면 문장이 그대로 돌아옵니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_numo=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_numo=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_numo=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_numo'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_numo_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_numo'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:960px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:24px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{white-space:pre-wrap;background:rgba(255,255,255,.04);padding:10px 12px;'
+	   . 'border-radius:6px;font-size:.9rem;line-height:1.8;margin:6px 0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} "
+		. "WHERE post_type = 'page' AND post_status IN ('publish','draft','private') ORDER BY ID" );
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$back = 0;
+		foreach ( $ids as $id ) {
+			$old = get_post_meta( $id, $META, true );
+			if ( ! $old ) { continue; }
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $id ) );
+			clean_post_cache( $id );
+			delete_post_meta( $id, $META );
+			echo '<p class="ok">' . intval( $id ) . '번 쪽 — 되돌렸습니다.</p>';
+			$back++;
+		}
+		echo '<h2>정리</h2><p>' . intval( $back ) . '쪽 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	/* 수비학 토막 — 앞의 쉼표부터 「함께 봅니다.」까지 */
+	$cut = '/,\s*<b>수비학<\/b>[^.<]*?함께 봅니다\./u';
+
+	$done = 0; $skip = 0;
+
+	foreach ( $ids as $id ) {
+
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT ID, post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		if ( ! $row ) { continue; }
+		$c = $row->post_content;
+
+		if ( false === strpos( $c, '수비학' ) ) { continue; }
+
+		echo '<h2>' . esc_html( $row->post_title ) . ' <span class="dim">(' . intval( $id ) . ')</span></h2>';
+
+		$n = preg_match_all( $cut, $c );
+		if ( 1 !== $n ) {
+			echo '<p class="no">수비학 토막이 ' . intval( $n ) . '군데입니다. 한 군데여야 안전합니다. '
+			   . '이 쪽은 손으로 고쳐주세요.</p>';
+			$skip++; continue;
+		}
+
+		$new = preg_replace( $cut, ' 함께 봅니다.', $c, 1 );
+		$k   = 0;
+		$new = str_replace( '세 체계', '두 체계', $new, $k );
+
+		/* 바뀐 문장을 통째로 보여드립니다 */
+		$at = strpos( $new, '함께 봅니다.' );
+		$from = max( 0, $at - 260 );
+		echo '<p class="dim">바뀐 뒤 —</p>';
+		echo '<pre>…' . esc_html( wp_strip_all_tags( substr( $new, $from, 420 ) ) ) . '…</pre>';
+		if ( $k ) { echo '<p class="dim">「세 체계」 → 「두 체계」 ' . intval( $k ) . '군데</p>'; }
+
+		if ( ! $apply ) { $done++; continue; }
+
+		if ( ! get_post_meta( $id, $META, true ) ) {
+			update_post_meta( $id, $META, $c );
+		}
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		echo '<p class="ok">' . number_format( strlen( $c ) ) . ' → '
+		   . number_format( strlen( $new ) ) . ' 바이트</p>';
+		$done++;
+	}
+
+	echo '<h2>정리</h2>';
+	echo '<p>' . intval( $done ) . '쪽 ' . ( $apply ? '바꿨습니다' : '바꿀 수 있습니다' )
+	   . ' &middot; ' . intval( $skip ) . '쪽 건너뜀</p>';
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_numo=apply</code> 를 여세요.</p>';
+	} else {
+		echo '<p class="ok">되돌리시려면 <code>/?stella_numo=undo</code> 를 여세요.</p>';
+	}
+	exit;
+}, 0 );
