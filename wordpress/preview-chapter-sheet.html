@@ -40,11 +40,16 @@ body{margin:0;background:var(--void);font-family:'Noto Sans KR',sans-serif;color
 .whoen{margin-top:4px;font-family:var(--latin);font-size:.66rem;letter-spacing:.22em;color:var(--dim)}
 .rule{width:34px;height:1px;background:var(--line);margin:7% auto 6%}
 .no{font-family:var(--mono);font-size:.7rem;letter-spacing:.26em;color:var(--gold);margin:0 0 10px}
-h2{font-family:var(--serif);font-weight:700;font-size:1.34rem;line-height:1.55;margin:0;text-wrap:balance}
-.what{margin:14px 0 0;color:var(--dim);font-size:.86rem;line-height:1.85;text-wrap:balance}
+/* 제목이 한 줄이든 두 줄이든 낱장 키가 같아야 합니다.
+   두 줄 자리를 늘 비워두고 가운데에 놓습니다. */
+h2{font-family:var(--serif);font-weight:700;font-size:1.34rem;line-height:1.55;margin:0;
+  text-wrap:balance;min-height:3.1em;display:flex;align-items:center;justify-content:center}
+.what{margin:14px 0 0;color:var(--dim);font-size:.86rem;line-height:1.85;
+  text-wrap:balance;min-height:3.7em}
 
 @media(max-width:640px){
   .page{padding:0 9%}
+  h2{min-height:3.1em}
   .arch{width:62%}
   h2{font-size:1.14rem}
 }
