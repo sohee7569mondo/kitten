@@ -330,6 +330,21 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   flex:0 0 auto; font-size:.82rem; color:var(--plum); white-space:nowrap;
   border-bottom:1px solid rgba(107,79,176,.35); padding-bottom:2px;}
 #stellar-home .rowhead .rh-go:hover{border-color:var(--plum);}
+#stellar-home .rowhead .rh-d{margin-top:8px; font-size:.9rem; color:var(--ink-soft);}
+
+/* 2026-09-08 · 미리보기 단추.
+   무엇을 사는지 눈으로 보고 결제하시라고, 견본 책을 바로 엽니다.
+   견본은 드라마 「응답하라 1988」 사람들로 만든 것이라 이름이 붙습니다. */
+#stellar-home .samples{display:flex !important; flex-wrap:wrap; gap:8px; margin-top:13px;}
+#stellar-home .sbtn{
+  display:inline-flex !important; align-items:center; gap:6px;
+  padding:9px 15px; border-radius:30px; font-size:.84rem;
+  border:1px solid var(--line-2); background:var(--card); color:var(--ink-soft);
+  transition:border-color .2s ease, color .2s ease, transform .2s ease, background .2s ease;}
+#stellar-home .sbtn::before{
+  content:'\25B7'; font-size:.7em; color:var(--plum);}
+#stellar-home .sbtn:hover{
+  border-color:var(--plum); color:var(--plum); background:var(--plum-soft); transform:translateY(-2px);}
 
 /* ══ 질문 카드 (사진) ══════════════════════════════════════ */
 #stellar-home .ask-card{
@@ -542,8 +557,13 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
       <div class="rowhead reveal">
         <div class="rh-l">
           <!-- 【문구】 줄 머리 -->
-          <div class="kick">벼리</div>
+          <div class="kick">인연을 잇는 가디언 &middot; 벼리</div>
           <h2>연애 · 결혼</h2>
+          <p class="rh-d">연애 스타일과 되풀이되는 걸림을 찾아드립니다.</p>
+          <!-- 【미리보기】 견본 책으로 바로 갑니다 -->
+          <div class="samples">
+            <a class="sbtn" href="/reading-love/">정환이의 연애운 미리보기</a>
+          </div>
         </div>
         <a class="rh-go" href="/door-love/">모두 보기 &rsaquo;</a>
       </div>
@@ -604,8 +624,14 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
       <div class="rowhead reveal" style="margin-top:34px;">
         <div class="rh-l">
           <!-- 【문구】 줄 머리 -->
-          <div class="kick">미르</div>
+          <div class="kick">일을 짓는 가디언 &middot; 미르</div>
           <h2>직업 · 재물</h2>
+          <p class="rh-d">어느 자리에 서면 힘이 덜 드는지 찾아드립니다.</p>
+          <!-- 【미리보기】 견본 책으로 바로 갑니다 -->
+          <div class="samples">
+            <a class="sbtn" href="/reading-sample/">덕선이의 직업운 미리보기</a>
+            <a class="sbtn" href="/reading-wealth/">선우의 재물운 미리보기</a>
+          </div>
         </div>
         <a class="rh-go" href="/door-career/">모두 보기 &rsaquo;</a>
       </div>
@@ -665,8 +691,16 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
       <!-- ── 나머지 넷 ────────────────────────────────── -->
       <div class="rowhead reveal" style="margin-top:34px;">
         <div class="rh-l">
+          <!-- 【문구】 줄 머리 -->
           <div class="kick">그 밖에</div>
           <h2>건강 · 흐름 · 점성술 · 스텔라타로</h2>
+          <p class="rh-d">몸과 때, 그리고 별과 카드로도 같은 질문을 봅니다.</p>
+          <!-- 【미리보기】 견본 책으로 바로 갑니다 -->
+          <div class="samples">
+            <a class="sbtn" href="/reading-health/">동룡이의 건강운 미리보기</a>
+            <a class="sbtn" href="/reading-fortune/">보라의 시기운 미리보기</a>
+            <a class="sbtn" href="/reading-astro/">택이의 점성술 미리보기</a>
+          </div>
         </div>
       </div>
 
