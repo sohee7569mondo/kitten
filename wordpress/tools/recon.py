@@ -4,7 +4,12 @@ import io, re, sys, subprocess, os
 S='/tmp/claude-0/-home-user-kitten/c2a43b1d-0c4f-566e-ae2a-79f351d35055/scratchpad/'
 PH='/home/user/kitten/wordpress/php/'
 ORDER=['patch160_tail','patch160_split','patch160_amp','patch160_divider','patch160_name','patch160_paper','patch160_say',
-       'patch160_byline','patch160_taste','patch160_evidence']
+       'patch160_byline','patch160_taste','patch160_evidence',
+       'patch160_box','patch160_voice','patch160_ask',
+       'patch160_head','patch160_sip','patch160_sum','patch160_gap2']
+# 2026-09-08 · 소희 님이 넣으신 순서 그대로입니다.
+#   box → voice → ask → (gap 은 ⑪ 때문에 막힘) → head → sip → sum → gap2
+#   gap2 는 gap 에서 ⑪ 을 뺀 판입니다. 마지막에 들어갔는데 자리가 다 걸렸습니다.
 # 2026-09-08 · byline · taste · evidence 를 더했습니다.
 #   소희 님이 ?stella_today=1 을 열었더니 17 자리 가운데 셋만 걸렸는데,
 #   그 셋이 전부 「제 패치를 먹고도 다시 걸리는」 자리였습니다.
@@ -41,5 +46,5 @@ shutil.move(src, S+'live_recon.html')
 n=os.path.getsize(S+'live_recon.html')
 print()
 print('되살린 크기 :', format(n,','), '바이트')
-print('바탕 크기 : 1,137,527 바이트 (byline · taste · evidence 까지 먹인 값)')
+print('바탕 : 소희 님이 넣으신 것 전부 (2026-09-08)')
 print('되살린 값을 앞으로의 바탕으로 씁니다')
