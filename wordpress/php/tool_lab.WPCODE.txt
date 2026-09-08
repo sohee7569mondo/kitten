@@ -1,0 +1,96 @@
+/* ════════════════════════════════════════════════════════════
+   랩 테스트가 지금 몇 개이고 어느 게 언제 것인지 · 소희 님께
+
+   글 안에 남은 표를 보고 갈라냅니다.
+     .stq-lab       오늘 손본 것 (카페 캠핑 장보기 머니)
+     class="stq"    예전에 만든 블록 (도쿄)
+     kitteninthesox 더 예전, 다른 사이트에서 만든 것 (야식)
+     stqNext        오늘 드린 유앤미 통로가 들어갔는지
+     stqFam         패밀리 통로가 들어갔는지
+
+   ★ 아무것도 고치지 않습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 → 저장 → 활성
+
+        https://stellasaju.com/?stella_lab=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_lab'] ) ) { return; }
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.75 -apple-system,system-ui,sans-serif;'
+		. 'background:#111;color:#eee;padding:24px;max-width:1080px">';
+	echo '<h1 style="color:#ffd76a">랩 테스트 살펴보기</h1>';
+
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_name, post_status, post_content, post_date
+		   FROM {$wpdb->posts}
+		  WHERE post_type = 'page'
+		    AND post_status IN ('publish','draft','private','pending')
+		    AND ( post_content LIKE '%quiz-data%'
+		       OR post_content LIKE '%stq-data%'
+		       OR post_content LIKE '%stq-lab%'
+		       OR post_content LIKE '%kitteninthesox%'
+		       OR post_name LIKE '%lab%'
+		       OR post_content LIKE '%renderResult%' )
+		  ORDER BY post_date"
+	);
+
+	if ( ! $rows ) {
+		echo '<p style="color:#ff7b7b">아무것도 못 찾았습니다.</p></body>';
+		exit;
+	}
+
+	$marks = array(
+		'오늘 것'     => 'stq-lab',
+		'예전 블록'   => 'class="stq"',
+		'딴 사이트'   => 'kitteninthesox',
+		'문제꾸러미'  => 'quiz-data',
+		'도쿄식'      => 'stq-data',
+		'유앤미 통로' => 'stqNext',
+		'패밀리 통로' => 'stqFam',
+		'공유하기'    => 'share-row',
+	);
+
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>ID</td><td>제목</td><td>주소</td><td>상태</td>'
+		. '<td>만든 날</td><td>크기</td><td>들어 있는 표</td></tr>';
+
+	foreach ( $rows as $r ) {
+		$has = array();
+		foreach ( $marks as $what => $needle ) {
+			if ( false !== strpos( $r->post_content, $needle ) ) { $has[] = $what; }
+		}
+		printf(
+			'<tr style="border-top:1px solid #333"><td><b>%d</b></td><td>%s</td>'
+			. '<td style="color:#888">/%s/</td><td style="color:%s">%s</td>'
+			. '<td style="color:#888">%s</td><td style="color:#888">%s</td>'
+			. '<td style="color:#9fd">%s</td></tr>',
+			$r->ID,
+			esc_html( $r->post_title ),
+			esc_html( $r->post_name ),
+			'publish' === $r->post_status ? '#7bff9b' : '#ffb36a',
+			esc_html( $r->post_status ),
+			esc_html( substr( $r->post_date, 0, 10 ) ),
+			number_format( strlen( $r->post_content ) ),
+			esc_html( $has ? implode( ' · ', $has ) : '없음' )
+		);
+	}
+	echo '</table>';
+
+	echo '<p style="color:#888">같은 테스트가 두 쪽에 나뉘어 있으면 여기서 바로 보입니다. '
+		. '크기가 아주 작은 쪽은 껍데기만 있는 쪽일 수 있습니다.</p>';
+	echo '<h2 style="color:#7bff9b">끝났습니다. 아무것도 바뀌지 않았습니다.</h2></body>';
+	exit;
+} );
