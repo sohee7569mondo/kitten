@@ -236,54 +236,71 @@
 #ssg .memo{ display:none !important; }
 #ssg .samples.one{ grid-template-columns:1fr !important; }
 
-/* ══ 2026-09-08 · 문을 흰 바탕으로 ═══════════════════════════
+/* ══ 2026-09-08 · 문을 흰 바탕으로 ═══════════════════════════════
    앞의 색표를 지우지 않고 뒤에서 덮어씁니다. 되돌리기가 쉽습니다.
-   홈 v16 과 같은 종이빛을 씁니다. */
+   2판 · 바닥을 한 톤 내려서 흰 카드가 떠 보이게 했습니다. */
 #ssg{
-  --void:#FFFDF9; --void-deep:#F5F1E8;
-  --nebula:#FFFFFF; --nebula-soft:#F5F1E8;
+  --void:#F1EDE3; --void-deep:#FBF8F2;
+  --nebula:#FFFFFF; --nebula-soft:#F7F3EA;
   --purple-glow:rgba(107,79,176,.16);
   --gold:#A9791F; --gold-soft:#B98A47; --gold-lite:#8A6520;
   --star:#221C33;
   --ink-soft:#4E4763; --ink-dim:#8B849C;
-  --line:#E7E1D6;
+  --line:#E2DACB;
+  --g-accent:#A44E62 !important;
   color:var(--star);
 }
 /* 밤하늘 별은 흰 바탕에서 안 보입니다. 아주 옅은 결만 남깁니다. */
-#ssg .ssg-stars, #ssg .stars{
+#ssg .g-stars{
   background:
     radial-gradient(58vw 44vw at 12% 2%, rgba(107,79,176,.05), transparent 62%),
     radial-gradient(52vw 40vw at 92% 24%, rgba(169,121,31,.05), transparent 60%),
     var(--void) !important;}
-/* 카드 · 상자 — 흰 종이에 얇은 테 */
-#ssg .stage, #ssg .card, #ssg .box, #ssg .panel{
-  background:var(--nebula) !important;
-  border:1px solid var(--line) !important;
-  box-shadow:0 10px 30px -18px rgba(34,28,51,.28) !important;}
+/* 카드 · 상자 — 바닥보다 밝은 흰 종이. 테와 그림자를 또렷하게. */
+#ssg .g-card, #ssg .step, #ssg .bill{
+  background:#FFFFFF !important; border:1px solid #E2DACB !important;
+  box-shadow:0 2px 4px -2px rgba(34,28,51,.10),
+             0 12px 30px -16px rgba(34,28,51,.26) !important;}
+/* 카드 안에 또 상자가 있는 자리(저장된 내 정보)는 한 톤 낮춥니다.
+   흰 위에 흰이면 테두리가 있어도 눈에 안 걸립니다. */
+#ssg .saved{
+  background:#FAF7F0 !important; border:1px solid #EAE2D2 !important;
+  box-shadow:none !important;}
 /* 넣는 칸 */
-#ssg .field input, #ssg .field select, #ssg input[type="text"],
-#ssg input[type="number"], #ssg input[type="email"], #ssg select, #ssg textarea{
-  background:var(--void) !important; color:var(--star) !important;
-  border:1px solid #D8D0BF !important;}
-#ssg select option{background:#FFFFFF !important; color:#221C33 !important;}
-#ssg ::placeholder{color:#B7B0C4 !important;}
-/* 그림 위에 얹던 어두운 그라데이션 */
-#ssg .imgwrap::after, #ssg .face::after{
-  background:linear-gradient(to top, rgba(255,253,249,.96) 2%,
-             rgba(255,253,249,.35) 55%, transparent 80%) !important;}
-/* 흰 바탕에서 안 보이던 글자들 */
-#ssg .msg.ok{color:#2F7D4A !important;}
-#ssg .msg.err, #ssg .lack{color:#C4453A !important;}
-#ssg .sample-k{color:#6B4FB0 !important;}
-#ssg .trial-note{color:#3F6B52 !important;}
-#ssg .trial-note b{color:#24503A !important;}
-#ssg .sample:hover{border-color:#6B4FB0 !important;}
-/* 고른 주제 칸 */
-#ssg .topic span{background:#FFFFFF; border-color:#D8D0BF; color:var(--ink-soft);}
+#ssg .f input, #ssg .f select, #ssg .oneline input, #ssg .memo,
+#ssg .topic span{ background:#FAF7F0 !important; color:var(--star) !important;
+  border-color:#D5CCB8 !important; }
+#ssg select option{ background:#FFFFFF !important; color:#221C33 !important; }
+#ssg ::placeholder{ color:#B7B0C4 !important; }
 #ssg .topic input:checked + span{
-  background:#F3EFFA !important; border-color:var(--g-accent) !important;
-  color:var(--star) !important;}
-
+  background:#F7F2EA !important; border-color:var(--g-accent) !important;
+  color:var(--star) !important; }
+/* 그림 위에 얹던 어두운 그라데이션 */
+#ssg .g-portrait::after{
+  background:linear-gradient(to top, rgba(255,255,255,.96) 2%,
+             rgba(255,255,255,.3) 55%, transparent 80%) !important;}
+/* 흰 바탕에서 안 보이던 글자들 */
+#ssg .msg.ok{ color:#2F7D4A !important; }
+#ssg .msg.err, #ssg .lack{ color:#C4453A !important; }
+/* 맨 위 견본 상자는 나머지와 색을 다르게 둡니다.
+   손님이 제일 먼저 눌러볼 자리라, 흰 카드 사이에서 튀어야 합니다.
+   문마다 제 빛깔의 옅은 빛을 깔고 테두리를 그 빛깔로 둘렀습니다. */
+#ssg .sample{ background:#FBF0F2 !important;
+  border:1px solid #A44E62 !important;
+  box-shadow:0 10px 26px -16px #A44E62 !important; }
+#ssg .sample:hover{ background:#FFFFFF !important;
+  box-shadow:0 16px 34px -16px #A44E62 !important; }
+#ssg .sample-k{ color:#A44E62 !important; }
+#ssg .sample-t{ color:#A44E62 !important; }
+#ssg .step-no{ color:#FFFFFF !important; }
+#ssg .cal-switch button.on{ color:#FFFFFF !important; }
+#ssg .go{ color:#FFFDF9 !important;
+  background:linear-gradient(120deg,#3A2E77,#241C4E) !important;
+  box-shadow:0 16px 34px -16px rgba(36,28,78,.7) !important; }
+#ssg .signup-note{ background:#F3EFFA !important; border-color:#D9CFF2 !important; }
+#ssg .pay-note, #ssg .gunghap-box, #ssg .g-greet, #ssg .g-method{
+  background:#FAF6EE !important; border-color:#E7E1D6 !important; }
+#ssg .pay-note b{ color:var(--gold) !important; }
 </style>
 <div id="ssg" style="--g-accent:#A44E62">
   <div class="g-stars" aria-hidden="true"></div>
@@ -441,8 +458,8 @@
 
         <div class="samples one">
           <a class="sample" href="/reading-love/">
-            <div class="sample-k">Sample</div>
-            <div class="sample-t">연애운 전자책 미리보기</div>
+            <div class="sample-k">Sample &middot; 정보 입력 전 미리 보기</div>
+            <div class="sample-t">완성본 미리보기 &middot; 정환이의 연애운</div>
             <div class="sample-d">실제로 발행되는 책을 그대로 보실 수 있어요 &rarr;</div>
           </a>
         </div>

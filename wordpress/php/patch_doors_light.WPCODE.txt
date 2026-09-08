@@ -101,8 +101,31 @@ add_action( 'template_redirect', function () {
 		if ( ! $row ) { echo '<p class="no">내용을 못 읽었습니다. 건너뜁니다.</p>'; $skip++; continue; }
 		$c = $row->post_content;
 
-		if ( false !== strpos( $c, $MARK ) ) {
-			echo '<p class="no">이미 흰 바탕입니다. 건너뜁니다.</p>'; $skip++; continue;
+		/* 2026-09-08 · 두 번째 판부터는 「이미 넣었으니 건너뜀」이 아니라
+		   앞서 넣은 덩이를 걷어내고 새로 넣습니다. 그래야 색을 고칠 때마다
+		   되돌리기(undo) 를 하지 않아도 됩니다 — undo 를 하면 그 뒤에 넣은
+		   다른 손질까지 같이 사라져서 위험합니다. */
+		$again = false;
+		$ms = strpos( $c, '/* ══ ' . $MARK );
+		if ( false !== $ms ) {
+			$again  = true;
+			$bstart = $ms;
+			$hadtag = false;
+			$head   = substr( $c, max( 0, $ms - 16 ), $ms - max( 0, $ms - 16 ) );
+			if ( preg_match( '/<style>\s*$/u', $head, $hm ) ) {
+				$bstart = $ms - strlen( $hm[0] );
+				$hadtag = true;
+			}
+			$me = strpos( $c, '</style>', $ms );
+			if ( false === $me ) {
+				echo '<p class="no">앞서 넣은 덩이의 끝을 못 찾았습니다. 건너뜁니다.</p>';
+				$skip++; continue;
+			}
+			$bend = $hadtag ? ( $me + strlen( '</style>' ) ) : $me;
+			$c    = substr( $c, 0, $bstart ) . substr( $c, $bend );
+			if ( "\n" === substr( $c, $bstart, 1 ) ) {
+				$c = substr( $c, 0, $bstart ) . substr( $c, $bstart + 1 );
+			}
 		}
 
 		/* 2026-09-08 · 이 쪽이 쓰는 상자 이름부터 찾습니다.
@@ -139,15 +162,15 @@ add_action( 'template_redirect', function () {
 
 		$css = "<style>\n/* ══ " . $MARK . " ═══════════════════════════════\n"
 		     . "   앞의 색표를 지우지 않고 뒤에서 덮어씁니다. 되돌리기가 쉽습니다.\n"
-		     . "   홈과 같은 종이빛을 씁니다. */\n"
+		     . "   2판 · 바닥을 한 톤 내려서 흰 카드가 떠 보이게 했습니다. */\n"
 		     . "%%ID%%{\n"
-		     . "  --void:#FFFDF9; --void-deep:#F5F1E8;\n"
-		     . "  --nebula:#FFFFFF; --nebula-soft:#F5F1E8;\n"
+		     . "  --void:#F1EDE3; --void-deep:#FBF8F2;\n"
+		     . "  --nebula:#FFFFFF; --nebula-soft:#F7F3EA;\n"
 		     . "  --purple-glow:rgba(107,79,176,.16);\n"
 		     . "  --gold:#A9791F; --gold-soft:#B98A47; --gold-lite:#8A6520;\n"
 		     . "  --star:#221C33;\n"
 		     . "  --ink-soft:#4E4763; --ink-dim:#8B849C;\n"
-		     . "  --line:#E7E1D6;\n"
+		     . "  --line:#E2DACB;\n"
 		     . "  --g-accent:" . $accent . " !important;\n"
 		     . "  color:var(--star);\n"
 		     . "}\n"
@@ -157,15 +180,20 @@ add_action( 'template_redirect', function () {
 		     . "    radial-gradient(58vw 44vw at 12% 2%, rgba(107,79,176,.05), transparent 62%),\n"
 		     . "    radial-gradient(52vw 40vw at 92% 24%, rgba(169,121,31,.05), transparent 60%),\n"
 		     . "    var(--void) !important;}\n"
-		     . "/* 카드 · 상자 — 흰 종이에 얇은 테 */\n"
-		     . "%%ID%% .g-card, %%ID%% .step, %%ID%% .saved{\n"
-		     . "  background:var(--nebula) !important; border:1px solid var(--line) !important;\n"
-		     . "  box-shadow:0 10px 30px -18px rgba(34,28,51,.28) !important;}\n"
-		     . "%%ID%% .bill{ background:var(--nebula) !important; }\n"
+		     . "/* 카드 · 상자 — 바닥보다 밝은 흰 종이. 테와 그림자를 또렷하게. */\n"
+		     . "%%ID%% .g-card, %%ID%% .step, %%ID%% .bill{\n"
+		     . "  background:#FFFFFF !important; border:1px solid #E2DACB !important;\n"
+		     . "  box-shadow:0 2px 4px -2px rgba(34,28,51,.10),\n"
+		     . "             0 12px 30px -16px rgba(34,28,51,.26) !important;}\n"
+		     . "/* 카드 안에 또 상자가 있는 자리(저장된 내 정보)는 한 톤 낮춥니다.\n"
+		     . "   흰 위에 흰이면 테두리가 있어도 눈에 안 걸립니다. */\n"
+		     . "%%ID%% .saved{\n"
+		     . "  background:#FAF7F0 !important; border:1px solid #EAE2D2 !important;\n"
+		     . "  box-shadow:none !important;}\n"
 		     . "/* 넣는 칸 */\n"
 		     . "%%ID%% .f input, %%ID%% .f select, %%ID%% .oneline input, %%ID%% .memo,\n"
-		     . "%%ID%% .topic span{ background:var(--void) !important; color:var(--star) !important;\n"
-		     . "  border-color:#D8D0BF !important; }\n"
+		     . "%%ID%% .topic span{ background:#FAF7F0 !important; color:var(--star) !important;\n"
+		     . "  border-color:#D5CCB8 !important; }\n"
 		     . "%%ID%% select option{ background:#FFFFFF !important; color:#221C33 !important; }\n"
 		     . "%%ID%% ::placeholder{ color:#B7B0C4 !important; }\n"
 		     . "%%ID%% .topic input:checked + span{\n"
@@ -209,8 +237,9 @@ add_action( 'template_redirect', function () {
 		}
 
 		if ( ! $apply ) {
-			echo '<p class="ok">자리를 찾았습니다 — 빛깔 <b>' . esc_html( $accent )
-			   . '</b> 로 흰 바탕을 얹습니다. '
+			echo '<p class="ok">'
+			   . ( $again ? '앞서 넣은 것을 걷어내고 <b>새 색으로 다시</b> 넣습니다. ' : '자리를 찾았습니다. ' )
+			   . '빛깔 <b>' . esc_html( $accent ) . '</b> '
 			   . '(상자 <b>' . esc_html( $ID ) . '</b> · '
 			   . ( 'box' === $where ? '상자 앞' : '색표 끝' ) . ')</p>';
 			$done++;
