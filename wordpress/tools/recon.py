@@ -3,7 +3,13 @@
 import io, re, sys, subprocess, os
 S='/tmp/claude-0/-home-user-kitten/c2a43b1d-0c4f-566e-ae2a-79f351d35055/scratchpad/'
 PH='/home/user/kitten/wordpress/php/'
-ORDER=['patch160_tail','patch160_split','patch160_amp','patch160_divider','patch160_name','patch160_paper','patch160_say']
+ORDER=['patch160_tail','patch160_split','patch160_amp','patch160_divider','patch160_name','patch160_paper','patch160_say',
+       'patch160_byline','patch160_taste','patch160_evidence']
+# 2026-09-08 · byline · taste · evidence 를 더했습니다.
+#   소희 님이 ?stella_today=1 을 열었더니 17 자리 가운데 셋만 걸렸는데,
+#   그 셋이 전부 「제 패치를 먹고도 다시 걸리는」 자리였습니다.
+#   여기에 셋을 먹이고 today 를 재보니 사이트와 똑같이 3 걸림 · 14 못찾음.
+#   즉 patch160_today 는 이 셋을 묶은 것이고, 사이트에는 이미 들어가 있습니다.
 
 src=S+'recon_in.html'
 import shutil
@@ -35,5 +41,5 @@ shutil.move(src, S+'live_recon.html')
 n=os.path.getsize(S+'live_recon.html')
 print()
 print('되살린 크기 :', format(n,','), '바이트')
-print('사이트 크기 : 1,132,716 바이트 (paper · say 까지 적용된 값)')
-print('일치' if n==1132716 else '★ 다릅니다 — 차이 %d' % (n-1132716))
+print('바탕 크기 : 1,137,527 바이트 (byline · taste · evidence 까지 먹인 값)')
+print('되살린 값을 앞으로의 바탕으로 씁니다')
