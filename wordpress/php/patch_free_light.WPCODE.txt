@@ -123,6 +123,18 @@ add_action( 'template_redirect', function () {
 			}
 		}
 
+		/* ── 글 고치기 ────────────────────────────────────
+		   「여섯 개의 문 열어보기」를 「스텔라 사주 보기」로 바꿉니다.
+		   가는 곳도 홈의 스텔라사주보기 자리(#saju)로 옮깁니다.
+		   이미 바뀐 쪽은 0 군데로 나오는데, 그래도 괜찮습니다. */
+		$n1 = 0; $n2 = 0;
+		$c = str_replace( '여섯 개의 문 열어보기', '스텔라 사주 보기', $c, $n1 );
+		$c = str_replace( 'href="/#doors"', 'href="/#saju"', $c, $n2 );
+		if ( $n1 || $n2 ) {
+			echo '<p class="ok">글 고침 — 「스텔라 사주 보기」 ' . intval( $n1 ) . '군데 &middot; '
+			   . '가는 곳 ' . intval( $n2 ) . '군데</p>';
+		}
+
 		/* 감싸는 상자 이름 찾기 — 색표를 든 상자, 없으면 ss 로 시작하는 첫 상자 */
 		$ID = '';
 		if ( preg_match( '/<div id="([A-Za-z0-9_-]+)"[^>]*--void/u', $c, $mm ) ) {
@@ -176,7 +188,7 @@ add_action( 'template_redirect', function () {
 		     . "    radial-gradient(52vw 40vw at 92% 24%, rgba(169,121,31,.05), transparent 60%),\n"
 		     . "    #F1EDE3 !important;}\n"
 		     . "/* 상자는 바닥보다 밝은 흰 종이. 테와 그림자를 또렷하게. */\n"
-		     . "%%ID%% .result, %%ID%% .pillar, %%ID%% .elems, %%ID%% .stage,\n"
+		     . "%%ID%% .stage, %%ID%% .pillar, %%ID%% .elems,\n"
 		     . "%%ID%% .el-card, %%ID%% .zcard, %%ID%% .acard, %%ID%% .upsell,\n"
 		     . "%%ID%% .item, %%ID%% .finder, %%ID%% .seer,\n"
 		     . "%%ID%% .ask, %%ID%% .score, %%ID%% .say, %%ID%% .luck div{\n"
@@ -211,6 +223,9 @@ add_action( 'template_redirect', function () {
 		     . "%%ID%% .zdot, %%ID%% .swatch{ border-color:rgba(34,28,51,.18) !important; }\n"
 		     . "%%ID%% .err{ color:#C4453A !important; }\n"
 		     . "%%ID%% .bar, %%ID%% .track{ background:rgba(34,28,51,.08) !important; }\n"
+		     . "/* 위아래 상자의 가로 폭을 하나로 맞춥니다. 700px 로 통일합니다. */\n"
+		     . "%%ID%% .stage, %%ID%% .upsell, %%ID%% .weekbox,\n"
+		     . "%%ID%% .finder, %%ID%% .fine{ max-width:700px !important; }\n"
 		     . "";
 
 		$css = str_replace( '%%ID%%', '#' . $ID, $css );
