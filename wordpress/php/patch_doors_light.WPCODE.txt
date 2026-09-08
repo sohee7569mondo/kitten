@@ -52,13 +52,14 @@ add_action( 'template_redirect', function () {
 	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
 
 	/* 문 여섯과 그 문의 빛깔 (흰 바탕용으로 한 단 진하게) */
+	/* 이름 · 빛깔 · 견본 상자에 깔 옅은 빛 */
 	$doors = array(
-		'door-love'    => array( '연애 · 결혼',  '#A44E62' ),
-		'door-career'  => array( '일 · 돈',      '#8C6A2E' ),
-		'door-health'  => array( '건강 · 가족',  '#3F7A59' ),
-		'door-fortune' => array( '흐름 · 시기',  '#6B4FB0' ),
-		'door-astro'   => array( '점성술',       '#33688F' ),
-		'door-tarot'   => array( '스텔라타로',   '#A0522D' ),
+		'door-love'    => array( '연애 · 결혼',  '#A44E62', '#FBF0F2' ),
+		'door-career'  => array( '일 · 돈',      '#8C6A2E', '#FBF5EA' ),
+		'door-health'  => array( '건강 · 가족',  '#3F7A59', '#EEF6F1' ),
+		'door-fortune' => array( '흐름 · 시기',  '#6B4FB0', '#F3F0FB' ),
+		'door-astro'   => array( '점성술',       '#33688F', '#EDF3F8' ),
+		'door-tarot'   => array( '스텔라타로',   '#A0522D', '#FBF1EB' ),
 	);
 
 	if ( 'undo' === $mode ) {
@@ -88,6 +89,7 @@ add_action( 'template_redirect', function () {
 	foreach ( $doors as $slug => $d ) {
 		$label  = $d[0];
 		$accent = $d[1];
+		$tint   = $d[2];
 
 		echo '<h2>' . esc_html( $slug ) . ' &middot; ' . esc_html( $label ) . '</h2>';
 
@@ -176,9 +178,16 @@ add_action( 'template_redirect', function () {
 		     . "/* 흰 바탕에서 안 보이던 글자들 */\n"
 		     . "%%ID%% .msg.ok{ color:#2F7D4A !important; }\n"
 		     . "%%ID%% .msg.err, %%ID%% .lack{ color:#C4453A !important; }\n"
-		     . "%%ID%% .sample{ background:#FFFFFF !important; border-color:#D8D0BF !important; }\n"
-		     . "%%ID%% .sample:hover{ border-color:var(--g-accent) !important; }\n"
-		     . "%%ID%% .sample-k{ color:var(--g-accent) !important; }\n"
+		     . "/* 맨 위 견본 상자는 나머지와 색을 다르게 둡니다.\n"
+		     . "   손님이 제일 먼저 눌러볼 자리라, 흰 카드 사이에서 튀어야 합니다.\n"
+		     . "   문마다 제 빛깔의 옅은 빛을 깔고 테두리를 그 빛깔로 둘렀습니다. */\n"
+		     . "%%ID%% .sample{ background:" . $tint . " !important;\n"
+		     . "  border:1px solid " . $accent . " !important;\n"
+		     . "  box-shadow:0 10px 26px -16px " . $accent . " !important; }\n"
+		     . "%%ID%% .sample:hover{ background:#FFFFFF !important;\n"
+		     . "  box-shadow:0 16px 34px -16px " . $accent . " !important; }\n"
+		     . "%%ID%% .sample-k{ color:" . $accent . " !important; }\n"
+		     . "%%ID%% .sample-t{ color:" . $accent . " !important; }\n"
 		     . "%%ID%% .step-no{ color:#FFFFFF !important; }\n"
 		     . "%%ID%% .cal-switch button.on{ color:#FFFFFF !important; }\n"
 		     . "%%ID%% .go{ color:#FFFDF9 !important;\n"
