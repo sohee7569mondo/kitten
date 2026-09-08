@@ -52,7 +52,7 @@ add_action( 'template_redirect', function () {
 	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
 	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
 	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
-	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
 	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
 
 	$pages = array(
@@ -112,10 +112,26 @@ add_action( 'template_redirect', function () {
 			$c = substr( $c, 0, $ms ) . substr( $c, $me );
 		}
 
-		$find = '/<\/style>\s+<div\s+id="ssb">/u';
+		/* 2026-09-08 · 두 번째 판 — 사이 띄어쓰기를 느슨하게 잡습니다.
+		   앞판은 </style> 와 <div id="ssb"> 사이에 빈칸이 꼭 있어야 했는데,
+		   나중에 뽑은 견본 넷은 붙어 있어서 한 군데도 안 걸렸습니다. */
+		$find = '/<\/style>\s*<div\s+id="ssb"[^>]*>/u';
 		$n = preg_match_all( $find, $c );
 		if ( 1 !== $n ) {
 			echo '<p class="no">붙일 자리가 ' . intval( $n ) . '군데입니다. 한 군데여야 합니다. 건너뜁니다.</p>';
+			$at = strpos( $c, '<div id="ssb"' );
+			if ( false === $at ) {
+				echo '<p class="no">「&lt;div id=&quot;ssb&quot;」 자체가 없습니다. 이 쪽은 짜임이 다릅니다.</p>';
+				$m2 = array();
+				if ( preg_match( '/<div id="([A-Za-z0-9_-]+)"/u', $c, $m2 ) ) {
+					echo '<p class="dim">이 쪽의 첫 상자 이름 : <b>' . esc_html( $m2[1] ) . '</b></p>';
+				}
+			} else {
+				echo '<p class="dim">상자 앞 120자 —</p><pre style="white-space:pre-wrap;'
+				   . 'color:#C9C2D8;font-size:.82rem;background:rgba(255,255,255,.04);'
+				   . 'padding:10px 12px;border-radius:6px">'
+				   . esc_html( substr( $c, max( 0, $at - 120 ), 200 ) ) . '</pre>';
+			}
 			$skip++; continue;
 		}
 

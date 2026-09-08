@@ -82,82 +82,93 @@ add_action( 'template_redirect', function () {
 	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
 	$c = $row->post_content;
 
-	$rows = array(
-		array( '01', '표지 — 이름과 여덟 글자',        'COVER' ),
-		array( '02', '여는 글 — 쓴 이가 직접',          'OPEN' ),
-		array( '03', '시각을 먼저 바로잡습니다',        '근거 하나' ),
-		array( '04', '여덟 글자',                       '근거 둘' ),
-		array( '05', '기운의 저울',                     '근거 셋' ),
-		array( '06', '십 년마다 바뀌는 판',             '근거 넷' ),
-		array( '07', '태어나던 밤의 하늘',              '근거 다섯' ),
-		array( '08', '사주가 보는 당신의 모습',         '제 1 장' ),
-		array( '09', '답에서 말하는 당신의 모습',       '제 2 장' ),
-		array( '10', '현실에서의 당신의 모습',          '제 3 장' ),
-		array( '11', '고르신 주제로 풀어보면',          '제 4 장' ),
-		array( '12', '그 주제 안에서 더 깊이',          '제 5 장' ),
-		array( '13', '언제 움직이면 되는지',            '제 6 장' ),
-		array( '14', '오늘의 카드 세 장',               'TAROT' ),
-		array( '15', '세 장이 하는 말',                 'TAROT' ),
-		array( '16', '세 가지만 기억하세요',            '맺음말' ),
-		array( '17', '쓴 이가 드리는 마지막 말',        '맺음말' ),
-		array( '18', '배웅',                            'END' ),
-	);
+	/* 2026-09-08 · 두 번째 판 — 통째로 갈아끼우지 않고 줄 하나씩 바꿉니다.
+	   통째로 잡는 방법은 사이트에서 안 걸렸습니다. 줄 하나씩이면
+	   어느 줄이 걸리고 어느 줄이 안 걸리는지 화면에 그대로 나옵니다.
+	   못 걸린 줄이 있어도 나머지는 그대로 들어갑니다. */
 
-	$toc = "<div class=\"toc\">\n";
-	foreach ( $rows as $r ) {
-		$toc .= "        <div class=\"r\"><div class=\"p\">" . $r[0] . "</div>"
-		      . "<div class=\"t\">" . $r[1] . "</div>"
-		      . "<div class=\"g\">" . $r[2] . "</div></div>\n";
-	}
-	$toc .= "      </div>\n"
-	      . "      <p class=\"sub\" style=\"margin-top:14px\">제 4 · 5 · 6 장은 고르신 문과 "
-	      . "주제에 따라 달라집니다. 책 안에서는 장 제목에 손님 이름이 들어갑니다 — "
-	      . "「사주가 보는 덕선님의 모습」처럼요.</p>\n      ";
+	$jobs = array(
 
-	$jobs = array();
+		array( '02 · 가디언 → 쓴 이',
+			'<div class="t">여는 글 — 가디언이 직접</div>',
+			'<div class="t">여는 글 — 쓴 이가 직접</div>' ),
 
-	$jobs[] = array(
-		'name' => '① 목차를 지금 책에 맞춰 다시',
-		'find' => '/<div class="toc">.*?<\/div>\s*(?=<p>PDF)/su',
-		'to'   => $toc,
+		array( '08 · 제목을 지금 책에 맞춤',
+			'<div class="t">당신이 아무 말도 하기 전에</div><div class="g">1부</div>',
+			'<div class="t">사주가 보는 당신의 모습</div><div class="g">제 1 장</div>' ),
+
+		array( '09 · 1부 → 제 1 장',
+			'<div class="t">주제의 언어로 옮기면</div><div class="g">1부</div>',
+			'<div class="t">주제의 언어로 옮기면</div><div class="g">제 1 장</div>' ),
+
+		array( '10 · 제목과 꼬리표',
+			'<div class="t">당신이 답해주신 것</div><div class="g">2부</div>',
+			'<div class="t">답에서 말하는 당신의 모습</div><div class="g">제 2 장</div>' ),
+
+		array( '11 · 2부 → 제 2 장',
+			'<div class="t">적어주신 말</div><div class="g">2부</div>',
+			'<div class="t">적어주신 말</div><div class="g">제 2 장</div>' ),
+
+		array( '12 · 2부 → 제 3 장',
+			'<div class="t">어긋나는 자리 — 두 저울</div><div class="g">2부</div>',
+			'<div class="t">어긋나는 자리 — 두 저울</div><div class="g">제 3 장</div>' ),
+
+		array( '13 · 2부 → 제 3 장',
+			'<div class="t">어긋나는 자리 — 남은 셋</div><div class="g">2부</div>',
+			'<div class="t">어긋나는 자리 — 남은 셋</div><div class="g">제 3 장</div>' ),
+
+		array( '17 · 가디언 → 쓴 이',
+			'<div class="t">가디언이 드리는 마지막 말</div>',
+			'<div class="t">쓴 이가 드리는 마지막 말</div>' ),
+
+		array( '꼬리 · 장마다 달라진다는 한 줄',
+			'<p>PDF 로 저장해 두시면',
+			'<p class="sub" style="margin-top:14px">제 4 · 5 · 6 장은 고르신 문과 주제에 '
+			. '따라 달라집니다. 책 안에서는 장 제목에 손님 이름이 들어갑니다 — '
+			. '「사주가 보는 덕선님의 모습」처럼요.</p>'
+			. "\n      " . '<p>PDF 로 저장해 두시면' ),
 	);
 
 	$apply = ( 'apply' === $mode );
 	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
 
-	$ok = true;
+	$new = $c; $hit = 0; $miss = 0;
+
 	foreach ( $jobs as $j ) {
-		$n = preg_match_all( $j['find'], $c );
-		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		$n = substr_count( $new, $j[1] );
+		echo '<h2>' . esc_html( $j[0] ) . '</h2>';
 		if ( 1 === $n ) {
+			$new = str_replace( $j[1], $j[2], $new );
 			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+			$hit++;
 		} elseif ( 0 === $n ) {
-			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 글이 달라졌습니다.</p>';
-			$ok = false;
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 글이 다릅니다.</p>';
+			$miss++;
 		} else {
-			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
-			$ok = false;
+			echo '<p class="no">' . intval( $n ) . '군데입니다. 이 줄은 건너뜁니다.</p>';
+			$miss++;
 		}
 	}
 
-	if ( ! $ok ) {
-		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+	if ( ! $hit ) {
+		echo '<h2>정리</h2><p class="no">걸린 줄이 하나도 없습니다. 아무것도 안 바꿨습니다.</p>';
+		echo '<h2>지금 목차가 어떻게 생겼나</h2>';
+		$at = strpos( $c, '<div class="toc">' );
+		if ( false === $at ) {
+			echo '<p class="no">「class="toc"」 자체가 없습니다. 이 쪽이 맞나요?</p>';
+		} else {
+			echo '<pre style="white-space:pre-wrap;color:#C9C2D8;font-size:.82rem;'
+			   . 'background:rgba(255,255,255,.04);padding:10px 12px;border-radius:6px">'
+			   . esc_html( substr( $c, $at, 1400 ) ) . '</pre>';
+		}
 		exit;
 	}
+
 	if ( ! $apply ) {
-		echo '<h2>새 목차</h2><pre style="white-space:pre-wrap;color:#C9C2D8;font-size:.86rem">'
-		   . esc_html( $toc ) . '</pre>';
+		echo '<h2>정리</h2><p>' . intval( $hit ) . '줄 바꿉니다 &middot; '
+		   . intval( $miss ) . '줄 못 찾음</p>';
 		echo '<p>정말 바꾸시려면 <code>/?stella_toc=apply</code> 를 여세요.</p>';
 		exit;
-	}
-
-	$new = $c;
-	foreach ( $jobs as $j ) {
-		$new = preg_replace( $j['find'], str_replace( '\\', '\\\\', $j['to'] ), $new, 1 );
-		if ( null === $new ) {
-			echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 안 바꿨습니다.</p>';
-			exit;
-		}
 	}
 
 	if ( ! get_post_meta( $pid, $META, true ) ) {
@@ -167,8 +178,9 @@ add_action( 'template_redirect', function () {
 	clean_post_cache( $pid );
 
 	echo '<h2>정리</h2>';
-	echo '<p class="ok">' . number_format( strlen( $c ) ) . ' → '
-	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p class="ok">' . intval( $hit ) . '줄 바꿨습니다 &middot; '
+	   . intval( $miss ) . '줄 못 찾음 &middot; '
+	   . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
 	echo '<p><a href="/guide/">목차 열어보기</a></p>';
 	echo '<p class="ok">되돌리시려면 <code>/?stella_toc=undo</code> 를 여세요.</p>';
 	exit;
