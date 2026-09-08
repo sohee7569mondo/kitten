@@ -259,7 +259,13 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   flex:0 0 auto; font-size:.82rem; color:var(--plum); white-space:nowrap;
   border-bottom:1px solid rgba(107,79,176,.35); padding-bottom:2px;}
 #stellar-home .rowhead .rh-go:hover{border-color:var(--plum);}
-#stellar-home .rowhead .rh-d{margin-top:8px; font-size:.9rem; color:var(--ink-soft);}
+/* 2026-09-08 · 설명 줄을 제목(연애 · 결혼)과 같은 크기로 키웠습니다.
+   손님이 사는 것은 「연애 · 결혼」이라는 이름이 아니라
+   「무엇을 찾아준다」는 이 문장이라서요.
+   크기는 같게, 굵기와 빛깔만 한 단 낮춰 차례를 남깁니다. */
+#stellar-home .rowhead .rh-d{
+  margin-top:9px; font-size:clamp(1.08rem,2.6vw,1.32rem); line-height:1.55;
+  font-weight:400; color:var(--ink-soft); text-wrap:balance;}
 
 /* 2026-09-08 · 미리보기 단추.
    무엇을 사는지 눈으로 보고 결제하시라고, 견본 책을 바로 엽니다.
@@ -559,7 +565,6 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
           <!-- 【미리보기】 견본 책으로 바로 갑니다 -->
           <div class="samples">
             <a class="sbtn" href="/reading-sample/">덕선이의 직업운 미리보기</a>
-            <a class="sbtn" href="/reading-wealth/">선우의 재물운 미리보기</a>
           </div>
         </div>
         <a class="rh-go" href="/door-career/">모두 보기 &rsaquo;</a>
@@ -627,8 +632,6 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
           <!-- 【미리보기】 견본 책으로 바로 갑니다 -->
           <div class="samples">
             <a class="sbtn" href="/reading-health/">동룡이의 건강운 미리보기</a>
-            <a class="sbtn" href="/reading-fortune/">보라의 시기운 미리보기</a>
-            <a class="sbtn" href="/reading-astro/">택이의 점성술 미리보기</a>
           </div>
         </div>
       </div>
