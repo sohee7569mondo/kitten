@@ -103,22 +103,42 @@ add_action( 'template_redirect', function () {
 			echo '<p class="no">이미 흰 바탕입니다. 건너뜁니다.</p>'; $skip++; continue;
 		}
 
-		/* 2026-09-08 · 자리를 <div id="ssg"> 하나로 잡습니다.
-		   전에는 </style> 바로 뒤라고 봤는데, 타로 문은 그 사이에
-		   소개 블록이 끼어 있어서 못 찾았습니다. 이 자리는 어느 문에나
-		   딱 한 번 나오고, 바로 앞에 넣으면 앞의 색표를 덮습니다. */
-		$find = '/<div id="ssg"/u';
-		$n = preg_match_all( $find, $c );
-		if ( 1 !== $n ) {
-			echo '<p class="no">붙일 자리를 ' . intval( $n ) . '군데 찾았습니다. '
-			   . '한 군데여야 합니다. 건너뜁니다.</p>';
+		/* 2026-09-08 · 이 쪽이 쓰는 상자 이름부터 찾습니다.
+		   문 쪽마다 감싸는 상자에 --g-accent 가 붙어 있습니다.
+		   그 이름으로 색표를 써야 글이 먹습니다. 이름이 ssg 가 아닌
+		   쪽(타로 문)이 있어서 이렇게 바꿨습니다. */
+		$ID = '';
+		if ( preg_match( '/<div id="([A-Za-z0-9_-]+)"[^>]*--g-accent/u', $c, $mm ) ) {
+			$ID = $mm[1];
+		} elseif ( preg_match( '/<div id="(ss[A-Za-z0-9_-]*)"/u', $c, $mm ) ) {
+			$ID = $mm[1];
+		}
+		if ( '' === $ID ) {
+			$first = '(못 찾음)';
+			if ( preg_match( '/<div id="([A-Za-z0-9_-]+)"/u', $c, $mm ) ) { $first = $mm[1]; }
+			echo '<p class="no">감싸는 상자를 못 찾았습니다. 건너뜁니다. '
+			   . '(이 쪽의 첫 상자 이름 : <b>' . esc_html( $first ) . '</b>)</p>';
+			$skip++; continue;
+		}
+
+		/* 붙는 자리 — 그 상자 바로 앞, 없으면 마지막 색표 끝 */
+		$where = '';
+		$at    = strpos( $c, '<div id="' . $ID . '"' );
+		if ( false !== $at ) {
+			$where = 'box';
+		} else {
+			$at = strrpos( $c, '</style>' );
+			if ( false !== $at ) { $where = 'style'; }
+		}
+		if ( '' === $where ) {
+			echo '<p class="no">붙일 자리를 못 찾았습니다. 건너뜁니다.</p>';
 			$skip++; continue;
 		}
 
 		$css = "<style>\n/* ══ " . $MARK . " ═══════════════════════════════\n"
 		     . "   앞의 색표를 지우지 않고 뒤에서 덮어씁니다. 되돌리기가 쉽습니다.\n"
 		     . "   홈과 같은 종이빛을 씁니다. */\n"
-		     . "#ssg{\n"
+		     . "%%ID%%{\n"
 		     . "  --void:#FFFDF9; --void-deep:#F5F1E8;\n"
 		     . "  --nebula:#FFFFFF; --nebula-soft:#F5F1E8;\n"
 		     . "  --purple-glow:rgba(107,79,176,.16);\n"
@@ -130,55 +150,65 @@ add_action( 'template_redirect', function () {
 		     . "  color:var(--star);\n"
 		     . "}\n"
 		     . "/* 밤하늘 별은 흰 바탕에서 안 보입니다. 아주 옅은 결만 남깁니다. */\n"
-		     . "#ssg .g-stars{\n"
+		     . "%%ID%% .g-stars{\n"
 		     . "  background:\n"
 		     . "    radial-gradient(58vw 44vw at 12% 2%, rgba(107,79,176,.05), transparent 62%),\n"
 		     . "    radial-gradient(52vw 40vw at 92% 24%, rgba(169,121,31,.05), transparent 60%),\n"
 		     . "    var(--void) !important;}\n"
 		     . "/* 카드 · 상자 — 흰 종이에 얇은 테 */\n"
-		     . "#ssg .g-card, #ssg .step, #ssg .saved{\n"
+		     . "%%ID%% .g-card, %%ID%% .step, %%ID%% .saved{\n"
 		     . "  background:var(--nebula) !important; border:1px solid var(--line) !important;\n"
 		     . "  box-shadow:0 10px 30px -18px rgba(34,28,51,.28) !important;}\n"
-		     . "#ssg .bill{ background:var(--nebula) !important; }\n"
+		     . "%%ID%% .bill{ background:var(--nebula) !important; }\n"
 		     . "/* 넣는 칸 */\n"
-		     . "#ssg .f input, #ssg .f select, #ssg .oneline input, #ssg .memo,\n"
-		     . "#ssg .topic span{ background:var(--void) !important; color:var(--star) !important;\n"
+		     . "%%ID%% .f input, %%ID%% .f select, %%ID%% .oneline input, %%ID%% .memo,\n"
+		     . "%%ID%% .topic span{ background:var(--void) !important; color:var(--star) !important;\n"
 		     . "  border-color:#D8D0BF !important; }\n"
-		     . "#ssg select option{ background:#FFFFFF !important; color:#221C33 !important; }\n"
-		     . "#ssg ::placeholder{ color:#B7B0C4 !important; }\n"
-		     . "#ssg .topic input:checked + span{\n"
+		     . "%%ID%% select option{ background:#FFFFFF !important; color:#221C33 !important; }\n"
+		     . "%%ID%% ::placeholder{ color:#B7B0C4 !important; }\n"
+		     . "%%ID%% .topic input:checked + span{\n"
 		     . "  background:#F7F2EA !important; border-color:var(--g-accent) !important;\n"
 		     . "  color:var(--star) !important; }\n"
 		     . "/* 그림 위에 얹던 어두운 그라데이션 */\n"
-		     . "#ssg .g-portrait::after{\n"
+		     . "%%ID%% .g-portrait::after{\n"
 		     . "  background:linear-gradient(to top, rgba(255,255,255,.96) 2%,\n"
 		     . "             rgba(255,255,255,.3) 55%, transparent 80%) !important;}\n"
 		     . "/* 흰 바탕에서 안 보이던 글자들 */\n"
-		     . "#ssg .msg.ok{ color:#2F7D4A !important; }\n"
-		     . "#ssg .msg.err, #ssg .lack{ color:#C4453A !important; }\n"
-		     . "#ssg .sample{ background:#FFFFFF !important; border-color:#D8D0BF !important; }\n"
-		     . "#ssg .sample:hover{ border-color:var(--g-accent) !important; }\n"
-		     . "#ssg .sample-k{ color:var(--g-accent) !important; }\n"
-		     . "#ssg .step-no{ color:#FFFFFF !important; }\n"
-		     . "#ssg .cal-switch button.on{ color:#FFFFFF !important; }\n"
-		     . "#ssg .go{ color:#FFFDF9 !important;\n"
+		     . "%%ID%% .msg.ok{ color:#2F7D4A !important; }\n"
+		     . "%%ID%% .msg.err, %%ID%% .lack{ color:#C4453A !important; }\n"
+		     . "%%ID%% .sample{ background:#FFFFFF !important; border-color:#D8D0BF !important; }\n"
+		     . "%%ID%% .sample:hover{ border-color:var(--g-accent) !important; }\n"
+		     . "%%ID%% .sample-k{ color:var(--g-accent) !important; }\n"
+		     . "%%ID%% .step-no{ color:#FFFFFF !important; }\n"
+		     . "%%ID%% .cal-switch button.on{ color:#FFFFFF !important; }\n"
+		     . "%%ID%% .go{ color:#FFFDF9 !important;\n"
 		     . "  background:linear-gradient(120deg,#3A2E77,#241C4E) !important;\n"
 		     . "  box-shadow:0 16px 34px -16px rgba(36,28,78,.7) !important; }\n"
-		     . "#ssg .signup-note{ background:#F3EFFA !important; border-color:#D9CFF2 !important; }\n"
-		     . "#ssg .pay-note, #ssg .gunghap-box, #ssg .g-greet, #ssg .g-method{\n"
+		     . "%%ID%% .signup-note{ background:#F3EFFA !important; border-color:#D9CFF2 !important; }\n"
+		     . "%%ID%% .pay-note, %%ID%% .gunghap-box, %%ID%% .g-greet, %%ID%% .g-method{\n"
 		     . "  background:#FAF6EE !important; border-color:#E7E1D6 !important; }\n"
-		     . "#ssg .pay-note b{ color:var(--gold) !important; }\n"
-		     . "</style>\n<div id=\"ssg\"";
+		     . "%%ID%% .pay-note b{ color:var(--gold) !important; }\n"
+		     . "";
+
+		/* ② 로 갈 때는 이미 열려 있는 style 안에 넣는 것이라
+		   여는 태그를 떼고, ① 로 갈 때만 한 덩이로 감쌉니다. */
+		$css = str_replace( '%%ID%%', '#' . $ID, $css );
+		if ( 'box' === $where ) {
+			$ins = $css . "</style>\n";
+		} else {
+			$ins = substr( $css, strlen( '<style>' ) );
+		}
 
 		if ( ! $apply ) {
-			echo '<p class="ok">한 군데 찾았습니다 — 빛깔 <b>' . esc_html( $accent )
-			   . '</b> 로 흰 바탕을 얹습니다.</p>';
+			echo '<p class="ok">자리를 찾았습니다 — 빛깔 <b>' . esc_html( $accent )
+			   . '</b> 로 흰 바탕을 얹습니다. '
+			   . '(상자 <b>' . esc_html( $ID ) . '</b> · '
+			   . ( 'box' === $where ? '상자 앞' : '색표 끝' ) . ')</p>';
 			$done++;
 			continue;
 		}
 
-		$new = preg_replace( $find, str_replace( '\\', '\\\\', $css ), $c, 1 );
-		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 건너뜁니다.</p>'; $skip++; continue; }
+		$new = substr( $c, 0, $at ) . $ins . substr( $c, $at );
 
 		if ( ! get_post_meta( $p->ID, $META, true ) ) {
 			update_post_meta( $p->ID, $META, $c );
