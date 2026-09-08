@@ -1,0 +1,175 @@
+/* ════════════════════════════════════════════════════════════
+   「나의 사주와 별자리」 목차를 지금 책에 맞춥니다   ★ 2026-09-08
+
+   소희 님 말씀 :
+     「당신이 아무 말도 하기 전에 — 이거 문구 바꾼 거 같은데,
+      사주가 보는 당신의 모습 (책엔 이름으로 들어가고)」
+     「이 부분 수정하면 우리도 한번 정리될 거 같아」
+
+   맞습니다. 목차가 옛날 책을 가리키고 있었습니다.
+
+   ── 무엇이 어긋나 있었나 ────────────────────────
+   책은 그동안 「1부 · 2부」에서 「제 1 장 ~ 제 6 장」으로 바뀌었고
+   장마다 속표지가 붙었습니다. 그런데 목차는 아직 1부 · 2부입니다.
+
+     08  당신이 아무 말도 하기 전에   1부   ← 책에는 이 제목이 없습니다
+     10  당신이 답해주신 것           2부
+     17  가디언이 드리는 마지막 말          ← 「가디언」은 우리끼리 쓰는 말
+
+   책의 지금 속표지는 이렇습니다 (되살린 사이트 글에서 그대로 읽었습니다) —
+
+     제 1 장  사주가 말하는 ○○님 모습    여덟 글자를 보고 전해드립니다
+     제 2 장  답에서 말하는 ○○님 모습    일곱 가지를 보고 전해드립니다
+     제 3 장  현실에서의 ○○님 모습
+     제 4 장  (고르신 주제)
+     제 5 장  (주제 안에서 더 깊이 · 타로를 뽑으셨으면 카드 세 장)
+     제 6 장  언제 움직이면 되는가
+
+   ── 새 목차 ────────────────────────────────────
+   장을 그대로 옮겼습니다. 소희 님이 주신 말을 8번에 넣었습니다.
+   목차 쪽에는 이름이 없으니 「당신」으로 두고, 책에서는 그대로
+   손님 이름이 들어갑니다.
+
+   「가디언」은 두 군데(02 · 17)에서 「쓴 이」로 바꿉니다.
+   책 표지의 칸이 이미 「쓴 이」로 바뀌어 있습니다.
+
+   제 4 · 5 · 6 장은 문과 주제에 따라 달라져서, 목차 아래에
+   그렇다고 한 줄 적었습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_toc=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_toc=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_toc=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_toc'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_toc_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_toc'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$page = get_page_by_path( 'guide' );
+	if ( ! $page ) { echo '<h1 class="no">guide 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	$rows = array(
+		array( '01', '표지 — 이름과 여덟 글자',        'COVER' ),
+		array( '02', '여는 글 — 쓴 이가 직접',          'OPEN' ),
+		array( '03', '시각을 먼저 바로잡습니다',        '근거 하나' ),
+		array( '04', '여덟 글자',                       '근거 둘' ),
+		array( '05', '기운의 저울',                     '근거 셋' ),
+		array( '06', '십 년마다 바뀌는 판',             '근거 넷' ),
+		array( '07', '태어나던 밤의 하늘',              '근거 다섯' ),
+		array( '08', '사주가 보는 당신의 모습',         '제 1 장' ),
+		array( '09', '답에서 말하는 당신의 모습',       '제 2 장' ),
+		array( '10', '현실에서의 당신의 모습',          '제 3 장' ),
+		array( '11', '고르신 주제로 풀어보면',          '제 4 장' ),
+		array( '12', '그 주제 안에서 더 깊이',          '제 5 장' ),
+		array( '13', '언제 움직이면 되는지',            '제 6 장' ),
+		array( '14', '오늘의 카드 세 장',               'TAROT' ),
+		array( '15', '세 장이 하는 말',                 'TAROT' ),
+		array( '16', '세 가지만 기억하세요',            '맺음말' ),
+		array( '17', '쓴 이가 드리는 마지막 말',        '맺음말' ),
+		array( '18', '배웅',                            'END' ),
+	);
+
+	$toc = "<div class=\"toc\">\n";
+	foreach ( $rows as $r ) {
+		$toc .= "        <div class=\"r\"><div class=\"p\">" . $r[0] . "</div>"
+		      . "<div class=\"t\">" . $r[1] . "</div>"
+		      . "<div class=\"g\">" . $r[2] . "</div></div>\n";
+	}
+	$toc .= "      </div>\n"
+	      . "      <p class=\"sub\" style=\"margin-top:14px\">제 4 · 5 · 6 장은 고르신 문과 "
+	      . "주제에 따라 달라집니다. 책 안에서는 장 제목에 손님 이름이 들어갑니다 — "
+	      . "「사주가 보는 덕선님의 모습」처럼요.</p>\n      ";
+
+	$jobs = array();
+
+	$jobs[] = array(
+		'name' => '① 목차를 지금 책에 맞춰 다시',
+		'find' => '/<div class="toc">.*?<\/div>\s*(?=<p>PDF)/su',
+		'to'   => $toc,
+	);
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 글이 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+	if ( ! $apply ) {
+		echo '<h2>새 목차</h2><pre style="white-space:pre-wrap;color:#C9C2D8;font-size:.86rem">'
+		   . esc_html( $toc ) . '</pre>';
+		echo '<p>정말 바꾸시려면 <code>/?stella_toc=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], str_replace( '\\', '\\\\', $j['to'] ), $new, 1 );
+		if ( null === $new ) {
+			echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 안 바꿨습니다.</p>';
+			exit;
+		}
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+
+	echo '<h2>정리</h2>';
+	echo '<p class="ok">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p><a href="/guide/">목차 열어보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_toc=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );
