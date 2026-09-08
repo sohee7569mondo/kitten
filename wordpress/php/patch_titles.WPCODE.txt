@@ -1,0 +1,115 @@
+/* ════════════════════════════════════════════════════════════
+   쪽 이름에 남은 옛말 셋   ★ 2026-09-08
+
+   이름 넷을 바꿀 때 앞부분만 바뀌고 뒤는 그대로 남았습니다.
+   소희 님이 하신 말씀 둘을 여기서 맞춥니다 —
+
+     「별자리보다는 점성술이 더 신뢰가 가는듯해」
+     「타로 말고 스텔라타로라고 쓰자」
+
+     171  아라 · 별자리           →  아라 · 점성술
+     524  아라 · 별자리 (택)      →  아라 · 점성술 (택)
+     172  아르카나 · 타로         →  아르카나 · 스텔라타로
+
+   ★ 글 속의 「별자리」는 건드리지 않습니다. 태양 별자리 ·
+     열두 별자리처럼 진짜로 별자리를 뜻하는 자리가 많습니다.
+     바꾸는 것은 쪽 이름 셋뿐입니다.
+
+   ★ 맨 위 메뉴는 이 스니펫이 못 닿습니다. 메뉴는 쪽 이름이
+     아니라 따로 적어둔 글이라, 워드프레스 「모양 → 메뉴」에서
+     손보셔야 합니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_title=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_title=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_title=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_title'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_title_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_title'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$want = array(
+		'door-astro'    => array( '별자리', '점성술' ),
+		'reading-astro' => array( '별자리', '점성술' ),
+		'door-tarot'    => array( '타로',   '스텔라타로' ),
+	);
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$back = 0;
+		foreach ( $want as $slug => $pair ) {
+			$p = get_page_by_path( $slug );
+			if ( ! $p ) { continue; }
+			$old = get_post_meta( $p->ID, $META, true );
+			if ( ! $old ) { echo '<p class="no">' . esc_html( $slug ) . ' — 되돌릴 것이 없습니다.</p>'; continue; }
+			$wpdb->update( $wpdb->posts, array( 'post_title' => $old ), array( 'ID' => $p->ID ) );
+			clean_post_cache( $p->ID );
+			delete_post_meta( $p->ID, $META );
+			echo '<p class="ok">' . esc_html( $old ) . ' 로 되돌렸습니다.</p>';
+			$back++;
+		}
+		echo '<h2>정리</h2><p>' . intval( $back ) . '쪽 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$done = 0; $skip = 0;
+
+	foreach ( $want as $slug => $pair ) {
+
+		echo '<h2>' . esc_html( $slug ) . '</h2>';
+
+		$p = get_page_by_path( $slug );
+		if ( ! $p ) { echo '<p class="no">쪽을 못 찾았습니다. 건너뜁니다.</p>'; $skip++; continue; }
+
+		$old = $p->post_title;
+		$n   = substr_count( $old, $pair[0] );
+		if ( 1 !== $n ) {
+			echo '<p class="no">「' . esc_html( $pair[0] ) . '」가 ' . intval( $n )
+			   . '군데입니다. 한 군데여야 안전합니다. 지금 이름 : <b>'
+			   . esc_html( $old ) . '</b></p>';
+			$skip++; continue;
+		}
+
+		$new = str_replace( $pair[0], $pair[1], $old );
+		echo '<p class="ok">' . esc_html( $old ) . ' → <b>' . esc_html( $new ) . '</b></p>';
+
+		if ( ! $apply ) { $done++; continue; }
+
+		if ( ! get_post_meta( $p->ID, $META, true ) ) {
+			update_post_meta( $p->ID, $META, $old );
+		}
+		$wpdb->update( $wpdb->posts, array( 'post_title' => $new ), array( 'ID' => $p->ID ) );
+		clean_post_cache( $p->ID );
+		$done++;
+	}
+
+	echo '<h2>정리</h2>';
+	echo '<p>' . intval( $done ) . '쪽 ' . ( $apply ? '바꿨습니다' : '바꿀 수 있습니다' )
+	   . ' &middot; ' . intval( $skip ) . '쪽 건너뜀</p>';
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_title=apply</code> 를 여세요.</p>';
+	} else {
+		echo '<p class="ok">되돌리시려면 <code>/?stella_title=undo</code> 를 여세요.</p>';
+	}
+	exit;
+}, 0 );
