@@ -401,7 +401,10 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 #stellar-home .final{
   text-align:center; padding:44px 28px 50px; background:var(--night); color:#F6F1E7;}
 #stellar-home .final h2{color:#FFFDF9; font-size:clamp(1.24rem,3vw,1.62rem);}
-#stellar-home .final .sub{margin-top:12px; color:rgba(246,241,231,.66); font-size:.92rem;}
+#stellar-home .final .sub{margin-top:14px; color:rgba(246,241,231,.72); font-size:.94rem; line-height:1.85;}
+#stellar-home .final .keep{
+  display:inline-block; margin-top:20px; padding:9px 20px; border-radius:30px;
+  border:1px solid rgba(232,205,150,.4); color:#E8CD96; font-size:.86rem;}
 #stellar-home .build-stamp{
   text-align:center; font-size:.6rem; letter-spacing:.2em;
   color:rgba(34,28,51,.16); padding:20px 0 28px; background:var(--paper);}
@@ -759,7 +762,9 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   <section class="final">
     <!-- 【문구】 마지막 -->
     <h2>오늘 한 번, 내일 저녁에 한 번 더</h2>
-    <div class="sub">같은 글인데 두 번째에 다르게 읽힙니다.</div>
+    <div class="sub">전해 드린 말이 많습니다. 같은 글이지만 오늘 읽으시고<br>
+      다음 날 다시 읽으시면 다르게 와 닿습니다.</div>
+    <div class="keep">한 번 읽으신 사주는 평생 「나의 사주」에 저장됩니다.</div>
   </section>
 
   <div class="build-stamp">BUILD v16b &middot; 2026-09-08</div>
