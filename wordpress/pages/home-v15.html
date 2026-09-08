@@ -153,6 +153,10 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
   font-family:inherit; appearance:none; -webkit-appearance:none;}
 #stellar-home .fcell input::placeholder{color:rgba(246,241,231,.34);}
 #stellar-home .fcell input:disabled,#stellar-home .fcell select:disabled{opacity:.38;}
+#stellar-home .sijin{
+  min-height:20px; margin-top:2px; font-size:.78rem; color:var(--gold-lite); opacity:0;
+  transition:opacity .25s ease;}
+#stellar-home .sijin.on{opacity:.92;}
 #stellar-home .chks{display:flex !important; flex-wrap:wrap; gap:14px; margin-top:6px;}
 #stellar-home .chks label{display:flex !important; align-items:center; gap:7px; font-size:.84rem; color:var(--ink-soft);}
 #stellar-home .chks input{width:16px; height:16px; accent-color:var(--purple);}
@@ -391,11 +395,11 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
         <div class="fgrid">
           <div class="fcell s2">
             <label for="hH">태어난 시</label>
-            <select id="hH"><option value="">시</option></select>
+            <input type="number" id="hH" placeholder="20" min="0" max="23" inputmode="numeric">
           </div>
           <div class="fcell s2">
             <label for="hMin">분</label>
-            <select id="hMin"><option value="">분</option></select>
+            <input type="number" id="hMin" placeholder="10" min="0" max="59" inputmode="numeric">
           </div>
           <div class="fcell s2">
             <label for="hCountry">태어난 나라</label>
@@ -409,6 +413,9 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
             <input type="text" id="hCity" maxlength="30" placeholder="서울">
           </div>
         </div>
+
+        <!-- 【문구】 시를 적으면 여기에 시진이 나옵니다 -->
+        <div class="sijin" id="hSijin"></div>
 
         <div class="chks">
           <label class="hide" id="hLeapWrap"><input type="checkbox" id="hLeap"> 윤달이에요</label>
@@ -825,21 +832,25 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
       opt = document.createElement('option');
       opt.value = String(t); opt.textContent = t + '일'; dSel.appendChild(opt);
     }
-    /* 시는 스물넷을 그대로 둡니다. 옆에 시진 이름만 붙여 둡니다 —
-       고르기는 스물넷 중에 하고, 뜻은 시진으로 읽으시라고요. */
+    /* 시와 분은 고르는 게 아니라 적습니다.
+       다섯 자리씩 끊어 고르게 두면 23시 55분과 23시 58분이 같아지는데,
+       그 몇 분에서 결과가 갈립니다. 태어난 곳의 경도로 시각을 밀고
+       (서울은 32분쯤 뒤로) 균시차를 다시 더하면, 적어주신 시각과
+       실제로 계산에 쓰는 시각이 최대 마흔 분 넘게 벌어지거든요.
+       그래서 분은 있는 그대로 받습니다. */
     var SIJIN = ['자시','축시','인시','묘시','진시','사시',
                  '오시','미시','신시','유시','술시','해시'];
-    for(t = 0; t < 24; t++){
-      opt = document.createElement('option');
-      opt.value = String(t);
-      opt.textContent = (t < 10 ? '0' : '') + t + '시 · ' + SIJIN[Math.floor(((t + 1) % 24) / 2)];
-      hSel.appendChild(opt);
+    function sijinNote(){
+      var box = $h('hSijin');
+      var hv = parseInt(hSel.value, 10);
+      if(isNaN(hv)){ box.classList.remove('on'); box.textContent = ''; return; }
+      if(hv < 0){ box.classList.remove('on'); box.textContent = ''; return; }
+      if(hv > 23){ box.classList.remove('on'); box.textContent = ''; return; }
+      box.textContent = '적어주신 시각은 ' + SIJIN[Math.floor(((hv + 1) % 24) / 2)]
+                      + '에 듭니다. 태어난 곳에 맞춰 다시 셉니다.';
+      box.classList.add('on');
     }
-    for(t = 0; t < 60; t += 5){
-      opt = document.createElement('option');
-      opt.value = String(t); opt.textContent = (t < 10 ? '0' : '') + t + '분';
-      nSel.appendChild(opt);
-    }
+    hSel.addEventListener('input', sijinNote);
     var LANDS = ['대한민국','미국','일본','중국','캐나다','호주','영국','기타'];
     for(t = 0; t < LANDS.length; t++){
       opt = document.createElement('option');
@@ -861,7 +872,10 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
     noHour.addEventListener('change', function(){
       hSel.disabled = noHour.checked;
       nSel.disabled = noHour.checked;
-      if(noHour.checked){ hSel.value = ''; nSel.value = ''; }
+      if(noHour.checked){
+        hSel.value = ''; nSel.value = '';
+        $h('hSijin').classList.remove('on');
+      }
     });
 
     /* ── 저장된 것 읽기 ─────────────────────────────────── */
@@ -926,7 +940,8 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
       if(pf.hour === ''){ knows = false; }
       if(knows){
         hSel.value = String(pf.hour);
-        nSel.value = String(Math.round((Number(pf.minute) || 0) / 5) * 5);
+        nSel.value = String(Number(pf.minute) || 0);
+        sijinNote();
       } else {
         noHour.checked = true;
         hSel.disabled = true; nSel.disabled = true;
@@ -975,16 +990,20 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
       if(!m){ fail('태어난 달을 골라주세요.'); return; }
       if(!d){ fail('태어난 날을 골라주세요.'); return; }
       if(!city){ fail('태어난 도시를 적어주세요. 도시마다 해가 뜨는 시각이 달라서, 시각이 조금씩 밀립니다.'); return; }
-      if(!noHour.checked){
-        if(hSel.value === ''){ fail('태어난 시를 골라주세요. 정말 모르시면 아래 칸을 눌러주세요.'); return; }
-      }
-      err.classList.remove('on');
-
       var hh = null, mm = 0;
       if(!noHour.checked){
         hh = parseInt(hSel.value, 10);
-        if(nSel.value !== ''){ mm = parseInt(nSel.value, 10); }
+        if(isNaN(hh)){ fail('태어난 시를 적어주세요. 정말 모르시면 아래 칸을 눌러주세요.'); return; }
+        if(hh < 0){ fail('시는 0부터 23까지 적어주세요.'); return; }
+        if(hh > 23){ fail('시는 0부터 23까지 적어주세요. 저녁 여덟 시면 20 입니다.'); return; }
+        if(nSel.value !== ''){
+          mm = parseInt(nSel.value, 10);
+          if(isNaN(mm)){ mm = 0; }
+          if(mm < 0){ fail('분은 0부터 59까지 적어주세요.'); return; }
+          if(mm > 59){ fail('분은 0부터 59까지 적어주세요.'); return; }
+        }
       }
+      err.classList.remove('on');
       var calv = cal;
       if(cal === 'l'){ if($h('hLeap').checked){ calv = 'll'; } }
 
