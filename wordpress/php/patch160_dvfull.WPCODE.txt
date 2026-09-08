@@ -1,0 +1,136 @@
+/* ════════════════════════════════════════════════════════════
+   장 속표지가 한 쪽을 다 쓰게 · 소희 님께
+
+   지금
+     「제 1 장 · 사주가 말하는 이소희님 모습」 상자가 앞 글과
+     뒷 글 사이에 끼어 짧게 지나갑니다. 스크롤 두어 번이면
+     넘어가서, 장이 바뀌었다는 느낌이 안 옵니다.
+
+   바뀐 뒤
+     장 속표지가 화면 높이의 82%를 차지하고 가운데 섭니다.
+     앞 글이 끝나고 화면이 비면, 손님은 숨을 한 번 쉬고
+     새 장으로 들어갑니다. 종이책에서 장이 바뀔 때 오른쪽
+     빈 면이 하는 일입니다.
+
+     PDF 로 저장하실 때는 아예 새 쪽에서 시작합니다.
+
+   ★ 글도 그림도 차례도 한 글자 안 건드립니다.
+     높이와 세로 가운데 정렬만 더합니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_dvfull=1
+   ② 정말 넣기   https://stellasaju.com/?stella_dvfull=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_dvfull=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_dvfull'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_dvfull_backup';
+	$MARK = '2026-09-08 · 장 속표지 한 쪽';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_dvfull'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:880px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}'
+	   . 'h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12.5px/1.6 monospace;border-left:3px solid #D4AF6A}</style>';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<h1 class="no">이미 들어가 있습니다.</h1>';
+		echo '<p><code>/?stella_dvfull=undo</code> 로 걷어낸 뒤 다시 넣으세요.</p>';
+		exit;
+	}
+
+	$n = substr_count( $c, 'class="page divider"' );
+
+	$TAIL = <<<'TAILX'
+
+<style>
+/* ══ 2026-09-08 · 장 속표지 한 쪽 ═══════════════════════════
+   장이 바뀔 때 화면을 한 번 비웁니다. 종이책에서 장 앞의
+   빈 면이 하는 일입니다. 글은 한 글자도 안 건드립니다. */
+#ssb .page.divider{
+  min-height:82vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+@media (max-height:620px){
+  #ssb .page.divider{ min-height:88vh; }
+}
+@media print{
+  #ssb .page.divider{
+    min-height:auto;
+    break-before:page;
+    page-break-before:always;
+  }
+}
+</style>
+TAILX;
+
+	$new = $c . $TAIL;
+
+	echo '<h1>' . ( 'apply' === $mode ? '넣었습니다' : '넣으면 이렇게 됩니다 (아직 안 넣었습니다)' ) . '</h1>';
+	printf( '<p>장 속표지 <b>%d</b>개가 한 쪽을 다 쓰게 됩니다.</p>', $n );
+	if ( 0 === $n ) {
+		echo '<p class="no">장 속표지를 못 찾았습니다. '
+		   . '<code>class="page divider"</code> 가 없습니다. 넣지 마세요.</p>';
+		exit;
+	}
+	echo '<h2>넣는 것</h2>';
+	echo '<pre>' . esc_html( $TAIL ) . '</pre>';
+	echo '<p class="dim">화면에서는 높이의 82%%를 차지하고 세로 가운데에 섭니다. '
+	   . '화면이 낮은 기기에서는 88%%로 조금 더 씁니다. '
+	   . 'PDF 로 저장하실 때는 높이를 풀고 새 쪽에서 시작합니다.</p>';
+	echo '<p class="dim">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 넣으시려면 <code>/?stella_dvfull=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+
+	echo '<p class="ok">넣었습니다.</p>';
+	echo '<p><a href="/reading-book/?demo=door-health">샘플 책에서 보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_dvfull=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );
