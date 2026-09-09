@@ -102,9 +102,10 @@ add_action( 'template_redirect', function () {
 
 	/* ── 붙일 덩어리 ─────────────────────────────────── */
 	$b  = "\n" . $s . "\n<style>\n";
-	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v12 (접기 안 함 · 폭 넓힘) */\n";
+	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v13 (접기 안 함 · 쪽 폭만 넓힘) */\n";
 	$b .= "/* 벼리 쪽만 페이지 폭이 760px 로 묶여 있어서 입력칸이 좁았습니다.\n";
-	$b .= "   #ssg 를 감싼 칸의 폭 제한을 풀고 1200px 로 맞춥니다. */\n";
+	$b .= "   #ssg 를 감싼 칸의 폭 제한만 풀고 1200px 로 맞춥니다.\n";
+	$b .= "   카드와 입력칸의 비율은 원래대로 둡니다. */\n";
 	$b .= "@media(min-width:901px){\n";
 	$b .= "  #ssg{ max-width:1200px !important; width:100% !important;\n";
 	$b .= "    margin-left:auto !important; margin-right:auto !important; }\n";
@@ -114,8 +115,6 @@ add_action( 'template_redirect', function () {
 	$b .= "  :is(div,section,main,article):has(> :is(div,section,main,article) > #ssg){\n";
 	$b .= "    max-width:1200px !important; width:100% !important;\n";
 	$b .= "    margin-left:auto !important; margin-right:auto !important; }\n";
-	$b .= "  #ssg .g-cols{ grid-template-columns:minmax(250px,320px) 1fr !important;\n";
-	$b .= "    gap:28px !important; }\n";
 	$b .= "}\n";
 	$b .= ".stella-fold-0909{ display:none !important; }\n";
 	/* 문 페이지에 단추를 눌러 없애는 규칙이 있어서(글씨 크기 0 같은)
@@ -452,7 +451,7 @@ add_action( 'template_redirect', function () {
 		$has = ( false !== strpos( $c, $s ) );
 		$ver = '—';
 		if ( $has ) {
-			$ver = ( false !== strpos( $c, 'stella-doors1-v12' ) )
+			$ver = ( false !== strpos( $c, 'stella-doors1-v13' ) )
 				? '<span class="ok">v5 (지금 판)</span>'
 				: '<span class="no">옛 판</span>';
 		}
