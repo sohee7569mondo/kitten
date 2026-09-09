@@ -1,0 +1,316 @@
+/* ══════════════════════════════════════════════════════════
+   스타 사주(406) — 나와 이 사람 · 얼마나 드문가 · 맨 위 한 줄
+   ★ 2026-09-09 · 소희 님께
+
+   지금 쪽에는 일간 설명도, 오행도, 십성도, 같은 일간 목록도
+   이미 다 있습니다. 없는 것은 셋입니다.
+
+     1. 맨 위 한 줄     이름 아래에 「어떤 사람인가」 한 줄
+     2. 얼마나 드문가   537명 가운데 몇 명인지 — 셈만 합니다
+     3. 나와 이 사람    생년월일 하나로 「왜 끌리는가」
+
+   3번이 핵심입니다. 지금 화면에는 손님 자신이 한 글자도
+   없습니다. 생년월일을 받아 일간을 세우고, 이 사람이 나에게
+   무엇인지(십성)를 읽어 줍니다.
+
+   손님 생년월일은 이 기계 안(localStorage)에만 남습니다.
+   서버로 보내지 않습니다.
+
+   해보기   https://stellasaju.com/?stella_me406=preview
+   붙이기   https://stellasaju.com/?stella_me406=apply
+   되돌리기 https://stellasaju.com/?stella_me406=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_me406'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_me406'] ) );
+	$META = '_stella_me406_bak';
+
+	$page = get_page_by_path( 'star-saju' );
+	if ( ! $page ) { echo '스타 사주 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $id, $META, true );
+		if ( '' === $old ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다.';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	if ( false !== strpos( $c, 'srMeBox' ) ) {
+		echo "이미 붙어 있습니다.\n먼저 ?stella_me406=undo 로 되돌리세요.";
+		exit;
+	}
+
+	/* ── 붙일 자리 넷 ─────────────────────────────── */
+	$A = '  function show(p, known){';
+	$B = "'<div class=\"born\">'+bornTxt+'</div>'+";
+	$C = "'<a class=\"go\" href=\"/door-career/\">";
+	$D = "$('svX').addEventListener('click', shut);";
+
+	$anchors = array( '함수 앞' => $A, '이름 아래' => $B, '맨 끝 단추 앞' => $C, '단추 매는 곳' => $D );
+	$bad = false;
+	foreach ( $anchors as $nm => $a ) {
+		$n = substr_count( $c, $a );
+		echo sprintf( "%-14s %d군데\n", $nm, $n );
+		if ( 1 !== $n ) { $bad = true; }
+	}
+	if ( $bad ) {
+		echo "\n한 군데가 아니어서 아무것도 안 바꿨습니다.";
+		exit;
+	}
+
+	$js = <<<'STELLA_ME_JS'
+
+  /* ══ 나와 이 사람 · 얼마나 드문가 ─ 2026-09-09 ══════════════ */
+
+  var SR_HEAD = {
+    '갑목':'굽히는 법을 늦게 배운 사람',
+    '을목':'휘어도 부러지지 않는 사람',
+    '병화':'숨기지 못하는 사람',
+    '정화':'가까운 사람만 아는 사람',
+    '무토':'먼저 움직이지 않는 사람',
+    '기토':'남을 키우고 뒤에 서는 사람',
+    '경금':'말보다 결과로 말하는 사람',
+    '신금':'흠이 먼저 보이는 사람',
+    '임수':'속을 다 안 보여주는 사람',
+    '계수':'먼저 알아채는 사람'
+  };
+
+  var SR_GAN = {
+    '甲':{el:'목',yin:0,ko:'갑목'}, '乙':{el:'목',yin:1,ko:'을목'},
+    '丙':{el:'화',yin:0,ko:'병화'}, '丁':{el:'화',yin:1,ko:'정화'},
+    '戊':{el:'토',yin:0,ko:'무토'}, '己':{el:'토',yin:1,ko:'기토'},
+    '庚':{el:'금',yin:0,ko:'경금'}, '辛':{el:'금',yin:1,ko:'신금'},
+    '壬':{el:'수',yin:0,ko:'임수'}, '癸':{el:'수',yin:1,ko:'계수'}
+  };
+  var SR_GANS = '甲乙丙丁戊己庚辛壬癸';
+  var SR_GEN = { '목':'화','화':'토','토':'금','금':'수','수':'목' };
+  var SR_CTL = { '목':'토','화':'금','토':'수','금':'목','수':'화' };
+
+  var SR_REL = {
+    '비견':{ t:'나 같아서 좋습니다',
+      p:'말을 안 해도 압니다. 이 사람이 하는 선택이 내가 할 법한 선택입니다. 그래서 편하고, 그래서 부딪히면 크게 부딪힙니다. 닮은 사람끼리는 같은 자리를 원하니까요.' },
+    '겁재':{ t:'나 같은데 조금 다릅니다',
+      p:'같은 자리에 서 있는 사람입니다. 보고 있으면 마음이 조금 급해집니다. 좋아하는 마음과 지고 싶지 않은 마음이 같이 옵니다. 둘 다 진짜입니다.' },
+    '식신':{ t:'보고 있으면 내가 하고 싶어집니다',
+      p:'이 사람 앞에서는 말이 많아집니다. 내가 뭘 잘하는지 이 사람을 보면 떠오릅니다. 부담이 없어서 오래 봅니다. 편하게 좋아하는 쪽입니다.' },
+    '상관':{ t:'속이 시원해집니다',
+      p:'내가 못 하는 말을 이 사람이 대신 해 줍니다. 그래서 통쾌합니다. 가끔은 대신 혼나 줬으면 싶기도 합니다. 대리만족에 가까운 좋아함입니다.' },
+    '편재':{ t:'뭘 해 주고 싶어집니다',
+      p:'챙기게 됩니다. 잘 됐으면 좋겠고, 안 되면 내 일처럼 속상합니다. 좋아한다기보다 아끼는 마음입니다. 응원하는 자리에서 가장 오래 갑니다.' },
+    '정재':{ t:'곁에 두고 싶습니다',
+      p:'화려해서가 아니라 미덥습니다. 오래 봐도 안 질립니다. 이런 좋아함은 시끄럽지 않은 대신 잘 안 식습니다.' },
+    '편관':{ t:'편하지 않은데 눈이 갑니다',
+      p:'잘 보이고 싶은 마음이 먼저 듭니다. 조금 무섭고 조금 멋있습니다. 좋아한다는 말보다 닮고 싶다는 말이 더 맞습니다. 사람들이 스타를 좋아하는 가장 흔한 얼굴이 이것입니다.' },
+    '정관':{ t:'옳은 사람 같습니다',
+      p:'이 사람이 하는 말은 맞는 말 같습니다. 그래서 어렵고, 그래서 봅니다. 내 안에 지키고 싶은 기준이 있을 때 이런 사람이 눈에 들어옵니다.' },
+    '편인':{ t:'궁금해집니다',
+      p:'다 안 보여 줍니다. 그래서 자꾸 들여다보게 됩니다. 알 것 같다가 모르겠고, 그 사이에서 오래 머무는 좋아함입니다.' },
+    '정인':{ t:'이 사람 말은 듣게 됩니다',
+      p:'기대고 싶고 배우고 싶습니다. 마음이 놓입니다. 힘들 때 찾게 되는 쪽이라면, 지금 좀 쉬어야 한다는 뜻일 수도 있습니다.' }
+  };
+
+  var MY_GAN = '';
+  try { MY_GAN = localStorage.getItem('stella_me_gan') || ''; } catch(e){ MY_GAN = ''; }
+
+  function srJdn(y,m,d){
+    var a = Math.floor((14-m)/12), yy = y+4800-a, mm = m+12*a-3;
+    return d + Math.floor((153*mm+2)/5) + 365*yy +
+           Math.floor(yy/4) - Math.floor(yy/100) + Math.floor(yy/400) - 32045;
+  }
+  function srGanOf(y,m,d){ return SR_GANS.charAt((srJdn(y,m,d)+9)%10); }
+
+  function srSip(me, it){
+    if(!me){ return ''; }
+    if(!it){ return ''; }
+    var same = (me.yin === it.yin);
+    if(me.el === it.el){ return same ? '비견' : '겁재'; }
+    if(SR_GEN[me.el] === it.el){ return same ? '식신' : '상관'; }
+    if(SR_CTL[me.el] === it.el){ return same ? '편재' : '정재'; }
+    if(SR_CTL[it.el] === me.el){ return same ? '편관' : '정관'; }
+    if(SR_GEN[it.el] === me.el){ return same ? '편인' : '정인'; }
+    return '';
+  }
+
+  var SR_CSS = false;
+  function srStyle(){
+    if(SR_CSS){ return; }
+    SR_CSS = true;
+    var s = document.createElement('style');
+    s.textContent =
+      '#ssv .sr-tag{ font-size:20px; font-weight:800; line-height:1.4;' +
+      '  color:#221C33; margin:12px 0 2px; }' +
+      '#ssv .sr-sub{ font-size:14px; color:#6B6577; margin:0 0 4px; }' +
+      '#ssv .sr-hit{ font-size:18px; font-weight:800; color:#5E45A6;' +
+      '  margin:12px 0 4px; line-height:1.45; }' +
+      '#ssv .sr-in{ display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 4px; }' +
+      '#ssv .sr-in select{ font-size:15px; padding:8px 6px; border:1px solid #D8D2E4;' +
+      '  border-radius:8px; background:#fff; color:#221C33; }' +
+      '#ssv .sr-in button{ font-size:15px; padding:8px 18px; border:0; border-radius:8px;' +
+      '  background:#5E45A6; color:#fff; font-weight:700; cursor:pointer; }' +
+      '#ssv .sr-again{ font-size:13px; background:none; border:0; color:#6B6577;' +
+      '  text-decoration:underline; padding:4px 0; cursor:pointer; }';
+    document.head.appendChild(s);
+  }
+
+  /* ── 얼마나 드문가 ── */
+  function srRare(p){
+    var i, q, out = '<h3>이 사람은 얼마나 드문가</h3>';
+    var hi = p.hi;
+    var n  = p.el[hi] ? p.el[hi] : 0;
+
+    var c1 = 0;
+    for(i=0;i<STARS.length;i++){
+      q = STARS[i];
+      if((q.el[hi] ? q.el[hi] : 0) >= n){ c1++; }
+    }
+    out += '<p>여덟 글자 가운데 <b>' + hi + ' ' + n + '자</b>입니다. ' +
+           STARS.length + '명 가운데 ' + hi + ' ' + n + '자 이상인 사람은 <b>' +
+           c1 + '명</b>입니다.</p>';
+
+    if(p.no.length){
+      var e0 = p.no[0], c2 = 0;
+      for(i=0;i<STARS.length;i++){
+        if(STARS[i].no.indexOf(e0) >= 0){ c2++; }
+      }
+      out += '<p>' + ga(e0) + ' 한 자도 없는 사람은 ' + STARS.length +
+             '명 가운데 <b>' + c2 + '명</b>입니다.</p>';
+    }
+
+    var key = p.g + '/' + p.hi + '/' + p.no.join(',');
+    var tw = [];
+    for(i=0;i<STARS.length;i++){
+      q = STARS[i];
+      if(q.n === p.n){ continue; }
+      if(q.g + '/' + q.hi + '/' + q.no.join(',') === key){ tw.push(q); }
+    }
+    tw.sort(function(a,b){ return a.n.localeCompare(b.n,'ko'); });
+    if(tw.length){
+      out += '<p>일간도, 쏠린 것도, 없는 것도 <b>셋이 다 같은 사람</b>이 ' +
+             tw.length + '명 있습니다.</p><div class="same">' +
+             tw.map(function(z){
+               return '<button type="button" data-go="' + esc(z.n) + '">' + esc(z.n) + '</button>';
+             }).join('') + '</div>';
+    } else {
+      out += '<p>일간도, 쏠린 것도, 없는 것도 셋이 다 같은 사람은 ' +
+             STARS.length + '명 가운데 <b>한 명도 없습니다.</b></p>';
+    }
+    return out;
+  }
+
+  /* ── 나와 이 사람 ── */
+  function srMeBox(p){
+    var box = $('svMe');
+    if(!box){ return; }
+
+    if(MY_GAN){
+      var me = SR_GAN[MY_GAN], it = SR_GAN[p.g];
+      var rel = srSip(me, it);
+      var r = SR_REL[rel];
+      if(r){
+        box.innerHTML =
+          '<h3>나와 이 사람</h3>' +
+          '<p>당신은 <b>' + me.ko + '</b>입니다. ' +
+          esc(p.n) + ' 님은 당신에게 <b>' + rel + '</b>입니다.</p>' +
+          '<p class="sr-hit">' + r.t + '</p>' +
+          '<p>' + r.p + '</p>' +
+          '<button type="button" class="sr-again" id="srAgain">생일 다시 넣기</button>';
+        var ag = $('srAgain');
+        if(ag){
+          ag.addEventListener('click', function(){
+            MY_GAN = '';
+            try { localStorage.removeItem('stella_me_gan'); } catch(e){}
+            srMeBox(p);
+          });
+        }
+        return;
+      }
+    }
+
+    var ys = '', ms = '', ds = '', i;
+    var now = new Date().getFullYear();
+    for(i=now;i>=1930;i--){ ys += '<option value="' + i + '">' + i + '년</option>'; }
+    for(i=1;i<=12;i++){ ms += '<option value="' + i + '">' + i + '월</option>'; }
+    for(i=1;i<=31;i++){ ds += '<option value="' + i + '">' + i + '일</option>'; }
+
+    box.innerHTML =
+      '<h3>나와 이 사람</h3>' +
+      '<p class="mini">생년월일만 넣으시면 <em>내가 왜 이 사람에게 끌리는지</em>를 ' +
+      '읽어드립니다. 아무 데도 보내지 않고 이 기계 안에만 남습니다.</p>' +
+      '<div class="sr-in">' +
+        '<select id="srY">' + ys + '</select>' +
+        '<select id="srM">' + ms + '</select>' +
+        '<select id="srD">' + ds + '</select>' +
+        '<button type="button" id="srGo">보기</button>' +
+      '</div>' +
+      '<p class="mini">양력으로 넣어 주세요. 태어난 시각은 없어도 됩니다.</p>';
+
+    var y0 = $('srY');
+    if(y0){ y0.value = '1990'; }
+    var go = $('srGo');
+    if(go){
+      go.addEventListener('click', function(){
+        var yy = parseInt($('srY').value, 10);
+        var mm = parseInt($('srM').value, 10);
+        var dd = parseInt($('srD').value, 10);
+        var t = new Date(yy, mm-1, dd);
+        if(t.getMonth() !== mm-1){ box.innerHTML = '<h3>나와 이 사람</h3><p>없는 날짜입니다. 다시 골라 주세요.</p>'; srMeBox(p); return; }
+        MY_GAN = srGanOf(yy, mm, dd);
+        try { localStorage.setItem('stella_me_gan', MY_GAN); } catch(e){}
+        srMeBox(p);
+      });
+    }
+  }
+
+  function srFill(p){
+    srStyle();
+    var r = $('svRare');
+    if(r){ r.innerHTML = srRare(p); }
+    srMeBox(p);
+  }
+
+
+STELLA_ME_JS;
+
+	$head = <<<'STELLA_ME_HEAD'
+      '<div class="sr-tag">'+(SR_HEAD[p.gk]?SR_HEAD[p.gk]:'')+'</div>'+
+      '<div class="sr-sub">'+p.hi+' '+(p.el[p.hi]?p.el[p.hi]:0)+'자'+(p.no.length?(' · '+p.no.join('·')+' 없음'):'')+'</div>'+
+STELLA_ME_HEAD;
+
+	$new = $c;
+	$new = str_replace( $A, $js . $A, $new );
+	$new = str_replace( $B, $B . "\n" . $head, $new );
+	$new = str_replace( $C, "'<div id=\"svRare\"></div>'+\n      '<div id=\"svMe\"></div>'+\n      " . $C, $new );
+	$new = str_replace( $D, $D . "\n    srFill(p);", $new );
+
+	if ( 'preview' === $mode ) {
+		echo "\n네 자리 모두 찾았습니다. 글자 수 "
+		   . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "\n";
+		echo "붙이시려면 ?stella_me406=apply\n";
+		exit;
+	}
+
+	update_post_meta( $id, $META, $c );
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n붙였습니다. 스타 사주에서 아무나 한 명 눌러 보세요.\n";
+	echo "되돌리려면 ?stella_me406=undo\n";
+	exit;
+}, 1 );
