@@ -1,0 +1,109 @@
+/* ════════════════════════════════════════════════════════════
+   어느 쪽에 있나 찾기 (읽기만)   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   고쳐야 할 말들이 사이트의 어느 쪽에 적혀 있는지 한꺼번에
+   찾습니다. 문 쪽이 첫 화면 하나뿐이라, 벼리 말도 질문도
+   카드도 다른 쪽에 있습니다. 그 쪽을 찾습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   찾기   https://stellasaju.com/?stella_find=1
+
+   ★ 브라우저 번역을 끄고 여세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_find'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.75;'
+	   . 'padding:30px 20px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.3rem;margin:0 0 16px}'
+	   . 'h2{color:#9AD1A5;font-size:.98rem;margin:24px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'table{border-collapse:collapse;width:100%;margin:6px 0 0}'
+	   . 'td{padding:5px 9px;border-bottom:1px solid rgba(255,255,255,.08);'
+	   . 'font-size:.88rem}b{color:#F0D9A8}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 5px;border-radius:3px}'
+	   . '</style>';
+
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_name, post_title, LENGTH(post_content) AS len
+		   FROM {$wpdb->posts}
+		  WHERE post_status = 'publish'
+		    AND post_type IN ('page','post')
+		  ORDER BY len DESC
+		  LIMIT 300" );
+
+	if ( ! $rows ) { echo '<h1 class="no">쪽을 못 읽었습니다.</h1>'; exit; }
+
+	echo '<h1>어느 쪽에 있나 · 쪽 ' . count( $rows ) . '개를 뒤졌습니다</h1>';
+
+	$keys = array(
+		'맞고 틀리는',
+		'세 장을 뽑',
+		'에게 보내기',
+		'완성본 미리보기',
+		'진태양시',
+		'내 전자책',
+		'시험판',
+		'계산 근거',
+		'여섯 달',
+		'만지는 카드',
+		'어느 자리가 마음에',
+		'후기 보내기',
+		'이 책, 어떠셨어요',
+		'태어난 도시',
+		'묻고 싶은',
+	);
+
+	/* 쪽마다 한 번만 읽습니다 */
+	$body = array();
+	foreach ( $rows as $r ) {
+		$one = $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $r->ID ) );
+		$body[ $r->ID ] = (string) $one;
+	}
+
+	foreach ( $keys as $k ) {
+		echo '<h2>' . esc_html( $k ) . '</h2>';
+		$hit = '';
+		foreach ( $rows as $r ) {
+			$n = substr_count( $body[ $r->ID ], $k );
+			if ( $n < 1 ) { continue; }
+			$hit .= '<tr><td><b>' . esc_html( $r->post_name ) . '</b></td>'
+			      . '<td>' . esc_html( mb_substr( $r->post_title, 0, 24 ) ) . '</td>'
+			      . '<td>' . (int) $r->ID . '</td>'
+			      . '<td>' . $n . ' 군데</td></tr>';
+		}
+		if ( '' === $hit ) { echo '<p class="dim">어느 쪽에도 없습니다.</p>'; }
+		else { echo '<table>' . $hit . '</table>'; }
+	}
+
+	echo '<h2>제일 큰 쪽 스무 개</h2>';
+	$t = '';
+	$i = 0;
+	foreach ( $rows as $r ) {
+		$i++;
+		if ( $i > 20 ) { break; }
+		$t .= '<tr><td><b>' . esc_html( $r->post_name ) . '</b></td>'
+		    . '<td>' . esc_html( mb_substr( $r->post_title, 0, 26 ) ) . '</td>'
+		    . '<td>' . (int) $r->ID . '</td>'
+		    . '<td>' . number_format( (int) $r->len ) . '</td></tr>';
+	}
+	echo '<table>' . $t . '</table>';
+	echo '<p class="dim">이 가운데 어느 쪽을 더 들여다볼지는 제가 고르겠습니다. '
+	   . '자세히 보려면 <code>?stella_bk9=쪽이름</code> 을 쓰시면 됩니다.</p>';
+
+	exit;
+}, 0 );
