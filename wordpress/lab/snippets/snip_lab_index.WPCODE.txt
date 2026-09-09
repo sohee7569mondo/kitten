@@ -151,6 +151,38 @@ add_action( 'init', function () {
   .soon .thumb{ background:transparent; border:2px dashed var(--line); }
   .soon .card h2{ color:var(--ink-soft); }
 
+
+  /* 갈래 딱지 · 검색 */
+  .tools{ margin:0 4px 16px; }
+  .find{
+    display:flex; align-items:center; gap:8px;
+    background:var(--paper); border:2px solid var(--ink);
+    border-radius:100px; padding:9px 14px;
+    box-shadow:3px 3px 0 rgba(63,56,48,.10);
+  }
+  .find span{ font-size:15px; line-height:1; }
+  .find input{
+    flex:1; border:0; outline:0; background:transparent;
+    font-family:'Noto Sans KR', sans-serif; font-size:14px; color:var(--ink);
+  }
+  .find input::placeholder{ color:var(--ink-soft); }
+  .cats{ display:flex; gap:7px; flex-wrap:wrap; margin:11px 0 0; }
+  .cat{
+    font-family:'Gaegu', sans-serif; font-weight:700; font-size:15px;
+    border:2px solid var(--line); background:var(--paper); color:var(--ink-soft);
+    border-radius:100px; padding:4px 13px 5px; cursor:pointer;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .cat:hover{ border-color:var(--ink-soft); color:var(--ink); }
+  .cat.on{ border-color:var(--ink); color:var(--ink); background:var(--cream-deep); }
+  .card.off{ display:none; }
+  .empty{
+    display:none; margin:24px 4px; text-align:center;
+    font-family:'Gaegu', sans-serif; font-size:17px; color:var(--ink-soft);
+  }
+  .empty.on{ display:block; }
+  .soon.off{ display:none; }
+
   .foot{
     margin-top:38px; text-align:center;
     font-size:11.5px; line-height:2; color:var(--ink-soft);
@@ -192,9 +224,26 @@ add_action( 'init', function () {
     </div>
   </header>
 
+  <div class="tools">
+    <label class="find">
+      <span>🔍</span>
+      <input type="search" id="labFind" placeholder="테스트 찾기 — 연애, 카톡, 캠핑…" autocomplete="off">
+    </label>
+    <div class="cats" id="labCats">
+      <button type="button" class="cat on" data-cat="">전체</button>
+      <button type="button" class="cat" data-cat="성격">성격</button>
+      <button type="button" class="cat" data-cat="마음">마음</button>
+      <button type="button" class="cat" data-cat="연애">연애</button>
+      <button type="button" class="cat" data-cat="돈">돈</button>
+      <button type="button" class="cat" data-cat="사주">사주</button>
+    </div>
+  </div>
+
+  <p class="empty" id="labEmpty">그런 이름의 테스트는 아직 없어요</p>
+
   <div class="grid">
 
-    <a class="card" href="/lab/tokyo/" style="--accent:var(--tokyo)">
+    <a class="card" data-cat="성격" href="/lab/tokyo/" style="--accent:var(--tokyo)">
       <span class="thumb">
         <img src="https://stellasaju.com/wp-content/uploads/2026/09/tokyo.jpg" alt="센소지 앞에서 단체 사진을 찍는 여행자들" loading="lazy">
       </span>
@@ -203,7 +252,7 @@ add_action( 'init', function () {
       <span class="meta">8문항 · 16유형</span>
     </a>
 
-    <a class="card" href="/lab/breakup/" style="--accent:var(--breakup)">
+    <a class="card" data-cat="연애" href="/lab/breakup/" style="--accent:var(--breakup)">
       <span class="thumb tint">
         <span class="big">💔</span>
         <span class="badge">NEW</span>
@@ -213,7 +262,7 @@ add_action( 'init', function () {
       <span class="meta">8문항 · 6유형</span>
     </a>
 
-    <a class="card" href="/lab/cafe/" style="--accent:var(--cafe)">
+    <a class="card" data-cat="성격" href="/lab/cafe/" style="--accent:var(--cafe)">
       <span class="thumb icon">
         <img src="https://stellasaju.com/wp-content/uploads/2026/09/H9YyW.png" alt="카페 테이블 위의 커피" loading="lazy">
       </span>
@@ -222,7 +271,7 @@ add_action( 'init', function () {
       <span class="meta">8문항 · 4유형</span>
     </a>
 
-    <a class="card" href="/lab/camping/" style="--accent:var(--camp)">
+    <a class="card" data-cat="성격" href="/lab/camping/" style="--accent:var(--camp)">
       <span class="thumb icon">
         <img src="https://stellasaju.com/wp-content/uploads/2026/09/camping.png" alt="텐트와 모닥불이 있는 캠핑장" loading="lazy">
         <span class="badge">NEW</span>
@@ -232,7 +281,7 @@ add_action( 'init', function () {
       <span class="meta">8문항 · 4유형</span>
     </a>
 
-    <a class="card" href="/lab/grocery/" style="--accent:var(--grocery)">
+    <a class="card" data-cat="돈" href="/lab/grocery/" style="--accent:var(--grocery)">
       <span class="thumb icon">
         <img src="https://stellasaju.com/wp-content/uploads/2026/09/grocery.png" alt="장바구니에 담긴 식료품" loading="lazy">
       </span>
@@ -241,7 +290,7 @@ add_action( 'init', function () {
       <span class="meta">8문항 · 4유형</span>
     </a>
 
-    <a class="card" href="/lab/money/" style="--accent:var(--money)">
+    <a class="card" data-cat="돈" href="/lab/money/" style="--accent:var(--money)">
       <span class="thumb">
         <img src="https://stellasaju.com/wp-content/uploads/2026/09/Day-15_Risky-Person_unboxing_items_during_sale.jpeg" alt="세일 기간에 산 물건을 뜯어보는 사람" loading="lazy">
       </span>
@@ -251,7 +300,7 @@ add_action( 'init', function () {
     </a>
 
 
-    <a class="card" href="/lab/night-snack/" style="--accent:var(--snack)">
+    <a class="card" data-cat="마음" href="/lab/night-snack/" style="--accent:var(--snack)">
       <span class="thumb icon">
         <img src="https://stellasaju.com/wp-content/uploads/2026/09/night-snack.png" alt="밤 편의점 진열대와 컵라면" loading="lazy">
         <span class="badge">짧아요</span>
@@ -267,70 +316,70 @@ add_action( 'init', function () {
     <p class="soon-label">글로 보는 검사</p>
     <div class="grid">
 
-    <a class="card" href="/lab/love/" style="--accent:var(--plain)">
+    <a class="card" data-cat="연애" href="/lab/love/" style="--accent:var(--plain)">
       <span class="thumb tint"><span class="big">💗</span></span>
       <h2>연애할 때 나는 어떤 사람인가</h2>
       <p>만나는 동안 내가 어떤 사람이 되는지</p>
       <span class="meta">12문항 · 1분 · 연애</span>
     </a>
 
-    <a class="card" href="/lab/agegap/" style="--accent:var(--plain)">
+    <a class="card" data-cat="연애" href="/lab/agegap/" style="--accent:var(--plain)">
       <span class="thumb tint"><span class="big">🎂</span></span>
       <h2>나에게 맞는 나이 차이는?</h2>
       <p>연상이냐 연하냐 동갑이냐</p>
       <span class="meta">12문항 · 1분 · 연애</span>
     </a>
 
-    <a class="card" href="/lab/drama/" style="--accent:var(--plain)">
+    <a class="card" data-cat="연애" href="/lab/drama/" style="--accent:var(--plain)">
       <span class="thumb tint"><span class="big">📺</span></span>
       <h2>내게 맞는 드라마 남자주인공</h2>
       <p>끌리는 얼굴에는 이유가 있습니다</p>
       <span class="meta">12문항 · 1분 · 연애</span>
     </a>
 
-    <a class="card" href="/lab/katok/" style="--accent:var(--plain)">
+    <a class="card" data-cat="성격" href="/lab/katok/" style="--accent:var(--plain)">
       <span class="thumb tint"><span class="big">💬</span></span>
       <h2>내 카톡 대화 스타일</h2>
       <p>대화창을 열어보면 다 나옵니다</p>
       <span class="meta">12문항 · 1분 · 성격</span>
     </a>
 
-    <a class="card" href="/lab/stress/" style="--accent:var(--plain)">
+    <a class="card" data-cat="마음" href="/lab/stress/" style="--accent:var(--plain)">
       <span class="thumb tint"><span class="big">🌊</span></span>
       <h2>스트레스가 오면 나는</h2>
       <p>힘들 때 내가 어디로 가는지</p>
       <span class="meta">12문항 · 1분 · 마음</span>
     </a>
 
-    <a class="card" href="/lab/color/" style="--accent:var(--plain)">
+    <a class="card" data-cat="마음" href="/lab/color/" style="--accent:var(--plain)">
       <span class="thumb tint"><span class="big">🎨</span></span>
       <h2>내 마음의 색</h2>
       <p>지금 내 안에 깔린 빛깔</p>
       <span class="meta">12문항 · 1분 · 마음</span>
     </a>
 
-    <a class="card" href="/lab/mouse/" style="--accent:var(--plain)">
+    <a class="card" data-cat="마음" href="/lab/mouse/" style="--accent:var(--plain)">
       <span class="thumb tint"><span class="big">🐁</span></span>
       <h2>내 손톱을 먹은 들쥐는</h2>
       <p>밖에 나갈 때 내가 쓰는 얼굴이요</p>
       <span class="meta">12문항 · 2분 · 마음</span>
     </a>
 
-    <a class="card" href="/lab/ohaeng/" style="--accent:var(--plain)">
+    <a class="card" data-cat="사주" href="/lab/ohaeng/" style="--accent:var(--plain)">
       <span class="thumb tint"><span class="big">🌿</span></span>
       <h2>나는 어떤 기운의 사람인가</h2>
       <p>나무 · 불 · 흙 · 쇠 · 물 가운데</p>
       <span class="meta">15문항 · 2분 · 사주</span>
     </a>
 
-    <a class="card" href="/lab/sipseong/" style="--accent:var(--plain)">
+    <a class="card" data-cat="사주" href="/lab/sipseong/" style="--accent:var(--plain)">
       <span class="thumb tint"><span class="big">⭐</span></span>
       <h2>내 안에서 제일 센 자리</h2>
       <p>열 자리 가운데 어디가 두꺼운지</p>
       <span class="meta">15문항 · 2분 · 사주</span>
     </a>
 
-    <a class="card" href="/lab/mbti/" style="--accent:var(--plain)">
+    <a class="card" data-cat="성격" href="/lab/mbti/" style="--accent:var(--plain)">
       <span class="thumb tint"><span class="big">🧭</span></span>
       <h2>MBTI 간이 검사</h2>
       <p>글로만 짧게 보는 판</p>
@@ -360,6 +409,57 @@ add_action( 'init', function () {
   </footer>
 
 </div>
+
+<script>
+(function(){
+  var find  = document.getElementById('labFind');
+  var cats  = document.getElementById('labCats');
+  var empty = document.getElementById('labEmpty');
+  var cards = document.querySelectorAll('a.card');
+  var soons = document.querySelectorAll('.soon');
+  var pick  = '';
+
+  function run(){
+    var word = (find.value || '').trim().toLowerCase();
+    var seen = 0;
+    var i, c, txt, ok;
+    for(i = 0; i < cards.length; i++){
+      c   = cards[i];
+      txt = (c.textContent || '').toLowerCase();
+      ok  = true;
+      if(pick){ if(c.getAttribute('data-cat') !== pick){ ok = false; } }
+      if(ok){ if(word){ if(txt.indexOf(word) < 0){ ok = false; } } }
+      if(ok){ c.classList.remove('off'); seen = seen + 1; }
+      else { c.classList.add('off'); }
+    }
+    /* 묶음 안이 다 숨으면 묶음 이름도 숨깁니다 */
+    for(i = 0; i < soons.length; i++){
+      var live = soons[i].querySelectorAll('a.card:not(.off)').length;
+      var has  = soons[i].querySelectorAll('a.card').length;
+      if(has === 0){
+        if(word){ soons[i].classList.add('off'); }
+        else if(pick){ soons[i].classList.add('off'); }
+        else { soons[i].classList.remove('off'); }
+      }
+      else if(live === 0){ soons[i].classList.add('off'); }
+      else { soons[i].classList.remove('off'); }
+    }
+    if(seen === 0){ empty.classList.add('on'); }
+    else { empty.classList.remove('on'); }
+  }
+
+  find.addEventListener('input', run);
+  cats.addEventListener('click', function(e){
+    var b = e.target.closest('.cat');
+    if(!b){ return; }
+    pick = b.getAttribute('data-cat') || '';
+    var all = cats.querySelectorAll('.cat');
+    for(var i = 0; i < all.length; i++){ all[i].classList.remove('on'); }
+    b.classList.add('on');
+    run();
+  });
+})();
+</script>
 </body>
 </html>
 
