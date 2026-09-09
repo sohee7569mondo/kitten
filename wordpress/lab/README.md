@@ -2,13 +2,25 @@
 
 ## 파일
 
-| 파일 | 페이지 | 그림 |
-|---|---|---|
-| `cafe.block.html` | `/lab/cafe/` | 없음 (이모지만) |
-| `camping.block.html` | `/lab/camping/` | 없음 |
-| `grocery.block.html` | `/lab/grocery/` | 없음 |
-| `money.block.html` | `/lab/money/` | **20장 먼저 올려야 합니다** (`money-images/`) |
-| (도쿄) | `/lab/tokyo/` | 32장, 이미 올라가 있음 |
+| 파일 | 페이지 | 제목 | 그림 |
+|---|---|---|---|
+| `night-snack.block.html` | `/lab/night-snack/` | 편의점 야식 유형 · 5문항 | 없음 (이모지만) |
+| `cafe.block.html` | `/lab/cafe/` | 카페에서 나는 · 8문항 | 없음 (이모지만) |
+| `grocery.block.html` | `/lab/grocery/` | 장보기 스타일 · 8문항 | 없음 |
+| `camping.block.html` | `/lab/camping/` | 캠핑 갔을 때 · 8문항 | 없음 |
+| `money.block.html` | `/lab/money/` | 한 달 머니 스타일 · 8문항 | **20장 먼저 올려야 합니다** (`money-images/`) |
+| `breakup.block.html` | `/lab/breakup/` | 헤어지고 나서 나는 · 8문항 | 없음 |
+| (도쿄) | `/lab/tokyo/` | 도쿄 여행 MBTI · 8문항 | 32장, 이미 올라가 있음 |
+
+## 목록 쪽에 카드 붙이기
+
+`index-cards.block.html` 을 `/lab/` 쪽에 「사용자 정의 HTML」 블록으로
+붙이면 일곱 장이 한꺼번에 뜹니다. 도쿄가 맨 위 큰 카드입니다.
+
+★ 목록에 이미 도쿄 카드가 있으면 둘 중 하나만 남기세요.
+
+자바스크립트도 그림도 안 씁니다. 붙여넣기만 하면 바로 보입니다.
+390px 와 820px 에서 그려봤습니다 — 가로로 넘치지 않습니다.
 
 ## 붙이는 순서
 
