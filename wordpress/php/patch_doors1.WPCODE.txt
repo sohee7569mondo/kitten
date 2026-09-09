@@ -102,7 +102,7 @@ add_action( 'template_redirect', function () {
 
 	/* ── 붙일 덩어리 ─────────────────────────────────── */
 	$b  = "\n" . $s . "\n<style>\n";
-	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v7 */\n";
+	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v8 */\n";
 	$b .= ".stella-fold-0909{ display:none !important; }\n";
 	/* 문 페이지에 단추를 눌러 없애는 규칙이 있어서(글씨 크기 0 같은)
 	   그대로 두면 빈 칸으로 보입니다. 하나하나 못 박습니다. */
@@ -215,6 +215,27 @@ add_action( 'template_redirect', function () {
 	$b .= "    btn.type = 'button';\n";
 	$b .= "    btn.className = 'stella-more-0909';\n";
 	$b .= "    btn.textContent = '가디언 소개 더 보기';\n";
+	$b .= "    /* 겉모습 규칙으로는 문 페이지의 단추 지우는 규칙을\n";
+	$b .= "       못 이기는 자리가 있습니다. 단추 자체에 바로 붙입니다.\n";
+	$b .= "       이러면 어떤 규칙도 못 이깁니다. */\n";
+	$b .= "    var SKIN = [\n";
+	$b .= "      ['display','inline-block'], ['visibility','visible'],\n";
+	$b .= "      ['font-size','14px'], ['line-height','1.4'],\n";
+	$b .= "      ['font-family','inherit'], ['font-weight','500'],\n";
+	$b .= "      ['color','#5A5148'], ['background','#FFFFFF'],\n";
+	$b .= "      ['border','1px solid rgba(120,110,95,.45)'],\n";
+	$b .= "      ['border-radius','100px'], ['padding','9px 18px'],\n";
+	$b .= "      ['margin','10px 0 4px'], ['width','auto'], ['height','auto'],\n";
+	$b .= "      ['min-height','36px'], ['opacity','1'], ['cursor','pointer'],\n";
+	$b .= "      ['text-indent','0'], ['letter-spacing','0'],\n";
+	$b .= "      ['text-transform','none'], ['overflow','visible'],\n";
+	$b .= "      ['clip-path','none'], ['transform','none'],\n";
+	$b .= "      ['position','static'], ['float','none']\n";
+	$b .= "    ];\n";
+	$b .= "    var si;\n";
+	$b .= "    for(si = 0; si < SKIN.length; si++){\n";
+	$b .= "      btn.style.setProperty(SKIN[si][0], SKIN[si][1], 'important');\n";
+	$b .= "    }\n";
 	$b .= "    btn.addEventListener('click', function(){\n";
 	$b .= "      var open = hide[0].classList.contains('stella-fold-0909');\n";
 	$b .= "      for(var k = 0; k < hide.length; k++){\n";
@@ -385,7 +406,7 @@ add_action( 'template_redirect', function () {
 		$has = ( false !== strpos( $c, $s ) );
 		$ver = '—';
 		if ( $has ) {
-			$ver = ( false !== strpos( $c, 'stella-doors1-v7' ) )
+			$ver = ( false !== strpos( $c, 'stella-doors1-v8' ) )
 				? '<span class="ok">v5 (지금 판)</span>'
 				: '<span class="no">옛 판</span>';
 		}
@@ -429,7 +450,7 @@ add_action( 'template_redirect', function () {
 	}
 	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
 
-	echo '<p class="ok">' . $done . ' 쪽을 고쳤습니다. 이제 다섯 쪽 모두 <b>v7</b> 입니다.</p>';
+	echo '<p class="ok">' . $done . ' 쪽을 고쳤습니다. 이제 다섯 쪽 모두 <b>v8</b> 입니다.</p>';
 	echo '<p>이렇게 열어보세요.</p>';
 	echo '<pre style="background:#000;padding:12px;border-left:3px solid #D4AF6A">'
 	   . "/door-love/?topic=결혼운\n"
