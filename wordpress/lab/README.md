@@ -78,6 +78,7 @@
     snippets/snip_lab_grocery.WPCODE.txt       -> /lab/grocery/
     snippets/snip_lab_money.WPCODE.txt         -> /lab/money/
     snippets/snip_lab_breakup.WPCODE.txt       -> /lab/breakup/
+    snippets/snip_lab_tokyo.WPCODE.txt         -> /lab/tokyo/
 
 각각 WPCode → 새 스니펫 → PHP Snippet → 「어디서나 실행」 → 저장 → Active.
 스니펫 하나가 검사 하나입니다.
@@ -102,6 +103,13 @@
 
 ### 아직 남은 것
 
-    · /lab/tokyo/ 가 없습니다. 목록 맨 위 카드가 빈 쪽으로 갑니다.
     · money 는 사진 20장을 미디어에 먼저 올려야 그림이 뜹니다.
     · breakup 은 806 MORE2 의 옛 판(열두 문항)을 가립니다. 끄면 옛 판으로 돌아갑니다.
+
+## 2026-09-09 · 도쿄
+
+`tokyo.block.html` 을 받아서 스니펫으로 만들었습니다. 그림 32장은 이미 올라가 있습니다.
+
+★ 고친 곳 하나 — introSub 의 「당신의 선택이」를
+  「도쿄 3박 4일, 여덟 번만 고르면 내 여행 유형이 나와요」로 바꿨습니다.
+  글에서 「당신」을 쓰지 않기로 한 규칙입니다.
