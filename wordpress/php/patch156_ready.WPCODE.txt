@@ -35,8 +35,10 @@ add_action( 'template_redirect', function () {
 	$SLUG = 'reading-ready';
 	$MARK = 'stella-r156-v1';
 
-	$H1 = '01 태어난 시각을 바로잡습니다';
-	$H6 = '06 접수 내역';
+	/* ★ 숫자는 <span class="num">01</span> 안에 따로 들어 있습니다.
+	   붙여 쓴 「01 태어난…」 으로 찾으면 한 군데도 안 잡힙니다. */
+	$H1 = '태어난 시각을 바로잡습니다';
+	$H6 = '접수 내역';
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
@@ -84,49 +86,112 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 
-	/* ── 접을 자리 찾기 ───────────────────────────────── */
+	/* ── 접을 자리 찾기 ─────────────────────────────────
+	   짐작하지 않습니다. 감쌀 만한 태그를 차례로 넣어보고,
+	   접히는 구간 안에 02·03·04·05 가 전부 들어 있는 것만 씁니다.
+	   하나도 통과 못 하면 아무것도 안 고칩니다. */
+
 	$cut = function ( $s ) {
 		$s = preg_replace( '/\s+/', ' ', $s );
 		return trim( $s );
 	};
 
-	$sectionBefore = function ( $c, $needle ) {
-		$at = strpos( $c, $needle );
-		if ( false === $at ) { return false; }
-		$s = strrpos( substr( $c, 0, $at ), '<section' );
+	$MIDS = array(
+		'사주 원국 — 네 개의 기둥',
+		'타고난 기운의 비율',
+		'십 년마다 바뀌는 판',
+		'태어나던 밤의 하늘',
+	);
+
+	/* 그 말이 나오는 모든 자리 */
+	$spots = function ( $c, $needle ) {
+		$out = array();
+		$at  = 0;
+		while ( true ) {
+			$at = strpos( $c, $needle, $at );
+			if ( false === $at ) { break; }
+			$out[] = $at;
+			$at    = $at + 1;
+			if ( count( $out ) >= 12 ) { break; }
+		}
+		return $out;
+	};
+
+	/* 그 자리 앞에서 제일 가까운 여는 태그 */
+	$openBefore = function ( $c, $at, $tag ) {
+		$s = strrpos( substr( $c, 0, $at ), $tag );
 		if ( false === $s ) { return false; }
-		if ( $at - $s > 900 ) { return false; }
+		if ( $at - $s > 2000 ) { return false; }
 		return $s;
 	};
 
-	$P1 = $sectionBefore( $c, $H1 );
-	$P2 = $sectionBefore( $c, $H6 );
+	$TAGS = array( '<section', '<div class="card"', "<div class='card'", '<article', '<h2' );
 
-	echo '<h2>접기 — 여는 자리</h2>';
-	if ( false === $P1 ) {
-		echo '<p class="no">「' . esc_html( $H1 ) . '」 앞의 칸을 못 찾았습니다.</p>';
-	} else {
-		echo '<pre>' . (int) $P1 . ' 바이트 자리' . "\n\n"
-		   . esc_html( $cut( substr( $c, $P1, 260 ) ) ) . '</pre>';
+	$P1 = false; $P2 = false; $usedTag = ''; $tries = '';
+
+	$a1 = $spots( $c, $H1 );
+	$a6 = $spots( $c, $H6 );
+
+	$tries .= '「' . $H1 . '」 나오는 자리  ' . count( $a1 ) . "\n";
+	$tries .= '「' . $H6 . '」 나오는 자리  ' . count( $a6 ) . "\n\n";
+
+	foreach ( $TAGS as $tag ) {
+		foreach ( $a1 as $s1 ) {
+			$o1 = $openBefore( $c, $s1, $tag );
+			if ( false === $o1 ) { continue; }
+			foreach ( $a6 as $s6 ) {
+				$o6 = $openBefore( $c, $s6, $tag );
+				if ( false === $o6 ) { continue; }
+				if ( $o1 >= $o6 ) { continue; }
+				$mid  = substr( $c, $o1, $o6 - $o1 );
+				$okAll = true;
+				$miss  = array();
+				foreach ( $MIDS as $m ) {
+					if ( false === strpos( $mid, $m ) ) {
+						$okAll  = false;
+						$miss[] = $m;
+					}
+				}
+				$tries .= str_pad( $tag, 20 )
+					. str_pad( $o1 . ' ~ ' . $o6, 22 )
+					. number_format( strlen( $mid ) ) . ' 바이트  ';
+				if ( $okAll ) {
+					$tries .= "02~05 모두 들어 있음  ★ 이걸 씁니다\n";
+					$P1 = $o1; $P2 = $o6; $usedTag = $tag;
+					break 3;
+				}
+				$tries .= '빠진 것 ' . implode( ' · ', $miss ) . "\n";
+			}
+		}
 	}
 
-	echo '<h2>접기 — 닫는 자리 (여기 앞에서 접기가 끝납니다)</h2>';
-	if ( false === $P2 ) {
-		echo '<p class="no">「' . esc_html( $H6 ) . '」 앞의 칸을 못 찾았습니다.</p>';
-	} else {
-		echo '<pre>' . (int) $P2 . ' 바이트 자리' . "\n\n"
-		   . esc_html( $cut( substr( $c, $P2, 260 ) ) ) . '</pre>';
-	}
+	echo '<h2>접을 자리를 이렇게 찾아봤습니다</h2><pre>'
+	   . esc_html( $tries ) . '</pre>';
 
 	$foldOK = true;
 	if ( false === $P1 ) { $foldOK = false; }
 	if ( false === $P2 ) { $foldOK = false; }
-	if ( $foldOK ) { if ( $P1 >= $P2 ) { $foldOK = false; } }
 
-	if ( $foldOK ) {
+	if ( ! $foldOK ) {
+		echo '<p class="no">감쌀 자리를 못 찾았습니다. 접기는 하지 않습니다.</p>';
+		echo '<h2>「' . esc_html( $H1 ) . '」 앞뒤 모습</h2>';
+		foreach ( $a1 as $s1 ) {
+			$from = max( 0, $s1 - 300 );
+			echo '<pre>' . (int) $s1 . ' 바이트 자리' . "\n\n"
+			   . esc_html( $cut( substr( $c, $from, 300 + 160 ) ) ) . '</pre>';
+		}
+		echo '<h2>「' . esc_html( $H6 ) . '」 앞뒤 모습</h2>';
+		foreach ( $a6 as $s6 ) {
+			$from = max( 0, $s6 - 300 );
+			echo '<pre>' . (int) $s6 . ' 바이트 자리' . "\n\n"
+			   . esc_html( $cut( substr( $c, $from, 300 + 160 ) ) ) . '</pre>';
+		}
+	} else {
+		echo '<h2>여는 자리 (' . esc_html( $usedTag ) . ')</h2><pre>'
+		   . esc_html( $cut( substr( $c, $P1, 240 ) ) ) . '</pre>';
+		echo '<h2>닫는 자리 (여기 앞에서 접기가 끝납니다)</h2><pre>'
+		   . esc_html( $cut( substr( $c, $P2, 240 ) ) ) . '</pre>';
 		$mid = substr( $c, $P1, $P2 - $P1 );
-		echo '<p class="dim">접히는 길이 ' . number_format( strlen( $mid ) )
-		   . ' 바이트</p>';
 		if ( false !== strpos( $mid, '<!-- wp:' ) ) {
 			echo '<p class="dim">참고 — 그 사이에 워드프레스 블록 경계가 '
 			   . (int) substr_count( $mid, '<!-- wp:' )
@@ -177,7 +242,9 @@ add_action( 'template_redirect', function () {
 	$css .= "#ssr .stella-fold156-in{ padding:0 14px 14px; }\n";
 	if ( '' !== $sel ) {
 		$css .= "/* 밤하늘 판에 맞춰 둔 연분홍이 크림 바탕에서 안 읽혔습니다 */\n";
-		$css .= $sel . "{ color:#B04A52 !important; }\n";
+		$css .= $sel . "{ color:#B04A52 !important;\n";
+		$css .= "  border-color:rgba(176,74,82,.42) !important;\n";
+		$css .= "  background:rgba(176,74,82,.07) !important; }\n";
 	}
 	$css .= "</style>\n";
 
