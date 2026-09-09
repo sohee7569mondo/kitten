@@ -102,7 +102,7 @@ add_action( 'template_redirect', function () {
 
 	/* ── 붙일 덩어리 ─────────────────────────────────── */
 	$b  = "\n" . $s . "\n<style>\n";
-	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v10 */\n";
+	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v11 (접기 안 함) */\n";
 	$b .= "/* 왼쪽 카드가 자리를 많이 먹어 오른쪽 입력칸이 좁았습니다 */\n";
 	$b .= "@media(min-width:901px){\n";
 	$b .= "  #ssg .g-cols{ grid-template-columns:minmax(250px,300px) 1fr !important;\n";
@@ -368,8 +368,7 @@ add_action( 'template_redirect', function () {
 	$b .= "\n";
 	$b .= "  var fixed = false;\n";
 	$b .= "  function run(){\n";
-	$b .= "    fold();\n";
-	$b .= "    var r = radios();\n";
+		$b .= "    var r = radios();\n";
 	$b .= "    if(!r.length){ return; }\n";
 	$b .= "    var want = wanted();\n";
 	$b .= "    if(want){\n";
@@ -444,7 +443,7 @@ add_action( 'template_redirect', function () {
 		$has = ( false !== strpos( $c, $s ) );
 		$ver = '—';
 		if ( $has ) {
-			$ver = ( false !== strpos( $c, 'stella-doors1-v10' ) )
+			$ver = ( false !== strpos( $c, 'stella-doors1-v11' ) )
 				? '<span class="ok">v5 (지금 판)</span>'
 				: '<span class="no">옛 판</span>';
 		}

@@ -1,0 +1,114 @@
+/* ════════════════════════════════════════════════════════════
+   문 여섯 · 가디언 카드 글을 한자리에서 봅니다 (읽기만)
+   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   접기를 그만두고 글 자체를 줄이기로 했으므로,
+   지금 여섯 문에 어떤 글이 몇 자로 들어 있는지 그대로 뽑습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   보기   https://stellasaju.com/?stella_gtext=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_gtext'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:28px 18px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.25rem;margin:0 0 12px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.7 monospace;border-left:3px solid #D4AF6A}'
+	   . '</style>';
+
+	echo '<h1>문 여섯 · 가디언 카드에 지금 들어 있는 글</h1>';
+
+	$slugs = array( 'door-career', 'door-love', 'door-health',
+		'door-fortune', 'door-astro', 'door-tarot' );
+
+	$len = function ( $s ) {
+		$s = trim( preg_replace( '/\s+/', ' ', $s ) );
+		if ( function_exists( 'mb_strlen' ) ) { return mb_strlen( $s, 'UTF-8' ); }
+		return strlen( $s );
+	};
+
+	$tidy = function ( $s ) {
+		$s = str_replace( array( "\xC2\xA0" ), ' ', $s );
+		$s = preg_replace( '/\s+/', ' ', $s );
+		return trim( $s );
+	};
+
+	$want = array(
+		'g-theme'    => '영어 이름',
+		'g-name'     => '가디언 이름',
+		'g-en'       => '분야',
+		'g-greet'    => '첫 인사말 (건드리지 않음)',
+		'g-intro'    => '소개  ← 줄일 자리',
+		'g-method-t' => '작은 제목',
+		'g-method'   => '이렇게 읽습니다  ← 줄일 자리',
+	);
+
+	foreach ( $slugs as $slug ) {
+
+		echo '<h2>' . esc_html( $slug ) . '</h2>';
+
+		$p = get_page_by_path( $slug );
+		if ( ! $p ) { echo '<p class="no">쪽 없음</p>'; continue; }
+
+		$c = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+
+		$doc  = new DOMDocument();
+		$prev = libxml_use_internal_errors( true );
+		$doc->loadHTML( '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
+			. '<div id="stellaroot">' . $c . '</div>' );
+		libxml_clear_errors();
+		libxml_use_internal_errors( $prev );
+
+		$root = $doc->getElementById( 'stellaroot' );
+		if ( ! $root ) { echo '<p class="no">뜯어보기 실패</p>'; continue; }
+
+		$all = $root->getElementsByTagName( '*' );
+		$bag = array();
+		foreach ( $all as $el ) {
+			$cl = ' ' . $el->getAttribute( 'class' ) . ' ';
+			foreach ( $want as $key => $label ) {
+				if ( false === strpos( $cl, ' ' . $key . ' ' ) ) { continue; }
+				if ( ! isset( $bag[ $key ] ) ) { $bag[ $key ] = array(); }
+				$bag[ $key ][] = $tidy( $el->textContent );
+			}
+		}
+
+		$out   = '';
+		$total = 0;
+		foreach ( $want as $key => $label ) {
+			if ( ! isset( $bag[ $key ] ) ) {
+				$out .= str_pad( $label, 26 ) . "없음\n";
+				continue;
+			}
+			foreach ( $bag[ $key ] as $t ) {
+				$n = $len( $t );
+				if ( 'g-intro' === $key || 'g-method' === $key ) { $total += $n; }
+				$out .= str_pad( $label, 26 ) . $n . "자\n";
+				$out .= '    ' . $t . "\n";
+			}
+		}
+		$out .= "\n" . str_pad( '줄일 글 합계', 26 ) . $total . "자\n";
+		echo '<pre>' . esc_html( $out ) . '</pre>';
+	}
+
+	echo '<p class="dim">이 자는 읽기만 합니다. 다 보시면 스니펫을 꺼두셔도 됩니다.</p>';
+	exit;
+} );
