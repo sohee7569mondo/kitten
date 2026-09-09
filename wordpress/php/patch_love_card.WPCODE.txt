@@ -23,12 +23,13 @@
      (소개 넉 줄)
      이렇게 읽습니다 (상자)
 
-   ── 사진 고르기 ───────────────────────────────────────
-   그냥 열면 사진 없이 만듭니다. 먼저 보기 화면에 미디어에 있는
-   문 사진 목록이 번호와 함께 나옵니다. 마음에 드는 번호를
-   주소 끝에 붙이시면 그 사진으로 짓습니다.
+   ── 사진 ──────────────────────────────────────────────
+   소희 님이 주신 주소로 만듭니다.
 
-        ?stella_lovecard=apply%26pic=3
+        stellardoorlovers.webp
+
+   다른 것으로 하시려면 먼저 보기에 나오는 번호를 주소 끝에
+   붙이세요.  ?stella_lovecard=apply%26pic=3
 
    ★ 사진은 나중에 바꿔도 됩니다. 되돌리고 다시 넣으면 됩니다.
 
@@ -50,6 +51,9 @@ add_action( 'template_redirect', function () {
 	$META = '_stella_lovecard_backup';
 	$mode = sanitize_key( wp_unslash( $_GET['stella_lovecard'] ) );
 	$pick = isset( $_GET['pic'] ) ? absint( $_GET['pic'] ) : 0;
+
+	/* 2026-09-09 · 소희 님이 주신 벼리 사진 주소 */
+	$DEFAULT_PIC = 'https://stellasaju.com/wp-content/uploads/2026/08/stellardoorlovers.webp';
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
@@ -106,11 +110,12 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 
-	/* 사진 고르기 */
+	/* 사진 고르기 — 기본은 소희 님이 주신 주소 */
 	echo '<h2>미디어에 있는 문 사진 ' . count( $pics ) . '장</h2>';
-	$src = '';
+	$src = $DEFAULT_PIC;
 	if ( ! $pics ) {
-		echo '<p class="dim">없습니다. 사진 없이 만듭니다.</p>';
+		echo '<p class="dim">목록에는 없지만, 주신 주소로 만듭니다 — <code>'
+		   . esc_html( basename( $DEFAULT_PIC ) ) . '</code></p>';
 	} else {
 		$t = '<table>';
 		$n = 0;
@@ -124,8 +129,9 @@ add_action( 'template_redirect', function () {
 		}
 		echo $t . '</table>';
 		if ( ! $pick ) {
-			echo '<p class="dim">번호를 고르시려면 주소 끝에 <code>%26pic=번호</code> 를 붙이세요. '
-			   . '안 고르시면 사진 없이 만듭니다.</p>';
+			echo '<p class="dim">번호를 안 고르시면 소희 님이 주신 주소로 만듭니다 — <code>'
+			   . esc_html( basename( $DEFAULT_PIC ) ) . '</code>. '
+			   . '다른 것으로 하시려면 주소 끝에 <code>%26pic=번호</code> 를 붙이세요.</p>';
 		}
 	}
 
