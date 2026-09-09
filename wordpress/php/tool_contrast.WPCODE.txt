@@ -10,6 +10,12 @@
      그랬고(#E9BFBF · 대비 1.55:1), 스타 사주도 같은 사고로 보입니다.
      한 쪽씩 눈으로 찾지 않고 한 번에 셉니다.
 
+   ★ 2판에서 고친 것
+     · color:var(--star) 처럼 이름표로 적힌 색을 풀어서 잽니다.
+       1판은 이걸 못 읽어 아홉 개밖에 못 셌습니다.
+     · 그 규칙이 자기 바탕색을 따로 갖고 있으면 그 바탕과 견줍니다.
+       금빛 딱지 위의 흰 글씨를 「안 읽힌다」고 잘못 잡던 자리입니다.
+
    무엇을 재나
      스타일표 안의 모든 글씨색을 바탕색과 견주어 「대비」를 잽니다.
        4.5 : 1 이상  본문으로 읽힙니다 (국제 기준 AA)
@@ -97,6 +103,47 @@ add_action( 'template_redirect', function () {
 			(int) round( $fg[2] * $a + $bg[2] * ( 1 - $a ) ) );
 	};
 
+	/* ── 색 이름표 표 ────────────────────────────────
+	   --star:#F2ECE0 처럼 적어두고 color:var(--star) 로 쓰는 것들입니다.
+	   같은 이름이 여러 번 나오면 뒤에 적힌 것이 이깁니다 (CSS 규칙 그대로). */
+	$VARS = array();
+	$vf   = 0;
+	while ( true ) {
+		$at = strpos( $c, '--', $vf );
+		if ( false === $at ) { break; }
+		$vf = $at + 2;
+		$co = strpos( $c, ':', $at );
+		if ( false === $co ) { break; }
+		if ( $co - $at > 40 ) { continue; }
+		$name = substr( $c, $at, $co - $at );
+		if ( '' === $name ) { continue; }
+		if ( preg_match( '/[^A-Za-z0-9_-]/', $name ) ) { continue; }
+		$len = strcspn( substr( $c, $co + 1, 90 ), ';}' );
+		$val = trim( substr( $c, $co + 1, $len ) );
+		if ( '' === $val ) { continue; }
+		$VARS[ $name ] = $val;
+	}
+
+	/* var(--x) 를 풀어 실제 값으로 바꿉니다. 이름표가 이름표를 가리켜도 따라갑니다. */
+	$unvar = function ( $v ) use ( &$VARS ) {
+		$hop = 0;
+		while ( $hop < 6 ) {
+			$hop++;
+			$at = stripos( $v, 'var(' );
+			if ( false === $at ) { return $v; }
+			$en = strpos( $v, ')', $at );
+			if ( false === $en ) { return $v; }
+			$in = substr( $v, $at + 4, $en - $at - 4 );
+			$cm = strpos( $in, ',' );
+			$nm = trim( ( false === $cm ) ? $in : substr( $in, 0, $cm ) );
+			$fb = ( false === $cm ) ? '' : trim( substr( $in, $cm + 1 ) );
+			$rp = isset( $VARS[ $nm ] ) ? $VARS[ $nm ] : $fb;
+			if ( '' === $rp ) { return $v; }
+			$v = substr( $v, 0, $at ) . $rp . substr( $v, $en + 1 );
+		}
+		return $v;
+	};
+
 	/* ── 바탕색 ────────────────────────────────────── */
 	$bgHex = 'F1EDE3';
 	if ( isset( $_GET['bg'] ) ) {
@@ -137,7 +184,9 @@ add_action( 'template_redirect', function () {
 		if ( false !== strpos( $pre, 'outline-' ) ) { continue; }
 
 		$end = strcspn( substr( $c, $at + 6, 60 ), ';}\n' );
-		$val = trim( substr( $c, $at + 6, $end ) );
+		$raw = trim( substr( $c, $at + 6, $end ) );
+		if ( '' === $raw ) { continue; }
+		$val = trim( str_ireplace( '!important', '', $unvar( $raw ) ) );
 		if ( '' === $val ) { continue; }
 
 		$rgb = false; $alpha = 1.0;
@@ -169,11 +218,30 @@ add_action( 'template_redirect', function () {
 		if ( strlen( $sel ) > 90 ) { $sel = substr( $sel, 0, 90 ) . ' …'; }
 		if ( '' === $sel ) { $sel = '(어디인지 모름)'; }
 
-		$seen = $mix( $rgb, $alpha, $bg );
-		$r    = $ratio( $seen, $bg );
+		/* 이 규칙이 자기 바탕색을 갖고 있나 — 있으면 그것과 견줍니다.
+		   금빛 딱지 위의 흰 글씨를 잘못 잡지 않으려는 것입니다. */
+		$ruleEnd = strpos( $c, '}', $at );
+		if ( false === $ruleEnd ) { $ruleEnd = $at; }
+		$rule    = substr( $c, $b0 + 1, $ruleEnd - $b0 - 1 );
+		$own     = $bg;
+		$ownHex  = '';
+		$bp      = stripos( $rule, 'background' );
+		while ( false !== $bp ) {
+			$bl  = strcspn( substr( $rule, $bp, 200 ), ';}' );
+			$bv  = $unvar( substr( $rule, $bp, $bl ) );
+			$hx  = strpos( $bv, '#' );
+			if ( false !== $hx ) {
+				$try = $hex2rgb( substr( $bv, $hx, 7 ) );
+				if ( $try ) { $own = $try; $ownHex = strtoupper( substr( $bv, $hx, 7 ) ); break; }
+			}
+			$bp = stripos( $rule, 'background', $bp + 1 );
+		}
 
-		$found[] = array( 'sel' => $sel, 'val' => $val, 'r' => $r,
-			'seen' => $seen, 'alpha' => $alpha );
+		$seen = $mix( $rgb, $alpha, $own );
+		$r    = $ratio( $seen, $own );
+
+		$found[] = array( 'sel' => $sel, 'val' => $raw, 'r' => $r,
+			'seen' => $seen, 'alpha' => $alpha, 'own' => $ownHex );
 	}
 
 	if ( ! count( $found ) ) {
@@ -196,15 +264,18 @@ add_action( 'template_redirect', function () {
 	   . '<span class="mid">' . $mid . '개 큰 글씨만 가능</span></h2>';
 
 	echo '<table><tr><th>대비</th><th>적힌 색</th><th>실제로 보이는 색</th>'
-	   . '<th>어디</th></tr>';
+	   . '<th>무슨 바탕 위</th><th>어디</th></tr>';
 	foreach ( $found as $f ) {
 		if ( $f['r'] >= 4.5 ) { continue; }
 		$cls = ( $f['r'] < 3.0 ) ? 'no' : 'mid';
 		$hx  = sprintf( '#%02X%02X%02X', $f['seen'][0], $f['seen'][1], $f['seen'][2] );
+		$ob = ( '' !== $f['own'] ) ? $f['own'] : ( '#' . strtoupper( $bgHex ) );
 		echo '<tr><td class="' . $cls . '">' . number_format( $f['r'], 2 ) . ' : 1</td>'
 		   . '<td><code>' . esc_html( $f['val'] ) . '</code></td>'
-		   . '<td><span class="sw" style="background:#' . esc_attr( $bgHex )
+		   . '<td><span class="sw" style="background:' . esc_attr( $ob )
 		   . ';color:' . esc_attr( $hx ) . '">가나다</span> ' . esc_html( $hx ) . '</td>'
+		   . '<td><code>' . esc_html( $ob )
+		   . ( '' !== $f['own'] ? ' (제 바탕)' : ' (쪽 바탕)' ) . '</code></td>'
 		   . '<td><code>' . esc_html( $f['sel'] ) . '</code></td></tr>';
 	}
 	echo '</table>';
