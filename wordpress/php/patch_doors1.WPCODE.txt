@@ -101,12 +101,21 @@ add_action( 'template_redirect', function () {
 	$b  = "\n" . $s . "\n<style>\n";
 	$b .= "/* 문 다섯 · 2026-09-09 */\n";
 	$b .= ".stella-fold-0909{ display:none !important; }\n";
+	/* 문 페이지에 단추를 눌러 없애는 규칙이 있어서(글씨 크기 0 같은)
+	   그대로 두면 빈 칸으로 보입니다. 하나하나 못 박습니다. */
 	$b .= ".stella-more-0909{\n";
-	$b .= "  display:inline-block; margin:10px 0 4px; padding:8px 16px;\n";
-	$b .= "  border:1px solid rgba(120,110,95,.4); border-radius:100px;\n";
-	$b .= "  background:transparent; cursor:pointer; font:inherit;\n";
-	$b .= "  font-size:.9rem; color:inherit; opacity:.8; }\n";
-	$b .= ".stella-more-0909:hover{ opacity:1; }\n";
+	$b .= "  display:inline-block !important; visibility:visible !important;\n";
+	$b .= "  margin:10px 0 4px !important; padding:9px 18px !important;\n";
+	$b .= "  border:1px solid rgba(120,110,95,.45) !important;\n";
+	$b .= "  border-radius:100px !important;\n";
+	$b .= "  background:#FFFFFF !important; cursor:pointer !important;\n";
+	$b .= "  font-family:inherit !important; font-weight:500 !important;\n";
+	$b .= "  font-size:14px !important; line-height:1.4 !important;\n";
+	$b .= "  color:#5A5148 !important; opacity:1 !important;\n";
+	$b .= "  text-indent:0 !important; letter-spacing:0 !important;\n";
+	$b .= "  width:auto !important; height:auto !important;\n";
+	$b .= "  text-transform:none !important; }\n";
+	$b .= ".stella-more-0909:hover{ border-color:rgba(120,110,95,.8) !important; }\n";
 	$b .= "</style>\n<script>\n";
 	$b .= "/* ★ 이 안에서 홑 앰퍼샌드를 쓰지 않습니다 (사이트 규칙).\n";
 	$b .= "   주소를 만들 때만 글자 번호 38 로 붙입니다. */\n";
