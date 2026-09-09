@@ -1,0 +1,102 @@
+/* ════════════════════════════════════════════════════════════
+   가디언 카드 알맹이 보기 (읽기만)   ★ 2026-09-09 · 소희 님께
+
+   앞의 도구는 겉모습 규칙(CSS)만 보여주고 잘렸습니다.
+   이번엔 카드 알맹이(HTML)만 골라서 보여줍니다.
+
+   그리고 문 여섯에 카드가 있는지 없는지 한 줄로 세어줍니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   보기   https://stellasaju.com/?stella_card2=1
+
+   ★ 브라우저 번역을 끄고 여세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_card2'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:26px 16px;max-width:1040px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.25rem;margin:0 0 12px}'
+	   . 'h2{color:#9AD1A5;font-size:.98rem;margin:22px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.no{color:#E5A0A0}.ok{color:#9AD1A5}.dim{color:#8B849C;font-size:.85rem}'
+	   . 'pre{background:#000;padding:11px;white-space:pre-wrap;word-break:break-all;'
+	   . 'font:11px/1.6 monospace;border-left:3px solid #D4AF6A;margin:6px 0}'
+	   . '</style>';
+
+	$doors = array( 'door-career', 'door-love', 'door-health',
+		'door-fortune', 'door-astro' );
+
+	echo '<h1>문 다섯 · 카드가 있나</h1><pre>';
+	foreach ( $doors as $slug ) {
+		$p = get_page_by_path( $slug );
+		if ( ! $p ) { echo str_pad( $slug, 16 ) . "쪽 없음\n"; continue; }
+		$c = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+		echo str_pad( $slug, 16 )
+		   . '카드 ' . substr_count( $c, 'class="g-card"' )
+		   . ' · 사진칸 ' . substr_count( $c, 'class="g-portrait"' )
+		   . ' · 이름 ' . substr_count( $c, 'class="g-name"' )
+		   . ' · 겉모습규칙 ' . ( false !== strpos( $c, '.g-card{' ) ? '있음' : '없음' )
+		   . "\n";
+	}
+	echo '</pre>';
+
+	/* 마루 카드 알맹이 */
+	$p = get_page_by_path( 'door-career' );
+	$c = $p ? (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) ) : '';
+
+	echo '<h2>마루 카드 알맹이</h2>';
+	$a = strpos( $c, 'class="g-card"' );
+	if ( false === $a ) {
+		echo '<p class="no">못 찾았습니다.</p>';
+	} else {
+		$a   = max( 0, $a - 90 );
+		$b   = strpos( $c, 'class="sample"', $a );
+		$end = ( false !== $b ) ? $b : ( $a + 3400 );
+		if ( $end - $a > 4200 ) { $end = $a + 4200; }
+		echo '<pre>' . esc_html( substr( $c, $a, $end - $a ) ) . '</pre>';
+	}
+
+	/* 벼리 쪽 g-cols 알맹이 */
+	$p2 = get_page_by_path( 'door-love' );
+	$c2 = $p2 ? (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p2->ID ) ) : '';
+
+	echo '<h2>벼리 쪽 g-cols 가 시작하는 자리</h2>';
+	$a2 = strpos( $c2, 'class="g-cols"' );
+	if ( false === $a2 ) {
+		echo '<p class="no">못 찾았습니다.</p>';
+	} else {
+		echo '<pre>' . esc_html( substr( $c2, max( 0, $a2 - 120 ), 900 ) ) . '</pre>';
+	}
+
+	echo '<h2>벼리 쪽에 쓰인 사진</h2>';
+	$imgs = array();
+	$from = 0;
+	while ( true ) {
+		$at = strpos( $c2, 'uploads', $from );
+		if ( false === $at ) { break; }
+		$s1 = strrpos( substr( $c2, 0, $at ), 'http' );
+		if ( false === $s1 ) { $from = $at + 7; continue; }
+		$q = strpos( $c2, '"', $at );
+		if ( false === $q ) { break; }
+		$imgs[ substr( $c2, $s1, $q - $s1 ) ] = true;
+		$from = $q;
+		if ( count( $imgs ) > 20 ) { break; }
+	}
+	echo '<pre>' . esc_html( $imgs ? implode( "\n", array_keys( $imgs ) ) : '없음' ) . '</pre>';
+
+	exit;
+}, 0 );
