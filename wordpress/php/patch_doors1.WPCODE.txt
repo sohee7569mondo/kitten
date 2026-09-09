@@ -21,9 +21,18 @@
 
       미리보기 제목과 링크도 그 주제로 바뀝니다.
 
-   ② 첫머리 가디언 말에서 100자가 넘는 문단을 접습니다.
+   ② 첫머리 가디언 말에서 60자가 넘는 덩어리를 접습니다.
+      「이렇게 읽습니다」 상자도 같이 접습니다.
       「가디언 소개 더 보기」를 누르면 펴집니다.
-      맨 앞 인사말은 그대로 보입니다.
+      맨 앞 인사말 두 줄은 그대로 보입니다.
+
+   ③ 감춘 자리 때문에 STEP 번호가 건너뛰던 것을 다시 셉니다.
+        전  STEP 1 · STEP 2 · STEP 4
+        후  STEP 1 · STEP 2 · STEP 3
+
+   ④ 「당신」을 없앱니다.
+        당신의 길을 함께 그려볼까요   ->  가시는 길을 함께 그려볼까요
+        당신이 태어나던 밤            ->  태어나시던 밤
 
    ── 손대는 쪽 ─────────────────────────────────────────
      door-career · door-love · door-health · door-fortune · door-astro
@@ -103,7 +112,8 @@ add_action( 'template_redirect', function () {
 	$b .= "   주소를 만들 때만 글자 번호 38 로 붙입니다. */\n";
 	$b .= "(function(){\n";
 	$b .= "  var AMP = String.fromCharCode(38);\n";
-	$b .= "  var LONG = 100;\n";
+	$b .= "  var LONG = 60;\n";
+	$b .= "  var BOX = '이렇게 읽습니다';\n";
 	$b .= "\n";
 	$b .= "  function radios(){\n";
 	$b .= "    return document.querySelectorAll('input[name=\"ssg-topic\"]');\n";
@@ -162,6 +172,8 @@ add_action( 'template_redirect', function () {
 	$b .= "      if(txt.length < LONG){ continue; }\n";
 	$b .= "      hide.push(p);\n";
 	$b .= "    }\n";
+	$b .= "    var box = smallest(BOX);\n";
+	$b .= "    if(box){ if(hide.indexOf(box) < 0){ hide.push(box); } }\n";
 	$b .= "    if(!hide.length){ return; }\n";
 	$b .= "    for(i = 0; i < hide.length; i++){ hide[i].classList.add('stella-fold-0909'); }\n";
 	$b .= "    var btn = document.createElement('button');\n";
@@ -176,8 +188,87 @@ add_action( 'template_redirect', function () {
 	$b .= "      }\n";
 	$b .= "      btn.textContent = open ? '접어 두기' : '가디언 소개 더 보기';\n";
 	$b .= "    });\n";
-	$b .= "    if(hide[0].parentNode){ hide[0].parentNode.insertBefore(btn, hide[0]); }\n";
+	$b .= "    /* 단추가 접히는 상자 안에 들어가면 단추까지 숨어서\n";
+	$b .= "       펼 방법이 없어집니다. 접히지 않는 자리에 답니다. */\n";
+	$b .= "    var anchor = null;\n";
+	$b .= "    var kk, inside, pos;\n";
+	$b .= "    for(i = 0; i < hide.length; i++){\n";
+	$b .= "      inside = false;\n";
+	$b .= "      for(kk = 0; kk < hide.length; kk++){\n";
+	$b .= "        if(kk === i){ continue; }\n";
+	$b .= "        if(hide[kk].contains(hide[i])){ inside = true; }\n";
+	$b .= "      }\n";
+	$b .= "      if(inside){ continue; }\n";
+	$b .= "      if(anchor === null){ anchor = hide[i]; continue; }\n";
+	$b .= "      pos = anchor.compareDocumentPosition(hide[i]);\n";
+	$b .= "      if(pos === 2){ anchor = hide[i]; }\n";
+	$b .= "    }\n";
+	$b .= "    if(!anchor){ anchor = hide[0]; }\n";
+	$b .= "    if(anchor.parentNode){ anchor.parentNode.insertBefore(btn, anchor); }\n";
 	$b .= "    folded = true;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  /* 그 말을 담은 가장 작은 덩어리 */\n";
+	$b .= "  function smallest(word){\n";
+	$b .= "    var all = document.querySelectorAll('p,div,section,aside,li');\n";
+	$b .= "    var best = null;\n";
+	$b .= "    var i, t;\n";
+	$b .= "    for(i = 0; i < all.length; i++){\n";
+	$b .= "      t = all[i].textContent;\n";
+	$b .= "      if(!t){ continue; }\n";
+	$b .= "      if(t.indexOf(word) < 0){ continue; }\n";
+	$b .= "      if(all[i].querySelector('input')){ continue; }\n";
+	$b .= "      if(best === null){ best = all[i]; continue; }\n";
+	$b .= "      if(t.length < best.textContent.length){ best = all[i]; }\n";
+	$b .= "    }\n";
+	$b .= "    return best;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  /* 감춘 자리 때문에 번호가 건너뛰지 않게 다시 셉니다 */\n";
+	$b .= "  function renumber(){\n";
+	$b .= "    var secs = document.querySelectorAll('section.step');\n";
+	$b .= "    var n = 0;\n";
+	$b .= "    var i, no;\n";
+	$b .= "    for(i = 0; i < secs.length; i++){\n";
+	$b .= "      if(secs[i].style.display === 'none'){ continue; }\n";
+	$b .= "      n = n + 1;\n";
+	$b .= "      no = secs[i].querySelector('.step-no');\n";
+	$b .= "      if(no){ no.textContent = 'STEP ' + n; }\n";
+	$b .= "    }\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  /* 「당신」을 쓰지 않기로 한 규칙 */\n";
+	$b .= "  var SAY = [\n";
+	$b .= "    ['당신의 길을 함께 그려볼까요', '가시는 길을 함께 그려볼까요'],\n";
+	$b .= "    ['다만 당신이 어느 계절에', '다만 어느 계절에'],\n";
+	$b .= "    ['비로소 당신 한 사람이 나와요', '비로소 한 사람이 오롯이 나와요'],\n";
+	$b .= "    ['당신이 태어나던 밤', '태어나시던 밤'],\n";
+	$b .= "    ['당신이 태어난 순간의 하늘', '태어나신 순간의 하늘'],\n";
+	$b .= "    ['오늘 이 순간 당신 손이 고른', '오늘 이 순간 고르신'],\n";
+	$b .= "    ['당신 손이 고른', '고르신'],\n";
+	$b .= "    ['당신의 ', ''],\n";
+	$b .= "    ['당신이 ', ''],\n";
+	$b .= "    ['당신은 ', ''],\n";
+	$b .= "    ['당신을 ', ''],\n";
+	$b .= "    ['당신 ', '']\n";
+	$b .= "  ];\n";
+	$b .= "  function unsay(){\n";
+	$b .= "    var it = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);\n";
+	$b .= "    var list = [], nd;\n";
+	$b .= "    while(true){\n";
+	$b .= "      nd = it.nextNode();\n";
+	$b .= "      if(!nd){ break; }\n";
+	$b .= "      list.push(nd);\n";
+	$b .= "    }\n";
+	$b .= "    var i, k, o, t;\n";
+	$b .= "    for(i = 0; i < list.length; i++){\n";
+	$b .= "      o = list[i].nodeValue;\n";
+	$b .= "      if(!o){ continue; }\n";
+	$b .= "      if(o.indexOf('당신') < 0){ continue; }\n";
+	$b .= "      t = o;\n";
+	$b .= "      for(k = 0; k < SAY.length; k++){ t = t.split(SAY[k][0]).join(SAY[k][1]); }\n";
+	$b .= "      if(t !== o){ list[i].nodeValue = t; }\n";
+	$b .= "    }\n";
 	$b .= "  }\n";
 	$b .= "\n";
 	$b .= "  var fixed = false;\n";
@@ -203,6 +294,8 @@ add_action( 'template_redirect', function () {
 	$b .= "    /* 주제를 고르지 않은 채로는 미리보기를 안 건드립니다.\n";
 	$b .= "       원래 견본이 「덕선의 직업운」인데 이름만 바꾸면 거짓말이 됩니다. */\n";
 	$b .= "    if(want){ dress(current()); }\n";
+	$b .= "    if(fixed){ renumber(); }\n";
+	$b .= "    unsay();\n";
 	$b .= "  }\n";
 	$b .= "\n";
 	$b .= "  function start(){\n";
