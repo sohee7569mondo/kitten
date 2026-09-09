@@ -46,7 +46,7 @@ add_action( 'template_redirect', function () {
 				else {
 					$v = substr( $c, $at, 20 );
 					$v = trim( strtok( substr( $v, 14 ), " */\n\r" ) );
-					$out .= str_pad( $label, 30 ) . 'v' . $v . "\n";
+					$out .= str_pad( $label, 30 ) . $v . "\n";
 				}
 				continue;
 			}
@@ -85,7 +85,7 @@ add_action( 'template_redirect', function () {
 	foreach ( $snips as $r ) {
 		$mark = '';
 		$vp = strpos( $r->post_content, 'stella-doors1-v' );
-		if ( false !== $vp ) { $mark = '  <- doors1 v' . trim( strtok( substr( $r->post_content, $vp + 14 ), " */\n\r" ) ); }
+		if ( false !== $vp ) { $mark = '  <- doors1 ' . trim( strtok( substr( $r->post_content, $vp + 14 ), " */\n\r" ) ); }
 		if ( false !== strpos( $r->post_content, 'stellardoorlovers' ) ) { $mark = '  <- 벼리 사진 있는 판'; }
 		$out .= str_pad( (string) $r->ID, 6 ) . str_pad( mb_substr( $r->post_title, 0, 22 ), 24 )
 		     . ( 'publish' === $r->post_status ? '켜짐' : '꺼짐' ) . $mark . "\n";
