@@ -1,0 +1,281 @@
+/* ════════════════════════════════════════════════════════════
+   메뉴 손보기 · 소희 님께
+
+   ── 바꾸는 이름 (2026-09-09 · 실제 메뉴를 보고 세 번째로 다시 씀) ──
+     직성의 신 · 일과 돈       →  마루 · 일과 돈
+     연성의 신 · 연애와 결혼   →  벼리 · 연애와 결혼
+     강성의 신 · 건강과 가족   →  아람 · 건강과 가족
+     세성의 신 · 흐름과 시기   →  미르 · 흐름과 시기
+     성좌의 신 · 별자리        →  아라 · 점성술
+
+   ★ 메뉴 이름은 「가디언 · 주제」가 한 덩어리였습니다.
+     그래서 「성좌의 신」만 찾을 때는 안 맞았습니다.
+
+   ── 빼는 것은 따로 시켜야 합니다 ───────────────
+     그냥 열면 이름만 바꿉니다. 아무것도 안 뺍니다.
+     「아르카나 · 타로」를 메뉴에서 빼시려면 주소 끝에
+     %26drop=1 을 붙이세요. 다만 빼면 타로 문으로 가는 길이
+     메뉴에서 없어집니다. 맨 위 「스텔라 타로」는 다른 쪽입니다.
+
+   ① 미리보기   https://stellasaju.com/?stella_menu4=1
+   ② 적용       https://stellasaju.com/?stella_menu4=1&go=1
+   되돌리기     https://stellasaju.com/?stella_menu4=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_menu4'] ) ) { return; }
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	$META = '_stella_menu4_backup';
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	$RENAME = array(
+		/* 2026-09-09 · 메뉴 이름은 「가디언 · 주제」 한 덩어리였습니다.
+		   그래서 「성좌의 신」만 찾으면 안 맞았습니다. */
+		'직성의 신 · 일과 돈'        => '마루 · 일과 돈',
+		'연성의 신 · 연애와 결혼'    => '벼리 · 연애와 결혼',
+		'강성의 신 · 건강과 가족'    => '아람 · 건강과 가족',
+		'세성의 신 · 흐름과 시기'    => '미르 · 흐름과 시기',
+		'성좌의 신 · 별자리'         => '아라 · 점성술',
+		/* 혹시 따로 떨어져 있는 판이 있으면 그것도 */
+		'직성의 신'     => '마루',
+		'연성의 신'     => '벼리',
+		'강성의 신'     => '아람',
+		'세성의 신'     => '미르',
+		'성좌의 신'     => '아라',
+		'별자리'        => '점성술',
+		'6개의 문'      => '사주보기',
+		'나의 사주풀이' => '나의 사주풀이(기본)',
+	);
+
+	/* 「아르카나 · 타로」를 메뉴에서 빼는 것은 따로 시킵니다.
+	   빼면 타로 문으로 가는 길이 메뉴에서 없어지기 때문입니다.
+	   주소 끝에 %26drop=1 을 붙이셔야 뺍니다. */
+	$DROP_EXACT = array();
+	if ( isset( $_GET['drop'] ) ) {
+		$DROP_EXACT = array( '아르카나 · 타로', '타로', '가격 안내', '가격안내' );
+	}
+	$DROP_HAS   = isset( $_GET['drop'] ) ? array( '로또' ) : array();
+
+	$safe = function ( $s ) {
+		if ( function_exists( 'mb_convert_encoding' ) ) {
+			$s = mb_convert_encoding( $s, 'UTF-8', 'UTF-8' );
+		}
+		return esc_html( $s );
+	};
+
+	/* 빈칸을 모두 지워서 견줍니다.
+	   눈에 안 보이는 빈칸(줄바꿈 · 넓은 빈칸 · 안 끊기는 빈칸)이
+	   하나만 섞여 있어도 글자 그대로는 못 찾습니다. */
+	$norm = function ( $s ) {
+		return str_replace(
+			array( "\xC2\xA0", "\xE2\x80\x82", "\xE2\x80\x83",
+			       "\xE3\x80\x80", "\xE2\x80\x89", "\t", "\n", "\r", ' ' ),
+			'', (string) $s );
+	};
+
+	$RN = array();
+	foreach ( $RENAME as $from => $to ) { $RN[ $norm( $from ) ] = $to; }
+	$DX = array();
+	foreach ( $DROP_EXACT as $d ) { $DX[] = $norm( $d ); }
+
+	/* 메뉴 링크 덩어리에서 이름을 꺼냅니다 */
+	$label_of = function ( $blk ) {
+		$k = '"label":"';
+		$p = strpos( $blk, $k );
+		if ( false === $p ) { return null; }
+		$p += strlen( $k );
+		$q  = strpos( $blk, '"', $p );
+		if ( false === $q ) { return null; }
+		return substr( $blk, $p, $q - $p );
+	};
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.75 -apple-system,system-ui,sans-serif;'
+		. 'background:#111;color:#eee;padding:24px;max-width:1000px">';
+	printf(
+		'<h1 style="color:#ffd76a">메뉴 손보기 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+	echo '<p style="color:#ff9b9b">브라우저 번역을 꺼주세요.</p>';
+
+	if ( $undo ) {
+		$ids = $wpdb->get_col( $wpdb->prepare(
+			"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s", $META ) );
+		$n = 0;
+		foreach ( $ids as $pid ) {
+			$bak = get_post_meta( $pid, $META, true );
+			if ( ! is_array( $bak ) ) { continue; }
+			$wpdb->update( $wpdb->posts,
+				array( 'post_content' => $bak['c'], 'post_title' => $bak['t'] ),
+				array( 'ID' => $pid ) );
+			delete_post_meta( $pid, $META );
+			clean_post_cache( $pid );
+			$n++;
+		}
+		if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+		printf( '<h2 style="color:#7bff9b">%d 군데를 되돌렸습니다.</h2></body>', $n );
+		exit;
+	}
+
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_type, post_content
+		   FROM {$wpdb->posts}
+		  WHERE post_type IN ('wp_navigation','wp_template_part','wp_block','nav_menu_item')
+		  ORDER BY post_type, ID"
+	);
+
+	$plan   = array();
+	$seen   = array();
+
+	foreach ( $rows as $r ) {
+		$c    = $r->post_content;
+		$t    = $r->post_title;
+		$did  = array();
+
+		/* 링크 덩어리를 뒤에서부터 훑습니다 */
+		$marks = array();
+		$pos   = 0;
+		while ( ( $s = strpos( $c, '<!-- wp:navigation-link', $pos ) ) !== false ) {
+			$e = strpos( $c, '/-->', $s );
+			if ( false === $e ) { break; }
+			$e = $e + 4;
+			$marks[] = array( $s, $e );
+			$pos = $e;
+		}
+
+		for ( $i = count( $marks ) - 1; $i >= 0; $i-- ) {
+			list( $s, $e ) = $marks[ $i ];
+			$blk = substr( $c, $s, $e - $s );
+			$lab = $label_of( $blk );
+			if ( null === $lab ) { continue; }
+			$seen[ $lab ] = true;
+
+			$drop = false;
+			if ( in_array( $norm( $lab ), $DX, true ) ) { $drop = true; }
+			foreach ( $DROP_HAS as $h ) {
+				if ( false !== strpos( $lab, $h ) ) { $drop = true; }
+			}
+
+			if ( $drop ) {
+				$b = $s;
+				while ( $b > 0 ) {
+					$ch = $c[ $b - 1 ];
+					if ( ' ' !== $ch && "\t" !== $ch && "\n" !== $ch && "\r" !== $ch ) { break; }
+					$b--;
+				}
+				$c     = substr( $c, 0, $b ) . substr( $c, $e );
+				$did[] = '「' . $lab . '」 뺌';
+				continue;
+			}
+
+			$key = $norm( $lab );
+			if ( isset( $RN[ $key ] ) ) {
+				$nb    = str_replace( '"label":"' . $lab . '"', '"label":"' . $RN[ $key ] . '"', $blk );
+				$c     = substr( $c, 0, $s ) . $nb . substr( $c, $e );
+				$did[] = '「' . $lab . '」 → 「' . $RN[ $key ] . '」';
+			}
+		}
+
+		/* 옛날 메뉴는 제목 자체가 이름입니다 */
+		if ( 'nav_menu_item' === $r->post_type ) {
+			$seen[ $t ] = true;
+			$drop = in_array( $norm( $t ), $DX, true );
+			foreach ( $DROP_HAS as $h ) {
+				if ( false !== strpos( $t, $h ) ) { $drop = true; }
+			}
+			if ( $drop ) {
+				$did[] = '「' . $t . '」 는 옛날 메뉴라 손으로 빼주세요';
+			} elseif ( isset( $RN[ $norm( $t ) ] ) ) {
+				$did[] = '「' . $t . '」 → 「' . $RN[ $norm( $t ) ] . '」';
+				$t     = $RN[ $norm( $t ) ];
+			}
+		}
+
+		if ( ! $did ) { continue; }
+		$plan[] = array(
+			'id' => $r->ID, 'ttl' => $r->post_title, 'type' => $r->post_type,
+			'did' => $did, 'c' => $c, 't' => $t,
+			'oc' => $r->post_content, 'ot' => $r->post_title,
+		);
+	}
+
+	echo '<h2 style="color:#9fd">지금 메뉴에 있는 이름들</h2>';
+	echo '<p style="color:#888">' . $safe( implode( ' · ', array_keys( $seen ) ) ) . '</p>';
+
+	/* 왜 못 찾았는지 그대로 보여줍니다 */
+	echo '<h2 style="color:#9fd">이름을 하나씩 견줘본 것</h2>';
+	echo '<table cellpadding="6" style="border-collapse:collapse;width:100%;font-size:13px">';
+	echo '<tr style="color:#ffd76a"><td>메뉴에 적힌 이름</td><td>글자 수</td>'
+	   . '<td>빈칸 지운 모양</td><td>바꿀 이름</td></tr>';
+	foreach ( array_keys( $seen ) as $lab ) {
+		$k  = $norm( $lab );
+		$to = isset( $RN[ $k ] ) ? $RN[ $k ] : '';
+		printf(
+			'<tr style="border-top:1px solid #333"><td>%s</td><td style="color:#888">%d</td>'
+			. '<td style="color:#888">%s</td><td style="color:%s">%s</td></tr>',
+			$safe( $lab ), strlen( $lab ), $safe( $k ),
+			$to ? '#7bff9b' : '#666', $to ? $safe( $to ) : '—'
+		);
+	}
+	echo '</table>';
+
+	if ( ! $plan ) {
+		echo '<h2 style="color:#ff7b7b">고칠 것을 못 찾았습니다. 아무것도 바꾸지 않았습니다.</h2>';
+		echo '<p>위 표에서 「바꿀 이름」 칸이 초록으로 뜬 줄이 있는데도 '
+		   . '못 찾았다면, 메뉴가 제가 뒤진 곳이 아닌 다른 곳에 있는 것입니다. '
+		   . '이 화면을 그대로 붙여주세요.</p></body>';
+		exit;
+	}
+
+	echo '<h2 style="color:#9fd">할 일</h2>';
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>ID</td><td>어디</td><td>하는 일</td></tr>';
+	foreach ( $plan as $p ) {
+		printf(
+			'<tr style="border-top:1px solid #333"><td><b>%d</b></td>'
+			. '<td>%s <span style="color:#888">%s</span></td>'
+			. '<td style="color:#7bff9b">%s</td></tr>',
+			$p['id'], esc_html( $p['ttl'] ), esc_html( $p['type'] ),
+			$safe( implode( '<br>', $p['did'] ) )
+		);
+	}
+	echo '</table>';
+
+	echo '<div style="background:#1a1408;border-left:4px solid #ffd76a;padding:14px 16px;margin-top:18px">'
+		. '<b style="color:#ffd76a">가격 안내는 메뉴에서만 뺍니다.</b><br>'
+		. '푸터에 넣는 것은 다음에 하겠습니다 — 푸터가 어떻게 생겼는지 먼저 봐야 합니다. '
+		. '<code>?stella_styles=</code> 로 푸터 조각을 보여주시면 이어서 만들겠습니다.</div>';
+
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다. 아무것도 바뀌지 않았습니다.</h2>';
+		echo '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_menu4=1&go=1">'
+			. '→ 이대로 바꾸기</a></p></body>';
+		exit;
+	}
+
+	foreach ( $plan as $p ) {
+		if ( ! get_post_meta( $p['id'], $META, true ) ) {
+			update_post_meta( $p['id'], $META, array( 'c' => $p['oc'], 't' => $p['ot'] ) );
+		}
+		$wpdb->update( $wpdb->posts,
+			array( 'post_content' => $p['c'], 'post_title' => $p['t'] ),
+			array( 'ID' => $p['id'] ) );
+		clean_post_cache( $p['id'] );
+	}
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<h2 style="color:#7bff9b">바꿨습니다</h2>';
+	echo '<p style="font-size:17px"><a style="color:#ffd76a" href="/">홈에서 메뉴 확인하기</a></p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_menu4=1&undo=1</p></body>';
+	exit;
+} );
