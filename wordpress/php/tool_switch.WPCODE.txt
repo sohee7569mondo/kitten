@@ -1,0 +1,139 @@
+/* ════════════════════════════════════════════════════════════
+   여는 날 점검표 (읽기만)   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   책이 다 됐으니 이제 「열기」만 남았습니다. 그런데 지금 값과 문구가
+   여기저기 흩어져 있어서, 무엇이 열려 있고 무엇이 안 열렸는지
+   한자리에서 봅니다.
+
+   ── 알아낸 것 ───────────────────────────────────
+   결제가 안 열린 게 아닙니다. 껍데기는 다 있습니다.
+
+     define( 'STELLA_WELCOME_ORBS', 5 );   가입하면 주는 구슬
+     define( 'STELLA_PRICE_BASE',   5 );   풀이 한 편 값
+
+   가입 축하 구슬이 풀이 한 편 값과 똑같아서, 누구나 한 편을
+   공짜로 봅니다. 그게 「시험판」의 정체입니다.
+   이 숫자 하나만 0 으로 내리면 첫 편부터 값을 받습니다.
+
+   보기   https://stellasaju.com/?stella_switch=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_switch'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.8;'
+	   . 'padding:28px 18px;max-width:940px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.25rem;margin:0 0 10px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}.warn{color:#E8CD96}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:13px;white-space:pre-wrap;'
+	   . 'font:13px/1.85 monospace;border-left:3px solid #D4AF6A}'
+	   . '</style>';
+
+	echo '<h1>여는 날 점검표</h1>';
+
+	/* ── 1. 값 ─────────────────────────────────────── */
+	$K = array(
+		'STELLA_WELCOME_ORBS' => '가입하면 주는 구슬',
+		'STELLA_PRICE_BASE'   => '풀이 한 편',
+		'STELLA_PRICE_ONELINE'=> '한 줄 질문',
+		'STELLA_PRICE_DEEP'   => '심화 질문 한 개',
+		'STELLA_PRICE_FULL'   => '인생길잡이 종합본',
+	);
+	$out = '';
+	$welcome = null; $base = null;
+	foreach ( $K as $k => $label ) {
+		if ( defined( $k ) ) {
+			$v = (int) constant( $k );
+			$out .= str_pad( $label, 24 ) . str_pad( (string) $v . ' 구슬', 12 )
+			     . $k . "\n";
+			if ( 'STELLA_WELCOME_ORBS' === $k ) { $welcome = $v; }
+			if ( 'STELLA_PRICE_BASE' === $k )   { $base = $v; }
+		} else {
+			$out .= str_pad( $label, 24 ) . '(정해져 있지 않음)  ' . $k . "\n";
+		}
+	}
+	echo '<h2>지금 값</h2><pre>' . esc_html( $out ) . '</pre>';
+
+	/* ── 2. 스위치 ─────────────────────────────────── */
+	echo '<h2>공짜인가 값을 받나</h2>';
+	if ( null === $welcome ) {
+		echo '<p class="no">가입 축하 구슬 값을 못 읽었습니다.</p>';
+	} elseif ( null === $base ) {
+		echo '<p class="no">풀이 값을 못 읽었습니다.</p>';
+	} elseif ( $welcome >= $base ) {
+		echo '<pre class="warn">가입하면 구슬 ' . $welcome . '개를 드리는데'
+		   . "\n풀이 한 편이 " . $base . '개입니다.'
+		   . "\n\n→ 누구나 " . intdiv( $welcome, max( 1, $base ) )
+		   . "편을 공짜로 봅니다. 지금이 시험판인 이유입니다.\n\n"
+		   . "값을 받으시려면 STELLA_WELCOME_ORBS 를 0 으로 내리면 됩니다.</pre>";
+	} else {
+		echo '<pre class="ok">가입 축하 구슬 ' . $welcome . '개 < 풀이 값 '
+		   . $base . "개\n\n→ 첫 편부터 값을 받고 있습니다.</pre>";
+	}
+
+	/* ── 3. 「시험판」 문구가 어디에 남아 있나 ───────── */
+	$slugs = array( 'reading-ready', 'reading-book', 'reading-start',
+		'door-career', 'door-love', 'door-health', 'door-fortune',
+		'door-astro', 'door-tarot', 'mypage', 'price' );
+	$out = '';
+	$hit = 0;
+	foreach ( $slugs as $s ) {
+		$p = get_page_by_path( $s );
+		if ( ! $p ) { continue; }
+		$c = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+		$n1 = substr_count( $c, '시험판' );
+		$n2 = substr_count( $c, '결제가 열리지' );
+		$n3 = substr_count( $c, '무료' );
+		if ( $n1 + $n2 ) { $hit += $n1 + $n2; }
+		$out .= str_pad( $s, 16 )
+		     . '시험판 ' . str_pad( (string) $n1, 4 )
+		     . '결제가 열리지 ' . str_pad( (string) $n2, 4 )
+		     . '무료 ' . $n3 . "\n";
+	}
+	echo '<h2>손님이 보는 문구</h2><pre>' . esc_html( $out ) . '</pre>';
+	if ( $hit ) {
+		echo '<p class="warn">「시험판」 이라고 말하는 자리가 ' . $hit
+		   . '군데 있습니다. 값을 받기 시작하면 이 말이 거짓이 됩니다.</p>';
+	} else {
+		echo '<p class="ok">「시험판」 이라고 말하는 자리는 없습니다.</p>';
+	}
+
+	/* ── 4. 사람과 돈 ──────────────────────────────── */
+	$users = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->users}" );
+	$pw    = (int) $wpdb->get_var(
+		"SELECT COUNT(*) FROM {$wpdb->usermeta}
+		  WHERE meta_key = 'stella_has_pw' AND meta_value = '1'" );
+	$orders = (int) $wpdb->get_var(
+		"SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key LIKE 'stella_paid_%'" );
+
+	echo '<h2>사람과 돈</h2><pre>'
+	   . str_pad( '회원', 24 ) . number_format( $users ) . "명\n"
+	   . str_pad( '비밀번호를 정한 분', 24 ) . number_format( $pw ) . "명\n"
+	   . str_pad( '결제 기록', 24 ) . number_format( $orders ) . '건'
+	   . '</pre>';
+
+	/* ── 5. 남은 일 ────────────────────────────────── */
+	echo '<h2>여는 날까지 남은 일</h2><pre>'
+	   . "1  가입 축하 구슬을 0 으로            (숫자 하나)\n"
+	   . "2  「시험판」 문구 걷어내기            (위 표의 자리들)\n"
+	   . "3  값을 한 가지로 정리                (지금 1,000원 · 5,000원 · 25,000원이 섞여 있음)\n"
+	   . "4  가입할 때 비밀번호 받기            (산 걸 다시 보려면 계정이 필요)\n"
+	   . "5  한 바퀴 돌아보기 — 진짜 돈으로 한 번"
+	   . '</pre>';
+
+	echo '<p class="dim">이 자는 읽기만 합니다.</p>';
+	exit;
+} );
