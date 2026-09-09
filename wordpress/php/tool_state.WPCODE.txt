@@ -40,6 +40,16 @@ add_action( 'template_redirect', function () {
 			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
 		$out = '';
 		foreach ( $rows as $label => $needle ) {
+			if ( '판번호' === $needle ) {
+				$at = strpos( $c, 'stella-doors1-v' );
+				if ( false === $at ) { $out .= str_pad( $label, 30 ) . "없음\n"; }
+				else {
+					$v = substr( $c, $at, 20 );
+					$v = trim( strtok( substr( $v, 14 ), " */\n\r" ) );
+					$out .= str_pad( $label, 30 ) . 'v' . $v . "\n";
+				}
+				continue;
+			}
 			$n = substr_count( $c, $needle );
 			$out .= str_pad( $label, 30 ) . ( $n ? '있음  ' . $n : '없음' ) . "\n";
 		}
@@ -54,7 +64,7 @@ add_action( 'template_redirect', function () {
 		'사진 칸'                => 'class="g-portrait"',
 		'벼리 사진 주소'         => 'stellardoorlovers',
 		'문 다섯 패치'           => 'stella-doors1-0909',
-		'그 패치가 지금 판(v5)'  => 'stella-doors1-v5',
+		'그 패치의 판 번호'      => '판번호',
 		'단추 겉모습(못 박은 판)'=> 'text-indent:0 !important',
 		'접기 규칙'              => 'stella-fold-0909',
 		'주제 단추'              => 'name="ssg-topic"',
@@ -63,7 +73,7 @@ add_action( 'template_redirect', function () {
 	$look( 'door-career', array(
 		'마루 카드'              => 'class="g-card"',
 		'문 다섯 패치'           => 'stella-doors1-0909',
-		'그 패치가 지금 판(v5)'  => 'stella-doors1-v5',
+		'그 패치의 판 번호'      => '판번호',
 		'단추 겉모습(못 박은 판)'=> 'text-indent:0 !important',
 	) );
 
@@ -74,13 +84,14 @@ add_action( 'template_redirect', function () {
 	$out = '';
 	foreach ( $snips as $r ) {
 		$mark = '';
-		if ( false !== strpos( $r->post_content, 'stella-doors1-v5' ) ) { $mark = '  <- doors1 v5'; }
+		$vp = strpos( $r->post_content, 'stella-doors1-v' );
+		if ( false !== $vp ) { $mark = '  <- doors1 v' . trim( strtok( substr( $r->post_content, $vp + 14 ), " */\n\r" ) ); }
 		if ( false !== strpos( $r->post_content, 'stellardoorlovers' ) ) { $mark = '  <- 벼리 사진 있는 판'; }
 		$out .= str_pad( (string) $r->ID, 6 ) . str_pad( mb_substr( $r->post_title, 0, 22 ), 24 )
 		     . ( 'publish' === $r->post_status ? '켜짐' : '꺼짐' ) . $mark . "\n";
 	}
 	echo '<pre>' . esc_html( $out ) . '</pre>';
-	echo '<p class="dim">스니펫 쪽에 「v5」나 「벼리 사진 있는 판」 표시가 없으면 '
+	echo '<p class="dim">스니펫 쪽에 판 번호나 「벼리 사진 있는 판」 표시가 없으면 '
 	   . '붙여넣기가 안 된 것입니다.</p>';
 
 	exit;
