@@ -1,0 +1,151 @@
+/* ══════════════════════════════════════════════════════════
+   여는 날 — 사이트가 하는 거짓말 지우기
+   ★ 2026-09-09 · 소희 님께
+
+   문 여섯 곳을 열어 보니 이렇게 되어 있었습니다.
+
+     var TRIAL = false;
+     var PRICE = TRIAL ? { base:0 } : { base:3 };
+     var ORB_KRW = 1000;
+
+   즉 사이트는 이미 3구슬 · 3,000원을 받고 있습니다.
+   그런데 두 쪽에서 아직 옛말을 합니다.
+
+     자료 쪽(156)  「아직 결제가 열리지 않아 지금은 시험판입니다」
+     마이페이지    「체험판이라 지금은 모든 문이 무료입니다」
+
+   돈을 받으면서 시험판이라고 하면 손님은 지갑을 안 엽니다.
+   다섯 자리를 고칩니다.
+
+   ── 무엇이 어떻게 바뀌나 ────────────────────────────────
+
+   전
+     아직 결제가 열리지 않아 지금은 시험판입니다. 그래도 소희님의
+     여덟 글자(壬子 戊申 丁丑)로 만든 스무 쪽이 넘는 책을 끝까지
+     읽으실 수 있어요.
+
+   후
+     소희님의 책이 다 만들어졌습니다. 여덟 글자(壬子 戊申 丁丑)로
+     세운 풀이 한 권입니다.
+
+   ★ 쪽 수는 일부러 안 적었습니다. 「스무 쪽」은 실제보다 적게
+     말해 스스로 값을 깎는 말이지만, 「마흔 쪽」이라고 바꾸려면
+     기본 풀이가 정말 마흔 쪽인지 세어 보고 적어야 합니다.
+     아직 안 세었으니 숫자를 안 씁니다. 세고 나서 다시 넣겠습니다.
+
+   해보기   https://stellasaju.com/?stella_open=preview
+   붙이기   https://stellasaju.com/?stella_open=apply
+   되돌리기 https://stellasaju.com/?stella_open=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_open'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_open'] ) );
+	$META = '_stella_open_bak';
+
+	$PAIRS = array(
+		array( 'reading-ready', '시험판 문장', '\'아직 결제가 열리지 않아 지금은 <b>시험판</b>입니다. \' +', '\'<b>\' + name + \'님의 책</b>이 다 만들어졌습니다. \' +' ),
+		array( 'reading-ready', '스무 쪽 문장', '\'그래도 \' + name + \'님의 \' + glyphCount + \' 글자(\' + eightHan() + \')로 만든 <b>스무 쪽이 넘는 책</b>을 끝까지 읽으실 수 있어요. \' +', 'glyphCount + \' 글자(\' + eightHan() + \')로 세운 <b>풀이 한 권</b>입니다. \' +' ),
+		array( 'reading-ready', '쓰는 구슬 줄', 'od.push([\'쓰는 구슬\', orbs===0 ? \'체험판 · 무료\' : orbs+\'구슬\']);', 'od.push([\'쓰는 구슬\', orbs===0 ? \'없음\' : orbs+\'구슬\']);' ),
+		array( 'mypage', '마이페이지 안내(글)', '>체험판이라 지금은 모든 문이 무료입니다.<', '>문 하나를 여는 데 구슬 3개, 3,000원을 씁니다.<' ),
+		array( 'mypage', '마이페이지 안내(셈틀)', '\'체험판이라 지금은 여섯 문이 모두 무료입니다.\'', '\'문 하나를 여는 데 구슬 3개, 3,000원을 씁니다.\'' ),
+	);
+
+	/* 손대는 쪽 모으기 */
+	$slugs = array();
+	foreach ( $PAIRS as $r ) { $slugs[ $r[0] ] = 1; }
+	$slugs = array_keys( $slugs );
+
+	/* ── 되돌리기 ─────────────────────────────────── */
+	if ( 'undo' === $mode ) {
+		$done = 0;
+		foreach ( $slugs as $slug ) {
+			$p = get_page_by_path( $slug );
+			if ( ! $p ) { continue; }
+			$old = get_post_meta( $p->ID, $META, true );
+			if ( '' === $old ) { continue; }
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $p->ID ) );
+			clean_post_cache( $p->ID );
+			delete_post_meta( $p->ID, $META );
+			$done++;
+		}
+		echo $done . '쪽을 되돌렸습니다.';
+		exit;
+	}
+
+	echo "═══ 여는 날 · 옛말 지우기 ═══\n\n";
+
+	/* ── 세어 보기 ────────────────────────────────── */
+	$content = array();
+	$bad = false;
+	foreach ( $slugs as $slug ) {
+		$p = get_page_by_path( $slug );
+		if ( ! $p ) { echo $slug . ' 쪽이 없습니다.'; exit; }
+		$content[ $slug ] = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+	}
+
+	foreach ( $PAIRS as $r ) {
+		list( $slug, $nm, $old, $new ) = $r;
+		$n   = substr_count( $content[ $slug ], $old );
+		$got = substr_count( $content[ $slug ], $new );
+		if ( 1 === $n ) {
+			echo sprintf( "  %-22s 찾음\n", $nm );
+		} elseif ( 0 === $n ) {
+			if ( $got > 0 ) {
+				echo sprintf( "  %-22s 이미 고쳐져 있습니다\n", $nm );
+			} else {
+				echo sprintf( "  %-22s ★ 못 찾음\n", $nm );
+				$bad = true;
+			}
+		} else {
+			echo sprintf( "  %-22s ★ %d군데 (하나여야 합니다)\n", $nm, $n );
+			$bad = true;
+		}
+	}
+
+	if ( $bad ) {
+		echo "\n한 군데가 아닌 것이 있어 아무것도 안 바꿨습니다.";
+		exit;
+	}
+
+	/* ── 바꾸기 ───────────────────────────────────── */
+	$next = $content;
+	foreach ( $PAIRS as $r ) {
+		list( $slug, $nm, $old, $new ) = $r;
+		$next[ $slug ] = str_replace( $old, $new, $next[ $slug ] );
+	}
+
+	if ( 'preview' === $mode ) {
+		echo "\n다섯 자리 모두 준비됐습니다.\n";
+		foreach ( $slugs as $slug ) {
+			echo sprintf( "  %-16s %s → %s\n", $slug,
+				number_format( strlen( $content[ $slug ] ) ),
+				number_format( strlen( $next[ $slug ] ) ) );
+		}
+		echo "\n붙이시려면 ?stella_open=apply\n";
+		exit;
+	}
+
+	foreach ( $slugs as $slug ) {
+		$p = get_page_by_path( $slug );
+		if ( '' === (string) get_post_meta( $p->ID, $META, true ) ) {
+			update_post_meta( $p->ID, $META, $content[ $slug ] );
+		}
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $next[ $slug ] ), array( 'ID' => $p->ID ) );
+		clean_post_cache( $p->ID );
+	}
+
+	echo "\n고쳤습니다. 자료 쪽과 마이페이지를 한 번 보세요.\n";
+	echo "되돌리려면 ?stella_open=undo\n";
+	exit;
+}, 1 );
