@@ -12,7 +12,9 @@
      2  운명의 책               빼기
      3  직성의 신 · 연성의 신 · 강성의 신 · 세성의 신 · 성좌의 신
                                 옛 가디언 이름 -> 마루 · 벼리 · 아람 · 미르 · 아라
-     4  타로                    -> 스텔라 타로
+     4  타로 -> 스텔라 타로 · 별자리 -> 점성술
+        내 띠와 오행 -> 나의 띠 이야기
+        (주소로 짚어 바꾸므로 「이번주 별자리 운세」는 안 다칩니다)
      5  연예인 191명            -> 지금 사람 수로 (이제 537명)
 
    ── 어떻게 고치나 ───────────────────────────────
@@ -40,6 +42,16 @@ function stella_mm_renames() {
 		'강성의 신' => '아람',
 		'세성의 신' => '미르',
 		'성좌의 신' => '아라',
+	);
+}
+/* 주소로 자리를 잡고 이름표만 바꿉니다.
+   「별자리」처럼 다른 줄에도 있는 말은 이렇게 해야 안 다칩니다 —
+   무료 운세의 「이번주 별자리 운세」는 안 건드려야 하니까요. */
+function stella_mm_labels() {
+	return array(
+		'/door-tarot/' => '스텔라 타로',
+		'/door-astro/' => '점성술',
+		'/tti/'        => '나의 띠 이야기',
 	);
 }
 function stella_mm_drops() {
@@ -107,25 +119,28 @@ add_filter( 'render_block', function ( $html, $block ) {
 		$stella_mm_log[] = '이름 ' . $old . ' -> ' . $new . '  (' . $k . '군데)';
 	}
 
-	/* 3) 타로 -> 스텔라 타로
-	   아르카나 문으로 가는 줄의 이름표만 손댑니다. 이름표 뒤에
-	   설명글(<span class="sub">)이 바로 붙어 있어서 「>타로<」로는
-	   안 잡힙니다. 주소로 자리를 잡고 그 뒤 글자를 봅니다. */
-	$at = strpos( $html, 'href="/door-tarot/"' );
-	if ( false !== $at ) {
+	/* 3) 주소로 짚어 이름표만 바꾸기
+	   이름표 뒤에 설명글(<span class="sub">)이 바로 붙어 있어서
+	   글자만 찾아 바꾸면 엉뚱한 줄이 다칩니다. 주소로 자리를 잡고,
+	   여는 > 와 다음 < 사이의 글자만 갈아 끼웁니다. */
+	foreach ( stella_mm_labels() as $href => $new ) {
+		$at = strpos( $html, 'href="' . $href . '"' );
+		if ( false === $at ) { continue; }
 		$gt = strpos( $html, '>', $at );
-		if ( false !== $gt ) {
-			$head = substr( $html, $gt + 1, 24 );
-			$head = ltrim( $head );
-			if ( 0 === strpos( $head, '스텔라 타로' ) ) {
-				/* 이미 되어 있습니다 */
-			} elseif ( 0 === strpos( $head, '타로' ) ) {
-				$k = strpos( $html, '타로', $gt );
-				$html = substr( $html, 0, $k ) . '스텔라 타로'
-				      . substr( $html, $k + strlen( '타로' ) );
-				$stella_mm_log[] = '이름 타로 -> 스텔라 타로';
-			}
-		}
+		if ( false === $gt ) { continue; }
+		$lt = strpos( $html, '<', $gt );
+		if ( false === $lt ) { continue; }
+		if ( $lt - $gt > 120 ) { continue; }
+
+		$cur  = substr( $html, $gt + 1, $lt - $gt - 1 );
+		$name = trim( $cur );
+		if ( '' === $name ) { continue; }
+		if ( $name === $new ) { continue; }
+
+		/* 뒤에 설명글이 붙어 있으면 빈칸 하나를 남겨둡니다 */
+		$tail = ( $cur !== rtrim( $cur ) ) ? ' ' : '';
+		$html = substr( $html, 0, $gt + 1 ) . $new . $tail . substr( $html, $lt );
+		$stella_mm_log[] = '이름 ' . $name . ' -> ' . $new;
 	}
 
 	/* 4) 연예인 몇 명 — 지금 수로 */
