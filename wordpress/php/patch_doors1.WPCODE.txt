@@ -1,0 +1,304 @@
+/* ════════════════════════════════════════════════════════════
+   문 다섯 · 주제 들고 다니기 + 첫머리 말 접기
+   ★ 2026-09-09 · 소희 님께
+
+   ── 무엇이 잘못돼 있었나 ──────────────────────────────
+   문 다섯 모두 첫 주제에 「미리 골라짐」이 박혀 있습니다.
+
+     마루  취업운 <- 미리 골라짐      아람  건강운 <- 미리 골라짐
+     벼리  연애운 <- 미리 골라짐      미르  신년운세 <- 미리 골라짐
+     아라  별자리로 보는 나 <- 미리 골라짐
+
+   그래서 홈에서 결혼운을 눌러 들어와도 연애운이 골라져 있습니다.
+   첫머리 가디언 말도 276~316자라 폰에서 열 줄이 넘습니다.
+
+   ── 무엇을 하나 ───────────────────────────────────────
+   ① 주소에 topic 을 실어 오면 그 주제로 못 박고
+      고르는 자리를 감춥니다.
+
+        /door-love/?topic=결혼운
+        /door-career/?topic=이직운
+
+      미리보기 제목과 링크도 그 주제로 바뀝니다.
+
+   ② 첫머리 가디언 말에서 100자가 넘는 문단을 접습니다.
+      「가디언 소개 더 보기」를 누르면 펴집니다.
+      맨 앞 인사말은 그대로 보입니다.
+
+   ── 손대는 쪽 ─────────────────────────────────────────
+     door-career · door-love · door-health · door-fortune · door-astro
+     아르카나(door-tarot)는 폼이 없어서 뺐습니다.
+
+   ── 안 건드리는 것 ────────────────────────────────────
+   폼도 주문 코드도 손대지 않습니다. 다 그려진 뒤에 고르고
+   감추고 접기만 합니다. 끄면 그대로 돌아갑니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_doors1=1
+   ② 정말 고치기 https://stellasaju.com/?stella_doors1=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_doors1=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_doors1'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_doors1_backup';
+	$MARK = 'stella-doors1-0909';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_doors1'] ) );
+
+	$SLUGS = array( 'door-career', 'door-love', 'door-health',
+		'door-fortune', 'door-astro' );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.85;'
+	   . 'padding:34px 22px;max-width:960px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.35rem;margin:0 0 16px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.88rem}a{color:#D4AF6A}li{margin:5px 0}'
+	   . 'table{border-collapse:collapse;width:100%}'
+	   . 'td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.09);font-size:.9rem}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}'
+	   . '</style>';
+
+	$s = '<!-- ' . $MARK . ' 시작 -->';
+	$e = '<!-- ' . $MARK . ' 끝 -->';
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$n = 0;
+		foreach ( $SLUGS as $slug ) {
+			$p = get_page_by_path( $slug );
+			if ( ! $p ) { continue; }
+			$old = get_post_meta( $p->ID, $META, true );
+			if ( ! $old ) { continue; }
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $p->ID ) );
+			clean_post_cache( $p->ID );
+			delete_post_meta( $p->ID, $META );
+			$n++;
+		}
+		if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+		echo '<p class="ok">' . $n . ' 쪽을 되돌렸습니다.</p>';
+		exit;
+	}
+
+	/* ── 붙일 덩어리 ─────────────────────────────────── */
+	$b  = "\n" . $s . "\n<style>\n";
+	$b .= "/* 문 다섯 · 2026-09-09 */\n";
+	$b .= ".stella-fold-0909{ display:none !important; }\n";
+	$b .= ".stella-more-0909{\n";
+	$b .= "  display:inline-block; margin:10px 0 4px; padding:8px 16px;\n";
+	$b .= "  border:1px solid rgba(120,110,95,.4); border-radius:100px;\n";
+	$b .= "  background:transparent; cursor:pointer; font:inherit;\n";
+	$b .= "  font-size:.9rem; color:inherit; opacity:.8; }\n";
+	$b .= ".stella-more-0909:hover{ opacity:1; }\n";
+	$b .= "</style>\n<script>\n";
+	$b .= "/* ★ 이 안에서 홑 앰퍼샌드를 쓰지 않습니다 (사이트 규칙).\n";
+	$b .= "   주소를 만들 때만 글자 번호 38 로 붙입니다. */\n";
+	$b .= "(function(){\n";
+	$b .= "  var AMP = String.fromCharCode(38);\n";
+	$b .= "  var LONG = 100;\n";
+	$b .= "\n";
+	$b .= "  function radios(){\n";
+	$b .= "    return document.querySelectorAll('input[name=\"ssg-topic\"]');\n";
+	$b .= "  }\n";
+	$b .= "  function current(){\n";
+	$b .= "    var r = radios();\n";
+	$b .= "    for(var i = 0; i < r.length; i++){ if(r[i].checked){ return r[i].value; } }\n";
+	$b .= "    return '';\n";
+	$b .= "  }\n";
+	$b .= "  function wanted(){\n";
+	$b .= "    var t = '';\n";
+	$b .= "    try{ t = new URLSearchParams(location.search).get('topic') || ''; }catch(e){}\n";
+	$b .= "    return String(t).trim();\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  /* 미리보기 제목과 링크를 지금 주제로 */\n";
+	$b .= "  function dress(t){\n";
+	$b .= "    if(!t){ return; }\n";
+	$b .= "    var a = document.querySelector('a.sample');\n";
+	$b .= "    if(!a){ return; }\n";
+	$b .= "    var path = location.pathname.replace(/\\//g, '');\n";
+	$b .= "    a.href = '/reading-book/?demo=' + path + AMP + 'topic=' + encodeURIComponent(t);\n";
+	$b .= "    var tt = a.querySelector('.sample-t');\n";
+	$b .= "    if(!tt){ return; }\n";
+	$b .= "    var txt = tt.textContent || '';\n";
+	$b .= "    var at = txt.lastIndexOf('의 ');\n";
+	$b .= "    if(at > 0){ tt.textContent = txt.slice(0, at + 2) + t; }\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function topicSection(){\n";
+	$b .= "    var r = radios();\n";
+	$b .= "    if(!r.length){ return null; }\n";
+	$b .= "    var el = r[0];\n";
+	$b .= "    while(el){\n";
+	$b .= "      if(el.tagName === 'SECTION'){ return el; }\n";
+	$b .= "      el = el.parentNode;\n";
+	$b .= "    }\n";
+	$b .= "    return null;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  /* 첫머리 긴 문단 접기 */\n";
+	$b .= "  var folded = false;\n";
+	$b .= "  function fold(){\n";
+	$b .= "    if(folded){ return; }\n";
+	$b .= "    var first = document.querySelector('section.step');\n";
+	$b .= "    var ps = document.querySelectorAll('p');\n";
+	$b .= "    var hide = [];\n";
+	$b .= "    var i, p, txt;\n";
+	$b .= "    for(i = 0; i < ps.length; i++){\n";
+	$b .= "      p = ps[i];\n";
+	$b .= "      if(first){\n";
+	$b .= "        var where = first.compareDocumentPosition(p);\n";
+	$b .= "        if(where !== 2){ continue; }\n";
+	$b .= "      }\n";
+	$b .= "      txt = (p.textContent || '').trim();\n";
+	$b .= "      if(txt.length < LONG){ continue; }\n";
+	$b .= "      hide.push(p);\n";
+	$b .= "    }\n";
+	$b .= "    if(!hide.length){ return; }\n";
+	$b .= "    for(i = 0; i < hide.length; i++){ hide[i].classList.add('stella-fold-0909'); }\n";
+	$b .= "    var btn = document.createElement('button');\n";
+	$b .= "    btn.type = 'button';\n";
+	$b .= "    btn.className = 'stella-more-0909';\n";
+	$b .= "    btn.textContent = '가디언 소개 더 보기';\n";
+	$b .= "    btn.addEventListener('click', function(){\n";
+	$b .= "      var open = hide[0].classList.contains('stella-fold-0909');\n";
+	$b .= "      for(var k = 0; k < hide.length; k++){\n";
+	$b .= "        if(open){ hide[k].classList.remove('stella-fold-0909'); }\n";
+	$b .= "        else { hide[k].classList.add('stella-fold-0909'); }\n";
+	$b .= "      }\n";
+	$b .= "      btn.textContent = open ? '접어 두기' : '가디언 소개 더 보기';\n";
+	$b .= "    });\n";
+	$b .= "    if(hide[0].parentNode){ hide[0].parentNode.insertBefore(btn, hide[0]); }\n";
+	$b .= "    folded = true;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  var fixed = false;\n";
+	$b .= "  function run(){\n";
+	$b .= "    fold();\n";
+	$b .= "    var r = radios();\n";
+	$b .= "    if(!r.length){ return; }\n";
+	$b .= "    var want = wanted();\n";
+	$b .= "    if(want){\n";
+	$b .= "      if(!fixed){\n";
+	$b .= "        var hit = false;\n";
+	$b .= "        for(var i = 0; i < r.length; i++){\n";
+	$b .= "          if(r[i].value === want){ r[i].checked = true; hit = true; }\n";
+	$b .= "          else { r[i].checked = false; }\n";
+	$b .= "        }\n";
+	$b .= "        if(hit){\n";
+	$b .= "          var sec = topicSection();\n";
+	$b .= "          if(sec){ sec.style.display = 'none'; }\n";
+	$b .= "          fixed = true;\n";
+	$b .= "        }\n";
+	$b .= "      }\n";
+	$b .= "    }\n";
+	$b .= "    /* 주제를 고르지 않은 채로는 미리보기를 안 건드립니다.\n";
+	$b .= "       원래 견본이 「덕선의 직업운」인데 이름만 바꾸면 거짓말이 됩니다. */\n";
+	$b .= "    if(want){ dress(current()); }\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function start(){\n";
+	$b .= "    run();\n";
+	$b .= "    document.addEventListener('change', function(ev){\n";
+	$b .= "      var t = ev.target;\n";
+	$b .= "      if(!t){ return; }\n";
+	$b .= "      if(t.name !== 'ssg-topic'){ return; }\n";
+	$b .= "      dress(t.value);\n";
+	$b .= "    });\n";
+	$b .= "    var k = 0;\n";
+	$b .= "    var tick = setInterval(function(){\n";
+	$b .= "      k = k + 1;\n";
+	$b .= "      run();\n";
+	$b .= "      if(k > 24){ clearInterval(tick); }\n";
+	$b .= "    }, 400);\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  if(document.readyState === 'loading'){\n";
+	$b .= "    document.addEventListener('DOMContentLoaded', start);\n";
+	$b .= "  } else { start(); }\n";
+	$b .= "})();\n";
+	$b .= "</script>\n" . $e . "\n";
+
+	if ( false !== strpos( $b, '&' ) ) {
+		echo '<h1 class="no">앰퍼샌드가 섞여 있습니다. 넣지 않았습니다.</h1>';
+		exit;
+	}
+
+	echo '<h1>' . ( 'apply' === $mode ? '고쳤습니다' : '이렇게 바꿉니다 (아직 안 고쳤습니다)' ) . '</h1>';
+	echo '<ul>'
+	   . '<li>주소에 <code>?topic=결혼운</code> 이 있으면 <b>그 주제로 못 박고</b> 고르는 자리를 감춥니다</li>'
+	   . '<li>미리보기 제목과 링크가 <b>그 주제로</b> 바뀝니다</li>'
+	   . '<li>첫머리 말에서 <b>100자가 넘는 문단</b>을 접습니다 (「더 보기」로 펴집니다)</li>'
+	   . '</ul>';
+
+	echo '<table><tr style="color:#D4AF6A"><td>쪽</td><td>주제 단추</td>'
+	   . '<td>미리보기</td><td>지금 어떤가</td></tr>';
+
+	$plan = array();
+	foreach ( $SLUGS as $slug ) {
+		$p = get_page_by_path( $slug );
+		if ( ! $p ) {
+			echo '<tr><td>' . esc_html( $slug ) . '</td><td colspan="3" class="no">쪽 없음</td></tr>';
+			continue;
+		}
+		$c = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+		$nt  = substr_count( $c, 'name="ssg-topic"' );
+		$smp = substr_count( $c, 'class="sample"' );
+		$has = ( false !== strpos( $c, $s ) );
+		echo '<tr><td><b>' . esc_html( $slug ) . '</b></td>'
+		   . '<td>' . ( $nt ? $nt . '개' : '<span class="no">없음</span>' ) . '</td>'
+		   . '<td>' . ( $smp ? '있음' : '<span class="dim">없음</span>' ) . '</td>'
+		   . '<td>' . ( $has ? '이미 들어감 → 새것으로' : '새로 붙임' ) . '</td></tr>';
+		if ( $nt > 0 ) { $plan[] = array( $p->ID, $slug, $c, $has ); }
+	}
+	echo '</table>';
+
+	if ( ! $plan ) {
+		echo '<h1 class="no">손댈 쪽을 못 찾았습니다. 아무것도 안 바꿨습니다.</h1>';
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 고치시려면 <code>/?stella_doors1=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	$done = 0;
+	foreach ( $plan as $row ) {
+		list( $pid, $slug, $c, $has ) = $row;
+		if ( ! get_post_meta( $pid, $META, true ) ) {
+			update_post_meta( $pid, $META, $c );
+		}
+		if ( $has ) {
+			$a = strpos( $c, $s );
+			$z = strpos( $c, $e );
+			if ( false === $z || $z < $a ) { continue; }
+			$z   = $z + strlen( $e );
+			$new = substr( $c, 0, $a ) . ltrim( $b, "\n" ) . substr( $c, $z );
+		} else {
+			$new = $c . $b;
+		}
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		$done++;
+	}
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<p class="ok">' . $done . ' 쪽을 고쳤습니다.</p>';
+	echo '<p>이렇게 열어보세요.</p>';
+	echo '<pre style="background:#000;padding:12px;border-left:3px solid #D4AF6A">'
+	   . "/door-love/?topic=결혼운\n"
+	   . "/door-career/?topic=이직운\n"
+	   . "/door-love/            (고르는 자리가 그대로 있어야 맞습니다)</pre>";
+	echo '<p class="ok">되돌리시려면 <code>/?stella_doors1=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );
