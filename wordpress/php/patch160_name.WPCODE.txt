@@ -1,157 +1,227 @@
 /* ════════════════════════════════════════════════════════════
-   「당신」이라고 부르지 않고 손님 이름으로 부릅니다
+   이름에서 성 떼기 + 「당신」 잡기   ★ 2026-09-09 · 소희 님께
 
-   책 안에 「당신」이 405곳 있습니다. 한 손님이 실제로 읽는 것은
-   문에 따라 27~56곳이에요. 문장 종류로는 113가지입니다.
+   ── 무엇을 하나 ───────────────────────────────────────
+   ① 「이소희님」  ->  「소희님」   책 안 모든 자리에서       (26)
+   ② 아직 남아 있는 「당신」을 이름으로 바꿉니다.
 
-   「당신」도 「소희님」도 받침으로 끝납니다. 그래서 뒤에 붙는 조사가
-   똑같아요 — 당신이/소희님이, 당신은/소희님은, 당신에게/소희님에게,
-   당신을/소희님을, 당신의/소희님의. 그대로 갈아 끼워도 말이 안 어긋납니다.
+   ── 왜 「당신」이 남아 있나 ────────────────────────────
+   책은 글을 찍을 때 「당신」을 이름으로 바꿔치기합니다.
+   그런데 달자리 문단만 그 길을 안 거치고 바로 들어갑니다.
+   그래서 점성술 쪽에서 「당신의 달은 …」 이 그대로 나갑니다.
 
-   그래서 쪽을 만드는 자리에서 한 번에 갈아 끼웁니다. 113가지 문장을
-   손으로 고치지 않아도 되고, 앞으로 새로 쓰는 글에 「당신」이 들어가도
-   저절로 이름으로 바뀝니다.
+   ── 어떻게 하나 ───────────────────────────────────────
+   책을 만드는 코드는 손대지 않습니다. 책이 다 그려진 뒤에
+   글자만 훑어서 바꿉니다. 그래서 셈이 틀어질 일이 없습니다.
 
-   빽빽하지 않은지 재봤습니다 — 한 쪽 평균 1.2번, 제일 많은 쪽이 여섯 번.
-   편지처럼 읽히는 정도라고 봅니다.
+   ── 두 글자 성 ────────────────────────────────────────
+   남궁 · 황보 · 선우 · 제갈 · 독고 · 사공 · 서문 · 동방
 
-   다만 한 문장 안에 이름이 두 번 들어가는 자리 셋은 따로 고칩니다.
+     남궁민수님 -> 민수님        (네 글자라 두 자를 뗍니다)
+     황보라님   -> 황보라님      (성이 「황」인지 「황보」인지
+                                 사람도 모릅니다. 안 뗍니다)
+     이소희님   -> 소희님
+     김민님     -> 김민님        (두 글자 이름은 그대로)
+     Emma님     -> Emma님        (한글이 아니면 그대로)
 
-     ② 여는 글
-        지금 : 제가 별을 읽은 것인지 당신 말을 옮겨 적은 것인지,
-               당신이 직접 판단하실 수 있으니까요.
-        고침 : … 소희님 말을 옮겨 적은 것인지, 직접 판단하실 수 있으니까요.
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
 
-     ③ 짝사랑 · 지금 뗄 한 걸음
-        지금 : 그리고 당신 인생의 주인공은 당신입니다.
-        고침 : 그리고 그 인생의 주인공은 소희님입니다.
-        여기 있던 「닿더라고요」도 「닿습니다」로 고칩니다.
-        「~더라고요」는 안 쓰기로 한 말인데 책 전체에 이 한 곳만 남아 있었습니다.
-
-     ④ 별자리
-        지금 : 처음 본 사람이 아는 당신과 오래 본 사람이 아는 당신이 다릅니다.
-        고침 : 처음 본 사람이 아는 모습과 오래 본 사람이 아는 모습이 다릅니다.
-        여기는 이름을 넣기보다 「모습」이 더 정확합니다.
-
-   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
-   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
-
-   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
-   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로 바꾸세요.
-
-   ① 먼저 보기   https://stellasaju.com/?stella_name=1
-   ② 정말 바꾸기 https://stellasaju.com/?stella_name=apply
-   ③ 되돌리기    https://stellasaju.com/?stella_name=undo
+   ① 먼저 보기   https://stellasaju.com/?stella_name9=1
+   ② 정말 고치기 https://stellasaju.com/?stella_name9=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_name9=undo
    ════════════════════════════════════════════════════════════ */
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_name'] ) ) { return; }
+	if ( ! isset( $_GET['stella_name9'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
 
-	$PAGE = 160;
-	$META = '_stella_name_backup';
-	$mode = sanitize_key( wp_unslash( $_GET['stella_name'] ) );
+	$META = '_stella_name9_backup';
+	$MARK = 'stella-name-0909';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_name9'] ) );
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
-	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
-	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
-	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.85;'
+	   . 'padding:34px 24px;max-width:940px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.35rem;margin:0 0 18px}'
 	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
-	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+	   . '.dim{color:#8B849C;font-size:.88rem}a{color:#D4AF6A}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:11.5px/1.6 monospace;border-left:3px solid #D4AF6A}</style>';
 
-	$row = $wpdb->get_row( $wpdb->prepare(
-		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
-	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
 
 	if ( 'undo' === $mode ) {
-		$old = get_post_meta( $PAGE, $META, true );
 		echo '<h1>되돌리기</h1>';
-		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
-		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
-		clean_post_cache( $PAGE );
-		delete_post_meta( $PAGE, $META );
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
 		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
-		echo '<p><a href="/reading-book/">책 보기</a></p>';
 		exit;
 	}
 
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
 	$c = $row->post_content;
-	$before = strlen( $c );
 
-	$jobs = array();
-	$jobs[] = array(
-		'name' => '① 쪽을 만드는 자리에서 「당신」을 이름으로',
-		'find' => '/\\s+function\\s+page\\(html,\\s+kind,\\s+part\\)\\{\\s+n\\+\\+;/u',
-		'to'   => "  function page(html, kind, part){\n    n++;\n    /* 2026-09-07 · 「당신」이라고 부르지 않고 손님 이름으로 부릅니다.\n       「당신」도 「이름님」도 받침으로 끝나서 뒤에 붙는 조사가 같습니다.\n       그래서 그대로 갈아 끼워도 「~이/가」 「~은/는」이 어긋나지 않습니다. */\n    html = String(html).split('당신').join(esc(name)+'님');",
-	);
+	/* ── 붙일 덩어리 ──────────────────────────────────────
+	   ★ 이 안에서 홑 앰퍼샌드를 쓰지 않습니다 (사이트 규칙). */
+	$js  = "\n<!-- " . $MARK . " 시작 -->\n<script>\n";
+	$js .= "/* 이름에서 성 떼기 + 당신 잡기 · 2026-09-09 */\n";
+	$js .= "(function(){\n";
+	$js .= "  var TWO = ['남궁','황보','선우','제갈','독고','사공','서문','동방'];\n";
+	$js .= "  function shortName(nm){\n";
+	$js .= "    nm = String(nm || '').replace(/\\s+/g, '');\n";
+	$js .= "    if(!nm){ return ''; }\n";
+	$js .= "    var i;\n";
+	$js .= "    for(i = 0; i < TWO.length; i++){\n";
+	$js .= "      if(nm.indexOf(TWO[i]) === 0){\n";
+	$js .= "        if(nm.length > 3){ return nm.substring(2); }\n";
+	$js .= "        return nm;\n";
+	$js .= "      }\n";
+	$js .= "    }\n";
+	$js .= "    if(nm.length === 3){\n";
+	$js .= "      if(/^[가-힣]{3}$/.test(nm)){ return nm.substring(1); }\n";
+	$js .= "    }\n";
+	$js .= "    return nm;\n";
+	$js .= "  }\n";
+	$js .= "  window.StellaShortName = shortName;\n";
+	$js .= "\n";
+	$js .= "  function fullFromCover(){\n";
+	$js .= "    var h = document.querySelector('#ssb .cover h1');\n";
+	$js .= "    if(!h){ return ''; }\n";
+	$js .= "    var m = String(h.textContent || '').match(/^\\s*(.+?)님/);\n";
+	$js .= "    if(!m){ return ''; }\n";
+	$js .= "    return m[1].replace(/\\s+/g, '');\n";
+	$js .= "  }\n";
+	$js .= "\n";
+	$js .= "  var busy = false;\n";
+	$js .= "  var FULL = null;\n";
+	$js .= "  var SHORT = null;\n";
+	$js .= "  function sweep(){\n";
+	$js .= "    if(busy){ return; }\n";
+	$js .= "    var root = document.getElementById('ssb');\n";
+	$js .= "    if(!root){ return; }\n";
+	$js .= "    /* 첫 번째에 본 이름을 기억합니다. 표지를 고치고 나면\n";
+	$js .= "       다시 볼 수 없기 때문입니다. */\n";
+	$js .= "    if(FULL === null){\n";
+	$js .= "      var got = fullFromCover();\n";
+	$js .= "      if(!got){ return; }\n";
+	$js .= "      FULL = got;\n";
+	$js .= "      SHORT = shortName(got);\n";
+	$js .= "    }\n";
+	$js .= "    var full = FULL;\n";
+	$js .= "    var shortN = SHORT;\n";
+	$js .= "    if(!shortN){ return; }\n";
+	$js .= "    var same = (shortN === full);\n";
+	$js .= "    busy = true;\n";
+	$js .= "    try{\n";
+	$js .= "      var it = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);\n";
+	$js .= "      var list = [], n;\n";
+	$js .= "      while(true){\n";
+	$js .= "        n = it.nextNode();\n";
+	$js .= "        if(!n){ break; }\n";
+	$js .= "        list.push(n);\n";
+	$js .= "      }\n";
+	$js .= "      var i, t, o;\n";
+	$js .= "      for(i = 0; i < list.length; i++){\n";
+	$js .= "        o = list[i].nodeValue;\n";
+	$js .= "        if(!o){ continue; }\n";
+	$js .= "        t = o;\n";
+	$js .= "        if(!same){ t = t.split(full + '님').join(shortN + '님'); }\n";
+	$js .= "        t = t.split('당신').join(shortN + '님');\n";
+	$js .= "        if(t !== o){ list[i].nodeValue = t; }\n";
+	$js .= "      }\n";
+	$js .= "    }catch(e){}\n";
+	$js .= "    busy = false;\n";
+	$js .= "  }\n";
+	$js .= "\n";
+	$js .= "  var timer = null;\n";
+	$js .= "  function later(){\n";
+	$js .= "    if(timer){ clearTimeout(timer); }\n";
+	$js .= "    timer = setTimeout(sweep, 160);\n";
+	$js .= "  }\n";
+	$js .= "\n";
+	$js .= "  function start(){\n";
+	$js .= "    sweep();\n";
+	$js .= "    var root = document.getElementById('ssb');\n";
+	$js .= "    if(root){\n";
+	$js .= "      if(window.MutationObserver){\n";
+	$js .= "        new MutationObserver(later).observe(root, { childList:true, subtree:true });\n";
+	$js .= "      }\n";
+	$js .= "    }\n";
+	$js .= "    var k = 0;\n";
+	$js .= "    var tick = setInterval(function(){\n";
+	$js .= "      k++;\n";
+	$js .= "      sweep();\n";
+	$js .= "      if(k > 30){ clearInterval(tick); }\n";
+	$js .= "    }, 500);\n";
+	$js .= "  }\n";
+	$js .= "\n";
+	$js .= "  if(document.readyState === 'loading'){\n";
+	$js .= "    document.addEventListener('DOMContentLoaded', start);\n";
+	$js .= "  } else { start(); }\n";
+	$js .= "})();\n";
+	$js .= "</script>\n<!-- " . $MARK . " 끝 -->\n";
 
-	$jobs[] = array(
-		'name' => '② 여는 글 · 한 문장에 두 번 들어가는 자리',
-		'find' => '/\\s+\'<p>그렇게\\s+나눈\\s+이유가\\s+있습니다\\.\\s+그래야\\s+제가\\s+별을\\s+읽은\\s+것인지\\s+당신\\s+말을\\s+옮겨\\s+적은\\s+것인지,\\s+\'\\+\\s+\'당신이\\s+직접\\s+판단하실\\s+수\\s+있으니까요\\.\\s+그리고\\s+두\\s+쪽이\\s+어긋나는\\s+자리가\\s+있다면\\s+—\\s+그\\s+자리도\\s+숨기지\\s+않고\\s+적었습니다\\.<\\/p>\'\\);/u',
-		'to'   => "    '<p>그렇게 나눈 이유가 있습니다. 그래야 제가 별을 읽은 것인지 당신 말을 옮겨 적은 것인지, '+\n    '직접 판단하실 수 있으니까요. 그리고 두 쪽이 어긋나는 자리가 있다면 — 그 자리도 숨기지 않고 적었습니다.</p>');",
-	);
+	$s   = '<!-- ' . $MARK . ' 시작 -->';
+	$e   = '<!-- ' . $MARK . ' 끝 -->';
+	$has = ( false !== strpos( $c, $s ) );
 
-	$jobs[] = array(
-		'name' => '③ 짝사랑 · 주인공 문장 + 「더라고요」',
-		'find' => '/\\s+\\+\\s+\'<p>그리고\\s+<em>당신\\s+인생의\\s+주인공은\\s+당신입니다\\.<\\/em>\\s+\'\\s+\\+\\s+\'주인공은\\s+몇\\s+회를\\s+돌아가더라도\\s+결국\\s+인연이\\s+닿더라고요\\.\\s+\'/u',
-		'to'   => "        + '<p>그리고 <em>그 인생의 주인공은 당신입니다.</em> '\n        + '주인공은 몇 회를 돌아가더라도 결국 인연이 닿습니다. '",
-	);
+	/* 홑 앰퍼샌드가 섞여 들어가면 워드프레스가 코드를 죽입니다 */
+	if ( false !== strpos( $js, '&' ) ) {
+		echo '<h1 class="no">앰퍼샌드가 섞여 있습니다. 넣지 않았습니다.</h1>';
+		exit;
+	}
 
-	$jobs[] = array(
-		'name' => '④ 별자리 · 이름 대신 「모습」으로',
-		'find' => '/\\s+:\\s+\'\\s+태양은\\s+\'\\+st\\.sun\\.name\\+\'인데\\s+상승궁은\\s+\'\\+st\\.ascendant\\.name\\+\'라,\\s+처음\\s+본\\s+사람이\\s+아는\\s+당신과\\s+\'\\+\\s+\'오래\\s+본\\s+사람이\\s+아는\\s+당신이\\s+다릅니다\\.\\s+설명을\\s+두\\s+번\\s+해야\\s+하는\\s+자리가\\s+자주\\s+생기고,\\s+\'\\+/u',
-		'to'   => "      : ' 태양은 '+st.sun.name+'인데 상승궁은 '+st.ascendant.name+'라, 처음 본 사람이 아는 모습과 '+\n        '오래 본 사람이 아는 모습이 다릅니다. 설명을 두 번 해야 하는 자리가 자주 생기고, '+",
-	);
+	echo '<h1>' . ( 'apply' === $mode ? '고쳤습니다' : '이렇게 바꿉니다 (아직 안 고쳤습니다)' ) . '</h1>';
+	echo '<ul><li>「이소희님」 -> <b>「소희님」</b> 책 안 모든 자리에서</li>'
+	   . '<li>아직 남아 있는 <b>「당신」</b>을 이름으로 바꿉니다</li></ul>';
+	echo '<p class="dim">책을 만드는 코드는 손대지 않습니다. 다 그려진 뒤에 글자만 훑습니다. '
+	   . ( $has ? '이미 들어가 있는 덩어리를 <b>새것으로 바꿉니다</b>.' : '덩어리를 쪽 맨 뒤에 <b>새로 붙입니다</b>.' )
+	   . '</p>';
 
+	if ( 'apply' !== $mode ) {
+		echo '<pre>' . esc_html( $js ) . '</pre>';
+		echo '<p>정말 고치시려면 <code>/?stella_name9=apply</code> 를 여세요.</p>';
+		exit;
+	}
 
-	$apply = ( 'apply' === $mode );
-	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
 
-	$ok = true;
-	foreach ( $jobs as $j ) {
-		$n = preg_match_all( $j['find'], $c );
-		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
-		if ( 1 === $n ) {
-			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
-		} elseif ( 0 === $n ) {
-			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
-			$ok = false;
-		} else {
-			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
-			$ok = false;
+	if ( $has ) {
+		$a = strpos( $c, $s );
+		$b = strpos( $c, $e );
+		if ( false === $b || $b < $a ) {
+			echo '<h1 class="no">표는 찾았는데 끝을 못 찾았습니다. 아무것도 안 바꿨습니다.</h1>';
+			exit;
 		}
+		$b   = $b + strlen( $e );
+		$new = substr( $c, 0, $a ) . ltrim( $js, "\n" ) . substr( $c, $b );
+	} else {
+		$new = $c . $js;
 	}
 
-	if ( ! $ok ) {
-		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
-		exit;
-	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
 
-	$new = $c;
-	foreach ( $jobs as $j ) {
-		$new = preg_replace( $j['find'], $j['to'], $new, 1 );
-		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
-	}
-
-	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
-
-	if ( ! $apply ) {
-		echo '<p>정말 바꾸시려면 <code>/?stella_name=apply</code> 를 여세요.</p>';
-		exit;
-	}
-
-	if ( ! get_post_meta( $PAGE, $META, true ) ) {
-		update_post_meta( $PAGE, $META, $c );
-	}
-	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
-	clean_post_cache( $PAGE );
-
-	echo '<p class="ok">바꿨습니다.</p>';
-	echo '<p>되돌리려면 <code>/?stella_name=undo</code></p>';
-	echo '<p><a href="/reading-book/">책 보기</a></p>';
+	echo '<p class="ok">고쳤습니다. ' . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p><a href="/reading-book/?demo=door-astro&v=' . time() . '">점성술 책으로 확인하기</a> '
+	   . '— 달자리 쪽에 「당신」이 없어야 맞습니다.</p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_name9=undo</code> 를 여세요.</p>';
 	exit;
-} );
+}, 0 );
