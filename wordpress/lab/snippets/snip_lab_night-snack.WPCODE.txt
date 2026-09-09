@@ -34,6 +34,7 @@ add_action( 'init', function () {
 <title>편의점 야식 유형 — 스텔라 랩</title>
 <meta name="description" content="밤 11시 42분, 계산대까지 다섯 걸음">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="스텔라 랩">
 <meta property="og:title" content="편의점 야식 유형 — 스텔라 랩">
 <meta property="og:description" content="밤 11시 42분, 계산대까지 다섯 걸음">
 <meta property="og:url" content="https://stellasaju.com/lab/night-snack/">
@@ -759,7 +760,7 @@ const RESULTS = DATA.results;
    [앱 키 > JavaScript 키]를 넣고, [플랫폼 > Web]에 도메인을 등록해야 작동합니다.
    비워두면 카카오 버튼이 안내 문구만 띄웁니다. */
 const KAKAO_JS_KEY = '7806d048aad9905e98fb7dd4217236d2';
-const OG_IMAGE = 'https://stellasaju.com/og/night-snack.png';
+const OG_IMAGE = '';   /* 1200x630 그림을 올리면 그 주소를 여기 넣으세요 */
 
 function initKakao(){
   if(!KAKAO_JS_KEY || !window.Kakao) return false;
@@ -937,23 +938,37 @@ function renderResult(forcedKey){
   }
   /* ── 공유 ─────────────────────────────── */
   const shareUrl  = location.origin + location.pathname + '?r=' + key;
-  const shareText = `내 편의점 야식 유형은 '${r.name}' — ${r.nick}`;
-
+  /* ── 공유 글 ─ 카카오는 「제목」만 큰 글씨로 보여줍니다.
+     그래서 검사 이름을 제목 안에 넣습니다. ── */
+  const shareTitle = '편의점 야식 유형' + ' · ' + (r.name || r.nick);
+  const shareLine  = (r.name ? r.nick : (r.tag || r.punch || ''));
+  const shareDesc  = shareLine + '\n스텔라 랩 — 나는 어느 쪽일까';
+  const shareText  = shareTitle + '\n' + shareLine;
   document.getElementById('shKakao').onclick = () => {
     if(!initKakao()){
       alert('카카오 공유는 JavaScript 키를 넣어야 작동해요.\n(카카오 개발자 > 내 애플리케이션 > 앱 키)');
       return;
     }
-    window.Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title: `${r.emoji} ${r.name}`,
-        description: shareText,
-        imageUrl: OG_IMAGE,
-        link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
-      },
-      buttons: [{ title: '나도 테스트하기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl } }]
-    });
+    const _lnk = { mobileWebUrl: shareUrl, webUrl: shareUrl };
+    const _btn = [{ title: '나도 해보기', link: _lnk }];
+    const _img = (r.img || OG_IMAGE || '');
+    if (_img) {
+      window.Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: { title: shareTitle, description: shareDesc,
+                   imageUrl: _img, link: _lnk },
+        buttons: _btn
+      });
+    } else {
+      /* 그림이 없을 때는 글 본을 씁니다. 깨진 그림 자리가 안 생기고
+         글씨가 더 크게 나옵니다. */
+      window.Kakao.Share.sendDefault({
+        objectType: 'text',
+        text: shareTitle + '\n' + shareDesc,
+        link: _lnk,
+        buttonTitle: '나도 해보기'
+      });
+    }
   };
 
   document.getElementById('shX').onclick = () => {

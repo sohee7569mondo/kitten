@@ -522,16 +522,37 @@
     };
 
     var shareUrl  = location.origin + location.pathname + '?r=' + type;
-    var shareText = "도쿄 여행으로 알아본 내 MBTI는 " + type + " — '" + r.nick + "'";
-
+  /* ── 공유 글 ─ 카카오는 「제목」만 큰 글씨로 보여줍니다.
+     그래서 검사 이름을 제목 안에 넣습니다. ── */
+  var shareTitle = '도쿄 여행 MBTI' + ' · ' + type + ' ' + r.nick;
+  var shareLine  = (function(){
+    var d = String(r.desc || '').split('.')[0];
+    return d.length > 38 ? d.slice(0, 38) + '…' : d;
+  })();
+  var shareDesc  = shareLine + '\n스텔라 랩 — 나는 어느 쪽일까';
+  var shareText  = shareTitle + '\n' + shareLine;
     card.querySelector('#stqK').onclick = function(){
       if(!initKakao()){ alert('카카오 공유는 등록된 도메인에서만 작동해요.'); return; }
+      var _lnk = { mobileWebUrl: shareUrl, webUrl: shareUrl };
+    var _btn = [{ title: '나도 해보기', link: _lnk }];
+    var _img = (r.img || OG_IMAGE || '');
+    if (_img) {
       window.Kakao.Share.sendDefault({
-        objectType:'feed',
-        content:{ title: type + ' · ' + r.nick, description: shareText, imageUrl: r.img || OG_IMAGE,
-                  link:{ mobileWebUrl: shareUrl, webUrl: shareUrl } },
-        buttons:[{ title:'나도 테스트하기', link:{ mobileWebUrl: shareUrl, webUrl: shareUrl } }]
+        objectType: 'feed',
+        content: { title: shareTitle, description: shareDesc,
+                   imageUrl: _img, link: _lnk },
+        buttons: _btn
       });
+    } else {
+      /* 그림이 없을 때는 글 본을 씁니다. 깨진 그림 자리가 안 생기고
+         글씨가 더 크게 나옵니다. */
+      window.Kakao.Share.sendDefault({
+        objectType: 'text',
+        text: shareTitle + '\n' + shareDesc,
+        link: _lnk,
+        buttonTitle: '나도 해보기'
+      });
+    }
     };
     card.querySelector('#stqX').onclick = function(){
       window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) +

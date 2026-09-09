@@ -53,6 +53,7 @@ add_action( 'init', function () {{
 <title>{title} — 스텔라 랩</title>
 <meta name="description" content="{dek}">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="스텔라 랩">
 <meta property="og:title" content="{title} — 스텔라 랩">
 <meta property="og:description" content="{dek}">
 <meta property="og:url" content="https://stellasaju.com/lab/{slug}/">
