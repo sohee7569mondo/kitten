@@ -1,0 +1,705 @@
+/* ════════════════════════════════════════════════════════════
+   스텔라 랩 · 캠핑 갔을 때   ★ 2026-09-09 · 소희 님께
+
+   주소   https://stellasaju.com/lab/camping/
+
+   랩 본체(804)를 건드리지 않습니다. 이 주소만 따로 맡습니다.
+   본체보다 먼저(우선순위 5) 돌아서 서로 부딪히지 않습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 이 스니펫 하나가 검사 하나입니다. 여섯 개를 다 넣으셔야
+     목록의 여섯 장이 모두 열립니다.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/lab/camping' ) ) { return; }
+
+	$path = parse_url( $uri, PHP_URL_PATH );
+	$path = rtrim( (string) $path, '/' );
+	if ( '/lab/camping' !== $path ) { return; }
+
+	status_header( 200 );
+	nocache_headers();
+	header( 'Content-Type: text/html; charset=utf-8' );
+
+	echo <<<'STELLA_LAB_HTML'
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>캠핑 갔을 때 — 스텔라 랩</title>
+<meta name="description" content="텐트 자리 잡는 순간부터 철수까지">
+<meta property="og:type" content="website">
+<meta property="og:title" content="캠핑 갔을 때 — 스텔라 랩">
+<meta property="og:description" content="텐트 자리 잡는 순간부터 철수까지">
+<meta property="og:url" content="https://stellasaju.com/lab/camping/">
+<link rel="canonical" href="https://stellasaju.com/lab/camping/">
+</head>
+<body style="margin:0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+.stq-lab{
+    --cream:#F8F4EB;
+    --cream-deep:#EDE4D2;
+    --paper:#FFFDF8;
+    --ink:#413A31;
+    --ink-soft:#8A8071;
+    --cart:#C77A3A;
+    --cart-deep:#A85C1E;
+    --fresh:#6E8E67;
+    --fresh-deep:#4B6A47;
+    --line:#E1D7C5;
+  }
+.stq-lab *{box-sizing:border-box;}
+.stq-lab, .stq-lab{margin:0;padding:0;}
+.stq-lab{
+    background:
+      radial-gradient(circle at 15% 10%, rgba(199,122,58,0.10), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(110,142,103,0.13), transparent 40%),
+      var(--cream);
+    font-family:'Noto Sans KR', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex; justify-content:center;
+    padding:22px 14px 60px;
+  }
+.stq-lab .app{ width:100%; max-width:460px; }
+.stq-lab .uplink{ display:inline-block; font-size:12px; color:var(--ink-soft); text-decoration:none; margin-bottom:10px; }
+.stq-lab .uplink:hover{ color:var(--cart-deep); }
+.stq-lab .brand{ text-align:center; margin-bottom:18px; }
+.stq-lab .brand .icon{ font-size:22px; display:inline-block; }
+.stq-lab .brand h1{
+    font-family:'Gaegu', sans-serif; font-size:15px; letter-spacing:0.02em;
+    color:var(--ink-soft); margin:6px 0 0; font-weight:700;
+  }
+.stq-lab .route{ position:relative; height:34px; margin:6px 0 22px; }
+.stq-lab .route-line{
+    position:absolute; top:16px; left:6px; right:6px; height:2px;
+    background-image:linear-gradient(to right, var(--line) 60%, rgba(0,0,0,0) 0%);
+    background-size:10px 2px; background-repeat:repeat-x;
+  }
+.stq-lab .route-fill{ position:absolute; top:16px; left:6px; height:2px; background:var(--cart); transition:width .5s ease; }
+.stq-lab .route-cart{ position:absolute; top:2px; transform:translateX(-50%); font-size:19px; transition:left .5s ease; }
+.stq-lab .route-dots{ position:absolute; top:12px; left:6px; right:6px; display:flex; justify-content:space-between; }
+.stq-lab .route-dots span{
+    width:8px;height:8px;border-radius:50%; background:var(--paper);
+    border:2px solid var(--line); transition:all .3s ease;
+  }
+.stq-lab .route-dots span.done{ background:var(--cart); border-color:var(--cart); }
+.stq-lab .route-dots span.now{ border-color:var(--cart-deep); transform:scale(1.3); }
+.stq-lab .card{
+    background:var(--paper); border-radius:22px; padding:22px 20px 26px;
+    box-shadow:0 10px 30px rgba(100,80,60,0.10); position:relative; overflow:hidden;
+  }
+.stq-lab .qhead{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+.stq-lab .backbtn{
+    background:none; border:none; color:var(--ink-soft); font-family:'Noto Sans KR', sans-serif;
+    font-size:13px; cursor:pointer; padding:5px 8px 5px 0; display:flex; align-items:center; gap:4px;
+    transition:color .15s ease; flex-shrink:0;
+  }
+.stq-lab .backbtn:hover{ color:var(--cart-deep); }
+.stq-lab .stamp{
+    display:inline-flex; align-items:baseline; gap:8px; background:var(--cream-deep);
+    border:1.5px dashed var(--cart); border-radius:100px; padding:5px 14px;
+  }
+.stq-lab .stamp .day{ font-family:'Gaegu', sans-serif; font-weight:700; font-size:15px; color:var(--cart-deep); }
+.stq-lab .stamp .phase{ font-size:12px; color:var(--ink-soft); }
+.stq-lab .qtext{ font-size:18px; line-height:1.5; font-weight:700; margin:2px 4px 18px; }
+.stq-lab .options{ display:flex; flex-direction:column; gap:12px; }
+.stq-lab .opt{
+    text-align:left; background:var(--cream); border:2px solid transparent; border-radius:16px;
+    padding:13px 14px; cursor:pointer; display:flex; align-items:center; gap:12px;
+    transition:transform .15s ease, border-color .15s ease, background .15s ease; font-family:inherit;
+  }
+.stq-lab .opt:hover{ border-color:var(--fresh); transform:translateY(-2px); }
+.stq-lab .opt:active{ transform:translateY(0); }
+.stq-lab .opt.picked{ border-color:var(--cart); background:#F6E9DA; }
+.stq-lab .opt .tile{
+    flex-shrink:0; width:42px;height:42px; border-radius:12px;
+    background:var(--paper); border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center; font-size:21px;
+  }
+.stq-lab .opt p{ margin:0; font-size:14.5px; line-height:1.55; color:var(--ink); }
+.stq-lab .intro{ text-align:center; padding:10px 6px 4px; }
+.stq-lab .intro .hero{ font-size:42px; margin-bottom:10px; }
+.stq-lab .intro h2{ font-family:'Gaegu', sans-serif; font-size:23px; margin:0 0 10px; line-height:1.4; }
+.stq-lab .intro p{ font-size:14px; color:var(--ink-soft); line-height:1.6; margin:0 0 24px; }
+.stq-lab .btn{
+    display:inline-block; background:var(--cart-deep); color:#fff; border:none; border-radius:100px;
+    padding:14px 30px; font-size:15px; font-weight:700; font-family:'Noto Sans KR', sans-serif;
+    cursor:pointer; box-shadow:0 6px 16px rgba(168,92,30,0.28); transition:transform .15s ease;
+  }
+.stq-lab .btn:hover{ transform:translateY(-2px); }
+.stq-lab .btn.ghost{ background:transparent; color:var(--cart-deep); border:2px solid var(--cart-deep); box-shadow:none; }
+.stq-lab .result{ text-align:center; padding:6px 4px 2px; }
+.stq-lab .result .ticket{
+    background:var(--cream-deep); border-radius:18px; padding:24px 18px 26px; margin-bottom:20px; position:relative;
+  }
+.stq-lab .result .ticket:before, .stq-lab .result .ticket:after{
+    content:''; position:absolute; width:20px;height:20px; background:var(--paper); border-radius:50%;
+    top:50%; transform:translateY(-50%);
+  }
+.stq-lab .result .ticket:before{ left:-10px; }
+.stq-lab .result .ticket:after{ right:-10px; }
+.stq-lab .result .remoji{ font-size:44px; line-height:1; margin-bottom:8px; }
+.stq-lab .result .nick{
+    font-family:'Gaegu', sans-serif; font-size:29px; font-weight:700;
+    color:var(--cart-deep); margin:0; line-height:1.25;
+  }
+.stq-lab .result .tag{ font-size:14px; color:var(--ink-soft); margin:8px 0 0; }
+.stq-lab .result .punch{
+    font-family:'Gaegu', sans-serif; font-size:19px; font-weight:700;
+    color:var(--fresh-deep); margin:10px 0 0; line-height:1.4;
+  }
+.stq-lab .result .desc{ font-size:14px; line-height:1.7; color:var(--ink-soft); text-align:left; margin:0 0 20px; }
+.stq-lab .cart-list{
+    margin:18px 8px 0; padding-top:14px;
+    border-top:1.5px dashed rgba(168,92,30,.3);
+    font-family:'Gaegu', sans-serif; font-size:16px;
+  }
+.stq-lab .cart-list .row{ display:flex; justify-content:space-between; gap:12px; padding:2px 0; color:var(--ink); }
+.stq-lab .cart-list .row span:last-child{ color:var(--ink-soft); white-space:nowrap; }
+.stq-lab .opposite{ background:var(--cream); border-radius:16px; padding:16px 16px 18px; margin-bottom:22px; }
+.stq-lab .opposite .label{ font-size:12px; color:var(--ink-soft); }
+.stq-lab .opposite .name{
+    font-family:'Gaegu', sans-serif; font-size:22px; font-weight:700;
+    color:var(--fresh-deep); margin:4px 0 6px;
+  }
+.stq-lab .opposite .note{ font-size:13px; line-height:1.65; color:var(--ink-soft); }
+.stq-lab .share-title{ font-family:'Gaegu', sans-serif; font-size:16px; color:var(--ink-soft); margin:0 0 12px; }
+.stq-lab .share-row{ display:flex; justify-content:center; gap:16px; margin:0 0 18px; }
+.stq-lab .share-item{
+    background:none; border:none; padding:0; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:6px; font-family:inherit;
+  }
+.stq-lab .share-item .ic{
+    width:48px;height:48px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;font-weight:700;
+    box-shadow:0 4px 12px rgba(100,80,60,0.14); transition:transform .15s ease;
+  }
+.stq-lab .share-item:hover .ic{ transform:translateY(-2px); }
+.stq-lab .share-item .lb{ font-size:11px; color:var(--ink-soft); }
+.stq-lab .ic.kakao{ background:#FEE500; color:#3C1E1E; }
+.stq-lab .ic.x{ background:#141414; color:#fff; font-size:17px; }
+.stq-lab .ic.link, .stq-lab .ic.more{ background:var(--cream-deep); color:var(--ink-soft); }
+.stq-lab .ic.more{ letter-spacing:1px; }
+.stq-lab .footer-note{ text-align:center; font-size:11px; line-height:1.9; color:var(--ink-soft); margin-top:22px; }
+.stq-lab .footer-note a{ color:inherit; text-decoration:none; }
+.stq-lab .footer-note a:hover{ color:var(--cart-deep); text-decoration:underline; }
+.stq-lab .footer-note .disclaimer{ margin-top:6px; opacity:0.75; }
+
+
+  @media (max-width:360px){.stq-lab .qtext{ font-size:16.5px; }
+.stq-lab .result .nick{ font-size:25px; }}
+</style>
+
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+
+<div class="stq-lab">
+<div class="app">
+  <a class="uplink" href="https://stellasaju.com/lab/">← 스텔라 랩</a>
+  <div class="brand">
+    <span class="icon">⛺</span>
+    <h1 id="brandTitle"></h1>
+  </div>
+  <div class="route" id="routeBar" style="display:none;">
+    <div class="route-line"></div>
+    <div class="route-fill" id="routeFill"></div>
+    <div class="route-dots" id="routeDots"></div>
+    <div class="route-cart" id="routeCart">⛺</div>
+  </div>
+  <div class="card" id="card"></div>
+  <div class="footer-note">
+    <a href="https://stellasaju.com/lab/">스텔라 랩</a> ·
+    <a href="https://stellasaju.com/">스텔라사주</a> ·
+    <a href="https://stellasaju.com/uandme/">유앤미</a> ·
+    <a href="https://stellasaju.com/privacy/">개인정보처리방침</a> ·
+    <a href="https://stellasaju.com/terms/">이용약관</a>
+    <div class="disclaimer">스텔라사주에서 만든 서비스입니다. 검사 결과는 재미로 봐주세요.</div>
+  </div>
+</div>
+
+<script type="application/json" id="quiz-data">
+{
+ "brand": "캠핑 갔을 때",
+ "introTitle": "텐트 치는 순간 성격이 나옵니다",
+ "introSub": "자리 잡는 순간부터 철수하는 순간까지.<br>8개만 고르면 결과가 나와요.",
+ "startLabel": "짐 내리기",
+ "questions": [
+  {
+   "day": "STEP 1",
+   "phase": "자리 잡기",
+   "axis": "gear_rough",
+   "q": "차에서 내려 텐트 칠 자리를 고른다",
+   "options": [
+    {
+     "trait": "gear",
+     "icon": "📐",
+     "text": "수평 맞춰보고 바람 방향까지 확인한다"
+    },
+    {
+     "trait": "rough",
+     "icon": "👌",
+     "text": "평평해 보이면 여기가 명당이다"
+    }
+   ]
+  },
+  {
+   "day": "STEP 2",
+   "phase": "설치 완료",
+   "axis": "active_chill",
+   "q": "텐트를 다 치고 나서 하는 일",
+   "options": [
+    {
+     "trait": "active",
+     "icon": "🥾",
+     "text": "주변에 뭐가 있나 한 바퀴 돌아본다"
+    },
+    {
+     "trait": "chill",
+     "icon": "☕",
+     "text": "의자부터 펴고 앉아서 한숨 돌린다"
+    }
+   ]
+  },
+  {
+   "day": "STEP 3",
+   "phase": "짐 정리",
+   "axis": "gear_rough",
+   "q": "내가 챙겨온 짐을 보면",
+   "options": [
+    {
+     "trait": "gear",
+     "icon": "🚚",
+     "text": "트렁크가 꽉 찼다, 없는 게 없다"
+    },
+    {
+     "trait": "rough",
+     "icon": "🎒",
+     "text": "가방 하나면 충분하다, 없으면 없는 대로"
+    }
+   ]
+  },
+  {
+   "day": "STEP 4",
+   "phase": "저녁 준비",
+   "axis": "active_chill",
+   "q": "해가 지고 저녁 시간이 됐다",
+   "options": [
+    {
+     "trait": "active",
+     "icon": "🔥",
+     "text": "불 피우고 제대로 구워 먹는다"
+    },
+    {
+     "trait": "chill",
+     "icon": "🍜",
+     "text": "간단하게 때우고 쉬는 시간을 늘린다"
+    }
+   ]
+  },
+  {
+   "day": "STEP 5",
+   "phase": "비 예보",
+   "axis": "gear_rough",
+   "q": "밤에 비가 올 수도 있다는 예보를 봤다",
+   "options": [
+    {
+     "trait": "gear",
+     "icon": "☔",
+     "text": "타프 더 치고 텐트 주변에 물길을 낸다"
+    },
+    {
+     "trait": "rough",
+     "icon": "🤞",
+     "text": "안 올 수도 있으니 일단 두고 본다"
+    }
+   ]
+  },
+  {
+   "day": "STEP 6",
+   "phase": "밤",
+   "axis": "active_chill",
+   "q": "불이 잦아들 무렵, 나는",
+   "options": [
+    {
+     "trait": "active",
+     "icon": "🎸",
+     "text": "아직 한창이다, 이야기든 음악이든 이어간다"
+    },
+    {
+     "trait": "chill",
+     "icon": "😴",
+     "text": "슬슬 침낭으로 들어갈 준비를 한다"
+    }
+   ]
+  },
+  {
+   "day": "STEP 7",
+   "phase": "아침",
+   "axis": "active_chill",
+   "q": "눈을 떴다. 밖은 이미 밝다",
+   "options": [
+    {
+     "trait": "active",
+     "icon": "🌅",
+     "text": "바로 나가서 아침 공기 마시고 한 바퀴"
+    },
+    {
+     "trait": "chill",
+     "icon": "🛌",
+     "text": "침낭 안에서 한참 더 뭉갠다"
+    }
+   ]
+  },
+  {
+   "day": "STEP 8",
+   "phase": "철수",
+   "axis": "gear_rough",
+   "q": "짐을 싸서 집으로 돌아간다",
+   "options": [
+    {
+     "trait": "gear",
+     "icon": "✅",
+     "text": "장비 다 닦고 말려서 제자리에 넣는다"
+    },
+    {
+     "trait": "rough",
+     "icon": "📥",
+     "text": "일단 차에 싣고 집에서 생각한다"
+    }
+   ]
+  }
+ ],
+ "results": {
+  "gear_active": {
+   "emoji": "🏕️",
+   "nick": "장비 브리핑하는 대장",
+   "tag": "이 정도는 기본입니다",
+   "punch": "그 장비 다 쓰긴 하세요?",
+   "cart": [
+    [
+     "가져온 장비",
+     "트렁크 가득"
+    ],
+    [
+     "실제로 쓴 장비",
+     "절반"
+    ],
+    [
+     "가만히 앉아 있던 시간",
+     "10분"
+    ]
+   ],
+   "desc": "떠나기 전부터 장비를 점검하고, 도착해서는 세팅을 지휘하고, 밤에는 불을 관리하는 타입이에요. 캠핑을 쉬러 가는 게 아니라 하러 갑니다. 덕분에 같이 간 사람들은 편하게 놀 수 있어요. 다만 아무도 안 물어봤는데 장비 사양을 설명하고 있는 자신을 가끔 발견하게 됩니다.",
+   "opp": "rough_chill",
+   "oppNote": "같이 가면 세팅하는 내내 해먹에 누워 있는 걸 보게 돼요. 도와달라고 하면 웃으면서 일어나긴 합니다."
+  },
+  "gear_chill": {
+   "emoji": "🔥",
+   "nick": "불멍 하려고 두 시간 세팅한 사람",
+   "tag": "분위기가 반입니다",
+   "punch": "세팅 두 시간, 불멍 세 시간",
+   "cart": [
+    [
+     "세팅 시간",
+     "2시간"
+    ],
+    [
+     "감성 조명",
+     "3세트"
+    ],
+    [
+     "이동 거리",
+     "텐트 반경 5m"
+    ]
+   ],
+   "desc": "장비는 꼼꼼히 챙기는데 그걸로 뭘 하러 가는 건 아닌 타입이에요. 조명 위치까지 신경 써서 자리를 만들고, 다 만들고 나면 그 안에서 거의 안 움직입니다. 목적이 활동이 아니라 그 공간에 앉아 있는 것 자체라서요. 사진은 이 유형이 제일 잘 나옵니다.",
+   "opp": "rough_active",
+   "oppNote": "같이 가면 세팅이 끝나기도 전에 계곡 쪽으로 사라져요. 저녁때 돌아와서 잘 놀았다고 합니다."
+  },
+  "rough_active": {
+   "emoji": "🥾",
+   "nick": "텐트보다 계곡이 먼저인 사람",
+   "tag": "자러 온 게 아닙니다",
+   "punch": "텐트는 누가 쳤을까요, 아마 다른 분이",
+   "cart": [
+    [
+     "도착 후 앉아 있던 시간",
+     "0분"
+    ],
+    [
+     "다녀온 곳",
+     "3군데"
+    ],
+    [
+     "텐트 설치 기여도",
+     "확인 필요"
+    ]
+   ],
+   "desc": "캠핑장은 베이스캠프고 진짜 목적은 바깥에 있는 타입이에요. 짐을 내리자마자 어디에 뭐가 있는지 파악하러 나가고, 해가 떠 있는 동안은 거의 자리에 없습니다. 장비는 최소한만 챙기는데 어차피 안에서 보내는 시간이 짧아서 불편함을 잘 못 느껴요.",
+   "opp": "gear_chill",
+   "oppNote": "같이 가면 나가자고 해도 잘 안 일어나요. 여기 앉아 있는 게 좋다는데 그것도 틀린 말은 아닙니다."
+  },
+  "rough_chill": {
+   "emoji": "😌",
+   "nick": "해먹에서 안 나오는 사람",
+   "tag": "이게 쉬는 거죠",
+   "punch": "집에서도 되는 걸 굳이 여기까지 오셨네요",
+   "cart": [
+    [
+     "챙겨온 짐",
+     "가방 하나"
+    ],
+    [
+     "해먹 체류 시간",
+     "측정 불가"
+    ],
+    [
+     "세운 계획",
+     "없음"
+    ]
+   ],
+   "desc": "준비도 최소한, 활동도 최소한인 타입이에요. 남들이 세팅하고 요리하고 돌아다니는 동안 적당한 자리를 찾아 자리를 잡습니다. 게으른 것처럼 보이지만 본인 기준에서는 목적을 100% 달성한 상태예요. 실제로 돌아갈 때 제일 개운한 얼굴을 하고 있는 것도 이 유형입니다.",
+   "opp": "gear_active",
+   "oppNote": "같이 가면 뭐든 다 해줘서 편해요. 대신 장비 설명을 끝까지 들어드려야 합니다."
+  }
+ }
+}
+</script>
+
+<script>
+const DATA = JSON.parse(document.getElementById('quiz-data').textContent);
+const Q = DATA.questions;
+const RESULTS = DATA.results;
+
+/* 카카오 개발자 > 앱 > 플랫폼 키 > JavaScript 키
+   해당 키의 [JavaScript SDK 도메인]에 이 페이지 도메인을 등록해야 작동합니다. */
+const KAKAO_JS_KEY = '7806d048aad9905e98fb7dd4217236d2';
+const OG_IMAGE = 'https://stellasaju.com/lab/og/camping.png';
+function initKakao(){
+  if(!KAKAO_JS_KEY || !window.Kakao) return false;
+  if(!window.Kakao.isInitialized()) window.Kakao.init(KAKAO_JS_KEY);
+  return true;
+}
+
+let state = { step: -1, answers: [] };
+
+const brandTitle = document.getElementById('brandTitle');
+const card = document.getElementById('card');
+const routeBar = document.getElementById('routeBar');
+const routeFill = document.getElementById('routeFill');
+const routeDots = document.getElementById('routeDots');
+const routeCart = document.getElementById('routeCart');
+
+function buildRouteDots(){
+  routeDots.innerHTML = '';
+  for(let i=0;i<Q.length;i++) routeDots.appendChild(document.createElement('span'));
+}
+buildRouteDots();
+
+function updateRoute(step){
+  const total = Q.length;
+  const pct = total <= 1 ? 0 : (step/(total-1))*100;
+  routeFill.style.width = 'calc(' + pct + '% )';
+  routeCart.style.left = pct + '%';
+  const dots = routeDots.children;
+  for(let i=0;i<dots.length;i++){
+    dots[i].classList.remove('done','now');
+    if(i < step) dots[i].classList.add('done');
+    else if(i === step) dots[i].classList.add('now');
+  }
+}
+
+function renderIntro(){
+  brandTitle.textContent = '';
+  routeBar.style.display = 'none';
+  card.innerHTML = `
+    <div class="intro">
+      <div class="hero">⛺</div>
+      <h2>${DATA.introTitle}</h2>
+      <p>${DATA.introSub}</p>
+      <button class="btn" id="startBtn">${DATA.startLabel}</button>
+    </div>
+  `;
+  document.getElementById('startBtn').onclick = () => {
+    state = { step: 0, answers: [] };
+    renderQuestion();
+  };
+}
+
+function renderQuestion(){
+  const q = Q[state.step];
+  brandTitle.textContent = DATA.brand;
+  routeBar.style.display = 'block';
+  updateRoute(state.step);
+
+  const optsHtml = q.options.map((opt, i) => `
+    <button class="opt" data-trait="${opt.trait}" data-idx="${i}">
+      <span class="tile">${opt.svg || opt.icon}</span>
+      <p>${opt.text}</p>
+    </button>
+  `).join('');
+
+  card.innerHTML = `
+    <div class="qhead">
+      <button class="backbtn" id="backBtn">← 이전</button>
+      <div class="stamp">
+        <span class="day">${q.day}</span>
+        <span class="phase">${q.phase}</span>
+      </div>
+    </div>
+    <div class="qtext">${q.q}</div>
+    <div class="options">${optsHtml}</div>
+  `;
+
+  document.getElementById('backBtn').onclick = () => {
+    if(card.dataset.locked === '1') return;
+    if(state.step === 0){
+      state = { step: -1, answers: [] };
+      renderIntro();
+    } else {
+      state.answers.pop();
+      state.step -= 1;
+      renderQuestion();
+    }
+  };
+
+  Array.from(card.querySelectorAll('.opt')).forEach(btn => {
+    btn.onclick = () => {
+      if(card.dataset.locked === '1') return;
+      card.dataset.locked = '1';
+      btn.classList.add('picked');
+      state.answers.push({ axis: q.axis, trait: btn.dataset.trait });
+      setTimeout(() => {
+        card.dataset.locked = '0';
+        if(state.step < Q.length - 1){
+          state.step += 1;
+          renderQuestion();
+        } else {
+          renderResult();
+        }
+      }, 320);
+    };
+  });
+}
+
+function computeType(){
+  const c = { gear:0, rough:0, active:0, chill:0 };
+  state.answers.forEach(a => { c[a.trait] = (c[a.trait]||0) + 1; });
+  const axis1 = c.gear   >= c.rough ? 'gear'   : 'rough';
+  const axis2 = c.active >= c.chill ? 'active' : 'chill';
+  return axis1 + '_' + axis2;
+}
+
+function renderResult(forcedType){
+  routeBar.style.display = 'none';
+  brandTitle.textContent = '나의 캠핑 유형';
+  const type = forcedType || computeType();
+  const r = RESULTS[type];
+  const opp = RESULTS[r.opp];
+
+  card.innerHTML = `
+    <div class="result">
+      <div class="ticket">
+        <div class="remoji">${r.emoji}</div>
+        <p class="nick">${r.nick}</p>
+        <p class="tag">${r.tag}</p>
+        <p class="punch">${r.punch}</p>
+        <div class="cart-list">
+          ${r.cart.map(item => `<div class="row"><span>${item[0]}</span><span>${item[1]}</span></div>`).join('')}
+        </div>
+      </div>
+      <p class="desc">${r.desc}</p>
+      <div class="opposite">
+        <div class="label">나와 정반대 유형</div>
+        <div class="name">${opp.emoji} ${opp.nick}</div>
+        <div class="note">${r.oppNote}</div>
+      </div>
+      <p class="share-title">친구는 어떤 타입일까?</p>
+      <div class="share-row">
+        <button class="share-item" id="shKakao"><span class="ic kakao">톡</span><span class="lb">카카오톡</span></button>
+        <button class="share-item" id="shX"><span class="ic x">𝕏</span><span class="lb">X</span></button>
+        <button class="share-item" id="shLink"><span class="ic link">🔗</span><span class="lb" id="lbLink">링크 복사</span></button>
+        <button class="share-item" id="shMore" style="display:none;"><span class="ic more">···</span><span class="lb">다른 앱</span></button>
+      </div>
+      <button class="btn ghost" id="retryBtn">다시 캠핑 가기</button>
+      <div style="margin-top:12px;">
+        <button class="backbtn" id="backFromResult" style="margin:0 auto;">← 마지막 질문 다시 보기</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('retryBtn').onclick = () => {
+    state = { step: -1, answers: [] };
+    renderIntro();
+  };
+
+  const backRes = document.getElementById('backFromResult');
+  if(state.answers.length === Q.length){
+    backRes.onclick = () => {
+      state.answers.pop();
+      state.step = Q.length - 1;
+      renderQuestion();
+    };
+  } else {
+    backRes.style.display = 'none';
+  }
+
+  /* ── 공유 ─────────────────────────────── */
+  const shareUrl  = location.origin + location.pathname + '?r=' + type;
+  const shareText = `내 캠핑 유형은 '${r.nick}'`;
+
+  document.getElementById('shKakao').onclick = () => {
+    if(!initKakao()){ alert('카카오 공유는 등록된 도메인에서만 작동해요.'); return; }
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: r.nick,
+        description: r.punch,
+        imageUrl: OG_IMAGE,
+        link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
+      },
+      buttons: [{ title: '나도 테스트하기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl } }]
+    });
+  };
+
+  document.getElementById('shX').onclick = () => {
+    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) +
+      '&url=' + encodeURIComponent(shareUrl), '_blank', 'noopener,width=560,height=520');
+  };
+
+  const lbLink = document.getElementById('lbLink');
+  document.getElementById('shLink').onclick = () => {
+    const done = (m) => { lbLink.textContent = m; setTimeout(()=>lbLink.textContent='링크 복사', 1600); };
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(shareText + '\n' + shareUrl).then(()=>done('복사됨')).catch(()=>done('복사 실패'));
+    } else { done('복사 실패'); }
+  };
+
+  /* 인스타그램은 외부 웹에서 바로 올릴 방법이 없어 기본 공유 시트로 대체 */
+  if(navigator.share){
+    const more = document.getElementById('shMore');
+    more.style.display = 'flex';
+    more.onclick = () => navigator.share({ text: shareText, url: shareUrl }).catch(()=>{});
+  }
+}
+
+/* 공유 링크(?r=유형)로 들어오면 해당 결과를 먼저 보여줍니다 */
+const shared = new URLSearchParams(location.search).get('r');
+if(shared){ if(RESULTS[shared]){ renderResult(shared); } else { renderIntro(); } }
+else renderIntro();
+</script>
+</div>
+
+</body>
+</html>
+STELLA_LAB_HTML;
+
+	exit;
+}, 5 );

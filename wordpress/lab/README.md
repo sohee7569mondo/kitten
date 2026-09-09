@@ -66,3 +66,42 @@
   SEO 플러그인이나 스니펫으로 따로 넣어야 합니다.
 - **카카오 공유 SDK** — `<script src="…kakao.min.js">` 를 넣어뒀지만
   카카오 자바스크립트 키가 있어야 실제로 공유가 됩니다.
+
+## 2026-09-09 · 스니펫으로 올리는 법 (랩이 스니펫이라서)
+
+랩은 페이지가 아니라 **스니펫이 주소를 가로채는** 방식이었습니다.
+그래서 `.block.html` 을 페이지에 붙이는 게 아니라, 스니펫으로 감싸서 넣습니다.
+
+    snippets/snip_lab_night-snack.WPCODE.txt   -> /lab/night-snack/
+    snippets/snip_lab_cafe.WPCODE.txt          -> /lab/cafe/
+    snippets/snip_lab_camping.WPCODE.txt       -> /lab/camping/
+    snippets/snip_lab_grocery.WPCODE.txt       -> /lab/grocery/
+    snippets/snip_lab_money.WPCODE.txt         -> /lab/money/
+    snippets/snip_lab_breakup.WPCODE.txt       -> /lab/breakup/
+
+각각 WPCode → 새 스니펫 → PHP Snippet → 「어디서나 실행」 → 저장 → Active.
+스니펫 하나가 검사 하나입니다.
+
+`make_snippets.py` 가 블록 파일을 읽어서 이 스니펫들을 만듭니다.
+블록을 고치면 이 스크립트를 다시 돌리면 됩니다.
+
+### 왜 이렇게 하나
+
+랩 본체(804)는 `TESTS` 라는 제 나름의 틀로 검사를 그립니다.
+오늘 만든 여섯은 저마다 자기 화면을 가지고 있어서 그 틀에 안 맞습니다.
+본체를 안 건드리고 그 주소만 따로 맡는 쪽이 안전합니다.
+우선순위 5 로 본체(10)보다 먼저 돌아서 부딪히지 않습니다.
+
+### 확인한 것
+
+    · 여섯 다 php -l 통과, 두 겹 앰퍼샌드 0개
+    · 제 주소에서만 열리고 남의 주소에서는 아무것도 안 내놓음
+    · /lab/cafe · /lab/cafe/ · /lab/cafe/?r=x 셋 다 열림 (공유 링크용)
+    · 브라우저로 여섯 다 시작 -> 선택 -> 다음 문항까지 눌러봄. 오류 없음
+    · 390px 에서 가로 넘침 없음
+
+### 아직 남은 것
+
+    · /lab/tokyo/ 가 없습니다. 목록 맨 위 카드가 빈 쪽으로 갑니다.
+    · money 는 사진 20장을 미디어에 먼저 올려야 그림이 뜹니다.
+    · breakup 은 806 MORE2 의 옛 판(열두 문항)을 가립니다. 끄면 옛 판으로 돌아갑니다.

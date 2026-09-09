@@ -1,0 +1,654 @@
+/* ════════════════════════════════════════════════════════════
+   스텔라 랩 · 카페에서 나는   ★ 2026-09-09 · 소희 님께
+
+   주소   https://stellasaju.com/lab/cafe/
+
+   랩 본체(804)를 건드리지 않습니다. 이 주소만 따로 맡습니다.
+   본체보다 먼저(우선순위 5) 돌아서 서로 부딪히지 않습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 이 스니펫 하나가 검사 하나입니다. 여섯 개를 다 넣으셔야
+     목록의 여섯 장이 모두 열립니다.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/lab/cafe' ) ) { return; }
+
+	$path = parse_url( $uri, PHP_URL_PATH );
+	$path = rtrim( (string) $path, '/' );
+	if ( '/lab/cafe' !== $path ) { return; }
+
+	status_header( 200 );
+	nocache_headers();
+	header( 'Content-Type: text/html; charset=utf-8' );
+
+	echo <<<'STELLA_LAB_HTML'
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>카페에서 나는 — 스텔라 랩</title>
+<meta name="description" content="들어선 순간부터 나가는 순간까지">
+<meta property="og:type" content="website">
+<meta property="og:title" content="카페에서 나는 — 스텔라 랩">
+<meta property="og:description" content="들어선 순간부터 나가는 순간까지">
+<meta property="og:url" content="https://stellasaju.com/lab/cafe/">
+<link rel="canonical" href="https://stellasaju.com/lab/cafe/">
+</head>
+<body style="margin:0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+.stq-lab{
+    --cream:#F7F2EA;
+    --cream-deep:#EBE1D3;
+    --paper:#FFFDF8;
+    --ink:#413830;
+    --ink-soft:#8B7F70;
+    --bean:#9A7256;
+    --bean-deep:#75523B;
+    --olive:#8C9A6E;
+    --olive-deep:#68764E;
+    --line:#DFD3C1;
+  }
+.stq-lab *{box-sizing:border-box;}
+.stq-lab, .stq-lab{margin:0;padding:0;}
+.stq-lab{
+    background:
+      radial-gradient(circle at 15% 10%, rgba(154,114,86,0.10), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(140,154,110,0.12), transparent 40%),
+      var(--cream);
+    font-family:'Noto Sans KR', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:28px 14px 60px;
+  }
+.stq-lab .app{ width:100%; max-width:460px; }
+.stq-lab .brand{ text-align:center; margin-bottom:18px; }
+.stq-lab .brand .icon{ font-size:22px; display:inline-block; }
+.stq-lab .brand h1{
+    font-family:'Gaegu', sans-serif;
+    font-size:15px; letter-spacing:0.02em;
+    color:var(--ink-soft); margin:6px 0 0; font-weight:700;
+  }
+.stq-lab .route{ position:relative; height:34px; margin:6px 0 22px; }
+.stq-lab .route-line{
+    position:absolute; top:16px; left:6px; right:6px; height:2px;
+    background-image:linear-gradient(to right, var(--line) 60%, rgba(0,0,0,0) 0%);
+    background-size:10px 2px; background-repeat:repeat-x;
+  }
+.stq-lab .route-fill{
+    position:absolute; top:16px; left:6px; height:2px;
+    background:var(--bean); transition:width .5s ease;
+  }
+.stq-lab .route-cup{
+    position:absolute; top:2px; transform:translateX(-50%); font-size:19px;
+    transition:left .5s ease;
+  }
+.stq-lab .route-dots{ position:absolute; top:12px; left:6px; right:6px; display:flex; justify-content:space-between; }
+.stq-lab .route-dots span{
+    width:8px;height:8px;border-radius:50%; background:var(--paper);
+    border:2px solid var(--line); transition:all .3s ease;
+  }
+.stq-lab .route-dots span.done{ background:var(--bean); border-color:var(--bean); }
+.stq-lab .route-dots span.now{ border-color:var(--bean-deep); transform:scale(1.3); }
+.stq-lab .card{
+    background:var(--paper); border-radius:22px; padding:22px 20px 26px;
+    box-shadow:0 10px 30px rgba(100,80,60,0.10); position:relative; overflow:hidden;
+  }
+.stq-lab .qhead{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+.stq-lab .backbtn{
+    background:none; border:none; color:var(--ink-soft); font-family:'Noto Sans KR', sans-serif;
+    font-size:13px; cursor:pointer; padding:5px 8px 5px 0; display:flex; align-items:center; gap:4px;
+    transition:color .15s ease; flex-shrink:0;
+  }
+.stq-lab .backbtn:hover{ color:var(--bean-deep); }
+.stq-lab .stamp{
+    display:inline-flex; align-items:baseline; gap:8px; background:var(--cream-deep);
+    border:1.5px dashed var(--bean); border-radius:100px; padding:5px 14px;
+  }
+.stq-lab .stamp .day{ font-family:'Gaegu', sans-serif; font-weight:700; font-size:15px; color:var(--bean-deep); }
+.stq-lab .stamp .phase{ font-size:12px; color:var(--ink-soft); }
+.stq-lab .qtext{ font-size:18px; line-height:1.5; font-weight:700; margin:2px 4px 18px; }
+.stq-lab .options{ display:flex; flex-direction:column; gap:12px; }
+.stq-lab .opt{
+    text-align:left; background:var(--cream); border:2px solid transparent; border-radius:16px;
+    padding:13px 14px; cursor:pointer; display:flex; align-items:center; gap:12px;
+    transition:transform .15s ease, border-color .15s ease, background .15s ease; font-family:inherit;
+  }
+.stq-lab .opt:hover{ border-color:var(--olive); transform:translateY(-2px); }
+.stq-lab .opt:active{ transform:translateY(0); }
+.stq-lab .opt.picked{ border-color:var(--bean); background:#F3E8DA; }
+.stq-lab .opt .tile{
+    flex-shrink:0; width:42px;height:42px; border-radius:12px;
+    background:var(--paper); border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center; font-size:21px;
+  }
+.stq-lab .opt p{ margin:0; font-size:14.5px; line-height:1.55; color:var(--ink); }
+.stq-lab .intro{ text-align:center; padding:10px 6px 4px; }
+.stq-lab .intro .hero{ font-size:42px; margin-bottom:10px; }
+.stq-lab .intro h2{ font-family:'Gaegu', sans-serif; font-size:23px; margin:0 0 10px; line-height:1.4; }
+.stq-lab .intro p{ font-size:14px; color:var(--ink-soft); line-height:1.6; margin:0 0 24px; }
+.stq-lab .btn{
+    display:inline-block; background:var(--bean-deep); color:#fff; border:none; border-radius:100px;
+    padding:14px 30px; font-size:15px; font-weight:700; font-family:'Noto Sans KR', sans-serif;
+    cursor:pointer; box-shadow:0 6px 16px rgba(117,82,59,0.28); transition:transform .15s ease;
+  }
+.stq-lab .btn:hover{ transform:translateY(-2px); }
+.stq-lab .btn.ghost{ background:transparent; color:var(--bean-deep); border:2px solid var(--bean-deep); box-shadow:none; }
+.stq-lab .result{ text-align:center; padding:6px 4px 2px; }
+.stq-lab .result .ticket{
+    background:var(--cream-deep); border-radius:18px; padding:24px 18px 26px; margin-bottom:20px; position:relative;
+  }
+.stq-lab .result .ticket:before, .stq-lab .result .ticket:after{
+    content:''; position:absolute; width:20px;height:20px; background:var(--paper); border-radius:50%;
+    top:50%; transform:translateY(-50%);
+  }
+.stq-lab .result .ticket:before{ left:-10px; }
+.stq-lab .result .ticket:after{ right:-10px; }
+.stq-lab .result .remoji{ font-size:44px; line-height:1; margin-bottom:8px; }
+.stq-lab .result .nick{
+    font-family:'Gaegu', sans-serif; font-size:30px; font-weight:700;
+    color:var(--bean-deep); margin:0; line-height:1.25;
+  }
+.stq-lab .result .tag{ font-size:14px; color:var(--ink-soft); margin:8px 0 0; }
+.stq-lab .result .punch{
+    font-family:'Gaegu', sans-serif; font-size:19px; font-weight:700;
+    color:var(--olive-deep); margin:10px 0 0; line-height:1.4;
+  }
+.stq-lab .result .desc{ font-size:14px; line-height:1.7; color:var(--ink-soft); text-align:left; margin:0 0 20px; }
+.stq-lab .opposite{ background:var(--cream); border-radius:16px; padding:16px 16px 18px; margin-bottom:22px; }
+.stq-lab .opposite .label{ font-size:12px; color:var(--ink-soft); }
+.stq-lab .opposite .name{
+    font-family:'Gaegu', sans-serif; font-size:22px; font-weight:700;
+    color:var(--olive-deep); margin:4px 0 6px;
+  }
+.stq-lab .opposite .note{ font-size:13px; line-height:1.65; color:var(--ink-soft); }
+.stq-lab .share-title{ font-family:'Gaegu', sans-serif; font-size:16px; color:var(--ink-soft); margin:0 0 12px; }
+.stq-lab .share-row{ display:flex; justify-content:center; gap:16px; margin:0 0 18px; }
+.stq-lab .share-item{
+    background:none; border:none; padding:0; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:6px; font-family:inherit;
+  }
+.stq-lab .share-item .ic{
+    width:48px;height:48px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;font-weight:700;
+    box-shadow:0 4px 12px rgba(100,80,60,0.14);
+    transition:transform .15s ease;
+  }
+.stq-lab .share-item:hover .ic{ transform:translateY(-2px); }
+.stq-lab .share-item .lb{ font-size:11px; color:var(--ink-soft); }
+.stq-lab .ic.kakao{ background:#FEE500; color:#3C1E1E; }
+.stq-lab .ic.x{ background:#141414; color:#fff; font-size:17px; }
+.stq-lab .ic.link, .stq-lab .ic.more{ background:var(--cream-deep); color:var(--ink-soft); }
+.stq-lab .ic.more{ letter-spacing:1px; }
+.stq-lab .uplink{
+    display:inline-block; font-size:12px; color:var(--ink-soft);
+    text-decoration:none; margin-bottom:10px;
+  }
+.stq-lab .uplink:hover{ color:var(--bean-deep); }
+.stq-lab .footer-note{
+    text-align:center; font-size:11px; line-height:1.9;
+    color:var(--ink-soft); margin-top:22px;
+  }
+.stq-lab .footer-note a{ color:inherit; text-decoration:none; }
+.stq-lab .footer-note a:hover{ color:var(--bean-deep); text-decoration:underline; }
+.stq-lab .footer-note .disclaimer{ margin-top:6px; opacity:0.75; }
+
+
+  @media (max-width:360px){.stq-lab .qtext{ font-size:16.5px; }
+.stq-lab .result .nick{ font-size:26px; }}
+</style>
+
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+
+<div class="stq-lab">
+<div class="app">
+  <a class="uplink" href="https://stellasaju.com/lab/">← 스텔라 랩</a>
+  <div class="brand">
+    <span class="icon">☕</span>
+    <h1 id="brandTitle"></h1>
+  </div>
+  <div class="route" id="routeBar" style="display:none;">
+    <div class="route-line"></div>
+    <div class="route-fill" id="routeFill"></div>
+    <div class="route-dots" id="routeDots"></div>
+    <div class="route-cup" id="routeCup">☕</div>
+  </div>
+  <div class="card" id="card"></div>
+  <div class="footer-note">
+    <a href="https://stellasaju.com/lab/">스텔라 랩</a> ·
+    <a href="https://stellasaju.com/">스텔라사주</a> ·
+    <a href="https://stellasaju.com/uandme/">유앤미</a> ·
+    <a href="https://stellasaju.com/privacy/">개인정보처리방침</a> ·
+    <a href="https://stellasaju.com/terms/">이용약관</a>
+    <div class="disclaimer">스텔라사주에서 만든 서비스입니다. 검사 결과는 재미로 봐주세요.</div>
+  </div>
+</div>
+
+<script type="application/json" id="quiz-data">
+{
+ "brand": "카페에서 나는",
+ "introTitle": "카페에서의 나, 어떤 사람일까",
+ "introSub": "문 열고 들어가는 순간부터 나가는 순간까지.<br>8개만 고르면 결과가 나와요.",
+ "startLabel": "카페 문 열기",
+ "questions": [
+  {
+   "day": "00:00",
+   "phase": "입장",
+   "axis": "solo_social",
+   "q": "문을 열고 들어선 순간, 나는",
+   "options": [
+    {
+     "trait": "solo",
+     "icon": "🚪",
+     "text": "사람 적은 쪽부터 눈으로 훑는다"
+    },
+    {
+     "trait": "social",
+     "icon": "🗣️",
+     "text": "북적이는 게 오히려 편해서 안쪽으로 들어간다"
+    }
+   ]
+  },
+  {
+   "day": "00:02",
+   "phase": "주문",
+   "axis": "focus_chill",
+   "q": "메뉴판 앞에 섰다",
+   "options": [
+    {
+     "trait": "focus",
+     "icon": "🥤",
+     "text": "오래 앉을 거니까 아이스 아메리카노 큰 사이즈"
+    },
+    {
+     "trait": "chill",
+     "icon": "🍰",
+     "text": "오늘의 추천이나 시즌 음료를 고른다"
+    }
+   ]
+  },
+  {
+   "day": "00:05",
+   "phase": "자리 선택",
+   "axis": "solo_social",
+   "q": "음료를 받고 자리를 고른다",
+   "options": [
+    {
+     "trait": "solo",
+     "icon": "🤫",
+     "text": "벽 보고 앉는 1인석, 등 뒤로 사람 안 지나가는 곳"
+    },
+    {
+     "trait": "social",
+     "icon": "🏙️",
+     "text": "창가 큰 테이블, 사람 지나다니는 게 보이는 곳"
+    }
+   ]
+  },
+  {
+   "day": "00:07",
+   "phase": "짐 풀기",
+   "axis": "focus_chill",
+   "q": "자리에 앉자마자 하는 일",
+   "options": [
+    {
+     "trait": "focus",
+     "icon": "💻",
+     "text": "노트북, 충전기, 텀블러까지 세팅 완료"
+    },
+    {
+     "trait": "chill",
+     "icon": "📱",
+     "text": "폰이랑 음료만, 가방은 옆에 툭"
+    }
+   ]
+  },
+  {
+   "day": "00:30",
+   "phase": "옆자리 소음",
+   "axis": "solo_social",
+   "q": "옆 테이블 대화 소리가 꽤 크다",
+   "options": [
+    {
+     "trait": "solo",
+     "icon": "🎧",
+     "text": "이어폰 꽂고 볼륨을 올린다"
+    },
+    {
+     "trait": "social",
+     "icon": "😌",
+     "text": "별로 신경 안 쓰인다, 오히려 이 소리가 좋다"
+    }
+   ]
+  },
+  {
+   "day": "02:00",
+   "phase": "두 시간 경과",
+   "axis": "focus_chill",
+   "q": "두 시간쯤 지났다. 지금 나는",
+   "options": [
+    {
+     "trait": "focus",
+     "icon": "🔁",
+     "text": "한 잔 더 시키고 하던 걸 마저 한다"
+    },
+    {
+     "trait": "chill",
+     "icon": "🚶",
+     "text": "슬슬 지겨워서 다른 데 갈까 고민 중"
+    }
+   ]
+  },
+  {
+   "day": "02:20",
+   "phase": "뜻밖의 만남",
+   "axis": "solo_social",
+   "q": "아는 사람이 들어와서 나를 발견했다",
+   "options": [
+    {
+     "trait": "solo",
+     "icon": "🙇",
+     "text": "눈인사만 짧게 하고 하던 걸로 돌아간다"
+    },
+    {
+     "trait": "social",
+     "icon": "👋",
+     "text": "자리로 부르거나 옆에 가서 한참 이야기한다"
+    }
+   ]
+  },
+  {
+   "day": "03:00",
+   "phase": "퇴장",
+   "axis": "focus_chill",
+   "q": "짐을 챙겨 나오면서 드는 생각",
+   "options": [
+    {
+     "trait": "focus",
+     "icon": "✅",
+     "text": "오늘 할 거 끝냈다, 다음은 뭐 하지"
+    },
+    {
+     "trait": "chill",
+     "icon": "📷",
+     "text": "잘 쉬었다, 사진 한 장 찍고 나온다"
+    }
+   ]
+  }
+ ],
+ "results": {
+  "solo_focus": {
+   "emoji": "💻",
+   "nick": "창가석 1인 사무실",
+   "tag": "여기가 내 자리입니다",
+   "desc": "집중이 잘 되는 자리를 정확히 알고 있고, 그 자리가 비어 있으면 그날 운세가 좋다고 느끼는 타입이에요. 카페를 쉬러 오는 곳이 아니라 일하러 오는 곳으로 씁니다. 사람들 웅성거림은 방해가 아니라 오히려 집중을 돕는 배경음이에요. 다만 누가 말을 걸면 흐름이 통째로 끊겨서, 겉으론 웃고 있어도 속으로는 방금 쓰던 문장을 붙잡고 있습니다. 음료값보다 자릿값을 내고 있다는 자각은 있어요.",
+   "opp": "social_chill",
+   "oppNote": "같이 앉으면 노트북은 장식이 됩니다. 대신 그날 쌓인 건 확실히 풀려요.",
+   "punch": "그 자리 누가 앉아 있으면 하루 망하시죠?"
+  },
+  "solo_chill": {
+   "emoji": "🌿",
+   "nick": "구석자리 충전 중",
+   "tag": "아무것도 안 하러 왔어요",
+   "desc": "할 일이 있어서 온 게 아니라 사람들 사이에 조용히 섞여 있고 싶어서 오는 타입이에요. 완전히 혼자 있는 집보다 적당히 소란한 카페가 더 편하다는 걸 이미 알고 있습니다. 창밖 보고 폰 넘기다 보면 어느새 기분이 정리돼 있어요. 아무것도 안 했는데 시간은 두 시간이 지나 있고, 그게 이 타입한테는 낭비가 아니라 정확히 목적입니다.",
+   "opp": "social_focus",
+   "oppNote": "같이 가면 쉬려던 시간이 어느새 일정 정리로 바뀌어 있어요. 혼자 있고 싶은 날엔 피하는 게 좋습니다.",
+   "punch": "집에도 의자 있는데 왜 굳이 여기서 쉬세요"
+  },
+  "social_focus": {
+   "emoji": "📝",
+   "nick": "테이블 하나 빌린 회의실",
+   "tag": "같이 앉아야 잘 된다",
+   "desc": "혼자보다 누가 옆에 있어야 진도가 나가는 타입이에요. 각자 할 일을 하더라도 같은 테이블에 앉아 있는 것만으로 덜 늘어집니다. 자리 잡고 콘센트 확인하고 일정 정리하는 것까지 자연스럽게 맡게 돼서, 모임이 있으면 은근히 중심 역할을 하고 있어요. 문제는 그 사람들이 안 나오는 날엔 카페까지 가서 폰만 보다 온다는 거죠.",
+   "opp": "solo_chill",
+   "oppNote": "같이 가면 말 걸 때마다 대화가 툭툭 끊겨요. 서운해할 일은 아니고, 원래 조용히 있으려고 온 사람입니다.",
+   "punch": "혼자 두면 아무것도 안 하시는 편이죠"
+  },
+  "social_chill": {
+   "emoji": "🗨️",
+   "nick": "네 시간짜리 수다 코스",
+   "tag": "커피는 핑계였다",
+   "desc": "카페에 온 목적이 음료도 작업도 아니라 대화인 타입이에요. 잔이 빈 지 한참인데 이야기는 계속되고, 자리를 옮겨서까지 이어지는 일도 흔합니다. 덕분에 주변 사람들은 이 사람 앞에서 유난히 말이 많아지고, 헤어질 때쯤엔 서로 꽤 가까워져 있어요. 다만 카페 사장님 입장에서는 네 시간째 아메리카노 한 잔인 손님이라는 것도 사실입니다.",
+   "opp": "solo_focus",
+   "oppNote": "같이 앉으면 상대는 웃으며 대답하지만 속으론 쓰던 문장을 붙잡고 있어요. 눈치채지 못하면 다음엔 혼자 옵니다.",
+   "punch": "커피는 핑계였다는 거 다들 알고 있어요"
+  }
+ }
+}
+</script>
+
+<script>
+const DATA = JSON.parse(document.getElementById('quiz-data').textContent);
+const Q = DATA.questions;
+const RESULTS = DATA.results;
+
+/* 카카오 개발자 > 앱 > 플랫폼 키 > JavaScript 키
+   해당 키의 [JavaScript SDK 도메인]에 이 페이지 도메인을 등록해야 작동합니다. */
+const KAKAO_JS_KEY = '7806d048aad9905e98fb7dd4217236d2';
+const OG_IMAGE = 'https://stellasaju.com/lab/og/cafe.png';
+function initKakao(){
+  if(!KAKAO_JS_KEY || !window.Kakao) return false;
+  if(!window.Kakao.isInitialized()) window.Kakao.init(KAKAO_JS_KEY);
+  return true;
+}
+
+let state = { step: -1, answers: [] };
+
+const brandTitle = document.getElementById('brandTitle');
+const card = document.getElementById('card');
+const routeBar = document.getElementById('routeBar');
+const routeFill = document.getElementById('routeFill');
+const routeDots = document.getElementById('routeDots');
+const routeCup = document.getElementById('routeCup');
+
+function buildRouteDots(){
+  routeDots.innerHTML = '';
+  for(let i=0;i<Q.length;i++) routeDots.appendChild(document.createElement('span'));
+}
+buildRouteDots();
+
+function updateRoute(step){
+  const total = Q.length;
+  const pct = total <= 1 ? 0 : (step/(total-1))*100;
+  routeFill.style.width = 'calc(' + pct + '% )';
+  routeCup.style.left = pct + '%';
+  const dots = routeDots.children;
+  for(let i=0;i<dots.length;i++){
+    dots[i].classList.remove('done','now');
+    if(i < step) dots[i].classList.add('done');
+    else if(i === step) dots[i].classList.add('now');
+  }
+}
+
+function renderIntro(){
+  brandTitle.textContent = '';
+  routeBar.style.display = 'none';
+  card.innerHTML = `
+    <div class="intro">
+      <div class="hero">☕</div>
+      <h2>${DATA.introTitle}</h2>
+      <p>${DATA.introSub}</p>
+      <button class="btn" id="startBtn">${DATA.startLabel}</button>
+    </div>
+  `;
+  document.getElementById('startBtn').onclick = () => {
+    state = { step: 0, answers: [] };
+    renderQuestion();
+  };
+}
+
+function renderQuestion(){
+  const q = Q[state.step];
+  brandTitle.textContent = DATA.brand;
+  routeBar.style.display = 'block';
+  updateRoute(state.step);
+
+  const optsHtml = q.options.map((opt, i) => `
+    <button class="opt" data-trait="${opt.trait}" data-idx="${i}">
+      <span class="tile">${opt.svg || opt.icon}</span>
+      <p>${opt.text}</p>
+    </button>
+  `).join('');
+
+  card.innerHTML = `
+    <div class="qhead">
+      <button class="backbtn" id="backBtn">← 이전</button>
+      <div class="stamp">
+        <span class="day">${q.day}</span>
+        <span class="phase">${q.phase}</span>
+      </div>
+    </div>
+    <div class="qtext">${q.q}</div>
+    <div class="options">${optsHtml}</div>
+  `;
+
+  document.getElementById('backBtn').onclick = () => {
+    if(card.dataset.locked === '1') return;
+    if(state.step === 0){
+      state = { step: -1, answers: [] };
+      renderIntro();
+    } else {
+      state.answers.pop();
+      state.step -= 1;
+      renderQuestion();
+    }
+  };
+
+  Array.from(card.querySelectorAll('.opt')).forEach(btn => {
+    btn.onclick = () => {
+      if(card.dataset.locked === '1') return;
+      card.dataset.locked = '1';
+      btn.classList.add('picked');
+      state.answers.push({ axis: q.axis, trait: btn.dataset.trait });
+      setTimeout(() => {
+        card.dataset.locked = '0';
+        if(state.step < Q.length - 1){
+          state.step += 1;
+          renderQuestion();
+        } else {
+          renderResult();
+        }
+      }, 320);
+    };
+  });
+}
+
+function computeType(){
+  const c = { solo:0, social:0, focus:0, chill:0 };
+  state.answers.forEach(a => { c[a.trait] = (c[a.trait]||0) + 1; });
+  const axis1 = c.solo  >= c.social ? 'solo'  : 'social';
+  const axis2 = c.focus >= c.chill  ? 'focus' : 'chill';
+  return axis1 + '_' + axis2;
+}
+
+function renderResult(forcedType){
+  routeBar.style.display = 'none';
+  brandTitle.textContent = '카페에서의 나';
+  const type = forcedType || computeType();
+  const r = RESULTS[type];
+  const opp = RESULTS[r.opp];
+
+  card.innerHTML = `
+    <div class="result">
+      <div class="ticket">
+        <div class="remoji">${r.emoji}</div>
+        <p class="nick">${r.nick}</p>
+        <p class="tag">${r.tag}</p>
+        <p class="punch">${r.punch}</p>
+      </div>
+      <p class="desc">${r.desc}</p>
+      <div class="opposite">
+        <div class="label">나와 정반대 유형</div>
+        <div class="name">${opp.emoji} ${opp.nick}</div>
+        <div class="note">${r.oppNote}</div>
+      </div>
+      <p class="share-title">친구는 어떤 타입일까?</p>
+      <div class="share-row">
+        <button class="share-item" id="shKakao"><span class="ic kakao">톡</span><span class="lb">카카오톡</span></button>
+        <button class="share-item" id="shX"><span class="ic x">𝕏</span><span class="lb">X</span></button>
+        <button class="share-item" id="shLink"><span class="ic link">🔗</span><span class="lb" id="lbLink">링크 복사</span></button>
+        <button class="share-item" id="shMore" style="display:none;"><span class="ic more">···</span><span class="lb">다른 앱</span></button>
+      </div>
+      <button class="btn ghost" id="retryBtn">다시 테스트하기</button>
+      <div style="margin-top:12px;">
+        <button class="backbtn" id="backFromResult" style="margin:0 auto;">← 마지막 질문 다시 보기</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('retryBtn').onclick = () => {
+    state = { step: -1, answers: [] };
+    renderIntro();
+  };
+
+  const backRes = document.getElementById('backFromResult');
+  if(state.answers.length === Q.length){
+    backRes.onclick = () => {
+      state.answers.pop();
+      state.step = Q.length - 1;
+      renderQuestion();
+    };
+  } else {
+    backRes.style.display = 'none';   /* 공유 링크로 바로 들어온 경우 */
+  }
+
+  /* ── 공유 ─────────────────────────────── */
+  const shareUrl  = location.origin + location.pathname + '?r=' + type;
+  const shareText = `카페에서 나는 '${r.nick}'`;
+
+  document.getElementById('shKakao').onclick = () => {
+    if(!initKakao()){ alert('카카오 공유는 등록된 도메인에서만 작동해요.'); return; }
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: r.nick,
+        description: shareText,
+        imageUrl: OG_IMAGE,
+        link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
+      },
+      buttons: [{ title: '나도 테스트하기', link: { mobileWebUrl: shareUrl, webUrl: shareUrl } }]
+    });
+  };
+
+  document.getElementById('shX').onclick = () => {
+    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) +
+      '&url=' + encodeURIComponent(shareUrl), '_blank', 'noopener,width=560,height=520');
+  };
+
+  const lbLink = document.getElementById('lbLink');
+  document.getElementById('shLink').onclick = () => {
+    const done = (m) => { lbLink.textContent = m; setTimeout(()=>lbLink.textContent='링크 복사', 1600); };
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(shareText + '\n' + shareUrl).then(()=>done('복사됨')).catch(()=>done('복사 실패'));
+    } else { done('복사 실패'); }
+  };
+
+  /* 인스타그램은 외부 웹에서 바로 올릴 방법이 없어 기본 공유 시트로 대체 */
+  if(navigator.share){
+    const more = document.getElementById('shMore');
+    more.style.display = 'flex';
+    more.onclick = () => navigator.share({ text: shareText, url: shareUrl }).catch(()=>{});
+  }
+}
+
+/* 공유 링크(?r=유형)로 들어오면 해당 결과를 먼저 보여줍니다 */
+const shared = new URLSearchParams(location.search).get('r');
+if(shared){ if(RESULTS[shared]){ renderResult(shared); } else { renderIntro(); } }
+else renderIntro();
+</script>
+</div>
+
+</body>
+</html>
+STELLA_LAB_HTML;
+
+	exit;
+}, 5 );
