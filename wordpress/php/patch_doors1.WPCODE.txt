@@ -102,7 +102,7 @@ add_action( 'template_redirect', function () {
 
 	/* ── 붙일 덩어리 ─────────────────────────────────── */
 	$b  = "\n" . $s . "\n<style>\n";
-	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v5 */\n";
+	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v7 */\n";
 	$b .= ".stella-fold-0909{ display:none !important; }\n";
 	/* 문 페이지에 단추를 눌러 없애는 규칙이 있어서(글씨 크기 0 같은)
 	   그대로 두면 빈 칸으로 보입니다. 하나하나 못 박습니다. */
@@ -202,7 +202,12 @@ add_action( 'template_redirect', function () {
 	$b .= "      if(!canFold(p)){ continue; }\n";
 	$b .= "      hide.push(p);\n";
 	$b .= "    }\n";
-	$b .= "    var box = smallest(BOX);\n";
+	$b .= "    /* 「이렇게 읽습니다」는 제목 한 줄이 가장 작은 덩어리라,\n";
+	$b .= "       그것만 접으면 상자 테두리가 빈 칸으로 남습니다.\n";
+	$b .= "       그래서 그 말이 든 것 가운데 60자가 넘는 가장 작은 덩어리를\n";
+	$b .= "       고릅니다. 그게 상자 자체입니다. 더 올라가면 카드가 통째로\n";
+	$b .= "       접히므로 올라가지 않습니다. */\n";
+	$b .= "    var box = smallest(BOX, LONG);\n";
 	$b .= "    if(box){ if(canFold(box)){ if(hide.indexOf(box) < 0){ hide.push(box); } } }\n";
 	$b .= "    if(!hide.length){ return; }\n";
 	$b .= "    for(i = 0; i < hide.length; i++){ hide[i].classList.add('stella-fold-0909'); }\n";
@@ -239,7 +244,7 @@ add_action( 'template_redirect', function () {
 	$b .= "  }\n";
 	$b .= "\n";
 	$b .= "  /* 그 말을 담은 가장 작은 덩어리 */\n";
-	$b .= "  function smallest(word){\n";
+	$b .= "  function smallest(word, least){\n";
 	$b .= "    var all = document.querySelectorAll('p,div,section,aside,li');\n";
 	$b .= "    var best = null;\n";
 	$b .= "    var i, t;\n";
@@ -247,6 +252,7 @@ add_action( 'template_redirect', function () {
 	$b .= "      t = all[i].textContent;\n";
 	$b .= "      if(!t){ continue; }\n";
 	$b .= "      if(t.indexOf(word) < 0){ continue; }\n";
+	$b .= "      if(t.length < least){ continue; }\n";
 	$b .= "      if(all[i].querySelector('input')){ continue; }\n";
 	$b .= "      if(best === null){ best = all[i]; continue; }\n";
 	$b .= "      if(t.length < best.textContent.length){ best = all[i]; }\n";
@@ -379,7 +385,7 @@ add_action( 'template_redirect', function () {
 		$has = ( false !== strpos( $c, $s ) );
 		$ver = '—';
 		if ( $has ) {
-			$ver = ( false !== strpos( $c, 'stella-doors1-v5' ) )
+			$ver = ( false !== strpos( $c, 'stella-doors1-v7' ) )
 				? '<span class="ok">v5 (지금 판)</span>'
 				: '<span class="no">옛 판</span>';
 		}
@@ -423,7 +429,7 @@ add_action( 'template_redirect', function () {
 	}
 	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
 
-	echo '<p class="ok">' . $done . ' 쪽을 고쳤습니다. 이제 다섯 쪽 모두 <b>v5</b> 입니다.</p>';
+	echo '<p class="ok">' . $done . ' 쪽을 고쳤습니다. 이제 다섯 쪽 모두 <b>v7</b> 입니다.</p>';
 	echo '<p>이렇게 열어보세요.</p>';
 	echo '<pre style="background:#000;padding:12px;border-left:3px solid #D4AF6A">'
 	   . "/door-love/?topic=결혼운\n"
