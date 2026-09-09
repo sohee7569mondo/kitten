@@ -436,7 +436,7 @@ add_action( 'init', function () {
   }
  },
  "introTitle": "도쿄 여행으로 알아보는 나의 MBTI",
- "introSub": "도쿄 3박 4일, 여덟 번만 고르면 내 여행 유형이 나와요"
+ "introSub": "도쿄 3박 4일, 여덟 번만 고르면 내 MBTI가 나와요"
 }
 </script>
 
@@ -532,7 +532,7 @@ add_action( 'init', function () {
 
   function renderResult(forced){
     routeBar.style.display = 'none';
-    brandTitle.textContent = '나의 도쿄 여행 유형';
+    brandTitle.textContent = '도쿄에서 알아본 내 MBTI';
     var type = forced || computeType();
     var r = RESULTS[type] || { nick:'유니크한 여행자', desc:'아직 준비 중인 결과예요.' };
 
@@ -556,7 +556,7 @@ add_action( 'init', function () {
     };
 
     var shareUrl  = location.origin + location.pathname + '?r=' + type;
-    var shareText = "내 도쿄 여행 유형은 '" + r.nick + "' (" + type + ")";
+    var shareText = "도쿄 여행으로 알아본 내 MBTI는 " + type + " — '" + r.nick + "'";
 
     card.querySelector('#stqK').onclick = function(){
       if(!initKakao()){ alert('카카오 공유는 등록된 도메인에서만 작동해요.'); return; }
