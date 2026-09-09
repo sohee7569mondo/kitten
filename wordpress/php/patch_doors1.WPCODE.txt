@@ -102,7 +102,7 @@ add_action( 'template_redirect', function () {
 
 	/* ── 붙일 덩어리 ─────────────────────────────────── */
 	$b  = "\n" . $s . "\n<style>\n";
-	$b .= "/* 문 다섯 · 2026-09-09 */\n";
+	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v5 */\n";
 	$b .= ".stella-fold-0909{ display:none !important; }\n";
 	/* 문 페이지에 단추를 눌러 없애는 규칙이 있어서(글씨 크기 0 같은)
 	   그대로 두면 빈 칸으로 보입니다. 하나하나 못 박습니다. */
@@ -363,13 +363,13 @@ add_action( 'template_redirect', function () {
 	   . '</ul>';
 
 	echo '<table><tr style="color:#D4AF6A"><td>쪽</td><td>주제 단추</td>'
-	   . '<td>미리보기</td><td>지금 어떤가</td></tr>';
+	   . '<td>미리보기</td><td>지금 들어 있는 판</td><td>할 일</td></tr>';
 
 	$plan = array();
 	foreach ( $SLUGS as $slug ) {
 		$p = get_page_by_path( $slug );
 		if ( ! $p ) {
-			echo '<tr><td>' . esc_html( $slug ) . '</td><td colspan="3" class="no">쪽 없음</td></tr>';
+			echo '<tr><td>' . esc_html( $slug ) . '</td><td colspan="4" class="no">쪽 없음</td></tr>';
 			continue;
 		}
 		$c = (string) $wpdb->get_var( $wpdb->prepare(
@@ -377,10 +377,17 @@ add_action( 'template_redirect', function () {
 		$nt  = substr_count( $c, 'name="ssg-topic"' );
 		$smp = substr_count( $c, 'class="sample"' );
 		$has = ( false !== strpos( $c, $s ) );
+		$ver = '—';
+		if ( $has ) {
+			$ver = ( false !== strpos( $c, 'stella-doors1-v5' ) )
+				? '<span class="ok">v5 (지금 판)</span>'
+				: '<span class="no">옛 판</span>';
+		}
 		echo '<tr><td><b>' . esc_html( $slug ) . '</b></td>'
 		   . '<td>' . ( $nt ? $nt . '개' : '<span class="no">없음</span>' ) . '</td>'
 		   . '<td>' . ( $smp ? '있음' : '<span class="dim">없음</span>' ) . '</td>'
-		   . '<td>' . ( $has ? '이미 들어감 → 새것으로' : '새로 붙임' ) . '</td></tr>';
+		   . '<td>' . $ver . '</td>'
+		   . '<td>' . ( $has ? '새것으로 바꿈' : '새로 붙임' ) . '</td></tr>';
 		if ( $nt > 0 ) { $plan[] = array( $p->ID, $slug, $c, $has ); }
 	}
 	echo '</table>';
@@ -416,7 +423,7 @@ add_action( 'template_redirect', function () {
 	}
 	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
 
-	echo '<p class="ok">' . $done . ' 쪽을 고쳤습니다.</p>';
+	echo '<p class="ok">' . $done . ' 쪽을 고쳤습니다. 이제 다섯 쪽 모두 <b>v5</b> 입니다.</p>';
 	echo '<p>이렇게 열어보세요.</p>';
 	echo '<pre style="background:#000;padding:12px;border-left:3px solid #D4AF6A">'
 	   . "/door-love/?topic=결혼운\n"
