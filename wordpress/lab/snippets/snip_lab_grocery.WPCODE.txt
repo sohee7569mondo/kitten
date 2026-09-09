@@ -349,7 +349,7 @@ const RESULTS = DATA.results;
 
 /* 카카오 개발자 > 앱 > 플랫폼 키 > JavaScript 키
    해당 키의 [JavaScript SDK 도메인]에 이 페이지 도메인을 등록해야 작동합니다. */
-const KAKAO_JS_KEY = '7806d048aad9905e98fb7dd4217236d2';
+const KAKAO_JS_KEY = '0051c873b18481cd74c1707105e059c1';
 const OG_IMAGE = '';   /* 1200x630 그림을 올리면 그 주소를 여기 넣으세요 */
 function initKakao(){
   if(!KAKAO_JS_KEY || !window.Kakao) return false;
