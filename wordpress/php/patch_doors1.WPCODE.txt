@@ -23,6 +23,9 @@
 
    ② 첫머리 가디언 말에서 60자가 넘는 덩어리를 접습니다.
       「이렇게 읽습니다」 상자도 같이 접습니다.
+
+      ★ 사진 · 이름 · 링크 · 입력칸이 든 덩어리는 접지 않습니다.
+        통째로 접으면 가디언 칸이 사라집니다.
       「가디언 소개 더 보기」를 누르면 펴집니다.
       맨 앞 인사말 두 줄은 그대로 보입니다.
 
@@ -163,6 +166,23 @@ add_action( 'template_redirect', function () {
 	$b .= "    return null;\n";
 	$b .= "  }\n";
 	$b .= "\n";
+	$b .= "  /* 접으면 안 되는 것을 가립니다.\n";
+	$b .= "     사진 · 이름 · 미리보기 상자가 든 덩어리는 통째로 숨으면\n";
+	$b .= "     가디언 칸이 사라집니다. */\n";
+	$b .= "  function canFold(el){\n";
+	$b .= "    if(!el){ return false; }\n";
+	$b .= "    if(el.querySelector('img')){ return false; }\n";
+	$b .= "    if(el.querySelector('h1')){ return false; }\n";
+	$b .= "    if(el.querySelector('h2')){ return false; }\n";
+	$b .= "    if(el.querySelector('input')){ return false; }\n";
+	$b .= "    if(el.querySelector('select')){ return false; }\n";
+	$b .= "    if(el.querySelector('a')){ return false; }\n";
+	$b .= "    if(el.querySelector('section')){ return false; }\n";
+	$b .= "    var t = el.textContent || '';\n";
+	$b .= "    if(t.length > 700){ return false; }\n";
+	$b .= "    return true;\n";
+	$b .= "  }\n";
+	$b .= "\n";
 	$b .= "  /* 첫머리 긴 문단 접기 */\n";
 	$b .= "  var folded = false;\n";
 	$b .= "  function fold(){\n";
@@ -179,10 +199,11 @@ add_action( 'template_redirect', function () {
 	$b .= "      }\n";
 	$b .= "      txt = (p.textContent || '').trim();\n";
 	$b .= "      if(txt.length < LONG){ continue; }\n";
+	$b .= "      if(!canFold(p)){ continue; }\n";
 	$b .= "      hide.push(p);\n";
 	$b .= "    }\n";
 	$b .= "    var box = smallest(BOX);\n";
-	$b .= "    if(box){ if(hide.indexOf(box) < 0){ hide.push(box); } }\n";
+	$b .= "    if(box){ if(canFold(box)){ if(hide.indexOf(box) < 0){ hide.push(box); } } }\n";
 	$b .= "    if(!hide.length){ return; }\n";
 	$b .= "    for(i = 0; i < hide.length; i++){ hide[i].classList.add('stella-fold-0909'); }\n";
 	$b .= "    var btn = document.createElement('button');\n";
