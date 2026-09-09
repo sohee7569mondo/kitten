@@ -102,7 +102,7 @@ add_action( 'template_redirect', function () {
 
 	/* ── 붙일 덩어리 ─────────────────────────────────── */
 	$b  = "\n" . $s . "\n<style>\n";
-	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v8 */\n";
+	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v9 */\n";
 	$b .= ".stella-fold-0909{ display:none !important; }\n";
 	/* 문 페이지에 단추를 눌러 없애는 규칙이 있어서(글씨 크기 0 같은)
 	   그대로 두면 빈 칸으로 보입니다. 하나하나 못 박습니다. */
@@ -211,8 +211,11 @@ add_action( 'template_redirect', function () {
 	$b .= "    if(box){ if(canFold(box)){ if(hide.indexOf(box) < 0){ hide.push(box); } } }\n";
 	$b .= "    if(!hide.length){ return; }\n";
 	$b .= "    for(i = 0; i < hide.length; i++){ hide[i].classList.add('stella-fold-0909'); }\n";
-	$b .= "    var btn = document.createElement('button');\n";
-	$b .= "    btn.type = 'button';\n";
+	$b .= "    /* button 태그를 쓰면 문 페이지의 단추 규칙에 잡힙니다.\n";
+	$b .= "       규칙이 손댈 수 없는 span 으로 만듭니다. */\n";
+	$b .= "    var btn = document.createElement('span');\n";
+	$b .= "    btn.setAttribute('role', 'button');\n";
+	$b .= "    btn.setAttribute('tabindex', '0');\n";
 	$b .= "    btn.className = 'stella-more-0909';\n";
 	$b .= "    btn.textContent = '가디언 소개 더 보기';\n";
 	$b .= "    /* 겉모습 규칙으로는 문 페이지의 단추 지우는 규칙을\n";
@@ -236,13 +239,18 @@ add_action( 'template_redirect', function () {
 	$b .= "    for(si = 0; si < SKIN.length; si++){\n";
 	$b .= "      btn.style.setProperty(SKIN[si][0], SKIN[si][1], 'important');\n";
 	$b .= "    }\n";
-	$b .= "    btn.addEventListener('click', function(){\n";
+	$b .= "    function toggle(){\n";
 	$b .= "      var open = hide[0].classList.contains('stella-fold-0909');\n";
 	$b .= "      for(var k = 0; k < hide.length; k++){\n";
 	$b .= "        if(open){ hide[k].classList.remove('stella-fold-0909'); }\n";
 	$b .= "        else { hide[k].classList.add('stella-fold-0909'); }\n";
 	$b .= "      }\n";
 	$b .= "      btn.textContent = open ? '접어 두기' : '가디언 소개 더 보기';\n";
+	$b .= "    }\n";
+	$b .= "    btn.addEventListener('click', toggle);\n";
+	$b .= "    btn.addEventListener('keydown', function(ev){\n";
+	$b .= "      if(ev.key === 'Enter'){ toggle(); }\n";
+	$b .= "      if(ev.key === ' '){ toggle(); }\n";
 	$b .= "    });\n";
 	$b .= "    /* 단추가 접히는 상자 안에 들어가면 단추까지 숨어서\n";
 	$b .= "       펼 방법이 없어집니다. 접히지 않는 자리에 답니다. */\n";
@@ -406,7 +414,7 @@ add_action( 'template_redirect', function () {
 		$has = ( false !== strpos( $c, $s ) );
 		$ver = '—';
 		if ( $has ) {
-			$ver = ( false !== strpos( $c, 'stella-doors1-v8' ) )
+			$ver = ( false !== strpos( $c, 'stella-doors1-v9' ) )
 				? '<span class="ok">v5 (지금 판)</span>'
 				: '<span class="no">옛 판</span>';
 		}
@@ -450,7 +458,7 @@ add_action( 'template_redirect', function () {
 	}
 	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
 
-	echo '<p class="ok">' . $done . ' 쪽을 고쳤습니다. 이제 다섯 쪽 모두 <b>v8</b> 입니다.</p>';
+	echo '<p class="ok">' . $done . ' 쪽을 고쳤습니다. 이제 다섯 쪽 모두 <b>v9</b> 입니다.</p>';
 	echo '<p>이렇게 열어보세요.</p>';
 	echo '<pre style="background:#000;padding:12px;border-left:3px solid #D4AF6A">'
 	   . "/door-love/?topic=결혼운\n"
