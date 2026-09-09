@@ -15,6 +15,10 @@
    마루 카드와 똑같은 짜임으로 벼리 카드를 지어서
    g-cols 맨 앞에 끼웁니다.
 
+   ★ 벼리 쪽은 카드가 없어서 한 칸으로 눌려 있었습니다.
+     그래서 카드가 위로 올라갑니다. 넓은 화면(901px 이상)에서
+     다른 문처럼 옆에 서도록 두 칸 짜임도 같이 넣습니다.
+
      The Lovers
      벼리
      Love and Marriage
@@ -135,8 +139,12 @@ add_action( 'template_redirect', function () {
 		}
 	}
 
-	/* 카드 알맹이 */
-	$card  = '<aside class="g-card">';
+	/* 카드 알맹이 ─ 다른 문처럼 옆에 서게 두 칸 짜임도 같이 못 박습니다.
+	   벼리 쪽은 카드가 없어서 한 칸으로 눌려 있었습니다. */
+	$card  = '<style>@media(min-width:901px){#ssg .g-cols{'
+	       . 'grid-template-columns:minmax(300px,400px) 1fr !important;'
+	       . 'align-items:start !important;}}</style>';
+	$card .= '<aside class="g-card">';
 	if ( $src ) {
 		$card .= '<div class="g-portrait"><img loading="lazy" decoding="async" src="'
 		       . esc_url( $src ) . '" alt="벼리"></div>';
