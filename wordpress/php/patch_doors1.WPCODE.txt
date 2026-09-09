@@ -102,7 +102,12 @@ add_action( 'template_redirect', function () {
 
 	/* ── 붙일 덩어리 ─────────────────────────────────── */
 	$b  = "\n" . $s . "\n<style>\n";
-	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v9 */\n";
+	$b .= "/* 문 다섯 · 2026-09-09 · stella-doors1-v10 */\n";
+	$b .= "/* 왼쪽 카드가 자리를 많이 먹어 오른쪽 입력칸이 좁았습니다 */\n";
+	$b .= "@media(min-width:901px){\n";
+	$b .= "  #ssg .g-cols{ grid-template-columns:minmax(250px,300px) 1fr !important;\n";
+	$b .= "    gap:24px !important; }\n";
+	$b .= "}\n";
 	$b .= ".stella-fold-0909{ display:none !important; }\n";
 	/* 문 페이지에 단추를 눌러 없애는 규칙이 있어서(글씨 크기 0 같은)
 	   그대로 두면 빈 칸으로 보입니다. 하나하나 못 박습니다. */
@@ -187,6 +192,18 @@ add_action( 'template_redirect', function () {
 	$b .= "  var folded = false;\n";
 	$b .= "  function fold(){\n";
 	$b .= "    if(folded){ return; }\n";
+	$b .= "    try{ foldGo(); }catch(e){ unfoldAll(); }\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function unfoldAll(){\n";
+	$b .= "    var all = document.querySelectorAll('.stella-fold-0909');\n";
+	$b .= "    var i;\n";
+	$b .= "    for(i = 0; i < all.length; i++){\n";
+	$b .= "      all[i].classList.remove('stella-fold-0909');\n";
+	$b .= "    }\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function foldGo(){\n";
 	$b .= "    var first = document.querySelector('section.step');\n";
 	$b .= "    var ps = document.querySelectorAll('p');\n";
 	$b .= "    var hide = [];\n";
@@ -270,6 +287,19 @@ add_action( 'template_redirect', function () {
 	$b .= "    if(!anchor){ anchor = hide[0]; }\n";
 	$b .= "    if(anchor.parentNode){ anchor.parentNode.insertBefore(btn, anchor); }\n";
 	$b .= "    folded = true;\n";
+	$b .= "\n";
+	$b .= "    /* 단추가 끝내 안 보이면 접은 것을 도로 펴 줍니다.\n";
+	$b .= "       글이 숨은 채로 펼 방법이 없는 것이 제일 나쁩니다. */\n";
+	$b .= "    setTimeout(function(){\n";
+	$b .= "      var seen = false;\n";
+	$b .= "      if(btn.offsetParent){ if(btn.offsetHeight > 4){ seen = true; } }\n";
+	$b .= "      if(seen){ return; }\n";
+	$b .= "      var q;\n";
+	$b .= "      for(q = 0; q < hide.length; q++){\n";
+	$b .= "        hide[q].classList.remove('stella-fold-0909');\n";
+	$b .= "      }\n";
+	$b .= "      if(btn.parentNode){ btn.parentNode.removeChild(btn); }\n";
+	$b .= "    }, 700);\n";
 	$b .= "  }\n";
 	$b .= "\n";
 	$b .= "  /* 그 말을 담은 가장 작은 덩어리 */\n";
@@ -414,7 +444,7 @@ add_action( 'template_redirect', function () {
 		$has = ( false !== strpos( $c, $s ) );
 		$ver = '—';
 		if ( $has ) {
-			$ver = ( false !== strpos( $c, 'stella-doors1-v9' ) )
+			$ver = ( false !== strpos( $c, 'stella-doors1-v10' ) )
 				? '<span class="ok">v5 (지금 판)</span>'
 				: '<span class="no">옛 판</span>';
 		}
@@ -458,7 +488,7 @@ add_action( 'template_redirect', function () {
 	}
 	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
 
-	echo '<p class="ok">' . $done . ' 쪽을 고쳤습니다. 이제 다섯 쪽 모두 <b>v9</b> 입니다.</p>';
+	echo '<p class="ok">' . $done . ' 쪽을 고쳤습니다. 이제 다섯 쪽 모두 <b>v10</b> 입니다.</p>';
 	echo '<p>이렇게 열어보세요.</p>';
 	echo '<pre style="background:#000;padding:12px;border-left:3px solid #D4AF6A">'
 	   . "/door-love/?topic=결혼운\n"
