@@ -60,7 +60,7 @@ add_action( 'template_redirect', function () {
 		if ( ! count( $stack ) ) { echo '쌓인 것이 없습니다.'; exit; }
 		$i = count( $stack );
 		foreach ( array_reverse( $stack ) as $s ) {
-			echo '  ' . $i . '. ' . $s['when'] . ' · ' . $s['name'] . ' · '
+			echo '  ' . $i . '. ' . $s['when'] . ' - ' . $s['name'] . ' - '
 			   . number_format( strlen( $s['body'] ) ) . "글자\n";
 			$i--;
 		}
@@ -74,7 +74,7 @@ add_action( 'template_redirect', function () {
 		$wpdb->update( $wpdb->posts, array( 'post_content' => $last['body'] ), array( 'ID' => $id ) );
 		clean_post_cache( $id );
 		update_post_meta( $id, $STACK, $stack );
-		echo '되돌렸습니다 — ' . $last['when'] . ' · ' . $last['name'] . "\n";
+		echo '되돌렸습니다 — ' . $last['when'] . ' - ' . $last['name'] . "\n";
 		echo '남은 판 ' . count( $stack ) . '개';
 		exit;
 	}
@@ -82,8 +82,8 @@ add_action( 'template_redirect', function () {
 	$c = (string) $wpdb->get_var( $wpdb->prepare(
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
 
-	echo "═══ 글 고치기 · " . $ROUND . " ═══\n";
-	echo '쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "글자\n";
+	echo "═══ 글 고치기 - " . $ROUND . " ═══\n";
+	echo '쪽 ' . $id . ' - ' . number_format( strlen( $c ) ) . "글자\n";
 	echo '고칠 자리 ' . count( $FIX ) . "개\n\n";
 
 	if ( ! count( $FIX ) ) {
@@ -129,7 +129,7 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 
-	if ( 'apply' !== $mode ) { echo 'preview · apply · undo · list 중에 골라주세요.'; exit; }
+	if ( 'apply' !== $mode ) { echo 'preview - apply - undo - list 중에 골라주세요.'; exit; }
 
 	$stack[] = array( 'when' => current_time( 'Y-m-d H:i' ), 'name' => $ROUND, 'body' => $c );
 	while ( count( $stack ) > 5 ) { array_shift( $stack ); }

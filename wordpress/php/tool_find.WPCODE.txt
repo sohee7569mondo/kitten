@@ -52,7 +52,7 @@ add_action( 'template_redirect', function () {
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
 
 	echo "═══ 글 찾기 ═══\n";
-	echo '쪽 ' . $id . ' (' . $slug . ') · ' . number_format( strlen( $c ) ) . "글자\n";
+	echo '쪽 ' . $id . ' (' . $slug . ') - ' . number_format( strlen( $c ) ) . "글자\n";
 	echo '찾는 말 : ' . $q . "\n\n";
 
 	$use = $q;
@@ -75,9 +75,9 @@ add_action( 'template_redirect', function () {
 		}
 		if ( '' === $found ) {
 			echo "이 말은 책 어디에도 없습니다.\n";
-			echo "· 화면에서 보신 그대로 넣으셨는지 확인해 주세요.\n";
-			echo "· 이름이나 날짜처럼 사람마다 달라지는 값은 빼고 넣어주세요.\n";
-			echo "· 가운뎃점(·)이나 따옴표(「」)는 코드에 다르게 적혀 있을 수 있습니다.";
+			echo "- 화면에서 보신 그대로 넣으셨는지 확인해 주세요.\n";
+			echo "- 이름이나 날짜처럼 사람마다 달라지는 값은 빼고 넣어주세요.\n";
+			echo "- 가운뎃점(-)이나 따옴표(「」)는 코드에 다르게 적혀 있을 수 있습니다.";
 			exit;
 		}
 		echo "통째로는 없습니다. 코드에서 잘려 있어요.\n";
@@ -115,7 +115,7 @@ add_action( 'template_redirect', function () {
 			$fwd--;
 		}
 		$line = substr_count( substr( $c, 0, $pos ), "\n" ) + 1;
-		echo "───── " . $k . "번째 · " . $line . "줄쯤 ─────\n";
+		echo "───── " . $k . "번째 - " . $line . "줄쯤 ─────\n";
 		echo substr( $c, $s, $e - $s ) . "\n";
 	}
 	if ( $k < $n ) {
