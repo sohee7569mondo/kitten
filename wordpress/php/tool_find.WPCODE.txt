@@ -1,19 +1,30 @@
-/* ════════════════════════════════════════════════════════════
-   어느 쪽에 있나 찾기 (읽기만)   ★ 2026-09-09 · 소희 님께
+/* ══════════════════════════════════════════════════════════
+   글 찾기 — 책에서 이 문장이 어디에 적혀 있는지
+   ★ 2026-09-10 · 소희 님께
 
-   아무것도 안 바꿉니다.
+   책에서 고치고 싶은 문장을 보시면, 그 문장을 그대로 여기에
+   넣어보세요. 책 안 어디에 적혀 있는지 찾아 드립니다.
 
-   고쳐야 할 말들이 사이트의 어느 쪽에 적혀 있는지 한꺼번에
-   찾습니다. 문 쪽이 첫 화면 하나뿐이라, 벼리 말도 질문도
-   카드도 다른 쪽에 있습니다. 그 쪽을 찾습니다.
+     https://stellasaju.com/?stella_find=여기에 문장
 
-   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
-   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   책의 글은 코드 안에서 여러 조각으로 잘려 있을 때가 많습니다.
+   화면에는 한 문장으로 보여도 코드에는
 
-   찾기   https://stellasaju.com/?stella_find=1
+       '올해는 벌여둔 것을 '+
+       '내보내는 해입니다.'
 
-   ★ 브라우저 번역을 끄고 여세요.
-   ════════════════════════════════════════════════════════════ */
+   처럼 나뉘어 있는 식이에요. 그래서 통째로 못 찾으면 앞에서부터
+   한 글자씩 줄여가며 찾히는 가장 긴 조각을 알려드립니다.
+   그 조각이 제가 고칠 때 쓰는 손잡이가 됩니다.
+
+   쓰는 법
+     ?stella_find=올해는 벌여둔 것을        ← 그냥 문장
+     ?stella_find=올해는&n=5                ← 앞뒤로 더 넓게 (기본 3)
+     ?stella_find=올해는&all=1              ← 나온 자리를 전부
+
+   ★ 사람마다 달라지는 값(이름 · 날짜 · 별자리)은 빼고 넣으세요.
+     「소희님은 물의 기운이」 대신 「의 기운이」처럼요.
+   ══════════════════════════════════════════════════════════ */
 
 add_action( 'template_redirect', function () {
 
@@ -21,89 +32,94 @@ add_action( 'template_redirect', function () {
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
 
-	header( 'Content-Type: text/html; charset=utf-8' );
-	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
-	   . '<style>body{background:#12101B;color:#F2ECE0;'
-	   . 'font-family:-apple-system,sans-serif;line-height:1.75;'
-	   . 'padding:30px 20px;max-width:1000px;margin:0 auto}'
-	   . 'h1{color:#D4AF6A;font-size:1.3rem;margin:0 0 16px}'
-	   . 'h2{color:#9AD1A5;font-size:.98rem;margin:24px 0 6px;'
-	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
-	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
-	   . 'table{border-collapse:collapse;width:100%;margin:6px 0 0}'
-	   . 'td{padding:5px 9px;border-bottom:1px solid rgba(255,255,255,.08);'
-	   . 'font-size:.88rem}b{color:#F0D9A8}'
-	   . 'code{background:rgba(212,175,106,.12);padding:2px 5px;border-radius:3px}'
-	   . '</style>';
+	$q = (string) wp_unslash( $_GET['stella_find'] );
+	$q = trim( $q );
+	if ( '' === $q ) { echo '찾을 말을 넣어주세요.'; exit; }
 
-	$rows = $wpdb->get_results(
-		"SELECT ID, post_name, post_title, LENGTH(post_content) AS len
-		   FROM {$wpdb->posts}
-		  WHERE post_status = 'publish'
-		    AND post_type IN ('page','post')
-		  ORDER BY len DESC
-		  LIMIT 300" );
+	$wide = 3;
+	if ( isset( $_GET['n'] ) ) { $wide = max( 1, min( 12, (int) $_GET['n'] ) ); }
+	$all = isset( $_GET['all'] );
 
-	if ( ! $rows ) { echo '<h1 class="no">쪽을 못 읽었습니다.</h1>'; exit; }
+	$slug = 'reading-book';
+	if ( isset( $_GET['slug'] ) ) { $slug = sanitize_title( wp_unslash( $_GET['slug'] ) ); }
+	$page = get_page_by_path( $slug );
+	if ( ! $page ) { echo $slug . ' 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
 
-	echo '<h1>어느 쪽에 있나 · 쪽 ' . count( $rows ) . '개를 뒤졌습니다</h1>';
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
 
-	$keys = array(
-		'맞고 틀리는',
-		'세 장을 뽑',
-		'에게 보내기',
-		'완성본 미리보기',
-		'진태양시',
-		'내 전자책',
-		'시험판',
-		'계산 근거',
-		'여섯 달',
-		'만지는 카드',
-		'어느 자리가 마음에',
-		'후기 보내기',
-		'이 책, 어떠셨어요',
-		'태어난 도시',
-		'묻고 싶은',
-	);
+	echo "═══ 글 찾기 ═══\n";
+	echo '쪽 ' . $id . ' (' . $slug . ') · ' . number_format( strlen( $c ) ) . "글자\n";
+	echo '찾는 말 : ' . $q . "\n\n";
 
-	/* 쪽마다 한 번만 읽습니다 */
-	$body = array();
-	foreach ( $rows as $r ) {
-		$one = $wpdb->get_var( $wpdb->prepare(
-			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $r->ID ) );
-		$body[ $r->ID ] = (string) $one;
-	}
+	$use = $q;
+	$n   = substr_count( $c, $use );
 
-	foreach ( $keys as $k ) {
-		echo '<h2>' . esc_html( $k ) . '</h2>';
-		$hit = '';
-		foreach ( $rows as $r ) {
-			$n = substr_count( $body[ $r->ID ], $k );
-			if ( $n < 1 ) { continue; }
-			$hit .= '<tr><td><b>' . esc_html( $r->post_name ) . '</b></td>'
-			      . '<td>' . esc_html( mb_substr( $r->post_title, 0, 24 ) ) . '</td>'
-			      . '<td>' . (int) $r->ID . '</td>'
-			      . '<td>' . $n . ' 군데</td></tr>';
+	if ( 0 === $n ) {
+		/* 통째로 없으면 뒤에서 한 글자씩 잘라가며 가장 긴 조각을 찾습니다 */
+		$len = mb_strlen( $q, 'UTF-8' );
+		$found = '';
+		for ( $i = $len; $i >= 4; $i-- ) {
+			$try = mb_substr( $q, 0, $i, 'UTF-8' );
+			if ( substr_count( $c, $try ) > 0 ) { $found = $try; break; }
 		}
-		if ( '' === $hit ) { echo '<p class="dim">어느 쪽에도 없습니다.</p>'; }
-		else { echo '<table>' . $hit . '</table>'; }
+		if ( '' === $found ) {
+			/* 앞에서도 잘라봅니다 */
+			for ( $i = 1; $i < $len - 3; $i++ ) {
+				$try = mb_substr( $q, $i, $len - $i, 'UTF-8' );
+				if ( substr_count( $c, $try ) > 0 ) { $found = $try; break; }
+			}
+		}
+		if ( '' === $found ) {
+			echo "이 말은 책 어디에도 없습니다.\n";
+			echo "· 화면에서 보신 그대로 넣으셨는지 확인해 주세요.\n";
+			echo "· 이름이나 날짜처럼 사람마다 달라지는 값은 빼고 넣어주세요.\n";
+			echo "· 가운뎃점(·)이나 따옴표(「」)는 코드에 다르게 적혀 있을 수 있습니다.";
+			exit;
+		}
+		echo "통째로는 없습니다. 코드에서 잘려 있어요.\n";
+		echo '찾은 조각 : ' . $found . "\n";
+		echo '이 조각이 ' . substr_count( $c, $found ) . "군데 있습니다.\n\n";
+		$use = $found;
+		$n   = substr_count( $c, $use );
+	} else {
+		echo $n . "군데 있습니다.\n\n";
 	}
 
-	echo '<h2>제일 큰 쪽 스무 개</h2>';
-	$t = '';
-	$i = 0;
-	foreach ( $rows as $r ) {
-		$i++;
-		if ( $i > 20 ) { break; }
-		$t .= '<tr><td><b>' . esc_html( $r->post_name ) . '</b></td>'
-		    . '<td>' . esc_html( mb_substr( $r->post_title, 0, 26 ) ) . '</td>'
-		    . '<td>' . (int) $r->ID . '</td>'
-		    . '<td>' . number_format( (int) $r->len ) . '</td></tr>';
-	}
-	echo '<table>' . $t . '</table>';
-	echo '<p class="dim">이 가운데 어느 쪽을 더 들여다볼지는 제가 고르겠습니다. '
-	   . '자세히 보려면 <code>?stella_bk9=쪽이름</code> 을 쓰시면 됩니다.</p>';
+	$max = $all ? 8 : 3;
+	$pos = -1;
+	$k   = 0;
+	while ( $k < $max ) {
+		$pos = strpos( $c, $use, $pos + 1 );
+		if ( false === $pos ) { break; }
+		$k++;
 
+		/* 앞뒤로 줄 단위로 넓혀서 보여줍니다 */
+		$s = $pos;
+		$e = $pos + strlen( $use );
+		$back = $wide;
+		while ( $back > 0 ) {
+			$p = strrpos( substr( $c, 0, $s ), "\n" );
+			if ( false === $p ) { $s = 0; break; }
+			$s = $p;
+			$back--;
+		}
+		$fwd = $wide;
+		while ( $fwd > 0 ) {
+			$p = strpos( $c, "\n", $e );
+			if ( false === $p ) { $e = strlen( $c ); break; }
+			$e = $p + 1;
+			$fwd--;
+		}
+		$line = substr_count( substr( $c, 0, $pos ), "\n" ) + 1;
+		echo "───── " . $k . "번째 · " . $line . "줄쯤 ─────\n";
+		echo substr( $c, $s, $e - $s ) . "\n";
+	}
+	if ( $k < $n ) {
+		echo "\n( 나머지 " . ( $n - $k ) . "군데는 안 보여드렸습니다. 전부 보시려면 뒤에 " . '&all=1' . " 을 붙이세요 )";
+	}
 	exit;
-}, 0 );
+}, 1 );

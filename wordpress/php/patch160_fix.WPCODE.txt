@@ -1,0 +1,144 @@
+/* ══════════════════════════════════════════════════════════
+   글 고치기 — 이 스니펫 하나로 계속 씁니다
+   ★ 2026-09-10 · 소희 님께
+
+   앞으로 책 글을 고칠 때는 새 스니펫을 만들지 않습니다.
+   ★ 이 스니펫 하나를 계속 덮어쓰기만 하시면 됩니다. ★
+
+   쓰는 법
+     1. 책을 읽으시다 고칠 데를 보시면 저에게 알려주세요.
+        「이 문장을 이렇게」 하고 그대로 적어주시면 됩니다.
+     2. 제가 아래 목록을 채워서 보내드립니다.
+     3. 소희 님은 WPCode 에서 이 스니펫을 열어 통째로 붙여넣고
+        저장하신 뒤, 주소창에 ?stella_fix=preview 를 쳐보세요.
+     4. 다 「찾음」이라고 나오면 ?stella_fix=apply
+     5. 마음에 안 들면 ?stella_fix=undo — 바로 앞 판으로 돌아갑니다.
+        되돌리기는 다섯 판까지 쌓아둡니다.
+
+   주소
+     해보기   https://stellasaju.com/?stella_fix=preview
+     붙이기   https://stellasaju.com/?stella_fix=apply
+     되돌리기 https://stellasaju.com/?stella_fix=undo
+     쌓인 것  https://stellasaju.com/?stella_fix=list
+
+   ★ 스니펫 이름은 「STELLA - 글 고치기」 하나로 두세요.
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_fix'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode  = sanitize_text_field( wp_unslash( $_GET['stella_fix'] ) );
+	$STACK = '_stella_fix_stack';
+	$ROUND = '2026-09-10 첫 판';
+
+	/* ══ 여기부터 · 고칠 목록 ══════════════════════════════
+	   array( '이름', '지금 글', '바꿀 글' )
+	   ★ 지금 글은 화면에 보이는 그대로가 아니라, ?stella_find= 으로
+	     찾은 조각을 씁니다. 코드에서 문장이 잘려 있을 때가 많아서요. */
+	$FIX = array(
+
+		/* 아직 비어 있습니다. 고치실 데를 알려주시면 채워 드립니다. */
+
+	);
+	/* ══ 여기까지 ═══════════════════════════════════════════ */
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$stack = get_post_meta( $id, $STACK, true );
+	if ( ! is_array( $stack ) ) { $stack = array(); }
+
+	if ( 'list' === $mode ) {
+		echo "═══ 되돌릴 수 있는 판 ═══\n";
+		if ( ! count( $stack ) ) { echo '쌓인 것이 없습니다.'; exit; }
+		$i = count( $stack );
+		foreach ( array_reverse( $stack ) as $s ) {
+			echo '  ' . $i . '. ' . $s['when'] . ' · ' . $s['name'] . ' · '
+			   . number_format( strlen( $s['body'] ) ) . "글자\n";
+			$i--;
+		}
+		echo "\n?stella_fix=undo 를 치면 맨 위 것부터 하나씩 돌아갑니다.";
+		exit;
+	}
+
+	if ( 'undo' === $mode ) {
+		if ( ! count( $stack ) ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$last = array_pop( $stack );
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $last['body'] ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		update_post_meta( $id, $STACK, $stack );
+		echo '되돌렸습니다 — ' . $last['when'] . ' · ' . $last['name'] . "\n";
+		echo '남은 판 ' . count( $stack ) . '개';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo "═══ 글 고치기 · " . $ROUND . " ═══\n";
+	echo '쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "글자\n";
+	echo '고칠 자리 ' . count( $FIX ) . "개\n\n";
+
+	if ( ! count( $FIX ) ) {
+		echo "목록이 비어 있습니다.\n";
+		echo "고치실 데를 알려주시면 채워 드리겠습니다.";
+		exit;
+	}
+
+	$todo = array();
+	$done = 0;
+	$miss = 0;
+	foreach ( $FIX as $r ) {
+		list( $nm, $old, $new ) = $r;
+		$got = substr_count( $c, $old );
+		if ( $got > 0 ) {
+			echo sprintf( "  %-22s 찾음 %d군데\n", $nm, $got );
+			$todo[] = $r;
+			continue;
+		}
+		if ( substr_count( $c, $new ) > 0 ) {
+			echo sprintf( "  %-22s 이미 고쳐져 있습니다\n", $nm );
+			$done++;
+			continue;
+		}
+		echo sprintf( "  %-22s ★ 못 찾았습니다 — 건너뜁니다\n", $nm );
+		$miss++;
+	}
+
+	if ( ! count( $todo ) ) {
+		if ( $done ) { echo "\n이미 다 고쳐져 있습니다."; }
+		else { echo "\n하나도 못 찾았습니다. 아무것도 안 바꿨습니다.\n?stella_find= 으로 지금 글을 다시 확인해 주세요."; }
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $todo as $r ) { $new = str_replace( $r[1], $r[2], $new ); }
+
+	if ( 'preview' === $mode ) {
+		echo "\n" . count( $todo ) . "자리를 고칩니다";
+		if ( $miss ) { echo ' (못 찾은 ' . $miss . '자리는 건너뜁니다)'; }
+		echo ".\n" . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
+		echo "\n괜찮으시면 ?stella_fix=apply\n";
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) { echo 'preview · apply · undo · list 중에 골라주세요.'; exit; }
+
+	$stack[] = array( 'when' => current_time( 'Y-m-d H:i' ), 'name' => $ROUND, 'body' => $c );
+	while ( count( $stack ) > 5 ) { array_shift( $stack ); }
+	update_post_meta( $id, $STACK, $stack );
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n고쳤습니다. " . count( $todo ) . "자리.\n";
+	echo "되돌리려면 ?stella_fix=undo\n";
+	exit;
+}, 1 );
