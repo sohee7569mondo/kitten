@@ -44,15 +44,37 @@ add_action( 'template_redirect', function () {
 	if ( ! $page ) { wp_die( 'reading-book 쪽을 못 찾았습니다.', '스텔라', array( 'response' => 200 ) ); }
 	$PID = $page->ID;
 
-	/* 주제 — 문 여섯이 내놓는 것들 */
-	$TOPICS = array(
-		'벼리 · 연애와 결혼' => array( '연애운', '재회운', '결혼운', '이별운', '짝사랑', '궁합' ),
-		'마루 · 일과 돈'     => array( '직업운', '재물운', '이직운', '퇴사운', '직장운', '사업운' ),
-		'아람 · 건강과 가족' => array( '건강운', '가족운' ),
-		'미르 · 흐름과 시기' => array( '시기운', '대운', '인생총운 · 말년' ),
-		'아라 · 점성술'      => array( '별자리로 보는 나', '별자리와 사주' ),
-		'아르카나 · 타로'    => array( '오늘의 선택' ),
+	/* 주제 — 문 여섯 쪽에서 그대로 읽어옵니다 (2026-09-10)
+	   전에는 여기에 주제 이름을 손으로 적어뒀습니다. 그런데 문을
+	   고칠 때마다 표가 어긋나서, 「신년운세」는 고를 칸이 아예
+	   없고 「시기운」처럼 문에 없는 이름에 사진이 붙어 있었습니다.
+	   이제 문에서 직접 읽으니 다시는 어긋나지 않습니다.
+	   ★ 아르카나는 주제 고르는 칸이 없어서 저절로 빠집니다. */
+	$DOORS = array(
+		'door-love'    => '벼리 · 연애와 결혼',
+		'door-career'  => '마루 · 일과 돈',
+		'door-health'  => '아람 · 건강과 가족',
+		'door-fortune' => '미르 · 흐름과 시기',
+		'door-astro'   => '아라 · 점성술',
+		'door-tarot'   => '아르카나 · 타로',
 	);
+	$TOPICS = array();
+	foreach ( $DOORS as $dslug => $dlabel ) {
+		$dp = get_page_by_path( $dslug );
+		if ( ! $dp ) { continue; }
+		$dc = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $dp->ID ) );
+		$dlist = array();
+		if ( preg_match_all( '/name="ssg-topic"[^>]*value="([^"]+)"/u', $dc, $dm ) ) {
+			foreach ( $dm[1] as $dv ) {
+				$dv = trim( $dv );
+				if ( '' === $dv ) { continue; }
+				if ( in_array( $dv, $dlist, true ) ) { continue; }
+				$dlist[] = $dv;
+			}
+		}
+		if ( $dlist ) { $TOPICS[ $dlabel ] = $dlist; }
+	}
 
 	$pics = get_option( $OPT );
 	if ( ! is_array( $pics ) ) { $pics = array(); }
@@ -222,6 +244,22 @@ add_action( 'template_redirect', function () {
 		. '아치 모양으로 미리 오려두실 필요 없습니다 — 네모 사진도 화면에서 아치로 오립니다. '
 		. '세로로 긴 사진(3:4쯤)이 제일 잘 맞습니다. '
 		. '안 고른 주제는 지금처럼 글자만 나옵니다.</p>';
+
+	/* 문에 없는 주제에 붙어 있는 사진 — 헛돌고 있습니다 */
+	$orphan = array();
+	foreach ( $pics as $ot => $ou ) {
+		$found = false;
+		foreach ( $TOPICS as $olist ) {
+			if ( in_array( $ot, $olist, true ) ) { $found = true; break; }
+		}
+		if ( ! $found ) { $orphan[] = $ot; }
+	}
+	if ( $orphan ) {
+		echo '<p style="color:#E5A0A0">★ 문에 없는 주제에 붙어 있는 사진 : <b>'
+			. esc_html( implode( ' · ', $orphan ) ) . '</b><br>'
+			. '이 사진들은 <b>아무 책에도 안 나옵니다.</b> 아래에서 맞는 주제에 다시 골라주세요. '
+			. '(문에서 주제 이름이 바뀌었거나, 그 주제가 없어진 것입니다)</p>';
+	}
 
 	if ( $saved ) {
 		printf( '<p class="ok">%d 개를 저장하고 책에 넣었습니다. '
