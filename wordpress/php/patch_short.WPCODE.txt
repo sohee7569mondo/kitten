@@ -66,8 +66,9 @@ add_action( 'wp_footer', function () {
 
   var css = document.createElement('style');
   css.textContent =
+    /* 쪽이 밤하늘이든 종이든 묻히지 않게, 그 쪽 글씨색을 그대로 씁니다 */
     '#ssq .stskip{ display:block; margin:14px auto 0; background:none; border:0;' +
-    '  color:rgba(255,255,255,.58); font-size:.88rem; text-decoration:underline;' +
+    '  color:inherit; opacity:.72; font-size:.88rem; text-decoration:underline;' +
     '  cursor:pointer; padding:6px 10px; font-family:inherit; }' +
     '#ssq .stskip:disabled{ opacity:.45; text-decoration:none; cursor:default; }';
   document.head.appendChild(css);
