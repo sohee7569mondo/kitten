@@ -1,0 +1,102 @@
+/* ════════════════════════════════════════════════════════════
+   새 로고로 갈아 끼우기 — 머리말 · 바닥글
+   ★ 2026-09-10 · 소희 님께
+
+   지금 것
+     .../2026/08/ed8380ec9db4ed8b80-ebb0b0eab2bd-....jpg   339 × 156
+     jpg 라서 바탕이 흰 네모입니다. 밤하늘 위에 흰 네모가 얹혀
+     있으니 또렷해 보일 수가 없습니다.
+
+   새 것
+     .../2026/09/스텔라-사주-로고-02.png                    193 × 50
+     png 라 바탕이 비어 있습니다. 별과 글자만 뜹니다.
+
+   머리말도 바닥글도 바탕이 #0D0A1A 밤하늘이라 둘 다 흰색 판을
+   씁니다.
+
+   ★ 테마 파일을 고치지 않습니다. 화면에 그려질 때 주소만
+     바꿔치기합니다. 스니펫을 끄면 그 즉시 옛 로고로 돌아옵니다.
+
+   ★ 바닥글은 원래 250px 로 늘려 쓰고 있었습니다. 193px 짜리를
+     250 으로 늘리면 뭉개지니 193 을 넘지 않게 눌러둡니다.
+
+   살펴보기 https://stellasaju.com/?stella_logo=1
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+function stella_logo_old() {
+	return 'ed8380ec9db4ed8b80-ebb0b0eab2bd-e1787130049600.jpg';
+}
+function stella_logo_new() {
+	return '%EC%8A%A4%ED%85%94%EB%9D%BC-%EC%82%AC%EC%A3%BC-%EB%A1%9C%EA%B3%A0-02.png';
+}
+
+/** 옛 주소를 새 주소로. 크기 표시도 같이 고칩니다. */
+function stella_logo_swap( $html ) {
+
+	$old = 'https://stellasaju.com/wp-content/uploads/2026/08/' . stella_logo_old();
+	$new = 'https://stellasaju.com/wp-content/uploads/2026/09/' . stella_logo_new();
+
+	$html = str_replace( $old, $new, $html );
+
+	/* 옛 그림은 339 × 156 이었습니다. 새 것은 193 × 50 이라
+	   그대로 두면 세로로 늘어납니다. */
+	$html = str_replace( 'width="339" height="156"', 'width="193" height="50"', $html );
+
+	return $html;
+}
+
+add_filter( 'render_block', function ( $html, $block ) {
+	if ( false === strpos( $html, stella_logo_old() ) ) { return $html; }
+	return stella_logo_swap( $html );
+}, 10, 2 );
+
+/* 바닥글이 193 을 넘어 늘어나지 않게 */
+add_action( 'wp_head', function () {
+	echo '<style>'
+	   . '#ss-footer .ssf-logo{ width:193px !important; max-width:70% !important; height:auto !important; border-radius:0 !important; }'
+	   . '#ss-nav .ssnav-logo img{ border-radius:0 !important; }'
+	   . '</style>' . "\n";
+}, 99 );
+
+
+/* ── 살펴보기 ── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_logo'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	echo "═══ 로고 ═══\n\n";
+	echo "옛 것  .../2026/08/" . stella_logo_old() . "   339 × 156  (jpg · 흰 네모)\n";
+	echo "새 것  .../2026/09/스텔라-사주-로고-02.png      193 × 50   (png · 바탕 없음)\n\n";
+
+	echo "── 미디어에 올라온 로고 넷 ──\n";
+	$q = new WP_Query( array(
+		'post_type'      => 'attachment',
+		'post_status'    => 'inherit',
+		'posts_per_page' => 20,
+		's'              => 'stellasaju',
+	) );
+	foreach ( $q->posts as $a ) {
+		$m = wp_get_attachment_metadata( $a->ID );
+		echo sprintf( "  %-4d %-26s %sx%s\n", $a->ID, $a->post_title,
+			isset( $m['width'] ) ? $m['width'] : '?',
+			isset( $m['height'] ) ? $m['height'] : '?' );
+	}
+
+	echo "\n── 어디에 박혀 있나 ──\n";
+	echo "  머리말 #ss-nav .ssnav-logo img   높이 48px (모바일 38px)\n";
+	echo "  바닥글 #ss-footer .ssf-logo      너비 250px → 193px 으로 눌러둡니다\n";
+
+	echo "\n★ 새 파일이 193 × 50 이라, 머리말(48px)에서는 거의 1대1 입니다.\n";
+	echo "  요즘 휴대폰은 점이 두세 배 촘촘해서 이대로는 뿌옇습니다.\n";
+	echo "  580 × 150 으로 다시 뽑아 같은 이름으로 덮어씌우시면\n";
+	echo "  코드는 그대로 두고 또렷해집니다.\n";
+
+	echo "\n되돌리려면 이 스니펫 스위치를 끄시면 됩니다.\n";
+	exit;
+}, 1 );
