@@ -1,0 +1,88 @@
+/* ════════════════════════════════════════════════════════════
+   스니펫 속에서 말 찾기 — 보기만 하는 도구
+   ★ 2026-09-10 · 소희 님께
+
+   스니펫이 252개나 됩니다. 어느 스니펫에 무엇이 들어 있는지
+   눈으로 찾으실 필요 없습니다. 아무것도 안 바꿉니다.
+
+   찾기      https://stellasaju.com/?stella_snip=stella_pay_packs
+   앞뒤 넓게  ...&n=600
+   이름만     ...&list=1
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_snip'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$want = (string) wp_unslash( $_GET['stella_snip'] );
+	$want = trim( $want );
+	$N    = isset( $_GET['n'] ) ? max( 80, min( 4000, (int) $_GET['n'] ) ) : 260;
+	$only = isset( $_GET['list'] );
+
+	if ( '' === $want ) { echo '찾을 말을 적어주세요.'; exit; }
+
+	$snips = get_posts( array(
+		'post_type'      => 'wpcode',
+		'post_status'    => 'any',
+		'posts_per_page' => 500,
+	) );
+
+	echo '═══ 「' . $want . '」 를 스니펫 ' . count( $snips ) . "개에서 찾습니다 ═══\n\n";
+
+	$hit = 0;
+
+	foreach ( $snips as $sn ) {
+
+		$code = (string) $sn->post_content;
+		if ( false === strpos( $code, $want ) ) { continue; }
+
+		$hit++;
+		$n = substr_count( $code, $want );
+
+		/* 켜져 있는지 */
+		$on = $sn->post_status;
+		foreach ( (array) get_post_meta( $sn->ID ) as $k => $v ) {
+			if ( false === strpos( $k, 'active' ) ) { continue; }
+			$val = is_array( $v ) ? reset( $v ) : $v;
+			if ( is_array( $val ) ) { $val = wp_json_encode( $val ); }
+			$on .= '  ' . $k . '=' . (string) $val;
+		}
+
+		echo '── 스니펫 ' . $sn->ID . ' · ' . $sn->post_title . " ──\n";
+		echo '   ' . $on . '   ·   ' . $n . "군데   ·   전체 " . number_format( strlen( $code ) ) . "글자\n\n";
+
+		if ( $only ) { echo "\n"; continue; }
+
+		$from = 0;
+		$c    = 0;
+		while ( $c < 5 ) {
+			$at = strpos( $code, $want, $from );
+			if ( false === $at ) { break; }
+			$s   = max( 0, $at - (int) ( $N / 3 ) );
+			$cut = substr( $code, $s, $N );
+			echo "   [" . $at . "]\n";
+			echo "   ----------------------------------------\n";
+			foreach ( explode( "\n", $cut ) as $line ) {
+				echo '   ' . rtrim( $line ) . "\n";
+			}
+			echo "   ----------------------------------------\n\n";
+			$from = $at + strlen( $want );
+			$c++;
+		}
+	}
+
+	if ( ! $hit ) {
+		echo "아무 스니펫에도 없습니다.\n";
+		echo "쪽(페이지) 안에 있는 말일 수도 있습니다 — 그럴 때는\n";
+		echo "?stella_grab=말&slug=쪽이름 을 쓰세요.\n";
+	} else {
+		echo '═══ 스니펫 ' . $hit . "개에서 찾았습니다 ═══\n";
+	}
+	exit;
+}, 1 );
