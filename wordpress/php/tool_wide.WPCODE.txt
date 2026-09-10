@@ -2,7 +2,8 @@
    문이 왜 안 넓어지나 — 재기만 하는 도구
    ★ 2026-09-10 · 소희 님께
 
-   문이 1200px 까지 넓어져야 하는데 758px 쯤에서 멈춥니다.
+   문이 1200px 까지 넓어져야 하는데 758px 쯤에서 멈추고,
+   책은 왼쪽으로 치우쳐 있습니다.
    CSS 를 더 얹기 전에 <b>어느 상자가 붙잡고 있는지</b> 먼저
    재야 합니다. 짐작으로 얹으면 또 어긋납니다.
 
@@ -10,7 +11,9 @@
    안쪽여백 · 바깥여백을 화면 아래에 표로 띄웁니다.
 
    보기   https://stellasaju.com/door-love/?stella_wide=1
-          (문이면 어느 쪽이든 됩니다)
+          https://stellasaju.com/reading-book/?stella_wide=1
+          그 쪽에 있는 뿌리(#ssg #ssb #ssr #ssq #ssv #ssm)를
+          알아서 찾습니다. 콕 집으려면 &root=ssb 처럼 붙이세요.
 
    ★ 아무것도 안 바꿉니다. 주소에 stella_wide 가 없으면
      아무 일도 안 합니다.
@@ -28,7 +31,22 @@ add_action( 'wp_footer', function () {
 	echo <<<'STELLA_WIDE_JS'
 
 (function(){
-  var g = document.getElementById('ssg');
+  /* 어느 쪽을 잴지 — 주소에 &root=ssb 처럼 붙이면 그것을 잽니다 */
+  var want = '';
+  var q = String(location.search || '');
+  var m = q.match(/[?&]root=([A-Za-z0-9_-]+)/);
+  if(m){ want = m[1]; }
+
+  var g = null;
+  if(want){ g = document.getElementById(want); }
+  if(!g){
+    var ids = ['ssg','ssb','ssr','ssq','ssv','ssa','ssm','ssi'];
+    var k;
+    for(k = 0; k < ids.length; k++){
+      g = document.getElementById(ids[k]);
+      if(g){ break; }
+    }
+  }
   if(!g){ return; }
 
   var rows = [];
@@ -61,7 +79,7 @@ add_action( 'wp_footer', function () {
     'border-top:2px solid #D4AF6A;';
 
   var h = '<div style="color:#D4AF6A;font-weight:700;margin-bottom:8px">' +
-          '문 넓이 재기 · 창 ' + window.innerWidth + 'px</div>' +
+          '넓이 재기 · #' + g.id + ' · 창 ' + window.innerWidth + 'px</div>' +
           '<table style="width:100%;border-collapse:collapse">' +
           '<tr style="color:#D4AF6A">' +
           '<td>깊이</td><td>무엇</td><td style="text-align:right">넓이</td>' +
@@ -82,7 +100,8 @@ add_action( 'wp_footer', function () {
   }
   h += '</table>';
   h += '<div style="margin-top:9px;color:rgba(242,236,224,.6)">' +
-       '붉은 줄이 문과 같은 넓이입니다. 그 가운데 <b>제일 바깥쪽 것</b>이 붙잡고 있는 상자예요.</div>';
+       '붉은 줄이 잰 것과 같은 넓이입니다. 그 가운데 <b>제일 바깥쪽 것</b>이 붙잡고 있는 상자예요.' +
+       '<br>바깥여백이 <b>0px / 0px</b> 인데 넓이가 창보다 작으면, 가운데로 미는 것이 없다는 뜻입니다.</div>';
 
   box.innerHTML = h;
   document.body.appendChild(box);
