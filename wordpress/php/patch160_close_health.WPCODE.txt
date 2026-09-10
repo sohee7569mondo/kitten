@@ -35,6 +35,11 @@
    맺음말 다음 장의 배웅 한 줄도 아람에는 없었습니다.
    여섯 주제마다 다른 한 줄을 넣었습니다.
 
+   ── 빗장도 같이 엽니다 ──────────────────────────────
+   재보니 주제별 맺음말은 벼리와 마루만 보게 빗장이 걸려
+   있었습니다(DOOR_TOPICS). 아람을 그 목록에 넣지 않으면
+   여섯 자리를 채워도 안 읽힙니다. 그 한 줄도 같이 고칩니다.
+
    ★ 이미 사신 책도 같이 바뀝니다. 책은 볼 때마다 그 자리에서
      다시 짜이기 때문에, 옛 책을 다시 열면 새 글로 읽힙니다.
 
@@ -76,6 +81,11 @@ add_action( 'template_redirect', function () {
 
 	$ANCHOR = "  function closeOf(){";
 	$MARK   = "아람 · 건강과 가족 여섯 주제 맺음말";
+
+	/* 빗장 — 지금은 벼리와 마루만 주제별 글을 보게 되어 있습니다.
+	   아람을 그 목록에 넣지 않으면 아래 여섯 자리를 넣어도 안 읽힙니다. */
+	$GATE_OLD = "'door-career':['취업운','직장운','이직운','퇴사운','사업운','재물운']";
+	$GATE_NEW = "'door-career':['취업운','직장운','이직운','퇴사운','사업운','재물운'],\n    'door-health':['건강운','체질','가족운','부모운','자녀운','형제운']";
 
 	$BLOCK = <<<'STELLAJS'
   /* ═══ 아람 · 건강과 가족 여섯 주제 맺음말 (2026-09-10) ═══
@@ -223,12 +233,19 @@ STELLAJS;
 		exit;
 	}
 
-	$n = substr_count( $c, $ANCHOR );
+	$n  = substr_count( $c, $ANCHOR );
+	$ng = substr_count( $c, $GATE_OLD );
 	echo sprintf( "  %-18s %d군데\n", '맺음말 고르는 자리', $n );
+	echo sprintf( "  %-18s %d군데\n", '주제별 글 빗장', $ng );
 
 	if ( 1 !== $n ) {
-		echo "\n한 군데가 아니라 아무것도 안 바꿨습니다.\n";
+		echo "\n맺음말 자리가 한 군데가 아니라 아무것도 안 바꿨습니다.\n";
 		echo "책의 그 자리가 어떻게 생겼는지 보시려면 ?stella_closeh=find";
+		exit;
+	}
+	if ( 1 !== $ng ) {
+		echo "\n빗장 자리가 한 군데가 아니라 아무것도 안 바꿨습니다.\n";
+		echo "이 자리를 못 고치면 여섯 자리를 넣어도 안 읽힙니다.";
 		exit;
 	}
 
@@ -238,7 +255,8 @@ STELLAJS;
 		exit;
 	}
 
-	$new = str_replace( $ANCHOR, $BLOCK . $ANCHOR, $c );
+	$new = str_replace( $GATE_OLD, $GATE_NEW, $c );
+	$new = str_replace( $ANCHOR, $BLOCK . $ANCHOR, $new );
 
 	if ( 'preview' === $mode ) {
 		echo "\n여섯 주제 모두 준비됐습니다. "
