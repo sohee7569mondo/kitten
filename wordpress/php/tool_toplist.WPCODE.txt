@@ -13,7 +13,7 @@
    그리고 tool_coverpic 이 지금 들고 있는 표와 나란히 놓아,
    어디가 어긋났는지 보여줍니다.
 
-   보기   https://stellasaju.com/?stella_topics=1
+   보기   https://stellasaju.com/?stella_toplist=1
 
    ★ 아무것도 안 바꿉니다.
 
@@ -23,7 +23,7 @@
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_topics'] ) ) { return; }
+	if ( ! isset( $_GET['stella_toplist'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
