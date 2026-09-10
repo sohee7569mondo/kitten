@@ -1,0 +1,95 @@
+/* ════════════════════════════════════════════════════════════
+   결제한 사람에게 무엇이 기록됐나 — 보기만 하는 도구
+   ★ 2026-09-10 · 소희 님께
+
+   「신년운세로 결제했는데 마루 퇴사운 책이 나왔다」를 밝힙니다.
+   아무것도 안 바꿉니다.
+
+   목록 보기  https://stellasaju.com/?stella_order=1
+   한 사람만  https://stellasaju.com/?stella_order=1&u=메일주소
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_order'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$who = isset( $_GET['u'] ) ? sanitize_email( wp_unslash( $_GET['u'] ) ) : '';
+
+	echo "═══ 주문과 구슬 ═══\n\n";
+
+	if ( '' === $who ) {
+		echo "── 요즘 들어온 분들 ──\n";
+		$us = get_users( array( 'number' => 15, 'orderby' => 'registered', 'order' => 'DESC' ) );
+		foreach ( $us as $u ) {
+			$o = get_user_meta( $u->ID, 'stella_order_now', true );
+			$t = ( is_array( $o ) ) ? ( isset( $o['topic'] ) ? $o['topic'] : '?' ) : '없음';
+			echo sprintf( "  %-34s 지금 주문 : %s\n", $u->user_email, $t );
+		}
+		echo "\n한 사람을 자세히 보시려면 주소 뒤에 &u=메일주소 를 붙이세요.\n";
+		exit;
+	}
+
+	$u = get_user_by( 'email', $who );
+	if ( ! $u ) { echo $who . ' 로 가입한 분이 없습니다.'; exit; }
+	$uid = (int) $u->ID;
+
+	echo '── ' . $u->user_email . ' (번호 ' . $uid . ") ──\n";
+	echo '가입  ' . $u->user_registered . "\n\n";
+
+	/* ── 1. 서버가 기억하는 「지금 주문」 ─────────────── */
+	echo "── 1. 서버가 기억하는 「지금 주문」 ──\n";
+	echo "  이 값이 그대로 손님 브라우저에 심어지고,\n";
+	echo "  자료 쪽과 전자책이 이것만 보고 그립니다.\n\n";
+
+	$o = get_user_meta( $uid, 'stella_order_now', true );
+	if ( ! is_array( $o ) ) {
+		echo "  (없음)\n";
+	} else {
+		foreach ( $o as $k => $v ) {
+			if ( is_array( $v ) ) { $v = wp_json_encode( $v, JSON_UNESCAPED_UNICODE ); }
+			if ( 'at' === $k ) {
+				if ( (int) $v > 0 ) { $v = $v . '  (' . wp_date( 'm/d H:i', (int) $v ) . ')'; }
+			}
+			echo sprintf( "  %-14s %s\n", $k, (string) $v );
+		}
+	}
+	echo "\n";
+
+	/* ── 2. 구슬이 오간 기록 ──────────────────────────── */
+	echo "── 2. 구슬이 오간 기록 ──\n";
+	if ( function_exists( 'stella_orb_balance' ) ) {
+		echo '  지금 잔액  ' . (int) stella_orb_balance( $uid ) . "구슬\n\n";
+	}
+	$log = get_user_meta( $uid, 'stella_orb_log', true );
+	if ( ! is_array( $log ) ) { $log = array(); }
+	if ( ! $log ) {
+		echo "  (기록 없음)\n";
+	} else {
+		foreach ( array_slice( $log, -20 ) as $r ) {
+			$at  = isset( $r['at'] ) ? (int) $r['at'] : 0;
+			$n   = isset( $r['n'] ) ? (int) $r['n'] : 0;
+			$why = isset( $r['why'] ) ? (string) $r['why'] : '';
+			echo sprintf( "  %s  %+4d구슬   %s\n",
+				$at ? wp_date( 'm/d H:i', $at ) : '??/?? ??:??', $n, $why );
+		}
+	}
+	echo "\n";
+
+	/* ── 3. 읽는 법 ───────────────────────────────────── */
+	echo "── 3. 읽는 법 ──\n";
+	echo "  · 구슬이 「+3」으로 들어온 시각과, 지금 주문의 at 시각을 견줍니다.\n";
+	echo "  · 구슬이 들어온 뒤에 주문이 새로 안 생겼다면 —\n";
+	echo "    결제는 구슬을 채운 것이고, 풀이는 아직 주문이 안 된 것입니다.\n";
+	echo "    그러면 옛 주문이 그대로 남아 옛 책이 열립니다.\n";
+	echo "  · 반대로 주문의 topic 이 「신년운세」인데 책이 다르게 나왔다면\n";
+	echo "    브라우저에 옛 값이 남아 있는 것입니다.\n";
+
+	echo "\n═══ 끝 ═══\n";
+	exit;
+}, 1 );
