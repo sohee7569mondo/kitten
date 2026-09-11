@@ -1,0 +1,159 @@
+/* ══════════════════════════════════════════════════════════
+   급한 수리 둘 · 소희 님께                       2026-09-11
+   ── 판 : SOS-2 (2026-09-11) ──
+
+   책이 안 나오던 진짜 까닭을 찾았습니다.
+
+   쪽번호와 장번호를 다시 매기는 자리에 이런 글이 있습니다.
+
+     .replace(/<p class="dvno dvch">[^<]*</p>/, …)
+     .replace(/<div class="folio">[^<]*</div>/, …)
+
+   빗금 두 개 사이가 「정규식」입니다.
+   그런데 그 안에 들어 있는 </p> 의 빗금을
+   브라우저가 「여기가 정규식 끝」으로 읽어버립니다.
+   그러면 그 뒤의 p 가 꼬리표가 되는데, p 라는 꼬리표는 없습니다.
+   그래서 나는 말이 「Invalid regular expression flags」입니다.
+
+   고치는 법은 빗금 앞에 \ 를 하나 붙이는 것입니다.
+     </p>   →   <\/p>
+     </div> →   <\/div>
+
+   이건 실행 중에 나는 잘못이 아니라 글 읽기 자체가 안 되는 잘못이라,
+   이 한 줄 때문에 그 토막 전체가 통째로 안 돌았습니다.
+   그래서 책이 한 글자도 안 그려진 것입니다.
+
+   주소
+     해보기   https://stellasaju.com/?stella_sos2b=preview
+     붙이기   https://stellasaju.com/?stella_sos2b=apply
+     되돌리기 https://stellasaju.com/?stella_sos2b=undo
+
+   ★ 스니펫 이름 「STELLA - 급한 수리 SOS2」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_sos2b'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode  = sanitize_text_field( wp_unslash( $_GET['stella_sos2b'] ) );
+	$STACK = '_stella_sos2b_stack';
+	$ROUND = '급한 수리 SOS-2 2026-09-11';
+
+	$OLD1 = <<<'TAG'
+/<p class="dvno dvch">[^<]*</p>/
+TAG;
+	$NEW1 = <<<'TAG'
+/<p class="dvno dvch">[^<]*<\/p>/
+TAG;
+	$OLD2 = <<<'TAG'
+/<div class="folio">[^<]*</div>/
+TAG;
+	$NEW2 = <<<'TAG'
+/<div class="folio">[^<]*<\/div>/
+TAG;
+
+	$FIX = array(
+		array( '장번호 정규식', $OLD1, $NEW1 ),
+		array( '쪽번호 정규식', $OLD2, $NEW2 ),
+	);
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$stack = get_post_meta( $id, $STACK, true );
+	if ( ! is_array( $stack ) ) { $stack = array(); }
+
+	echo "═══ 급한 수리 둘 · 판 SOS-2 (2026-09-11) ═══\n\n";
+
+	if ( 'list' === $mode ) {
+		if ( ! count( $stack ) ) { echo '쌓인 것이 없습니다.'; exit; }
+		$i = count( $stack );
+		foreach ( array_reverse( $stack ) as $s ) {
+			echo '  ' . $i . '. ' . $s['when'] . ' - ' . $s['name'] . ' - '
+			   . number_format( strlen( $s['body'] ) ) . "글자\n";
+			$i--;
+		}
+		exit;
+	}
+
+	if ( 'undo' === $mode ) {
+		if ( ! count( $stack ) ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$last = array_pop( $stack );
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $last['body'] ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		update_post_meta( $id, $STACK, $stack );
+		echo '되돌렸습니다 — ' . $last['when'] . ' - ' . $last['name'] . "\n";
+		echo '남은 판 ' . count( $stack ) . '개';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo '쪽 ' . $id . ' - ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	$todo = array();
+	$done = 0;
+	$miss = 0;
+	foreach ( $FIX as $r ) {
+		list( $nm, $old, $new ) = $r;
+		$got = substr_count( $c, $old );
+		if ( $got > 0 ) {
+			echo sprintf( "  %-16s 찾음 %d군데\n", $nm, $got );
+			$todo[] = $r;
+			continue;
+		}
+		if ( substr_count( $c, $new ) > 0 ) {
+			echo sprintf( "  %-16s 이미 고쳐져 있습니다\n", $nm );
+			$done++;
+			continue;
+		}
+		echo sprintf( "  %-16s ★ 못 찾았습니다 — 건너뜁니다\n", $nm );
+		$miss++;
+	}
+
+	if ( ! count( $todo ) ) {
+		if ( $done ) {
+			echo "\n이미 다 고쳐져 있습니다.\n";
+			echo "책을 열어 확인해 주세요 (Ctrl+Shift+R)\n";
+			echo "  https://stellasaju.com/reading-book/?demo=door-love\n";
+		} else {
+			echo "\n하나도 못 찾았습니다. 아무것도 안 바꿨습니다.\n";
+			echo "이 화면을 통째로 저에게 붙여주세요.\n";
+		}
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $todo as $r ) { $new = str_replace( $r[1], $r[2], $new ); }
+
+	if ( 'preview' === $mode ) {
+		echo "\n" . count( $todo ) . "자리를 고칩니다";
+		if ( $miss ) { echo ' (못 찾은 ' . $miss . '자리는 건너뜁니다)'; }
+		echo ".\n";
+		echo number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
+		echo "\n괜찮으시면 ?stella_sos2b=apply\n";
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) { echo 'preview - apply - undo - list 중에 골라주세요.'; exit; }
+
+	$stack[] = array( 'when' => current_time( 'Y-m-d H:i' ), 'name' => $ROUND, 'body' => $c );
+	while ( count( $stack ) > 5 ) { array_shift( $stack ); }
+	update_post_meta( $id, $STACK, $stack );
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n고쳤습니다. " . count( $todo ) . "자리.\n\n";
+	echo "책을 열어봐 주세요 (Ctrl+Shift+R 로 새로고침)\n";
+	echo "  https://stellasaju.com/reading-book/?demo=door-love\n\n";
+	echo "되돌리려면 ?stella_sos2b=undo\n";
+	exit;
+}, 1 );
