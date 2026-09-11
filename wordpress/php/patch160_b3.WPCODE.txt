@@ -53,6 +53,7 @@ add_action( 'template_redirect', function () {
 		/* ★ 두 번 눌러도 안 망가지게 고쳤습니다.
 		   앞 판은 찾는 글자가 바꾼 글자 안에도 남아 있어서
 		   다시 누르면 같은 줄이 또 들어갔습니다. */
+		/* dekN 이 1이면 아래 자리는 아예 목록에서 빠집니다 (맨 아래 참고) */
 		array( '비어 있는 자리 한 줄',
 		  '\'<p>비어 있다는 건 그 일을',
 		  '\'<p class="dek">앞의 저울은 기운을 재었고, 여기는 자리를 셉니다</p><p>비어 있다는 건 그 일을' ),
@@ -98,10 +99,33 @@ add_action( 'template_redirect', function () {
 	echo '쪽 ' . $id . ' - ' . number_format( strlen( $c ) ) . "글자\n";
 	echo '고칠 자리 ' . count( $FIX ) . "개\n\n";
 
+	/* ── 안전장치 ── 그 줄이 이미 몇 개 들어 있는지 먼저 셉니다 */
+	$DEK = '앞의 저울은 기운을 재었고';
+	$dekN = substr_count( $c, $DEK );
+	echo '「앞의 저울은 기운을 재었고」 줄이 지금 ' . $dekN . "개 있습니다.\n";
+	if ( $dekN > 1 ) {
+		echo "\n★ 두 개 넘게 들어가 있습니다. 같은 줄이 여러 번 붙은 것입니다.\n";
+		echo "  ?stella_b3=undo 를 눌러 한 판씩 되돌려 주세요.\n";
+		echo "  줄이 한 개나 0개가 될 때까지요.\n";
+		exit;
+	}
+	if ( 1 === $dekN ) {
+		echo "  → 이미 제대로 들어가 있습니다. 더 누르지 않으셔도 됩니다.\n";
+	}
+	echo "\n";
+
+
 	if ( ! count( $FIX ) ) {
 		echo "목록이 비어 있습니다.\n";
 		echo "고치실 데를 알려주시면 채워 드리겠습니다.";
 		exit;
+	}
+
+	if ( 1 === $dekN ) {
+		$FIX = array_filter( $FIX, function ( $r ) {
+			return '비어 있는 자리 한 줄' !== $r[0];
+		} );
+		$FIX = array_values( $FIX );
 	}
 
 	$todo = array();
