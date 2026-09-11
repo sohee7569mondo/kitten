@@ -1,0 +1,52 @@
+/* ══════════════════════════════════════════════════════════
+   폭 바로잡기 · 소희 님께                        2026-09-11
+   ── 판 : FIT-1 (2026-09-11) ──
+
+   자로 잰 값으로 두 가지를 바로잡습니다.
+
+   ① 벼리(door-love) 입력칸이 좁던 것
+        잰 값   벼리 .g-cols  폭 760px · max-width 760px · 칸 320 + 412
+                마루 .g-cols  폭 1084px · max-width 없음 · 칸 320 + 736
+        벼리에만 max-width 760px 이 걸려 있었습니다. 그 제한을 풉니다.
+        → 마루와 똑같이 오른쪽 입력칸이 펴집니다.
+
+   ② 책(reading-book)이 왼쪽으로 치우치던 것
+        잰 값   #ssb  폭 1140px · 왼쪽끝 -7px · 여백 -710.5 / -710.5
+        어제 제가 좌우 여백을 -710px씩 줘서 화면 끝까지 펴려 했는데
+        max-width 100% 가 남아 있어서 폭은 안 늘고 자리만 왼쪽으로 끌렸습니다.
+        제가 절반만 고쳤던 것입니다.
+        → 그 여백을 없애고 가운데로 되돌립니다.
+
+   두 가지 다 「더 센 규칙으로 덮어쓰기」입니다.
+   원래 글은 한 글자도 안 건드립니다. 스니펫을 끄면 그대로 돌아옵니다.
+   그래서 되돌리기 걱정이 없습니다.
+
+   ★ 스니펫 이름 「STELLA - 폭 바로잡기」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 켜고 두 쪽을 Ctrl+Shift+R 로 새로고침만 하시면 됩니다.
+        https://stellasaju.com/door-love/
+        https://stellasaju.com/reading-book/?demo=door-love
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_footer', function () {
+
+	$love = is_page( 'door-love' );
+	$book = is_page( 'reading-book' );
+	if ( ! $love && ! $book ) { return; }
+
+	echo '<style id="stella-fit1">';
+
+	if ( $love ) {
+		/* 마루와 같은 폭으로. 좁은 화면에서는 원래대로 한 줄씩 쌓입니다. */
+		echo 'html body #ssg .g-cols{max-width:none !important;}';
+		echo '@media (max-width:900px){html body #ssg .g-cols{max-width:none !important;}}';
+	}
+
+	if ( $book ) {
+		/* 왼쪽으로 끌고 가던 음수 여백을 없애고 가운데로 */
+		echo 'html body div#ssb{margin-left:auto !important;margin-right:auto !important;'
+		   . 'max-width:100% !important;}';
+	}
+
+	echo '</style>';
+}, 999 );
