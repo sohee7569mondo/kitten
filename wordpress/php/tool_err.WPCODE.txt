@@ -1,5 +1,6 @@
 /* ══════════════════════════════════════════════════════════
-   책이 멈춘 자리를 화면에 띄우기 · 소희 님께   2026-09-11 · b판
+   책이 멈춘 자리를 화면에 띄우기 · 소희 님께   2026-09-11
+   ── 판 : ERR-2 (2026-09-11) ──
 
    책이 안 나올 때, 무엇 때문에 멈췄는지 화면 맨 위에
    빨간 상자로 보여줍니다. 콘솔을 안 여셔도 됩니다.
@@ -8,14 +9,15 @@
      WPCode → 새 스니펫 → PHP Snippet → 「어디서나 실행」 → 저장 → 활성
      그리고 책을 그냥 여세요.
         https://stellasaju.com/reading-book/?demo=door-love
-
      빨간 상자가 뜨면 그 안의 글을 찍어서 보내주세요.
 
-   ★ 다 끝나면 이 스니펫은 꺼주세요. 손님에게는 안 보여야 합니다.
-     (관리자로 로그인했을 때만 보이게 해두었습니다)
+   ★ 스니펫 이름 「STELLA - 오류 보기」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 관리자로 로그인했을 때만 보입니다. 손님에겐 안 보입니다.
+   ★ 다 끝나면 꺼주세요.
    ══════════════════════════════════════════════════════════ */
 
-add_action( 'wp_footer', function () {
+add_action( 'wp_head', function () {
 
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 	if ( ! is_page( 'reading-book' ) ) { return; }
@@ -23,40 +25,57 @@ add_action( 'wp_footer', function () {
 	?>
 <script>
 (function(){
-  function box(msg){
-    var d=document.getElementById('stella-err');
+  var LOG = [];
+  function paint(){
+    var d = document.getElementById('stella-err');
     if(!d){
-      d=document.createElement('div');
-      d.id='stella-err';
-      d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:999999;'
-        +'background:#b3261e;color:#fff;padding:14px 18px;font:14px/1.7 system-ui;'
-        +'white-space:pre-wrap;word-break:break-all;max-height:55vh;overflow:auto;'
-        +'box-shadow:0 2px 16px rgba(0,0,0,.4)';
+      if(!document.body){ return; }
+      d = document.createElement('div');
+      d.id = 'stella-err';
+      d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:2147483647;'
+        + 'background:#b3261e;color:#fff;padding:14px 18px;font:13px/1.7 system-ui;'
+        + 'white-space:pre-wrap;word-break:break-all;max-height:60vh;overflow:auto;'
+        + 'box-shadow:0 2px 16px rgba(0,0,0,.45)';
       document.body.appendChild(d);
     }
-    d.textContent += msg + '\n\n';
+    d.textContent = '판 ERR-2 (2026-09-11)\n\n' + LOG.join('\n\n');
   }
+  function box(msg){ LOG.push(msg); paint(); }
+
   window.addEventListener('error', function(e){
-    var m = '【책이 멈춘 자리】\n';
-    m += (e.message || '(까닭 모름)') + '\n';
-    if(e.filename){ m += '파일 : ' + e.filename + '\n'; }
-    m += '줄 ' + (e.lineno||'?') + ' · 칸 ' + (e.colno||'?');
-    if(e.error){
-      if(e.error.stack){ m += '\n\n' + String(e.error.stack).split('\n').slice(0,4).join('\n'); }
+    var m = '【책이 멈춘 자리】\n' + (e.message || '(까닭 모름)');
+    if(e.filename){ m += '\n파일 : ' + e.filename; }
+    m += '\n줄 ' + (e.lineno || '?') + ' · 칸 ' + (e.colno || '?');
+    if(e.error && e.error.stack){
+      m += '\n\n' + String(e.error.stack).split('\n').slice(0,5).join('\n');
     }
     box(m);
-  });
+  }, true);
+
   window.addEventListener('unhandledrejection', function(e){
-    box('【약속이 깨진 자리】\n' + String(e.reason));
+    box('【기다리다 멈춘 자리】\n' + String(e.reason));
   });
-  setTimeout(function(){
-    var b=document.getElementById('ssb');
-    if(!b){ box('【알림】 책을 담는 자리(#ssb)를 못 찾았습니다.'); return; }
-    var n=b.querySelectorAll('h2').length;
-    if(n===0){ box('【알림】 오류는 안 났는데 장이 하나도 안 그려졌습니다.\n'
-       + '책 담는 자리 안 글자 수 : ' + (b.textContent||'').trim().length); }
-  }, 4000);
+
+  function check(){
+    if(LOG.length){ return; }
+    var b = document.getElementById('ssb');
+    if(!b){
+      box('【알림】 책을 담는 자리(#ssb)를 못 찾았습니다.\n'
+        + '몸통에 있는 상자 이름이 바뀌었거나, 책 코드가 아예 안 실려 있습니다.');
+      return;
+    }
+    var h = b.querySelectorAll('h2').length;
+    var p = b.querySelectorAll('.page, section, article').length;
+    if(h === 0){
+      box('【알림】 오류는 안 났는데 장이 하나도 안 그려졌습니다.\n'
+        + 'h2 ' + h + '개 · 칸 ' + p + '개\n'
+        + '#ssb 안 글자수 : ' + (b.textContent || '').length + '\n\n'
+        + '앞쪽 300글자 :\n' + (b.innerHTML || '').slice(0, 300));
+    }
+  }
+  if(document.readyState === 'complete'){ setTimeout(check, 3000); }
+  else { window.addEventListener('load', function(){ setTimeout(check, 3000); }); }
 })();
 </script>
 	<?php
-}, 99 );
+}, 1 );
