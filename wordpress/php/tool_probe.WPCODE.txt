@@ -33,24 +33,18 @@ add_action( 'template_redirect', function () {
 
 	/* 찾아볼 조각들 — 이름, 찾을 글자 */
 	$Q = array(
-		/* ── b2 가 붙었나 ── */
-		array( 'b2 접기열쇠새', '여덟 글자에서 제일 많은 것\'' ),
-		array( 'b2 접기열쇠옛', '여덟 글자에서 제일 센 것' ),
-		array( 'b2 긴이름',     'full:\'인연을 잇는 벼리\'' ),
-		array( 'b2 머리말옆',   'g.full||g.name' ),
-		array( 'b2 13장새',     '타고난 나와 지금의 내가' ),
-		array( 'b2 13장옛',     '(사전질문)' ),
-
-		/* ── 「비어 있는 자리」가 무엇을 세나 ── */
-		array( '비어 h2',       '<h2>비어 있는 자리</h2>' ),
-		array( '제일많은 h2',   '<h2>여덟 글자에서 제일 많은 것</h2>' ),
-		array( '비어 갈래?',    'gzero' ),
-		array( '비어 오행?',    'emptyEls' ),
-		array( '갈래 없는',     'GK.filter' ),
-
-		/* ── 18장 이름 ── */
-		array( '18 지금이름',   '내 연애는 무엇으로 바뀔까' ),
+		array( 'b3 찾기고침', 'findMark(\'<h2>타고난 나와' ),
+		array( 'b3 한 줄',    '앞의 저울은 기운을 재었고' ),
 	);
+
+	/* 05장 저울에서 「없습니다」라고 말하는 대목 — 여기에 새 글이 들어갑니다 */
+	$pos = mb_strpos( $c, '가장 강합니다', 0, 'UTF-8' );
+	if ( false !== $pos ) {
+		$cut = mb_substr( $c, max( 0, $pos - 60 ), 1200, 'UTF-8' );
+		$cut = preg_replace( '/\s+/u', ' ', $cut );
+		echo "─── 05장 저울 뒷부분 (새 글이 들어갈 자리) ───\n  …" . $cut . "…\n\n";
+	}
+
 
 	foreach ( $Q as $q ) {
 		list( $nm, $needle ) = $q;
