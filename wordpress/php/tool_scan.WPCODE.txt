@@ -110,8 +110,10 @@ add_action( 'template_redirect', function () {
 			$s   = max( 0, $op - 150 );
 			$len = min( 400, $n - $s );
 			$ctx = mb_strcut( $js, $s, $len, 'UTF-8' );
-			$ctx = preg_replace( '/\s+/u', ' ', $ctx );
-			echo '    …' . $ctx . "…\n\n";
+			$ctx = mb_convert_encoding( $ctx, 'UTF-8', 'UTF-8' );
+			$t   = preg_replace( '/\s+/u', ' ', $ctx );
+			if ( null === $t ) { $t = preg_replace( '/\s+/', ' ', $ctx ); }
+			echo '    …' . $t . "…\n\n";
 		}
 	}
 
