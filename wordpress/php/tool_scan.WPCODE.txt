@@ -1,0 +1,126 @@
+/* ══════════════════════════════════════════════════════════
+   짝 잃은 따옴표 찾기 · 소희 님께               2026-09-11
+   ── 판 : SCAN-1 (2026-09-11) ──
+
+   책 코드를 글자 하나하나 따라가면서
+   「따옴표를 열어놓고 안 닫은 자리」를 찾습니다.
+   자바스크립트에서 따옴표 하나가 짝을 잃으면
+   그 뒤가 전부 밀려서 책이 통째로 안 나옵니다.
+   (지금 나는 「Invalid regular expression flags」가 바로 그 증상입니다)
+
+   주소  https://stellasaju.com/?stella_scan911=1
+
+   ★ 스니펫 이름 「STELLA - 따옴표 찾기」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 아무것도 안 바꿉니다. 보기만 합니다.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_scan911'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo "═══ 따옴표 찾기 · 판 SCAN-1 (2026-09-11) ═══\n";
+	echo '쪽 ' . $id . ' - ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	/* 토막 내기 : <script> ... </script> */
+	$blocks = array();
+	$from   = 0;
+	while ( true ) {
+		$a = stripos( $c, '<script', $from );
+		if ( false === $a ) { break; }
+		$o = strpos( $c, '>', $a );
+		if ( false === $o ) { break; }
+		$b = stripos( $c, '</script', $o );
+		if ( false === $b ) { break; }
+		$blocks[] = array( $o + 1, substr( $c, $o + 1, $b - $o - 1 ) );
+		$from     = $b + 8;
+	}
+	echo 'script 토막 ' . count( $blocks ) . "개\n\n";
+
+	$found = 0;
+
+	foreach ( $blocks as $bi => $blk ) {
+		list( $base, $js ) = $blk;
+		$n     = strlen( $js );
+		$st    = 0;   /* 0 보통 · 1 홑따옴표 · 2 겹따옴표 · 3 백틱 · 4 //줄주석 · 5 /*덩어리주석 */
+		$open  = 0;   /* 따옴표를 연 자리 */
+		$line  = 1;
+		$oline = 1;
+		$hits  = array();
+
+		for ( $i = 0; $i < $n; $i++ ) {
+			$ch = $js[ $i ];
+
+			if ( "\n" === $ch ) {
+				$line++;
+				if ( 1 === $st || 2 === $st ) {
+					$hits[] = array( $open, $oline, $line );
+					$st     = 0;
+					if ( count( $hits ) >= 6 ) { break; }
+				}
+				if ( 4 === $st ) { $st = 0; }
+				continue;
+			}
+
+			if ( 1 === $st || 2 === $st || 3 === $st ) {
+				if ( '\\' === $ch ) { $i++; continue; }
+				if ( 1 === $st && "'" === $ch ) { $st = 0; }
+				elseif ( 2 === $st && '"' === $ch ) { $st = 0; }
+				elseif ( 3 === $st && '`' === $ch ) { $st = 0; }
+				continue;
+			}
+
+			if ( 4 === $st ) { continue; }
+
+			if ( 5 === $st ) {
+				if ( '*' === $ch && $i + 1 < $n && '/' === $js[ $i + 1 ] ) { $st = 0; $i++; }
+				continue;
+			}
+
+			if ( '/' === $ch && $i + 1 < $n ) {
+				$nx = $js[ $i + 1 ];
+				if ( '/' === $nx ) { $st = 4; $i++; continue; }
+				if ( '*' === $nx ) { $st = 5; $i++; continue; }
+			}
+			if ( "'" === $ch )  { $st = 1; $open = $i; $oline = $line; continue; }
+			if ( '"' === $ch )  { $st = 2; $open = $i; $oline = $line; continue; }
+			if ( '`' === $ch )  { $st = 3; $open = $i; $oline = $line; continue; }
+		}
+
+		if ( ! count( $hits ) ) { continue; }
+
+		$found += count( $hits );
+		echo "───────────────────────────────────────\n";
+		echo '★ ' . ( $bi + 1 ) . '번째 script 토막 — 짝 잃은 따옴표 ' . count( $hits ) . "군데\n";
+		echo "───────────────────────────────────────\n";
+		foreach ( $hits as $h ) {
+			list( $op, $ol, $cl ) = $h;
+			echo '  · ' . $ol . "줄에서 따옴표를 열었는데 그 줄 안에서 안 닫혔습니다\n";
+			$s   = max( 0, $op - 150 );
+			$len = min( 400, $n - $s );
+			$ctx = mb_strcut( $js, $s, $len, 'UTF-8' );
+			$ctx = preg_replace( '/\s+/u', ' ', $ctx );
+			echo '    …' . $ctx . "…\n\n";
+		}
+	}
+
+	if ( ! $found ) {
+		echo "짝 잃은 따옴표는 없습니다.\n";
+		echo "그렇다면 다른 까닭입니다. 이 화면을 저에게 붙여주세요.\n";
+	} else {
+		echo "═══ 여기까지 ═══\n";
+		echo "이 화면을 통째로 붙여주세요. 바로 고치는 패치를 만들겠습니다.\n";
+	}
+	exit;
+}, 1 );
