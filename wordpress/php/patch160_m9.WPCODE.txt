@@ -180,24 +180,69 @@ add_action( 'template_redirect', function () {
 
 JSTAG;
 
-	/* ── 바꿀 자리 ─────────────────────────────────────── */
+	/* ── 바꿀 자리 ─────────────────────────────────────
+	   ★ 2026-09-11 두 번째 판 — 들여쓰기와 줄바꿈에 기대지 않습니다.
+	     첫 판은 앞 공백 네 칸까지 맞추려다 0군데로 나왔습니다.
+	     이번에는 공백 없는 토막을 쓰고, 후보를 여러 개 두고
+	     그중 딱 한 번 나오는 것을 고릅니다. ── */
 
-	$A_OLD = "    var keep='<div class=\"keep\">';";
-	$A_NEW = $FUNC . "    var keep='<div class=\"keep\">';";
-
-	$B_OLD = "    page(\n      '<p class=\"eyebrow\">맺음말</p>'+";
-	$B_NEW = "    if(__mkTopic()){ keep = __mkKeep9(); }\n"
-	       . "    page(\n      '<p class=\"eyebrow\">맺음말</p>'+";
-
-	$PAIRS = array(
-		array( '함수 넣기',   1, $A_OLD, $A_NEW ),
-		array( '갈아끼우기', 1, $B_OLD, $B_NEW ),
+	$A_CAND = array(
+		"var keep='<div class=\"keep\">';",
+		"var keep = '<div class=\"keep\">';",
+		"var keep='<div class=\"keep\">'",
 	);
+	$B_CAND = array(
+		"keep+='</div>';",
+		"keep += '</div>';",
+		"keep+='</div>'",
+	);
+
+	$pick = function ( $c, $cands ) {
+		$rows = array();
+		foreach ( $cands as $x ) {
+			$n = substr_count( $c, $x );
+			$rows[] = array( $x, $n );
+		}
+		foreach ( $rows as $r ) {
+			if ( 1 === $r[1] ) { return array( $r[0], $rows ); }
+		}
+		return array( '', $rows );
+	};
+
+	list( $A_OLD, $A_ROWS ) = $pick( $c, $A_CAND );
+	list( $B_OLD, $B_ROWS ) = $pick( $c, $B_CAND );
+
+	$A_NEW = $FUNC . $A_OLD;
+	$B_NEW = $B_OLD . " if(__mkTopic()){ keep = __mkKeep9(); }";
+
+	$PAIRS = array();
+	if ( '' !== $A_OLD ) { $PAIRS[] = array( '함수 넣기',   1, $A_OLD, $A_NEW ); }
+	if ( '' !== $B_OLD ) { $PAIRS[] = array( '갈아끼우기', 1, $B_OLD, $B_NEW ); }
 
 	echo '<h1>결혼운 ⑨ 세 가지 — '
 	   . ( 'apply' === $mode ? '바꿉니다' : '미리보기 (아직 안 바꿈)' ) . '</h1>';
 	echo '<p class="dim">쪽 ' . (int) $ID . ' · '
 	   . number_format( strlen( $c ) ) . '글자</p>';
+
+	/* 어떤 토막이 몇 번 나오는지 먼저 보여줍니다 */
+	$d = "찾아본 토막\n";
+	foreach ( array( array( '함수 넣을 자리', $A_ROWS ), array( '갈아끼울 자리', $B_ROWS ) ) as $g ) {
+		$d .= "\n  [" . $g[0] . "]\n";
+		foreach ( $g[1] as $r ) {
+			$d .= sprintf( "    %-3d번  %s\n", $r[1], $r[0] );
+		}
+	}
+	echo '<pre>' . esc_html( $d ) . '</pre>';
+
+	if ( count( $PAIRS ) < 2 ) {
+		if ( false !== strpos( $c, '__mkKeep9' ) ) {
+			echo '<p class="ok">이미 들어가 있습니다.</p>';
+			exit;
+		}
+		echo '<p class="no">딱 한 번 나오는 토막을 못 찾아 아무것도 안 바꿨습니다.</p>';
+		echo '<p class="dim">위 표를 보내주시면 다음 판을 만들겠습니다.</p>';
+		exit;
+	}
 
 	$todo = array(); $miss = 0; $done = 0;
 	$out  = '';
