@@ -23,7 +23,9 @@
 
    줄 번호로     https://stellasaju.com/?stella_peek=12470-12620
    말로 찾아서   https://stellasaju.com/?stella_peek=find:it.top.map
-                 (그 말이 있는 줄을 찾아 앞뒤로 보여줍니다)
+   다른 쪽을     https://stellasaju.com/?stella_peek=156:200-260
+                 https://stellasaju.com/?stella_peek=137:find:reading-ready
+                 (쪽 번호를 앞에 붙이면 됩니다. 없으면 책 160쪽)
    ════════════════════════════════════════════════════════════ */
 
 add_action( 'template_redirect', function () {
@@ -36,6 +38,13 @@ add_action( 'template_redirect', function () {
 	$arg = sanitize_text_field( wp_unslash( $_GET['stella_peek'] ) );
 	$from = 12470; $to = 12620;
 	$find = '';
+	$pid  = 160;
+
+	/* 156:20-120 처럼 쪽 번호를 앞에 붙일 수 있습니다 */
+	if ( preg_match( '/^(\d+)\s*:\s*(.*)$/', $arg, $mm ) ) {
+		$pid = (int) $mm[1];
+		$arg = $mm[2];
+	}
 	if ( 0 === strpos( $arg, 'find:' ) ) {
 		$find = substr( $arg, 5 );
 	} elseif ( preg_match( '/^(\d+)\s*-\s*(\d+)$/', $arg, $m ) ) {
@@ -46,7 +55,7 @@ add_action( 'template_redirect', function () {
 	if ( $to - $from > 400 ) { $to = $from + 400; }
 
 	$c = (string) $wpdb->get_var( $wpdb->prepare(
-		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", 160 ) );
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
 
 	$lines = explode( "\n", $c );
 	$total = count( $lines );
@@ -78,7 +87,7 @@ add_action( 'template_redirect', function () {
 	   . 'pre{white-space:pre-wrap;word-break:break-all;margin:0}'
 	   . '</style></head><body class="notranslate" translate="no">';
 
-	echo '<h1>PEEK &middot; 쪽 160 &middot; 줄 ' . (int) $from . ' ~ ' . (int) $to
+	echo '<h1>PEEK &middot; 쪽 ' . (int) $pid . ' &middot; 줄 ' . (int) $from . ' ~ ' . (int) $to
 	   . ' (모두 ' . number_format( $total ) . '줄)</h1>';
 
 	if ( '' !== $find ) {
