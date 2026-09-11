@@ -1,0 +1,129 @@
+/* ════════════════════════════════════════════════════════════
+   세 번째 화면 건너뛰기 — 값 치르면 바로 책으로
+   ★ 2026-09-11 · 소희 님께
+
+   ── 지금 여정 ────────────────────────────────────────
+     ① door-love        벼리 소개 · 시작할게요
+     ② reading-start    묻는 화면 · 값 치르기
+     ③ reading-ready    자료를 다 세웠습니다 · 「내 전자책 펼쳐보기」  ← 뺍니다
+     ④ reading-book     책
+
+   ③은 책 안에 있는 내용(계산 근거)을 미리 다 보여주고 있었습니다.
+   손님은 책을 펴기도 전에 그걸 지나가야 했습니다.
+
+   ── 무엇이 바뀌나 ────────────────────────────────────
+   137쪽 줄 874 한 군데입니다.
+
+     전  location.href='/reading-ready/'   6800 밀리초 뒤
+     후  location.href='/reading-book/'    3200 밀리초 뒤
+
+   기다리는 시간도 같이 줄입니다. 「발행 중」 화면을 6.8초 보여주고
+   있었는데, 사주는 브라우저에서 바로 세우므로 그만큼 걸리지 않습니다.
+
+   ③ 쪽은 지우지 않습니다. 책 띠의 「← 자료 다시 보기」로 여전히 갈 수
+   있습니다. 여정에서만 빠집니다.
+
+   ★ 같이 사라지는 것 — ③에만 있던 두 가지
+       · 시주 경계 경고 (10분만 달라도 시주가 바뀝니다)
+       · 완성본 예시 보기 단추
+     둘 다 아까우면 말씀해주세요. 다른 자리로 옮기겠습니다.
+
+   해보기   https://stellasaju.com/?stella_skip=preview
+   붙이기   https://stellasaju.com/?stella_skip=apply
+   되돌리기 https://stellasaju.com/?stella_skip=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_skip'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_skip'] ) );
+	$META = '_stella_skip_bak_0911';
+	$ID   = 137;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!DOCTYPE html><html lang="ko" translate="no"><head><meta charset="utf-8">'
+	   . '<meta name="google" content="notranslate">'
+	   . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+	   . '<title>SKIP</title><style>body{background:#12101B;color:#F2ECE0;margin:0;'
+	   . 'padding:18px;font:13px/1.7 ui-monospace,Menlo,monospace;max-width:900px}'
+	   . 'h1{color:#D4AF6A;font-size:15px;margin:0 0 14px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C}'
+	   . 'pre{white-space:pre-wrap;word-break:break-all;background:#000;padding:10px;'
+	   . 'border-left:3px solid #D4AF6A}</style></head>'
+	   . '<body class="notranslate" translate="no">';
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $ID, $META, true );
+		if ( '' === $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $ID ) );
+		clean_post_cache( $ID );
+		delete_post_meta( $ID, $META );
+		echo '<p class="ok">되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $ID ) );
+	if ( '' === $c ) { echo '<p class="no">137쪽을 못 읽었습니다.</p>'; exit; }
+
+	$OLD = "location.href='/reading-ready/'; }, 6800);";
+	$NEW = "location.href='/reading-book/'; }, 3200);";
+
+	$CAND = array(
+		$OLD,
+		"location.href='/reading-ready/'; }, 6800)",
+		"location.href='/reading-ready/'",
+	);
+
+	echo '<h1>세 번째 화면 건너뛰기 — '
+	   . ( 'apply' === $mode ? '바꿉니다' : '미리보기 (아직 안 바꿈)' ) . '</h1>';
+	echo '<p class="dim">쪽 ' . (int) $ID . ' (reading-start) · '
+	   . number_format( strlen( $c ) ) . '글자</p>';
+
+	$d = "찾아본 토막\n";
+	foreach ( $CAND as $x ) {
+		$d .= sprintf( "  %-3d번  %s\n", substr_count( $c, $x ), $x );
+	}
+	$d .= "\n바꾸는 내용\n";
+	$d .= "  전  " . $OLD . "\n";
+	$d .= "  후  " . $NEW . "\n";
+	echo '<pre>' . esc_html( $d ) . '</pre>';
+
+	if ( false !== strpos( $c, "location.href='/reading-book/'; }, 3200);" ) ) {
+		echo '<p class="ok">이미 바뀌어 있습니다.</p>';
+		exit;
+	}
+	if ( 1 !== substr_count( $c, $OLD ) ) {
+		echo '<p class="no">딱 한 번 나오는 토막을 못 찾아 아무것도 안 바꿨습니다.</p>';
+		echo '<p class="dim">위 표를 보내주시면 다음 판을 만들겠습니다.</p>';
+		exit;
+	}
+
+	$new = str_replace( $OLD, $NEW, $c );
+
+	if ( 'apply' !== $mode ) {
+		echo '<p class="ok">자리를 찾았습니다. 한 군데입니다.</p>';
+		echo '<p class="dim">이대로 괜찮으시면 /?stella_skip=apply 를 여세요.</p>';
+		echo '<p class="dim">바꾸고 나면 값을 치른 뒤 3.2초 만에 책이 펼쳐집니다. '
+		   . '「자료를 다 세웠습니다」 쪽은 지우지 않고, 책 띠의 '
+		   . '「← 자료 다시 보기」로 여전히 갈 수 있습니다.</p>';
+		exit;
+	}
+
+	if ( '' === (string) get_post_meta( $ID, $META, true ) ) {
+		update_post_meta( $ID, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $ID ) );
+	clean_post_cache( $ID );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<p class="ok">바꿨습니다. 한 번 처음부터 해보세요.</p>';
+	echo '<p class="dim">되돌리려면 /?stella_skip=undo</p>';
+	exit;
+} );
