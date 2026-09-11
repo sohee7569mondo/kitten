@@ -4,14 +4,18 @@
    책이 안 나옵니다. 어제는 화면이 왼쪽으로 치우쳤고요.
    이 도구는 책이 온전한지만 봅니다. 아무것도 바꾸지 않습니다.
 
-     https://stellasaju.com/?stella_health=1
+     https://stellasaju.com/?stella_q0911a=1
+
+   ★ 이름을 stella_q0911a 로 바꿨습니다.
+     stella_health 는 이미 다른 스니펫(강성의 신 주제별)이 쓰고 있어서
+     그쪽이 먼저 대답해버렸습니다.
 
    나온 글을 통째로 붙여주세요.
    ══════════════════════════════════════════════════════════ */
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_health'] ) ) { return; }
+	if ( ! isset( $_GET['stella_q0911a'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
@@ -23,7 +27,7 @@ add_action( 'template_redirect', function () {
 	$c  = (string) $wpdb->get_var( $wpdb->prepare(
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
 
-	echo "═══ 책 건강검진 · 1판 ═══\n";
+	echo "═══ 책 건강검진 ═══\n(스니펫 판 2026-09-11-a · 이 줄이 보여야 새 파일입니다)\n";
 	echo '쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "바이트\n";
 	echo '글자로는 ' . number_format( mb_strlen( $c, 'UTF-8' ) ) . "글자\n\n";
 
