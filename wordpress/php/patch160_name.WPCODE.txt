@@ -18,10 +18,10 @@
      그래서 표에 short 를 하나 더 둡니다.
 
    주소
-     해보기   https://stellasaju.com/?stella_name=preview
-     붙이기   https://stellasaju.com/?stella_name=apply
-     되돌리기 https://stellasaju.com/?stella_name=undo
-     쌓인 것  https://stellasaju.com/?stella_name=list
+     해보기   https://stellasaju.com/?stella_b1_name=preview
+     붙이기   https://stellasaju.com/?stella_b1_name=apply
+     되돌리기 https://stellasaju.com/?stella_b1_name=undo
+     쌓인 것  https://stellasaju.com/?stella_b1_name=list
 
    ★ 스니펫 이름 「STELLA - 가디언 이름」
    ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
@@ -29,14 +29,14 @@
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_name'] ) ) { return; }
+	if ( ! isset( $_GET['stella_b1_name'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
 	header( 'Content-Type: text/plain; charset=utf-8' );
 
-	$mode  = sanitize_text_field( wp_unslash( $_GET['stella_name'] ) );
-	$STACK = '_stella_name_stack';
+	$mode  = sanitize_text_field( wp_unslash( $_GET['stella_b1_name'] ) );
+	$STACK = '_stella_b1_name_stack';
 	$ROUND = '가디언 이름 통일 2026-09-11';
 
 	/* ══ 여기부터 · 고칠 목록 ══════════════════════════════
@@ -91,7 +91,7 @@ add_action( 'template_redirect', function () {
 			   . number_format( strlen( $s['body'] ) ) . "글자\n";
 			$i--;
 		}
-		echo "\n?stella_name=undo 를 치면 맨 위 것부터 하나씩 돌아갑니다.";
+		echo "\n?stella_b1_name=undo 를 치면 맨 위 것부터 하나씩 돌아갑니다.";
 		exit;
 	}
 
@@ -152,7 +152,7 @@ add_action( 'template_redirect', function () {
 		echo "\n" . count( $todo ) . "자리를 고칩니다";
 		if ( $miss ) { echo ' (못 찾은 ' . $miss . '자리는 건너뜁니다)'; }
 		echo ".\n" . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
-		echo "\n괜찮으시면 ?stella_name=apply\n";
+		echo "\n괜찮으시면 ?stella_b1_name=apply\n";
 		exit;
 	}
 
@@ -166,6 +166,6 @@ add_action( 'template_redirect', function () {
 	clean_post_cache( $id );
 
 	echo "\n고쳤습니다. " . count( $todo ) . "자리.\n";
-	echo "되돌리려면 ?stella_name=undo\n";
+	echo "되돌리려면 ?stella_b1_name=undo\n";
 	exit;
 }, 1 );
