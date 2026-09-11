@@ -1,0 +1,87 @@
+/* ══════════════════════════════════════════════════════════
+   책 쪽만 손질을 빼기 · 소희 님께                2026-09-11
+   ── 판 : FAST-1 (2026-09-11) ──
+
+   잰 값에서 나온 낭비입니다. 셋 다 글자를 하나도 안 바꾸면서
+   6.2초를 씁니다.
+
+     2,114ms  sharing_display              (소셜 공유 단추)
+     2,060ms  Jetpack 구독 유료벽
+     2,019ms  apply_block_hooks_to_content (블록 훅)
+       140ms  wpautop  ← 게다가 16,473글자를 멋대로 집어넣습니다
+
+   책 본문은 이미 다 만들어진 HTML입니다.
+   따옴표를 다듬거나 줄바꿈을 <p> 로 바꿔줄 까닭이 없습니다.
+   그래서 책 쪽에서만 이 손질들을 빼냅니다.
+
+   ★ 글은 한 글자도 안 건드립니다. 스니펫을 끄면 그대로 돌아옵니다.
+   ★ 책 쪽(reading-book)에서만 빠집니다. 다른 쪽은 그대로입니다.
+
+   ★ 덤 : wptexturize 가 빠지면서
+     「책 <script> 안에 앰퍼샌드를 쓰면 안 된다」는 금기도 풀립니다.
+     그래도 당분간은 안 쓰는 쪽으로 가겠습니다. 확인한 뒤에요.
+
+   ★ 스니펫 이름 「STELLA - 책 쪽 빠르게」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 넣고 나서 시크릿 창에서 다시 재주세요.
+       https://stellasaju.com/reading-book/?demo=door-love&stella_speed=1
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! is_page( 'reading-book' ) ) { return; }
+
+	global $wp_filter;
+	if ( ! isset( $wp_filter['the_content'] ) ) { return; }
+
+	/* 이름에 이 조각이 들어 있으면 뺍니다 */
+	$KILL = array(
+		'sharing_display',
+		'Subscriptions\\',
+		'apply_block_hooks_to_content',
+		'wpautop',
+		'wptexturize',
+		'convert_smilies',
+		'capital_P_dangit',
+		'crowdsignal_link',
+		'WP_Embed::autoembed',
+		'wpcomsh_make_content_clickable',
+		'Image_CDN',
+		'Jetpack_RelatedPosts',
+		'photon_subsizes',
+		'jetpack_spotify',
+		'jetpack_fix_youtube',
+		'jetpack_videopress',
+		'latex_markup',
+		'Jetpack_Carousel',
+		'MailPoet',
+		'Newspack_Blocks',
+		'Paypal_Payments',
+	);
+
+	$gone = 0;
+	foreach ( $wp_filter['the_content']->callbacks as $prio => $cbs ) {
+		foreach ( $cbs as $idn => $cb ) {
+			$fn = $cb['function'];
+
+			if ( is_string( $fn ) ) { $nm = $fn; }
+			elseif ( is_array( $fn ) ) {
+				$cls = is_object( $fn[0] ) ? get_class( $fn[0] ) : (string) $fn[0];
+				$nm  = $cls . '::' . (string) $fn[1];
+			} else { continue; }
+
+			foreach ( $KILL as $k ) {
+				if ( false === strpos( $nm, $k ) ) { continue; }
+				remove_filter( 'the_content', $fn, $prio );
+				$gone++;
+				break;
+			}
+		}
+	}
+
+	if ( current_user_can( 'manage_options' ) ) {
+		add_action( 'wp_footer', function () use ( $gone ) {
+			echo '<script>console.log("STELLA FAST-1 : 손질 ' . (int) $gone . '가지 뺐습니다");</script>';
+		}, 999 );
+	}
+}, 5 );
