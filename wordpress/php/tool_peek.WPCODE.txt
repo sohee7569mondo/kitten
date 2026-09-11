@@ -1,0 +1,78 @@
+/* ════════════════════════════════════════════════════════════
+   책의 한 토막 그대로 보기 (PEEK)   ★ 2026-09-11 · 소희 님께
+
+   ★★ 번역기가 도구 글을 망가뜨리고 있어서
+      이 도구는 **번역 금지 표시**를 달고 나옵니다.
+      (notranslate — 크롬이 건드리지 않습니다)
+
+   MAP-4 가 결정적인 것을 알려줬습니다.
+
+     줄 12572 에 이미 이런 것이 있습니다
+        page( '<p class="eyebrow">맺음말</p>'
+            + '<h2>○○님, 세 가지만 기억하세요</h2>' … )
+
+     **「세 가지만 기억하세요」 장이 이미 책에 있습니다.**
+     새로 만들 것이 아니라, 결혼운에서 무엇을 보여줄지만 고치면 됩니다.
+
+   그 토막을 눈으로 봐야 패치를 쓸 수 있습니다.
+
+   아무것도 바꾸지 않습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   맺음말 토막   https://stellasaju.com/?stella_peek=12470-12620
+   다른 곳       https://stellasaju.com/?stella_peek=시작줄-끝줄
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_peek'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$arg = sanitize_text_field( wp_unslash( $_GET['stella_peek'] ) );
+	$from = 12470; $to = 12620;
+	if ( preg_match( '/^(\d+)\s*-\s*(\d+)$/', $arg, $m ) ) {
+		$from = (int) $m[1];
+		$to   = (int) $m[2];
+	}
+	if ( $to < $from ) { $to = $from; }
+	if ( $to - $from > 400 ) { $to = $from + 400; }
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", 160 ) );
+
+	$lines = explode( "\n", $c );
+	$total = count( $lines );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!DOCTYPE html><html lang="ko" translate="no">';
+	echo '<head><meta charset="utf-8">';
+	echo '<meta name="google" content="notranslate">';
+	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
+	echo '<title>PEEK</title>';
+	echo '<style>body{background:#12101B;color:#F2ECE0;margin:0;padding:16px;'
+	   . 'font:12px/1.65 ui-monospace,Menlo,Consolas,monospace}'
+	   . 'h1{color:#D4AF6A;font-size:14px;margin:0 0 12px}'
+	   . '.n{color:#6F6A80;user-select:none}'
+	   . 'pre{white-space:pre-wrap;word-break:break-all;margin:0}'
+	   . '</style></head><body class="notranslate" translate="no">';
+
+	echo '<h1>PEEK &middot; 쪽 160 &middot; 줄 ' . (int) $from . ' ~ ' . (int) $to
+	   . ' (모두 ' . number_format( $total ) . '줄)</h1>';
+
+	echo '<pre>';
+	$i = $from;
+	while ( $i <= $to && $i <= $total ) {
+		$txt = isset( $lines[ $i - 1 ] ) ? $lines[ $i - 1 ] : '';
+		echo '<span class="n">' . sprintf( '%6d', $i ) . '</span>  '
+		   . esc_html( $txt ) . "\n";
+		$i++;
+	}
+	echo '</pre>';
+
+	echo '</body></html>';
+	exit;
+} );
