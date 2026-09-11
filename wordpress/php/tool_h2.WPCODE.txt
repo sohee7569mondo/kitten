@@ -71,6 +71,40 @@ add_action( 'template_redirect', function () {
 		echo "  없습니다 (var SIP={ … } 표만 있습니다)\n";
 	}
 
+	echo "\n─── 6. 제목으로 장을 찾는 자리 (findMark) ───\n";
+	if ( preg_match_all( '/findMark\(\s*\'([^\']{1,90})\'/u', $c, $m6 ) ) {
+		foreach ( $m6[1] as $t ) { echo '  ' . $t . "\n"; }
+	} else {
+		echo "  없습니다\n";
+	}
+
+	echo "\n─── 7. 제목 글자로 무언가 찾는 다른 자리 ───\n";
+	$keys = array( 'indexOf(\'<h2>', 'h===SIP', 'SIP)', 'markAt(', 'anchor(' );
+	foreach ( $keys as $k ) {
+		$n = substr_count( $c, $k );
+		echo '  ' . $k . '  ' . $n . "군데\n";
+	}
+
+	echo "\n─── 8. 「비어 있는 자리」 장이 무엇을 세나 ───\n";
+	$pos = mb_strpos( $c, '<h2>비어 있는 자리</h2>', 0, 'UTF-8' );
+	if ( false === $pos ) {
+		echo "  그 제목이 없습니다\n";
+	} else {
+		$cut = mb_substr( $c, max( 0, $pos - 260 ), 620, 'UTF-8' );
+		$cut = preg_replace( '/\s+/u', ' ', $cut );
+		echo '  …' . $cut . "…\n";
+	}
+
+	echo "\n─── 9. 「여덟 글자에서 제일 많은 것」 장 ───\n";
+	$pos2 = mb_strpos( $c, '<h2>여덟 글자에서 제일 많은 것</h2>', 0, 'UTF-8' );
+	if ( false === $pos2 ) {
+		echo "  그 제목이 없습니다\n";
+	} else {
+		$cut2 = mb_substr( $c, max( 0, $pos2 - 120 ), 520, 'UTF-8' );
+		$cut2 = preg_replace( '/\s+/u', ' ', $cut2 );
+		echo '  …' . $cut2 . "…\n";
+	}
+
 	echo "\n═══ 여기까지 · 위를 통째로 붙여주세요 ═══";
 	exit;
 }, 1 );
