@@ -21,8 +21,9 @@
    붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
    ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
 
-   맺음말 토막   https://stellasaju.com/?stella_peek=12470-12620
-   다른 곳       https://stellasaju.com/?stella_peek=시작줄-끝줄
+   줄 번호로     https://stellasaju.com/?stella_peek=12470-12620
+   말로 찾아서   https://stellasaju.com/?stella_peek=find:it.top.map
+                 (그 말이 있는 줄을 찾아 앞뒤로 보여줍니다)
    ════════════════════════════════════════════════════════════ */
 
 add_action( 'template_redirect', function () {
@@ -34,7 +35,10 @@ add_action( 'template_redirect', function () {
 
 	$arg = sanitize_text_field( wp_unslash( $_GET['stella_peek'] ) );
 	$from = 12470; $to = 12620;
-	if ( preg_match( '/^(\d+)\s*-\s*(\d+)$/', $arg, $m ) ) {
+	$find = '';
+	if ( 0 === strpos( $arg, 'find:' ) ) {
+		$find = substr( $arg, 5 );
+	} elseif ( preg_match( '/^(\d+)\s*-\s*(\d+)$/', $arg, $m ) ) {
 		$from = (int) $m[1];
 		$to   = (int) $m[2];
 	}
@@ -46,6 +50,20 @@ add_action( 'template_redirect', function () {
 
 	$lines = explode( "\n", $c );
 	$total = count( $lines );
+
+	/* 찾기 — 그 말이 있는 줄을 가운데 두고 앞뒤로 보여줍니다 */
+	$hits = array();
+	if ( '' !== $find ) {
+		$i = 0;
+		while ( $i < $total ) {
+			if ( false !== strpos( $lines[ $i ], $find ) ) { $hits[] = $i + 1; }
+			$i++;
+		}
+		if ( count( $hits ) ) {
+			$from = max( 1, $hits[0] - 25 );
+			$to   = min( $total, $hits[0] + 75 );
+		}
+	}
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo '<!DOCTYPE html><html lang="ko" translate="no">';
@@ -62,6 +80,16 @@ add_action( 'template_redirect', function () {
 
 	echo '<h1>PEEK &middot; 쪽 160 &middot; 줄 ' . (int) $from . ' ~ ' . (int) $to
 	   . ' (모두 ' . number_format( $total ) . '줄)</h1>';
+
+	if ( '' !== $find ) {
+		echo '<p class="n">찾은 말 : ' . esc_html( $find ) . ' &middot; '
+		   . count( $hits ) . '군데';
+		if ( count( $hits ) ) {
+			echo ' &middot; 줄 ' . esc_html( implode( ', ', array_slice( $hits, 0, 20 ) ) );
+		}
+		echo '</p>';
+		if ( ! count( $hits ) ) { echo '</body></html>'; exit; }
+	}
 
 	echo '<pre>';
 	$i = $from;
