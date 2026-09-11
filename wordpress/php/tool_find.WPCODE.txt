@@ -12,17 +12,17 @@
    붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
    ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
 
-   https://stellasaju.com/?stella_find=내 전자책
-   https://stellasaju.com/?stella_find=아무 말이나
+   https://stellasaju.com/?stella_find911=내 전자책
+   https://stellasaju.com/?stella_find911=아무 말이나
    ════════════════════════════════════════════════════════════ */
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_find'] ) ) { return; }
+	if ( ! isset( $_GET['stella_find911'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
-	$q = sanitize_text_field( wp_unslash( $_GET['stella_find'] ) );
+	$q = sanitize_text_field( wp_unslash( $_GET['stella_find911'] ) );
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo '<!DOCTYPE html><html lang="ko" translate="no"><head><meta charset="utf-8">'
@@ -38,7 +38,7 @@ add_action( 'template_redirect', function () {
 	   . '</style></head><body class="notranslate" translate="no">';
 
 	if ( '' === $q ) {
-		echo '<p class="no">찾을 말을 적어주세요. /?stella_find=내 전자책</p>';
+		echo '<p class="no">찾을 말을 적어주세요. /?stella_find911=내 전자책</p>';
 		echo '</body></html>';
 		exit;
 	}
