@@ -20,6 +20,10 @@
      붙이기   https://stellasaju.com/?stella_b3=apply
      되돌리기 https://stellasaju.com/?stella_b3=undo
 
+   ★ 미리보기를 누르면 05장 저울 뒷부분도 같이 보여줍니다.
+     따로 확인 도구를 돌리지 않으셔도 됩니다.
+     나온 글을 통째로 저에게 붙여주시면 다음 패치를 만들겠습니다.
+
    ★ 스니펫 이름 「STELLA - 셋째 배치」
    ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
    ══════════════════════════════════════════════════════════ */
@@ -125,6 +129,16 @@ add_action( 'template_redirect', function () {
 	foreach ( $todo as $r ) { $new = str_replace( $r[1], $r[2], $new ); }
 
 	if ( 'preview' === $mode ) {
+		/* 미리보기에서 05장 저울 뒷부분도 같이 보여줍니다.
+		   다음 패치에 넣을 글의 자리를 잡기 위해서입니다. */
+		$pos = mb_strpos( $c, '가장 강합니다', 0, 'UTF-8' );
+		if ( false !== $pos ) {
+			$blk = mb_substr( $c, max( 0, $pos - 80 ), 1300, 'UTF-8' );
+			$blk = preg_replace( '/\s+/u', ' ', $blk );
+			echo "\n─── 05장 저울 뒷부분 (다음에 새 글이 들어갈 자리) ───\n";
+			echo '…' . $blk . "…\n";
+		}
+
 		echo "\n" . count( $todo ) . "자리를 고칩니다";
 		if ( $miss ) { echo ' (못 찾은 ' . $miss . '자리는 건너뜁니다)'; }
 		echo ".\n" . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
