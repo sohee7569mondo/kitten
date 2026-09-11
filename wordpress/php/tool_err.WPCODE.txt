@@ -1,0 +1,62 @@
+/* ══════════════════════════════════════════════════════════
+   책이 멈춘 자리를 화면에 띄우기 · 소희 님께   2026-09-11 · b판
+
+   책이 안 나올 때, 무엇 때문에 멈췄는지 화면 맨 위에
+   빨간 상자로 보여줍니다. 콘솔을 안 여셔도 됩니다.
+
+   쓰는 법
+     WPCode → 새 스니펫 → PHP Snippet → 「어디서나 실행」 → 저장 → 활성
+     그리고 책을 그냥 여세요.
+        https://stellasaju.com/reading-book/?demo=door-love
+
+     빨간 상자가 뜨면 그 안의 글을 찍어서 보내주세요.
+
+   ★ 다 끝나면 이 스니펫은 꺼주세요. 손님에게는 안 보여야 합니다.
+     (관리자로 로그인했을 때만 보이게 해두었습니다)
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_footer', function () {
+
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	if ( ! is_page( 'reading-book' ) ) { return; }
+
+	?>
+<script>
+(function(){
+  function box(msg){
+    var d=document.getElementById('stella-err');
+    if(!d){
+      d=document.createElement('div');
+      d.id='stella-err';
+      d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:999999;'
+        +'background:#b3261e;color:#fff;padding:14px 18px;font:14px/1.7 system-ui;'
+        +'white-space:pre-wrap;word-break:break-all;max-height:55vh;overflow:auto;'
+        +'box-shadow:0 2px 16px rgba(0,0,0,.4)';
+      document.body.appendChild(d);
+    }
+    d.textContent += msg + '\n\n';
+  }
+  window.addEventListener('error', function(e){
+    var m = '【책이 멈춘 자리】\n';
+    m += (e.message || '(까닭 모름)') + '\n';
+    if(e.filename){ m += '파일 : ' + e.filename + '\n'; }
+    m += '줄 ' + (e.lineno||'?') + ' · 칸 ' + (e.colno||'?');
+    if(e.error){
+      if(e.error.stack){ m += '\n\n' + String(e.error.stack).split('\n').slice(0,4).join('\n'); }
+    }
+    box(m);
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    box('【약속이 깨진 자리】\n' + String(e.reason));
+  });
+  setTimeout(function(){
+    var b=document.getElementById('ssb');
+    if(!b){ box('【알림】 책을 담는 자리(#ssb)를 못 찾았습니다.'); return; }
+    var n=b.querySelectorAll('h2').length;
+    if(n===0){ box('【알림】 오류는 안 났는데 장이 하나도 안 그려졌습니다.\n'
+       + '책 담는 자리 안 글자 수 : ' + (b.textContent||'').trim().length); }
+  }, 4000);
+})();
+</script>
+	<?php
+}, 99 );
