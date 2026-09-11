@@ -3,6 +3,7 @@
 
    제가 가진 책 사본이 낡아서, 고칠 자리를 못 찾는 일이 생깁니다.
    이 스니펫은 아무것도 바꾸지 않습니다. 그냥 보여주기만 합니다.
+   (2026-09-11 고침 — 한글이 잘려 「…」만 나오던 것을 바로잡았습니다)
 
    쓰는 법
      WPCode → 새 스니펫 → PHP Snippet → 「어디서나 실행」 → 저장 → 활성
@@ -32,21 +33,30 @@ add_action( 'template_redirect', function () {
 
 	/* 찾아볼 조각들 — 이름, 찾을 글자 */
 	$Q = array(
-		array( '09 옛 제목',   '<h2>당신이 아무 말도 하기 전에</h2>' ),
-		array( '09 새 제목?',  '님의 결</h2>' ),
-		array( '09 사주에서',  '사주에서 보는 ' ),
-		array( '09 접기옛',    'var SIP=\'당신이 아무 말도 하기 전에\';' ),
-		array( '09 접기새?',   'var SIP=\'사주에서 보는 \';' ),
-		array( '09 접기아무',  'var SIP=' ),
-		array( '13 옛 제목',   '맞지 않은 부분을 정리해보았습니다' ),
-		array( '13 타고난',    '타고난 성향과 적어주신' ),
-		array( '13 어긋난',    '어긋난 자리</h2>' ),
-		array( '18 되풀이A',   'var h = \'되풀이되는 자리\';' ),
-		array( '18 되풀이B',   'var h=\'되풀이되는 자리\';' ),
-		array( '18 되풀이C',   '되풀이되는 자리\'' ),
-		array( '확인 · 벼리',  '인연을 잇는 벼리' ),
-		array( '확인 · 저울',  '글자 속에 숨은 글자까지' ),
-		array( '확인 · 그리면', '사주로 당신을 그리면' ),
+		/* ── ①번 패치가 들어갔나 ── */
+		array( '① 연성의 신',  '연성의 신' ),
+		array( '① 직성의 신',  '직성의 신' ),
+		array( '① 벼리 전체',  '인연을 잇는 벼리' ),
+		array( '① short 벼리', 'short:\'벼리\'' ),
+		array( '① THE LOVERS', 'THE LOVERS' ),
+		array( '① 말풍선',     'g.short||g.name' ),
+
+		/* ── 09장 제목과 접기 열쇠 ── */
+		array( '09 아무 말도',  '아무 말도 하기 전에' ),
+		array( '09 SIP',        'var SIP=' ),
+		array( '09 h2 태그',    '<h2>당신이' ),
+
+		/* ── 13장 제목 ── */
+		array( '13 타고난',     '타고난 성향과 적어주신' ),
+		array( '13 정리해보',   '정리해보았습니다' ),
+
+		/* ── 18장 ── */
+		array( '18 되풀이',     '되풀이되는 자리' ),
+		array( '18 var h',      'var h = ' ),
+
+		/* ── ②③번이 들어갔나 (확인용) ── */
+		array( '② 저울',       '글자 속에 숨은 글자까지' ),
+		array( '③ 태어난 시간', '태어난 시간을 먼저' ),
 	);
 
 	foreach ( $Q as $q ) {
@@ -54,10 +64,11 @@ add_action( 'template_redirect', function () {
 		$n = substr_count( $c, $needle );
 		echo sprintf( "%-13s %d군데", $nm, $n );
 		if ( $n > 0 ) {
-			$p = strpos( $c, $needle );
-			$s = max( 0, $p - 70 );
-			$cut = substr( $c, $s, strlen( $needle ) + 140 );
+			$p = mb_strpos( $c, $needle, 0, 'UTF-8' );
+			$s = max( 0, $p - 55 );
+			$cut = mb_substr( $c, $s, mb_strlen( $needle, 'UTF-8' ) + 110, 'UTF-8' );
 			$cut = preg_replace( '/\s+/u', ' ', $cut );
+			if ( null === $cut ) { $cut = '(글자를 옮기지 못했습니다)'; }
 			echo "\n    …" . $cut . "…";
 		}
 		echo "\n";
