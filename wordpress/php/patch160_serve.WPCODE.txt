@@ -85,6 +85,19 @@ add_action( 'template_redirect', function () {
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 
+	/* ★★ 담아두기를 풉니다 (2026-09-12)
+	   여태는 쪽 전체를 메모리에 담았다가 마지막에 한꺼번에 보냈습니다.
+	   1.33MB 를 들고 있다가 보내는 셈이라, 도중에 죽으면 반쪽만 남고
+	   오류 화면으로 바꿀 수도 없습니다 — 소희 님이 보신 흰 화면입니다.
+	   이제 만든 만큼 바로바로 내보냅니다. 들고 있는 양이 줄고,
+	   브라우저도 먼저 그리기 시작합니다. */
+	$guard = 0;
+	while ( ob_get_level() > 0 ) {
+		if ( ! @ob_end_flush() ) { break; }
+		$guard++;
+		if ( $guard > 20 ) { break; }
+	}
+
 	echo '<!doctype html>' . "\n";
 	echo '<html lang="ko">' . "\n<head>\n";
 	echo '<meta charset="utf-8">' . "\n";
@@ -92,10 +105,22 @@ add_action( 'template_redirect', function () {
 	echo '<title>' . esc_html( get_the_title( $p ) ) . '</title>' . "\n";
 	wp_head();
 	echo "\n</head>\n<body class=\"stella-book\">\n";
+	flush();
 
 	echo $c;
+	unset( $c );          /* 다 보냈으니 들고 있지 않습니다 */
+	flush();
+
+	/* ★ 얼마나 아슬아슬한지 적어둡니다.
+	   Ctrl+U 로 소스를 보면 이 줄이 있습니다.
+	   이 줄이 아예 없으면 본문을 보내다 죽은 것입니다. */
+	echo "\n<!-- stella 본문까지 " . round( memory_get_peak_usage( true ) / 1048576 )
+	   . "MB · 한도 " . ini_get( 'memory_limit' ) . " -->\n";
+	flush();
 
 	wp_footer();
+
+	echo "\n<!-- stella 끝까지 " . round( memory_get_peak_usage( true ) / 1048576 ) . "MB -->\n";
 	echo "\n</body>\n</html>";
 	exit;
 }, 5 );
