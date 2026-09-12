@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    책 쪽은 우리가 직접 그립니다
-   ★ 2026-09-12 · 소희 님께      판 SERVE-5
+   ★ 2026-09-12 · 소희 님께      판 SERVE-6
 
    ── SERVE-5 (2026-09-12 밤) — 이번엔 시간을 잽니다 ─────
    소희 님 : 책이 열리는 데 1분쯤 걸립니다.
@@ -15,6 +15,12 @@
        바닥글 끝            ← wp_footer() · 덤 두 쪽 조각들
 
    어디가 큰지 보고 거기만 고칩니다. 물어본 횟수와 글 크기도 적습니다.
+
+   ── SERVE-6 에서 잰 값 (소희 님) ──────────────────────
+       서버는 0.83초. 아주 빠릅니다. 1분은 서버 탓이 아닙니다.
+       ★ 눌러 보내기(gzip)가 꺼져 있습니다 — 글 1MB 를 그대로 보냅니다.
+       남은 시간은 브라우저 쪽입니다. 그래서 SERVE-6 은
+       오간 글의 크기와 그리는 시간을 같이 잽니다.
 
    ★ 보시는 법 — 책 주소 뒤에 붙이면 오른쪽 아래에 상자로 뜹니다.
 
@@ -219,22 +225,31 @@ add_action( 'template_redirect', function () {
 	   을 다 더한 것이니까요. 뒤의 둘은 브라우저만 압니다.
 	   ★ 홑 앰퍼샌드와 두 글자 논리기호를 쓰지 않습니다 (사이트 규칙). */
 	if ( isset( $_GET['stella_time'] ) ) {
-		echo stella_serve5_watch();
+		echo stella_serve6_watch();
 	}
 
 	echo "\n</body>\n</html>";
 	exit;
 }, 5 );
 
-function stella_serve5_watch() {
+function stella_serve6_watch() {
 	return <<<'STELLAWATCH'
 <script>
+/* ══ 브라우저 쪽 시계 · SERVE-6 ═══════════════════════════
+   ★ 홑 앰퍼샌드와 두 글자 논리기호를 쓰지 않습니다 (사이트 규칙)
+   ★ 기다리는 동안에도 줄이 보입니다. 다 되면 「다 됐습니다」가 뜹니다. */
 (function(){
   'use strict';
   var box=document.getElementById('stellatime');
   if(!box){ return; }
 
+  var head=box.textContent;
   function s(ms){ return (ms/1000).toFixed(2)+'초'; }
+  function mb(b){
+    if(!b){ return '모름'; }
+    return (b/1048576).toFixed(2)+'MB';
+  }
+  function show(t){ box.textContent=head+t; }
 
   function pages(){
     var b=document.getElementById('ssb');
@@ -243,13 +258,20 @@ function stella_serve5_watch() {
   }
 
   var same=0, last=-1, tries=0;
+
   function watch(){
     tries+=1;
     var n=pages();
     if(n===last){ same+=1; }
     else { same=0; last=n; }
-    /* 쪽 수가 네 번(1.2초) 그대로면 다 그린 것으로 봅니다 */
-    if(same>=4){ if(n>0){ return done(n); } }
+
+    show('\n브라우저 ── 아직 재는 중입니다 ─────────\n'+
+         '     지금까지 그린 쪽   '+n+'쪽\n'+
+         '     연 지               '+s(performance.now())+'\n'+
+         '     ★ 쪽 수가 멎으면 표가 채워집니다');
+
+    /* 쪽 수가 다섯 번(1.5초) 그대로면 다 그린 것으로 봅니다 */
+    if(same>=5){ if(n>0){ return done(n); } }
     if(tries>400){ return done(n); }
     setTimeout(watch, 300);
   }
@@ -257,15 +279,25 @@ function stella_serve5_watch() {
   function done(n){
     var t=null;
     try{ t=performance.getEntriesByType('navigation')[0]; }catch(e){ t=null; }
-    var out='\n브라우저에서 ───────────────────────────\n';
+
+    var out='\n브라우저에서 ── 다 됐습니다 ───────────\n';
     if(t){
       out+='     서버가 첫 글자 보낼 때까지  '+s(t.responseStart-t.startTime)+'\n';
       out+='     글이 다 오는 데            '+s(t.responseEnd-t.responseStart)+'\n';
       out+='     읽을 수 있게 될 때까지     '+s(t.domContentLoadedEventEnd-t.startTime)+'\n';
+      out+='     오간 글의 크기            '+mb(t.encodedBodySize)+'\n';
+      out+='     펼친 글의 크기            '+mb(t.decodedBodySize)+'\n';
+      var zip='안 눌러 보냈습니다';
+      if(t.encodedBodySize){
+        if(t.decodedBodySize){
+          if(t.encodedBodySize < t.decodedBodySize*0.9){ zip='눌러 보냈습니다'; }
+        }
+      }
+      out+='     눌러 보내기               '+zip+'\n';
     }
     out+='     책이 다 그려질 때까지     '+s(performance.now())+'\n';
     out+='     그린 쪽                   '+n+'쪽';
-    box.textContent=box.textContent+out;
+    show(out);
   }
 
   setTimeout(watch, 400);
