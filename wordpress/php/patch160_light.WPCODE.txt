@@ -1,0 +1,107 @@
+/* ══════════════════════════════════════════════════════════
+   책 쪽만 가볍게 — 필요 없는 필터를 떼어냅니다
+   ★ 2026-09-12 · 소희 님께
+
+   ── 재보니 이랬습니다 ─────────────────────────────────
+       지금 한도        512M   ← 못 올립니다
+       WP_MEMORY_LIMIT  512M      워드프레스가 상수로
+       WP_MAX_MEMORY    512M      박아두어 ini_set 이 덮입니다
+       지금 쓰는 중      30MB   ← 조각들은 문제가 아닙니다
+       책 쪽 본문       1,334,526자
+
+   30MB 쓰던 것이 책 쪽에서만 512MB 를 넘습니다.
+   본문 1.33MB 를 필터에 태울 때 터지는 것입니다.
+
+   ── 무엇을 떼어내나 ───────────────────────────────────
+   워드프레스는 글을 내보내기 전에 손을 여럿 댑니다.
+
+       do_blocks              블록 주석을 파싱
+       wptexturize            따옴표를 둥글게, 「&」를 「&#038;」로
+       wpautop                빈 줄을 <p> 로
+       wp_filter_content_tags 그림 태그에 lazy · decoding 붙이기
+       convert_smilies        :-) 를 그림으로
+
+   ★ 책 쪽에는 이 가운데 필요한 것이 하나도 없습니다.
+     본문이 이미 완성된 HTML 과 자바스크립트거든요.
+     그런데 손댈 때마다 1.33MB 가 통째로 복사됩니다.
+
+   ★★ 덤이 큽니다 —
+     · wptexturize 가 빠지므로 「&」 를 써도 안 깨집니다
+     · 따옴표가 둥글게 바뀌지 않습니다
+     · 그림 태그에 decoding 이 두 번 끼지 않습니다
+     오늘 겪은 사고들이 여기서 났습니다.
+
+   ── 지키는 것 ─────────────────────────────────────────
+   · 책 쪽에서만 뗍니다. 다른 쪽은 그대로입니다.
+   · 본문을 한 글자도 안 바꿉니다.
+   · 끄면 곧바로 원래대로 돌아옵니다.
+
+   재보기  https://stellasaju.com/?stella_light=1
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp', function () {
+
+	if ( is_admin() ) { return; }
+	if ( ! is_singular() ) { return; }
+	$p = get_post();
+	if ( ! $p ) { return; }
+	if ( 'reading-book' !== $p->post_name ) { return; }
+
+	/* 블록 주석 파싱 — 책 쪽 본문은 통짜 HTML 이라 필요 없습니다.
+	   빼면 <!-- wp:html --> 주석이 그대로 나가는데, 주석이라
+	   화면에는 안 보입니다. */
+	remove_filter( 'the_content', 'do_blocks', 9 );
+
+	/* 문장부호 다듬기 — 「&」를 「&#038;」로 바꾸던 그 필터입니다 */
+	remove_filter( 'the_content', 'wptexturize' );
+
+	/* 빈 줄을 문단으로 — 이미 <p> 로 다 적혀 있습니다 */
+	remove_filter( 'the_content', 'wpautop' );
+	remove_filter( 'the_content', 'shortcode_unautop' );
+
+	/* 그림 태그 손보기 — decoding 을 두 번 끼우던 그 필터입니다 */
+	remove_filter( 'the_content', 'wp_filter_content_tags' );
+	remove_filter( 'the_content', 'wp_replace_insecure_home_url' );
+
+	/* 나머지 잔손질 */
+	remove_filter( 'the_content', 'convert_smilies', 20 );
+	remove_filter( 'the_content', 'capital_P_dangit', 11 );
+	remove_filter( 'the_content', 'prepend_attachment' );
+	remove_filter( 'the_content', 'do_shortcode', 11 );
+}, 1 );
+
+/* ── 재보기 ───────────────────────────────────────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_light'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	global $wp_filter;
+	echo "═══ 책 쪽 the_content 에 붙은 손길 ═══════\n\n";
+
+	$f = isset( $wp_filter['the_content'] ) ? $wp_filter['the_content'] : null;
+	if ( ! $f ) { echo "  하나도 없습니다.\n"; exit; }
+
+	$n = 0;
+	foreach ( $f->callbacks as $prio => $list ) {
+		foreach ( $list as $key => $one ) {
+			$nm = $key;
+			if ( is_array( $one['function'] ) ) { $nm = '배열'; }
+			if ( $one['function'] instanceof Closure ) { $nm = '이름없는 함수'; }
+			echo '  ' . str_pad( (string) $prio, 5, ' ', STR_PAD_LEFT ) . '  ' . $nm . "\n";
+			$n = $n + 1;
+		}
+	}
+	echo "\n  모두 " . $n . "개\n\n";
+	echo '  지금 쓰는 중  ' . size_format( memory_get_usage( true ) ) . "\n";
+	echo '  여기까지 최대 ' . size_format( memory_get_peak_usage( true ) ) . "\n\n";
+	echo "★ 이 주소는 책 쪽이 아니라 홈에서 잰 것이라\n";
+	echo "  떼어내기 전 목록이 나옵니다. 책을 열어보시는 것이\n";
+	echo "  진짜 시험입니다.\n";
+	exit;
+}, 1 );
