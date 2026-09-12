@@ -18,6 +18,7 @@
        계산기(StellaSaju)가 실려 있나
        풀이말(StellaRead)이 실려 있나
        주문 자료가 있나
+   ★ 그리고 넘어진 줄을 원문에서 그대로 읽어와 보여줍니다.
 
    ★ 주소 끝에 ?stella_err=1 을 붙였을 때만 뜹니다.
      손님 화면에는 절대 안 나옵니다.
@@ -57,13 +58,51 @@ add_action( 'wp_head', function () {
     box.appendChild(document.createTextNode(n+'. '+m+'\n'));
   }
 
+  var pend=[], pulled=0;
+
   window.onerror=function(msg,src,line,col){
     var f=String(src||'');
     var cut=f.lastIndexOf('/');
     if(cut>=0){ f=f.slice(cut+1); }
     show('넘어짐  '+f+' '+line+'줄 '+col+'칸\n    '+msg);
+    pend.push({ line:line, col:col });
+    setTimeout(pull, 300);
     return false;
   };
+
+  /* ★ 넘어진 줄을 원문에서 그대로 읽어옵니다.
+     같은 쪽이라 그냥 불러올 수 있습니다. */
+  function pull(){
+    if(pulled===1){ return; }
+    if(pend.length===0){ return; }
+    pulled=1;
+    fetch(location.href, { credentials:'same-origin' })
+      .then(function(r){ return r.text(); })
+      .then(function(t){
+        var L=t.split('\n');
+        show('원문 ' + L.length + '줄');
+        var i, j, ln, col, row;
+        for(i=0;i<pend.length;i++){
+          ln=pend[i].line;
+          col=pend[i].col;
+          show('── ' + ln + '줄 둘레 ──────────────');
+          for(j=ln-1;j<=ln+1;j++){
+            if(j<1){ continue; }
+            if(j>L.length){ break; }
+            row=L[j-1];
+            if(row.length>300){ row=row.slice(0,300)+'…'; }
+            show(j + '| ' + row);
+          }
+          row=L[ln-1];
+          if(row){
+            var from=col-90;
+            if(from<0){ from=0; }
+            show('★ ' + col + '칸 둘레 : ' + row.slice(from, col+90));
+          }
+        }
+      })
+      .catch(function(e){ show('원문 못 읽음  ' + e); });
+  }
 
   window.addEventListener('error', function(e){
     if(!e.target){ return; }
