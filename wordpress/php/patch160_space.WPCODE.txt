@@ -23,11 +23,11 @@
      층이 넷이면 여백도 넷이어야 합니다.
 
    ── 이렇게 바꿉니다 ───────────────────────────────────
-       문단 사이     30px   (한 줄이 32px)
+       문단 사이     20px   짧은 문단이 많아 30px 은 성기게 보였습니다
        제목 아래     12px   설명 줄과는 붙여 둡니다. 한 덩어리니까요.
-       설명 줄 아래   30px   여기가 벌어져야 합니다. 다음은 본문이거든요.
+       설명 줄 아래   26px   여기가 벌어져야 합니다. 다음은 본문이거든요.
        소제목 위     48px   주제가 바뀌는 자리입니다.
-       쪽과 쪽 사이   80px   ← 소희 님이 말씀하신 그것
+       쪽과 쪽 사이  200px   ← 소희 님이 말씀하신 그것. 쪽이 끝난 것이 분명히 보입니다.
        장            속표지가 알려줍니다. 실선을 겹치지 않습니다.
 
    ★ 쪽 사이 실선을 없앴습니다. 장은 속표지가 알려주므로
@@ -38,9 +38,9 @@
    · 글은 한 글자도 건드리지 않습니다. 보이는 모양만 바꿉니다.
    · 두 번 눌러도 한 번만 들어갑니다.
 
-   해보기   https://stellasaju.com/?stella_space=preview
-   붙이기   https://stellasaju.com/?stella_space=apply
-   되돌리기 https://stellasaju.com/?stella_space=undo
+   해보기   https://stellasaju.com/?stella_space2=preview
+   붙이기   https://stellasaju.com/?stella_space2=apply
+   되돌리기 https://stellasaju.com/?stella_space2=undo
 
    붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
    ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
@@ -48,14 +48,14 @@
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_space'] ) ) { return; }
+	if ( ! isset( $_GET['stella_space2'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
 	header( 'Content-Type: text/plain; charset=utf-8' );
 
-	$mode = sanitize_text_field( wp_unslash( $_GET['stella_space'] ) );
-	$META = '_stella_space_bak';
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_space2'] ) );
+	$META = '_stella_space2_bak';
 
 	$page = get_page_by_path( 'reading-book' );
 	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
@@ -73,19 +73,21 @@ add_action( 'template_redirect', function () {
 
 	$c    = (string) $wpdb->get_var( $wpdb->prepare(
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
-	$MARK = 'BUILD: SPACE-1';
+	$MARK = 'BUILD: SPACE-2';
+
+	/* 먼저 판(SPACE-1)이 붙어 있으면 apply 가 스스로 떼냅니다 */
 
 	$BLOCK = <<<'STELLAFLOW'
 <!-- wp:html -->
 <style>
-/* ═══ 읽기 좋게   BUILD: SPACE-1   2026-09-12 ═══════════════════
+/* ═══ 읽기 좋게   BUILD: SPACE-2   2026-09-12 ═══════════════════
    여백만 바꿉니다. 자바스크립트가 없습니다.
    ═══════════════════════════════════════════════════════════ */
 
 /* ── 하나 · 글 안의 여백 ─────────────────────────────── */
-#ssb p{ margin:30px 0 0 !important; }        /* 같은 이야기 안의 숨 */
+#ssb p{ margin:20px 0 0 !important; }        /* 같은 이야기 안의 숨 */
 #ssb h2{ margin:0 0 12px !important; }       /* 제목 → 설명 줄은 붙여 둡니다 */
-#ssb .dek{ margin:0 0 30px !important; }     /* 설명 줄 → 본문은 넉넉히 */
+#ssb .dek{ margin:0 0 26px !important; }     /* 설명 줄 → 본문은 넉넉히 */
 #ssb h3{ margin:48px 0 12px !important; }    /* 주제가 바뀌는 자리 */
 #ssb h3:first-of-type{ margin-top:34px !important; }
 #ssb .voice{ margin-top:42px !important; padding:28px 30px !important; }
@@ -96,18 +98,18 @@ add_action( 'template_redirect', function () {
    실선을 없애고 여백으로만 나눕니다.
    장은 속표지가 알려주므로 실선을 겹치지 않습니다. */
 #ssb .page + .page{ border-top:0 !important; }
-#ssb .page{ padding-top:80px !important; padding-bottom:18px !important; }
+#ssb .page{ padding-top:200px !important; padding-bottom:10px !important; }
 #ssb .page[data-part="cover"]{ padding-top:6px !important; }
-#ssb .page.divider{ padding-top:80px !important; padding-bottom:60px !important; }
-#ssb .page.divider + .page{ padding-top:44px !important; }
+#ssb .page.divider{ padding-top:200px !important; padding-bottom:70px !important; }
+#ssb .page.divider + .page{ padding-top:56px !important; }
 
 @media(max-width:640px){
-  #ssb p{ margin:26px 0 0 !important; }
+  #ssb p{ margin:18px 0 0 !important; }
   #ssb h3{ margin:40px 0 11px !important; }
-  #ssb .dek{ margin:0 0 26px !important; }
-  #ssb .page{ padding-top:58px !important; }
-  #ssb .page.divider{ padding-top:58px !important; padding-bottom:44px !important; }
-  #ssb .page.divider + .page{ padding-top:34px !important; }
+  #ssb .dek{ margin:0 0 22px !important; }
+  #ssb .page{ padding-top:140px !important; }
+  #ssb .page.divider{ padding-top:140px !important; padding-bottom:52px !important; }
+  #ssb .page.divider + .page{ padding-top:44px !important; }
 }
 </style>
 <!-- /wp:html -->
@@ -117,26 +119,42 @@ STELLAFLOW;
 		$has = ( strpos( $c, $MARK ) !== false );
 		echo "═══ 이어 읽기 (FLOW-1) ═══\n";
 		echo '쪽 160 · ' . number_format( mb_strlen( $c ) ) . "글자\n\n";
-		if ( $has ) { echo "이미 붙어 있습니다.\n되돌리려면 ?stella_space=undo\n"; exit; }
+		if ( $has ) { echo "이미 붙어 있습니다.\n되돌리려면 ?stella_space2=undo\n"; exit; }
 		echo '넣을 조각 ' . number_format( mb_strlen( $BLOCK ) ) . "글자\n";
 		echo "앰퍼샌드 " . substr_count( $BLOCK, '&' ) . "개\n\n";
 		echo "하는 일 — 스타일만 바꿉니다. 자바스크립트가 없습니다.\n";
-		echo "  · 문단 사이 14px → 30px  (한 줄이 32px 인데 너무 좁았습니다)\n";
+		echo "  · 문단 사이 14px → 20px\n";
 		echo "  · 설명 줄 아래 4px → 30px  (설명 줄과 본문이 붙어 있었습니다)\n";
 		echo "  · 소제목 아래 2px → 12px · 소제목 위 38px → 48px\n";
-		echo "  · 쪽과 쪽 사이 실선을 없애고 여백 80px 으로 나눕니다\n";
+		echo "  · 쪽과 쪽 사이 실선을 없애고 여백 200px 으로 나눕니다\n";
 		echo "  · 장은 속표지가 알려주므로 실선을 겹치지 않습니다\n\n";
 		echo "글은 한 글자도 건드리지 않습니다. 보이는 모양만 바뀝니다.\n\n";
-		echo "붙이려면 ?stella_space=apply\n";
+		echo "붙이려면 ?stella_space2=apply\n";
 		exit;
 	}
 
-	if ( 'apply' !== $mode ) { echo '?stella_space=preview 부터 보세요.'; exit; }
+	if ( 'apply' !== $mode ) { echo '?stella_space2=preview 부터 보세요.'; exit; }
 	if ( strpos( $c, $MARK ) !== false ) { echo '이미 붙어 있습니다.'; exit; }
 
 	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
 		update_post_meta( $id, $META, $c );
 	}
+
+	/* 먼저 판을 떼냅니다. 정규식을 쓰지 않고 자리만 찾아 자릅니다. */
+	$took = 0;
+	while ( true ) {
+		$at = strpos( $c, 'BUILD: SPACE-1' );
+		if ( false === $at ) { break; }
+		$from = strrpos( substr( $c, 0, $at ), '<!-- wp:html -->' );
+		if ( false === $from ) { break; }
+		$to = strpos( $c, '<!-- /wp:html -->', $at );
+		if ( false === $to ) { break; }
+		$to = $to + strlen( '<!-- /wp:html -->' );
+		$c = substr( $c, 0, $from ) . substr( $c, $to );
+		$took += 1;
+	}
+	$c = rtrim( $c ) . "\n";
+	if ( $took > 0 ) { echo '먼저 판 ' . $took . "개를 떼냈습니다.\n"; }
 
 	$new = $c . "\n\n" . $BLOCK;
 	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
@@ -145,6 +163,6 @@ STELLAFLOW;
 	echo "붙였습니다.\n";
 	echo '쪽 160 · ' . number_format( mb_strlen( $new ) ) . "글자\n\n";
 	echo "책을 열어 쭉 내려보세요. 위쪽에 막대가 뜨고,\n";
-	echo "장이 바뀔 때만 실선이 나옵니다.\n되돌리려면 ?stella_space=undo\n";
+	echo "장이 바뀔 때만 실선이 나옵니다.\n되돌리려면 ?stella_space2=undo\n";
 	exit;
 }, 1 );
