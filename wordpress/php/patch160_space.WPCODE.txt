@@ -38,9 +38,9 @@
    · 글은 한 글자도 건드리지 않습니다. 보이는 모양만 바꿉니다.
    · 두 번 눌러도 한 번만 들어갑니다.
 
-   해보기   https://stellasaju.com/?stella_space2=preview
-   붙이기   https://stellasaju.com/?stella_space2=apply
-   되돌리기 https://stellasaju.com/?stella_space2=undo
+   해보기   https://stellasaju.com/?stella_space3=preview
+   붙이기   https://stellasaju.com/?stella_space3=apply
+   되돌리기 https://stellasaju.com/?stella_space3=undo
 
    붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
    ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
@@ -48,14 +48,14 @@
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_space2'] ) ) { return; }
+	if ( ! isset( $_GET['stella_space3'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
 	header( 'Content-Type: text/plain; charset=utf-8' );
 
-	$mode = sanitize_text_field( wp_unslash( $_GET['stella_space2'] ) );
-	$META = '_stella_space2_bak';
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_space3'] ) );
+	$META = '_stella_space3_bak';
 
 	$page = get_page_by_path( 'reading-book' );
 	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
@@ -73,14 +73,14 @@ add_action( 'template_redirect', function () {
 
 	$c    = (string) $wpdb->get_var( $wpdb->prepare(
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
-	$MARK = 'BUILD: SPACE-2';
+	$MARK = 'BUILD: SPACE-3';
 
 	/* 먼저 판(SPACE-1)이 붙어 있으면 apply 가 스스로 떼냅니다 */
 
 	$BLOCK = <<<'STELLAFLOW'
 <!-- wp:html -->
 <style>
-/* ═══ 읽기 좋게   BUILD: SPACE-2   2026-09-12 ═══════════════════
+/* ═══ 읽기 좋게   BUILD: SPACE-3   2026-09-12 ═══════════════════
    여백만 바꿉니다. 자바스크립트가 없습니다.
    ═══════════════════════════════════════════════════════════ */
 
@@ -103,6 +103,21 @@ add_action( 'template_redirect', function () {
 #ssb .page.divider{ padding-top:200px !important; padding-bottom:70px !important; }
 #ssb .page.divider + .page{ padding-top:56px !important; }
 
+/* ── 셋 · 「세 가지만 기억하세요」의 넷째 덩어리 ────────
+   「이 셋을 다 기억하지 않으셔도 됩니다」에 번호 4가 붙어 있었습니다.
+   셋을 기억하라 해놓고 넷이 되어 있으니 이상합니다.
+   넷째는 번호를 빼고 육성 상자 모양으로 바꿉니다. 가디언이 하는 말이니까요. */
+#ssb .keep .k:nth-of-type(4){
+  counter-increment:none !important;
+  padding:24px 26px !important;
+  margin-top:30px !important;
+  background:rgba(212,175,106,.075) !important;
+  border-left:2px solid var(--gold) !important;
+  border-radius:0 !important;
+}
+#ssb .keep .k:nth-of-type(4)::before{ display:none !important; }
+#ssb .keep .k:nth-of-type(4) .kt{ font-size:1.12rem !important; }
+
 @media(max-width:640px){
   #ssb p{ margin:18px 0 0 !important; }
   #ssb h3{ margin:40px 0 11px !important; }
@@ -119,7 +134,7 @@ STELLAFLOW;
 		$has = ( strpos( $c, $MARK ) !== false );
 		echo "═══ 이어 읽기 (FLOW-1) ═══\n";
 		echo '쪽 160 · ' . number_format( mb_strlen( $c ) ) . "글자\n\n";
-		if ( $has ) { echo "이미 붙어 있습니다.\n되돌리려면 ?stella_space2=undo\n"; exit; }
+		if ( $has ) { echo "이미 붙어 있습니다.\n되돌리려면 ?stella_space3=undo\n"; exit; }
 		echo '넣을 조각 ' . number_format( mb_strlen( $BLOCK ) ) . "글자\n";
 		echo "앰퍼샌드 " . substr_count( $BLOCK, '&' ) . "개\n\n";
 		echo "하는 일 — 스타일만 바꿉니다. 자바스크립트가 없습니다.\n";
@@ -127,23 +142,29 @@ STELLAFLOW;
 		echo "  · 설명 줄 아래 4px → 30px  (설명 줄과 본문이 붙어 있었습니다)\n";
 		echo "  · 소제목 아래 2px → 12px · 소제목 위 38px → 48px\n";
 		echo "  · 쪽과 쪽 사이 실선을 없애고 여백 200px 으로 나눕니다\n";
+		echo "  · 「이 셋을 다 기억하지 않으셔도 됩니다」의 번호 4를 없애고\n";
+		echo "    가디언이 하는 말처럼 육성 상자 모양으로 바꿉니다\n";
 		echo "  · 장은 속표지가 알려주므로 실선을 겹치지 않습니다\n\n";
 		echo "글은 한 글자도 건드리지 않습니다. 보이는 모양만 바뀝니다.\n\n";
-		echo "붙이려면 ?stella_space2=apply\n";
+		echo "붙이려면 ?stella_space3=apply\n";
 		exit;
 	}
 
-	if ( 'apply' !== $mode ) { echo '?stella_space2=preview 부터 보세요.'; exit; }
+	if ( 'apply' !== $mode ) { echo '?stella_space3=preview 부터 보세요.'; exit; }
 	if ( strpos( $c, $MARK ) !== false ) { echo '이미 붙어 있습니다.'; exit; }
 
 	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
-		update_post_meta( $id, $META, $c );
+		/* ★ 2026-09-12 · wp_slash 를 반드시 거칩니다.
+		   update_post_meta 는 담기는 값에서 역슬래시를 한 겹 벗겨냅니다.
+		   책 본문의 /\s+/ · '<\/p>' · \' 가 그때 전부 사라졌고,
+		   되돌리기가 그 판을 덮어서 책이 안 보이게 됐습니다. */
+		update_post_meta( $id, $META, wp_slash( $c ) );
 	}
 
 	/* 먼저 판을 떼냅니다. 정규식을 쓰지 않고 자리만 찾아 자릅니다. */
 	$took = 0;
 	while ( true ) {
-		$at = strpos( $c, 'BUILD: SPACE-1' );
+		$at = strpos( $c, 'BUILD: SPACE-' );
 		if ( false === $at ) { break; }
 		$from = strrpos( substr( $c, 0, $at ), '<!-- wp:html -->' );
 		if ( false === $from ) { break; }
@@ -163,6 +184,6 @@ STELLAFLOW;
 	echo "붙였습니다.\n";
 	echo '쪽 160 · ' . number_format( mb_strlen( $new ) ) . "글자\n\n";
 	echo "책을 열어 쭉 내려보세요. 위쪽에 막대가 뜨고,\n";
-	echo "장이 바뀔 때만 실선이 나옵니다.\n되돌리려면 ?stella_space2=undo\n";
+	echo "장이 바뀔 때만 실선이 나옵니다.\n되돌리려면 ?stella_space3=undo\n";
 	exit;
 }, 1 );
