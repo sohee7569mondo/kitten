@@ -40,15 +40,20 @@ def parse(path):
     text = path.read_text(encoding='utf-8')
     table, topic, key, sub, buf = {}, None, None, '', []
 
+    def bold(t):
+        """문장 속 **굵은 글자** 를 <strong> 으로 바꿉니다.
+        별표가 화면에 그대로 보이던 탈이 있었습니다 (띠 연애운 다섯 칸)."""
+        return re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', t)
+
     def flush():
         if topic is None or key is None:
             return
         html = []
         for para in [x.strip() for x in buf if x.strip()]:
-            if para.startswith('**') and para.endswith('**'):
+            if para.startswith('**') and para.endswith('**') and '**' not in para[2:-2]:
                 html.append('<p class="cl"><strong>' + para[2:-2].strip() + '</strong></p>')
             else:
-                html.append('<p>' + para + '</p>')
+                html.append('<p>' + bold(para) + '</p>')
         table[topic]['c'][key] = [sub, ''.join(html)]
 
     def split_dot(head):
@@ -127,6 +132,8 @@ def guard(name, table):
                     bad.append('%s %s %s 에 %s' % (name, t, k, why))
             if 'class="cl"' not in html:
                 bad.append('%s %s %s 맺음말 없음' % (name, t, k))
+            if '*' in html or '*' in sub:
+                bad.append('%s %s %s 에 별표가 남음 (굵은 글자로 안 바뀜)' % (name, t, k))
     return bad
 
 
