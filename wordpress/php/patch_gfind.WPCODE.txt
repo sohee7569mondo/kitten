@@ -1,0 +1,132 @@
+/* ══════════════════════════════════════════════════════════
+   옛 이름이 어디에 있는지 찾습니다
+   ★ 2026-09-12 · 소희 님께      BUILD: GFIND-1
+
+   메뉴를 뒤졌더니 세 자리에 하나도 없었습니다.
+   그럼 메뉴 옆 회색 글씨는 다른 데서 옵니다.
+
+   ── 어디를 다 뒤지나 ──────────────────────────────────
+       글 · 쪽 · 조각    wp_posts   (제목 · 본문 · 요약)
+                         ★ WPCode 조각도 여기 담깁니다
+       꾸러미            wp_postmeta
+       설정              wp_options (테마 설정 · 위젯 · 블록)
+
+   ── 찾는 이름 ─────────────────────────────────────────
+       직성의 신 · 연성의 신 · 강성의 신 · 세성의 신 · 성좌의 신
+       일을 짓는 신 · 인연을 잇는 신 · 몸을 지키는 신
+       때를 아는 신 · 별을 읽는 신
+
+   ── 지키는 것 ─────────────────────────────────────────
+   ★ 한 글자도 바꾸지 않습니다. 세기만 합니다.
+   ★ 책 본문(reading-book)은 길어서 자리만 세고 글자는 안 보여줍니다.
+
+   보기 : https://stellasaju.com/?stella_gfind=look
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_gfind'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$names = array(
+		'직성의 신', '연성의 신', '강성의 신', '세성의 신', '성좌의 신',
+		'일을 짓는 신', '인연을 잇는 신', '몸을 지키는 신',
+		'때를 아는 신', '별을 읽는 신'
+	);
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+	echo "═══ 옛 이름을 찾습니다 ═══════════════════════\n\n";
+
+	/* ── 하나 · 글 · 쪽 · 조각 ───────────────────────── */
+	echo "── 글 · 쪽 · 조각 (wp_posts) ──────────────────\n";
+	$found = 0;
+	foreach ( $names as $nm ) {
+		$like = '%' . $wpdb->esc_like( $nm ) . '%';
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT ID, post_type, post_status, post_title,
+			        CHAR_LENGTH( post_content ) AS len
+			   FROM {$wpdb->posts}
+			  WHERE post_content LIKE %s
+			     OR post_title LIKE %s
+			     OR post_excerpt LIKE %s
+			  ORDER BY ID DESC
+			  LIMIT 40", $like, $like, $like ) );
+		if ( ! $rows ) { continue; }
+		foreach ( $rows as $r ) {
+			$found += 1;
+			$ttl = $r->post_title;
+			if ( '' === $ttl ) { $ttl = '(제목 없음)'; }
+			echo '  ' . $nm . '  ->  #' . $r->ID . '  [' . $r->post_type . ' · ' . $r->post_status . ']  '
+			     . $ttl . '  (' . number_format( (int) $r->len ) . '자)' . "\n";
+		}
+	}
+	if ( 0 === $found ) { echo "  없습니다.\n"; }
+
+	/* ── 둘 · 꾸러미 ─────────────────────────────────── */
+	echo "\n── 꾸러미 (wp_postmeta) ───────────────────────\n";
+	$found = 0;
+	foreach ( $names as $nm ) {
+		$like = '%' . $wpdb->esc_like( $nm ) . '%';
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT post_id, meta_key
+			   FROM {$wpdb->postmeta}
+			  WHERE meta_value LIKE %s
+			  LIMIT 20", $like ) );
+		if ( ! $rows ) { continue; }
+		foreach ( $rows as $r ) {
+			$found += 1;
+			echo '  ' . $nm . '  ->  #' . $r->post_id . '  ' . $r->meta_key . "\n";
+		}
+	}
+	if ( 0 === $found ) { echo "  없습니다.\n"; }
+
+	/* ── 셋 · 설정 ───────────────────────────────────── */
+	echo "\n── 설정 (wp_options) ──────────────────────────\n";
+	$found = 0;
+	foreach ( $names as $nm ) {
+		$like = '%' . $wpdb->esc_like( $nm ) . '%';
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT option_name, CHAR_LENGTH( option_value ) AS len
+			   FROM {$wpdb->options}
+			  WHERE option_value LIKE %s
+			  LIMIT 20", $like ) );
+		if ( ! $rows ) { continue; }
+		foreach ( $rows as $r ) {
+			$found += 1;
+			echo '  ' . $nm . '  ->  ' . $r->option_name . '  (' . number_format( (int) $r->len ) . '자)' . "\n";
+		}
+	}
+	if ( 0 === $found ) { echo "  없습니다.\n"; }
+
+	echo "\n── 앞뒤 글자도 보여드립니다 ───────────────────\n";
+	$shown = 0;
+	foreach ( $names as $nm ) {
+		if ( $shown > 6 ) { break; }
+		$like = '%' . $wpdb->esc_like( $nm ) . '%';
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT ID, post_type, post_content
+			   FROM {$wpdb->posts}
+			  WHERE post_content LIKE %s
+			  ORDER BY CHAR_LENGTH( post_content ) ASC
+			  LIMIT 1", $like ) );
+		if ( ! $row ) { continue; }
+		$at = mb_strpos( $row->post_content, $nm );
+		if ( false === $at ) { continue; }
+		$from = $at - 60;
+		if ( $from < 0 ) { $from = 0; }
+		$cut = mb_substr( $row->post_content, $from, 170 );
+		$cut = preg_replace( '/\s+/u', ' ', $cut );
+		$shown += 1;
+		echo "\n  #" . $row->ID . ' [' . $row->post_type . "] " . $nm . "\n";
+		echo '    … ' . $cut . " …\n";
+	}
+	if ( 0 === $shown ) { echo "  보여드릴 것이 없습니다.\n"; }
+
+	echo "\n이 결과를 그대로 주시면 어디를 고쳐야 할지 말씀드리겠습니다.\n";
+	exit;
+}, 1 );
