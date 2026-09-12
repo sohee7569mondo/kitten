@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
-   책의 폭 — 이 조각 하나가 정합니다
-   ★ 2026-09-12 · 소희 님께      판 WIDTH-4
+   책의 모양 — 이 조각 하나가 정합니다
+   ★ 2026-09-12 · 소희 님께      판 WIDTH-5
 
    소희 님 : 「그냥 페이지 폭 자체를 지정할 수는 없어? 가지각색이야」
 
@@ -8,11 +8,16 @@
    왼쪽 끝에서, 어떤 쪽은 한참 안쪽에서 시작합니다.
 
    ── 이 조각이 하는 일 ─────────────────────────────────
-   책의 겉모양을 맡습니다. 글은 한 글자도 안 건드립니다.
+   책의 겉모양을 맡습니다. 글은 거의 안 건드립니다.
 
        하나  모든 쪽을 한 폭으로 묶고 가운데에 놓습니다
        둘    차례 쪽의 목록도 그 폭을 다 쓰게 합니다
        셋    쪽번호를 안 보이게 합니다
+       넷    표를 쪽 폭 끝까지 늘리고 글씨를 조금 키웁니다   (2026-09-12)
+       다섯  장 속표지의 글을 쪽 가운데로 올립니다
+       여섯  겹쳐 있던 가로줄 두 개를 하나로 줄입니다
+       일곱  별자리 문으로 보내던 상자를 접습니다
+       여덟  맺음말 편지를 문장마다 줄을 바꿔 놓습니다
 
        쪽 전체      900px
        좌우 여백    78px (여백 조각이 정합니다)
@@ -65,7 +70,7 @@
    아무 쪽에서나 Ctrl+U -> Ctrl+F 로 「폭 판」 을 찾으세요.
    (책 쪽이 아니어도 됩니다. 첫 쪽에서도 보입니다)
 
-       <!-- stella 폭 판 WIDTH-4 · 900px -->
+       <!-- stella 모양 판 WIDTH-5 · 900px -->
 
    이 줄이 보이면 들어간 것입니다. 없으면 조각이 안 켜졌거나
    위치(Location)가 「어디서나 실행」이 아닙니다.
@@ -76,24 +81,25 @@
      보이면 번역된 것입니다.
    ══════════════════════════════════════════════════════════ */
 
-if ( ! function_exists( 'stella_width4_css' ) ) {
+if ( ! function_exists( 'stella_look5_css' ) ) {
 
 /* 조건을 두지 않습니다. #ssb 는 책 쪽에만 있으니
    다른 쪽에서는 이 규칙이 걸릴 자리가 없습니다.
    ★ 머리와 바닥 양쪽에 겁니다. 한쪽이 막혀도 다른 쪽이 나갑니다. */
 add_action( 'wp_head', function () {
-	echo stella_width4_css( '머리' );
+	echo stella_look5_css( '머리' );
 }, 99 );
 
 add_action( 'wp_footer', function () {
-	echo stella_width4_css( '바닥' );
+	echo stella_look5_css( '바닥' );
+	echo stella_look5_js();
 }, 99 );
 
-function stella_width4_css( $where = '' ) {
+function stella_look5_css( $where = '' ) {
 
 	$wide = 900;      /* ★ 이 숫자 하나가 책 전체 폭입니다 */
 
-	$out  = "\n<!-- stella 폭 판 WIDTH-4 · " . $wide . "px · " . $where . " -->\n";
+	$out  = "\n<!-- stella 모양 판 WIDTH-5 · " . $wide . "px · " . $where . " -->\n";
 	$out .= '<style id="stella-width">' . "\n";
 
 	/* 모든 쪽을 같은 폭으로, 가운데에.
@@ -133,13 +139,175 @@ function stella_width4_css( $where = '' ) {
 	$out .= "#ssb .page .folio{ display:none !important; }\n";
 	*/
 
+	/* ══ 표 — 쪽 폭 끝까지 ══════════════════════════════
+	   소희 님 : 「표 글씨가 좀 작고, 표가 끝까지 있었으면」
+
+	   표는 원래 width:100% 였습니다. 그런데 인쇄 대비로 넣었던
+	   한 줄이 표를 글자 덩어리로 바꿔 놓았습니다.
+
+	       #ssb table{ display:block !important; }   ← 이것
+
+	   display:block 이 되면 표는 폭을 채우지 않고 글자 길이만큼만
+	   줄어듭니다. 그래서 900px 쪽 안에서 460px 만 쓰고 있었습니다.
+	   도로 표로 세우고 폭을 채웁니다. 글씨도 한 단계 키웁니다.
+
+	   .tw 는 표를 감싸는 상자입니다 — 여덟 군데 다 이 상자를 씁니다.
+	   좁은 화면에서는 예전처럼 옆으로 미는 표가 됩니다. */
+	$out .= "#ssb .tw table{ display:table !important; width:100% !important;\n";
+	$out .= "  min-width:0 !important; font-size:1rem !important; }\n";
+	$out .= "#ssb .tw td .mini{ font-size:.92rem !important; }\n";
+	$out .= "#ssb .tw{ overflow-x:auto !important; }\n";
+
+	/* ══ 겹친 가로줄 ════════════════════════════════════
+	   소희 님 : 「줄이 2개 들어간 거 이상해」
+	   맞습니다. 책 원본에 <hr> 이 두 번 나란히 적혀 있습니다.
+	   글을 고치지 않고, 둘째 줄만 안 보이게 합니다. */
+	$out .= "#ssb .page hr + hr{ display:none !important; }\n";
+
+	/* ══ 별자리 문으로 보내던 상자 ══════════════════════
+	   별자리는 문을 접고 사주 안의 코너로 가기로 했습니다.
+	   그러니 책 안에서 그 문을 사라고 보내면 안 됩니다.
+	   상자째 접습니다 — 안내문과 단추가 같이 들어 있습니다. */
+	$out .= "#ssb .more{ display:none !important; }\n";
+
+	/* ══ 장 속표지 — 가운데로 ═══════════════════════════
+	   소희 님 : 「표지의 내용이 중간으로 갈 수 있게. 아래로 쏠려서
+	             아랫부분의 여백이 좁아 보여」
+	   표지·맺음말·배웅 쪽은 이미 가운데로 서 있습니다(flex).
+	   속표지만 빠져 있었습니다. 같은 방식으로 세웁니다.
+	   속표지에는 쪽번호를 안 답니다 — 종이책도 그렇습니다. */
+	$out .= "#ssb .page.divider{ display:flex !important;\n";
+	$out .= "  flex-direction:column !important; justify-content:center !important; }\n";
+	$out .= "#ssb .page.divider .folio{ display:none !important; }\n";
+	$out .= "@media(max-width:640px){ #ssb .page.divider{ display:block !important; } }\n";
+
 	/* 창이 좁으면 화면을 다 씁니다 */
 	$out .= "@media(max-width:960px){\n";
 	$out .= "  #ssb .page{ max-width:100% !important; }\n";
 	$out .= "}\n";
+	$out .= "@media(max-width:640px){\n";
+	$out .= "  #ssb .tw table{ display:block !important; overflow-x:auto !important; }\n";
+	$out .= "}\n";
 
 	$out .= "</style>\n";
 	return $out;
+}
+
+
+/* 글자를 손대는 곳은 여기 두 군데뿐입니다.
+   CSS 로는 글자를 바꿀 수도, 문장을 나눌 수도 없어서 그렇습니다.
+   책 원본은 한 글자도 안 고칩니다 — 그려진 뒤에 고쳐 놓습니다. */
+function stella_look5_js() {
+	return <<<'STELLALOOK5'
+<script>
+/* ═══════════════════════════════════════════════════════════
+   STELLA SAJU — 책 모양 손질 두 가지      판 WIDTH-5
+   ① 「여기까지가 제가 묻기 전에 읽은 전부입니다」 →
+      「사주가 말하는 ○○님 모습」
+   ② 맺음말 편지를 문장마다 줄 바꾸기
+   ★ 홑 앰퍼샌드와 두 글자 논리기호를 쓰지 않습니다 (사이트 규칙)
+   ═══════════════════════════════════════════════════════════ */
+(function(){
+  'use strict';
+
+  /* ── ① 그 한 줄의 이름 ──────────────────────────────
+     바꿔 넣을 말은 제1장 속표지에서 그대로 가져옵니다.
+     그 쪽에 「사주가 말하는 소희님 모습」이 이미 적혀 있어서
+     손님 이름이 저절로 따라옵니다. */
+  function chapterName(box){
+    var dv=box.getElementsByClassName('dvch'), i, pg, h;
+    for(i=0;i<dv.length;i++){
+      pg=dv[i].parentNode;
+      if(!pg){ continue; }
+      h=pg.getElementsByTagName('h2')[0];
+      if(!h){ continue; }
+      if(h.textContent.indexOf('사주가 말하는')===0){ return h.textContent; }
+    }
+    return '';
+  }
+
+  function relabel(box){
+    var nm=chapterName(box);
+    if(!nm){ nm='사주가 말하는 모습'; }
+    var ps=box.getElementsByClassName('mini'), i, hit=0;
+    for(i=0;i<ps.length;i++){
+      if(ps[i].textContent.indexOf('묻기 전에 읽은')<0){ continue; }
+      ps[i].textContent=nm;
+      hit+=1;
+    }
+    return hit;
+  }
+
+  /* ── ② 편지 — 문장마다 줄을 바꿉니다 ────────────────
+     마침표 뒤에 빈칸이 오면 거기서 한 줄 내립니다.
+     「2.4도」처럼 숫자 사이의 점은 뒤에 빈칸이 없어 그대로 둡니다.
+     뒤돌아보기(lookbehind)를 쓰지 않습니다 — 옛 브라우저에서
+     그 하나 때문에 조각 전체가 멈춥니다. */
+  function cut(t){
+    var parts=[], cur='', i, c;
+    for(i=0;i<t.length;i++){
+      c=t.charAt(i);
+      cur+=c;
+      if(c!=='.'){ if(c!=='?'){ if(c!=='!'){ continue; } } }
+      if(t.charAt(i+1)!==' '){ continue; }
+      parts.push(cur);
+      cur='';
+      i+=1;
+    }
+    if(cur!==''){ parts.push(cur); }
+    return parts;
+  }
+
+  function brk(el){
+    var kids=[].slice.call(el.childNodes), i, node, parts, j, frag;
+    for(i=0;i<kids.length;i++){
+      node=kids[i];
+      if(node.nodeType===1){ brk(node); continue; }
+      if(node.nodeType!==3){ continue; }
+      parts=cut(node.nodeValue);
+      if(parts.length<2){ continue; }
+      frag=document.createDocumentFragment();
+      for(j=0;j<parts.length;j++){
+        if(j>0){ frag.appendChild(document.createElement('br')); }
+        frag.appendChild(document.createTextNode(parts[j]));
+      }
+      node.parentNode.replaceChild(frag, node);
+    }
+  }
+
+  function letter(box){
+    var ps=box.querySelectorAll('.page.close .lead'), i, done=0;
+    for(i=0;i<ps.length;i++){
+      if(ps[i].getAttribute('data-br')==='1'){ continue; }
+      ps[i].setAttribute('data-br','1');
+      brk(ps[i]);
+      done+=1;
+    }
+    return done;
+  }
+
+  var tries=0;
+  function tick(){
+    tries+=1;
+    var box=document.getElementById('ssb');
+    var ok=0;
+    if(box){
+      if(box.getElementsByClassName('page').length>4){
+        try{ relabel(box); }catch(e){}
+        try{ letter(box); }catch(e){}
+        ok=1;
+      }
+    }
+    if(ok){ return; }
+    if(tries>60){ return; }
+    setTimeout(tick, 400);
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(tick, 500); });
+  } else { setTimeout(tick, 500); }
+})();
+</script>
+STELLALOOK5;
 }
 
 }
