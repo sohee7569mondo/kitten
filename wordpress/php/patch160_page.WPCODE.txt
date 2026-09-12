@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    쪽이 어떻게 왔는지 잽니다
-   ★ 2026-09-12 · 소희 님께      BUILD: PAGE-3
+   ★ 2026-09-12 · 소희 님께      BUILD: PAGE-4
 
    ── 왜 ────────────────────────────────────────────────
    책 쪽이 하얗습니다. 본문은 1,334,526자로 멀쩡한데
@@ -118,6 +118,30 @@ function stella_page_probe() {
       var hs=getComputedStyle(document.documentElement);
       L.push('문서   : 높이 '+document.documentElement.offsetHeight+'px · 색 '+hs.backgroundColor);
       L.push('style 칸 : '+document.getElementsByTagName('style').length+'개');
+
+      /* ── 화면을 무엇이 덮고 있나 ──────────────────────
+         책이 멀쩡한데 하얗다면, 그 위를 덮은 것이 있는 것입니다.
+         화면의 다섯 자리를 콕 집어 「거기 있는 것」을 물어봅니다. */
+      function who(x,y){
+        var el=document.elementFromPoint(x,y);
+        if(!el){ return '(없음)'; }
+        var nm=el.tagName.toLowerCase();
+        if(el.id){ nm+='#'+el.id; }
+        if(el.className){ nm+='.'+String(el.className).split(' ').slice(0,2).join('.'); }
+        var c=getComputedStyle(el);
+        return nm+' [바탕 '+c.backgroundColor+' · '+c.position+']';
+      }
+      var W=window.innerWidth, H=window.innerHeight;
+      L.push('');
+      L.push('화면 한가운데 : '+who(W/2, H/2));
+      L.push('화면 위       : '+who(W/2, 40));
+      L.push('화면 아래     : '+who(W/2, H-40));
+      L.push('창 크기 : '+W+' x '+H+'   내려온 거리 : '+Math.round(window.scrollY)+'px');
+      if(pages.length){
+        var r=pages[0].getBoundingClientRect();
+        L.push('첫 쪽 자리 : 위 '+Math.round(r.top)+'px · 왼쪽 '+Math.round(r.left)+
+               'px · 너비 '+Math.round(r.width)+'px');
+      }
     }
     L.push('A 조각 : '+(html.indexOf('TAIL-FETCH-2')>=0?'나갔음':'★ 안 나갔음'));
     var ebs=[], q, e4;
