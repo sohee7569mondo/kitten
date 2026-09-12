@@ -94,6 +94,20 @@ add_action( 'template_redirect', function () {
 #ssb .voice p + p{ margin-top:18px !important; }
 #ssb .alert{ margin-top:36px !important; }
 
+/* ── 하나의 반 · 아르카나 말상자 ─────────────────────
+   소희 님이 캡처로 보여주신 자리입니다. 여섯 줄이 서로
+   너무 벌어져 있어서 한 덩어리로 안 읽혔습니다.
+   줄 사이를 좁히고 문단 사이만 벌립니다. */
+#ssb .arcv-say{ line-height:1.85 !important; }
+#ssb .arcv-say p{ margin:0 0 15px !important; }
+#ssb .arcv-say p:last-child{ margin-bottom:0 !important; }
+
+/* ── 하나의 셋 · 카드 세 장의 자리 ───────────────────
+   「I · 지금 서 있는 자리」 위가 아래와 비슷해서 층이
+   안 보였습니다. 자리 이름 위를 크게 벌리고, 카드 이름
+   줄과 그 아래 풀이는 한 덩어리로 붙입니다. */
+#ssb h3 + p{ margin-top:12px !important; }
+
 /* ── 둘 · 쪽과 쪽 사이 ───────────────────────────────
    실선을 없애고 여백으로만 나눕니다.
    장은 속표지가 알려주므로 실선을 겹치지 않습니다. */
