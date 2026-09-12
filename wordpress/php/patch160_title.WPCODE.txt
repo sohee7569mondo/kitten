@@ -1,0 +1,195 @@
+/* ══════════════════════════════════════════════════════════
+   ③ 장 제목 고치기 · 소희 님께                      2026-09-11
+
+   무엇을 고치나 — 열네 자리
+     시각을 먼저 바로잡습니다      → 태어난 시간을 먼저 바로잡습니다
+     여덟 글자                    → 당신을 이루는 여덟 글자
+     기운의 저울                  → 글자에는 없는데 저울에는 있는 것
+                                    (다섯 기운이 다 있는 손님에게는 그대로 「기운의 저울」)
+     십 년마다 바뀌는 판           → 십 년마다 판이 바뀝니다
+     여덟 글자가 서로 부딪히는 자리  → 여덟 글자가 부딪히는 자리
+     당신이 아무 말도 하기 전에     → 사주로 당신을 그리면
+     타고난 성향과 적어주신…       → 타고난 나와 지금의 내가 어긋난 자리 (부제 붙임)
+     어떻게 식는가                → 사랑은 어떻게 식는가
+     되풀이되는 자리              → 사랑에서 되풀이되는 자리
+     올해와 앞으로                → 올해, 그리고 앞으로
+     다음 연애에서 달라지려면       → 다음 사랑에서는
+     앞으로 십 년의 대운           → 앞으로 십 년은 어떤 판일까
+     올해의 달별 흐름             → 올해, 달마다 달라지는 흐름
+
+   ★ 같이 고치는 것 하나
+     09장 제목이 바뀌면 「접기 열쇠」도 같이 바꿔야 합니다.
+     책이 그 제목 글자로 장을 찾기 때문입니다. 목록에 넣어두었습니다.
+
+   ★ 아직 안 바꾸는 것
+     「사주를 연애운으로 풀어보면」 → 「사주를 연애로 읽으면」
+     이건 주제마다 짧은 이름 표가 필요해서 다음 패치로 미룹니다.
+     「소희님, 세 가지만 기억하세요」는 그대로 둡니다 (본문이 셋을 셉니다).
+
+   주소
+     해보기   https://stellasaju.com/?stella_b1_jang=preview
+     붙이기   https://stellasaju.com/?stella_b1_jang=apply
+     되돌리기 https://stellasaju.com/?stella_b1_jang=undo
+     쌓인 것  https://stellasaju.com/?stella_b1_jang=list
+
+   ★ 스니펫 이름 「STELLA - 장 제목」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_b1_jang'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode  = sanitize_text_field( wp_unslash( $_GET['stella_b1_jang'] ) );
+	$STACK = '_stella_b1_jang_stack';
+	$ROUND = '장 제목 2026-09-11';
+
+	/* ══ 여기부터 · 고칠 목록 ══════════════════════════════
+	   array( '이름', '지금 글', '바꿀 글' )
+	   ★ 지금 글은 화면에 보이는 그대로가 아니라, ?stella_find= 으로
+	     찾은 조각을 씁니다. 코드에서 문장이 잘려 있을 때가 많아서요. */
+	$FIX = array(
+		array( '03 시각',
+		  '\'<h2>시각을 먼저 바로잡습니다</h2>\'',
+		  '\'<h2>태어난 시간을 먼저 바로잡습니다</h2>\'' ),
+		array( '04 여덟 글자',
+		  '\'<h2>여덟 글자</h2>\'',
+		  '\'<h2>당신을 이루는 여덟 글자</h2>\'' ),
+		array( '05 저울',
+		  '\'<h2>기운의 저울</h2>\'',
+		  '\'<h2>\'+(it.emptyEls.length?\'글자에는 없는데 저울에는 있는 것\':\'기운의 저울\')+\'</h2>\'' ),
+		array( '06 대운 판',
+		  '\'<h2>십 년마다 바뀌는 판</h2>\'',
+		  '\'<h2>십 년마다 판이 바뀝니다</h2>\'' ),
+		array( '08 부딪히는',
+		  '\'<h2>여덟 글자가 서로 부딪히는 자리</h2>\'',
+		  '\'<h2>여덟 글자가 부딪히는 자리</h2>\'' ),
+		array( '09 제목',
+		  '\'<h2>당신이 아무 말도 하기 전에</h2>\'',
+		  '\'<h2>사주로 당신을 그리면</h2>\'' ),
+		array( '09 접기 열쇠',
+		  'var SIP=\'당신이 아무 말도 하기 전에\';',
+		  'var SIP=\'사주로 당신을 그리면\';' ),
+		array( '13 어긋난 자리',
+		  '\'<h2>타고난 성향과 적어주신 현재의 생활이 맞지 않은 부분을 정리해보았습니다</h2>\'',
+		  '\'<h2>타고난 나와 지금의 내가 어긋난 자리</h2>\'+\'<p class="dek">다르다고 틀린 것이 아닙니다. 그만큼 힘이 더 든다는 뜻이에요</p>\'' ),
+		array( '17 식는가',
+		  'var h = \'어떻게 식는가\';',
+		  'var h = \'사랑은 어떻게 식는가\';' ),
+		array( '18 되풀이',
+		  'var h = \'되풀이되는 자리\';',
+		  'var h = \'사랑에서 되풀이되는 자리\';' ),
+		array( '19 올해',
+		  'var h = \'올해와 앞으로\';',
+		  'var h = \'올해, 그리고 앞으로\';' ),
+		array( '20 다음 사랑',
+		  'var h = \'다음 연애에서 달라지려면\';',
+		  'var h = \'다음 사랑에서는\';' ),
+		array( '21 대운',
+		  '\'<h2>앞으로 십 년의 대운</h2>\'',
+		  '\'<h2>앞으로 십 년은 어떤 판일까</h2>\'' ),
+		array( '23 달별',
+		  '\'<h2>올해의 달별 흐름</h2>\'',
+		  '\'<h2>올해, 달마다 달라지는 흐름</h2>\'' ),
+
+	);
+	/* ══ 여기까지 ═══════════════════════════════════════════ */
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$stack = get_post_meta( $id, $STACK, true );
+	if ( ! is_array( $stack ) ) { $stack = array(); }
+
+	if ( 'list' === $mode ) {
+		echo "═══ 되돌릴 수 있는 판 ═══\n";
+		if ( ! count( $stack ) ) { echo '쌓인 것이 없습니다.'; exit; }
+		$i = count( $stack );
+		foreach ( array_reverse( $stack ) as $s ) {
+			echo '  ' . $i . '. ' . $s['when'] . ' - ' . $s['name'] . ' - '
+			   . number_format( strlen( $s['body'] ) ) . "글자\n";
+			$i--;
+		}
+		echo "\n?stella_b1_jang=undo 를 치면 맨 위 것부터 하나씩 돌아갑니다.";
+		exit;
+	}
+
+	if ( 'undo' === $mode ) {
+		if ( ! count( $stack ) ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$last = array_pop( $stack );
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $last['body'] ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		update_post_meta( $id, $STACK, $stack );
+		echo '되돌렸습니다 — ' . $last['when'] . ' - ' . $last['name'] . "\n";
+		echo '남은 판 ' . count( $stack ) . '개';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo "═══ 장 제목 고치기 ═══\n";
+	echo '쪽 ' . $id . ' - ' . number_format( strlen( $c ) ) . "글자\n";
+	echo '고칠 자리 ' . count( $FIX ) . "개\n\n";
+
+	if ( ! count( $FIX ) ) {
+		echo "목록이 비어 있습니다.\n";
+		echo "고치실 데를 알려주시면 채워 드리겠습니다.";
+		exit;
+	}
+
+	$todo = array();
+	$done = 0;
+	$miss = 0;
+	foreach ( $FIX as $r ) {
+		list( $nm, $old, $new ) = $r;
+		$got = substr_count( $c, $old );
+		if ( $got > 0 ) {
+			echo sprintf( "  %-22s 찾음 %d군데\n", $nm, $got );
+			$todo[] = $r;
+			continue;
+		}
+		if ( substr_count( $c, $new ) > 0 ) {
+			echo sprintf( "  %-22s 이미 고쳐져 있습니다\n", $nm );
+			$done++;
+			continue;
+		}
+		echo sprintf( "  %-22s ★ 못 찾았습니다 — 건너뜁니다\n", $nm );
+		$miss++;
+	}
+
+	if ( ! count( $todo ) ) {
+		if ( $done ) { echo "\n이미 다 고쳐져 있습니다."; }
+		else { echo "\n하나도 못 찾았습니다. 아무것도 안 바꿨습니다.\n?stella_find= 으로 지금 글을 다시 확인해 주세요."; }
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $todo as $r ) { $new = str_replace( $r[1], $r[2], $new ); }
+
+	if ( 'preview' === $mode ) {
+		echo "\n" . count( $todo ) . "자리를 고칩니다";
+		if ( $miss ) { echo ' (못 찾은 ' . $miss . '자리는 건너뜁니다)'; }
+		echo ".\n" . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
+		echo "\n괜찮으시면 ?stella_b1_jang=apply\n";
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) { echo 'preview - apply - undo - list 중에 골라주세요.'; exit; }
+
+	$stack[] = array( 'when' => current_time( 'Y-m-d H:i' ), 'name' => $ROUND, 'body' => $c );
+	while ( count( $stack ) > 5 ) { array_shift( $stack ); }
+	update_post_meta( $id, $STACK, $stack );
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n고쳤습니다. " . count( $todo ) . "자리.\n";
+	echo "되돌리려면 ?stella_b1_jang=undo\n";
+	exit;
+}, 1 );

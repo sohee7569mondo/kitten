@@ -1,0 +1,226 @@
+/* ══════════════════════════════════════════════════════════
+   맺음말의 「어긋난 자리」를 제대로 씁니다
+   ★ 2026-09-12 · 소희 님께      판 GAP-1
+
+   소희 님 : 「3가지만 기억하면 된다는 부분의 어긋난 부분…
+             이게 핵심인데 글 양이 작지 않아?」
+
+   ── 맞습니다 ──────────────────────────────────────────
+   이 책에서 손님이 가장 오래 들여다보는 자리인데 두 문단이었습니다.
+   「사주가 가리키는 쪽과 답해주신 쪽이 달랐습니다」로 끝나고,
+   **무엇이 어떻게 다른지는 안 적혀 있었습니다.**
+
+   손님 입장에서는 「그래서 뭐가 다른데?」로 끝납니다.
+
+   ── 이제 이렇게 적습니다 ──────────────────────────────
+   어긋난 자리마다 한 덩이씩 —
+
+       ① 사주는 어느 쪽인가        (혼자냐 함께냐 → 혼자 쪽)
+       ② 답해주신 것은 어느 쪽인가  (반대쪽이었습니다)
+       ③ 그 어긋남이 실제로 어떤 자리에서 힘이 되는가
+          「한순간도 혼자 두지 않는 관계가 오래 이어지면
+            같은 사랑을 해도 마음이 남보다 빨리 닳습니다」
+       ④ 그렇다고 지금 방식을 버려야 하는가 — 아닙니다
+       ⑤ 그러면 무엇을 해보면 되는가 — 한 달에 한 번
+
+   어긋난 자리가 **없는** 분께도 세 문단을 드립니다. 예전에는
+   한 문단으로 끝나서, 어긋남이 없는 분은 오히려 덜 받으셨습니다.
+
+   ── 새로 지어낸 말은 없습니다 ─────────────────────────
+   맺음말은 앞에서 이미 계산되어 나온 것을 줄이는 자리입니다.
+   그 규칙을 지켰습니다. 쓰는 값은 셋뿐입니다.
+
+       AGAINST[축][기운 쪽]   그 결을 거스르면 어떤 자리인지
+       AGAINST.cost           거스르면 무엇이 닳는지 (문마다 다릅니다)
+       NOTBAD[축][기운 쪽]    「그게 흠은 아닙니다」 한 줄
+
+   ── 글이 얼마나 늘어나나 ──────────────────────────────
+       전  300자 남짓 (두 문단)
+       후  1,000자 안팎 (어긋난 자리 둘일 때)
+
+   ── 하는 법 ───────────────────────────────────────────
+   ① 먼저 보기   https://stellasaju.com/?stella_gap=preview
+   ② 정말 넣기   https://stellasaju.com/?stella_gap=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_gap=undo
+
+   ★ 한 군데가 정확히 한 번 걸릴 때만 바꿉니다. 아니면 아무것도
+     안 건드리고 그대로 알려드립니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_gap'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_gap'] ) );
+	$META = '_stella_gap_bak';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽을 못 찾았습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	if ( 'undo' === $mode ) {
+		$back = get_post_meta( $id, $META, true );
+		if ( '' === $back ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $back ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다. ' . number_format( strlen( $back ) ) . "자\n";
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
+
+	$find = stella_gap_old();
+	$to   = stella_gap_new();
+
+	echo "═══ 맺음말 · 어긋난 자리 ═══\n";
+	echo '책 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "자\n\n";
+
+	if ( false !== strpos( $c, '어긋난 자리를 제대로 씁니다' ) ) {
+		echo "이미 들어가 있습니다.\n";
+		echo "다시 넣으시려면 ?stella_gap=undo 로 걷어낸 뒤 하세요.\n";
+		exit;
+	}
+
+	$n = substr_count( $c, $find );
+	if ( 1 !== $n ) {
+		echo '★ 바꿀 자리가 ' . $n . "군데입니다. 한 군데여야 합니다.\n";
+		echo "아무것도 안 건드렸습니다. 이 글을 그대로 주세요.\n";
+		exit;
+	}
+	echo "바꿀 자리를 찾았습니다 — 한 군데.\n";
+
+	$made = str_replace( $find, $to, $c );
+	echo number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $made ) ) . "자 ("
+	   . '+' . number_format( strlen( $made ) - strlen( $c ) ) . ")\n\n";
+
+	if ( 'apply' !== $mode ) {
+		echo "아직 안 바꿨습니다. 정말 넣으시려면 ?stella_gap=apply\n";
+		exit;
+	}
+
+	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
+		update_post_meta( $id, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $made ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "넣었습니다. 책을 열어 맺음말을 보세요.\n";
+	echo "되돌리려면 ?stella_gap=undo\n";
+	exit;
+}, 1 );
+
+function stella_gap_old() {
+	return <<<'GAPOLD'
+  var COUNTW=['','한','두','세','네','다섯'];
+  keep+='<div class="k"><div class="kt">'+(gapKeys.length
+          ? '어긋난 자리가 '+(COUNTW[gapKeys.length]||gapKeys.length)+' 군데 있었습니다'
+          : '어긋난 자리는 없었습니다')+'</div>'+
+        '<p>'+(gapKeys.length
+          ? '<em>'+gapKeys.map(function(k){ return axTitle(k, AXNAME[k]); }).join(', ')+'</em>에서 사주가 가리키는 쪽과 '+
+            '실제로 답해주신 쪽이 달랐습니다.</p>'+
+            '<p>이것을 굳이 고쳐야 한다는 뜻은 아닙니다. 오히려 두 방향의 차이를 알아두면 좋아요. '+
+            '이 자리에서 유난히 답답하거나 지치는 순간이 있다면, 그것은 잘못하고 있어서가 아니라 '+
+            '<em>타고난 결과 지금 선택한 방식 사이에 차이가 있기 때문</em>일 수 있습니다. '+
+            '그 차이를 알고 나면, 왜 유독 그 부분에서 힘이 더 드는지 이해하게 되실 거예요.'
+          : '답해주신 것이 사주가 가리키는 쪽과 모두 같았습니다. 스스로를 꽤 정확히 알고 계신다는 뜻이에요. '+
+            '지금 하고 계신 판단을 크게 의심하지 않으셔도 됩니다.')+'</p></div>';
+GAPOLD;
+}
+
+function stella_gap_new() {
+	return <<<'GAPNEW'
+  var COUNTW=['','한','두','세','네','다섯'];
+
+  /* ══ 2026-09-12 · 어긋난 자리를 제대로 씁니다 ═══════════════
+     소희 님 : 「세 가지만 기억하면 된다는 부분의 어긋난 부분…
+               이게 핵심인데 글 양이 작지 않아?」
+
+     맞습니다. 이 책에서 손님이 가장 오래 들여다보는 자리인데
+     두 문단이었습니다. 「달랐습니다」로 끝나고 무엇이 어떻게
+     다른지는 안 적혀 있었습니다.
+
+     이제 어긋난 자리마다 이렇게 적습니다.
+         ① 사주는 어느 쪽인가
+         ② 답해주신 것은 어느 쪽인가
+         ③ 그 어긋남이 실제로 어떤 자리에서 힘으로 나타나는가
+         ④ 그렇다고 지금 방식을 버려야 하는가 (아닙니다)
+         ⑤ 그러면 무엇을 해보면 되는가
+
+     ★ 새로 지어내는 말은 한 줄도 없습니다. 앞 장에서 이미
+       계산되어 나온 값(AGAINST · NOTBAD · sideWord)만 씁니다. */
+
+  function gapOne(k){
+    var A=it.axis[k];
+    if(!A){ return ''; }
+    if(!A.lean){ return ''; }
+
+    var bad='';
+    if(AGAINST[k]){ if(AGAINST[k][A.lean]){ bad=AGAINST[k][A.lean]; } }
+
+    var o='<p><em>'+axTitle(k, AXNAME[k])+'</em> — 사주는 <em>'+sideWord(k,A.name)+
+          '</em> 쪽인데, 답해주신 것은 반대쪽이었습니다.';
+    if(bad){
+      o+=' '+bad+(R.hasBatchim(bad)?'이':'가')+' 오래 이어지면 '+AGAINST.cost+'. '+
+         '게을러서가 아니라 결을 거슬러 밀고 계셔서입니다.';
+    }
+    o+='</p>';
+
+    if(NOTBAD[k]){ if(NOTBAD[k][A.lean]){ o+='<p>'+NOTBAD[k][A.lean]+'</p>'; } }
+    return o;
+  }
+
+  keep+='<div class="k"><div class="kt">'+(gapKeys.length
+          ? '어긋난 자리가 '+(COUNTW[gapKeys.length]||gapKeys.length)+' 군데 있었습니다'
+          : '어긋난 자리는 없었습니다')+'</div>'+
+        (gapKeys.length
+          ? '<p><em>'+gapKeys.map(function(k){ return axTitle(k, AXNAME[k]); }).join(', ')+
+            '</em>에서 사주가 가리키는 쪽과 실제로 답해주신 쪽이 달랐습니다.</p>'+
+
+            '<p>먼저 말씀드릴 것이 있습니다. 이것은 <em>틀렸다는 뜻이 아닙니다.</em> '+
+            '사주는 태어날 때 받은 결이고, 답해주신 것은 지금 살고 계신 방식입니다. '+
+            '사람은 자라면서 제 결과 다른 방식을 익히기도 하고, 익혀야만 했던 자리에 '+
+            '오래 머물기도 합니다. 그래서 이 둘은 자주 갈립니다. 갈렸다는 것이 잘못은 아닙니다.</p>'+
+
+            gapKeys.map(gapOne).join('')+
+
+            '<p>여기서 기억하실 것은 하나입니다. <em>어긋난 자리에서는 같은 일을 해도 힘이 더 듭니다.</em> '+
+            '남들은 아무렇지 않게 넘어가는 것을 나만 유난히 버거워한 적이 있으셨다면, '+
+            '아마 그 자리였을 거예요. 모자라서가 아니라 결을 거슬러 밀고 계셨기 때문입니다.</p>'+
+
+            '<p>그렇다고 지금 방식을 버리시라는 말은 아닙니다. 익힌 방식에는 익힌 값이 있고, '+
+            '그 자리에서만 얻으신 것도 분명히 있습니다. 결을 거슬러 살아오신 분들은 '+
+            '대개 그쪽에서 남들보다 단단합니다. 다만 그 단단함에는 값이 붙어 있었을 뿐이에요. '+
+            '이제부터는 <em>그 자리에서 힘이 더 드는 것이 당연하다</em>는 것만 아시고 가시면 됩니다. '+
+            '아는 것과 모르는 것의 차이가 생각보다 큽니다.</p>'+
+
+            '<p>하나만 해보시겠어요. 다음에 그 자리에서 막히실 때, 고치려 하지 마시고 '+
+            '<em>사주가 가리키는 쪽으로 딱 한 번만</em> 해보세요. 한 달에 한 번이면 충분합니다. '+
+            '맞으면 그쪽을 조금 늘리시고, 아니면 그대로 두셔도 됩니다. '+
+            '그 한 번이 「나는 왜 이럴까」를 「나는 이런 사람이구나」로 바꿔줍니다. '+
+            '이 책에서 가져가실 것이 하나뿐이라면, 저는 이 자리를 고르겠습니다.</p>'
+
+          : '<p>답해주신 것이 사주가 가리키는 쪽과 <em>모두 같았습니다.</em> '+
+            '다섯 저울에서 한 군데도 어긋나지 않았습니다. 흔한 일은 아닙니다.</p>'+
+
+            '<p>이것은 스스로를 꽤 정확히 알고 계신다는 뜻입니다. '+
+            '타고난 결대로 살고 계시다는 뜻이기도 하고요. 그래서 지금 하고 계신 판단을 '+
+            '크게 의심하지 않으셔도 됩니다. 남의 말에 흔들리실 때, '+
+            '「내 결은 원래 이쪽이다」를 떠올리시면 됩니다.</p>'+
+
+            '<p>다만 한 가지만 곁들이겠습니다. 결대로 사는 사람은 그 결이 안 통하는 자리에서 '+
+            '유난히 크게 흔들립니다. 늘 되던 방식이 안 먹히니까요. '+
+            '그런 순간이 오면 내가 틀린 것이 아니라 <em>자리가 내 결과 안 맞는 것</em>이라고 '+
+            '보셔도 됩니다. 그때는 나를 고치기보다 자리를 바꾸는 편이 빠릅니다.</p>')+'</div>';
+GAPNEW;
+}

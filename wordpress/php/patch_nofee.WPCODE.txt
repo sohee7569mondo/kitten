@@ -1,0 +1,135 @@
+/* ════════════════════════════════════════════════════════════
+   「값을 받지 않습니다」 빼기   ★ 2026-09-09 · 소희 님께
+
+   한 화면에서 두 번 말하고 있습니다.
+
+     STEP 4  한 줄로 더 물어보기          값을 받지 않습니다
+     짧게 적어주실수록 더 깊이 답해드릴 수 있어요.
+     적지 않으셔도 괜찮아요. 따로 값을 받지 않습니다.
+
+   값을 받는 쪽에서 값 이야기를 두 번 하면 오히려 걸립니다.
+   둘 다 뺍니다. 글자만 지우고 자리는 그대로 둡니다.
+
+   손대는 쪽 : 문 여섯 + 질문 쪽(137) + 자료 쪽(156)
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_nofee=1
+   ② 정말 빼기   https://stellasaju.com/?stella_nofee=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_nofee=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_nofee'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_nofee_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_nofee'] ) );
+
+	$SLUGS = array( 'door-career', 'door-love', 'door-health',
+		'door-fortune', 'door-astro', 'door-tarot',
+		'reading-start', 'reading-ready' );
+
+	/* 뺄 말 — 긴 것부터 지웁니다 */
+	$KILL = array(
+		' <b>따로 값을 받지 않습니다.</b>',
+		'<b>따로 값을 받지 않습니다.</b>',
+		' 따로 값을 받지 않습니다.',
+		'따로 값을 받지 않습니다.',
+		'>값을 받지 않습니다<',
+		'>값을 받지 않습니다.<',
+	);
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.8;'
+	   . 'padding:30px 20px;max-width:940px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.3rem;margin:0 0 14px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.87rem}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}'
+	   . 'td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.09);font-size:.9rem}'
+	   . 'table{border-collapse:collapse;width:100%}</style>';
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$n = 0;
+		foreach ( $SLUGS as $slug ) {
+			$p = get_page_by_path( $slug );
+			if ( ! $p ) { continue; }
+			$old = get_post_meta( $p->ID, $META, true );
+			if ( ! $old ) { continue; }
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $p->ID ) );
+			clean_post_cache( $p->ID );
+			delete_post_meta( $p->ID, $META );
+			$n++;
+		}
+		if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+		echo '<p class="ok">' . $n . ' 쪽을 되돌렸습니다.</p>';
+		exit;
+	}
+
+	echo '<h1>' . ( 'apply' === $mode ? '뺐습니다' : '이렇게 뺍니다 (아직 안 뺐습니다)' ) . '</h1>';
+	echo '<table><tr style="color:#D4AF6A"><td>쪽</td><td>「값을 받지 않습니다」</td>'
+	   . '<td>「따로 값을 받지 않습니다」</td></tr>';
+
+	$plan  = array();
+	$total = 0;
+	foreach ( $SLUGS as $slug ) {
+		$p = get_page_by_path( $slug );
+		if ( ! $p ) { continue; }
+		$c = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+
+		$a = substr_count( $c, '>값을 받지 않습니다' );
+		$b = substr_count( $c, '따로 값을 받지 않습니다' );
+		if ( $a + $b < 1 ) { continue; }
+
+		echo '<tr><td><b>' . esc_html( $slug ) . '</b></td>'
+		   . '<td>' . ( $a ? $a . '군데' : '<span class="dim">없음</span>' ) . '</td>'
+		   . '<td>' . ( $b ? $b . '군데' : '<span class="dim">없음</span>' ) . '</td></tr>';
+
+		$plan[] = array( $p->ID, $slug, $c );
+		$total += $a + $b;
+	}
+	echo '</table>';
+
+	if ( ! $plan ) {
+		echo '<h1 class="no">뺄 말을 못 찾았습니다. 아무것도 안 바꿨습니다.</h1>';
+		exit;
+	}
+	echo '<p class="dim">모두 <b>' . $total . '군데</b>입니다. 글자만 지우고 자리는 그대로 둡니다.</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 빼시려면 <code>/?stella_nofee=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	$done = 0;
+	foreach ( $plan as $row ) {
+		list( $pid, $slug, $c ) = $row;
+		if ( ! get_post_meta( $pid, $META, true ) ) {
+			update_post_meta( $pid, $META, $c );
+		}
+		$new = $c;
+		foreach ( $KILL as $k ) {
+			if ( '>값을 받지 않습니다<' === $k ) { $new = str_replace( $k, '><', $new ); continue; }
+			if ( '>값을 받지 않습니다.<' === $k ) { $new = str_replace( $k, '><', $new ); continue; }
+			$new = str_replace( $k, '', $new );
+		}
+		if ( $new === $c ) { continue; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		$done++;
+	}
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<p class="ok">' . $done . ' 쪽에서 뺐습니다.</p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_nofee=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

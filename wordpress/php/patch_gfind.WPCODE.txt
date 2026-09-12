@@ -1,0 +1,314 @@
+/* ══════════════════════════════════════════════════════════
+   옛 이름이 어디에 있는지 찾습니다
+   ★ 2026-09-12 · 소희 님께      BUILD: GFIND-1
+
+   메뉴를 뒤졌더니 세 자리에 하나도 없었습니다.
+   그럼 메뉴 옆 회색 글씨는 다른 데서 옵니다.
+
+   ── 어디를 다 뒤지나 ──────────────────────────────────
+       글 · 쪽 · 조각    wp_posts   (제목 · 본문 · 요약)
+                         ★ WPCode 조각도 여기 담깁니다
+       꾸러미            wp_postmeta
+       설정              wp_options (테마 설정 · 위젯 · 블록)
+
+   ── 찾는 이름 ─────────────────────────────────────────
+       직성의 신 · 연성의 신 · 강성의 신 · 세성의 신 · 성좌의 신
+       일을 짓는 신 · 인연을 잇는 신 · 몸을 지키는 신
+       때를 아는 신 · 별을 읽는 신
+
+   ── 지키는 것 ─────────────────────────────────────────
+   ★ 한 글자도 바꾸지 않습니다. 세기만 합니다.
+   ★ 책 본문(reading-book)은 길어서 자리만 세고 글자는 안 보여줍니다.
+
+   보기 : https://stellasaju.com/?stella_gfind=look    어디에 있나 (자리와 개수)
+          https://stellasaju.com/?stella_gfind=snip    ★ 켜진 조각만, 그 줄까지
+          https://stellasaju.com/?stella_gfind=code    한 조각의 옛 이름 든 줄 전부
+                                                       (뒤에 [그리고]id=809 처럼)
+          https://stellasaju.com/?stella_gfind=snips   ★ 조각을 전부 헤아립니다
+                                                       (켜짐·꺼짐·휴지통 · 글자수)
+          https://stellasaju.com/?stella_gfind=near    ★ 그 줄의 앞뒤까지 (여섯 줄씩)
+                                                       (뒤에 [그리고]id=809 처럼)
+
+   ★ WPCode 는 켜진 조각을 publish, 끈 조각을 draft 로 담습니다.
+     그래서 publish 인 것만 보면 지금 화면에 나오는 것이 나옵니다.
+
+   ★ 2026-09-12 — 처음에 「홈으로 옴」의 원인은 자리가 아니라
+     **위치(Location)** 였습니다. 헤더로 저장하면 wp_head 때 실행되는데
+     그때는 init 도 template_redirect 도 이미 지나가 있습니다.
+     ★ Location 은 반드시 「어디서나 실행 / Run Everywhere」.
+     ★ 물러날 때도 이유를 글자로 말합니다. 그래도 홈이 보이면 Location 탓입니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_gfind'] ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	/* 물러날 때도 이유를 말합니다. 홈이 보이는 일이 없게. */
+	if ( ! is_user_logged_in() ) {
+		echo "관리자로 로그인한 상태에서만 열립니다.\n";
+		echo "지금은 로그인한 것으로 보이지 않습니다.\n";
+		echo "wp-admin 에 로그인한 뒤 다시 열어주세요.\n";
+		exit;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo "로그인은 되어 있는데 관리자 권한이 아닙니다.\n";
+		exit;
+	}
+
+	global $wpdb;
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_gfind'] ) );
+
+	$names = array(
+		'직성의 신', '연성의 신', '강성의 신', '세성의 신', '성좌의 신',
+		'일을 짓는 신', '인연을 잇는 신', '몸을 지키는 신',
+		'때를 아는 신', '별을 읽는 신'
+	);
+
+	/* ── 켜진 조각만, 옛 이름이 든 줄까지 ──────────────── */
+	if ( 'snip' === $mode ) {
+		echo "═══ 켜진 조각 안의 옛 이름 ═══════════════════\n";
+		echo "(WPCode 는 켜진 조각을 publish 로 담습니다)\n\n";
+		$rows = $wpdb->get_results(
+			"SELECT ID, post_title, post_content
+			   FROM {$wpdb->posts}
+			  WHERE post_type = 'wpcode'
+			    AND post_status = 'publish'
+			  ORDER BY ID DESC" );
+		$hit = 0;
+		foreach ( $rows as $r ) {
+			$lines = explode( "\n", $r->post_content );
+			$mine = array();
+			foreach ( $lines as $i => $ln ) {
+				foreach ( $names as $nm ) {
+					if ( false === strpos( $ln, $nm ) ) { continue; }
+					$mine[] = array( $i + 1, trim( $ln ) );
+					break;
+				}
+			}
+			if ( ! $mine ) { continue; }
+			$hit += 1;
+			echo '━━ #' . $r->ID . '  ' . $r->post_title . '   (줄 ' . count( $mine ) . "개)\n";
+			$shown = 0;
+			foreach ( $mine as $m ) {
+				$shown += 1;
+				if ( $shown > 8 ) { echo "     … 더 있습니다\n"; break; }
+				$txt = $m[1];
+				if ( mb_strlen( $txt ) > 190 ) { $txt = mb_substr( $txt, 0, 190 ) . ' …'; }
+				echo '   ' . $m[0] . ' : ' . $txt . "\n";
+			}
+			echo "\n";
+		}
+		if ( 0 === $hit ) { echo "켜진 조각에는 옛 이름이 없습니다.\n"; }
+		echo "한 조각을 더 보시려면 ?stella_gfind=code 뒤에 id 를 붙이세요.\n";
+		exit;
+	}
+
+	/* ── 한 조각의 옛 이름 든 줄을 전부 ───────────────── */
+	if ( 'code' === $mode ) {
+		$id = 0;
+		if ( isset( $_GET['id'] ) ) { $id = (int) $_GET['id']; }
+		if ( $id < 1 ) { echo "id 를 붙여주세요. 보기 : ?stella_gfind=code 뒤에 id=809\n"; exit; }
+		$r = $wpdb->get_row( $wpdb->prepare(
+			"SELECT ID, post_title, post_type, post_status, post_content
+			   FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		if ( ! $r ) { echo "#" . $id . " 이 없습니다.\n"; exit; }
+		echo '═══ #' . $r->ID . '  ' . $r->post_title . '  [' . $r->post_type . ' · ' . $r->post_status . "]\n\n";
+		$lines = explode( "\n", $r->post_content );
+		$hit = 0;
+		foreach ( $lines as $i => $ln ) {
+			foreach ( $names as $nm ) {
+				if ( false === strpos( $ln, $nm ) ) { continue; }
+				$hit += 1;
+				$txt = rtrim( $ln );
+				if ( mb_strlen( $txt ) > 300 ) { $txt = mb_substr( $txt, 0, 300 ) . ' …'; }
+				echo ( $i + 1 ) . ' : ' . $txt . "\n";
+				break;
+			}
+		}
+		if ( 0 === $hit ) { echo "이 조각에는 옛 이름이 없습니다.\n"; }
+		echo "\n모두 " . count( $lines ) . "줄 가운데 " . $hit . "줄입니다.\n";
+		exit;
+	}
+
+	/* ── 옛 이름이 든 줄의 앞뒤까지 ───────────────────── */
+	if ( 'near' === $mode ) {
+		$id = 0;
+		if ( isset( $_GET['id'] ) ) { $id = (int) $_GET['id']; }
+		if ( $id < 1 ) { echo "id 를 붙여주세요. 보기 : ?stella_gfind=near 뒤에 id=809\n"; exit; }
+		$pad = 6;
+		if ( isset( $_GET['pad'] ) ) { $pad = (int) $_GET['pad']; }
+		if ( $pad < 1 ) { $pad = 1; }
+		if ( $pad > 30 ) { $pad = 30; }
+
+		$r = $wpdb->get_row( $wpdb->prepare(
+			"SELECT ID, post_title, post_type, post_status, post_content
+			   FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		if ( ! $r ) { echo "#" . $id . " 이 없습니다.\n"; exit; }
+
+		echo '═══ #' . $r->ID . '  ' . $r->post_title . '  [' . $r->post_type . ' · ' . $r->post_status . "]\n";
+		echo "옛 이름이 든 줄의 앞뒤 " . $pad . "줄씩 보여드립니다.\n\n";
+
+		$lines = explode( "\n", $r->post_content );
+		$want = array();
+		foreach ( $lines as $i => $ln ) {
+			foreach ( $names as $nm ) {
+				if ( false === strpos( $ln, $nm ) ) { continue; }
+				$from = $i - $pad;
+				if ( $from < 0 ) { $from = 0; }
+				$to = $i + $pad;
+				if ( $to > count( $lines ) - 1 ) { $to = count( $lines ) - 1; }
+				for ( $k = $from; $k <= $to; $k++ ) { $want[ $k ] = 1; }
+				break;
+			}
+		}
+		if ( ! $want ) { echo "이 조각에는 옛 이름이 없습니다.\n"; exit; }
+
+		ksort( $want );
+		$last = -2;
+		foreach ( array_keys( $want ) as $k ) {
+			if ( $k > $last + 1 ) { echo "   ──────────────────────────────\n"; }
+			$txt = rtrim( $lines[ $k ] );
+			if ( mb_strlen( $txt ) > 300 ) { $txt = mb_substr( $txt, 0, 300 ) . ' …'; }
+			echo ( $k + 1 ) . ' : ' . $txt . "\n";
+			$last = $k;
+		}
+		echo "\n모두 " . count( $lines ) . "줄 가운데 " . count( $want ) . "줄입니다.\n";
+		exit;
+	}
+
+	/* ── 조각을 전부 헤아립니다 ───────────────────────
+	   지우기 전에 저장소 사본과 대조하려고 만듭니다.
+	   지운 것은 되돌릴 수 없으니 먼저 세어 봅니다. */
+	if ( 'snips' === $mode ) {
+		$rows = $wpdb->get_results(
+			"SELECT ID, post_title, post_status, CHAR_LENGTH( post_content ) AS len
+			   FROM {$wpdb->posts}
+			  WHERE post_type = 'wpcode'
+			  ORDER BY CHAR_LENGTH( post_content ) DESC
+			  LIMIT 300" );
+
+		$on = 0; $off = 0; $bin = 0;
+		$onlen = 0; $offlen = 0; $binlen = 0;
+		foreach ( $rows as $r ) {
+			if ( 'publish' === $r->post_status ) { $on += 1; $onlen += (int) $r->len; continue; }
+			if ( 'trash' === $r->post_status )   { $bin += 1; $binlen += (int) $r->len; continue; }
+			$off += 1; $offlen += (int) $r->len;
+		}
+
+		echo "═══ 조각을 전부 헤아렸습니다 ═════════════════\n\n";
+		echo '  켜짐   ' . $on . '개 · ' . number_format( $onlen ) . "자\n";
+		echo '  꺼짐   ' . $off . '개 · ' . number_format( $offlen ) . "자\n";
+		echo '  휴지통 ' . $bin . '개 · ' . number_format( $binlen ) . "자\n";
+		echo '  모두   ' . count( $rows ) . '개 · '
+		   . number_format( $onlen + $offlen + $binlen ) . "자\n\n";
+		echo "── 큰 것부터 ────────────────────────────────\n";
+		foreach ( $rows as $r ) {
+			$mark = '꺼짐';
+			if ( 'publish' === $r->post_status ) { $mark = '★켜짐'; }
+			if ( 'trash' === $r->post_status )   { $mark = '휴지통'; }
+			$ttl = $r->post_title;
+			if ( '' === $ttl ) { $ttl = '(제목 없음)'; }
+			printf( "  %8s자  %s  #%d  %s\n",
+				number_format( (int) $r->len ), $mark, (int) $r->ID, $ttl );
+		}
+		echo "\n이 목록을 그대로 주시면 저장소 사본과 대조해서\n";
+		echo "지워도 되는 것과 먼저 사본을 떠야 할 것을 갈라 드리겠습니다.\n";
+		exit;
+	}
+
+	echo "═══ 옛 이름을 찾습니다 ═══════════════════════\n\n";
+
+	/* ── 하나 · 글 · 쪽 · 조각 ───────────────────────── */
+	echo "── 글 · 쪽 · 조각 (wp_posts) ──────────────────\n";
+	$found = 0;
+	foreach ( $names as $nm ) {
+		$like = '%' . $wpdb->esc_like( $nm ) . '%';
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT ID, post_type, post_status, post_title,
+			        CHAR_LENGTH( post_content ) AS len
+			   FROM {$wpdb->posts}
+			  WHERE post_content LIKE %s
+			     OR post_title LIKE %s
+			     OR post_excerpt LIKE %s
+			  ORDER BY ID DESC
+			  LIMIT 40", $like, $like, $like ) );
+		if ( ! $rows ) { continue; }
+		foreach ( $rows as $r ) {
+			$found += 1;
+			$ttl = $r->post_title;
+			if ( '' === $ttl ) { $ttl = '(제목 없음)'; }
+			echo '  ' . $nm . '  ->  #' . $r->ID . '  [' . $r->post_type . ' · ' . $r->post_status . ']  '
+			     . $ttl . '  (' . number_format( (int) $r->len ) . '자)' . "\n";
+		}
+	}
+	if ( 0 === $found ) { echo "  없습니다.\n"; }
+
+	/* ── 둘 · 꾸러미 ─────────────────────────────────── */
+	echo "\n── 꾸러미 (wp_postmeta) ───────────────────────\n";
+	$found = 0;
+	foreach ( $names as $nm ) {
+		$like = '%' . $wpdb->esc_like( $nm ) . '%';
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT post_id, meta_key
+			   FROM {$wpdb->postmeta}
+			  WHERE meta_value LIKE %s
+			  LIMIT 20", $like ) );
+		if ( ! $rows ) { continue; }
+		foreach ( $rows as $r ) {
+			$found += 1;
+			echo '  ' . $nm . '  ->  #' . $r->post_id . '  ' . $r->meta_key . "\n";
+		}
+	}
+	if ( 0 === $found ) { echo "  없습니다.\n"; }
+
+	/* ── 셋 · 설정 ───────────────────────────────────── */
+	echo "\n── 설정 (wp_options) ──────────────────────────\n";
+	$found = 0;
+	foreach ( $names as $nm ) {
+		$like = '%' . $wpdb->esc_like( $nm ) . '%';
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT option_name, CHAR_LENGTH( option_value ) AS len
+			   FROM {$wpdb->options}
+			  WHERE option_value LIKE %s
+			  LIMIT 20", $like ) );
+		if ( ! $rows ) { continue; }
+		foreach ( $rows as $r ) {
+			$found += 1;
+			echo '  ' . $nm . '  ->  ' . $r->option_name . '  (' . number_format( (int) $r->len ) . '자)' . "\n";
+		}
+	}
+	if ( 0 === $found ) { echo "  없습니다.\n"; }
+
+	echo "\n── 앞뒤 글자도 보여드립니다 ───────────────────\n";
+	$shown = 0;
+	foreach ( $names as $nm ) {
+		if ( $shown > 6 ) { break; }
+		$like = '%' . $wpdb->esc_like( $nm ) . '%';
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT ID, post_type, post_content
+			   FROM {$wpdb->posts}
+			  WHERE post_content LIKE %s
+			  ORDER BY CHAR_LENGTH( post_content ) ASC
+			  LIMIT 1", $like ) );
+		if ( ! $row ) { continue; }
+		$at = mb_strpos( $row->post_content, $nm );
+		if ( false === $at ) { continue; }
+		$from = $at - 60;
+		if ( $from < 0 ) { $from = 0; }
+		$cut = mb_substr( $row->post_content, $from, 170 );
+		$cut = preg_replace( '/\s+/u', ' ', $cut );
+		$shown += 1;
+		echo "\n  #" . $row->ID . ' [' . $row->post_type . "] " . $nm . "\n";
+		echo '    … ' . $cut . " …\n";
+	}
+	if ( 0 === $shown ) { echo "  보여드릴 것이 없습니다.\n"; }
+
+	echo "\n이 결과를 그대로 주시면 어디를 고쳐야 할지 말씀드리겠습니다.\n";
+	exit;
+}, 1 );

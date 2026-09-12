@@ -1,0 +1,119 @@
+/* ══════════════════════════════════════════════════════════
+   오늘 붙인 것들이 살아 있나 · 소희 님께        2026-09-11
+   ── 판 : CHK-1 (2026-09-11) ──
+
+   되돌리기를 두 번 하셨다고 하셔서, 오늘 붙인 것들이
+   아직 책에 남아 있는지 하나씩 확인합니다.
+
+   되돌리기는 「그 판 전체」를 되돌립니다.
+   그래서 한 판을 되돌리면 그 뒤에 붙인 것까지 같이 사라집니다.
+   어느 것이 사라졌는지 알면 그것만 다시 붙이면 됩니다.
+
+   주소  https://stellasaju.com/?stella_chk911=1
+
+   ★ 스니펫 이름 「STELLA - 살아있나 확인」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 아무것도 안 바꿉니다. 보기만 합니다.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_chk911'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo "═══ 살아있나 확인 · 판 CHK-1 (2026-09-11) ═══\n";
+	echo '쪽 ' . $id . ' - ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	$SOS2A = <<<'TAG'
+[^<]*<\/p>
+TAG;
+	$SOS2B = <<<'TAG'
+[^<]*<\/div>
+TAG;
+	$SOS1 = <<<'TAG'
+<h2>기운의 저울</h2>
+TAG;
+	$B2A = <<<'TAG'
+full:'인연을 잇는 벼리'
+TAG;
+	$B2B = <<<'TAG'
+var SIP='여덟 글자에서 제일 많은 것'
+TAG;
+	$B3A = <<<'TAG'
+findMark('<h2>타고난 나와 지금의
+TAG;
+
+	$MARK = array(
+		array( 'SOS-2', '빗금 고침 · 장번호',   $SOS2A ),
+		array( 'SOS-2', '빗금 고침 · 쪽번호',   $SOS2B ),
+		array( 'SOS-1', '05장 제목 되돌림',     $SOS1 ),
+		array( 'scale', '저울 비율 (HID5)',     'var HID5=' ),
+		array( 'scale', '저울 부제',            '글자 속에 숨은 글자까지 열어 비율로 재었습니다' ),
+		array( 'title', '03장 태어난 시간',     '<h2>태어난 시간을 먼저 바로잡습니다</h2>' ),
+		array( 'title', '04장 당신을 이루는',   '<h2>당신을 이루는 여덟 글자</h2>' ),
+		array( 'title', '06장 십 년마다',       '<h2>십 년마다 판이 바뀝니다</h2>' ),
+		array( 'title', '08장 부딪히는 자리',   '<h2>여덟 글자가 부딪히는 자리</h2>' ),
+		array( 'b2',    '가디언 긴 이름 (벼리)', $B2A ),
+		array( 'b2',    '접기 열쇠 · 제일 많은 것', $B2B ),
+		array( 'b2',    '13장 제목',            '<h2>타고난 나와 지금의' ),
+		array( 'b3',    '찾기 자리 고침',       $B3A ),
+		array( 'b3',    '비어 있는 자리 한 줄', '앞의 저울은 기운을 재었고' ),
+	);
+
+	$alive = 0;
+	$gone  = array();
+	$now   = '';
+	foreach ( $MARK as $m ) {
+		list( $round, $label, $needle ) = $m;
+		if ( $round !== $now ) {
+			echo "\n─── " . $round . " ───\n";
+			$now = $round;
+		}
+		$n = substr_count( $c, $needle );
+		if ( $n > 0 ) {
+			echo sprintf( "  %-26s 살아 있음 (%d군데)\n", $label, $n );
+			$alive++;
+		} else {
+			echo sprintf( "  %-26s ★ 사라졌습니다\n", $label );
+			$gone[] = $round . ' · ' . $label;
+		}
+	}
+
+	echo "\n═══ 요약 ═══\n";
+	echo '살아 있음 ' . $alive . '개 · 사라짐 ' . count( $gone ) . "개\n";
+	if ( count( $gone ) ) {
+		echo "\n다시 붙여야 할 것 :\n";
+		foreach ( $gone as $g ) { echo '  · ' . $g . "\n"; }
+	} else {
+		echo "\n다 남아 있습니다. 되돌리기 두 번은 빈 것을 눌렀거나\n";
+		echo "이미 지나간 판이었던 모양입니다. 다행입니다.\n";
+	}
+
+	echo "\n─── 쌓여 있는 되돌림 판 ───\n";
+	$STACKS = array(
+		'_stella_scale_stack'   => 'scale',
+		'_stella_b1_jang_stack' => 'title',
+		'_stella_b2_stack'      => 'b2',
+		'_stella_b3_stack'      => 'b3',
+		'_stella_sos911_stack'  => 'SOS-1',
+		'_stella_sos2b_stack'   => 'SOS-2',
+	);
+	foreach ( $STACKS as $key => $nm ) {
+		$s = get_post_meta( $id, $key, true );
+		$k = is_array( $s ) ? count( $s ) : 0;
+		echo sprintf( "  %-8s %d판\n", $nm, $k );
+	}
+
+	echo "\n이 화면을 통째로 붙여주세요.\n";
+	exit;
+}, 1 );

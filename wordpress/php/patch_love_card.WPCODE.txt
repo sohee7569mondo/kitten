@@ -1,0 +1,189 @@
+/* ════════════════════════════════════════════════════════════
+   벼리 카드 지어 넣기   ★ 2026-09-09 · 소희 님께
+
+   ── 무엇이 빠져 있었나 ────────────────────────────────
+     door-career    카드 1 · 사진칸 1 · 이름 1
+     door-love      카드 0 · 사진칸 0 · 이름 0   <- 벼리만 없음
+     door-health    카드 1 · 사진칸 1 · 이름 1
+     door-fortune   카드 1 · 사진칸 1 · 이름 1
+     door-astro     카드 1 · 사진칸 1 · 이름 1
+
+   겉모습 규칙(g-card · g-portrait · g-name …)은 벼리 쪽에도
+   이미 깔려 있습니다. 알맹이만 없습니다.
+
+   ── 무엇을 하나 ───────────────────────────────────────
+   마루 카드와 똑같은 짜임으로 벼리 카드를 지어서
+   g-cols 맨 앞에 끼웁니다.
+
+   ★ 벼리 쪽은 카드가 없어서 한 칸으로 눌려 있었습니다.
+     그래서 카드가 위로 올라갑니다. 넓은 화면(901px 이상)에서
+     다른 문처럼 옆에 서도록 두 칸 짜임도 같이 넣습니다.
+
+     The Lovers
+     벼리
+     Love and Marriage
+     마음은 뜻대로 안 되죠.
+     그래도 결은 있습니다. 같이 읽어볼까요.
+     (소개 넉 줄)
+     이렇게 읽습니다 (상자)
+
+   ── 사진 ──────────────────────────────────────────────
+   소희 님이 주신 주소로 만듭니다.
+
+        stellardoorlovers.webp
+
+   다른 것으로 하시려면 먼저 보기에 나오는 번호를 주소 끝에
+   붙이세요.  ?stella_lovecard=apply%26pic=3
+
+   ★ 사진은 나중에 바꿔도 됩니다. 되돌리고 다시 넣으면 됩니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_lovecard=1
+   ② 정말 넣기   https://stellasaju.com/?stella_lovecard=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_lovecard=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_lovecard'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_lovecard_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_lovecard'] ) );
+	$pick = isset( $_GET['pic'] ) ? absint( $_GET['pic'] ) : 0;
+
+	/* 2026-09-09 · 소희 님이 주신 벼리 사진 주소 */
+	$DEFAULT_PIC = 'https://stellasaju.com/wp-content/uploads/2026/08/stellardoorlovers.webp';
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.8;'
+	   . 'padding:30px 20px;max-width:980px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.3rem;margin:0 0 14px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:24px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.87rem}a{color:#D4AF6A}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;word-break:break-all;'
+	   . 'font:11.5px/1.6 monospace;border-left:3px solid #D4AF6A}'
+	   . 'td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.09);font-size:.88rem}'
+	   . '</style>';
+
+	$page = get_page_by_path( 'door-love' );
+	if ( ! $page ) { echo '<h1 class="no">door-love 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+
+	/* 미디어에 있는 문 사진들 */
+	$pics = $wpdb->get_results(
+		"SELECT ID, post_title, guid FROM {$wpdb->posts}
+		  WHERE post_type = 'attachment'
+		    AND guid LIKE '%stellardoor%'
+		  ORDER BY ID ASC LIMIT 40" );
+
+	echo '<h1>' . ( 'apply' === $mode ? '넣었습니다' : '이렇게 넣습니다 (아직 안 넣었습니다)' ) . '</h1>';
+
+	$have = substr_count( $c, 'class="g-card"' );
+	if ( $have > 0 ) {
+		echo '<h1 class="ok">벼리 카드가 이미 있습니다 (' . $have . '개). 아무것도 안 했습니다.</h1>';
+		echo '<p class="dim">다시 만들고 싶으시면 <code>/?stella_lovecard=undo</code> 로 되돌린 뒤 다시 넣으세요.</p>';
+		exit;
+	}
+
+	$anchor = '<div class="g-cols">';
+	if ( false === strpos( $c, $anchor ) ) {
+		echo '<h1 class="no">끼울 자리를 못 찾았습니다. 아무것도 안 했습니다.</h1>';
+		exit;
+	}
+
+	/* 사진 고르기 — 기본은 소희 님이 주신 주소 */
+	echo '<h2>미디어에 있는 문 사진 ' . count( $pics ) . '장</h2>';
+	$src = $DEFAULT_PIC;
+	if ( ! $pics ) {
+		echo '<p class="dim">목록에는 없지만, 주신 주소로 만듭니다 — <code>'
+		   . esc_html( basename( $DEFAULT_PIC ) ) . '</code></p>';
+	} else {
+		$t = '<table>';
+		$n = 0;
+		foreach ( $pics as $g ) {
+			$n++;
+			$mine = ( $n === $pick );
+			if ( $mine ) { $src = $g->guid; }
+			$t .= '<tr><td>' . ( $mine ? '<b>' . $n . ' ←</b>' : $n ) . '</td>'
+			   . '<td>' . esc_html( $g->post_title ) . '</td>'
+			   . '<td class="dim">' . esc_html( basename( parse_url( $g->guid, PHP_URL_PATH ) ) ) . '</td></tr>';
+		}
+		echo $t . '</table>';
+		if ( ! $pick ) {
+			echo '<p class="dim">번호를 안 고르시면 소희 님이 주신 주소로 만듭니다 — <code>'
+			   . esc_html( basename( $DEFAULT_PIC ) ) . '</code>. '
+			   . '다른 것으로 하시려면 주소 끝에 <code>%26pic=번호</code> 를 붙이세요.</p>';
+		}
+	}
+
+	/* 카드 알맹이 ─ 다른 문처럼 옆에 서게 두 칸 짜임도 같이 못 박습니다.
+	   벼리 쪽은 카드가 없어서 한 칸으로 눌려 있었습니다. */
+	$card  = '<style>@media(min-width:901px){#ssg .g-cols{'
+	       . 'grid-template-columns:minmax(300px,400px) 1fr !important;'
+	       . 'align-items:start !important;}}</style>';
+	$card .= '<aside class="g-card">';
+	if ( $src ) {
+		$card .= '<div class="g-portrait"><img loading="lazy" decoding="async" src="'
+		       . esc_url( $src ) . '" alt="벼리"></div>';
+	}
+	$card .= '<div class="g-body">';
+	$card .= '<div class="g-theme">The Lovers</div>';
+	$card .= '<div class="g-name">벼리</div>';
+	$card .= '<div class="g-en">Love and Marriage</div>';
+	$card .= '<p class="g-greet">마음은 뜻대로 안 되죠.<br>그래도 결은 있습니다. 같이 읽어볼까요.</p>';
+	$card .= '<p class="g-intro">벼리는 한 사람이 마음을 쓰는 결을 읽어 인연의 흐름을 짚어내는 가디언이에요. '
+	       . '상대의 속마음을 대신 말해주지는 않습니다. 다만 어떤 사람에게 끌리고 어디서 자꾸 같은 데 걸리는지를 '
+	       . '알려줘요. 답장을 기다리는 밤, 결혼 이야기가 오가는 아침, 그 마음마다 벼리가 함께해요.</p>';
+	$card .= '<div class="g-method"><div class="g-method-t">이렇게 읽습니다</div>';
+	$card .= '<p>벼리는 <b>전통 사주명리학</b>으로 타고난 인연의 결과 때를 읽고, <b>서양점성술</b>로 '
+	       . '그 마음이 어느 쪽으로 기우는지를 함께 봅니다. 두 체계가 같은 곳을 가리키는 지점 — '
+	       . '거기가 풀이의 뼈대가 됩니다.</p></div>';
+	$card .= '</div></aside>';
+
+	echo '<h2>지어 넣을 카드</h2>';
+	echo '<pre>' . esc_html( $card ) . '</pre>';
+	echo '<p class="dim">사진 ' . ( $src ? '있음' : '없음' ) . ' · ' . number_format( strlen( $card ) ) . ' 바이트</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 넣으시려면 <code>/?stella_lovecard=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	update_post_meta( $pid, $META, $c );
+
+	$at  = strpos( $c, $anchor ) + strlen( $anchor );
+	$new = substr( $c, 0, $at ) . $card . substr( $c, $at );
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<p class="ok">넣었습니다. ' . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p><a href="/door-love/?v=' . time() . '">벼리 문 열어보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_lovecard=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

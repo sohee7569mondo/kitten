@@ -1,0 +1,81 @@
+/* 문 페이지가 서버를 부를 때 서버가 그 사람을 누구로 보는지 기록합니다.
+   보기만 하고 아무것도 바꾸지 않습니다. 확인이 끝나면 꺼주세요.
+
+   보기    ?stella_trace=1
+   비우기  ?stella_trace=1&clear=1
+
+   이걸로 알아낸 것 (2026-09-01) —
+     /stella/v1/signup   로그인 no   uid 0   nonce none
+   문 페이지의 fetch 에 X-WP-Nonce 가 없어서 워드프레스가 모든 요청을
+   익명으로 봅니다. patch_door_nonce 가 그 고침입니다.                */
+
+add_filter( 'rest_pre_dispatch', function ( $result, $server, $request ) {
+
+	$route = $request->get_route();
+	if ( 0 !== strpos( $route, '/stella/v1/' ) ) {
+		return $result;
+	}
+
+	$log = get_transient( 'stella_trace' );
+	if ( ! is_array( $log ) ) {
+		$log = array();
+	}
+
+	$log[] = array(
+		'at'    => gmdate( 'H:i:s' ),
+		'route' => $route,
+		'login' => is_user_logged_in() ? 'YES' : 'no',
+		'uid'   => get_current_user_id(),
+		'nonce' => $request->get_header( 'x_wp_nonce' ) ? 'sent' : 'none',
+	);
+
+	if ( count( $log ) > 12 ) {
+		$log = array_slice( $log, -12 );
+	}
+	set_transient( 'stella_trace', $log, HOUR_IN_SECONDS );
+
+	return $result;
+}, 4, 3 );
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_trace'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">';
+	echo '<body class="notranslate" translate="no" style="background:#111;color:#ddd;margin:0;padding:16px">';
+	echo '<pre translate="no" style="white-space:pre-wrap;font:13px/1.8 ui-monospace,Menlo,monospace">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo 'not admin</pre>';
+		exit;
+	}
+
+	if ( isset( $_GET['clear'] ) ) {
+		delete_transient( 'stella_trace' );
+		echo esc_html( "지웠습니다.\n" ) . '</pre>';
+		exit;
+	}
+
+	$log = get_transient( 'stella_trace' );
+	if ( ! is_array( $log ) || ! $log ) {
+		echo esc_html( "아직 기록이 없습니다.\n문 페이지에서 한 번 눌러보신 뒤 다시 열어주세요.\n" ) . '</pre>';
+		exit;
+	}
+
+	echo esc_html( str_pad( '시각', 10 ) . str_pad( '길', 26 ) . str_pad( '로그인', 8 ) . str_pad( 'uid', 12 ) . "nonce\n" );
+	echo esc_html( str_repeat( '-', 66 ) . "\n" );
+	foreach ( $log as $r ) {
+		echo esc_html(
+			str_pad( $r['at'], 10 )
+			. str_pad( $r['route'], 26 )
+			. str_pad( $r['login'], 8 )
+			. str_pad( (string) $r['uid'], 12 )
+			. $r['nonce'] . "\n"
+		);
+	}
+	echo esc_html( "\n지우려면 ?stella_trace=1&clear=1\n" ) . '</pre>';
+	exit;
+} );

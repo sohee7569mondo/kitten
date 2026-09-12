@@ -1,0 +1,83 @@
+/* ══════════════════════════════════════════════════════════
+   책 쪽만 가볍게 — the_content 손길을 통째로 비웁니다
+   ★ 2026-09-12 · 소희 님께      판 LIGHT-2
+
+   ── 먼젓번이 왜 안 들었나 ─────────────────────────────
+   remove_filter 는 우선순위가 맞아야 떨어집니다.
+   wp_filter_content_tags 는 우선순위가 12 인데 제가 지정을
+   안 해서 기본값 10 으로 찾았고, 그래서 안 떨어졌습니다.
+
+   그 필터가 1.33MB 본문을 정규식으로 훑습니다.
+   오류에 찍힌 89,034,752바이트(85MB) 한 방이 그것입니다.
+
+   ── 이번에는 ─────────────────────────────────────────
+   하나씩 떼지 않고 the_content 에 붙은 손길을 통째로
+   비웁니다. 책 쪽에서만입니다.
+
+       unset( $wp_filter['the_content'] )
+
+   본문이 있는 그대로 나갑니다. 책 쪽 본문은 이미 완성된
+   HTML 과 자바스크립트라 손볼 것이 없습니다.
+
+   ★ 덤 — wptexturize 가 없으니 「&」도 따옴표도 안 깨집니다.
+     오늘 겪은 사고들이 전부 이 손길들에서 났습니다.
+
+   ── 시험용 주소 하나 ──────────────────────────────────
+   https://stellasaju.com/reading-book/?stella_raw=1
+
+   테마도 필터도 거치지 않고 본문만 날것으로 내보냅니다.
+   ★ 이 주소로 책이 보이면 원인이 필터·테마 쪽이 확실합니다.
+     안 보이면 본문 자체가 너무 큰 것이고요.
+     어느 쪽이든 다음 수를 정할 수 있습니다.
+
+   ── 지키는 것 ─────────────────────────────────────────
+   · 책 쪽에서만 합니다. 다른 쪽은 그대로입니다.
+   · 본문을 한 글자도 안 바꿉니다.
+   · 끄면 곧바로 원래대로 돌아옵니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ★ 이미 patch160_light 를 만드셨으면 그 내용만 갈아끼우세요.
+   ══════════════════════════════════════════════════════════ */
+
+/* ── 하나 · 날것으로 보기 (시험) ───────────────────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_raw'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", (int) $page->ID ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!doctype html><html lang="ko"><head><meta charset="utf-8">';
+	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
+	echo '<title>스텔라사주 — 날것으로 보기</title></head><body>';
+	echo $c;
+	echo '<script>console.log("stella raw ok");</script>';
+	echo '</body></html>';
+	exit;
+}, 0 );
+
+/* ── 둘 · 책 쪽에서 the_content 손길을 비웁니다 ─────────── */
+add_action( 'wp', function () {
+
+	if ( is_admin() ) { return; }
+	if ( ! is_singular() ) { return; }
+	$p = get_post();
+	if ( ! $p ) { return; }
+	if ( 'reading-book' !== $p->post_name ) { return; }
+
+	global $wp_filter;
+	if ( isset( $wp_filter['the_content'] ) ) {
+		unset( $wp_filter['the_content'] );
+	}
+	/* 발췌문에도 같은 일이 벌어집니다 */
+	if ( isset( $wp_filter['the_excerpt'] ) ) {
+		unset( $wp_filter['the_excerpt'] );
+	}
+}, 999 );

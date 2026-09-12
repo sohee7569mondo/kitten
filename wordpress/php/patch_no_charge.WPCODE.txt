@@ -1,0 +1,172 @@
+/* ════════════════════════════════════════════════════════════
+   「구슬로 먼저 충전하기」 정리 · 소희 님께
+
+   왜
+     가입 축하 구슬을 0으로 바꾸셔서, 이제 새로 오신 분은 모두
+     이 문구를 보게 됩니다.
+
+       가지고 계신 구슬이 1개 모자라요. 누르시면 결제 화면으로
+       갑니다 · 구슬로 먼저 충전하기
+
+     처음 오신 분에게는 두 번 어긋납니다. 구슬을 가져본 적이 없는데
+     모자란다고 하고, 충전하기를 누르면 팔지 않는 것을 사라고 합니다.
+     가격 안내에는 「미리 충전해 두는 것이 없습니다」라고 적혀 있고요.
+
+     카카오페이 심사관이 지난번에 물어본 것이 바로 이것입니다 —
+     「구슬은 어디서 사나요?」
+
+   무엇으로 바꾸나
+     누르시면 결제 화면으로 갑니다. 결제가 끝나면 바로 이 화면에서
+     펼쳐져요.
+
+   손대는 페이지
+     130 · 141 · 169 · 170 · 171
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere → 저장 → 활성
+
+   ★ 저장 직후 먼저  https://stellasaju.com/wp-json/stella/v1/me
+   ① 미리보기  https://stellasaju.com/?stella_charge=1
+   ② 적용      https://stellasaju.com/?stella_charge=1&go=1
+   되돌리기    https://stellasaju.com/?stella_charge=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_charge'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	$ids = array( 130, 141, 169, 170, 171 );
+
+	$old = "lack.innerHTML='가지고 계신 구슬이 <b>'+(total-have)+'개</b> 모자라요. 누르시면 결제 화면으로 갑니다 · '+'<a href=\"/mypage/?charge=1\">구슬로 먼저 충전하기</a>';";
+	$new = "lack.innerHTML='누르시면 결제 화면으로 갑니다. 결제가 끝나면 바로 이 화면에서 펼쳐져요.';";
+
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:920px">';
+	printf(
+		'<h1 style="color:#ffd76a">「구슬로 먼저 충전하기」 정리 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>ID</td><td>제목</td><td>찾음</td></tr>';
+
+	$ready = true;
+	$done  = true;
+
+	foreach ( $ids as $pid ) {
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+		if ( ! $row ) {
+			printf( '<tr style="border-top:1px solid #333"><td>%d</td><td colspan="2" style="color:#ff7b7b">못 읽었습니다</td></tr>', $pid );
+			$ready = false;
+			continue;
+		}
+
+		if ( $undo ) {
+			$bak = get_post_meta( $pid, '_stella_charge_backup', true );
+			if ( $bak ) {
+				$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+				delete_post_meta( $pid, '_stella_charge_backup' );
+				clean_post_cache( $pid );
+				printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td style="color:#7bff9b">되돌렸습니다</td></tr>', $pid, esc_html( $row->post_title ) );
+			} else {
+				printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td style="color:#888">사본 없음</td></tr>', $pid, esc_html( $row->post_title ) );
+			}
+			continue;
+		}
+
+		$c = $row->post_content;
+		$n = substr_count( $c, $old );
+		$m = substr_count( $c, $new );
+
+		if ( $m > 0 ) {
+			printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td style="color:#9fd">이미 정리됨</td></tr>', $pid, esc_html( $row->post_title ) );
+			continue;
+		}
+		$done = false;
+		if ( 1 !== $n ) {
+			$ready = false;
+		}
+		printf(
+			'<tr style="border-top:1px solid #333"><td><b>%d</b></td><td>%s</td><td style="color:%s"><b>%d</b></td></tr>',
+			$pid,
+			esc_html( $row->post_title ),
+			1 === $n ? '#7bff9b' : '#ff7b7b',
+			$n
+		);
+
+		if ( $go && 1 === $n ) {
+			if ( ! get_post_meta( $pid, '_stella_charge_backup', true ) ) {
+				update_post_meta( $pid, '_stella_charge_backup', $c );
+			}
+			$wpdb->update( $wpdb->posts, array( 'post_content' => str_replace( $old, $new, $c ) ), array( 'ID' => $pid ) );
+			clean_post_cache( $pid );
+		}
+	}
+	echo '</table>';
+
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	/* 다른 데 남아 있는 충전 링크도 함께 알려드립니다 */
+	echo '<h2 style="color:#9fd">사이트에 남아 있는 충전 자취</h2>';
+	$rest = $wpdb->get_results(
+		"SELECT ID, post_title, post_name, post_type, post_content FROM {$wpdb->posts}
+		  WHERE post_status IN ('publish','draft','private')
+		    AND post_type IN ('page','post','wp_template','wp_template_part')
+		    AND ( post_content LIKE '%charge=1%' OR post_content LIKE '%충전%' )
+		  ORDER BY ID"
+	);
+	if ( ! $rest ) {
+		echo '<p style="color:#7bff9b">없습니다.</p>';
+	} else {
+		echo '<table cellpadding="8" style="border-collapse:collapse"><tr style="color:#ffd76a"><td>ID</td><td>제목</td><td>charge=1</td><td>충전</td></tr>';
+		foreach ( $rest as $r ) {
+			printf(
+				'<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td>%d</td><td>%d</td></tr>',
+				$r->ID,
+				esc_html( $r->post_title ),
+				substr_count( $r->post_content, 'charge=1' ),
+				substr_count( $r->post_content, '충전' )
+			);
+		}
+		echo '</table><p style="color:#888">이 목록은 참고용입니다. 마이페이지의 충전 화면은 따로 정리해야 합니다.</p>';
+	}
+
+	if ( $undo ) {
+		echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2></body>';
+		exit;
+	}
+	if ( $done ) {
+		echo '<h2 style="color:#7bff9b">문 페이지는 이미 정리돼 있습니다.</h2></body>';
+		exit;
+	}
+	if ( ! $ready ) {
+		echo '<h2 style="color:#ff7b7b">딱 한 번씩이 아닌 페이지가 있어 그 페이지는 건드리지 않았습니다.</h2>'
+			. '<p>이 화면을 저에게 보내주세요.</p></body>';
+		exit;
+	}
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_charge=1&go=1">→ 이대로 바꾸기</a></p></body>';
+		exit;
+	}
+
+	echo '<h2 style="color:#7bff9b">바꿨습니다</h2>';
+	echo '<p><a style="color:#ffd76a" href="/door-career/">→ 문 페이지에서 확인</a></p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_charge=1&undo=1</p></body>';
+	exit;
+} );

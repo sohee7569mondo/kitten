@@ -1,0 +1,146 @@
+/* ════════════════════════════════════════════════════════════
+   가입할 때 받은 휴대폰 번호 저장하기 · 소희 님께
+
+   「가입할 때 휴대폰 번호 받기」 패치와 짝입니다. 둘 다 켜셔야
+   결제창에 진짜 번호가 나갑니다.
+
+   무엇을 하나
+     가입 요청이 서버를 지나갈 때 profile.phone 을 꺼내
+     회원 정보에 저장합니다. 이미 넣어두신 「STELLA - 결제 휴대폰번호」
+     스니펫이 그 값을 읽어 결제창에 보냅니다.
+
+     회원가입 스니펫(203)은 한 글자도 건드리지 않습니다.
+     이 스니펫을 끄면 그대로 되돌아갑니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere → 저장 → 활성
+
+   ★ 저장 직후 먼저  https://stellasaju.com/wp-json/stella/v1/me
+   확인             https://stellasaju.com/?stella_myphone=1
+   ════════════════════════════════════════════════════════════ */
+
+/* 번호를 숫자만 남기고 다듬습니다. 쓸 수 없으면 빈 글자를 돌려줍니다. */
+if ( ! function_exists( 'stella_tel_tidy' ) ) {
+	function stella_tel_tidy( $raw ) {
+		if ( function_exists( 'stella_pay_tidy_phone' ) ) {
+			return stella_pay_tidy_phone( $raw );
+		}
+		$d = preg_replace( '/[^0-9]/', '', (string) $raw );
+		if ( '' === $d ) {
+			return '';
+		}
+		if ( 0 === strpos( $d, '82' ) && strlen( $d ) >= 11 ) {
+			$d = '0' . substr( $d, 2 );
+		}
+		if ( 0 !== strpos( $d, '01' ) ) {
+			return '';
+		}
+		$n = strlen( $d );
+		if ( $n < 10 || $n > 11 ) {
+			return '';
+		}
+		return $d;
+	}
+}
+
+/* ── 가입이 지나갈 때 번호를 받아 적어둡니다 ─────────────── */
+add_filter( 'rest_post_dispatch', function ( $result, $server, $request ) {
+
+	if ( ! ( $request instanceof WP_REST_Request ) ) {
+		return $result;
+	}
+	$route = $request->get_route();
+	if ( '/stella/v1/signup' !== $route && '/stella/v1/profile' !== $route ) {
+		return $result;
+	}
+
+	/* 보낸 값에서 번호를 찾습니다 */
+	$raw = '';
+	$prof = $request->get_param( 'profile' );
+	if ( is_array( $prof ) ) {
+		foreach ( array( 'phone', 'tel', 'phoneNumber' ) as $k ) {
+			if ( isset( $prof[ $k ] ) && '' !== trim( (string) $prof[ $k ] ) ) {
+				$raw = (string) $prof[ $k ];
+				break;
+			}
+		}
+	}
+	if ( '' === $raw ) {
+		foreach ( array( 'phone', 'tel', 'phoneNumber' ) as $k ) {
+			$v = $request->get_param( $k );
+			if ( is_string( $v ) && '' !== trim( $v ) ) {
+				$raw = $v;
+				break;
+			}
+		}
+	}
+	if ( '' === $raw ) {
+		return $result;
+	}
+
+	$tel = stella_tel_tidy( $raw );
+	if ( '' === $tel ) {
+		return $result;
+	}
+
+	/* 가입이 끝나면 그 자리에서 로그인됩니다 */
+	$uid = get_current_user_id();
+	if ( ! $uid ) {
+		return $result;
+	}
+	update_user_meta( $uid, 'stella_phone', $tel );
+
+	return $result;
+}, 15, 3 );
+
+/* ── 확인창 ─────────────────────────────────────────────── */
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_myphone'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.9 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:26px;max-width:820px">';
+	echo '<h1 style="color:#ffd76a">저장된 휴대폰 번호</h1>';
+
+	$rows = $wpdb->get_results(
+		"SELECT u.ID, u.display_name, u.user_email, m.meta_value AS tel
+		   FROM {$wpdb->users} u
+		   LEFT JOIN {$wpdb->usermeta} m ON m.user_id = u.ID AND m.meta_key = 'stella_phone'
+		  ORDER BY u.ID DESC LIMIT 20"
+	);
+
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>번호</td><td>이름</td><td>이메일</td><td>휴대폰</td></tr>';
+	$have = 0;
+	foreach ( (array) $rows as $r ) {
+		if ( $r->tel ) {
+			$have++;
+		}
+		printf(
+			'<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td style="color:#888">%s</td><td style="color:%s">%s</td></tr>',
+			$r->ID,
+			esc_html( $r->display_name ),
+			esc_html( mb_substr( $r->user_email, 0, 24 ) ),
+			$r->tel ? '#7bff9b' : '#888',
+			$r->tel ? esc_html( $r->tel ) : '없음'
+		);
+	}
+	echo '</table>';
+
+	printf( '<p style="margin-top:16px">최근 스무 분 가운데 <b style="color:#7bff9b">%d분</b>의 번호가 저장돼 있습니다.</p>', $have );
+	echo '<p style="color:#888">이미 가입하신 분들은 번호가 없습니다. 새로 가입하는 분부터 쌓입니다.</p>';
+	echo '<p style="margin-top:14px">결제창에 실제로 무엇이 나가는지는 '
+		. '<a style="color:#ffd76a" href="/?stella_patch=phonecheck">?stella_patch=phonecheck</a> 에서 보실 수 있습니다.</p>';
+	echo '</body>';
+	exit;
+} );

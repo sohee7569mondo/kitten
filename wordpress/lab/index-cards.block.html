@@ -1,0 +1,151 @@
+<!-- ══════════════════════════════════════════════════════════
+     스텔라 랩 목록 — 새 카드 일곱 장   2026-09-09
+
+     붙이는 곳 : /lab/ 쪽  →  블록 추가  →  「사용자 정의 HTML」
+                 「오늘의 검사」 카드 바로 아래에 놓으시면 됩니다.
+
+     ★ 목록에 이미 도쿄 카드가 있으면, 아래 첫 번째 큰 카드를
+       지우시거나 원래 있던 도쿄 카드를 지우세요. 둘 중 하나만.
+
+     ★ 자바스크립트가 없습니다. 그림도 안 씁니다.
+       그래서 붙여넣기만 하면 바로 뜹니다.
+     ══════════════════════════════════════════════════════════ -->
+<style>
+.stq-lc{ --ink:#241F1A; --dim:#6B6259; margin:26px 0 34px; }
+.stq-lc *{ box-sizing:border-box; }
+.stq-lc a{ text-decoration:none; color:inherit; display:block; }
+
+.stq-lc .lc-head{
+  font:700 1.02rem/1.5 -apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color:var(--ink); margin:0 0 12px; letter-spacing:-.01em; }
+
+/* ── 맨 위 큰 카드 ── */
+.stq-lc .lc-big{
+  position:relative; border-radius:20px; overflow:hidden;
+  padding:30px 26px 26px; margin:0 0 16px;
+  background:linear-gradient(135deg,#2B3566 0%,#4B4080 58%,#7C5A8C 100%);
+  color:#FFF7EE; box-shadow:0 14px 34px -22px rgba(30,26,50,.75); }
+.stq-lc .lc-big .lc-em{
+  position:absolute; right:14px; top:6px; font-size:96px; opacity:.22;
+  line-height:1; pointer-events:none; }
+.stq-lc .lc-big .lc-tag{
+  display:inline-block; font-size:.72rem; letter-spacing:.12em;
+  padding:4px 10px; border-radius:999px;
+  background:rgba(255,247,238,.18); margin:0 0 12px; }
+.stq-lc .lc-big h3{
+  font:700 1.42rem/1.36 -apple-system,"Apple SD Gothic Neo",sans-serif;
+  margin:0 0 8px; word-break:keep-all; }
+.stq-lc .lc-big p{
+  margin:0 0 16px; font-size:.94rem; line-height:1.7;
+  color:rgba(255,247,238,.86); word-break:keep-all; }
+.stq-lc .lc-big .lc-meta{
+  font-size:.8rem; color:rgba(255,247,238,.7);
+  font-family:ui-monospace,monospace; }
+
+/* ── 작은 카드 여섯 ── */
+.stq-lc .lc-grid{
+  display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+@media(max-width:520px){ .stq-lc .lc-grid{ grid-template-columns:1fr; } }
+
+.stq-lc .lc-card{
+  position:relative; border-radius:16px; overflow:hidden;
+  padding:18px 17px 16px; min-height:150px;
+  border:1px solid rgba(36,31,26,.08);
+  transition:transform .16s ease, box-shadow .16s ease; }
+.stq-lc .lc-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 26px -18px rgba(36,31,26,.5); }
+.stq-lc .lc-card .lc-em{
+  position:absolute; right:8px; bottom:2px;
+  font-size:58px; line-height:1; opacity:.3; pointer-events:none; }
+.stq-lc .lc-card .lc-tag{
+  display:inline-block; font-size:.68rem; letter-spacing:.1em;
+  padding:3px 9px; border-radius:999px; margin:0 0 10px;
+  background:rgba(255,255,255,.72); }
+.stq-lc .lc-card h4{
+  font:700 1.04rem/1.42 -apple-system,"Apple SD Gothic Neo",sans-serif;
+  margin:0 0 6px; color:var(--ink); word-break:keep-all; }
+.stq-lc .lc-card p{
+  margin:0 0 12px; font-size:.84rem; line-height:1.62;
+  color:var(--dim); word-break:keep-all; position:relative; z-index:1; }
+.stq-lc .lc-card .lc-meta{
+  font-size:.74rem; font-family:ui-monospace,monospace; color:var(--dim); }
+
+.stq-lc .c-snack{ background:#F1EEF8; }
+.stq-lc .c-snack .lc-tag{ color:#5B4A86; }
+.stq-lc .c-cafe{  background:#F7F0E8; }
+.stq-lc .c-cafe .lc-tag{ color:#75552E; }
+.stq-lc .c-groc{  background:#EDF4EF; }
+.stq-lc .c-groc .lc-tag{ color:#3A6350; }
+.stq-lc .c-camp{  background:#ECF3F8; }
+.stq-lc .c-camp .lc-tag{ color:#35637F; }
+.stq-lc .c-money{ background:#F9F1E4; }
+.stq-lc .c-money .lc-tag{ color:#7A5A22; }
+.stq-lc .c-break{ background:#F9EEF2; }
+.stq-lc .c-break .lc-tag{ color:#8A4762; }
+</style>
+
+<div class="stq-lc">
+
+  <a class="lc-big" href="/lab/tokyo/">
+    <span class="lc-em">🗼</span>
+    <span class="lc-tag">성격</span>
+    <h3>도쿄 여행으로 알아보는 MBTI</h3>
+    <p>여행 준비하는 걸 보면 그 사람이 보입니다.<br>D-30부터 도쿄 3박까지, 여덟 번만 고르면 됩니다.</p>
+    <div class="lc-meta">8문항 · 2분</div>
+  </a>
+
+  <p class="lc-head">새로 나온 검사</p>
+
+  <div class="lc-grid">
+
+    <a class="lc-card c-snack" href="/lab/night-snack/">
+      <span class="lc-em">🌙</span>
+      <span class="lc-tag">마음</span>
+      <h4>편의점 야식 유형</h4>
+      <p>문 열고 들어가는 순간부터 계산대까지</p>
+      <div class="lc-meta">5문항 · 1분</div>
+    </a>
+
+    <a class="lc-card c-cafe" href="/lab/cafe/">
+      <span class="lc-em">☕</span>
+      <span class="lc-tag">성격</span>
+      <h4>카페에서 나는</h4>
+      <p>자리 고르는 데서 이미 나옵니다</p>
+      <div class="lc-meta">8문항 · 2분</div>
+    </a>
+
+    <a class="lc-card c-groc" href="/lab/grocery/">
+      <span class="lc-em">🛒</span>
+      <span class="lc-tag">돈</span>
+      <h4>장보기 스타일</h4>
+      <p>장바구니에 성격이 다 나옵니다</p>
+      <div class="lc-meta">8문항 · 2분</div>
+    </a>
+
+    <a class="lc-card c-camp" href="/lab/camping/">
+      <span class="lc-em">⛺</span>
+      <span class="lc-tag">성격</span>
+      <h4>캠핑 갔을 때</h4>
+      <p>텐트 치는 순간 성격이 나옵니다</p>
+      <div class="lc-meta">8문항 · 2분</div>
+    </a>
+
+    <a class="lc-card c-money" href="/lab/money/">
+      <span class="lc-em">💸</span>
+      <span class="lc-tag">돈</span>
+      <h4>한 달 머니 스타일</h4>
+      <p>월급날부터 월말까지, 여덟 번의 선택</p>
+      <div class="lc-meta">8문항 · 2분</div>
+    </a>
+
+    <a class="lc-card c-break" href="/lab/breakup/">
+      <span class="lc-em">💔</span>
+      <span class="lc-tag">연애</span>
+      <h4>헤어지고 나서 나는</h4>
+      <p>끝난 뒤에 나오는 진짜 모습이요</p>
+      <div class="lc-meta">8문항 · 2분</div>
+    </a>
+
+  </div>
+</div>

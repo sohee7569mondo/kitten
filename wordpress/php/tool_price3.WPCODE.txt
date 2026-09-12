@@ -1,0 +1,214 @@
+/* ════════════════════════════════════════════════════════════
+   값이 적힌 자리 전부 찾기 · 3,000원으로 올리기 전에 · 소희 님께
+
+   왜 이걸 먼저 하나
+     풀이 한 편을 1,000원 → 3,000원으로 올립니다. 그런데 사이트에
+     적힌 「1,000원」이 전부 풀이 값은 아닙니다. 「구슬 1개 1,000원」
+     처럼 구슬 값을 말하는 자리도 있습니다. 구슬 값은 그대로 두고
+     풀이 값만 올려야 합니다.
+     그래서 어느 자리가 무슨 값인지 먼저 눈으로 봅니다.
+
+   ★ 이 도구는 아무것도 고치지 않습니다. 찾아서 보여주기만 합니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 →
+              첫 줄 PHP 태그 아래에 붙여넣기 → 저장 → 활성
+
+   ★ 저장 직후 먼저 확인
+        https://stellasaju.com/wp-json/stella/v1/me
+     {"ok":false,...} 면 정상, rest_no_route 면 즉시 꺼주세요.
+
+   그 다음 이 주소를 열고, 나온 화면을 통째로 저에게 붙여넣어 주세요.
+        https://stellasaju.com/?stella_p3=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_p3'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다. 관리자로 로그인한 창에서 열어주세요.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	/* 잘린 글자 때문에 화면이 비지 않도록 */
+	$safe = function ( $s ) {
+		if ( function_exists( 'mb_convert_encoding' ) ) {
+			$s = mb_convert_encoding( $s, 'UTF-8', 'UTF-8' );
+		}
+		return esc_html( $s );
+	};
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.8 -apple-system,system-ui,sans-serif;'
+		. 'background:#111;color:#eee;padding:24px;max-width:1100px">';
+	echo '<h1 style="color:#ffd76a">값이 적힌 자리 — 찾기만 합니다</h1>';
+	echo '<p style="color:#9fd">이 화면은 아무것도 바꾸지 않았습니다.</p>';
+
+	/* ── 1. 지금 엔진이 쓰는 값 ── */
+	echo '<h2 style="color:#9fd">1. 지금 엔진이 쓰는 값</h2>';
+	echo '<table cellpadding="8" style="border-collapse:collapse">';
+	$consts = array(
+		'STELLA_ORB_KRW'      => '구슬 한 개 값 (원)',
+		'STELLA_PRICE_BASE'   => '풀이 한 편 (구슬)',
+		'STELLA_PRICE_FULL'   => '인생길잡이 (구슬)',
+		'STELLA_PRICE_ONELINE' => '한 줄 질문 (구슬)',
+		'STELLA_PRICE_DEEP'   => '심화 질문 (구슬)',
+		'STELLA_WELCOME_ORBS' => '가입 축하 구슬',
+		'STELLA_EVENT_ORBS'   => '오픈 기념 구슬',
+		'STELLA_REF_ORBS'     => '친구 추천 구슬',
+	);
+	foreach ( $consts as $k => $what ) {
+		$v = defined( $k ) ? constant( $k ) : null;
+		printf(
+			'<tr style="border-top:1px solid #333"><td style="color:#888">%s</td>'
+			. '<td>%s</td><td style="color:%s"><b>%s</b></td></tr>',
+			esc_html( $k ),
+			esc_html( $what ),
+			null === $v ? '#ff7b7b' : '#7bff9b',
+			null === $v ? '없음' : esc_html( (string) $v )
+		);
+	}
+	echo '</table>';
+
+	if ( defined( 'STELLA_ORB_KRW' ) && defined( 'STELLA_PRICE_BASE' ) ) {
+		printf(
+			'<p style="color:#ffd76a">→ 지금 풀이 한 편은 <b>%s원</b>입니다.</p>',
+			esc_html( number_format( STELLA_ORB_KRW * STELLA_PRICE_BASE ) )
+		);
+	}
+
+	/* ── 2. 페이지에 적힌 자리 ── */
+	$words = array(
+		'1,000원', '1000원', '3,000원', '5,000원', '9,000원', '15,000원',
+		'25,000원', '구슬 1개', '구슬 한 개', '1구슬', '3구슬', '5구슬', '25구슬',
+		'base:1', 'base: 1', 'ORB_KRW',
+	);
+
+	echo '<h2 style="color:#9fd">2. 어느 페이지에 몇 번</h2>';
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_name, post_type, post_status, post_content
+		   FROM {$wpdb->posts}
+		  WHERE post_status IN ('publish','draft','private')
+		    AND post_type IN ('page','post','wp_template','wp_template_part','wp_navigation','wp_block')
+		    AND ( post_content LIKE '%000원%'
+		       OR post_content LIKE '%구슬%'
+		       OR post_content LIKE '%ORB_KRW%' )
+		  ORDER BY ID"
+	);
+
+	if ( ! $rows ) {
+		echo '<p>없습니다.</p>';
+	} else {
+		echo '<table cellpadding="7" style="border-collapse:collapse;width:100%">';
+		echo '<tr style="color:#ffd76a"><td>ID</td><td>제목</td><td>주소</td><td>몇 번</td></tr>';
+		foreach ( $rows as $r ) {
+			$hits = array();
+			foreach ( $words as $w ) {
+				$n = substr_count( $r->post_content, $w );
+				if ( $n ) {
+					$hits[] = esc_html( $w ) . ' <b>' . $n . '</b>';
+				}
+			}
+			if ( ! $hits ) {
+				continue;
+			}
+			printf(
+				'<tr style="border-top:1px solid #333"><td><b>%d</b></td><td>%s</td>'
+				. '<td style="color:#888">%s</td><td style="color:#9fd">%s</td></tr>',
+				$r->ID,
+				esc_html( $r->post_title ),
+				$r->post_name ? '/' . esc_html( $r->post_name ) . '/' : '',
+				implode( ' · ', $hits )
+			);
+		}
+		echo '</table>';
+
+		/* ── 3. 적힌 모습 그대로 ── */
+		echo '<h2 style="color:#9fd">3. 적힌 모습 그대로 (앞뒤 같이)</h2>';
+		echo '<p style="color:#888">이 부분이 제일 중요합니다. 통째로 복사해 주세요.</p>';
+
+		$look = array( '1,000원', '1000원', '1구슬', '구슬 1개', '구슬 한 개', 'base:1', 'base: 1' );
+		$shown = 0;
+		foreach ( $rows as $r ) {
+			foreach ( $look as $w ) {
+				$pos = 0;
+				while ( ( $pos = strpos( $r->post_content, $w, $pos ) ) !== false ) {
+					$ctx = substr( $r->post_content, max( 0, $pos - 110 ), 260 );
+					printf(
+						'<p style="margin:16px 0 4px;color:#ffd76a">%d · %s — <b>%s</b></p>'
+						. '<pre style="white-space:pre-wrap;background:#000;padding:10px;'
+						. 'border-left:3px solid #ffd76a;font:12.5px/1.6 monospace">%s</pre>',
+						$r->ID,
+						esc_html( $r->post_title ),
+						esc_html( $w ),
+						$safe( $ctx )
+					);
+					$pos += strlen( $w );
+					$shown++;
+					if ( $shown >= 60 ) {
+						break 3;
+					}
+				}
+			}
+		}
+		printf( '<p style="color:#888">보여드린 자리 %d 군데.</p>', $shown );
+	}
+
+	/* ── 4. 스니펫에 적힌 자리 ── */
+	echo '<h2 style="color:#9fd">4. 스니펫 — 상수가 어디에 있나</h2>';
+	$snips = $wpdb->get_results(
+		"SELECT ID, post_title, post_status, post_content FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode'
+		    AND ( post_content LIKE '%STELLA_PRICE_BASE%'
+		       OR post_content LIKE '%STELLA_ORB_KRW%'
+		       OR post_content LIKE '%STELLA_WELCOME_ORBS%' )
+		  ORDER BY post_title"
+	);
+	if ( ! $snips ) {
+		echo '<p>없습니다.</p>';
+	} else {
+		echo '<table cellpadding="7" style="border-collapse:collapse;width:100%">';
+		echo '<tr style="color:#ffd76a"><td>ID</td><td>이름</td><td>상태</td><td>줄</td></tr>';
+		foreach ( $snips as $s ) {
+			$lines = preg_split( "/\r\n|\n|\r/", $s->post_content );
+			$found = array();
+			foreach ( $lines as $i => $line ) {
+				$is = false;
+				if ( false !== strpos( $line, 'STELLA_PRICE_' ) ) {
+					$is = true;
+				}
+				if ( false !== strpos( $line, 'STELLA_ORB_KRW' ) ) {
+					$is = true;
+				}
+				if ( false !== strpos( $line, '_ORBS' ) ) {
+					$is = true;
+				}
+				if ( $is ) {
+					$found[] = ( $i + 1 ) . '행 : ' . trim( $line );
+				}
+			}
+			printf(
+				'<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td>'
+				. '<td style="color:%s">%s</td>'
+				. '<td><pre style="white-space:pre-wrap;margin:0;font:12.5px/1.6 monospace">%s</pre></td></tr>',
+				$s->ID,
+				esc_html( $s->post_title ),
+				'publish' === $s->post_status ? '#7bff9b' : '#888',
+				'publish' === $s->post_status ? '켜짐' : '꺼짐',
+				$safe( implode( "\n", array_slice( $found, 0, 14 ) ) )
+			);
+		}
+		echo '</table>';
+	}
+
+	echo '<h2 style="color:#7bff9b">끝났습니다. 아무것도 바뀌지 않았습니다.</h2>';
+	echo '<p>이 화면을 통째로 복사해 저에게 붙여넣어 주세요. 보고 나서 바꾸는 패치를 만들겠습니다.</p>';
+	echo '</body>';
+	exit;
+} );

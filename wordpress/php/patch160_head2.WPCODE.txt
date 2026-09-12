@@ -1,0 +1,139 @@
+/* ══════════════════════════════════════════════════════════
+   제목 고치기 + 「태어난 시각」 바로잡기
+   ★ 2026-09-10 · 소희 님께
+
+   ★ 예전에 드린 patch160_head 는 붙이지 마세요. 이것이 그것을
+     대신합니다. 소희 님이 주신 제목으로 바꾸고, 「태어난 시각」
+     문제까지 같이 잡습니다.
+
+   ── 하나. 제목 ────────────────────────────────────────
+     전  당신이 아무 말도 하기 전에
+     후  사주에서 보는 소희님의 결
+
+   주신 말씀 그대로입니다. 「당신의」 자리에 손님 이름이 들어갑니다.
+
+   ── 둘. 「태어난 시각」이 시(時)로 읽힙니다 ─────────────
+   사주는 해 · 달 · 날 · 시를 다 보는데 「태어난 시각만 보고 쓴
+   것」이라 하면 시간 하나만 본 것처럼 읽힙니다. 소희 님 말씀이
+   맞습니다. 책에 「태어난 시각」이 열네 번 나오는데, 그 가운데
+   정말 시(時)를 가리키는 자리는 그대로 두고 (「태어난 시각을
+   모르셔서 여섯 글자로만 셈했습니다」 같은 곳), 생년월일시 전체를
+   가리키는 네 곳만 고칩니다.
+
+     08장 부제   여기까지는 태어난 시각 하나만 보고 쓴 것입니다
+                 → 여기까지는 태어난 날과 시간만 보고 쓴 것입니다
+     01장 설명   오직 태어난 시각만 보고 쓴 것입니다
+                 → 오직 태어난 날과 시간만 보고 쓴 것입니다
+     타로 장     여기까지는 태어난 시각으로 읽은 것이라
+                 → 여기까지는 태어난 날과 시간으로 읽은 것이라
+     별자리 장   태어난 시각을 옛 글자 여덟 자로 옮긴 것이 하나
+                 → 태어난 날과 시간을 옛 글자 여덟 자로 옮긴 것이 하나
+
+   ── 셋. 접기가 다시 돌아갑니다 ────────────────────────
+   이 제목은 접기 기능의 열쇠로도 쓰입니다. 그런데 이름 패치가
+   「당신」을 손님 이름으로 바꾸기 때문에, 제목에 「당신」이 있으면
+   화면과 코드가 영영 안 맞습니다. 그래서 열쇠를 통째로 견주지
+   않고 앞머리 「사주에서 보는 」만 견주게 바꿉니다. 이름이 뭐든
+   맞습니다.
+
+   ── 넷. 낱장 그림자 ───────────────────────────────────
+   연한 종이에서는 그림자가 때 탄 것처럼 보입니다. 뺍니다.
+
+   ── 확인한 것 ─────────────────────────────────────────
+   아홉 자리 모두 한 군데씩 걸리는 것을 보고, 붙인 뒤 스크립트
+   문법과 브라우저 렌더까지 봤습니다. 재물운과 신년운세 둘 다
+   제목이 「사주에서 보는 소희님의 결」로 뜨고 그림자가 사라집니다.
+
+   해보기   https://stellasaju.com/?stella_head2=preview
+   붙이기   https://stellasaju.com/?stella_head2=apply
+   되돌리기 https://stellasaju.com/?stella_head2=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_head2'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_head2'] ) );
+	$META = '_stella_head2_bak';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $id, $META, true );
+		if ( '' === $old ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다.';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	$PAIRS = array(
+		array( '제목', '\'<h2>당신이 아무 말도 하기 전에</h2>\'+', '\'<h2>사주에서 보는 \'+esc(name)+\'님의 결</h2>\'+' ),
+		array( '부제', '\'<p class="dek">여기까지는 태어난 시각 하나만 보고 쓴 것입니다</p>\'+', '\'<p class="dek">여기까지는 태어난 날과 시간만 보고 쓴 것입니다</p>\'+' ),
+		array( '접기 열쇠', 'var SIP=\'당신이 아무 말도 하기 전에\';', 'var SIP=\'사주에서 보는 \';' ),
+		array( '접기 견주기', 'if(h===SIP){', 'if(h.indexOf(SIP)===0){' ),
+		array( '코드 주석', '08 장(당신이 아무 말도 하기 전에)은 문마다 글이 다릅니다.', '08 장(사주에서 보는 ○○님의 결)은 문마다 글이 다릅니다.' ),
+		array( '01장 설명', '<em>1부</em>는 당신이 아무 말도 하기 전에, 오직 태어난 시각만 보고 쓴 것입니다. ', '<em>1부</em>는 당신이 아무 말도 하기 전에, 오직 태어난 날과 시간만 보고 쓴 것입니다. ' ),
+		array( '타로 장', '여기까지는 태어난 시각으로 읽은 것이라 <em>평생 바뀌지 않습니다.</em> ', '여기까지는 태어난 날과 시간으로 읽은 것이라 <em>평생 바뀌지 않습니다.</em> ' ),
+		array( '별자리 장', '태어난 시각을 옛 글자 여덟 자로 옮긴 것이 하나, ', '태어난 날과 시간을 옛 글자 여덟 자로 옮긴 것이 하나, ' ),
+		array( '낱장 그림자', '  box-shadow:0 24px 60px -30px rgba(0,0,0,.9);
+}', '  /* 2026-09-10 · 연한 종이에서는 그림자가 때 탄 것처럼 보입니다 */
+}' ),
+	);
+
+	echo "═══ 제목과 「태어난 시각」 ═══\n";
+	echo '쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	$todo = array(); $done = 0; $miss = 0;
+	foreach ( $PAIRS as $r ) {
+		list( $nm, $old, $new ) = $r;
+		$got = substr_count( $c, $old );
+		if ( 1 === $got ) { echo sprintf( "  %-14s 찾음\n", $nm ); $todo[] = $r; continue; }
+		if ( 0 === $got ) {
+			if ( substr_count( $c, $new ) > 0 ) { echo sprintf( "  %-14s 이미 고쳐져 있습니다\n", $nm ); $done++; continue; }
+		}
+		echo sprintf( "  %-14s ★ %d군데 (하나여야 합니다)\n", $nm, $got );
+		$miss++;
+	}
+
+	if ( $miss ) {
+		echo "\n한 군데가 아닌 것이 있어 아무것도 안 바꿨습니다.\n";
+		echo "patch160_head 를 이미 붙이셨다면 그것부터 되돌려 주세요 — ?stella_head=undo";
+		exit;
+	}
+	if ( ! count( $todo ) ) { echo "\n이미 다 고쳐져 있습니다."; exit; }
+
+	$new = $c;
+	foreach ( $todo as $r ) { $new = str_replace( $r[1], $r[2], $new ); }
+
+	if ( 'preview' === $mode ) {
+		echo "\n아홉 자리 모두 준비됐습니다. "
+		   . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
+		echo "\n바뀐 뒤\n";
+		echo "  제목  사주에서 보는 소희님의 결\n";
+		echo "  부제  여기까지는 태어난 날과 시간만 보고 쓴 것입니다\n";
+		echo "\n붙이시려면 ?stella_head2=apply\n";
+		exit;
+	}
+
+	if ( '' === (string) get_post_meta( $id, $META, true ) ) { update_post_meta( $id, $META, $c ); }
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n고쳤습니다. 책을 열어 1부 첫 장을 보세요.\n";
+	echo "되돌리려면 ?stella_head2=undo\n";
+	exit;
+}, 1 );

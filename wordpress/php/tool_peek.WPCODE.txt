@@ -1,0 +1,115 @@
+/* ════════════════════════════════════════════════════════════
+   책의 한 토막 그대로 보기 (PEEK)   ★ 2026-09-11 · 소희 님께
+
+   ★★ 번역기가 도구 글을 망가뜨리고 있어서
+      이 도구는 **번역 금지 표시**를 달고 나옵니다.
+      (notranslate — 크롬이 건드리지 않습니다)
+
+   MAP-4 가 결정적인 것을 알려줬습니다.
+
+     줄 12572 에 이미 이런 것이 있습니다
+        page( '<p class="eyebrow">맺음말</p>'
+            + '<h2>○○님, 세 가지만 기억하세요</h2>' … )
+
+     **「세 가지만 기억하세요」 장이 이미 책에 있습니다.**
+     새로 만들 것이 아니라, 결혼운에서 무엇을 보여줄지만 고치면 됩니다.
+
+   그 토막을 눈으로 봐야 패치를 쓸 수 있습니다.
+
+   아무것도 바꾸지 않습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   줄 번호로     https://stellasaju.com/?stella_peek=12470-12620
+   말로 찾아서   https://stellasaju.com/?stella_peek=find:it.top.map
+   다른 쪽을     https://stellasaju.com/?stella_peek=156:200-260
+                 https://stellasaju.com/?stella_peek=137:find:reading-ready
+                 (쪽 번호를 앞에 붙이면 됩니다. 없으면 책 160쪽)
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_peek'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$arg = sanitize_text_field( wp_unslash( $_GET['stella_peek'] ) );
+	$from = 12470; $to = 12620;
+	$find = '';
+	$pid  = 160;
+
+	/* 156:20-120 처럼 쪽 번호를 앞에 붙일 수 있습니다 */
+	if ( preg_match( '/^(\d+)\s*:\s*(.*)$/', $arg, $mm ) ) {
+		$pid = (int) $mm[1];
+		$arg = $mm[2];
+	}
+	if ( 0 === strpos( $arg, 'find:' ) ) {
+		$find = substr( $arg, 5 );
+	} elseif ( preg_match( '/^(\d+)\s*-\s*(\d+)$/', $arg, $m ) ) {
+		$from = (int) $m[1];
+		$to   = (int) $m[2];
+	}
+	if ( $to < $from ) { $to = $from; }
+	if ( $to - $from > 400 ) { $to = $from + 400; }
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+
+	$lines = explode( "\n", $c );
+	$total = count( $lines );
+
+	/* 찾기 — 그 말이 있는 줄을 가운데 두고 앞뒤로 보여줍니다 */
+	$hits = array();
+	if ( '' !== $find ) {
+		$i = 0;
+		while ( $i < $total ) {
+			if ( false !== strpos( $lines[ $i ], $find ) ) { $hits[] = $i + 1; }
+			$i++;
+		}
+		if ( count( $hits ) ) {
+			$from = max( 1, $hits[0] - 25 );
+			$to   = min( $total, $hits[0] + 75 );
+		}
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!DOCTYPE html><html lang="ko" translate="no">';
+	echo '<head><meta charset="utf-8">';
+	echo '<meta name="google" content="notranslate">';
+	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
+	echo '<title>PEEK</title>';
+	echo '<style>body{background:#12101B;color:#F2ECE0;margin:0;padding:16px;'
+	   . 'font:12px/1.65 ui-monospace,Menlo,Consolas,monospace}'
+	   . 'h1{color:#D4AF6A;font-size:14px;margin:0 0 12px}'
+	   . '.n{color:#6F6A80;user-select:none}'
+	   . 'pre{white-space:pre-wrap;word-break:break-all;margin:0}'
+	   . '</style></head><body class="notranslate" translate="no">';
+
+	echo '<h1>PEEK &middot; 쪽 ' . (int) $pid . ' &middot; 줄 ' . (int) $from . ' ~ ' . (int) $to
+	   . ' (모두 ' . number_format( $total ) . '줄)</h1>';
+
+	if ( '' !== $find ) {
+		echo '<p class="n">찾은 말 : ' . esc_html( $find ) . ' &middot; '
+		   . count( $hits ) . '군데';
+		if ( count( $hits ) ) {
+			echo ' &middot; 줄 ' . esc_html( implode( ', ', array_slice( $hits, 0, 20 ) ) );
+		}
+		echo '</p>';
+		if ( ! count( $hits ) ) { echo '</body></html>'; exit; }
+	}
+
+	echo '<pre>';
+	$i = $from;
+	while ( $i <= $to && $i <= $total ) {
+		$txt = isset( $lines[ $i - 1 ] ) ? $lines[ $i - 1 ] : '';
+		echo '<span class="n">' . sprintf( '%6d', $i ) . '</span>  '
+		   . esc_html( $txt ) . "\n";
+		$i++;
+	}
+	echo '</pre>';
+
+	echo '</body></html>';
+	exit;
+} );

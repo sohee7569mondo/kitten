@@ -1,0 +1,1052 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 ⑨ · 나에게 맞는 이상형 그리기      /uandme/ideal/
+
+   내 생년월일 하나만 넣으면 됩니다. 상대가 없어도 혼자 볼 수 있어요.
+   그래서 링크가 훨씬 잘 퍼집니다.
+
+   보여주는 것
+     · 나이 차이 셋   · 별자리 셋   · 띠 셋
+     · 이런 사람이에요   · 드라마로 치면   · 조심할 사람
+
+   흔한 띠 궁합표는 태어난 해로 봅니다. 우리는 일지(배우자 자리)로
+   봅니다. 그래서 다른 답이 나옵니다. 이게 우리만의 자리입니다.
+
+   이 스니펫은 스텔라 랩(/lab/)과 같은 방식으로, 화면을 스스로 그리고
+   끝냅니다. 워드프레스 주소 찾기에 기대지 않으므로 확실히 열립니다.
+   사주도 이 화면에 필요한 만큼만 여기서 셈합니다.
+
+   같이 하는 일 하나 더 — 유앤미 화면 아래에 「이상형 그리기」 띠를
+   답니다. ⑥번(75KB)을 건드리지 않아도 됩니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   확인 : stellasaju.com/uandme/ideal/
+          stellasaju.com/?stella_um9=1   (살아 있는지)
+
+   주의 · 이 파일 안 script 에서 앰퍼샌드를 쓰지 않습니다
+          (워드프레스가 엔티티로 바꿔 스크립트를 죽입니다).
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 이상형 화면 ─────────────────────────────────────────── */
+add_action( 'init', function () {
+
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	$path = parse_url( $uri, PHP_URL_PATH );
+	$path = is_string( $path ) ? $path : '';
+	if ( ! preg_match( '#^/uandme/(ideal|blood)/?$#', $path, $mm ) ) { return; }
+	$screen = $mm[1];
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+
+	$priv = '';
+	$term = '';
+	$pg = get_page_by_path( 'privacy' );
+	if ( $pg ) { $priv = get_permalink( $pg ); }
+	$pg2 = get_page_by_path( 'terms' );
+	if ( $pg2 ) { $term = get_permalink( $pg2 ); }
+
+	echo '<!doctype html><meta charset="utf-8">';
+	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
+	if ( 'blood' === $screen ) {
+		echo '<title>혈액형 궁합 — 우리 둘은 어떤 사이일까</title>';
+		echo '<meta name="description" content="A형 B형 O형 AB형, 열 가지 조합을 다 풀어 드립니다. 가입 없이 무료로 바로 보세요.">';
+	} else {
+		echo '<title>나에게 맞는 이상형 — 생년월일로 보는 나이차 · 별자리 · 띠</title>';
+		echo '<meta name="description" content="내 생년월일 하나면 됩니다. 사주로 보는 나에게 맞는 나이 차이와 별자리와 띠를 알려드립니다. 무료예요.">';
+	}
+	echo '<link rel="canonical" href="' . esc_url( home_url( '/uandme/' . $screen . '/' ) ) . '">';
+	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+	echo '<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum' . '&' . 'display=swap" rel="stylesheet">';
+	echo '<style>'
+		. 'body{margin:0;background:#FFFDFA;color:#3E4451;'
+		. "font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;"
+		. 'line-height:1.75}'
+		. '.top{max-width:430px;margin:0 auto;padding:16px 18px 0;display:flex;'
+		. 'align-items:center;justify-content:space-between}'
+		. '.top a{text-decoration:none}'
+		. '.top .nm{font-size:21px;color:#3F3A52}'
+		. '.top .up{font-size:10.5px;color:#A79BC4}'
+		. '.bot{max-width:430px;margin:34px auto 0;padding:18px 18px 60px;'
+		. 'border-top:1px solid #EDE5FA;font-size:12px;color:#A79BC4;line-height:1.9}'
+		. '.bot a{color:#8C82A6;text-decoration:none;margin-right:10px}'
+		. 'a:focus-visible,button:focus-visible,input:focus-visible{'
+		. 'outline:2px solid #6B5BA8;outline-offset:2px}'
+		. '</style>';
+	echo '<div class="top"><a href="/uandme/"><span class="nm">유앤미</span></a>';
+	echo '<a class="up" href="/">스텔라사주</a></div>';
+	echo '<div id="um-ideal"></div>';
+	echo '<div class="bot">';
+	if ( $priv ) { echo '<a href="' . esc_url( $priv ) . '">개인정보처리방침</a>'; }
+	if ( $term ) { echo '<a href="' . esc_url( $term ) . '">이용약관</a>'; }
+	echo '<a href="/uandme/">유앤미</a><a href="/">스텔라사주</a>';
+	echo '<p style="margin:6px 0 0">스텔라사주에서 만든 서비스입니다. 결과는 재미로 봐주세요.</p>';
+	echo '</div>';
+	echo '<script>var UM_SCREEN="' . esc_js( $screen ) . '";var UM_IDEAL_ON=1;</script>';
+	echo "\n<script>\n";
+	echo <<<'STELLA_IDEAL'
+
+(function () {
+  'use strict';
+
+  var GAN_EL = ['목','목','화','화','토','토','금','금','수','수'];
+  var ANIMAL = ['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
+  var SIGNS  = ['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리',
+                '천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
+  var ELS    = ['목','화','토','금','수'];
+  /* 상생 : 목→화→토→금→수→목 */
+  var GEN = { '목':'화', '화':'토', '토':'금', '금':'수', '수':'목' };
+
+  function pk(a, b) { return Math.min(a,b) + '-' + Math.max(a,b); }
+  function mk(ps) { return ps.map(function (p) { return pk(p[0], p[1]); }); }
+  var YUKHAP = mk([[0,1],[2,11],[3,10],[4,9],[5,8],[6,7]]);
+  var SAMHAP = [[8,0,4],[11,3,7],[2,6,10],[5,9,1]];
+  var CHUNG  = mk([[0,6],[1,7],[2,8],[3,9],[4,10],[5,11]]);
+  var WONJIN = mk([[0,7],[1,6],[2,9],[3,8],[4,11],[5,10]]);
+
+  function hapOf(ji) {
+    var i;
+    for (i = 0; i < 12; i++) { if (YUKHAP.indexOf(pk(ji,i)) >= 0) { return i; } }
+    return ji;
+  }
+  function triOf(ji) {
+    var i, j, out = [];
+    for (i = 0; i < SAMHAP.length; i++) {
+      if (SAMHAP[i].indexOf(ji) >= 0) {
+        for (j = 0; j < 3; j++) { if (SAMHAP[i][j] !== ji) { out.push(SAMHAP[i][j]); } }
+      }
+    }
+    return out;
+  }
+  function oppOf(ji) {
+    var i;
+    for (i = 0; i < 12; i++) { if (CHUNG.indexOf(pk(ji,i)) >= 0) { return i; } }
+    return (ji + 6) % 12;
+  }
+  function wonOf(ji) {
+    var i;
+    for (i = 0; i < 12; i++) { if (WONJIN.indexOf(pk(ji,i)) >= 0) { return i; } }
+    return -1;
+  }
+
+  /* ── 오행마다 어떤 사람인가 ──────────────────────────── */
+  var PERSON = {
+    '목': {
+      pic: 11, color: ['#E2F5EE','#4F8B72'],
+      one: '곧고 자기 길이 있는 사람',
+      body: ['한번 정하면 밀고 나갑니다. 옆에서 흔들어도 잘 안 흔들려요.',
+             '말보다 하는 걸로 보여주는 쪽입니다. 약속을 잘 안 어깁니다.',
+             '앞을 보고 삽니다. 같이 있으면 나도 뭔가 시작하게 됩니다.'],
+      drama: '묵묵히 일하다가 결정적일 때 나서는 첫사랑 선배 역',
+      care: '고집이 셉니다. 아니라고 생각하면 안 굽혀요.'
+    },
+    '화': {
+      pic: 12, color: ['#FFEFE2','#B57744'],
+      one: '밝고 표현이 많은 사람',
+      body: ['좋으면 좋다고 바로 말합니다. 속을 썩이지 않아요.',
+             '있으면 자리가 환해집니다. 사람을 잘 모읍니다.',
+             '먼저 다가옵니다. 내가 애태울 일이 적어요.'],
+      drama: '처음부터 대놓고 좋아한다고 말하는 밝은 남자 역',
+      care: '금방 뜨거워지고 금방 식습니다. 오래 데워줘야 해요.'
+    },
+    '토': {
+      pic: 13, color: ['#FCF0D9','#A08048'],
+      one: '듬직하고 말수 적은 사람',
+      body: ['크게 흔들리지 않습니다. 옆에 있으면 마음이 놓여요.',
+             '한 말은 지킵니다. 대신 안 될 것은 처음부터 안 된다고 합니다.',
+             '천천히 옵니다. 그 대신 한번 오면 잘 안 갑니다.'],
+      drama: '동네에서 오래 봐온, 늘 그 자리에 있는 형 역',
+      care: '느립니다. 답답할 때가 옵니다.'
+    },
+    '금': {
+      pic: 14, color: ['#F1EBFA','#6B5BA8'],
+      one: '깔끔하고 분명한 사람',
+      body: ['옳고 그른 것이 분명합니다. 말이 헷갈리지 않아요.',
+             '정리를 잘합니다. 같이 있으면 내 생활도 반듯해집니다.',
+             '허튼 약속을 안 합니다. 한 말은 지킵니다.'],
+      drama: '차가워 보이는데 알고 보면 다 챙겨주는 실장님 역',
+      care: '처음에는 차갑게 느껴집니다. 마음을 늦게 엽니다.'
+    },
+    '수': {
+      pic: 15, color: ['#F3ECFF','#7A6FA8'],
+      one: '눈치 빠르고 부드러운 사람',
+      body: ['내 기분을 먼저 알아챕니다. 설명하지 않아도 됩니다.',
+             '말을 둥글게 합니다. 싸울 일을 잘 만들지 않아요.',
+             '어디에 놓아도 잘 어울립니다. 데리고 다니기 편합니다.'],
+      drama: '말없이 우산을 들고 서 있는 소꿉친구 역',
+      care: '속을 잘 안 보여줍니다. 무슨 생각인지 물어봐야 알아요.'
+    }
+  };
+
+  /* 별자리가 언제부터 언제까지인지 — 「쌍둥이자리? 그게 언제지?」 안 찾게 */
+  var SIGN_DAY = ['3.21~4.19','4.20~5.20','5.21~6.21','6.22~7.22',
+                  '7.23~8.22','8.23~9.22','9.23~10.23','10.24~11.22',
+                  '11.23~12.21','12.22~1.19','1.20~2.18','2.19~3.20'];
+
+  /* 그 띠가 몇 년생인지 — 내 나이 언저리로 두세 해만 보여줍니다 */
+  function yearsOf(ji, myYear) {
+    var out = [], y;
+    for (y = myYear - 14; y <= myYear + 14; y++) {
+      if (((y - 4) % 12 + 12) % 12 === ji) { out.push(y); }
+    }
+    return out.join(' · ') + '년생';
+  }
+
+  /* 별자리 성질 한 줄 */
+  var SIGN_ONE = ['앞장서고 시원시원한','한결같고 감각 좋은','말이 재미있는','정이 깊은',
+                  '자신감 있고 너그러운','꼼꼼하고 다정한','균형을 잘 잡는','속이 깊고 진한',
+                  '솔직하고 잘 웃는','책임감 있는','생각이 남다른','마음이 여린'];
+
+  /* ── 사주 · 이 화면에 필요한 만큼만 ────────────────────
+     일주는 날짜만으로 정확히 나옵니다. 연주는 입춘, 월주는 절기로
+     갈리는데 여기서는 널리 쓰는 날짜로 끊습니다. 절기가 하루쯤
+     당겨지거나 밀리는 해가 있어, 그 경계에 태어나신 분은 한 칸
+     달라질 수 있습니다. 정확한 것은 유앤미 궁합에서 봅니다. */
+  var GAN_ELS = ['목','목','화','화','토','토','금','금','수','수'];
+  var JI_ELS  = ['수','토','목','목','토','화','화','토','금','금','토','수'];
+  /* 절기가 바뀌는 날 — 인월(2월)부터 축월(1월)까지 */
+  var TERM = [[2,4],[3,6],[4,5],[5,6],[6,6],[7,7],
+              [8,8],[9,8],[10,8],[11,7],[12,7],[1,6]];
+  /* 별자리가 바뀌는 날 */
+  var SIGN_FROM = [[3,21],[4,20],[5,21],[6,22],[7,23],[8,23],
+                   [9,23],[10,24],[11,23],[12,22],[1,20],[2,19]];
+
+  function dayNumber(y, m, d) {
+    return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(1900, 0, 1)) / 86400000);
+  }
+  function before(m, d, tm, td) {
+    if (m < tm) { return true; }
+    if (m > tm) { return false; }
+    return d < td;
+  }
+  function myChart(y, m, d) {
+    /* 일주 — 1900년 1월 1일을 갑술일로 잡습니다 */
+    var n = dayNumber(y, m, d);
+    var dg = ((n % 10) + 10) % 10;
+    var dz = (((n + 10) % 12) + 12) % 12;
+
+    /* 연주 — 입춘 앞이면 지난해로 봅니다 */
+    var sy = y;
+    if (before(m, d, 2, 4)) { sy = y - 1; }
+    var yg = (((sy - 4) % 10) + 10) % 10;
+    var yz = (((sy - 4) % 12) + 12) % 12;
+
+    /* 월주 — 절기로 끊고 오호둔으로 천간을 얻습니다 */
+    var mz = 11, i;
+    for (i = 0; i < 12; i++) {
+      var t = TERM[i];
+      if (i === 11) {
+        if (m === 1) { if (d >= t[1]) { mz = 1; } }
+      } else if (!before(m, d, t[0], t[1])) {
+        mz = (i + 2) % 12;
+      }
+    }
+    if (m === 1) { mz = (d >= 6) ? 1 : 0; }
+    if (m === 2) { mz = before(m, d, 2, 4) ? 1 : 2; }
+    var startGan = [2, 4, 6, 8, 0][yg % 5];
+    var mg = ((startGan + (((mz - 2) % 12) + 12) % 12) % 10 + 10) % 10;
+
+    /* 오행 — 여섯 글자를 셉니다 */
+    var els = ['목','화','토','금','수'], cnt = {}, k;
+    for (k = 0; k < els.length; k++) { cnt[els[k]] = 0; }
+    cnt[GAN_ELS[yg]] += 1; cnt[GAN_ELS[mg]] += 1; cnt[GAN_ELS[dg]] += 1;
+    cnt[JI_ELS[yz]] += 1;  cnt[JI_ELS[mz]] += 1;  cnt[JI_ELS[dz]] += 1;
+    var five = [];
+    for (k = 0; k < els.length; k++) {
+      five.push({ element: els[k], percent: Math.round(cnt[els[k]] / 6 * 100) });
+    }
+
+    /* 별자리 */
+    var si = 11;
+    for (i = 0; i < 12; i++) {
+      var f = SIGN_FROM[i];
+      if (f[0] === 1) { if (m === 1) { if (d >= f[1]) { si = i; } } }
+      else if (f[0] === 2) { if (m === 2) { if (d >= f[1]) { si = i; } } }
+      else if (!before(m, d, f[0], f[1])) { si = i; }
+    }
+    if (m === 1) { si = (d >= 20) ? 10 : 9; }
+    if (m === 2) { si = (d >= 19) ? 11 : 10; }
+    if (m === 3) { si = (d >= 21) ? 0 : 11; }
+
+    return { dg: dg, dz: dz, yz: yz, five: five, sun: si,
+             myEl: GAN_ELS[dg] };
+  }
+
+  /* ── 계산 ───────────────────────────────────────────── */
+  function ideal(y, m, d) {
+    var c = myChart(y, m, d);
+    var dayJi  = c.dz;
+    var yearJi = c.yz;
+    var myEl   = c.myEl;
+
+    /* ① 채워야 할 기운 — 제일 얇은 것. 다 고르면 나를 살려주는 기운. */
+    var thin = null, low = 999, i, e;
+    for (i = 0; i < c.five.length; i++) {
+      if (c.five[i].percent < low) { low = c.five[i].percent; thin = c.five[i].element; }
+    }
+    if (low >= 18) {
+      thin = null;
+      for (e in GEN) { if (GEN[e] === myEl) { thin = e; } }
+    }
+    if (!thin) { thin = '토'; }
+
+    /* ② 띠 셋 — 일지의 육합이 첫째, 삼합이 둘째 셋째 */
+    var jis = [hapOf(dayJi)];
+    var tri = triOf(dayJi);
+    for (i = 0; i < tri.length; i++) { if (jis.indexOf(tri[i]) < 0) { jis.push(tri[i]); } }
+    while (jis.length < 3) { jis.push((dayJi + 4 + jis.length) % 12); }
+    jis = jis.slice(0, 3);
+
+    var why = ['내 배우자 자리와 손을 잡는 띠입니다(육합). 가장 편한 자리예요.',
+               '내 배우자 자리와 같은 무리에 드는 띠입니다(삼합). 뜻이 잘 맞습니다.',
+               '이 띠도 같은 무리입니다. 오래 갈수록 잘 맞는 자리예요.'];
+
+    /* ③ 나이 차이 — 그 띠인 사람이 나와 몇 살 차이인가 */
+    var ages = [], seen = {};
+    for (i = 0; i < jis.length; i++) {
+      var k = ((yearJi - jis[i]) % 12 + 12) % 12;   /* 나보다 k 살 위 */
+      var pick = k;
+      if (k > 6) { pick = k - 12; }                  /* 7살 위보다는 5살 아래가 가깝습니다 */
+      if (!seen[pick]) { seen[pick] = 1; ages.push({ gap: pick, ji: jis[i] }); }
+    }
+
+    /* ④ 별자리 셋 — 같은 기운(120도) 둘, 북돋우는 자리(60도) 하나 */
+    var sun = c.sun;
+    var signs = [(sun + 4) % 12, (sun + 8) % 12, (sun + 2) % 12];
+    var swhy = ['나와 같은 기운의 자리입니다(120도). 말하지 않아도 통합니다.',
+                '여기도 같은 기운입니다(120도). 사는 결이 비슷해요.',
+                '나를 북돋우는 자리입니다(60도). 같이 있으면 힘이 붙습니다.'];
+
+    /* ⑤ 조심할 사람 */
+    var bad = [{ ji: oppOf(dayJi), why: '내 배우자 자리와 정면으로 부딪힙니다(충). 끌리는 힘이 큰 대신 흔들림도 큽니다.' }];
+    var w = wonOf(dayJi);
+    if (w >= 0) { bad.push({ ji: w, why: '이유 없이 서운해지는 자리입니다(원진). 사소한 것으로 오래 갑니다.' }); }
+
+    return { chart: c, el: thin, myEl: myEl, dayJi: dayJi, yearJi: yearJi,
+             jis: jis, why: why, ages: ages, signs: signs, swhy: swhy,
+             bad: bad, sun: sun };
+  }
+
+
+  /* ══ 혈액형 궁합 ════════════════════════════════════════
+     열 가지 조합입니다. 점수는 매기지 않습니다. 점수는 사주 궁합의
+     자리이고, 여기는 「이런 사이」를 말해 주는 자리입니다. */
+  var BT = ['A', 'B', 'O', 'AB'];
+  var BNAME = {
+    'A': '조심스러운 쪽',
+    'B': '내 마음대로 쪽',
+    'O': '먼저 다가가는 쪽',
+    'AB': '알 수 없는 쪽'
+  };
+  var BCOL = {
+    'A': ['#FBE3E8', '#B3707F'],
+    'B': ['#DCEFE4', '#5E8C72'],
+    'O': ['#FCF0D9', '#A88B4C'],
+    'AB': ['#E2E4F5', '#6E73A3']
+  };
+  function bkey(a, b) {
+    var ia = BT.indexOf(a), ib = BT.indexOf(b);
+    if (ia > ib) { return b + a; }
+    return a + b;
+  }
+  var BOUT = {
+    'AA': ['서로를 너무 잘 아는 사이',
+      '둘 다 눈치를 봅니다. 그래서 편합니다. 상대가 불편할 짓을 서로 안 해요.',
+      '싸울 일이 거의 없는 대신, 심심하다는 말이 나올 수 있습니다. 먼저 나서는 사람이 없어서 데이트도 늘 가던 데로 갑니다.',
+      '둘 다 속으로 삭입니다. 그러다 한참 뒤에 「그때 그거」가 튀어나옵니다. 쌓인 게 오래된 것일수록 크게 터집니다.',
+      '한 달에 한 번은 서운했던 걸 그 자리에서 말하기로 약속해 두세요.'],
+    'BB': ['각자 살다가 만나는 사이',
+      '둘 다 자기 세계가 있습니다. 붙어 있지 않아도 서운해하지 않아요. 이게 은근히 큰 장점입니다.',
+      '재미있습니다. 갑자기 떠나자고 하면 갑자기 떠나는 연애예요. 대신 챙겨주는 사람이 아무도 없습니다.',
+      '둘 다 그 자리에서 다 말하고 금방 잊습니다. 시원한데, 상처 주는 말도 그 자리에서 다 나옵니다.',
+      '화날 때 쓰지 않을 말을 미리 두세 개 정해 두세요. 그것만 안 쓰면 됩니다.'],
+    'OO': ['처음부터 뜨거운 사이',
+      '둘 다 표현을 합니다. 좋으면 좋다고 하고 서운하면 서운하다고 해요. 헷갈릴 일이 없습니다.',
+      '시작이 빠릅니다. 대신 둘 다 주도하고 싶어 해서 어디 갈지 정하는 데서부터 부딪힙니다.',
+      '바로 붙습니다. 큰 소리가 나지만 그날 안에 풉니다. 뒤끝이 없는 게 이 조합의 힘이에요.',
+      '번갈아 가며 정하기로 하세요. 이번엔 네가, 다음엔 내가.'],
+    'ABAB': ['말이 잘 통하는 사이',
+      '둘 다 감정보다 이유를 먼저 봅니다. 설명하면 알아듣는 상대라서 답답할 일이 적어요.',
+      '조용한데 깊습니다. 남들이 보기엔 심심해 보여도 둘은 재미있습니다.',
+      '싸우지 않고 정리합니다. 그런데 그게 무서운 겁니다. 마음이 식어도 조용히 식어요.',
+      '가끔은 논리를 접고 「그냥 서운했어」라고 말해보세요.'],
+    'AB_': ['다른 결이 만나는 사이',
+      '조심스러운 쪽과 내 마음대로인 쪽입니다. 처음엔 신기하고 나중엔 이해가 안 됩니다.',
+      'A가 계획하고 B가 뒤집습니다. 그게 재미있을 때가 있고 화날 때가 있어요.',
+      'A는 담아두고 B는 바로 뱉습니다. B는 이미 잊었는데 A는 아직 아픕니다. 이 차이가 제일 큽니다.',
+      'B는 잔소리 대신 자유를, A는 다그침 대신 시간을 주면 훨씬 수월해집니다.'],
+    'AO': ['자연스럽게 굴러가는 사이',
+      '먼저 다가가는 쪽과 받아주는 쪽입니다. 역할이 안 겹쳐서 편합니다.',
+      'O가 끌고 A가 챙깁니다. 흔히 잘 맞는다고 하는 조합이 이겁니다.',
+      'O는 바로 풀고 싶어 하고 A는 시간이 필요합니다. O가 재촉하면 A는 더 닫힙니다.',
+      'O는 하루만 기다려 주세요. A는 「내일 얘기하자」고 말해 주세요.'],
+    'AAB': ['서로 조심하는 사이',
+      '둘 다 앞에 나서지 않습니다. 조용하고 부딪힘이 없습니다.',
+      '천천히 가까워집니다. 대신 어느 쪽도 먼저 고백하지 않아 시간이 오래 걸려요.',
+      'A는 마음이 상하고 AB는 이유를 찾습니다. A가 원하는 건 이유가 아니라 미안하다는 말입니다.',
+      'AB는 분석하기 전에 먼저 미안하다고 해보세요. 그 한마디로 끝날 일이 많습니다.'],
+    'BO': ['같이 놀기 좋은 사이',
+      '둘 다 밝고 움직입니다. 만나면 뭐라도 하러 갑니다. 심심할 틈이 없어요.',
+      '연애가 재미있습니다. 대신 둘 다 지루한 건 못 견뎌서 잔잔해지면 위기가 옵니다.',
+      '둘 다 바로 말합니다. 크게 붙고 크게 풉니다. 다행히 오래 안 갑니다.',
+      '재미있는 일이 없는 날에도 만나는 연습을 해두세요. 그날이 진짜입니다.'],
+    'BAB': ['자유로운 사이',
+      '둘 다 남 눈치를 안 봅니다. 서로 간섭하지 않는 게 이 조합의 예의예요.',
+      '각자 사는데 만나면 반갑습니다. 매달리는 연애를 원하는 분에게는 안 맞습니다.',
+      'B는 감정으로 AB는 논리로 갑니다. 말이 자꾸 어긋나는데 둘 다 사과는 잘 안 합니다.',
+      '먼저 사과하는 사람이 지는 게 아니라는 걸 둘 다 외워두세요.'],
+    'OAB': ['끌리는데 어려운 사이',
+      '먼저 다가가는 쪽과 속을 안 보이는 쪽입니다. O는 답답하고 AB는 부담스럽습니다.',
+      'O가 다가가고 AB가 한 발 물러섭니다. 그게 더 궁금해서 O가 또 다가갑니다.',
+      'O는 지금 풀자고 하고 AB는 혼자 정리할 시간을 원합니다. 이때 O가 밀어붙이면 AB는 닫힙니다.',
+      'AB는 「생각할 시간이 필요해」라고 말로 해주세요. 말 없이 사라지는 게 제일 아픕니다.']
+  };
+  function bloodOut(a, b) {
+    var k = bkey(a, b);
+    if (k === 'AB') { k = 'AB_'; }          /* A 와 B — AB형 과 헷갈리지 않게 */
+    return BOUT[k] || BOUT['AA'];
+  }
+
+  var bMe = '', bYou = '';
+
+  function bloodHome() {
+    var h = '<div class="peek">' + pic('bun') + '</div>' +
+      '<div class="hero">우리 둘은<br><span class="hi">몇 형</span>일까</div>' +
+      '<p class="hdek">혈액형만 고르면 됩니다. 열 가지 조합을 다 풀어 뒀어요.</p>';
+    h += '<div class="bsec">나</div>' + bRow('me', bMe) +
+      '<div class="bsec">상대</div>' + bRow('you', bYou);
+    h += '<button class="go" id="bgo"' + ((bMe && bYou) ? '' : ' disabled') +
+      '>궁합 보기</button>';
+    h += '<p class="mini" style="margin-top:22px">혈액형 궁합은 재미로 보는 것입니다. ' +
+      '진짜 궁합은 생년월일로 보는 사주 궁합에서 봐주세요.</p>';
+    mount().innerHTML = h;
+    pixFix();
+    bBind();
+  }
+  function bRow(who, on) {
+    var h = '<div class="btr">', i, t;
+    for (i = 0; i < BT.length; i++) {
+      t = BT[i];
+      h += '<button class="bt' + (on === t ? ' on' : '') + '" data-w="' + who +
+        '" data-t="' + t + '" style="' +
+        (on === t ? ('background:' + BCOL[t][0] + ';border-color:' + BCOL[t][1] +
+                     ';color:' + BCOL[t][1]) : '') + '">' + t + '형</button>';
+    }
+    return h + '</div>';
+  }
+  function bBind() {
+    var bs = root.querySelectorAll('.bt'), i;
+    for (i = 0; i < bs.length; i++) {
+      bs[i].addEventListener('click', function () {
+        if (this.getAttribute('data-w') === 'me') { bMe = this.getAttribute('data-t'); }
+        else { bYou = this.getAttribute('data-t'); }
+        bloodHome();
+      });
+    }
+    var g = root.querySelector('#bgo');
+    if (g) { g.addEventListener('click', function () { bloodShow(); }); }
+  }
+  function bloodShow() {
+    if (!bMe) { return; }
+    if (!bYou) { return; }
+    var o = bloodOut(bMe, bYou), c = BCOL[bMe];
+    var h = '<p class="mini" style="margin-bottom:4px">' + bMe + '형 · ' + bYou + '형</p>' +
+      '<div class="big" style="background:' + c[0] + '">' + pic('bun') +
+      '<div class="lb" style="color:' + c[1] + '">한마디로</div>' +
+      '<div class="nm">' + o[0] + '</div></div>';
+    h += '<div class="sec">이런 사이예요</div>' +
+      '<div class="li">' + o[1] + '</div>' +
+      '<div class="sec">연애하면</div>' +
+      '<div class="li">' + o[2] + '</div>' +
+      '<div class="sec">싸울 때</div>' +
+      '<div class="li">' + o[3] + '</div>' +
+      '<div class="sec">이것만 지키면</div>' +
+      '<div class="warn" style="background:#FBF6FF"><div class="tx" ' +
+      'style="font-size:14px">' + o[4] + '</div></div>';
+    h += '<a class="cta" href="/uandme/">' +
+      '<div><div style="font-size:11px;color:#C9BEEA;font-weight:700;margin-bottom:5px">유앤미</div>' +
+      '<div style="font-size:16px;font-weight:700;color:#FFF;letter-spacing:-.02em">' +
+      '생년월일로 진짜 궁합 보기</div></div>' +
+      '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C9BEEA" ' +
+      'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="9 18 15 12 9 6"/></svg></a>';
+    h += '<button class="ghost" id="bagain">다른 혈액형으로 보기</button>';
+    h += '<p class="mini" style="margin-top:22px">혈액형과 성격이 이어져 있다는 과학적 근거는 없습니다. ' +
+      '오래 전해 내려온 이야기로 재미있게만 봐주세요.</p>';
+    mount().innerHTML = h;
+    pixFix();
+    var ag = root.querySelector('#bagain');
+    if (ag) { ag.addEventListener('click', bloodHome); }
+    window.scrollTo(0, 0);
+  }
+
+  /* ── 그리기 ─────────────────────────────────────────── */
+  /* 귀염뽕짝 토끼. 그림 파일이 아니라 그려서 넣습니다.
+     그래야 어디서 열어도 항상 보입니다. 귀 안쪽 색만 바꿔 씁니다. */
+  function bunny(ear, sleepy) {
+    var LN = '#5A4038';
+    var eyes = sleepy
+      ? '<path d="M44 60q6 6 12 0" fill="none" stroke="' + LN + '" stroke-width="4" ' +
+        'stroke-linecap="round"/><path d="M64 60q6 6 12 0" fill="none" stroke="' + LN + '" ' +
+        'stroke-width="4" stroke-linecap="round"/>'
+      : '<circle cx="50" cy="61" r="3.6" fill="' + LN + '"/>' +
+        '<circle cx="70" cy="61" r="3.6" fill="' + LN + '"/>';
+    return '<svg viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true" ' +
+      'style="display:block;overflow:visible">' +
+      '<g stroke="' + LN + '" stroke-width="4.5" stroke-linejoin="round">' +
+      '<ellipse cx="45" cy="31" rx="9" ry="25" fill="#FFF" transform="rotate(-9 45 31)"/>' +
+      '<ellipse cx="75" cy="31" rx="9" ry="25" fill="#FFF" transform="rotate(9 75 31)"/>' +
+      '<ellipse cx="60" cy="88" rx="31" ry="26" fill="#FFF"/>' +
+      '<circle cx="60" cy="63" r="27" fill="#FFF"/></g>' +
+      '<ellipse cx="45" cy="30" rx="4" ry="15" fill="' + ear + '" transform="rotate(-9 45 30)"/>' +
+      '<ellipse cx="75" cy="30" rx="4" ry="15" fill="' + ear + '" transform="rotate(9 75 30)"/>' +
+      '<ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/>' + eyes +
+      '<ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
+      '<ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
+      '<ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg>';
+  }
+
+  /* 화면에 앉히는 그림 한 장. 못 불러오면 아래 bunny() 가 대신 그립니다. */
+  var PIC = '/wp-content/uploads/2026/08/animal-03-300px.png';
+  function pic(cls) {
+    return '<span class="' + cls + '"><img alt="" src="' + PIC + '"></span>';
+  }
+  /* 그림이 안 뜨는 자리에서는 토끼를 그려 채웁니다 */
+  function pixFix() {
+    var im = root.querySelectorAll('img'), i;
+    for (i = 0; i < im.length; i++) {
+      (function (n) {
+        function swap() {
+          if (!n.parentNode) { return; }
+          n.parentNode.innerHTML = bunny('#F7C6D3');
+        }
+        n.addEventListener('error', swap);
+        if (n.complete) { if (!n.naturalWidth) { swap(); } }
+      }(im[i]));
+    }
+  }
+  var root = null, st = { y: '', m: '', d: '' };
+
+  function css() {
+    if (document.getElementById('um-ideal-css')) { return; }
+    var s = document.createElement('style');
+    s.id = 'um-ideal-css';
+    s.textContent =
+      '#um-ideal{max-width:430px;margin:0 auto;padding:18px 18px 60px;' +
+      "font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;" +
+      'color:#3F3A52;line-height:1.75;word-break:keep-all}' +
+      '#um-ideal .hero{font-size:38px;font-weight:900;line-height:1.18;' +
+      'letter-spacing:-.045em;color:#3F3A52;margin:18px 0 0}' +
+      '#um-ideal .hi{background:#E7DEFA;border-radius:6px;padding:0 6px}' +
+      '#um-ideal .dek{font-size:14px;color:#8C82A6;margin:14px 0 0}' +
+      '#um-ideal .mini{font-size:11.5px;color:#A79BC4;line-height:1.85}' +
+      '#um-ideal .bsec{font-size:12.5px;font-weight:700;color:#8C82A6;' +
+      'margin:22px 0 9px 2px}' +
+      '#um-ideal .btr{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}' +
+      '#um-ideal .bt{height:56px;border:1.5px solid #E7DEFA;border-radius:12px;' +
+      'background:#FFF;font:inherit;font-size:16px;font-weight:700;color:#8C82A6;' +
+      'cursor:pointer}' +
+      '#um-ideal .ask{display:flex;gap:7px;margin-top:20px}' +
+      '#um-ideal .fld{flex:1}' +
+      '#um-ideal .fld span{display:block;font-size:11.5px;color:#A79BC4;' +
+      'margin:0 0 5px 3px;font-weight:700}' +
+      '#um-ideal .fld input{width:100%;height:58px;border:1.5px solid #E7DEFA;' +
+      'border-radius:12px;background:#FFF;font:inherit;font-size:19px;text-align:center;' +
+      'color:#3F3A52;outline:none;padding:0}' +
+      '#um-ideal .fld input:focus{border-color:#B8A6E8;background:#FBF6FF}' +
+      '#um-ideal .go{width:100%;height:56px;margin-top:10px;border:0;border-radius:12px;' +
+      'background:#6B5BA8;color:#FFF;font:inherit;font-size:16px;font-weight:700;cursor:pointer}' +
+      '#um-ideal .go[disabled]{background:#D7CEEC;cursor:default}' +
+      '#um-ideal .big{position:relative;overflow:hidden;border-radius:16px;' +
+      'padding:26px 22px;margin-top:22px}' +
+      '#um-ideal .big .lb{font-size:11.5px;font-weight:700}' +
+      '#um-ideal .big .nm{font-size:27px;font-weight:900;letter-spacing:-.04em;' +
+      'line-height:1.28;margin-top:8px;padding-right:104px}' +
+      '#um-ideal .bun{display:block}' +
+      '#um-ideal .bun img{display:block;width:100%;height:100%;object-fit:contain}' +
+      '#um-ideal .big .bun{position:absolute;right:4px;bottom:-4px;width:112px;height:112px;' +
+      'pointer-events:none;filter:drop-shadow(0 5px 9px rgba(107,91,168,.16))}' +
+      '#um-ideal .hi .bun{position:absolute;right:-52px;top:-6px;width:46px;height:46px}' +
+      '#um-ideal .peek{display:flex;justify-content:flex-end;margin:2px 2px -14px 0}' +
+      '#um-ideal .peek .bun{width:88px;height:88px;pointer-events:none;' +
+      'filter:drop-shadow(0 4px 8px rgba(107,91,168,.14))}' +
+      '#um-ideal .sec{font-size:21px;font-weight:900;letter-spacing:-.04em;margin:38px 0 0}' +
+      '#um-ideal .secd{font-size:12.5px;color:#A79BC4;margin:6px 0 0}' +
+      '#um-ideal .row{display:flex;gap:13px;align-items:flex-start;background:#FBF6FF;' +
+      'border-radius:12px;padding:15px 16px;margin-top:9px}' +
+      '#um-ideal .row b{flex:0 0 62px;font-size:16px;font-weight:900;color:#6B5BA8;' +
+      'letter-spacing:-.03em}' +
+      '#um-ideal .sg{flex:0 0 84px}' +
+      '#um-ideal .sg b{display:block;flex:none;font-size:15px;font-weight:900;' +
+      'color:#6B5BA8;letter-spacing:-.035em;line-height:1.3}' +
+      '#um-ideal .sg i{display:block;font-style:normal;font-size:10.5px;' +
+      'color:#A79BC4;margin-top:3px;white-space:nowrap;' +
+      'font-variant-numeric:tabular-nums}' +
+      '#um-ideal .warn .yr{display:block;font-style:normal;font-size:10.5px;' +
+      'color:#C08C9C;margin-top:2px;font-variant-numeric:tabular-nums}' +
+      '#um-ideal .row .tx{font-size:12.5px;color:#57506E;line-height:1.7}' +
+      '#um-ideal .rank{flex:0 0 21px;height:21px;border-radius:7px;background:#E7DEFA;' +
+      'color:#6B5BA8;font-size:11px;font-weight:900;display:flex;align-items:center;' +
+      'justify-content:center;margin-top:2px}' +
+      '#um-ideal .li{padding:11px 0 11px 14px;border-left:2px solid #EDE5FA;' +
+      'font-size:14px;color:#57506E}' +
+      '#um-ideal .warn{background:#FCE8F1;border-radius:12px;padding:15px 16px;margin-top:9px}' +
+      '#um-ideal .warn b{color:#B3707F}' +
+      '#um-ideal .cta{display:flex;align-items:center;justify-content:space-between;' +
+      'padding:20px 22px;background:#6B5BA8;border-radius:14px;margin-top:14px;' +
+      'text-decoration:none}' +
+      '#um-ideal .ghost{width:100%;height:50px;margin-top:9px;border:1.5px solid #E7DEFA;' +
+      'border-radius:12px;background:#FFF;color:#6B5BA8;font:inherit;font-size:14px;' +
+      'font-weight:700;cursor:pointer}';
+    document.head.appendChild(s);
+  }
+
+  function mount() {
+    if (root) { return root; }
+    /* 스스로 그린 화면에는 자리가 이미 있습니다 */
+    root = document.getElementById('um-ideal');
+    if (root) { return root; }
+    root = document.createElement('div');
+    root.id = 'um-ideal';
+    var um = document.getElementById('um');
+    if (um) { um.parentNode.insertBefore(root, um); }
+    else { document.body.appendChild(root); }
+    return root;
+  }
+
+  function home() {
+    var h = '<div class="peek">' + pic('bun') + '</div>' +
+      '<div class="hero">나에게 맞는<br><span class="hi">이상형</span></div>' +
+      '<p class="dek">생년월일만 넣으면 됩니다. 상대는 없어도 돼요.<br>' +
+      '나이 차이와 별자리와 띠를 사주로 뽑아 드립니다.</p>' +
+      '<div class="ask">' +
+      '<label class="fld"><span>태어난 해</span>' +
+      '<input id="iy" type="text" inputmode="numeric" pattern="[0-9]*" ' +
+      'maxlength="4" autocomplete="off" placeholder="1996"></label>' +
+      '<label class="fld"><span>달</span>' +
+      '<input id="im" type="text" inputmode="numeric" pattern="[0-9]*" ' +
+      'maxlength="2" autocomplete="off" placeholder="3"></label>' +
+      '<label class="fld"><span>날</span>' +
+      '<input id="id" type="text" inputmode="numeric" pattern="[0-9]*" ' +
+      'maxlength="2" autocomplete="off" placeholder="14"></label></div>' +
+      '<p class="mini" style="margin-top:9px">태어난 시간은 안 물어봅니다.</p>' +
+      '<button class="go" id="igo">이상형 보기</button>' +
+      '<p class="mini" style="margin-top:22px">넣으신 생년월일은 이 화면에서 계산에만 씁니다. ' +
+      '서버에 올리지 않아요.</p>';
+    mount().innerHTML = h;
+    pixFix();
+    bind();
+  }
+
+  function bind() {
+    /* 숫자만 받고, 다 채우면 다음 칸으로 넘어갑니다 */
+    var ids = ['#iy', '#im', '#id'], caps = [4, 2, 2], q;
+    for (q = 0; q < ids.length; q++) {
+      (function (n, cap, nextSel) {
+        if (!n) { return; }
+        n.addEventListener('input', function () {
+          var v = this.value.replace(/[^0-9]/g, '');
+          if (v !== this.value) { this.value = v; }
+          if (v.length >= cap) {
+            if (nextSel) {
+              var nx = root.querySelector(nextSel);
+              if (nx) { nx.focus(); }
+            }
+          }
+        });
+      }(root.querySelector(ids[q]), caps[q], ids[q + 1]));
+    }
+    var b = root.querySelector('#igo');
+    if (!b) { return; }
+    b.addEventListener('click', function () {
+      function num(sel) {
+        var n = root.querySelector(sel);
+        if (!n) { return 0; }
+        return parseInt(String(n.value).replace(/[^0-9]/g, ''), 10) || 0;
+      }
+      var y = num('#iy'), m = num('#im'), d = num('#id');
+      var ok = true;
+      if (!y) { ok = false; }
+      if (!m) { ok = false; }
+      if (!d) { ok = false; }
+      if (ok) { if (y < 1900) { ok = false; } }
+      if (ok) { if (y > 2025) { ok = false; } }
+      if (ok) { if (m < 1) { ok = false; } }
+      if (ok) { if (m > 12) { ok = false; } }
+      if (ok) { if (d < 1) { ok = false; } }
+      if (ok) { if (d > 31) { ok = false; } }
+      if (!ok) { this.textContent = '날짜를 다시 봐주세요'; return; }
+      st.y = y; st.m = m; st.d = d;
+      show(y, m, d);
+    });
+  }
+
+  function ageWord(g) {
+    if (g === 0) { return '동갑'; }
+    if (g > 0) { return '연상 ' + g + '살'; }
+    return '연하 ' + (-g) + '살';
+  }
+
+  function show(y, m, d) {
+    var r = ideal(y, m, d);
+    if (!r) { mount().innerHTML = '<p class="dek">날짜를 다시 봐주세요.</p>'; return; }
+    var P = PERSON[r.el], i, h;
+
+    h = '<p class="mini" style="margin-bottom:4px">' + y + '년 ' + m + '월 ' + d + '일생 · ' +
+      ANIMAL[r.yearJi] + '띠 · ' + SIGNS[r.sun] + '</p>' +
+      '<div class="hero">나에게 맞는<br><span class="hi">이상형</span></div>';
+
+    h += '<div class="big" style="background:' + P.color[0] + '">' +
+      pic('bun') +
+      '<div class="lb" style="color:' + P.color[1] + '">한마디로</div>' +
+      '<div class="nm">' + P.one + '</div></div>';
+
+    h += '<div class="sec">나이 차이 셋</div>' +
+      '<p class="secd">내 배우자 자리와 맞는 띠에서 나온 나이입니다</p>';
+    for (i = 0; i < r.ages.length; i++) {
+      h += '<div class="row"><div class="rank">' + (i + 1) + '</div>' +
+        '<div class="sg" style="flex:0 0 68px"><b>' + ageWord(r.ages[i].gap) + '</b>' +
+        '<i>' + (y - r.ages[i].gap) + '년생</i></div>' +
+        '<div class="tx">' + ANIMAL[r.ages[i].ji] + '띠. ' + r.why[i] + '</div></div>';
+    }
+
+    h += '<div class="sec">별자리 셋</div>' +
+      '<p class="secd">내 별자리와 각도가 좋은 자리입니다</p>';
+    for (i = 0; i < r.signs.length; i++) {
+      h += '<div class="row"><div class="rank">' + (i + 1) + '</div>' +
+        '<div class="sg"><b>' + SIGNS[r.signs[i]] + '</b>' +
+        '<i>' + SIGN_DAY[r.signs[i]] + '</i></div>' +
+        '<div class="tx">' + SIGN_ONE[r.signs[i]] + ' 사람. ' + r.swhy[i] + '</div></div>';
+    }
+
+    h += '<div class="sec">이런 사람이에요</div>' +
+      '<p class="secd">내 사주에 얇은 ' + r.el + ' 기운을 채워주는 사람입니다</p>';
+    for (i = 0; i < P.body.length; i++) { h += '<div class="li">' + P.body[i] + '</div>'; }
+
+    h += '<div class="sec">드라마로 치면</div>' +
+      '<div class="row" style="margin-top:12px"><div class="tx" style="font-size:14px">' +
+      P.drama + '</div></div>';
+
+    h += '<div class="sec">조심할 사람</div>' +
+      '<p class="secd">처음에 제일 끌리는 자리이기도 합니다</p>';
+    for (i = 0; i < r.bad.length; i++) {
+      h += '<div class="warn"><b>' + ANIMAL[r.bad[i].ji] + '띠</b>' +
+        '<i class="yr">' + yearsOf(r.bad[i].ji, y) + '</i>' +
+        '<div class="tx" style="margin-top:5px">' + r.bad[i].why + '</div></div>';
+    }
+    h += '<div class="sec">이 사람의 그늘</div>' +
+      '<p class="secd">좋은 자리에도 그늘은 있습니다</p>' +
+      '<div class="warn" style="background:#FBF6FF"><div class="tx" ' +
+      'style="font-size:14px">' + P.care + '</div></div>';
+
+    h += '<a class="cta" href="/uandme/">' +
+      '<div><div style="font-size:11px;color:#C9BEEA;font-weight:700;margin-bottom:5px">유앤미</div>' +
+      '<div style="font-size:16px;font-weight:700;color:#FFF;letter-spacing:-.02em">' +
+      '그 사람 생일 알면 진짜 궁합 보기</div></div>' +
+      '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C9BEEA" ' +
+      'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="9 18 15 12 9 6"/></svg></a>';
+
+    h += '<button class="ghost" id="icopy">이 결과 링크 복사하기</button>' +
+      '<button class="ghost" id="iagain">다른 생일로 다시 보기</button>';
+
+    h += '<p class="mini" style="margin-top:22px">흔히 보는 띠 궁합표는 태어난 해로 봅니다. ' +
+      '여기서는 사주의 일지, 곧 배우자 자리로 봅니다. 그래서 답이 다릅니다.<br>' +
+      '재미로 봐주세요. 사람은 사주보다 넓습니다.</p>';
+
+    mount().innerHTML = h;
+    pixFix();
+
+    var cp = root.querySelector('#icopy');
+    if (cp) {
+      cp.addEventListener('click', function () {
+        var u = location.origin + '/uandme/ideal/';
+        if (navigator.clipboard) { navigator.clipboard.writeText(u); this.textContent = '복사했어요'; }
+        else { prompt('이 주소를 복사하세요', u); }
+      });
+    }
+    var ag = root.querySelector('#iagain');
+    if (ag) { ag.addEventListener('click', home); }
+    window.scrollTo(0, 0);
+  }
+
+  /* 유앤미 어느 화면에서든 보이는 들어가는 길.
+     ⑥번이 다시 그려도 안 지워지도록 #um 바깥에 답니다. */
+  function doorway() {
+    if (document.getElementById('um-ideal-door')) { return; }
+    var um = document.getElementById('um');
+    if (!um) { return; }
+    var a = document.createElement('a');
+    a.id = 'um-ideal-door';
+    a.href = '/uandme/ideal/';
+    a.innerHTML =
+      pic('bun') +
+      '<div class="tx">' +
+      '<div class="lb">혼자서도 볼 수 있어요</div>' +
+      '<div class="nm">나에게 맞는 이상형 그리기</div>' +
+      '<div class="dk">생일 하나로 나이 차이와 별자리와 띠를 뽑아 드립니다</div>' +
+      '</div>' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C82A6" ' +
+      'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="9 18 15 12 9 6"/></svg>';
+    um.parentNode.insertBefore(a, um.nextSibling);
+    var im = a.querySelector('img');
+    if (im) {
+      im.addEventListener('error', function () {
+        if (this.parentNode) { this.parentNode.innerHTML = bunny('#F7C6D3'); }
+      });
+    }
+  }
+
+  function doorCss() {
+    if (document.getElementById('um-door-css')) { return; }
+    var s = document.createElement('style');
+    s.id = 'um-door-css';
+    s.textContent =
+      '#um-ideal-door{position:relative;overflow:hidden;display:flex;align-items:center;' +
+      'gap:12px;max-width:430px;margin:6px auto 0;padding:16px 16px 16px 14px;' +
+      'background:#F7F2FC;border-radius:16px;text-decoration:none;' +
+      "font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif}" +
+      '#um-ideal-door .bun{flex:0 0 60px;width:60px;height:60px;display:block}' +
+      '#um-ideal-door .bun img{display:block;width:100%;height:100%;object-fit:contain}' +
+      '#um-ideal-door .tx{flex:1;min-width:0}' +
+      '#um-ideal-door .lb{font-size:10.5px;font-weight:700;color:#A79BC4}' +
+      '#um-ideal-door .nm{font-size:15.5px;font-weight:900;color:#3F3A52;' +
+      'letter-spacing:-.035em;margin-top:3px;word-break:keep-all}' +
+      '#um-ideal-door .dk{font-size:11.5px;color:#8C82A6;line-height:1.6;' +
+      'margin-top:4px;word-break:keep-all}';
+    document.head.appendChild(s);
+  }
+
+  function boot() {
+    if (window.UM_SCREEN === 'blood') { css(); bloodHome(); return; }
+    if (!window.UM_IDEAL_ON) {
+      /* 여기는 그냥 유앤미입니다. 들어가는 길만 달아 둡니다. */
+      doorCss();
+      doorway();
+      setTimeout(doorway, 1200);
+      setTimeout(doorway, 3000);
+      return;
+    }
+    css();
+    var um = document.getElementById('um');
+    if (um) { um.style.display = 'none'; }
+    home();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else { boot(); }
+})();
+
+STELLA_IDEAL;
+	echo "\n</script>\n";
+	exit;
+
+}, 10 );
+
+/* ── 유앤미 화면 아래에 들어가는 띠 ─────────────────────── */
+add_action( 'wp_head', function () {
+
+	if ( ! stella_um_here() ) { return; }
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false !== strpos( $uri, '/uandme/ideal' ) ) { return; }
+
+	echo "\n<script>var UM_IDEAL_ON=0;</script>\n";
+	echo "<script>\n";
+	echo <<<'STELLA_DOOR'
+(function () {
+  'use strict';
+  var PIC = '/wp-content/uploads/2026/08/animal-03-300px.png';
+
+  function bunny() {
+    var LN = '#5A4038';
+    return '<svg viewBox="0 0 120 120" width="100%" height="100%" aria-hidden="true" ' +
+      'style="display:block"><g stroke="' + LN + '" stroke-width="4.5" stroke-linejoin="round">' +
+      '<ellipse cx="45" cy="31" rx="9" ry="25" fill="#FFF" transform="rotate(-9 45 31)"/>' +
+      '<ellipse cx="75" cy="31" rx="9" ry="25" fill="#FFF" transform="rotate(9 75 31)"/>' +
+      '<ellipse cx="60" cy="88" rx="31" ry="26" fill="#FFF"/>' +
+      '<circle cx="60" cy="63" r="27" fill="#FFF"/></g>' +
+      '<ellipse cx="45" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(-9 45 30)"/>' +
+      '<ellipse cx="75" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(9 75 30)"/>' +
+      '<ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/>' +
+      '<circle cx="50" cy="61" r="3.6" fill="' + LN + '"/>' +
+      '<circle cx="70" cy="61" r="3.6" fill="' + LN + '"/>' +
+      '<ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
+      '<ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/>' +
+      '<ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg>';
+  }
+
+  function css() {
+    if (document.getElementById('um-door-css')) { return; }
+    var s = document.createElement('style');
+    s.id = 'um-door-css';
+    s.textContent =
+      '#um-more{max-width:430px;margin:22px auto 0;padding:0 18px;' +
+      "font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif}" +
+      '#um-more .hd{font-size:20px;font-weight:900;color:#3F3A52;' +
+      'letter-spacing:-.04em;margin:0 0 3px 2px}' +
+      '#um-more .hdd{font-size:12px;color:#A79BC4;margin:0 0 14px 2px}' +
+      '#um-more .solo{display:flex;align-items:center;gap:12px;padding:16px 16px 16px 14px;' +
+      'background:#F7F2FC;border-radius:16px;text-decoration:none;margin-bottom:10px}' +
+      '#um-more .solo .bun{flex:0 0 62px;width:62px;height:62px;display:block}' +
+      '#um-more .solo .bun img{display:block;width:100%;height:100%;object-fit:contain}' +
+      '#um-more .solo .tx{flex:1;min-width:0}' +
+      '#um-more .lb{font-size:10.5px;font-weight:700;color:#A79BC4}' +
+      '#um-more .nm{font-size:15.5px;font-weight:900;color:#3F3A52;' +
+      'letter-spacing:-.035em;margin-top:3px;word-break:keep-all}' +
+      '#um-more .dk{font-size:11.5px;color:#8C82A6;line-height:1.6;' +
+      'margin-top:4px;word-break:keep-all}' +
+      '#um-more .gr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}' +
+      '#um-more .c{display:flex;flex-direction:column;justify-content:space-between;' +
+      'gap:12px;min-height:150px;padding:16px 15px 14px;border-radius:14px;' +
+      'text-decoration:none}' +
+      '#um-more .c .kd{font-size:10.5px;font-weight:700;letter-spacing:.02em}' +
+      '#um-more .c .tt{font-size:17px;font-weight:900;color:#3F3A52;' +
+      'letter-spacing:-.04em;line-height:1.3;margin-top:4px;word-break:keep-all}' +
+      '#um-more .c .dd{font-size:11.5px;color:#6E6880;line-height:1.65;' +
+      'margin-top:8px;word-break:keep-all}' +
+      '#um-more .c .ft{display:flex;align-items:flex-end;justify-content:space-between}' +
+      '#um-more .c .fr{font-size:10.5px;font-weight:700}' +
+      '#um-more .c .pl{flex:0 0 26px;width:26px;height:26px;border-radius:99px;' +
+      'display:flex;align-items:center;justify-content:center}' +
+      '#um-more .note{font-size:11px;color:#B3A9C9;line-height:1.8;margin:14px 2px 0}' +
+      /* 한글 제목이 뚱뚱해 보여서 가로만 90% 로 좁힙니다.
+         가운데 맞춘 제목은 가운데를 기준으로 좁힙니다. */
+      '#um .jua,#um-more .hd,#um-more .nm,#um-more .c .tt{display:block;' +
+      'transform:scaleX(.9);transform-origin:left center}' +
+      '#um .jua[style*="text-align:center"]{transform-origin:center}';
+    document.head.appendChild(s);
+  }
+
+  /* ⑥번이 화면을 다시 그려도 안 지워지도록 #um 바깥에 답니다.
+     #um 을 아직 못 찾으면 잠시 뒤 다시 봅니다. */
+  /* 여기에 한 줄만 더 쓰면 궁합이 하나 늘어납니다.
+     [주소, 갈래, 이름, 한 줄, 바탕색, 글자색] */
+  var WAYS = [
+    ['/uandme/mbti/', '네 글자 둘', 'MBTI 궁합',
+     '잘 맞는 점과 주의할 점을 같이 알려드려요.', '#DCEFE4', '#5E8C72'],
+    ['/uandme/blood/','A B O AB',  '혈액형 궁합',
+     '열 가지 조합을 다 풀어 뒀습니다.',         '#FBE3E8', '#B3707F']
+  ];
+
+  function plus(c) {
+    return '<span class="pl" style="background:' + c + '">' +
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFF" ' +
+      'stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/>' +
+      '<line x1="5" y1="12" x2="19" y2="12"/></svg></span>';
+  }
+
+  function freeCard(um) {
+    var hs = um.querySelectorAll('.jua'), i, n;
+    for (i = 0; i < hs.length; i++) {
+      if (String(hs[i].textContent || '').indexOf('공짜') < 0) { continue; }
+      n = hs[i];
+      while (n) {
+        if (n.parentNode === um) { return n; }
+        n = n.parentNode;
+      }
+    }
+    return null;
+  }
+
+  function put() {
+    if (document.getElementById('um-more')) {
+      if (document.getElementById('um-more').parentNode) { return true; }
+    }
+    var um = document.getElementById('um');
+    if (!um) { return false; }
+    if (!um.parentNode) { return false; }
+    css();
+    var box = document.createElement('div');
+    box.id = 'um-more';
+
+    var h = '<a class="solo" href="/uandme/ideal/">' +
+      '<span class="bun"><img alt="" src="' + PIC + '"></span>' +
+      '<div class="tx">' +
+      '<div class="lb">혼자서도 볼 수 있어요</div>' +
+      '<div class="nm">나에게 맞는 이상형 그리기</div>' +
+      '<div class="dk">생일 하나로 나이 차이와 별자리와 띠를 뽑아 드립니다</div>' +
+      '</div>' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C82A6" ' +
+      'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<polyline points="9 18 15 12 9 6"/></svg></a>';
+
+    h += '<div class="hd">다른 궁합도 보기</div>' +
+      '<p class="hdd">전부 무료 · 가입 없음</p><div class="gr">';
+    var i, w;
+    for (i = 0; i < WAYS.length; i++) {
+      w = WAYS[i];
+      h += '<a class="c" style="background:' + w[4] + '" href="' + w[0] + '">' +
+        '<div><div class="kd" style="color:' + w[5] + '">' + w[1] + '</div>' +
+        '<div class="tt">' + w[2] + '</div>' +
+        '<div class="dd">' + w[3] + '</div></div>' +
+        '<div class="ft"><div class="fr" style="color:' + w[5] + '">무료</div>' +
+        plus(w[5]) + '</div></a>';
+    }
+    h += '</div><p class="note">궁합은 재미로 보는 것입니다. ' +
+      '점수가 낮아도 잘 지내는 사이가 훨씬 많아요.</p>';
+    box.innerHTML = h;
+    /* 「전부 공짜입니다」 칸 바로 위에 끼웁니다. 그 칸을 못 찾으면
+       유앤미 화면 바로 아래에 답니다. */
+    var seat = freeCard(um);
+    if (seat) { seat.parentNode.insertBefore(box, seat); }
+    else { um.parentNode.insertBefore(box, um.nextSibling); }
+
+    var im = box.querySelector('img');
+    if (im) {
+      im.addEventListener('error', function () {
+        if (this.parentNode) { this.parentNode.innerHTML = bunny(); }
+      });
+    }
+    return true;
+  }
+
+  function watch() {
+    put();
+    var n = 0;
+    var t = setInterval(function () {
+      n += 1;
+      put();
+      if (n > 60) { clearInterval(t); }
+    }, 250);
+    /* 유앤미가 화면을 다시 그리면 우리 칸도 다시 끼웁니다 */
+    var um = document.getElementById('um');
+    if (um) {
+      if (window.MutationObserver) {
+        new MutationObserver(function () { put(); }).observe(um, { childList: true });
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watch);
+  } else { watch(); }
+})();
+STELLA_DOOR;
+	echo "\n</script>\n";
+
+}, 70 );
+
+/* 유앤미 화면인지 — 다른 스니펫과 같은 판단을 씁니다 */
+if ( ! function_exists( 'stella_um_here' ) ) {
+	function stella_um_here() {
+		if ( is_page( 'uandme' ) ) {
+			return true;
+		}
+		$u = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+		return strpos( $u, '/uandme' ) !== false;
+	}
+}
+
+/* 잘 실렸는지 보는 곳 */
+add_action( 'init', function () {
+	if ( ! isset( $_GET['stella_um9'] ) ) { return; }
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 system-ui;background:#111;color:#eee;padding:24px">';
+	if ( ! current_user_can( 'manage_options' ) ) { echo '관리자만 볼 수 있습니다.'; exit; }
+	echo '<h1 style="color:#ffd76a">유앤미 9 · 이상형 그리기</h1>';
+	echo '<p>이 스니펫은 살아 있습니다.</p>';
+	echo '<p>화면 : <a style="color:#9fd" href="/uandme/ideal/">stellasaju.com/uandme/ideal/</a></p>';
+	exit;
+}, 5 );

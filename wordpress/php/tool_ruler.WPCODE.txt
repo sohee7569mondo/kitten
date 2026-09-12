@@ -1,0 +1,146 @@
+/* ════════════════════════════════════════════════════════════
+   흰 공간을 자로 재는 도구 · 소희 님께
+
+   화면 캡처가 안 되니, 화면이 스스로 자기 치수를 글자로
+   알려주게 만듭니다.
+
+   홈 맨 아래에 작은 상자가 뜨고 이렇게 적힙니다 —
+
+        스텔라홈 끝  1840
+        푸터 시작   1952
+        빈 틈       112px
+        그 틈에 있는 것
+          DIV .build-stamp  높이 60  바탕 rgb(251,248,243)
+          ...
+
+   그러면 무엇이 자리를 잡아먹는지 이름과 높이로 바로 압니다.
+
+   ★ 아무것도 고치지 않습니다.
+   ★ 관리자에게만 보입니다. 손님에게는 안 보입니다.
+   ★ 주소에 ?stella_ruler=1 을 붙였을 때만 뜹니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 → 저장 → 활성
+
+        https://stellasaju.com/?stella_ruler=1
+
+   상자에 뜬 글을 그대로 옮겨 적어 보내주세요.
+   (상자를 한 번 누르면 글자가 커집니다)
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'wp_footer', function () {
+
+	if ( ! isset( $_GET['stella_ruler'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		return;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	?>
+<style id="stella-ruler-css">
+#stellaRuler{position:fixed; left:8px; right:8px; bottom:8px; z-index:999999;
+  background:#101018; color:#e9e6ff; border:2px solid #ffd76a; border-radius:10px;
+  padding:12px 14px; font:12px/1.6 ui-monospace,Menlo,Consolas,monospace;
+  max-height:52vh; overflow:auto; white-space:pre-wrap; -webkit-user-select:all; user-select:all;}
+#stellaRuler b{color:#ffd76a;}
+#stellaRuler.big{font-size:15px; line-height:1.8;}
+</style>
+<script id="stella-ruler-js">
+(function(){
+  function go(){
+    var out = [];
+    function px(n){ return Math.round(n); }
+
+    var home = document.getElementById('stellar-home');
+    var foot = document.querySelector('footer');
+    if(!foot){ foot = document.querySelector('.wp-block-template-part'); }
+
+    if(!home){ out.push('스텔라홈을 못 찾았습니다'); }
+    if(!foot){ out.push('푸터를 못 찾았습니다'); }
+
+    var hb = 0, ft = 0;
+    if(home){
+      hb = home.getBoundingClientRect().bottom + window.scrollY;
+      out.push('스텔라홈 끝  ' + px(hb));
+    }
+    if(foot){
+      ft = foot.getBoundingClientRect().top + window.scrollY;
+      out.push('푸터 시작   ' + px(ft));
+    }
+    if(home){ if(foot){
+      out.push('빈 틈       ' + px(ft - hb) + 'px');
+    } }
+
+    out.push('');
+    out.push('스텔라홈 안 마지막 다섯');
+    if(home){
+      var kids = home.children, i, k, r;
+      for(i = Math.max(0, kids.length - 5); i < kids.length; i++){
+        k = kids[i];
+        r = k.getBoundingClientRect();
+        out.push('  ' + k.tagName + ' .' + (k.className || '-') +
+                 '  높이 ' + px(r.height) +
+                 '  바탕 ' + getComputedStyle(k).backgroundColor);
+      }
+    }
+
+    out.push('');
+    out.push('빌드 도장');
+    var st = document.querySelector('.build-stamp');
+    if(!st){
+      out.push('  없음');
+    } else {
+      var sr = st.getBoundingClientRect();
+      var cs = getComputedStyle(st);
+      out.push('  높이 ' + px(sr.height) + '  display ' + cs.display +
+               '  여백 ' + cs.paddingTop + '/' + cs.paddingBottom +
+               '  바탕 ' + cs.backgroundColor);
+    }
+
+    out.push('');
+    out.push('스텔라홈 바깥 · 푸터 앞에 있는 것');
+    var node = home ? home.parentElement : null;
+    if(node){
+      var sib = home.nextElementSibling, n = 0;
+      while(sib){
+        if(n > 6){ break; }
+        var rr = sib.getBoundingClientRect();
+        out.push('  ' + sib.tagName + ' .' + (sib.className || '-') +
+                 '  높이 ' + px(rr.height) +
+                 '  바탕 ' + getComputedStyle(sib).backgroundColor);
+        sib = sib.nextElementSibling; n++;
+      }
+      if(n === 0){ out.push('  없음'); }
+
+      out.push('');
+      out.push('감싸는 상자들의 아래 여백');
+      var p = home.parentElement, d = 0;
+      while(p){
+        if(d > 4){ break; }
+        if(p.tagName === 'BODY'){ break; }
+        var pc = getComputedStyle(p);
+        out.push('  ' + p.tagName + ' .' + (p.className || '-') +
+                 '  아래여백 ' + pc.paddingBottom + '/' + pc.marginBottom +
+                 '  바탕 ' + pc.backgroundColor);
+        p = p.parentElement; d++;
+      }
+    }
+
+    out.push('');
+    out.push('화면 폭 ' + window.innerWidth + 'px');
+
+    var box = document.createElement('div');
+    box.id = 'stellaRuler';
+    box.textContent = out.join('\n');
+    box.addEventListener('click', function(){ box.classList.toggle('big'); });
+    document.body.appendChild(box);
+  }
+  if(document.readyState === 'complete'){ setTimeout(go, 600); }
+  else { window.addEventListener('load', function(){ setTimeout(go, 600); }); }
+})();
+</script>
+	<?php
+}, 99 );

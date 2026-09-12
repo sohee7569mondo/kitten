@@ -1,0 +1,305 @@
+<title>궁합 십성 열 칸</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{
+  --night:#0C1024; --paper:#F6F4EE; --paper-2:#E9EAF2; --paper-3:#D6D9E6;
+  --ink:#1B2030; --ink-2:#454C63; --ink-3:#5A6178;
+  --indigo:#2C3A7E; --indigo-2:#5A68B4; --red:#A83232;
+  --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --disp:"Nanum Myeongjo",serif;
+}
+*{box-sizing:border-box}
+body{background:var(--night); color:var(--ink); font-family:var(--sans);
+  font-size:17px; line-height:1.86; letter-spacing:-.005em; margin:0; padding:0 16px 72px;
+  word-break:keep-all;}
+.wrap{max-width:760px; margin:0 auto; background:var(--paper); padding:44px 38px 52px;
+  box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.top{border-bottom:2px solid var(--indigo); padding-bottom:22px}
+.eyebrow{font-family:var(--disp); font-weight:700; font-size:.84rem; letter-spacing:.18em;
+  color:var(--indigo); margin:0 0 10px}
+h1{font-family:var(--disp); font-weight:800; font-size:1.58rem; line-height:1.45; margin:0 0 14px;
+  text-wrap:balance}
+.top p{font-size:.95rem; color:var(--ink-2); margin:0 0 .7em}
+.why{background:var(--paper-2); padding:16px 18px; margin:18px 0 0; font-size:.92rem; color:var(--ink-2)}
+.why b{color:var(--ink)}
+.why p{margin:0 0 .7em} .why p:last-child{margin:0}
+.old{border-left:3px solid var(--red); background:#F3EEEC; padding:14px 16px;
+  margin:22px 0 0; font-size:.92rem; color:var(--ink-3)}
+.old .lb{font-family:var(--disp); font-weight:700; font-size:.74rem; letter-spacing:.06em;
+  color:var(--red); display:block; margin-bottom:6px}
+.old p{margin:0 0 .6em} .old p:last-child{margin:0}
+h2.ax{font-family:var(--disp); font-weight:700; font-size:1.06rem; color:var(--indigo);
+  margin:46px 0 0; padding-bottom:7px; border-bottom:1px solid var(--paper-3)}
+h2.ax span{display:block; font-family:var(--sans); font-weight:400; font-size:.84rem;
+  color:var(--ink-3); margin-top:5px; letter-spacing:0}
+.shape{margin-top:20px; display:grid; gap:1px; background:var(--paper-3);
+  border:1px solid var(--paper-3); font-size:.92rem}
+.shape > div{background:var(--paper); padding:11px 14px; display:grid;
+  grid-template-columns:74px 1fr; gap:12px; align-items:baseline}
+.shape .k{font-family:var(--disp); font-weight:700; font-size:.8rem; color:var(--indigo);
+  letter-spacing:.04em}
+.shape .cut{color:var(--ink-3)}
+.shape .cut .k{color:var(--red)}
+.grid{margin-top:22px; display:grid; grid-template-columns:repeat(2,1fr); gap:1px;
+  background:var(--paper-3); border:1px solid var(--paper-3)}
+.sg{background:var(--paper); padding:15px 16px 13px}
+.sg .nm{font-family:var(--disp); font-weight:700; font-size:.94rem; color:var(--indigo);
+  margin-bottom:5px}
+.sg p{margin:0; font-size:.93rem; line-height:1.8; color:var(--ink-2)}
+em{font-style:normal; font-weight:700; color:var(--ink)}
+.foot{margin-top:46px; padding-top:22px; border-top:2px solid var(--indigo);
+  font-size:.93rem; color:var(--ink-2)}
+.foot b{color:var(--ink)}
+.foot h3{font-family:var(--disp); font-size:.95rem; color:var(--indigo); margin:20px 0 8px}
+.foot ul{margin:0; padding-left:1.1em} .foot li{margin:0 0 .45em}
+@media(max-width:560px){
+  body{font-size:16px; padding:0 10px 56px}
+  .wrap{padding:32px 20px 40px}
+  .grid{grid-template-columns:1fr}
+  .shape > div{grid-template-columns:1fr; gap:2px}
+}
+</style><style>
+.cell{margin-top:26px; border:1px solid var(--paper-3); background:var(--paper)}
+.cell.mine{border-left:3px solid var(--red)}
+.cell > .hd{background:var(--paper-2); padding:12px 16px; border-bottom:1px solid var(--paper-3);
+  display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap}
+.cell > .hd .nm{font-family:var(--disp); font-weight:800; font-size:1.12rem; color:var(--indigo)}
+.cell > .hd .sub{font-size:.86rem; color:var(--ink-3); margin-top:3px}
+.cell > .hd .who{font-family:var(--disp); font-weight:700; font-size:.72rem; letter-spacing:.06em;
+  color:var(--paper); background:var(--indigo); padding:2px 9px; white-space:nowrap}
+.cell.mine > .hd .who{background:var(--red)}
+.cell .bd{padding:15px 16px 5px}
+.cell .bd p{margin:0 0 1.05em; font-size:.95rem; line-height:1.88; color:var(--ink-2)}
+.cell .bd p b{color:var(--ink)}
+.lb{display:inline-block; font-family:var(--disp); font-weight:800; font-size:.95rem;
+  color:var(--indigo); margin-right:6px}
+.lb.no{color:var(--red)}
+.calc{font-size:.8rem; color:var(--ink-3); padding:8px 16px 9px; margin:0;
+  border-top:1px solid var(--paper-3); background:var(--paper-2)}
+</style>
+
+<div class="wrap">
+
+  <div class="top">
+    <p class="eyebrow">궁합 · 제 6 장</p>
+    <h1>서로에게 무엇이 되는가</h1>
+    <p>두 사람의 일간을 견주면 열 가지 가운데 하나가 나옵니다. 그 사람이 나에게
+      무엇으로 오는지를 말하는 자리예요. <em>낱권에서는 쓸 수 없는 글입니다</em> —
+      상대가 있어야 나오는 값이라서요.</p>
+
+    <div class="why">
+      <p><b>열 칸 전부 소희 님이 쓰신 그대로입니다.</b> 한 자도 고치지 않았습니다.</p>
+      <p>모양이 두 가지입니다 — <b>비견 · 겁재</b>는 마지막 문단이 따로 서서
+        「비견은 그런 관계입니다」로 닫고, <b>나머지 여덟</b>은 「걸리면」 문단 안에서
+        굵은 글씨로 해결을 주고 끝납니다. 닫을 말이 있는 칸만 닫는 것이 자연스러워
+        그대로 두었습니다.</p>
+      <p><b>방향이 있습니다.</b> 덕선이가 정환이에게 식신이라고 해서 정환이도
+        덕선이에게 식신인 것은 아닙니다. 책에는 두 방향을 다 씁니다.</p>
+    </div>
+  </div>
+
+  <h2 class="ax">나와 같은 오행<span>비견 · 겁재 — 같은 자리에 서는 사람</span></h2>
+
+  <div class="cell">
+    <div class="hd"><div><div class="nm">비견 · 같은 자리에 선 사람</div>
+      <div class="sub">같은 오행, 같은 음양</div></div><span class="who">소희</span></div>
+    <div class="bd">
+      <p>그 사람은 도윤님과 <b>같은 자리에 섭니다.</b>
+        길게 설명하지 않아도 무슨 뜻인지 알고, 좋아하는 것도 움직이는 속도도 비슷해서
+        처음부터 어색한 시간이 짧아요.</p>
+      <p><span class="lb">잘 되면</span>둘이 자연스럽게 한편이 됩니다.
+        생각이 비슷하니 서로를 이해하기 쉽고, 밖에서 무슨 일이 있어도
+        집에 오면 같은 편이 하나 있어요.
+        그래서 이 조합은 오래 갈수록 <b>「우리는 같은 편」</b>이라는 느낌이 강해집니다.</p>
+      <p><span class="lb no">걸리면</span>둘이 똑같이 움직입니다.
+        내가 하기 싫은 건 상대도 하기 싫고, 내가 미루는 건 상대도 미뤄요.
+        그래서 해야 할 일이 있는데도 <b>둘 다 먼저 나서지 않는 상황</b>이 생길 수 있습니다.</p>
+      <p>하지만 이것도 누가 무엇을 맡을지만 정해두면 괜찮아요.
+        <b>같아서 편하고, 같아서 부딪히는 것.</b> 비견은 그런 관계입니다.</p>
+    </div>
+    <p class="calc">계산 · 상대 일간이 내 일간과 같은 오행이고 음양도 같을 때</p>
+  </div>
+
+  <div class="cell">
+    <div class="hd"><div><div class="nm">겁재 · 같은 것을 원하는 사람</div>
+      <div class="sub">같은 오행, 다른 음양</div></div><span class="who">소희</span></div>
+    <div class="bd">
+      <p>같은 기운을 가지고 있지만 결은 다릅니다.
+        같은 것을 좋아하고, 같은 것을 원해요.
+        그래서 가까울 때는 누구보다 든든하고, 같은 것을 두고 겨룰 일이 생기면
+        누구보다 예민해집니다.</p>
+      <p><span class="lb">잘 되면</span>서로를 밀어 올립니다.
+        혼자였으면 하지 않았을 일을 이 사람 때문에 하게 되고, 서로의 속도를 끌어올려요.
+        나란히 갈 때 가장 빨라지는 조합입니다.</p>
+      <p><span class="lb no">걸리면</span>하나를 두고 마주 섭니다.
+        둘 다 원하는 것이 같으니, 어느 한쪽이 쉽게 물러서지 않아요.
+        특히 서로의 몫이 분명하지 않으면 작은 일도 경쟁처럼 느껴질 수 있습니다.</p>
+      <p>그래서 <b>같이 가되, 각자의 몫은 분명하게 정해두는 것</b>이 중요해요.
+        누구의 자리인지, 어디까지가 내 몫인지 정해져 있으면
+        겁재의 경쟁심은 오히려 서로를 끌어주는 힘이 됩니다.</p>
+    </div>
+    <p class="calc">계산 · 같은 오행이고 음양이 다를 때</p>
+  </div>
+
+  <h2 class="ax">내가 내어주는 자리<span>식신 · 상관 — 말과 표현이 늘어나는 사람</span></h2>
+
+  <div class="cell">
+    <div class="hd"><div><div class="nm">식신 · 말이 늘어나는 사람</div>
+      <div class="sub">내가 생하는 오행, 같은 음양</div></div><span class="who">소희</span></div>
+    <div class="bd">
+      <p>그 사람 앞에서는 말이 많아집니다.
+        평소에는 하지 않던 이야기가 나오고, 생각만 하던 것도 한번 해보고 싶어져요.
+        만나고 돌아오면 괜히 기운이 도는 쪽입니다.</p>
+      <p><span class="lb">잘 되면</span>표현이 늘어납니다.
+        속으로 삼키던 사람도 이 사람 앞에서는 자연스럽게 꺼내놓게 돼요.
+        내가 가진 생각이나 재능도 편하게 밖으로 내보이게 됩니다.</p>
+      <p><span class="lb no">걸리면</span>편하다는 이유로 말을 너무 쉽게 합니다.
+        상대가 알아서 이해해주겠지 싶어 말이 거칠어지거나, 하지 않아도 될 말까지 나올 수 있어요.
+        <b>편한 것과 함부로 하는 것 사이에 선 하나만 그어두면</b>, 이 조합은 오래 갑니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간이 생하는 오행이고 음양이 같을 때</p>
+  </div>
+
+  <div class="cell">
+    <div class="hd"><div><div class="nm">상관 · 나를 드러내게 하는 사람</div>
+      <div class="sub">내가 생하는 오행, 다른 음양</div></div><span class="who">소희</span></div>
+    <div class="bd">
+      <p>그 사람 앞에서는 더 잘하고 싶어집니다.
+        재미있는 말을 하게 되고, 평소에는 숨겨두던 재주도 꺼내게 돼요.
+        가만히 있던 마음에 자극이 들어오면서 관계에 생기가 돕니다.</p>
+      <p><span class="lb">잘 되면</span>서로의 재능을 꺼내줍니다.
+        이 사람을 만나고 나서 새로 시작한 일이 하나쯤 생겨요.
+        혼자였다면 그냥 지나쳤을 가능성을, 서로가 밖으로 끌어내는 관계입니다.</p>
+      <p><span class="lb no">걸리면</span>하고 싶은 말을 참기가 어려워집니다.
+        특히 순간적으로 나온 한마디가 생각보다 오래 남을 수 있어요.
+        말하고 싶을수록 <b>한 박자만 늦추면</b>, 그 말이 훨씬 좋은 말이 됩니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간이 생하는 오행이고 음양이 다를 때</p>
+  </div>
+
+  <h2 class="ax">내가 쥐는 자리<span>편재 · 정재 — 챙기고 싶어지는 사람</span></h2>
+
+  <div class="cell">
+    <div class="hd"><div><div class="nm">편재 · 크게 쓰게 되는 사람</div>
+      <div class="sub">내가 극하는 오행, 같은 음양</div></div><span class="who">소희</span></div>
+    <div class="bd">
+      <p>그 사람에게는 자꾸 손이 갑니다.
+        뭘 해주고 싶고, 사주고 싶고, 좋은 곳에 데려가고 싶어요.
+        평소보다 씀씀이가 커지고, 가진 것을 아끼지 않게 되는 조합입니다.</p>
+      <p><span class="lb">잘 되면</span>베푸는 것이 즐겁습니다.
+        무언가를 해주고도 아깝다는 생각보다 내가 좋아서 한다는 마음이 커요.
+        그래서 인색하지 않은 연애가 됩니다.</p>
+      <p><span class="lb no">걸리면</span>한쪽에서 쓰고 베푸는 일이 계속됩니다.
+        처음에는 좋아서 한 일인데, 어느 순간 한 사람만 애쓰고 있다는 느낌이 들 수 있어요.
+        <b>주는 것만 보지 말고, 돌아오는 것도 가끔 살펴보면</b> 이 마음이 오래 갑니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간이 극하는 오행이고 음양이 같을 때</p>
+  </div>
+
+  <div class="cell">
+    <div class="hd"><div><div class="nm">정재 · 곁에 두고 싶은 사람</div>
+      <div class="sub">내가 극하는 오행, 다른 음양</div></div><span class="who">소희</span></div>
+    <div class="bd">
+      <p>화려하게 끌리기보다 <b>곁에 두고 싶다</b>는 마음이 먼저 옵니다.
+        오늘보다 오래 갈 것을 생각하게 되고, 자연스럽게 안정적인 관계를 바라게 되는 조합이에요.</p>
+      <p><span class="lb">잘 되면</span>계획이 서기 시작합니다.
+        다음 달 이야기를 하고, 내년 이야기를 해요.
+        함께 있는 지금보다 <b>함께할 다음을 생각하게 되는 관계</b>입니다.</p>
+      <p><span class="lb no">걸리면</span>아끼는 마음이 오히려 표현을 줄입니다.
+        마음은 있는데 굳이 말하지 않아도 알겠지 싶어져요.
+        그럴수록 <b>마음을 말로 한 번 더 꺼내주면</b>, 관계가 훨씬 따뜻해집니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간이 극하는 오행이고 음양이 다를 때</p>
+  </div>
+
+  <h2 class="ax">나를 누르는 자리<span>편관 · 정관 — 어렵고도 끌리는 사람</span></h2>
+
+  <div class="cell">
+    <div class="hd"><div><div class="nm">편관 · 긴장하게 하는 사람</div>
+      <div class="sub">나를 극하는 오행, 같은 음양</div></div><span class="who">소희</span></div>
+    <div class="bd">
+      <p>그 사람 앞에서는 어깨가 조금 올라갑니다.
+        편하지만은 않은데 자꾸 눈이 가요.
+        쉬운 사람보다 <b>조금 어려운 사람에게 끌리는 자리</b>입니다.</p>
+      <p><span class="lb">잘 되면</span>이 사람 때문에 자세가 잡힙니다.
+        미루던 일을 하게 되고, 느슨해졌던 마음도 다시 조여요.
+        나 혼자였다면 지나쳤을 것을 이 사람이 보고 있으면 다시 하게 됩니다.</p>
+      <p><span class="lb no">걸리면</span>늘 잘해야 할 것 같은 마음이 생깁니다.
+        상대가 나를 몰아붙이지 않아도 혼자 긴장하고, 편하게 있어야 할 자리에서도
+        자꾸 신경을 써요.
+        <b>상대가 나를 긴장시키는 건지, 내가 스스로 긴장하는 건지</b> 한 번 구분해보시면 좋습니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간을 극하는 오행이고 음양이 같을 때</p>
+  </div>
+
+  <div class="cell">
+    <div class="hd"><div><div class="nm">정관 · 기준이 되는 사람</div>
+      <div class="sub">나를 극하는 오행, 다른 음양</div></div><span class="who">소희</span></div>
+    <div class="bd">
+      <p>그 사람은 도윤님에게 <b>하나의 기준</b>으로 옵니다.
+        무슨 일이 생기면 「이 사람이라면 어떻게 할까」를 먼저 생각하게 돼요.
+        끌림보다 존중이 먼저 서는 조합입니다.</p>
+      <p><span class="lb">잘 되면</span>관계가 반듯해집니다.
+        서로에게 지켜야 할 선이 있고, 예의가 남아 있어서 오래 만나도 쉽게 상하지 않아요.
+        함께 있을수록 서로를 더 나은 사람으로 만들어주는 관계입니다.</p>
+      <p><span class="lb no">걸리면</span>반듯한 것이 어느 날 답답해집니다.
+        잘해야 한다는 마음이 커지면서 서로를 있는 그대로 보기 어려워질 수도 있어요.
+        그럴 때는 <b>가끔 규칙을 내려놓고 편하게 있는 날</b>을 만들어두면 숨이 트입니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간을 극하는 오행이고 음양이 다를 때</p>
+  </div>
+
+  <h2 class="ax">나를 살리는 자리<span>편인 · 정인 — 기대게 되는 사람</span></h2>
+
+  <div class="cell">
+    <div class="hd"><div><div class="nm">편인 · 속을 알아보는 사람</div>
+      <div class="sub">나를 생하는 오행, 같은 음양</div></div><span class="who">소희</span></div>
+    <div class="bd">
+      <p>그 사람은 도윤님을 굳이 설명하지 않아도 알아봅니다.
+        남들이 지나치는 마음의 자리를 봐요.
+        그래서 편하고, 가끔은 <b>내 속을 들킨 것 같기도 합니다.</b></p>
+      <p><span class="lb">잘 되면</span>혼자 있던 자리에 한 사람이 들어옵니다.
+        굳이 애쓰지 않아도 되고, 말하지 않아도 알아주는 사이가 돼요.
+        각자 혼자였던 시간이 있어도 함께 있으면 편안합니다.</p>
+      <p><span class="lb no">걸리면</span>둘 다 안으로 들어가 버립니다.
+        서로 알아주는 만큼 굳이 말하지 않아도 된다고 생각해서,
+        어느 순간 대화가 줄어들 수 있어요.
+        <b>아는 것과 말하는 것은 다르니, 마음에 있는 것도 한 번은 소리 내어 말해주시면 좋습니다.</b></p>
+    </div>
+    <p class="calc">계산 · 내 일간을 생하는 오행이고 음양이 같을 때</p>
+  </div>
+
+  <div class="cell">
+    <div class="hd"><div><div class="nm">정인 · 기댈 수 있는 사람</div>
+      <div class="sub">나를 생하는 오행, 다른 음양</div></div><span class="who">소희</span></div>
+    <div class="bd">
+      <p>다치고 돌아왔을 때 가장 먼저 떠오르는 사람입니다.
+        무슨 말을 해도 받아줄 것 같아서 마음이 놓여요.
+        잘 보이려고 애쓰지 않아도 되는, <b>편안하게 기댈 수 있는 자리</b>입니다.</p>
+      <p><span class="lb">잘 되면</span>쉽게 무너지지 않습니다.
+        어떤 일이 있어도 돌아갈 자리가 하나 있다는 것, 그게 이 조합이 가진 가장 큰 힘이에요.
+        힘든 일이 생겼을 때 다시 일어날 수 있는 마음의 바닥이 되어줍니다.</p>
+      <p><span class="lb no">걸리면</span>편안한 것이 어느 순간 무덤덤해집니다.
+        서로 너무 잘 아는 사이가 되어, 새롭게 느껴지는 것이 줄어들 수 있어요.
+        <b>익숙한 사이에도 새로운 것을 하나씩 넣어두면</b>, 그 편안함이 오래 갑니다.</p>
+    </div>
+    <p class="calc">계산 · 내 일간을 생하는 오행이고 음양이 다를 때</p>
+  </div>
+
+  <div class="foot">
+    <h3>덕선이와 정환이는 이렇게 나옵니다</h3>
+    <p>덕선 일간 <b>乙</b> · 정환 일간 <b>丁</b>. 목이 화를 생하니
+      <b>덕선이가 정환이에게는 식신</b>이고, <b>정환이가 덕선이에게는 편인</b>입니다.</p>
+    <p>덕선이는 정환이 앞에서 말이 많아지고, 정환이한테 덕선이는 설명 없이
+      속을 알아보는 사람이에요. <b>한쪽은 꺼내놓고 한쪽은 알아보는</b> 조합입니다.</p>
+
+    <h3>이 장은 다 찼습니다</h3>
+    <p>열 칸 전부 소희 님 글입니다. 이제 <b>계산기에 넣기만</b> 하면 됩니다 —
+      두 사람 일간에서 십성 하나를 뽑아, 두 방향으로 두 칸을 씁니다.</p>
+
+    <h3>그다음</h3>
+    <p>지금은 <b>연인</b> 기준입니다. 부부 · 동업 · 부모자녀는 같은 열 칸을
+      다르게 써야 합니다. 연인부터 열 칸을 다 채우고 나서 붙이겠습니다.</p>
+  </div>
+
+</div>

@@ -1,0 +1,56 @@
+/* ════════════════════════════════════════════════════════════
+   인생길잡이 페이지 · 화면 부분만 뽑기 · 소희 님께
+
+   지난번에 코드 상자가 비어서 왔습니다. 스타일(CSS)이 너무 길어
+   붙여넣기에서 잘린 것 같습니다. 이번엔 CSS 를 빼고
+   실제 화면을 만드는 부분만 줄번호를 붙여 뽑습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere →
+              첫 줄 PHP 태그 아래에 붙여넣기 → 저장 → 활성
+
+        https://stellasaju.com/?stella_patch=guidebody
+
+   ※ 화면에 「끝」 이라고 나올 때까지 다 복사해 주세요.
+      줄번호가 붙어 있으니 중간이 잘리면 제가 압니다.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_patch'] ) || 'guidebody' !== $_GET['stella_patch'] ) {
+		return;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	global $wpdb;
+	$pid = 189;
+	$c   = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	if ( ! $c ) {
+		echo "페이지 189 를 못 읽었습니다.\n";
+		exit;
+	}
+
+	echo "페이지 189 · 전체 " . strlen( $c ) . " 바이트\n";
+
+	/* CSS 를 통째로 들어냅니다 — 화면을 만드는 부분만 남깁니다 */
+	$body = preg_replace( '#<style\b[^>]*>.*?</style>#is', "\n[여기에 스타일이 있었습니다 — 건드리지 않습니다]\n", $c );
+	/* 맨 위 설명 주석도 들어냅니다 */
+	$body = preg_replace( '#<!--(?!\s*/?wp:).*?-->#s', '', $body, 1 );
+
+	echo "스타일과 첫 주석을 뺀 뒤 " . strlen( $body ) . " 바이트\n";
+	echo str_repeat( '─', 60 ) . "\n";
+
+	$lines = preg_split( "/\r\n|\n|\r/", $body );
+	foreach ( $lines as $i => $line ) {
+		printf( "%4d| %s\n", $i + 1, rtrim( $line ) );
+	}
+
+	echo str_repeat( '─', 60 ) . "\n";
+	echo "끝 · 모두 " . count( $lines ) . " 줄\n";
+	exit;
+} );

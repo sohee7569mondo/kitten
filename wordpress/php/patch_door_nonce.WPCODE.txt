@@ -1,0 +1,135 @@
+/* 문 페이지의 fetch 에 로그인 열쇠(X-WP-Nonce)를 붙입니다.
+
+   왜 — 워드프레스는 REST 를 부를 때 nonce 가 없으면 쿠키 로그인을 무시합니다.
+        문 페이지의 fetch 에는 nonce 가 없어서, 로그인한 손님이 눌러도 서버는
+        익명으로 봅니다. 추적으로 확인했습니다 —
+            /stella/v1/signup   로그인 no   uid 0   nonce none
+
+   열쇠는 「스텔라 로그인 열쇠」 스니펫이 wp_head 에 심는 window.STELLA_NONCE
+   를 씁니다. 열쇠가 없을 때(로그인 안 한 분)는 예전 그대로 보냅니다 —
+   빈 nonce 를 보내면 오히려 401 이 납니다.
+
+   미리보기 ?stella_nonce=1   적용 ?stella_nonce=1&go=1   되돌리기 &undo=1
+   문 페이지 130·141·169·170·171, 페이지마다 두 곳쯤 (주문·가입)  2026-09-01 */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_nonce'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">';
+	echo '<body class="notranslate" translate="no" style="font:15px/1.9 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:960px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	global $wpdb;
+
+	$ids  = array( 130, 141, 169, 170, 171 );
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	$old = "headers:{'Content-Type':'application/json'},credentials:'same-origin'";
+	$new = "headers:(window.STELLA_NONCE?{'Content-Type':'application/json','X-WP-Nonce':window.STELLA_NONCE}:{'Content-Type':'application/json'}),credentials:'same-origin'";
+
+	printf(
+		'<h1 style="color:#ffd76a">문 페이지에 로그인 열쇠 붙이기 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>ID</td><td>제목</td><td>붙일 자리</td><td>이미 붙음</td></tr>';
+
+	$ready = true;
+	$done  = true;
+	$plan  = array();
+
+	foreach ( $ids as $pid ) {
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+		if ( ! $row ) {
+			printf( '<tr style="border-top:1px solid #333"><td>%d</td><td colspan="3" style="color:#ff7b7b">못 읽었습니다</td></tr>', $pid );
+			$ready = false;
+			continue;
+		}
+
+		if ( $undo ) {
+			$bak = get_post_meta( $pid, '_stella_nonce_backup', true );
+			if ( $bak ) {
+				$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+				delete_post_meta( $pid, '_stella_nonce_backup' );
+				clean_post_cache( $pid );
+				printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td colspan="2" style="color:#7bff9b">되돌렸습니다</td></tr>', $pid, esc_html( $row->post_title ) );
+			} else {
+				printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td colspan="2" style="color:#888">사본 없음</td></tr>', $pid, esc_html( $row->post_title ) );
+			}
+			continue;
+		}
+
+		$c = $row->post_content;
+		$n = substr_count( $c, $old );
+		$m = substr_count( $c, 'X-WP-Nonce' );
+
+		if ( 0 === $n ) {
+			if ( $m > 0 ) {
+				printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td style="color:#888">0</td><td style="color:#9fd">이미 %d곳</td></tr>', $pid, esc_html( $row->post_title ), $m );
+				continue;
+			}
+			printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td><td style="color:#ff7b7b"><b>0</b></td><td>-</td></tr>', $pid, esc_html( $row->post_title ) );
+			$ready = false;
+			$done  = false;
+			continue;
+		}
+
+		$done         = false;
+		$plan[ $pid ] = $c;
+		printf(
+			'<tr style="border-top:1px solid #333"><td><b>%d</b></td><td>%s</td><td style="color:#7bff9b"><b>%d</b></td><td>%d</td></tr>',
+			$pid,
+			esc_html( $row->post_title ),
+			$n,
+			$m
+		);
+	}
+	echo '</table>';
+
+	if ( $undo ) {
+		if ( function_exists( 'wp_cache_flush' ) ) {
+			wp_cache_flush();
+		}
+		echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2>';
+		exit;
+	}
+	if ( $done ) {
+		echo '<h2 style="color:#7bff9b">이미 다 붙어 있습니다.</h2>';
+		exit;
+	}
+	if ( ! $ready ) {
+		echo '<h2 style="color:#ff7b7b">자리를 못 찾은 페이지가 있어 아무것도 바꾸지 않았습니다.</h2>'
+			. '<p>이 화면을 저에게 보내주세요.</p>';
+		exit;
+	}
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_nonce=1&go=1">→ 이대로 붙이기</a></p>';
+		exit;
+	}
+
+	foreach ( $plan as $pid => $c ) {
+		if ( ! get_post_meta( $pid, '_stella_nonce_backup', true ) ) {
+			update_post_meta( $pid, '_stella_nonce_backup', $c );
+		}
+		$wpdb->update( $wpdb->posts, array( 'post_content' => str_replace( $old, $new, $c ) ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+	}
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	echo '<h2 style="color:#7bff9b">붙였습니다</h2>';
+	echo '<p style="color:#888">되돌리려면 ?stella_nonce=1&undo=1</p>';
+	exit;
+} );

@@ -1,3 +1,7 @@
 node_modules/
 preview/*.png
 preview/*.webp
+
+# 파이썬이 자동으로 만드는 찌꺼기
+__pycache__/
+*.pyc

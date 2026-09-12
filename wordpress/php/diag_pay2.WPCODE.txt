@@ -1,0 +1,153 @@
+/* ════════════════════════════════════════════════════════════
+   결제 코드 들여다보기 2 · 소희 님께
+
+   진짜 결제창 호출부와, 서버 쪽 코드를 봅니다.
+   아무것도 고치지 않습니다. 비밀키는 가려서 찍습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              첫 줄 PHP 태그 아래에 붙여넣기 → 저장 → 활성
+
+        https://stellasaju.com/?stella_patch=paycheck2
+
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_patch'] ) || 'paycheck2' !== $_GET['stella_patch'] ) {
+		return;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:13px/1.7 monospace;background:#111;color:#eee;padding:20px;max-width:1200px">';
+	echo '<h1 style="color:#ffd76a;font-family:sans-serif">결제 코드 들여다보기</h1>';
+
+	/* 비밀로 보이는 값 가리기 */
+	$hide = function ( $t ) {
+		/* 포트원 키 꼴 : live_xxx_..., test_xxx_..., store-uuid, channel-key-uuid */
+		$t = preg_replace( '/\b((?:live|test)_[a-z0-9]{2,6}_)[A-Za-z0-9]{8,}/', '$1[가림]', $t );
+		$t = preg_replace( '/\b(store-)[0-9a-f-]{8,}/i', '$1[가림]', $t );
+		$t = preg_replace( '/\b(channel-key-)[0-9a-f-]{8,}/i', '$1[가림]', $t );
+		/* 40자 넘는 영숫자 덩어리도 가립니다 */
+		$t = preg_replace( '/\b[A-Za-z0-9+\/=_-]{40,}\b/', '[긴값 가림]', $t );
+		return $t;
+	};
+
+	$box = function ( $title, $text ) use ( $hide ) {
+		printf(
+			'<h3 style="color:#ffd76a;font-family:sans-serif;margin-top:22px">%s</h3>'
+			. '<pre style="white-space:pre-wrap;background:#000;padding:12px;border-left:3px solid #ffd76a;overflow-x:auto">%s</pre>',
+			esc_html( $title ),
+			esc_html( $hide( $text ) )
+		);
+	};
+
+	/* ── 1. 페이지 243 · 진짜 결제창 호출부 ───────────────── */
+	echo '<h2 style="color:#9fd;font-family:sans-serif">1. 페이지 243 (/pay/) · 결제창 호출부</h2>';
+
+	$c = $wpdb->get_var( "SELECT post_content FROM {$wpdb->posts} WHERE ID = 243" );
+	if ( ! $c ) {
+		echo '<p style="color:#ff7b7b">페이지 243 을 못 읽었습니다.</p></body>';
+		exit;
+	}
+	printf( '<p style="font-family:sans-serif">글 길이 %d 바이트</p>', strlen( $c ) );
+
+	/* requestPayment( 처럼 여는 괄호가 붙은 진짜 호출만 */
+	$n   = 0;
+	$pos = 0;
+	while ( ( $pos = strpos( $c, 'requestPayment(', $pos ) ) !== false ) {
+		$n++;
+		$box( '호출부 ' . $n . ' — 앞 1400자 / 뒤 1400자', substr( $c, max( 0, $pos - 1400 ), 2800 ) );
+		$pos += 15;
+	}
+	if ( 0 === $n ) {
+		echo '<p style="color:#ff7b7b">requestPayment( 를 못 찾았습니다. 아래 customer 자리를 보세요.</p>';
+	}
+
+	/* ── 2. customer 가 나오는 자리 ──────────────────────── */
+	echo '<h2 style="color:#9fd;font-family:sans-serif">2. 페이지 243 · customer 가 나오는 자리</h2>';
+	$n   = 0;
+	$pos = 0;
+	while ( ( $pos = strpos( $c, 'customer', $pos ) ) !== false ) {
+		$n++;
+		$box( 'customer ' . $n, substr( $c, max( 0, $pos - 500 ), 1100 ) );
+		$pos += 8;
+		if ( $n >= 5 ) {
+			break;
+		}
+	}
+
+	/* ── 3. 서버로 주문을 만드는 대목 ────────────────────── */
+	echo '<h2 style="color:#9fd;font-family:sans-serif">3. 페이지 243 · pay-order 를 부르는 대목</h2>';
+	$pos = strpos( $c, 'pay-order' );
+	if ( false !== $pos ) {
+		$box( 'pay-order 앞뒤', substr( $c, max( 0, $pos - 1200 ), 2600 ) );
+	} else {
+		echo '<p style="color:#ff7b7b">pay-order 를 못 찾았습니다.</p>';
+	}
+
+	/* ── 4. 결제 관련 WPCode 스니펫들 ───────────────────── */
+	echo '<h2 style="color:#9fd;font-family:sans-serif">4. 결제 관련 스니펫 (켜져 있는 것만)</h2>';
+
+	$snips = $wpdb->get_results(
+		"SELECT ID, post_title, post_content, post_status
+		   FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode'
+		    AND post_status = 'publish'
+		    AND ( post_title LIKE '%포트원%'
+		       OR post_title LIKE '%결제%'
+		       OR post_content LIKE '%pay-order%'
+		       OR post_content LIKE '%portone%'
+		       OR post_content LIKE '%PORTONE%' )
+		  ORDER BY ID"
+	);
+
+	if ( ! $snips ) {
+		echo '<p style="color:#ff7b7b">결제 관련 스니펫을 못 읽었습니다.</p>';
+	}
+
+	foreach ( (array) $snips as $s ) {
+		printf(
+			'<h3 style="color:#7bff9b;font-family:sans-serif;margin-top:26px">▣ %s (스니펫 %d · %d바이트)</h3>',
+			esc_html( $s->post_title ),
+			$s->ID,
+			strlen( $s->post_content )
+		);
+
+		$body = $s->post_content;
+
+		/* 열쇠 스니펫이면 : 무엇이 정해져 있는지 이름만 */
+		if ( preg_match_all( '/define\s*\(\s*[\'"]([A-Z0-9_]+)[\'"]\s*,\s*[\'"]([^\'"]*)[\'"]/', $body, $mm, PREG_SET_ORDER ) ) {
+			echo '<table cellpadding="6" style="border-collapse:collapse;font-family:sans-serif"><tr style="color:#ffd76a"><td>이름</td><td>값</td></tr>';
+			foreach ( $mm as $m ) {
+				$v      = $m[2];
+				$secret = ( false !== stripos( $m[1], 'SECRET' ) ) || ( false !== stripos( $m[1], 'API' ) );
+				printf(
+					'<tr style="border-top:1px solid #333"><td>%s</td><td>%s</td></tr>',
+					esc_html( $m[1] ),
+					esc_html( $secret ? ( '' === $v ? '(비어 있음)' : '설정됨 · ' . strlen( $v ) . '자' ) : $hide( $v ) )
+				);
+			}
+			echo '</table>';
+		}
+
+		/* 짧으면 통째로, 길면 중요한 대목만 */
+		if ( strlen( $body ) <= 6000 ) {
+			$box( '전체', $body );
+		} else {
+			foreach ( array( 'pay-order', 'pay-check', 'customer', 'phone', 'requestPayment', 'register_rest_route' ) as $k ) {
+				$p = strpos( $body, $k );
+				if ( false !== $p ) {
+					$box( $k . ' 앞뒤', substr( $body, max( 0, $p - 900 ), 2000 ) );
+				}
+			}
+		}
+	}
+
+	echo '</body>';
+	exit;
+} );

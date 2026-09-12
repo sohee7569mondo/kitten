@@ -1,0 +1,152 @@
+/* ══════════════════════════════════════════════════════════
+   자바스크립트가 어디서 다쳤는지 잽니다 (읽기만)
+   ★ 2026-09-12 · 소희 님께
+
+   ── 알아낸 것 ─────────────────────────────────────────
+   책 쪽에는 「아직 넣으신 정보가 없어요」라는 빈 표지가
+   숨겨진 채로 들어 있습니다. 자료가 없으면 자바스크립트가
+   그걸 꺼내 보여줘야 하는데, 그것도 안 나왔습니다.
+
+   ★ 자료가 없는 것이 아닙니다. 자바스크립트가 첫 줄부터
+     못 돌고 있습니다.
+
+   ── 무엇을 재나 ───────────────────────────────────────
+   워드프레스는 글을 내보내기 전에 손을 한 번 댑니다.
+   따옴표를 둥글게 바꾸고, 그리고 「&」를 「&#038;」로 바꿉니다.
+   그게 <script> 안에서 일어나면 자바스크립트가 그 자리에서
+   죽습니다. 우리가 여태 「&를 쓰지 말자」고 한 까닭입니다.
+
+   그래서 이 조각은
+     ① 데이터베이스에 든 날것
+     ② 워드프레스가 손댄 뒤
+   둘을 나란히 놓고 <script> 덩어리마다 길이를 잽니다.
+   길이가 달라진 덩어리가 다친 덩어리입니다.
+   그 자리 앞뒤 글자를 그대로 보여드립니다.
+
+   ★ 아무것도 안 바꿉니다. 재기만 합니다.
+
+   보기  https://stellasaju.com/?stella_js=look
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_js'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽을 못 찾았습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$raw = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	/* 워드프레스가 손댄 뒤 */
+	$out = apply_filters( 'the_content', $raw );
+
+	$grab = function ( $s ) {
+		$r = array();
+		$p = 0;
+		while ( true ) {
+			$a = strpos( $s, '<script', $p );
+			if ( false === $a ) { break; }
+			$b = strpos( $s, '>', $a );
+			if ( false === $b ) { break; }
+			$c = strpos( $s, '</script', $b );
+			if ( false === $c ) {
+				$r[] = array( 'shut' => 0, 's' => substr( $s, $b + 1 ) );
+				break;
+			}
+			$r[] = array( 'shut' => 1, 's' => substr( $s, $b + 1, $c - $b - 1 ) );
+			$p = $c + 8;
+		}
+		return $r;
+	};
+
+	$A = $grab( $raw );
+	$B = $grab( $out );
+
+	echo "═══ 크기 ═════════════════════════════════\n";
+	echo '  날것        ' . number_format( strlen( $raw ) ) . "자\n";
+	echo '  손댄 뒤     ' . number_format( strlen( $out ) ) . "자\n";
+	echo '  script 덩어리  날것 ' . count( $A ) . '개  ·  손댄 뒤 ' . count( $B ) . "개\n\n";
+
+	echo "═══ 바뀐 글자 (손댄 뒤에 몇 개나 생겼나) ═══\n";
+	$ENT = array(
+		'&#038;'  => '그리고표(&)',
+		'&#8217;' => '오른 홑따옴표',
+		'&#8216;' => '왼 홑따옴표',
+		'&#8221;' => '오른 겹따옴표',
+		'&#8220;' => '왼 겹따옴표',
+		'&#8211;' => '짧은 줄표',
+		'&#8212;' => '긴 줄표',
+		'&#8230;' => '말줄임표',
+		'&lt;'    => '왼 꺾쇠',
+		'&gt;'    => '오른 꺾쇠',
+		'&amp;'   => '그리고표(amp)',
+	);
+	foreach ( $ENT as $e => $nm ) {
+		$n = substr_count( $out, $e );
+		if ( 0 === $n ) { continue; }
+		echo '  ' . str_pad( $e, 10 ) . str_pad( $nm, 16 ) . $n . "개\n";
+	}
+	echo "\n";
+
+	echo "═══ 덩어리마다 ═══════════════════════════\n";
+	$n = count( $A );
+	if ( count( $B ) < $n ) { $n = count( $B ); }
+	$hurt = 0;
+	$i = 0;
+	while ( $i < $n ) {
+		$a = $A[ $i ]['s'];
+		$b = $B[ $i ]['s'];
+		$la = strlen( $a );
+		$lb = strlen( $b );
+		$shut = ( 0 === $B[ $i ]['shut'] ) ? '  ★ 닫는 표 없음' : '';
+		if ( $a === $b ) {
+			if ( '' !== $shut ) {
+				echo '  ' . str_pad( (string) ( $i + 1 ), 3, ' ', STR_PAD_LEFT ) . '  '
+					. number_format( $la ) . '자' . $shut . "\n";
+			}
+			$i = $i + 1;
+			continue;
+		}
+		$hurt = $hurt + 1;
+		echo '  ' . str_pad( (string) ( $i + 1 ), 3, ' ', STR_PAD_LEFT ) . '  ★ 달라짐  '
+			. number_format( $la ) . '자  →  ' . number_format( $lb ) . '자' . $shut . "\n";
+
+		/* 처음 어긋나는 자리 */
+		$k = 0;
+		$m = $la;
+		if ( $lb < $m ) { $m = $lb; }
+		while ( $k < $m ) {
+			if ( $a[ $k ] !== $b[ $k ] ) { break; }
+			$k = $k + 1;
+		}
+		$from = $k - 60;
+		if ( $from < 0 ) { $from = 0; }
+		echo '        자리 ' . number_format( $k ) . "\n";
+		echo '        날것    …' . str_replace( "\n", ' ', substr( $a, $from, 150 ) ) . "…\n";
+		echo '        손댄 뒤 …' . str_replace( "\n", ' ', substr( $b, $from, 150 ) ) . "…\n\n";
+		if ( $hurt >= 6 ) {
+			echo "  (다친 덩어리가 더 있어도 여기까지만 보여드립니다)\n";
+			break;
+		}
+		$i = $i + 1;
+	}
+
+	if ( 0 === $hurt ) {
+		echo "\n★ 다친 덩어리가 없습니다. 워드프레스는 손대지 않았습니다.\n";
+		echo "  그러면 자바스크립트가 죽는 까닭이 다른 데 있습니다.\n";
+	} else {
+		echo "\n★ " . $hurt . "개가 다쳤습니다. 바로 고쳐드리겠습니다.\n";
+	}
+
+	echo "\n이 화면을 그대로 저에게 보내주세요.\n";
+	exit;
+}, 1 );

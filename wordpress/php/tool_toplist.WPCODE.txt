@@ -1,0 +1,104 @@
+/* ════════════════════════════════════════════════════════════
+   문 여섯이 실제로 내놓는 주제 — 보기만 하는 도구
+   ★ 2026-09-10 · 소희 님께
+
+   소희 님 : 「?stella_coverpic=1 여기에 초년운 중년운 (그림
+   선택하는 항목이 없어) 시기운 (이게 신년운세 같은데… 문구가
+   틀려서 그림이 안 나오나?)」
+
+   맞습니다. tool_coverpic 은 주제 이름을 손으로 적어둔 표를
+   씁니다. 문을 고치면 그 표가 어긋납니다.
+
+   이 도구는 문 여섯 쪽에서 주제를 그대로 읽어옵니다.
+   그리고 tool_coverpic 이 지금 들고 있는 표와 나란히 놓아,
+   어디가 어긋났는지 보여줍니다.
+
+   보기   https://stellasaju.com/?stella_toplist=1
+
+   ★ 아무것도 안 바꿉니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_toplist'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$DOORS = array(
+		'door-love'    => '벼리 · 연애와 결혼',
+		'door-career'  => '마루 · 일과 돈',
+		'door-health'  => '아람 · 건강과 가족',
+		'door-fortune' => '미르 · 흐름과 시기',
+		'door-astro'   => '아라 · 점성술',
+		'door-tarot'   => '아르카나 · 타로',
+	);
+
+	echo "═══ 문이 실제로 내놓는 주제 ═══\n\n";
+
+	$live = array();
+
+	foreach ( $DOORS as $slug => $label ) {
+
+		$p = get_page_by_path( $slug );
+		if ( ! $p ) { echo sprintf( "── %s\n   ★ 쪽이 없습니다\n\n", $label ); continue; }
+
+		$c = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+
+		$list = array();
+		if ( preg_match_all( '/name="ssg-topic"[^>]*value="([^"]+)"/u', $c, $m ) ) {
+			foreach ( $m[1] as $v ) {
+				$v = trim( $v );
+				if ( '' === $v ) { continue; }
+				if ( in_array( $v, $list, true ) ) { continue; }
+				$list[] = $v;
+			}
+		}
+
+		$live[ $label ] = $list;
+
+		echo '── ' . $label . '  (' . $slug . ')' . "\n";
+		if ( ! $list ) {
+			echo "   ★ 주제 고르는 칸을 못 찾았습니다\n\n";
+			continue;
+		}
+		foreach ( $list as $v ) { echo '   · ' . $v . "\n"; }
+		echo "\n";
+	}
+
+	/* ── 표지 사진이 지금 어느 주제에 붙어 있나 ── */
+	echo "═══ 표지 사진이 붙어 있는 주제 ═══\n\n";
+	$pics = get_option( 'stella_cover_pics' );
+	if ( ! is_array( $pics ) ) { $pics = array(); }
+	if ( ! $pics ) {
+		echo "  아직 한 장도 안 고르셨습니다.\n\n";
+	} else {
+		foreach ( $pics as $topic => $url ) {
+			$ok = false;
+			foreach ( $live as $list ) {
+				if ( in_array( $topic, $list, true ) ) { $ok = true; break; }
+			}
+			echo sprintf( "  %-16s %s\n", $topic, $ok ? '문에 있는 주제입니다' : '★ 문에 없는 주제입니다 — 아무 책에도 안 나옵니다' );
+		}
+		echo "\n";
+	}
+
+	/* ── 붙여 쓸 수 있게 PHP 로도 찍어드립니다 ── */
+	echo "═══ tool_coverpic 에 넣을 표 ═══\n\n";
+	echo "\t\$TOPICS = array(\n";
+	foreach ( $live as $label => $list ) {
+		if ( ! $list ) { continue; }
+		$q = array();
+		foreach ( $list as $v ) { $q[] = "'" . str_replace( "'", "\\'", $v ) . "'"; }
+		echo "\t\t'" . $label . "' => array( " . implode( ', ', $q ) . " ),\n";
+	}
+	echo "\t);\n";
+
+	echo "\n이 표를 그대로 옮기면 문과 어긋날 일이 없어집니다.\n";
+	exit;
+}, 1 );

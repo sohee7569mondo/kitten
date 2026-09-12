@@ -1,0 +1,112 @@
+/* ══════════════════════════════════════════════════════════
+   문이 왜 안 넓어지나 — 재기만 하는 도구
+   ★ 2026-09-10 · 소희 님께
+
+   문이 1200px 까지 넓어져야 하는데 758px 쯤에서 멈추고,
+   책은 왼쪽으로 치우쳐 있습니다.
+   CSS 를 더 얹기 전에 <b>어느 상자가 붙잡고 있는지</b> 먼저
+   재야 합니다. 짐작으로 얹으면 또 어긋납니다.
+
+   #ssg 부터 위로 열두 겹까지 올라가며 넓이 · max-width ·
+   안쪽여백 · 바깥여백을 화면 아래에 표로 띄웁니다.
+
+   보기   https://stellasaju.com/door-love/?stella_wide=1
+          https://stellasaju.com/reading-book/?stella_wide=1
+          그 쪽에 있는 뿌리(#ssg #ssb #ssr #ssq #ssv #ssm)를
+          알아서 찾습니다. 콕 집으려면 &root=ssb 처럼 붙이세요.
+
+   ★ 아무것도 안 바꿉니다. 주소에 stella_wide 가 없으면
+     아무 일도 안 합니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_footer', function () {
+
+	if ( ! isset( $_GET['stella_wide'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	echo "<script>\n";
+	echo <<<'STELLA_WIDE_JS'
+
+(function(){
+  /* 어느 쪽을 잴지 — 주소에 &root=ssb 처럼 붙이면 그것을 잽니다 */
+  var want = '';
+  var q = String(location.search || '');
+  var m = q.match(/[?&]root=([A-Za-z0-9_-]+)/);
+  if(m){ want = m[1]; }
+
+  var g = null;
+  if(want){ g = document.getElementById(want); }
+  if(!g){
+    var ids = ['ssg','ssb','ssr','ssq','ssv','ssa','ssm','ssi'];
+    var k;
+    for(k = 0; k < ids.length; k++){
+      g = document.getElementById(ids[k]);
+      if(g){ break; }
+    }
+  }
+  if(!g){ return; }
+
+  var rows = [];
+  var el = g;
+  var depth = 0;
+  while(el){
+    if(el.nodeType !== 1){ break; }
+    var r = el.getBoundingClientRect();
+    var cs = window.getComputedStyle(el);
+    rows.push({
+      d: depth,
+      tag: el.tagName.toLowerCase(),
+      id: el.id ? ('#' + el.id) : '',
+      cls: (typeof el.className === 'string' ? el.className : '').slice(0, 46),
+      w: Math.round(r.width),
+      max: cs.maxWidth,
+      pad: cs.paddingLeft + ' / ' + cs.paddingRight,
+      mar: cs.marginLeft + ' / ' + cs.marginRight
+    });
+    el = el.parentElement;
+    depth = depth + 1;
+    if(depth > 12){ break; }
+  }
+
+  var box = document.createElement('div');
+  box.style.cssText =
+    'position:fixed; left:0; right:0; bottom:0; z-index:2147483647;' +
+    'background:#0D0A1A; color:#F2ECE0; font:12px/1.6 ui-monospace,monospace;' +
+    'padding:14px 16px; max-height:62vh; overflow:auto;' +
+    'border-top:2px solid #D4AF6A;';
+
+  var h = '<div style="color:#D4AF6A;font-weight:700;margin-bottom:8px">' +
+          '넓이 재기 · #' + g.id + ' · 창 ' + window.innerWidth + 'px</div>' +
+          '<table style="width:100%;border-collapse:collapse">' +
+          '<tr style="color:#D4AF6A">' +
+          '<td>깊이</td><td>무엇</td><td style="text-align:right">넓이</td>' +
+          '<td>max-width</td><td>안쪽여백</td><td>바깥여백</td></tr>';
+
+  var i, r2, mark;
+  for(i = 0; i < rows.length; i++){
+    r2 = rows[i];
+    mark = '';
+    if(i > 0){ if(rows[i].w <= rows[0].w + 2){ mark = 'color:#E5A0A0'; } }
+    h += '<tr style="border-top:1px solid rgba(212,175,106,.16);' + mark + '">' +
+         '<td>' + r2.d + '</td>' +
+         '<td>' + r2.tag + r2.id + ( r2.cls ? ('.' + r2.cls.split(' ').join('.')) : '' ) + '</td>' +
+         '<td style="text-align:right;font-weight:700">' + r2.w + '</td>' +
+         '<td>' + r2.max + '</td>' +
+         '<td>' + r2.pad + '</td>' +
+         '<td>' + r2.mar + '</td></tr>';
+  }
+  h += '</table>';
+  h += '<div style="margin-top:9px;color:rgba(242,236,224,.6)">' +
+       '붉은 줄이 잰 것과 같은 넓이입니다. 그 가운데 <b>제일 바깥쪽 것</b>이 붙잡고 있는 상자예요.' +
+       '<br>바깥여백이 <b>0px / 0px</b> 인데 넓이가 창보다 작으면, 가운데로 미는 것이 없다는 뜻입니다.</div>';
+
+  box.innerHTML = h;
+  document.body.appendChild(box);
+})();
+
+STELLA_WIDE_JS;
+	echo "\n</script>\n";
+}, 99 );

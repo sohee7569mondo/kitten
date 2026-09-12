@@ -1,0 +1,138 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 ⑤ · 카톡에 보낼 그림을 카카오에 맡기기
+
+   카카오는 우리 서버 그림을 어떤 방법으로도 가져가지 않았습니다.
+   그래서 카드를 카카오 서버에 올려 두고, 그 주소를 카톡에 알려줍니다.
+   카카오 자기 그림이 되므로 확실히 뜹니다.
+
+   ┌──────────────────────────────────────────────────────────┐
+   │  여기에 REST API 키를 넣어주세요                          │
+   │                                                          │
+   │  카카오 개발자 → 내 애플리케이션 → 유앤미 → 플랫폼 키     │
+   │  → REST API 키 → 「Default Rest API Key」 복사            │
+   │                                                          │
+   │  이 키는 이 스니펫 안에만 있고 손님 화면에는 나가지        │
+   │  않습니다. 남에게 알려주지 마세요.                        │
+   └──────────────────────────────────────────────────────────┘
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   확인 : https://stellasaju.com/um-kimg/63-lover-30-12-24
+          이름까지 : /um-kimg/63-lover-30-12-24-A-B/소희/정호
+   ════════════════════════════════════════════════════════════ */
+
+if ( ! defined( 'STELLA_UM_KAKAO_REST' ) ) {
+	define( 'STELLA_UM_KAKAO_REST', '여기에REST API키를넣으세요' );
+}
+
+/* ── 카드를 카카오에 올리고 그 주소를 돌려줍니다 ────────── */
+add_action( 'init', function () {
+
+	/* 두 가지 주소를 다 받습니다.
+	     경로식 : /um-kimg/63-lover-30-12-24
+	     쿼리식 : /?um_kimg=63-lover-30-12-24
+	   물음표가 붙은 주소가 막히는 일이 있어 경로식을 먼저 봅니다. */
+	$name = '';
+	$tail = '';
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	/* 뒤에 이름 두 칸이 더 붙어 올 수 있습니다 — /um-kimg/<점수칸>/소희/정호
+	   그 두 칸은 그대로 ④번에 넘겨줍니다. 여기서 풀어볼 것은 없습니다. */
+	if ( preg_match( '#/um-kimg/([A-Za-z0-9_-]{5,180})((?:/[A-Za-z0-9%._-]{1,90}){0,2})#', $uri, $mm ) ) {
+		$name = $mm[1];
+		$tail = isset( $mm[2] ) ? $mm[2] : '';
+	} else if ( isset( $_GET['um_kimg'] ) ) {
+		$name = sanitize_text_field( wp_unslash( $_GET['um_kimg'] ) );
+	}
+	if ( ! $name ) { return; }
+
+	header( 'Content-Type: application/json; charset=utf-8' );
+	header( 'Access-Control-Allow-Origin: *' );
+
+	/* 「점수-관계-사주-별자리-띠」 꼴만 받습니다 */
+	if ( ! preg_match( '/^(\d{1,2})-([a-z_]{2,14})-(\d{1,2})-(\d{1,2})-(\d{1,2})(?:-([A-Za-z0-9_-]{1,140}))?$/', $name, $m ) ) {
+		echo wp_json_encode( array( 'ok' => false, 'why' => 'bad-name' ) );
+		exit;
+	}
+
+	$key = STELLA_UM_KAKAO_REST;
+	if ( strlen( $key ) < 20 ) {
+		echo wp_json_encode( array( 'ok' => false, 'why' => 'no-key' ) );
+		exit;
+	}
+
+	/* 한 번 올린 그림은 다시 올리지 않습니다 */
+	$slot = 'um_kimg_' . $name;
+	$have = get_transient( $slot );
+	if ( $have ) {
+		echo wp_json_encode( array( 'ok' => true, 'url' => $have, 'from' => 'cache' ) );
+		exit;
+	}
+
+	/* 카드 파일 — 없으면 그 자리에서 그립니다 */
+	$up   = wp_upload_dir();
+	$file = $up['basedir'] . '/uandme/card/' . $name . '.png';
+	if ( ! file_exists( $file ) ) {
+		$made = wp_remote_get( home_url( '/um-card/' . $name . $tail ), array( 'timeout' => 40, 'sslverify' => false ) );
+		if ( is_wp_error( $made ) ) {
+			echo wp_json_encode( array( 'ok' => false, 'why' => 'draw-failed' ) );
+			exit;
+		}
+	}
+	if ( ! file_exists( $file ) ) {
+		echo wp_json_encode( array( 'ok' => false, 'why' => 'no-file' ) );
+		exit;
+	}
+	$png = file_get_contents( $file );
+	if ( strlen( $png ) < 500 ) {
+		echo wp_json_encode( array( 'ok' => false, 'why' => 'empty-file' ) );
+		exit;
+	}
+
+	/* 카카오에 올립니다 */
+	$bd   = 'stellaum' . wp_generate_password( 20, false );
+	$body = '';
+	$body .= '--' . $bd . "\r\n";
+	$body .= 'Content-Disposition: form-data; name="file"; filename="' . $name . '.png"' . "\r\n";
+	$body .= "Content-Type: image/png\r\n\r\n";
+	$body .= $png . "\r\n";
+	$body .= '--' . $bd . "--\r\n";
+
+	$r = wp_remote_post( 'https://kapi.kakao.com/v2/api/talk/message/image/upload', array(
+		'timeout' => 40,
+		'headers' => array(
+			'Authorization' => 'KakaoAK ' . $key,
+			'Content-Type'  => 'multipart/form-data; boundary=' . $bd,
+		),
+		'body'    => $body,
+	) );
+
+	if ( is_wp_error( $r ) ) {
+		echo wp_json_encode( array( 'ok' => false, 'why' => 'net', 'msg' => $r->get_error_message() ) );
+		exit;
+	}
+	$code = wp_remote_retrieve_response_code( $r );
+	$out  = json_decode( wp_remote_retrieve_body( $r ), true );
+
+	if ( 200 !== intval( $code ) ) {
+		echo wp_json_encode( array(
+			'ok'   => false,
+			'why'  => 'kakao-' . intval( $code ),
+			'msg'  => is_array( $out ) ? wp_json_encode( $out ) : '',
+		) );
+		exit;
+	}
+
+	$url = '';
+	if ( is_array( $out ) ) {
+		if ( isset( $out['infos']['original']['url'] ) ) { $url = $out['infos']['original']['url']; }
+	}
+	if ( ! $url ) {
+		echo wp_json_encode( array( 'ok' => false, 'why' => 'no-url', 'msg' => wp_remote_retrieve_body( $r ) ) );
+		exit;
+	}
+
+	set_transient( $slot, $url, 30 * DAY_IN_SECONDS );
+	echo wp_json_encode( array( 'ok' => true, 'url' => $url, 'from' => 'kakao' ) );
+	exit;
+} );

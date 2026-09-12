@@ -1,0 +1,151 @@
+/* ════════════════════════════════════════════════════════════
+   책 속 지도 · 네 번째 (MAP-4) — 장 차례   ★ 2026-09-11 · 소희 님께
+
+   지도 셋으로 「무엇을 셀 수 있는지」는 다 알았습니다.
+   그런데 아직 모르는 것이 하나 남았습니다.
+
+     **새 장을 어디에 끼워 넣어야 하는가.**
+
+   결혼운세에 ⑨ 「세 가지만 기억하세요」를 넣으려면
+   그 장이 몇 번째 자리에 들어가야 하는지를 알아야 합니다.
+
+   MAP-1 에서 장을 만드는 함수가 sheet() 와 put() 인 것을 봤습니다.
+   이번에는 그 호출을 순서대로 뽑아 **책의 차례**를 그립니다.
+
+   아무것도 바꾸지 않습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   열기   https://stellasaju.com/?stella_map4=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_map4'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	echo "MAP-4  장 차례  2026-09-11\n";
+	echo str_repeat( '=', 62 ) . "\n\n";
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", 160 ) );
+	if ( '' === $c ) { echo "책을 못 읽었습니다.\n"; exit; }
+
+	$lineno = function ( $s, $at ) {
+		return substr_count( substr( $s, 0, $at ), "\n" ) + 1;
+	};
+	$peek = function ( $s, $at, $before, $after ) {
+		$a = $at - $before; if ( $a < 0 ) { $a = 0; }
+		$t = substr( $s, $a, $before + $after );
+		$t = str_replace( array( "\r", "\n", "\t" ), array( '', ' / ', ' ' ), $t );
+		$t = preg_replace( '/ {2,}/', ' ', $t );
+		return trim( (string) $t );
+	};
+
+	/* ── 1 · 장을 만드는 함수들 ────────────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "1 · 장을 만들고 넣는 함수가 몇 번 쓰이나\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	foreach ( array( 'sheet(', 'put(', 'page(', 'pages.push', 'made.push',
+		'function sheet', 'function put', 'function page' ) as $w ) {
+		echo sprintf( "  %-16s %d번\n", $w, substr_count( $c, $w ) );
+	}
+	echo "\n";
+
+	/* ── 2 · eyebrow 로 장 제목 뽑기 ───────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "2 · 화면에 찍히는 장 제목 (eyebrow 가 붙은 줄)\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	$n = 0;
+	if ( preg_match_all( '/class="eyebrow"[^>]*>([^<]{1,60})/', $c, $m, PREG_OFFSET_CAPTURE ) ) {
+		foreach ( $m[1] as $hit ) {
+			$n++;
+			if ( $n > 60 ) { echo "  … 더 있습니다\n"; break; }
+			echo sprintf( "  %-3d 줄 %-7d %s\n", $n, $lineno( $c, $hit[1] ),
+				trim( $hit[0] ) );
+		}
+	}
+	if ( ! $n ) { echo "  못 찾았습니다.\n"; }
+	echo "\n";
+
+	/* ── 3 · sheet( 첫 인자 = 장 이름 ──────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "3 · sheet( ) 로 만드는 속표지\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	$n = 0;
+	if ( preg_match_all( "/sheet\(\s*'([^']{1,40})'\s*,\s*'?([^',]{0,60})/", $c, $m, PREG_OFFSET_CAPTURE ) ) {
+		foreach ( $m[1] as $k => $hit ) {
+			$n++;
+			if ( $n > 40 ) { echo "  … 더 있습니다\n"; break; }
+			echo sprintf( "  줄 %-7d %-12s %s\n", $lineno( $c, $m[0][ $k ][1] ),
+				$hit[0], trim( (string) $m[2][ $k ][0] ) );
+		}
+	}
+	if ( ! $n ) { echo "  못 찾았습니다.\n"; }
+	echo "\n";
+
+	/* ── 4 · put( 자리 번호 ────────────────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "4 · put( ) 이 쓰는 자리 이름 (장이 끼워지는 순서)\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	$n = 0;
+	if ( preg_match_all( '/put\(\s*([A-Za-z_][A-Za-z0-9_]{0,20})\s*,/', $c, $m, PREG_OFFSET_CAPTURE ) ) {
+		$seen = array();
+		foreach ( $m[1] as $k => $hit ) {
+			$nm = $hit[0];
+			if ( isset( $seen[ $nm ] ) ) { $seen[ $nm ]++; continue; }
+			$seen[ $nm ] = 1;
+			$n++;
+			if ( $n > 40 ) { echo "  … 더 있습니다\n"; break; }
+			echo sprintf( "  줄 %-7d %-8s %s\n", $lineno( $c, $m[0][ $k ][1] ),
+				$nm, $peek( $c, $m[0][ $k ][1], 0, 70 ) );
+		}
+	}
+	if ( ! $n ) { echo "  못 찾았습니다.\n"; }
+	echo "\n";
+
+	/* ── 5 · 결혼운 09장 다음이 무엇인지 ───────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "5 · 09장 「정리하면」 앞뒤로 어떤 장이 있나\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	foreach ( array( '정리하면', '맺음말', '마지막', '세 가지', '기억' ) as $w ) {
+		echo "\n  [" . $w . "]  " . substr_count( $c, $w ) . "번\n";
+		$from = 0; $k = 0;
+		while ( true ) {
+			$at = strpos( $c, $w, $from );
+			if ( false === $at ) { break; }
+			$from = $at + 1;
+			$k++;
+			if ( $k > 8 ) { echo "    … 더 있습니다\n"; break; }
+			echo sprintf( "    줄 %-7d %s\n", $lineno( $c, $at ),
+				$peek( $c, $at, 45, 95 ) );
+		}
+		if ( ! $k ) { echo "    없습니다.\n"; }
+	}
+	echo "\n";
+
+	/* ── 6 · 대운을 담은 변수 이름 ─────────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "6 · 대운을 담고 있는 변수 (결혼운 ⑨ 셋째 자리에 씁니다)\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	foreach ( array( '.luck', 'luck.', 'luckList', '.대운', '대운[',
+		'daeList', 'luck[', 'luckAt' ) as $w ) {
+		$cnt = substr_count( $c, $w );
+		echo sprintf( "  %-10s %-4d번  %s\n", $w, $cnt,
+			$cnt ? $peek( $c, strpos( $c, $w ), 30, 80 ) : '—' );
+	}
+
+	echo "\n" . str_repeat( '=', 62 ) . "\n";
+	echo "끝. 아무것도 바꾸지 않았습니다.\n";
+	exit;
+} );

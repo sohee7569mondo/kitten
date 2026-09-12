@@ -1,0 +1,285 @@
+/* ════════════════════════════════════════════════════════════
+   스텔라 · 비밀번호로 들어오기        /signin/
+
+   왜 만들었나
+     지금은 메일 링크(매직링크) 하나뿐인데 여기서 두 가지가 샙니다.
+       ① 관리자·편집자는 아예 막혀 있습니다 (메일함이 털리면 사이트가
+          통째로 넘어가서 일부러 막아둔 것입니다)
+       ② 이메일 없이 가입한 손님은 다시 못 들어옵니다.
+          보낼 데가 없으니까요.
+     게다가 요즘 메일 앱은 링크를 미리 열어봅니다. 그 순간 열쇠가
+     쓰여 없어져서, 손님이 누르면 「다시 오셨군요」로 되돌아갑니다.
+
+   무엇을 하나
+     이메일과 비밀번호로 들어오고 가입하는 화면을 하나 더 놓습니다.
+     기존 스니펫은 하나도 안 건드립니다. 메일 링크도 그대로 둡니다.
+     잘못되면 이 스니펫만 끄면 원래대로 돌아갑니다.
+
+   주소
+     /signin/            들어오기
+     /signin/?join=1     가입하기
+     /signin/?next=/mypage/   들어온 뒤에 갈 곳
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   확인 : stellasaju.com/signin/
+   ════════════════════════════════════════════════════════════ */
+
+if ( ! defined( 'STELLA_PW_MIN' ) ) { define( 'STELLA_PW_MIN', 8 ); }
+
+/* 같은 사람이 자꾸 틀리면 잠시 쉬게 합니다 (무차별 대입 막기) */
+function stella_pw_gate( $add ) {
+	$ip  = isset( $_SERVER['REMOTE_ADDR'] ) ? (string) $_SERVER['REMOTE_ADDR'] : '0';
+	$key = 'stella_pw_' . md5( $ip );
+	$n   = (int) get_transient( $key );
+	if ( $add ) {
+		set_transient( $key, $n + 1, 15 * MINUTE_IN_SECONDS );
+	}
+	return $n;
+}
+
+/* 이메일에서 겹치지 않는 아이디를 만듭니다 */
+function stella_pw_login_from( $email ) {
+	$base = strtolower( preg_replace( '/[^a-z0-9]/i', '', substr( $email, 0, strpos( $email . '@', '@' ) ) ) );
+	if ( strlen( $base ) < 3 ) { $base = 'stella'; }
+	$base = substr( $base, 0, 20 );
+	$try  = $base;
+	$i    = 0;
+	while ( username_exists( $try ) ) {
+		$i  += 1;
+		$try = $base . $i;
+		if ( $i > 500 ) { $try = $base . wp_generate_password( 6, false, false ); break; }
+	}
+	return $try;
+}
+
+/* 들어온 뒤 갈 곳 — 우리 사이트 안쪽만 허용합니다 */
+function stella_pw_next() {
+	$n = isset( $_REQUEST['next'] ) ? (string) wp_unslash( $_REQUEST['next'] ) : '';
+	$n = trim( $n );
+	if ( '' === $n ) { return '/mypage/'; }
+	if ( 0 !== strpos( $n, '/' ) ) { return '/mypage/'; }
+	if ( 0 === strpos( $n, '//' ) ) { return '/mypage/'; }
+	return $n;
+}
+
+add_action( 'init', function () {
+
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	$path = parse_url( $uri, PHP_URL_PATH );
+	$path = is_string( $path ) ? $path : '';
+	if ( ! preg_match( '#^/signin/?$#', $path ) ) { return; }
+
+	$join = isset( $_GET['join'] ) ? 1 : 0;
+	$next = stella_pw_next();
+	$err  = '';
+	$note = '';
+
+	/* ── 보낸 값 받기 ─────────────────────────────────────── */
+	if ( isset( $_POST['stella_pw_do'] ) ) {
+
+		$act = sanitize_text_field( wp_unslash( $_POST['stella_pw_do'] ) );
+		$ok  = isset( $_POST['stella_pw_nonce'] );
+		if ( $ok ) {
+			$ok = (bool) wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['stella_pw_nonce'] ) ), 'stella_pw' );
+		}
+
+		if ( ! $ok ) {
+			$err = '화면이 오래되었어요. 새로고침하고 다시 해주세요.';
+		} else if ( stella_pw_gate( 0 ) > 8 ) {
+			$err = '여러 번 틀리셨어요. 15분쯤 뒤에 다시 해주세요.';
+		} else {
+
+			$email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+			$pass  = isset( $_POST['pass'] ) ? (string) wp_unslash( $_POST['pass'] ) : '';
+			$name  = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+
+			if ( 'in' === $act ) {
+				/* ── 들어오기 ── */
+				if ( '' === $email ) {
+					$err = '이메일을 넣어주세요.';
+				} else if ( '' === $pass ) {
+					$err = '비밀번호를 넣어주세요.';
+				} else {
+					$user = wp_signon( array(
+						'user_login'    => $email,
+						'user_password' => $pass,
+						'remember'      => true,
+					), is_ssl() );
+					if ( is_wp_error( $user ) ) {
+						stella_pw_gate( 1 );
+						/* 어느 쪽이 틀렸는지는 알려주지 않습니다.
+						   이메일이 있는지 없는지가 새어나가지 않게요. */
+						$err = '이메일이나 비밀번호가 맞지 않아요.';
+					} else {
+						wp_set_current_user( $user->ID );
+						wp_safe_redirect( home_url( $next ) );
+						exit;
+					}
+				}
+
+			} else if ( 'up' === $act ) {
+				/* ── 가입하기 ── */
+				$join = 1;
+				if ( ! is_email( $email ) ) {
+					$err = '이메일 주소를 다시 봐주세요.';
+				} else if ( email_exists( $email ) ) {
+					$err = '이미 가입된 이메일이에요. 아래에서 들어오시면 됩니다.';
+					$join = 0;
+				} else if ( strlen( $pass ) < STELLA_PW_MIN ) {
+					$err = '비밀번호는 ' . STELLA_PW_MIN . '자 이상으로 해주세요.';
+				} else if ( '' === $name ) {
+					$err = '이름을 넣어주세요. 풀이에서 불러드릴 이름이에요.';
+				} else {
+					$login = stella_pw_login_from( $email );
+					$uid   = wp_create_user( $login, $pass, $email );
+					if ( is_wp_error( $uid ) ) {
+						$err = '가입이 안 됐어요. 잠시 뒤에 다시 해주시겠어요?';
+					} else {
+						wp_update_user( array( 'ID' => $uid, 'display_name' => $name, 'role' => 'subscriber' ) );
+						update_user_meta( $uid, 'stella_name', $name );
+						wp_set_current_user( $uid );
+						wp_set_auth_cookie( $uid, true, is_ssl() );
+						wp_safe_redirect( home_url( $next ) );
+						exit;
+					}
+				}
+			}
+		}
+	}
+
+	/* 이미 들어와 계시면 굳이 이 화면을 볼 일이 없습니다 */
+	if ( is_user_logged_in() ) {
+		if ( ! isset( $_GET['stay'] ) ) {
+			wp_safe_redirect( home_url( $next ) );
+			exit;
+		}
+	}
+
+	/* ── 화면 ─────────────────────────────────────────────── */
+	header( 'Content-Type: text/html; charset=utf-8' );
+	nocache_headers();
+
+	$e_in = isset( $_POST['email'] ) ? esc_attr( wp_unslash( $_POST['email'] ) ) : '';
+	$n_in = isset( $_POST['name'] ) ? esc_attr( wp_unslash( $_POST['name'] ) ) : '';
+	$qn   = esc_attr( $next );
+
+	echo '<!doctype html><meta charset="utf-8">';
+	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
+	echo '<meta name="robots" content="noindex">';
+	echo '<title>' . ( $join ? '가입하기' : '들어오기' ) . ' — 스텔라사주</title>';
+	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+	echo '<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum' . '&' . 'display=swap" rel="stylesheet">';
+	echo '<style>'
+		. '*{box-sizing:border-box}'
+		. 'body{margin:0;background:#0D0A1A;color:#F2ECE0;'
+		. "font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;"
+		. 'line-height:1.8;word-break:keep-all}'
+		. '.wrap{max-width:400px;margin:0 auto;padding:44px 22px 80px}'
+		. '.mark{font-size:11px;letter-spacing:.3em;color:#D4AF6A;margin-bottom:18px}'
+		. 'h1{font-size:27px;font-weight:400;letter-spacing:-.03em;line-height:1.35;margin:0 0 10px}'
+		. '.dek{font-size:13.5px;color:rgba(242,236,224,.6);margin:0 0 30px}'
+		. 'label{display:block;font-size:12px;color:rgba(242,236,224,.55);margin:18px 0 7px 2px}'
+		. 'input{width:100%;height:54px;border:1px solid rgba(212,175,106,.28);border-radius:10px;'
+		. 'background:rgba(255,255,255,.04);color:#F2ECE0;font:inherit;font-size:16px;'
+		. 'padding:0 15px;outline:none}'
+		. 'input:focus{border-color:#D4AF6A;background:rgba(255,255,255,.07)}'
+		. '.go{width:100%;height:54px;margin-top:26px;border:0;border-radius:10px;'
+		. 'background:#D4AF6A;color:#0D0A1A;font:inherit;font-size:16px;font-weight:700;cursor:pointer}'
+		. '.alt{display:block;text-align:center;margin-top:22px;font-size:13.5px;'
+		. 'color:#D4AF6A;text-decoration:none}'
+		. '.err{margin:0 0 20px;padding:13px 15px;border-radius:10px;font-size:13.5px;'
+		. 'background:rgba(255,123,123,.12);border:1px solid rgba(255,123,123,.3);color:#FFC9C9}'
+		. '.mini{font-size:11.5px;color:rgba(242,236,224,.4);line-height:1.85;margin-top:26px}'
+		. '.mini a{color:rgba(212,175,106,.8)}'
+		. '.bot{margin-top:34px;padding-top:18px;border-top:1px solid rgba(212,175,106,.15);'
+		. 'font-size:11.5px}'
+		. '.bot a{color:rgba(242,236,224,.5);text-decoration:none;margin-right:12px}'
+		. 'a:focus-visible,button:focus-visible,input:focus-visible{'
+		. 'outline:2px solid #D4AF6A;outline-offset:2px}'
+		. '</style>';
+
+	echo '<div class="wrap">';
+	echo '<div class="mark">STELLA SAJU</div>';
+
+	if ( $join ) {
+		echo '<h1>처음 오셨네요</h1>';
+		echo '<p class="dek">이메일과 비밀번호만 정하시면 됩니다.<br>받으신 풀이는 이 계정에 남습니다.</p>';
+	} else {
+		echo '<h1>다시 오셨네요</h1>';
+		echo '<p class="dek">이메일과 비밀번호를 넣어주세요.</p>';
+	}
+
+	if ( '' !== $err ) { echo '<p class="err">' . esc_html( $err ) . '</p>'; }
+
+	echo '<form method="post" action="' . esc_url( home_url( '/signin/' . ( $join ? '?join=1' : '' ) ) ) . '">';
+	wp_nonce_field( 'stella_pw', 'stella_pw_nonce' );
+	echo '<input type="hidden" name="next" value="' . $qn . '">';
+	echo '<input type="hidden" name="stella_pw_do" value="' . ( $join ? 'up' : 'in' ) . '">';
+
+	if ( $join ) {
+		echo '<label for="f-name">이름</label>';
+		echo '<input id="f-name" name="name" type="text" maxlength="20" autocomplete="name" '
+			. 'value="' . $n_in . '" placeholder="풀이에서 불러드릴 이름">';
+	}
+
+	echo '<label for="f-email">이메일</label>';
+	echo '<input id="f-email" name="email" type="email" autocomplete="email" '
+		. 'value="' . $e_in . '" placeholder="hong@example.com">';
+
+	echo '<label for="f-pass">비밀번호</label>';
+	echo '<input id="f-pass" name="pass" type="password" '
+		. 'autocomplete="' . ( $join ? 'new-password' : 'current-password' ) . '" '
+		. 'placeholder="' . ( $join ? STELLA_PW_MIN . '자 이상' : '' ) . '">';
+
+	echo '<button class="go" type="submit">' . ( $join ? '가입하고 시작하기' : '들어오기' ) . '</button>';
+	echo '</form>';
+
+	if ( $join ) {
+		echo '<a class="alt" href="' . esc_url( home_url( '/signin/?next=' . rawurlencode( $next ) ) ) . '">'
+			. '이미 계정이 있어요 · 들어가기</a>';
+		echo '<p class="mini">가입하시면 <a href="/terms/">이용약관</a>과 '
+			. '<a href="/privacy/">개인정보처리방침</a>에 동의하시는 것으로 봅니다.<br>'
+			. '생년월일은 풀이를 세우는 데만 씁니다. 광고에 쓰지 않아요.</p>';
+	} else {
+		echo '<a class="alt" href="' . esc_url( home_url( '/signin/?join=1&next=' . rawurlencode( $next ) ) ) . '">'
+			. '처음이신가요? · 가입하기</a>';
+		echo '<p class="mini">비밀번호가 기억나지 않으시면 '
+			. '<a href="' . esc_url( wp_lostpassword_url( home_url( '/signin/' ) ) ) . '">여기서 새로 정하실 수 있어요</a>.<br>'
+			. '예전처럼 메일 링크로 들어오고 싶으시면 <a href="/login/">이쪽</a>입니다.</p>';
+	}
+
+	echo '<div class="bot"><a href="/">스텔라사주</a><a href="/uandme/">유앤미</a>'
+		. '<a href="/contact/">문의</a></div>';
+	echo '</div>';
+	exit;
+
+}, 10 );
+
+/* 기존 /login/ 화면에 「비밀번호로 들어가기」 한 줄을 얹습니다.
+   그 페이지 내용은 건드리지 않습니다 — 아래에 덧붙이기만 합니다. */
+add_action( 'wp_footer', function () {
+	if ( ! is_page( 'login' ) ) { return; }
+	echo '<div style="max-width:400px;margin:0 auto 60px;padding:0 22px;text-align:center;'
+		. "font-family:'Gowun Dodum','Apple SD Gothic Neo',sans-serif\">"
+		. '<a href="' . esc_url( home_url( '/signin/' ) ) . '" '
+		. 'style="display:inline-block;font-size:13.5px;color:#D4AF6A;text-decoration:none;'
+		. 'border-bottom:1px solid rgba(212,175,106,.35);padding-bottom:2px">'
+		. '메일이 안 오시나요? 비밀번호로 들어가기</a></div>';
+}, 20 );
+
+/* 잘 실렸는지 보는 곳 */
+add_action( 'init', function () {
+	if ( ! isset( $_GET['stella_pw'] ) ) { return; }
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 system-ui;background:#111;color:#eee;padding:24px">';
+	if ( ! current_user_can( 'manage_options' ) ) { echo '관리자만 볼 수 있습니다.'; exit; }
+	echo '<h1 style="color:#ffd76a">스텔라 · 비밀번호 로그인</h1>';
+	echo '<p>이 스니펫은 살아 있습니다.</p>';
+	echo '<p>들어오기 : <a style="color:#9fd" href="/signin/">stellasaju.com/signin/</a></p>';
+	echo '<p>가입하기 : <a style="color:#9fd" href="/signin/?join=1">stellasaju.com/signin/?join=1</a></p>';
+	echo '<p style="color:#888;margin-top:16px">관리자로 로그인한 상태에서는 /signin/ 이 바로 넘어갑니다. '
+		. '화면을 보시려면 <a style="color:#9fd" href="/signin/?stay=1">/signin/?stay=1</a> 로 여세요.</p>';
+	exit;
+}, 5 );

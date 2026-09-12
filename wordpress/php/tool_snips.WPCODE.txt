@@ -1,0 +1,127 @@
+/* ══════════════════════════════════════════════════════════
+   스니펫 목록 뽑기 · 소희 님께                   2026-09-11
+   ── 판 : SNIPS-1 (2026-09-11) ──
+
+   WPCode 에 들어 있는 스니펫을 전부 뽑아서
+   ① 켜져 있는지 꺼져 있는지
+   ② 쓰고 버릴 것인지 살아 있어야 할 것인지
+   ③ 주소(?stella_...)가 서로 부딪히는지
+   를 한 화면에 보여줍니다.
+
+   ★ 아무것도 안 지웁니다. 보기만 합니다.
+
+   주소  https://stellasaju.com/?stella_snips911=1
+
+   ★ 스니펫 이름 「STELLA - 스니펫 목록」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_snips911'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	echo "═══ 스니펫 목록 · 판 SNIPS-1 (2026-09-11) ═══\n\n";
+
+	$rows = get_posts( array(
+		'post_type'      => 'wpcode',
+		'post_status'    => array( 'publish', 'draft', 'pending', 'private' ),
+		'posts_per_page' => -1,
+		'orderby'        => 'ID',
+		'order'          => 'ASC',
+	) );
+
+	if ( ! count( $rows ) ) {
+		echo "wpcode 라는 이름으로는 하나도 못 찾았습니다.\n";
+		echo "이 화면을 저에게 붙여주세요. 다른 이름으로 찾아보겠습니다.\n\n";
+		echo "─── 이 사이트에 있는 글 종류 ───\n";
+		foreach ( get_post_types( array(), 'objects' ) as $pt ) {
+			$n = wp_count_posts( $pt->name );
+			$c = 0;
+			foreach ( (array) $n as $v ) { $c += (int) $v; }
+			echo '  ' . $pt->name . '  (' . $c . "개)\n";
+		}
+		exit;
+	}
+
+	$keys = array();
+	$live = array();
+	$once = array();
+	$off  = array();
+
+	foreach ( $rows as $p ) {
+		$code = (string) $p->post_content;
+		$on   = ( 'publish' === $p->post_status );
+		$loc  = (string) get_post_meta( $p->ID, '_wpcode_location', true );
+
+		/* 주소 열쇠 모으기 */
+		$k = array();
+		if ( preg_match_all( '/\$_GET\s*\[\s*[\'"]([A-Za-z0-9_]+)[\'"]\s*\]/', $code, $m ) ) {
+			$k = array_values( array_unique( $m[1] ) );
+		}
+		foreach ( $k as $one ) {
+			if ( ! isset( $keys[ $one ] ) ) { $keys[ $one ] = array(); }
+			$keys[ $one ][] = $p->ID . ' ' . $p->post_title . ( $on ? '' : ' (꺼짐)' );
+		}
+
+		$kind = count( $k ) ? '쓰고버릴' : '살아있는';
+		if ( false !== strpos( $code, 'wp_head' ) || false !== strpos( $code, 'wp_footer' ) ) {
+			if ( ! count( $k ) ) { $kind = '살아있는'; }
+		}
+
+		$line = sprintf( "  %-6d %-3s %-6s %-26s %6s글자  %s",
+			$p->ID,
+			$on ? '켜짐' : '꺼짐',
+			$kind,
+			mb_substr( (string) $p->post_title, 0, 26, 'UTF-8' ),
+			number_format( strlen( $code ) ),
+			count( $k ) ? ( '?' . implode( ' ?', $k ) ) : ''
+		);
+
+		if ( ! $on ) { $off[] = $line; }
+		elseif ( '쓰고버릴' === $kind ) { $once[] = $line; }
+		else { $live[] = $line; }
+	}
+
+	echo '모두 ' . count( $rows ) . '개  ·  켜짐 ' . ( count( $live ) + count( $once ) )
+	   . '  ·  꺼짐 ' . count( $off ) . "\n\n";
+
+	echo "───────────────────────────────────────────────────\n";
+	echo "★ 부딪히는 주소 (같은 열쇠를 둘 이상이 씁니다)\n";
+	echo "───────────────────────────────────────────────────\n";
+	$bump = 0;
+	foreach ( $keys as $key => $who ) {
+		if ( count( $who ) < 2 ) { continue; }
+		$bump++;
+		echo '  ?' . $key . "\n";
+		foreach ( $who as $w ) { echo '      · ' . $w . "\n"; }
+	}
+	if ( ! $bump ) { echo "  없습니다.\n"; }
+	echo "\n";
+
+	echo "───────────────────────────────────────────────────\n";
+	echo "① 살아 있어야 하는 것 (켜짐) — " . count( $live ) . "개\n";
+	echo "   끄면 사이트가 달라집니다. 지우지 마세요.\n";
+	echo "───────────────────────────────────────────────────\n";
+	foreach ( $live as $l ) { echo $l . "\n"; }
+	echo "\n";
+
+	echo "───────────────────────────────────────────────────\n";
+	echo "② 쓰고 버릴 것 (켜짐, 주소를 눌러야만 도는 것) — " . count( $once ) . "개\n";
+	echo "   이미 붙인 패치와 확인 도구입니다. 지워도 사이트는 그대로입니다.\n";
+	echo "───────────────────────────────────────────────────\n";
+	foreach ( $once as $l ) { echo $l . "\n"; }
+	echo "\n";
+
+	echo "───────────────────────────────────────────────────\n";
+	echo "③ 꺼져 있는 것 — " . count( $off ) . "개\n";
+	echo "───────────────────────────────────────────────────\n";
+	foreach ( $off as $l ) { echo $l . "\n"; }
+	echo "\n";
+
+	echo "═══ 여기까지 ═══\n";
+	echo "이 화면을 통째로 붙여주세요. 어느 것을 지워도 되는지 하나씩 짚어드리겠습니다.\n";
+	exit;
+}, 1 );

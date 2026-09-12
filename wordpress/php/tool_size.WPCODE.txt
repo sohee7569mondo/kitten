@@ -1,0 +1,106 @@
+/* ══════════════════════════════════════════════════════════
+   폭 재기 · 소희 님께                            2026-09-11
+   ── 판 : SIZE-1 (2026-09-11) ──
+
+   화면 아래에 자(尺)를 하나 띄웁니다.
+   그 쪽의 상자들이 실제로 몇 픽셀인지 재서 보여줍니다.
+
+   재고 싶은 쪽을 그냥 열면 됩니다. 세 쪽을 재주세요.
+     ① https://stellasaju.com/reading-book/?demo=door-love   ← 책이 왼쪽으로 치우친 것
+     ② https://stellasaju.com/door-love/                     ← 벼리 · 입력칸이 좁은 것
+     ③ https://stellasaju.com/door-career/                   ← 마루 · 제대로 나오는 것
+
+   ②와 ③을 나란히 놓고 보면 어디가 다른지 바로 나옵니다.
+
+   ★ 스니펫 이름 「STELLA - 폭 재기」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 관리자로 로그인했을 때만 보입니다. 아무것도 안 바꿉니다.
+   ★ 다 끝나면 꺼주세요.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_footer', function () {
+
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	?>
+<script>
+(function(){
+  function num(v){ return (v === undefined || v === null) ? '?' : Math.round(v); }
+
+  function look(el){
+    if(!el){ return null; }
+    var r = el.getBoundingClientRect();
+    var s = getComputedStyle(el);
+    return {
+      w: num(r.width),
+      x: num(r.left),
+      mx: s.maxWidth,
+      wd: s.width,
+      mg: s.marginLeft + ' / ' + s.marginRight,
+      pd: s.paddingLeft + ' / ' + s.paddingRight,
+      disp: s.display,
+      gtc: s.gridTemplateColumns
+    };
+  }
+
+  function nameOf(el){
+    var t = el.tagName.toLowerCase();
+    if(el.id){ t += '#' + el.id; }
+    if(el.className && typeof el.className === 'string'){
+      var c = el.className.trim().split(/\s+/).slice(0,3).join('.');
+      if(c){ t += '.' + c; }
+    }
+    return t;
+  }
+
+  function chain(el, cap){
+    var out = [], n = 0;
+    while(el && el !== document.documentElement && n < cap){
+      var d = look(el);
+      out.push('  ' + nameOf(el) + '\n'
+             + '     폭 ' + d.w + 'px · 왼쪽끝 ' + d.x + 'px'
+             + ' · max-width ' + d.mx + ' · width ' + d.wd
+             + '\n     여백 ' + d.mg + ' · 안쪽 ' + d.pd
+             + (d.disp.indexOf('grid') >= 0 ? ('\n     칸나눔 ' + d.gtc) : ''));
+      el = el.parentElement; n++;
+    }
+    return out.join('\n');
+  }
+
+  function run(){
+    var L = [];
+    L.push('판 SIZE-1 · ' + location.pathname + location.search);
+    L.push('창 너비 ' + window.innerWidth + 'px · 몸통 ' + num(document.body.getBoundingClientRect().width) + 'px');
+
+    var picks = ['#ssb', '#bkBook', '#ssg', '.g-inner', '.g-cols', '.step'];
+    picks.forEach(function(sel){
+      var el = document.querySelector(sel);
+      if(!el){ return; }
+      var d = look(el);
+      L.push('【' + sel + '】 폭 ' + d.w + 'px · 왼쪽끝 ' + d.x + 'px'
+           + ' · max-width ' + d.mx
+           + (d.disp.indexOf('grid') >= 0 ? (' · 칸나눔 ' + d.gtc) : ''));
+    });
+
+    var root = document.querySelector('#ssb') || document.querySelector('#ssg');
+    if(root){
+      L.push('');
+      L.push('── 위로 거슬러 올라가며 ──');
+      L.push(chain(root, 7));
+    }
+
+    var d = document.createElement('div');
+    d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:2147483647;'
+      + 'background:#10233f;color:#dfe9ff;padding:12px 16px;font:11px/1.55 ui-monospace,monospace;'
+      + 'white-space:pre-wrap;max-height:52vh;overflow:auto;'
+      + 'box-shadow:0 -2px 16px rgba(0,0,0,.5)';
+    d.textContent = L.join('\n');
+    document.body.appendChild(d);
+  }
+
+  if(document.readyState === 'complete'){ setTimeout(run, 2200); }
+  else { window.addEventListener('load', function(){ setTimeout(run, 2200); }); }
+})();
+</script>
+	<?php
+}, 99 );

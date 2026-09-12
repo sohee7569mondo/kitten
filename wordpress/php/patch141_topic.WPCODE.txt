@@ -1,0 +1,283 @@
+/* ════════════════════════════════════════════════════════════
+   주제를 끝까지 들고 다니기   ★ 2026-09-09 · 소희 님께
+   (door-love · 벼리 · 연애와 결혼 · 141)
+
+   ── 무엇이 잘못돼 있었나 ──────────────────────────────
+   주제 단추 여섯 가운데 연애운에 「checked」가 박혀 있습니다.
+   그래서 홈에서 결혼운을 눌러 들어와도 연애운이 골라져 있습니다.
+   미리보기도 늘 「하은이의 연애운」이고, 「지금의 관계」 예시도
+   한 벌뿐이라 결혼운에서도 연애 예시가 보입니다.
+
+   ── 무엇을 하나 ───────────────────────────────────────
+   주소에 topic 을 실어 오면 그 주제로 못 박습니다.
+
+     /door-love/?topic=결혼운      (marriage 처럼 영문도 됩니다)
+
+       · 그 주제 단추를 골라 둠                              (4)
+       · 「무엇이 궁금하세요?」 자리를 통째로 감춤            (5)
+       · 미리보기가 「하은이의 결혼운」으로 바뀜              (2)
+       · 「지금의 관계」 예시가 결혼운 예시로 바뀜            (새로)
+
+   주소에 topic 이 없으면 (위 메뉴로 들어온 길) 고르는 자리는
+   그대로 있고, 주제를 바꿀 때마다 예시와 미리보기가 따라 바뀝니다.
+
+   ── 주제마다 예시 ─────────────────────────────────────
+     연애운  3년째 연애 중 / 만나는 사람은 없어요
+     재회운  헤어진 지 두 달 / 아직 연락은 해요
+     결혼운  3년 만난 사람이 있어요 / 결혼 5년차예요
+     이별운  마음이 식었어요 / 정리해야 하나 싶어요
+     짝사랑  6개월째 짝사랑 중이에요 / 상대는 몰라요
+     궁합    만난 지 1년 / 결혼 얘기 중이에요
+
+   ★ 결혼운은 기혼과 미혼이 같이 오는 자리라 예시에 둘 다 비칩니다.
+     그래야 결혼하신 분이 「나는 여기 쓸 말이 없네」 하고 안 나갑니다.
+     그리고 결혼운에서는 「지금 상황」을 미리 골라두지 않습니다.
+
+   ── 안 건드리는 것 ────────────────────────────────────
+   폼도 주문 코드도 손대지 않습니다. 화면이 다 그려진 뒤에
+   고르고 · 감추고 · 글자만 바꿉니다. 끄면 그대로 돌아갑니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_topic=1
+   ② 정말 고치기 https://stellasaju.com/?stella_topic=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_topic=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_topic'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_topic_backup';
+	$MARK = 'stella-topic-0909';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_topic'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.85;'
+	   . 'padding:34px 24px;max-width:960px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.35rem;margin:0 0 18px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.88rem}a{color:#D4AF6A}li{margin:6px 0}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:11.5px/1.6 monospace;border-left:3px solid #D4AF6A}</style>';
+
+	$page = get_page_by_path( 'door-love' );
+	if ( ! $page ) { echo '<h1 class="no">door-love 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	$b  = "\n<!-- " . $MARK . " 시작 -->\n<script>\n";
+	$b .= "/* 주제를 끝까지 들고 다니기 · 2026-09-09\n";
+	$b .= "   ★ 이 안에서 홑 앰퍼샌드를 쓰지 않습니다 (사이트 규칙).\n";
+	$b .= "     주소를 만들 때만 글자 번호 38 로 붙입니다. */\n";
+	$b .= "(function(){\n";
+	$b .= "  var AMP = String.fromCharCode(38);\n";
+	$b .= "  var SLUG = 'door-love';\n";
+	$b .= "  var SAMPLE = '하은이의 ';\n";
+	$b .= "\n";
+	$b .= "  var ALIAS = {\n";
+	$b .= "    love:'연애운', romance:'연애운',\n";
+	$b .= "    reunion:'재회운', again:'재회운',\n";
+	$b .= "    marriage:'결혼운', wedding:'결혼운',\n";
+	$b .= "    breakup:'이별운', parting:'이별운',\n";
+	$b .= "    crush:'짝사랑',\n";
+	$b .= "    match:'궁합', gunghap:'궁합'\n";
+	$b .= "  };\n";
+	$b .= "\n";
+	$b .= "  var HINT = {\n";
+	$b .= "    '연애운': ['예: 3년째 연애 중 / 만나는 사람은 없어요',\n";
+	$b .= "               '예: 이 사람과 잘 되고 싶어요', '연애 중이에요'],\n";
+	$b .= "    '재회운': ['예: 헤어진 지 두 달 / 아직 연락은 해요',\n";
+	$b .= "               '예: 다시 만나고 싶어요', '헤어졌어요 · 다시 만나고 싶어요'],\n";
+	$b .= "    '결혼운': ['예: 3년 만난 사람이 있어요 / 결혼 5년차예요',\n";
+	$b .= "               '예: 이 사람과 결혼까지 가고 싶어요', ''],\n";
+	$b .= "    '이별운': ['예: 마음이 식었어요 / 정리해야 하나 싶어요',\n";
+	$b .= "               '예: 잘 정리하고 싶어요', '헤어졌어요 · 정리하고 싶어요'],\n";
+	$b .= "    '짝사랑': ['예: 6개월째 짝사랑 중이에요 / 상대는 몰라요',\n";
+	$b .= "               '예: 마음을 전해도 될지 알고 싶어요', '짝사랑 중이에요'],\n";
+	$b .= "    '궁합':   ['예: 만난 지 1년 / 결혼 얘기 중이에요',\n";
+	$b .= "               '예: 이 사람과 오래 갈 수 있을지', '']\n";
+	$b .= "  };\n";
+	$b .= "\n";
+	$b .= "  function wanted(){\n";
+	$b .= "    var t = '';\n";
+	$b .= "    try{ t = new URLSearchParams(location.search).get('topic') || ''; }catch(e){}\n";
+	$b .= "    if(!t){ return ''; }\n";
+	$b .= "    t = String(t).trim();\n";
+	$b .= "    if(ALIAS[t.toLowerCase()]){ return ALIAS[t.toLowerCase()]; }\n";
+	$b .= "    return t;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function radios(){\n";
+	$b .= "    return document.querySelectorAll('input[name=\"ssg-topic\"]');\n";
+	$b .= "  }\n";
+	$b .= "  function current(){\n";
+	$b .= "    var r = radios();\n";
+	$b .= "    for(var i = 0; i < r.length; i++){ if(r[i].checked){ return r[i].value; } }\n";
+	$b .= "    return '';\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  /* 예시 글씨와 미리보기를 지금 주제에 맞춥니다 */\n";
+	$b .= "  function dress(t){\n";
+	$b .= "    if(!t){ return; }\n";
+	$b .= "    var h = HINT[t];\n";
+	$b .= "    if(h){\n";
+	$b .= "      var job = document.getElementById('gJob');\n";
+	$b .= "      if(job){ job.placeholder = h[0]; }\n";
+	$b .= "      var want = document.getElementById('gWant');\n";
+	$b .= "      if(want){ want.placeholder = h[1]; }\n";
+	$b .= "      var yrs = document.getElementById('gYears');\n";
+	$b .= "      if(yrs){ if(!yrs.value){ if(h[2]){ yrs.value = h[2]; } } }\n";
+	$b .= "    }\n";
+	$b .= "    var a = document.querySelector('a.sample');\n";
+	$b .= "    if(a){\n";
+	$b .= "      a.href = '/reading-book/?demo=' + SLUG + AMP + 'topic=' + encodeURIComponent(t);\n";
+	$b .= "      var tt = a.querySelector('.sample-t');\n";
+	$b .= "      if(tt){ tt.textContent = '완성본 미리보기 · ' + SAMPLE + t; }\n";
+	$b .= "    }\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  /* 「무엇이 궁금하세요?」 자리를 찾습니다 */\n";
+	$b .= "  function topicSection(){\n";
+	$b .= "    var r = radios();\n";
+	$b .= "    if(!r.length){ return null; }\n";
+	$b .= "    var el = r[0];\n";
+	$b .= "    while(el){\n";
+	$b .= "      if(el.tagName === 'SECTION'){ return el; }\n";
+	$b .= "      el = el.parentNode;\n";
+	$b .= "    }\n";
+	$b .= "    return null;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  var fixed = false;\n";
+	$b .= "  function run(){\n";
+	$b .= "    var r = radios();\n";
+	$b .= "    if(!r.length){ return false; }\n";
+	$b .= "\n";
+	$b .= "    var want = wanted();\n";
+	$b .= "    if(want){\n";
+	$b .= "      if(!fixed){\n";
+	$b .= "        var hit = false;\n";
+	$b .= "        for(var i = 0; i < r.length; i++){\n";
+	$b .= "          if(r[i].value === want){ r[i].checked = true; hit = true; }\n";
+	$b .= "          else { r[i].checked = false; }\n";
+	$b .= "        }\n";
+	$b .= "        if(hit){\n";
+	$b .= "          var sec = topicSection();\n";
+	$b .= "          if(sec){ sec.style.display = 'none'; }\n";
+	$b .= "          fixed = true;\n";
+	$b .= "        }\n";
+	$b .= "      }\n";
+	$b .= "    }\n";
+	$b .= "\n";
+	$b .= "    dress(current());\n";
+	$b .= "    return true;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function start(){\n";
+	$b .= "    run();\n";
+	$b .= "    document.addEventListener('change', function(e){\n";
+	$b .= "      var t = e.target;\n";
+	$b .= "      if(!t){ return; }\n";
+	$b .= "      if(t.name !== 'ssg-topic'){ return; }\n";
+	$b .= "      dress(t.value);\n";
+	$b .= "    });\n";
+	$b .= "    var k = 0;\n";
+	$b .= "    var tick = setInterval(function(){\n";
+	$b .= "      k = k + 1;\n";
+	$b .= "      run();\n";
+	$b .= "      if(k > 24){ clearInterval(tick); }\n";
+	$b .= "    }, 400);\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  if(document.readyState === 'loading'){\n";
+	$b .= "    document.addEventListener('DOMContentLoaded', start);\n";
+	$b .= "  } else { start(); }\n";
+	$b .= "})();\n";
+	$b .= "</script>\n<!-- " . $MARK . " 끝 -->\n";
+
+	if ( false !== strpos( $b, '&' ) ) {
+		echo '<h1 class="no">앰퍼샌드가 섞여 있습니다. 넣지 않았습니다.</h1>';
+		exit;
+	}
+
+	$s   = '<!-- ' . $MARK . ' 시작 -->';
+	$e   = '<!-- ' . $MARK . ' 끝 -->';
+	$has = ( false !== strpos( $c, $s ) );
+
+	echo '<h1>' . ( 'apply' === $mode ? '고쳤습니다' : '이렇게 바꿉니다 (아직 안 고쳤습니다)' ) . '</h1>';
+	echo '<ul>'
+	   . '<li>주소에 <code>?topic=결혼운</code> 이 있으면 <b>그 주제로 못 박고</b> 고르는 자리를 감춥니다</li>'
+	   . '<li>미리보기가 <b>「하은이의 결혼운」</b>으로 바뀝니다</li>'
+	   . '<li>「지금의 관계」 예시가 <b>주제마다</b> 달라집니다</li>'
+	   . '<li>주소에 없으면 고르는 자리는 그대로. 바꿀 때마다 예시가 따라 바뀝니다</li>'
+	   . '</ul>';
+
+	$need = array( 'ssg-topic', 'gJob', 'gWant', 'gYears', 'sample-t' );
+	$t = '';
+	foreach ( $need as $k ) {
+		$n = substr_count( $c, $k );
+		$t .= str_pad( $k, 14 ) . ( $n ? $n . ' 군데' : '못 찾음  <- 위험' ) . "\n";
+	}
+	echo '<pre>' . esc_html( $t ) . '</pre>';
+
+	echo '<p class="dim">폼도 주문 코드도 손대지 않습니다. 다 그려진 뒤에 고르고 감추고 글자만 바꿉니다. '
+	   . ( $has ? '이미 들어가 있는 덩어리를 <b>새것으로 바꿉니다</b>.' : '덩어리를 쪽 맨 뒤에 <b>새로 붙입니다</b>.' )
+	   . '</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 고치시려면 <code>/?stella_topic=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+
+	if ( $has ) {
+		$a = strpos( $c, $s );
+		$z = strpos( $c, $e );
+		if ( false === $z || $z < $a ) {
+			echo '<h1 class="no">표는 찾았는데 끝을 못 찾았습니다. 아무것도 안 바꿨습니다.</h1>';
+			exit;
+		}
+		$z   = $z + strlen( $e );
+		$new = substr( $c, 0, $a ) . ltrim( $b, "\n" ) . substr( $c, $z );
+	} else {
+		$new = $c . $b;
+	}
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<p class="ok">고쳤습니다. ' . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p>이렇게 열어보세요.</p>';
+	echo '<pre>/door-love/?topic=결혼운
+/door-love/?topic=marriage
+/door-love/            (고르는 자리가 그대로 있어야 맞습니다)</pre>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_topic=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

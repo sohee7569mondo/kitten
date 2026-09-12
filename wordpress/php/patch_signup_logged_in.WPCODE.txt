@@ -1,0 +1,77 @@
+/* 로그인한 분이 문 페이지에서 가입 화면을 만났을 때.
+
+   문 페이지는 저장된 생년월일(window.STELLA_USER.birth)이 없으면 로그인
+   여부와 상관없이 /signup 을 부릅니다. 그런데 그 계정의 이메일은 이미
+   있으니 409 로 막히고 로그인 링크만 다시 갑니다 — 아무 데도 못 갑니다.
+   워드프레스로 초대만 받은 분, 심사관, 정보를 지운 회원이 모두 여기 갇힙니다.
+
+   그래서 여기서 가로채, 새로 가입시키지 않고 그 계정에 정보를 저장한 뒤
+   곧바로 주문(/order)으로 넘깁니다. 로그인 안 하신 분은 손대지 않습니다.
+
+   ⚠ 이것만으로는 작동하지 않습니다. 문 페이지의 fetch 에 X-WP-Nonce 가
+     없으면 워드프레스가 그 요청을 익명으로 보기 때문에 is_user_logged_in()
+     이 false 입니다. patch_door_nonce 를 함께 넣어야 합니다.   2026-09-01 */
+
+add_filter( 'rest_pre_dispatch', function ( $result, $server, $request ) {
+
+	if ( null !== $result ) {
+		return $result;
+	}
+	if ( '/stella/v1/signup' !== $request->get_route() ) {
+		return $result;
+	}
+	if ( ! is_user_logged_in() ) {
+		return $result;
+	}
+	if ( ! function_exists( 'stella_save_profile' ) ) {
+		return $result;
+	}
+
+	$body    = (array) $request->get_json_params();
+	$profile = isset( $body['profile'] ) ? (array) $body['profile'] : array();
+	if ( ! $profile ) {
+		return $result;
+	}
+
+	$uid = get_current_user_id();
+
+	stella_save_profile( $uid, $profile );
+
+	if ( isset( $body['work'] ) && function_exists( 'stella_save_work' ) ) {
+		stella_save_work( $uid, $body['work'] );
+	}
+
+	if ( isset( $profile['phone'] ) ) {
+		$tel = (string) $profile['phone'];
+		if ( function_exists( 'stella_pay_tidy_phone' ) ) {
+			$tel = (string) stella_pay_tidy_phone( $tel );
+		}
+		$tel = preg_replace( '/[^0-9]/', '', $tel );
+		if ( '' !== $tel ) {
+			update_user_meta( $uid, 'stella_phone', $tel );
+		}
+	}
+
+	$sub = new WP_REST_Request( 'POST', '/stella/v1/order' );
+	$sub->set_header( 'Content-Type', 'application/json' );
+	$sub->set_body( wp_json_encode( $body ) );
+
+	$res = rest_do_request( $sub );
+
+	$status = $res->get_status();
+	$data   = $res->get_data();
+	$code   = '';
+	if ( is_array( $data ) ) {
+		if ( isset( $data['code'] ) ) {
+			$code = (string) $data['code'];
+		}
+	}
+
+	/* 구슬이 모자라면 문 페이지가 알아듣는 모양으로 돌려줍니다 —
+	   그러면 화면이 결제 창으로 넘어갑니다. */
+	if ( 402 === $status || 'stella_low_orbs' === $code ) {
+		return new WP_REST_Response( array( 'ok' => true, 'paid' => false ), 200 );
+	}
+
+	return $res;
+}, 5, 3 );

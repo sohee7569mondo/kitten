@@ -1,0 +1,105 @@
+/* ════════════════════════════════════════════════════════════
+   진단 · 개인정보 안내에 「휴대폰 번호」가 적혀 있는지 봅니다
+
+   왜
+     이제 가입할 때 휴대폰 번호를 받으시니, 개인정보 처리방침의
+     「수집하는 항목」에 휴대폰 번호가 들어가 있어야 합니다.
+     지금 뭐라고 적혀 있는지부터 봐야 고칠 수 있습니다.
+
+   아무것도 바꾸지 않습니다. 보기만 합니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere → 저장 → 활성
+
+   ★ 저장 직후 먼저  https://stellasaju.com/wp-json/stella/v1/me
+   보기            https://stellasaju.com/?stella_priv=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_priv'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	echo "== 개인정보 · 약관 페이지 찾기 ==\n\n";
+
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_name, post_type, post_status, post_content
+		   FROM {$wpdb->posts}
+		  WHERE post_status IN ('publish','draft','private')
+		    AND post_type IN ('page','post')
+		    AND (
+		          post_name LIKE '%privacy%'
+		       OR post_name LIKE '%terms%'
+		       OR post_name LIKE '%policy%'
+		       OR post_title LIKE '%개인정보%'
+		       OR post_title LIKE '%약관%'
+		       OR post_content LIKE '%개인정보%'
+		    )
+		  ORDER BY ID"
+	);
+
+	if ( ! $rows ) {
+		echo "찾은 것이 없습니다.\n끝\n";
+		exit;
+	}
+
+	foreach ( $rows as $r ) {
+		printf(
+			"---- ID %d | %s | 주소 %s | %s | %d자 ----\n",
+			$r->ID,
+			$r->post_title,
+			$r->post_name,
+			$r->post_status,
+			mb_strlen( $r->post_content, 'UTF-8' )
+		);
+
+		$words = array( '휴대폰', '전화', '연락처', '이메일', '수집', '항목', '생년월일', '이름' );
+		foreach ( $words as $w ) {
+			printf( "   %s : %d번\n", $w, mb_substr_count( $r->post_content, $w ) );
+		}
+		echo "\n";
+	}
+
+	echo "\n== 「수집」 이 나오는 자리를 앞뒤로 잘라 봅니다 ==\n";
+	echo "== (글자 번호 = mb_substr 로 자를 때 쓰는 번호)   ==\n\n";
+
+	foreach ( $rows as $r ) {
+		$c   = $r->post_content;
+		$len = mb_strlen( $c, 'UTF-8' );
+		if ( mb_substr_count( $c, '수집' ) < 1 ) {
+			continue;
+		}
+		printf( "======== ID %d · %s ========\n", $r->ID, $r->post_title );
+
+		$from  = 0;
+		$count = 0;
+		while ( $count < 12 ) {
+			$pos = mb_strpos( $c, '수집', $from, 'UTF-8' );
+			if ( false === $pos ) {
+				break;
+			}
+			$s = max( 0, $pos - 160 );
+			$e = min( $len, $pos + 340 );
+			printf( "\n[글자 %d]\n", $pos );
+			echo mb_substr( $c, $s, $e - $s, 'UTF-8' ) . "\n";
+			echo "- - - - - - - - - -\n";
+			$from  = $pos + 2;
+			$count++;
+		}
+		echo "\n";
+	}
+
+	echo "\n끝\n";
+	exit;
+} );
