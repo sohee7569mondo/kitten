@@ -81,29 +81,38 @@ add_action( 'wp_head', function () {
       try{ new Function(t); }catch(err){ e2=err; }
       show('    ' + String(e2));
 
-      /* 어느 줄인지 브라우저가 알려줍니다 */
-      var ln=0, cl=0;
-      var st=String(e2 ? (e2.stack||'') : '');
-      var m=st.match(/<anonymous>:(\d+):(\d+)/);
-      if(m){ ln=parseInt(m[1],10)-2; cl=parseInt(m[2],10); }
-      var L=t.split('\n');
-      if(ln>0){
-        show('    다친 줄 ' + ln + ' / 모두 ' + L.length + '줄');
-        for(k=ln-1;k<=ln+1;k++){
-          if(k<1){ continue; }
-          if(k>L.length){ break; }
-          var row=L[k-1];
-          if(row.length>260){ row=row.slice(0,260)+'…'; }
-          show('    ' + k + '| ' + row);
+      /* ★ 이분법으로 다친 자리를 정확히 짚습니다.
+         앞에서부터 조금씩 잘라 넣어보다가, 같은 오류가
+         처음 나는 자리가 곧 다친 자리입니다. */
+      var want='regular expression';
+      var hurts=function(k){
+        try{ new Function(t.slice(0,k)); return 0; }
+        catch(e3){
+          if(String(e3.message||e3).indexOf(want)>=0){ return 1; }
+          return 0;
         }
+      };
+      if(hurts(t.length)===1){
+        var lo=0, hi=t.length, mid;
+        while(lo<hi){
+          mid=Math.floor((lo+hi)/2);
+          if(hurts(mid)===1){ hi=mid; } else { lo=mid+1; }
+        }
+        var ln2=t.slice(0,lo).split('\n').length;
+        var from=lo-200;
+        if(from<0){ from=0; }
+        show('    ★ 다친 자리 ' + lo + '번째 글자 · ' + ln2 + '줄');
+        show('    ┌ 앞 200자');
+        show('    ' + t.slice(from,lo).replace(/\n/g,' '));
+        show('    └ 뒤 60자');
+        show('    ' + t.slice(lo,lo+60).replace(/\n/g,' '));
       } else {
-        show('    줄 번호를 못 받았습니다 / 모두 ' + L.length + '줄');
+        show('    이분법으로 못 짚었습니다');
       }
 
+      show('    x26 꼴 ' + t.split('x26').length + '군데');
       show('    ┌ 머리 200자');
       show('    ' + t.slice(0,200).replace(/\n/g,' '));
-      show('    └ 꼬리 120자');
-      show('    ' + t.slice(-120).replace(/\n/g,' '));
       if(bad>=3){ return bad; }
     }
     return bad;
