@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    맺음말 앞 두 쪽 — 가벼운 판 (둘 중 하나)
-   ★ 2026-09-12 · 소희 님께      BUILD: TAIL-FETCH-7
+   ★ 2026-09-12 · 소희 님께      BUILD: TAIL-FETCH-8
 
    ── 왜 다시 만들었나 ──────────────────────────────────
    앞의 판은 글 504칸을 조각 안에 통째로 담아 책 쪽에 내보냈습니다.
@@ -63,7 +63,7 @@ add_action( 'wp_footer', function () {
 		echo '<div id="tailsayout" style="position:fixed;right:8px;bottom:8px;z-index:99999;'
 		   . 'max-width:340px;max-height:60vh;overflow:auto;background:#1d1a16;color:#f0e7d4;'
 		   . 'font:12px/1.5 monospace;padding:10px 12px;border-radius:8px;white-space:pre-wrap">'
-		   . 'A 조각이 나갔습니다 (TAIL-FETCH-7)' . "</div>\n";
+		   . 'A 조각이 나갔습니다 (TAIL-FETCH-8)' . "</div>\n";
 	}
 	echo stella_tailfetch_html();
 	echo "\n";
@@ -73,7 +73,7 @@ function stella_tailfetch_html() {
 	return <<<'STELLATAILFETCH'
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   STELLA SAJU — 맺음말 앞 두 장 (가벼운 판)   BUILD: TAIL-FETCH-7
+   STELLA SAJU — 맺음말 앞 두 장 (가벼운 판)   BUILD: TAIL-FETCH-8
    ───────────────────────────────────────────────────────────────
    글을 담고 있지 않습니다. 짝 조각에게 두 칸만 물어봅니다.
    두 글자짜리 논리기호를 쓰지 않고 if 를 겹쳐 썼습니다.
@@ -96,7 +96,7 @@ function stella_tailfetch_html() {
     if(!SAY){ return; }
     var box=document.getElementById('tailsayout');
     if(!box){ return; }
-    box.textContent='A 조각이 나갔습니다 (TAIL-FETCH-7)\n'+LOG.join('\n');
+    box.textContent='A 조각이 나갔습니다 (TAIL-FETCH-8)\n'+LOG.join('\n');
   }
 
   var ANIMAL=['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
@@ -181,42 +181,14 @@ function stella_tailfetch_html() {
            '<div class="folio"></div></div>';
   }
 
-  /* ── 폭 맞추기 ───────────────────────────────────────
-     소희 님 : 「위에 뜬 목차·PDF 단추가 있는 폭하고 본문 내용 폭하고
-     맞춰줘」. 숫자를 제가 정하지 않습니다. 책이 이미 쓰고 있는 폭을
-     재서 그대로 따라갑니다. 그래야 창 크기가 달라져도 같이 움직입니다. */
-  function bookWidth(){
-    var pages=document.getElementsByClassName('page'), i, ps, w;
-    for(i=0;i<pages.length;i++){
-      if(pages[i].getAttribute('data-part')==='tail'){ continue; }
-      ps=pages[i].getElementsByTagName('p');
-      if(!ps.length){ continue; }
-      w=ps[0].offsetWidth;
-      if(w>200){ return w; }
-    }
-    return 0;
-  }
+  /* ── 폭 ──────────────────────────────────────────────
+     ★ 2026-09-12 — 여기서 폭을 재던 것을 뺐습니다.
+     책의 첫 문단을 재어 따라가게 했더니, 좁은 문단 하나를 잡아
+     덤 쪽이 290px 로 쪼그라들었습니다. 재는 방식이 잘못이었습니다.
 
-  /* ★ 2026-09-12 소희 님 : 「전체 글의 폭을 줄여야 하는 건데
-     별자리 띠 부분이 아니고」
-     책 전체 폭은 여백 조각(patch_spacerun)이 900px 로 잡습니다.
-     여기서는 책을 그대로 따라갑니다 — 덤 두 쪽만 혼자 좁으면
-     오히려 어긋나 보이니까요. 한도는 넉넉히 둡니다. */
-  var MAXW=900;
-
-  function fitWidth(){
-    var w=bookWidth();
-    if(!w){ w=MAXW; }
-    if(w>MAXW){ w=MAXW; }
-    var boxes=document.getElementsByClassName('tailbox'), i, b;
-    for(i=0;i<boxes.length;i++){
-      b=boxes[i];
-      b.style.maxWidth=(w+60)+'px';
-      b.style.marginLeft='auto';
-      b.style.marginRight='auto';
-    }
-    say('글줄 폭을 '+w+'px 에 맞췄습니다');
-  }
+     책 전체 폭은 여백 조각(patch_spacerun)이 쪽마다 900px 로 잡습니다.
+     덤 두 쪽도 같은 「쪽」이라 그 폭을 저절로 따릅니다.
+     여기서는 아무것도 건드리지 않습니다. */
 
   function ttl(head, sub){
     if(!sub){ return head; }
@@ -365,13 +337,6 @@ function stella_tailfetch_html() {
 
     box.setAttribute('data-tail','1');
     renumber();
-    fitWidth();
-    /* 창 크기가 바뀌면 다시 맞춥니다 */
-    var wt=null;
-    window.addEventListener('resize', function(){
-      if(wt){ clearTimeout(wt); }
-      wt=setTimeout(fitWidth, 250);
-    });
     say('두 쪽을 넣었습니다 — 끝');
     return true;
   }
