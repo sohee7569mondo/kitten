@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    책 쪽은 우리가 직접 그립니다
-   ★ 2026-09-12 · 소희 님께      판 SERVE-6
+   ★ 2026-09-12 · 소희 님께      판 SERVE-7
 
    ── SERVE-5 (2026-09-12 밤) — 이번엔 시간을 잽니다 ─────
    소희 님 : 책이 열리는 데 1분쯤 걸립니다.
@@ -225,66 +225,52 @@ add_action( 'template_redirect', function () {
 	   을 다 더한 것이니까요. 뒤의 둘은 브라우저만 압니다.
 	   ★ 홑 앰퍼샌드와 두 글자 논리기호를 쓰지 않습니다 (사이트 규칙). */
 	if ( isset( $_GET['stella_time'] ) ) {
-		echo stella_serve6_watch();
+		echo stella_serve7_watch();
 	}
 
 	echo "\n</body>\n</html>";
 	exit;
 }, 5 );
 
-function stella_serve6_watch() {
+function stella_serve7_watch() {
 	return <<<'STELLAWATCH'
 <script>
-/* ══ 브라우저 쪽 시계 · SERVE-6 ═══════════════════════════
-   ★ 홑 앰퍼샌드와 두 글자 논리기호를 쓰지 않습니다 (사이트 규칙)
-   ★ 기다리는 동안에도 줄이 보입니다. 다 되면 「다 됐습니다」가 뜹니다. */
+/* ══ 브라우저 쪽 시계 · SERVE-7 ═══════════════════════════
+   ★ 두 번이나 브라우저 줄이 안 왔습니다. 그래서 이번에는
+     ① 켜지자마자 「시계 켜짐」을 찍습니다 — 이 줄이 없으면
+        이 조각이 아예 안 돈 것입니다
+     ② 쪽 수가 멎기를 기다리지 않고, 창이 다 뜨면 바로 적습니다
+     ③ 그 뒤로도 2초마다 새로 고쳐 적습니다
+   ★ 홑 앰퍼샌드와 두 글자 논리기호를 쓰지 않습니다 (사이트 규칙) */
 (function(){
   'use strict';
   var box=document.getElementById('stellatime');
   if(!box){ return; }
 
   var head=box.textContent;
+  box.textContent=head+'\n브라우저 시계 켜짐 — 잠시 뒤 채워집니다';
+
   function s(ms){ return (ms/1000).toFixed(2)+'초'; }
   function mb(b){
     if(!b){ return '모름'; }
     return (b/1048576).toFixed(2)+'MB';
   }
-  function show(t){ box.textContent=head+t; }
-
   function pages(){
     var b=document.getElementById('ssb');
     if(!b){ return 0; }
     return b.getElementsByClassName('page').length;
   }
 
-  var same=0, last=-1, tries=0;
-
-  function watch(){
-    tries+=1;
-    var n=pages();
-    if(n===last){ same+=1; }
-    else { same=0; last=n; }
-
-    show('\n브라우저 ── 아직 재는 중입니다 ─────────\n'+
-         '     지금까지 그린 쪽   '+n+'쪽\n'+
-         '     연 지               '+s(performance.now())+'\n'+
-         '     ★ 쪽 수가 멎으면 표가 채워집니다');
-
-    /* 쪽 수가 다섯 번(1.5초) 그대로면 다 그린 것으로 봅니다 */
-    if(same>=5){ if(n>0){ return done(n); } }
-    if(tries>400){ return done(n); }
-    setTimeout(watch, 300);
-  }
-
-  function done(n){
+  function write(){
     var t=null;
     try{ t=performance.getEntriesByType('navigation')[0]; }catch(e){ t=null; }
 
-    var out='\n브라우저에서 ── 다 됐습니다 ───────────\n';
+    var out='\n브라우저에서 ─────────────────────────\n';
     if(t){
       out+='     서버가 첫 글자 보낼 때까지  '+s(t.responseStart-t.startTime)+'\n';
       out+='     글이 다 오는 데            '+s(t.responseEnd-t.responseStart)+'\n';
       out+='     읽을 수 있게 될 때까지     '+s(t.domContentLoadedEventEnd-t.startTime)+'\n';
+      out+='     창이 다 뜰 때까지         '+s(t.loadEventEnd-t.startTime)+'\n';
       out+='     오간 글의 크기            '+mb(t.encodedBodySize)+'\n';
       out+='     펼친 글의 크기            '+mb(t.decodedBodySize)+'\n';
       var zip='안 눌러 보냈습니다';
@@ -294,13 +280,25 @@ function stella_serve6_watch() {
         }
       }
       out+='     눌러 보내기               '+zip+'\n';
+    } else {
+      out+='     (이 브라우저는 시간을 안 알려줍니다)\n';
     }
-    out+='     책이 다 그려질 때까지     '+s(performance.now())+'\n';
-    out+='     그린 쪽                   '+n+'쪽';
-    show(out);
+    out+='     지금까지                  '+s(performance.now())+'\n';
+    out+='     그린 쪽                   '+pages()+'쪽\n';
+    out+='     ★ 쪽 수가 더 안 늘면 다 그린 것입니다';
+    box.textContent=head+out;
   }
 
-  setTimeout(watch, 400);
+  /* 창이 다 뜨면 바로 한 번, 그 뒤로 2초마다 스무 번 더 */
+  var n=0;
+  function tick(){
+    n+=1;
+    try{ write(); }catch(e){ box.textContent=head+'\n브라우저 시계가 탈났습니다 : '+e; return; }
+    if(n>20){ return; }
+    setTimeout(tick, 2000);
+  }
+  if(document.readyState==='complete'){ setTimeout(tick, 300); }
+  else { window.addEventListener('load', function(){ setTimeout(tick, 300); }); }
 })();
 </script>
 STELLAWATCH;
