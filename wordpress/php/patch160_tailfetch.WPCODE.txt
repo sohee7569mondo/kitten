@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    맺음말 앞 두 쪽 — 가벼운 판 (둘 중 하나)
-   ★ 2026-09-12 · 소희 님께      BUILD: TAIL-FETCH-4
+   ★ 2026-09-12 · 소희 님께      BUILD: TAIL-FETCH-5
 
    ── 왜 다시 만들었나 ──────────────────────────────────
    앞의 판은 글 504칸을 조각 안에 통째로 담아 책 쪽에 내보냈습니다.
@@ -63,7 +63,7 @@ add_action( 'wp_footer', function () {
 		echo '<div id="tailsayout" style="position:fixed;right:8px;bottom:8px;z-index:99999;'
 		   . 'max-width:340px;max-height:60vh;overflow:auto;background:#1d1a16;color:#f0e7d4;'
 		   . 'font:12px/1.5 monospace;padding:10px 12px;border-radius:8px;white-space:pre-wrap">'
-		   . 'A 조각이 나갔습니다 (TAIL-FETCH-2)' . "</div>\n";
+		   . 'A 조각이 나갔습니다 (TAIL-FETCH-5)' . "</div>\n";
 	}
 	echo stella_tailfetch_html();
 	echo "\n";
@@ -73,7 +73,7 @@ function stella_tailfetch_html() {
 	return <<<'STELLATAILFETCH'
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   STELLA SAJU — 맺음말 앞 두 장 (가벼운 판)   BUILD: TAIL-FETCH-4
+   STELLA SAJU — 맺음말 앞 두 장 (가벼운 판)   BUILD: TAIL-FETCH-5
    ───────────────────────────────────────────────────────────────
    글을 담고 있지 않습니다. 짝 조각에게 두 칸만 물어봅니다.
    두 글자짜리 논리기호를 쓰지 않고 if 를 겹쳐 썼습니다.
@@ -96,7 +96,7 @@ function stella_tailfetch_html() {
     if(!SAY){ return; }
     var box=document.getElementById('tailsayout');
     if(!box){ return; }
-    box.textContent='A 조각이 나갔습니다 (TAIL-FETCH-2)\n'+LOG.join('\n');
+    box.textContent='A 조각이 나갔습니다 (TAIL-FETCH-5)\n'+LOG.join('\n');
   }
 
   var ANIMAL=['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
@@ -406,9 +406,10 @@ function stella_tailfetch_html() {
   border-radius:999px; padding:7px 18px;
 }
 #ssb .tailbox .eyebrow{ letter-spacing:.08em; margin-top:0; }
-/* 그림 — 상자 맨 위, 가운데. 그림에 이미 금색 테두리가 있어
-   덧테두리는 두르지 않습니다. */
-#ssb .tailbox .tailpic{ margin:18px 0 24px; text-align:center; }
+/* 그림 — 상자 맨 위, ★ 왼쪽 맞춤 (2026-09-12 · 소희 님).
+   글이 왼쪽에서 시작하니 그림도 같은 선에서 시작합니다.
+   그림에 이미 금색 테두리가 있어 덧테두리는 두르지 않습니다. */
+#ssb .tailbox .tailpic{ margin:18px 0 24px; text-align:left; }
 #ssb .tailbox .tailpic img{
   width:210px; max-width:64%; height:auto;
   display:inline-block; border-radius:6px;
