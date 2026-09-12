@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    맺음말 앞 두 쪽 — 가벼운 판 (둘 중 하나)
-   ★ 2026-09-12 · 소희 님께      BUILD: TAIL-FETCH-8
+   ★ 2026-09-12 · 소희 님께      BUILD: TAIL-FETCH-9
 
    ── 왜 다시 만들었나 ──────────────────────────────────
    앞의 판은 글 504칸을 조각 안에 통째로 담아 책 쪽에 내보냈습니다.
@@ -29,6 +29,22 @@
    ③ 이 조각 A 를 새로 만들고 Active
      A 만 있으면 두 쪽이 안 나옵니다. B 만 있으면 아무 일도 없습니다.
      둘 다 Active 여야 합니다.
+
+   ── 2026-09-12 · 목차에도 두 줄 ───────────────────────
+   소희 님 : 「덤으로 드리는 이야기가 목차에 빠졌어」
+
+   목차는 두 군데 있습니다.
+       표지 뒤 「차 례」 쪽      인쇄하실 때 같이 나갑니다
+       맨 위 띠의 「목차」 단추   읽는 중에 건너뛰는 용도
+
+   둘 다 「책이 다 그려진 뒤에 그 책을 읽어서」 만듭니다.
+   그리고 한 번만 만듭니다. 덤 두 쪽은 그보다 늦게 들어가니
+   목록에 안 들어갑니다. 쪽번호도 두 칸씩 어긋납니다.
+
+   그래서 두 쪽을 넣은 뒤에 두 목록을 다시 읽습니다.
+   쪽번호를 먼저 다시 세고, 그 번호를 그대로 가져갑니다.
+   목록에 들 이름은 쪽마다 적어 둡니다 — data-toc 입니다.
+   제목(h2)을 쓰면 「올해 연애운은 어떤가요?」가 들어가니까요.
 
    ── 안 보일 때 ────────────────────────────────────────
    책 주소 뒤에 표시를 붙이면 어디서 멈췄는지 글자로 보여줍니다.
@@ -63,7 +79,7 @@ add_action( 'wp_footer', function () {
 		echo '<div id="tailsayout" style="position:fixed;right:8px;bottom:8px;z-index:99999;'
 		   . 'max-width:340px;max-height:60vh;overflow:auto;background:#1d1a16;color:#f0e7d4;'
 		   . 'font:12px/1.5 monospace;padding:10px 12px;border-radius:8px;white-space:pre-wrap">'
-		   . 'A 조각이 나갔습니다 (TAIL-FETCH-8)' . "</div>\n";
+		   . 'A 조각이 나갔습니다 (TAIL-FETCH-9)' . "</div>\n";
 	}
 	echo stella_tailfetch_html();
 	echo "\n";
@@ -73,7 +89,7 @@ function stella_tailfetch_html() {
 	return <<<'STELLATAILFETCH'
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   STELLA SAJU — 맺음말 앞 두 장 (가벼운 판)   BUILD: TAIL-FETCH-8
+   STELLA SAJU — 맺음말 앞 두 장 (가벼운 판)   BUILD: TAIL-FETCH-9
    ───────────────────────────────────────────────────────────────
    글을 담고 있지 않습니다. 짝 조각에게 두 칸만 물어봅니다.
    두 글자짜리 논리기호를 쓰지 않고 if 를 겹쳐 썼습니다.
@@ -96,7 +112,7 @@ function stella_tailfetch_html() {
     if(!SAY){ return; }
     var box=document.getElementById('tailsayout');
     if(!box){ return; }
-    box.textContent='A 조각이 나갔습니다 (TAIL-FETCH-8)\n'+LOG.join('\n');
+    box.textContent='A 조각이 나갔습니다 (TAIL-FETCH-9)\n'+LOG.join('\n');
   }
 
   var ANIMAL=['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
@@ -143,6 +159,183 @@ function stella_tailfetch_html() {
     if(bkN){ bkN.textContent=n+'쪽'; }
   }
 
+  /* ══ 목차에도 두 줄 ═══════════════════════════════════
+     차례는 두 군데 있습니다. 둘 다 「책을 읽어서」 만들고
+     한 번만 만듭니다 — 덤 두 쪽이 들어오기 전에요.
+     그래서 두 쪽을 넣은 뒤에 두 목록을 다시 읽습니다.
+
+       ① 표지 뒤 「차 례」 쪽   #ssTocPage .tocp-list
+       ② 맨 위 띠 「목차」 단추  .tocback .toclist
+
+     지우고 새로 쓰는 것이 아니라, 지금 책을 그대로 다시 읽습니다.
+     그러니 덤 두 쪽도, 맨 뒤로 보낸 근거 묶음도 저절로 맞습니다.
+     ★ 홑 앰퍼샌드를 쓰지 않습니다 — 글자는 textContent 로만. */
+
+  var TOCP=0, TOCB=0;
+
+  function trim(t){ return String(t).replace(/^\s+/,'').replace(/\s+$/,''); }
+
+  function folio(pg){
+    var f=pg.getElementsByClassName('folio')[0];
+    if(!f){ return ''; }
+    return trim(f.textContent);
+  }
+
+  /* 이 쪽이 목차에서 어떤 줄이 되는가.
+       data-toc 이 있으면 그것       ← 덤 두 쪽
+       속표지(.dvno)면 굵은 줄
+       제목(h2)이면 들여쓴 줄
+       눈썹줄(.eyebrow)이면 들여쓴 줄 */
+  function tocLabel(pg, withCover){
+    var t=pg.getAttribute('data-toc');
+    if(t){ return { head:'', txt:t, ch:false }; }
+    var dv=pg.getElementsByClassName('dvno')[0];
+    var h2=pg.getElementsByTagName('h2')[0];
+    var ht='';
+    if(h2){ ht=trim(h2.textContent); }
+    if(dv){ return { head:trim(dv.textContent), txt:ht, ch:true }; }
+    if(ht){ return { head:'', txt:ht, ch:false }; }
+    if(withCover){
+      if(pg.getElementsByTagName('h1')[0]){ return { head:'', txt:'표지', ch:true }; }
+    }
+    var ey=pg.getElementsByClassName('eyebrow')[0];
+    if(ey){ return { head:'', txt:trim(ey.textContent), ch:false }; }
+    return null;
+  }
+
+  function coverOf(box){
+    var c=box.querySelector('.page.cover');
+    if(c){ return c; }
+    var pages=box.getElementsByClassName('page'), i;
+    for(i=0;i<pages.length;i++){
+      if(pages[i].getElementsByTagName('h1')[0]){ return pages[i]; }
+    }
+    return null;
+  }
+
+  /* ── ① 표지 뒤 「차 례」 쪽 ── */
+  function tocpLine(L, no){
+    var d=document.createElement('div');
+    d.className = L.ch ? 'tocp-ch' : 'tocp-sub';
+
+    var t=document.createElement('span');
+    t.className='t';
+    if(L.head){
+      var b=document.createElement('b');
+      b.textContent=L.head;
+      t.appendChild(b);
+      t.appendChild(document.createTextNode(' '+L.txt));
+    } else {
+      t.textContent=L.txt;
+    }
+
+    var dot=document.createElement('i');
+    dot.className='d';
+
+    var n=document.createElement('span');
+    n.className='n';
+    n.textContent=no;
+
+    d.appendChild(t); d.appendChild(dot); d.appendChild(n);
+    return d;
+  }
+
+  function tocpFix(){
+    var pg=document.getElementById('ssTocPage');
+    if(!pg){ return false; }
+    var list=pg.getElementsByClassName('tocp-list')[0];
+    if(!list){ return false; }
+    var box=document.getElementById('ssb');
+    if(!box){ return false; }
+
+    /* 차례 쪽이 우리보다 늦게 들어왔을 수 있으니 번호부터 다시 셉니다. */
+    renumber();
+
+    var pages=[].slice.call(box.getElementsByClassName('page'));
+    var cover=coverOf(box);
+    var hold=document.createDocumentFragment(), made=0, i, L;
+    for(i=0;i<pages.length;i++){
+      if(pages[i]===pg){ continue; }
+      if(pages[i]===cover){ continue; }
+      L=tocLabel(pages[i], 0);
+      if(!L){ continue; }
+      hold.appendChild(tocpLine(L, folio(pages[i])));
+      made+=1;
+    }
+    if(made<4){ return false; }
+
+    list.textContent='';
+    list.appendChild(hold);
+    return true;
+  }
+
+  /* ── ② 맨 위 띠 「목차」 단추 ── */
+  function paneFix(){
+    var back=document.getElementsByClassName('tocback')[0];
+    if(!back){ return false; }
+    var list=back.getElementsByClassName('toclist')[0];
+    if(!list){ return false; }
+    var box=document.getElementById('ssb');
+    if(!box){ return false; }
+
+    var pages=[].slice.call(box.getElementsByClassName('page'));
+    var hold=document.createDocumentFragment(), made=0, i, L, b, sn, st, txt;
+    for(i=0;i<pages.length;i++){
+      L=tocLabel(pages[i], 1);
+      if(!L){ continue; }
+
+      b=document.createElement('button');
+      b.type='button';
+      b.className = L.ch ? 'ch' : 'sub';
+      b.setAttribute('data-i', i);
+
+      sn=document.createElement('span');
+      sn.className='no';
+      sn.textContent=folio(pages[i]);
+
+      txt=L.txt;
+      if(L.head){
+        txt=L.head;
+        if(L.txt){ txt=L.head+' · '+L.txt; }
+      }
+      st=document.createElement('span');
+      st.textContent=txt;
+
+      b.appendChild(sn); b.appendChild(st);
+      (function(target){
+        b.addEventListener('click', function(){
+          back.classList.remove('on');
+          target.scrollIntoView({ behavior:'smooth', block:'start' });
+        });
+      })(pages[i]);
+
+      hold.appendChild(b);
+      made+=1;
+    }
+    if(made<4){ return false; }
+
+    list.textContent='';
+    list.appendChild(hold);
+
+    var hd=back.getElementsByClassName('tochead')[0];
+    if(hd){
+      var sp=hd.getElementsByTagName('span')[0];
+      if(sp){ sp.textContent=pages.length+'쪽'; }
+    }
+    return true;
+  }
+
+  /* 두 목록이 아직 안 만들어졌을 수 있습니다. 생길 때까지 기다립니다. */
+  var tocTries=0;
+  function tocTick(){
+    tocTries+=1;
+    if(!TOCP){ try{ if(tocpFix()){ TOCP=1; say('차례 쪽을 다시 읽었습니다'); } }catch(e){ TOCP=2; } }
+    if(!TOCB){ try{ if(paneFix()){ TOCB=1; say('목차 단추를 다시 읽었습니다'); } }catch(e){ TOCB=2; } }
+    if(TOCP){ if(TOCB){ return; } }
+    if(tocTries>60){ say('차례를 다 못 고쳤습니다 — 차례쪽 '+TOCP+' · 목차단추 '+TOCB); return; }
+    setTimeout(tocTick, 400);
+  }
+
   /* ══ 그림 스물넷 ══════════════════════════════════════
      소희 님이 별자리 열둘, 띠 열둘을 그려 올리셨습니다.
      올리실 때 이름에 .webp 가 들어가고 실제 파일은 png/jpg 라
@@ -175,8 +368,10 @@ function stella_tailfetch_html() {
     return pic('ji-'+e+'.webp.jpg', animal);
   }
 
-  function sheet(html){
-    return '<div class="page" data-part="tail">'+
+  function sheet(html, tocname){
+    /* data-toc — 목차에 들어갈 이름입니다. 제목(h2)은 질문이라
+       목차에 그대로 넣으면 「올해 연애운은…」이 됩니다. */
+    return '<div class="page" data-part="tail" data-toc="'+tocname+'">'+
            '<div class="tailbox">'+html+'</div>'+
            '<div class="folio"></div></div>';
   }
@@ -213,7 +408,7 @@ function stella_tailfetch_html() {
         '<p class="dek">여덟 글자로 보신 것을 하늘로 한 번 더 겹쳐 봅니다. '+
         '여기서는 누구나 아는 태양 자리로만 봅니다</p>'+
         '<h3>'+ttl(sign, d.zo[0])+'</h3>'+
-        d.zo[1]));
+        d.zo[1], '별자리로 다시 보면'));
     }
 
     /* 둘 · 띠 */
@@ -226,7 +421,8 @@ function stella_tailfetch_html() {
         '어릴 때부터 알고 계셨던 그 한 글자가 사실은 사주의 첫 칸이에요</p>'+
         d.dd[1]+
         '<p class="mini">앞에서 본 여덟 글자가 세밀한 결이라면, 띠는 그 아래 깔린 바탕색입니다. '+
-        '겹치는 데가 있다면 그 자리가 그만큼 분명하다는 뜻입니다.</p>'));
+        '겹치는 데가 있다면 그 자리가 그만큼 분명하다는 뜻입니다.</p>',
+        '태어난 띠로 다시 보면'));
     }
     return made;
   }
@@ -337,7 +533,8 @@ function stella_tailfetch_html() {
 
     box.setAttribute('data-tail','1');
     renumber();
-    say('두 쪽을 넣었습니다 — 끝');
+    say('두 쪽을 넣었습니다');
+    setTimeout(tocTick, 200);
     return true;
   }
 
