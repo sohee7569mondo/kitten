@@ -72,13 +72,13 @@ add_action( 'template_redirect', function () {
 
 	$c    = (string) $wpdb->get_var( $wpdb->prepare(
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
-	$MARK = 'BUILD: TAIL-1';
+	$MARK = 'BUILD: TAIL-2';
 
 	$BLOCK = <<<'STELLATAIL'
 <!-- wp:html -->
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   STELLA SAJU — 맺음말 앞 두 장      BUILD: TAIL-1      2026-09-12
+   STELLA SAJU — 맺음말 앞 두 장      BUILD: TAIL-2      2026-09-12
    ───────────────────────────────────────────────────────────────
    모든 권의 맺음말 앞에 두 쪽을 넣습니다.
      하나 · 별자리로 다시 보면   (태양 자리)
@@ -204,42 +204,41 @@ add_action( 'template_redirect', function () {
 
   function build(topic, sign, animal){
     var made=[], zo=ZO[topic], dd=DD[topic];
-    var zc=null, dc=null;
-    if(zo){ if(zo.c){ zc=zo.c[sign]; } }
+    var zc=null, dc=null, zlong=0;
+    if(zo){ if(zo.c){ zc=zo.c[sign]; } if(zo.long){ zlong=1; } }
     if(dd){ dc=dd[animal]; }
 
-    /* 연애운·결혼운 — 별자리 글이 길어서 쪽을 따로 씁니다 */
-    if(zo){ if(zo.long){ if(zc){
+    var badge='<p class="bonus">덤으로 드리는 두 쪽</p>';
+
+    /* 하나 · 별자리 */
+    if(zc){
+      var zbody;
+      if(zlong){ zbody='<h3>'+sign+' · '+zc[0]+'</h3>'+zc[1]; }
+      else {
+        zbody='<h3>'+sign+'</h3><p>'+zc+'</p>';
+        if(zo.z){ zbody+=zo.z; }
+      }
       made.push(sheet(
+        badge+
         '<p class="eyebrow">별자리로 다시 보면</p>'+
         '<h2>'+zo.q+'</h2>'+
-        '<p class="dek">여기서는 누구나 아는 태양 자리로만 봅니다. '+
-        '달과 금성과 화성까지 겹쳐 보는 것은 별을 읽는 아라가 합니다</p>'+
-        '<h3>'+sign+' · '+zc[0]+'</h3>'+zc[1]));
-      if(dc){
-        made.push(sheet(
-          '<p class="eyebrow">띠로 보면</p>'+
-          '<h2>'+animal+' · '+dc[0]+'</h2>'+
-          '<p class="dek">여덟 글자의 맨 앞 글자가 곧 띠입니다. '+
-          '어릴 때부터 알고 계셨던 그 한 글자가 사실은 사주의 첫 칸이에요</p>'+
-          dc[1]));
-      }
-      return made;
-    } } }
+        '<p class="dek">여덟 글자로 보신 것을 하늘로 한 번 더 겹쳐 봅니다. '+
+        '여기서는 누구나 아는 태양 자리로만 봅니다</p>'+
+        zbody));
+    }
 
-    /* 나머지 — 하늘과 땅을 한 쪽에 나란히 놓습니다 */
-    var body='';
-    if(zc){ body+='<h3>하늘로 보면 · '+sign+'</h3><p>'+zc+'</p>'; }
-    if(dc){ body+='<h3>땅으로 보면 · '+animal+' · '+dc[0]+'</h3>'+dc[1]; }
-    if(!body){ return made; }
-    var tail='';
-    if(zo){ if(zo.z){ tail=zo.z; } }
-    made.push(sheet(
-      '<p class="eyebrow">다시 보면</p>'+
-      '<h2>'+(zo ? zo.q : '별자리와 띠로 보면')+'</h2>'+
-      '<p class="dek">여덟 글자로 보신 것을 두 눈으로 한 번 더 겹쳐 봅니다. '+
-      '같은 말을 하는 자리가 있다면 그만큼 분명하다는 뜻입니다</p>'+
-      body+tail));
+    /* 둘 · 띠 */
+    if(dc){
+      made.push(sheet(
+        badge+
+        '<p class="eyebrow">띠로 보면</p>'+
+        '<h2>'+animal+' · '+dc[0]+'</h2>'+
+        '<p class="dek">여덟 글자의 맨 앞 글자가 곧 띠입니다. '+
+        '어릴 때부터 알고 계셨던 그 한 글자가 사실은 사주의 첫 칸이에요</p>'+
+        dc[1]+
+        '<p class="mini">앞에서 본 여덟 글자가 세밀한 결이라면, 띠는 그 아래 깔린 바탕색입니다. '+
+        '겹치는 데가 있다면 그 자리가 그만큼 분명하다는 뜻입니다.</p>'));
+    }
     return made;
   }
 
@@ -309,20 +308,50 @@ add_action( 'template_redirect', function () {
 })();
 </script>
 <style>
-.page[data-part="tail"] h3{ margin-top:0 }
-.page[data-part="tail"] .cl{ border-top:1px solid rgba(0,0,0,.12); padding-top:.9em; margin-top:1.2em }
-.page[data-part="tail"] .mine{ background:rgba(180,140,60,.14); padding:.05em .1em }
+/* ── 덤으로 드리는 두 쪽 ── 사주 본문(금색)·더 깊이(보라)와 다른 세 번째 색 */
+#ssb .page[data-part="tail"]::before{ background:#5FB0A6; }
+#ssb .page[data-part="tail"]{
+  background:linear-gradient(180deg, rgba(95,176,166,.075), rgba(95,176,166,.018) 220px, transparent 560px);
+  border-color:rgba(95,176,166,.26);
+}
+#ssb .page[data-part="tail"] .eyebrow{ color:#7FC4BA; }
+#ssb .page[data-part="tail"] h3{ color:#8FCFC5; margin-top:1.6em; }
+#ssb .page[data-part="tail"] .bonus{
+  display:inline-block; margin:0 0 22px;
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.22em;
+  color:#5FB0A6; border:1px solid rgba(95,176,166,.4);
+  border-radius:999px; padding:5px 13px;
+}
+#ssb .page[data-part="tail"] .cl{
+  border-top:1px solid rgba(95,176,166,.24);
+  padding-top:1.1em; margin-top:1.6em;
+}
+#ssb .page[data-part="tail"] .mini{
+  color:var(--dim); font-size:.82rem; margin-top:2em;
+  border-left:2px solid rgba(95,176,166,.3); padding-left:14px;
+}
+@media(max-width:640px){
+  #ssb .page[data-part="tail"]{ background:linear-gradient(180deg, rgba(95,176,166,.09), transparent 320px); }
+}
 </style>
 <!-- /wp:html -->
 STELLATAIL;
 
 	if ( 'preview' === $mode ) {
 		$has = ( strpos( $c, $MARK ) !== false );
-		echo "═══ 맺음말 앞 두 장 ═══\n";
+		echo "═══ 맺음말 앞 두 장 (TAIL-2) ═══\n";
 		echo '쪽 160 · ' . number_format( mb_strlen( $c ) ) . "글자\n\n";
-		if ( $has ) { echo "이미 붙어 있습니다.\n되돌리려면 ?stella_tail=undo\n"; exit; }
+		if ( $has ) { echo "이미 붙어 있습니다.\n먼저 ?stella_tail=undo 로 되돌린 뒤 다시 붙이세요.\n"; exit; }
+		if ( strpos( $c, 'BUILD: TAIL-1' ) !== false ) {
+			echo "★ 먼저 판(TAIL-1)이 붙어 있습니다.\n";
+			echo "?stella_tail=undo 로 되돌린 뒤 이 판을 붙이세요.\n\n";
+		}
 		echo '넣을 조각 ' . number_format( mb_strlen( $BLOCK ) ) . "글자\n";
 		echo "앰퍼샌드 " . substr_count( $BLOCK, '&' ) . "개\n\n";
+		echo "이 판에서 달라진 것\n";
+		echo "  · 별자리와 띠를 두 쪽으로 나눴습니다\n";
+		echo "  · 덤이라는 것이 보이게 청록으로 색을 줬습니다\n";
+		echo "  · 쪽 머리에 「덤으로 드리는 두 쪽」 표를 붙였습니다\n\n";
 		echo "붙이려면 ?stella_tail=apply\n";
 		exit;
 	}
@@ -341,6 +370,6 @@ STELLATAIL;
 
 	echo "붙였습니다.\n";
 	echo '쪽 160 · ' . number_format( mb_strlen( $new ) ) . "글자\n\n";
-	echo "책을 열어 맺음말 앞을 보세요.\n되돌리려면 ?stella_tail=undo\n";
+	echo "책을 열어 맺음말 앞을 보세요. 청록으로 표시된 두 쪽입니다.\n되돌리려면 ?stella_tail=undo\n";
 	exit;
 }, 1 );
