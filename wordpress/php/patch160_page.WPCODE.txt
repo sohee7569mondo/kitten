@@ -1,0 +1,119 @@
+/* ══════════════════════════════════════════════════════════
+   쪽이 어떻게 왔는지 잽니다
+   ★ 2026-09-12 · 소희 님께      BUILD: PAGE-1
+
+   ── 왜 ────────────────────────────────────────────────
+   책 쪽이 하얗습니다. 본문은 1,334,526자로 멀쩡한데
+   화면에는 ssb 칸도 계산기도 풀이말도 없습니다.
+   그러면 물어볼 것은 하나입니다 — 글이 몇 자나 왔나.
+
+       다 왔는데 안 그려진다   → 자바스크립트가 넘어진 것
+       오다가 끊겼다           → 서버가 내보내다 멈춘 것
+
+   이 둘은 고치는 법이 아주 다릅니다. 그래서 먼저 잽니다.
+
+   ── 무엇을 보여주나 ───────────────────────────────────
+   · 서버가 내보낸 글자 수        (PHP 가 세어 적어둡니다)
+   · 브라우저가 받은 글자 수      (화면에서 세어봅니다)
+   · script 덩어리 개수
+   · ssb 칸 · 계산기 · 풀이말 · 주문
+   · ★ 맨 끝 300자 — 끊겼다면 여기가 문장 한가운데서 멈춰 있습니다
+   · 넘어진 말 세 개까지 (자료 덩어리는 빼고 셉니다)
+
+   보기 : https://stellasaju.com/reading-book/?stella_page=1
+
+   ★ 표시를 안 붙이면 한 글자도 안 나옵니다. 손님에게는 안 보입니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+if ( ! function_exists( 'stella_page_probe' ) ) {
+
+/* ① 오류를 일찍부터 받아 적습니다 — 머리말에 먼저 넣습니다 */
+add_action( 'wp_head', function () {
+	if ( ! isset( $_GET['stella_page'] ) ) { return; }
+	echo "\n<script>\n";
+	echo "window.STELLAPAGE={err:[],t0:Date.now()};\n";
+	echo "window.addEventListener('error',function(e){\n";
+	echo "  var m=String(e.message);\n";
+	echo "  if(window.STELLAPAGE.err.length<6){ window.STELLAPAGE.err.push(m); }\n";
+	echo "});\n";
+	echo "</script>\n";
+}, 1 );
+
+/* ② 바닥글에서 재어 보여줍니다 */
+add_action( 'wp_footer', function () {
+	if ( ! isset( $_GET['stella_page'] ) ) { return; }
+	echo "\n";
+	echo stella_page_probe();
+	echo "\n";
+}, 99 );
+
+function stella_page_probe() {
+	$sent = 0;
+	$p = get_post();
+	if ( $p ) {
+		global $wpdb;
+		$sent = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT CHAR_LENGTH( post_content ) FROM {$wpdb->posts} WHERE ID = %d", (int) $p->ID ) );
+	}
+	$css = 'position:fixed;left:8px;bottom:8px;z-index:99999;max-width:min(560px,92vw);'
+	     . 'max-height:70vh;overflow:auto;background:#1d1a16;color:#f0e7d4;'
+	     . 'font:12px/1.6 monospace;padding:12px 14px;border-radius:8px;white-space:pre-wrap';
+
+	$out  = "\n<div id=\"stellapagebox\" style=\"{$css}\">재는 중…</div>\n";
+	$out .= "<script>\n";
+	$out .= "(function(){\n";
+	$out .= "  var SENT=" . $sent . ";\n";
+	$out .= <<<'PAGEJS'
+  function draw(){
+    var box=document.getElementById('stellapagebox');
+    if(!box){ return; }
+    var html=document.documentElement.innerHTML;
+    var got=html.length;
+    var scripts=document.getElementsByTagName('script');
+    var js=0, data=0, i, t;
+    for(i=0;i<scripts.length;i++){
+      t=scripts[i].getAttribute('type');
+      if(!t){ js+=1; continue; }
+      if(t.indexOf('json')>=0){ data+=1; continue; }
+      js+=1;
+    }
+    var L=[];
+    L.push('═══ 쪽이 어떻게 왔나 ═══');
+    L.push('본문(서버가 가진 것) : '+SENT.toLocaleString()+'자');
+    L.push('화면이 가진 것       : '+got.toLocaleString()+'자');
+    if(got < SENT){ L.push('★ 화면이 더 적습니다 — 오다가 끊긴 것으로 보입니다'); }
+    else { L.push('★ 글은 다 왔습니다 — 그리는 중에 넘어진 것입니다'); }
+    L.push('');
+    L.push('script 덩어리 : '+js+'개 (자료 '+data+'개는 뺀 수)');
+    L.push('ssb 칸    : '+(document.getElementById('ssb')?'있음':'★ 없음'));
+    var pages=document.getElementsByClassName('page');
+    L.push('그려진 쪽 : '+pages.length+'개');
+    L.push('계산기    : '+(window.StellaSaju?'있음':'★ 없음'));
+    L.push('풀이말    : '+(window.StellaRead?'있음':'★ 없음'));
+    var od=null;
+    try{ od=localStorage.getItem('stella_demo'); }catch(e){ od=null; }
+    L.push('주문      : '+(od?(od.length+'자'):'★ 없음'));
+    L.push('');
+    var E=window.STELLAPAGE;
+    if(E){ if(E.err.length){
+      L.push('넘어진 말 :');
+      for(i=0;i<E.err.length;i++){ if(i<3){ L.push('  '+E.err[i]); } }
+      L.push('');
+    } }
+    L.push('┌ 맨 끝 300자 ─────────────');
+    L.push(html.slice(-300));
+    L.push('└──────────────────────────');
+    box.textContent=L.join('\n');
+  }
+  setTimeout(draw, 1200);
+  setTimeout(draw, 4000);
+})();
+PAGEJS;
+	$out .= "\n</script>\n";
+	return $out;
+}
+
+}
