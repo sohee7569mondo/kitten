@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    종이에 찍히는 책 — 인쇄 전용      ★ 2026-09-12 · 소희 님께
-                                     판 PRINT-1
+                                     판 PRINT-2
 
    소희 님 : 「인쇄용 글은 완전 구린듯…. 이쁘게 만들 방법이 있을까?」
              「글씨 크기를 조금 다르게 한다든지, 배경을 그냥 하얀색으로,
@@ -21,8 +21,9 @@
    종이에서만 듣는 규칙을 따로 적습니다. 화면은 한 글자도 안 바뀝니다.
 
        종이       흰 바탕 · 검은 글씨 · 장식 막대 없음
-       여백       위아래 15·16mm, 좌우 14mm (A4·Letter 둘 다)
-       글씨       본문 10.5pt · 제목 15pt · 표 9.6pt
+       여백       위아래 18mm, 좌우 20mm (A4·Letter 둘 다)
+       글씨       본문 10pt · 제목 14pt · 표 9pt
+                  일반 책이 쓰는 크기입니다 (책은 9.5~11pt)
                   화면은 픽셀, 종이는 포인트로 잽니다
        글자리     종이의 글 자리를 끝까지 씁니다
        차례       인쇄에서도 폭을 다 쓰고 글씨를 키웁니다
@@ -49,23 +50,23 @@
    ── 들어갔는지 확인 ───────────────────────────────────
    Ctrl+U 로 소스를 열고 「인쇄 판」 을 찾으세요.
 
-       <!-- stella 인쇄 판 PRINT-1 -->
+       <!-- stella 인쇄 판 PRINT-2 -->
    ══════════════════════════════════════════════════════════ */
 
-if ( ! function_exists( 'stella_print1_css' ) ) {
+if ( ! function_exists( 'stella_print2_css' ) ) {
 
 add_action( 'wp_footer', function () {
-	echo stella_print1_css();
+	echo stella_print2_css();
 }, 100 );
 
-function stella_print1_css() {
+function stella_print2_css() {
 
-	$out  = "\n<!-- stella 인쇄 판 PRINT-1 -->\n";
+	$out  = "\n<!-- stella 인쇄 판 PRINT-2 -->\n";
 	$out .= '<style id="stella-print" media="print">' . "\n";
 
 	/* ── 종이 한 장의 크기와 여백 ───────────────────────
 	   A4 든 Letter 든 이 여백이 그대로 듣습니다. */
-	$out .= "@page{ margin:15mm 14mm 16mm; }\n";
+	$out .= "@page{ margin:18mm 20mm; }\n";
 
 	/* ── 종이는 하얗게, 장식은 뺍니다 ───────────────────
 	   왼쪽 군청색 세로 막대(.page::before)는 화면에서만 쓰던 것입니다.
@@ -93,15 +94,15 @@ function stella_print1_css() {
 	/* ── 글씨 — 종이는 포인트로 잽니다 ──────────────────
 	   화면에서 18.5px 로 읽던 글씨는 종이에서 너무 큽니다.
 	   책에서 쓰는 크기는 10~11pt 입니다. */
-	$out .= "#ssb{ font-size:10.5pt !important; line-height:1.72 !important; }\n";
-	$out .= "#ssb p{ margin:0 0 .62em !important; orphans:3; widows:3; }\n";
-	$out .= "#ssb h2{ font-size:15pt !important; line-height:1.45 !important;\n";
-	$out .= "  margin:0 0 .5em !important; }\n";
-	$out .= "#ssb h3{ font-size:11.6pt !important; margin:1.5em 0 .45em !important; }\n";
-	$out .= "#ssb .eyebrow{ font-size:7.6pt !important; letter-spacing:.22em !important; }\n";
-	$out .= "#ssb .dek{ font-size:9.6pt !important; color:#5A5148 !important; }\n";
-	$out .= "#ssb .mini, #ssb p.mini{ font-size:8.8pt !important; color:#5A5148 !important; }\n";
-	$out .= "#ssb .lead{ font-size:11pt !important; }\n";
+	$out .= "#ssb{ font-size:10pt !important; line-height:1.62 !important; }\n";
+	$out .= "#ssb p{ margin:0 0 .55em !important; orphans:3; widows:3; }\n";
+	$out .= "#ssb h2{ font-size:14pt !important; line-height:1.42 !important;\n";
+	$out .= "  margin:0 0 .45em !important; }\n";
+	$out .= "#ssb h3{ font-size:11pt !important; margin:1.4em 0 .4em !important; }\n";
+	$out .= "#ssb .eyebrow{ font-size:7.2pt !important; letter-spacing:.22em !important; }\n";
+	$out .= "#ssb .dek{ font-size:9pt !important; color:#5A5148 !important; }\n";
+	$out .= "#ssb .mini, #ssb p.mini{ font-size:8.4pt !important; color:#5A5148 !important; }\n";
+	$out .= "#ssb .lead{ font-size:10.4pt !important; }\n";
 
 	/* 제목이 쪽 맨 아래에 혼자 남지 않게 */
 	$out .= "#ssb h2, #ssb h3{ break-after:avoid !important;\n";
@@ -110,14 +111,14 @@ function stella_print1_css() {
 	/* ── 표 ─────────────────────────────────────────────
 	   두 장에 걸쳐 잘리지 않게 하고, 줄 사이를 종이 눈금으로 잡습니다. */
 	$out .= "#ssb .tw{ overflow:visible !important; }\n";
-	$out .= "#ssb .page table{ font-size:9.6pt !important;\n";
+	$out .= "#ssb .page table{ font-size:9pt !important;\n";
 	$out .= "  break-inside:avoid !important; page-break-inside:avoid !important; }\n";
 	$out .= "#ssb thead{ display:table-header-group; }\n";
 	$out .= "#ssb th, #ssb td{ padding:6pt 7pt !important;\n";
 	$out .= "  border-bottom:1px solid #DCD6C9 !important; }\n";
-	$out .= "#ssb th{ font-size:8pt !important; color:#5A5148 !important; }\n";
+	$out .= "#ssb th{ font-size:7.6pt !important; color:#5A5148 !important; }\n";
 	$out .= "#ssb td{ color:#26211C !important; }\n";
-	$out .= "#ssb td .mini{ font-size:8.6pt !important; }\n";
+	$out .= "#ssb td .mini{ font-size:8.2pt !important; }\n";
 
 	/* ── 쪼개지면 안 되는 것들 ──────────────────────────
 	   말상자 · 덤 쪽 상자 · 그림 · 카드는 한 장 안에 둡니다. */
@@ -133,8 +134,8 @@ function stella_print1_css() {
 	$out .= "  display:flex !important; flex-direction:column !important;\n";
 	$out .= "  justify-content:center !important; padding:0 !important;\n";
 	$out .= "  break-inside:avoid !important; break-after:page !important; }\n";
-	$out .= "#ssb .page.divider h2{ font-size:19pt !important; }\n";
-	$out .= "#ssb .page.divider .dvno{ font-size:9pt !important; }\n";
+	$out .= "#ssb .page.divider h2{ font-size:17pt !important; }\n";
+	$out .= "#ssb .page.divider .dvno{ font-size:8.4pt !important; }\n";
 
 	/* ── 차례 ───────────────────────────────────────────
 	   소희 님 : 「목차 폭은 인쇄니 너무 좁아」
@@ -142,9 +143,9 @@ function stella_print1_css() {
 	$out .= "#ssb .tocpage .tocp-list{ max-width:none !important; margin:0 !important; }\n";
 	$out .= "#ssb .tocpage .tocp-eye{ font-size:8.4pt !important;\n";
 	$out .= "  letter-spacing:.4em !important; margin:0 0 12mm !important; }\n";
-	$out .= "#ssb .tocpage .tocp-ch{ font-size:12pt !important; margin-top:8mm !important;\n";
+	$out .= "#ssb .tocpage .tocp-ch{ font-size:11pt !important; margin-top:7mm !important;\n";
 	$out .= "  padding-top:4mm !important; }\n";
-	$out .= "#ssb .tocpage .tocp-sub{ font-size:10.4pt !important; margin-top:3mm !important;\n";
+	$out .= "#ssb .tocpage .tocp-sub{ font-size:9.8pt !important; margin-top:2.6mm !important;\n";
 	$out .= "  padding-left:9mm !important; }\n";
 	$out .= "#ssb .tocpage{ break-inside:auto !important; }\n";
 
@@ -152,6 +153,32 @@ function stella_print1_css() {
 	   위 도구막 · 목차 서랍 · 진단 상자는 종이에 안 나갑니다. */
 	$out .= "#ssb .bk-bar, #ssb .tocback, #ssb .bk-toc, #ssb .more,\n";
 	$out .= "#tailsayout, #ssb .foldbtn{ display:none !important; }\n";
+
+
+	/* ══ 책처럼 이어 읽게 하시려면 ══════════════════════
+	   소희 님 : 「글씨가 커서 페이지가 길었다는 느낌이 안 들게」
+
+	   지금은 **꼭지 하나가 종이 한 장씩**입니다. 글이 반 장만
+	   차도 다음 꼭지는 새 종이에서 시작합니다. 그래서 일흔석 장이
+	   나옵니다. 글씨를 줄이면 빈자리가 더 늘어납니다.
+
+	   일반 책은 그렇게 하지 않습니다. 글이 죽 이어지고,
+	   **장이 바뀔 때만** 새 종이에서 시작합니다.
+
+	   아래 여섯 줄에서 앞의 빗금 두 개를 지우시면 그렇게 됩니다.
+	   표지 · 차례 · 장 속표지 · 맺음말 · 편지만 새 장에서 시작하고
+	   나머지는 이어집니다. 종이가 마흔 장 안팎으로 줄어듭니다.
+
+	   ★ 먼저 한 번 인쇄 미리보기로 보시고 정하세요.
+	     되돌리려면 빗금 두 개를 도로 붙이면 됩니다.
+
+	$out .= "#ssb .page{ break-after:auto !important;\n";
+	$out .= "  page-break-after:auto !important; padding-top:0 !important; }\n";
+	$out .= "#ssb .page + .page{ margin-top:9mm !important; }\n";
+	$out .= "#ssb .page.divider, #ssb .page.cover, #ssb .tocpage,\n";
+	$out .= "#ssb .page.close, #ssb .page.farewell{\n";
+	$out .= "  break-before:page !important; page-break-before:always !important; }\n";
+	   ══════════════════════════════════════════════════ */
 
 	$out .= "</style>\n";
 	return $out;
