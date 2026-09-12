@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    책의 모양 — 이 조각 하나가 정합니다
-   ★ 2026-09-12 · 소희 님께      판 WIDTH-6
+   ★ 2026-09-12 · 소희 님께      판 WIDTH-7
 
    소희 님 : 「그냥 페이지 폭 자체를 지정할 수는 없어? 가지각색이야」
 
@@ -14,7 +14,8 @@
        둘    차례 쪽의 목록도 그 폭을 다 쓰게 합니다
        셋    쪽번호를 안 보이게 합니다
        넷    표를 쪽 폭 끝까지 늘리고 글씨를 조금 키웁니다   (2026-09-12)
-       다섯  장 속표지의 글을 쪽 가운데로 올립니다
+       다섯  장 속표지를 넉넉히 키우고 글을 그 한가운데 놓습니다
+             (인쇄하면 한 장을 통째로 차지합니다)
        여섯  겹쳐 있던 가로줄 두 개를 하나로 줄입니다
        일곱  별자리 문으로 보내던 상자를 접습니다
        여덟  맺음말 편지를 문장마다 줄을 바꿔 놓습니다
@@ -71,7 +72,7 @@
    아무 쪽에서나 Ctrl+U -> Ctrl+F 로 「폭 판」 을 찾으세요.
    (책 쪽이 아니어도 됩니다. 첫 쪽에서도 보입니다)
 
-       <!-- stella 모양 판 WIDTH-6 · 900px -->
+       <!-- stella 모양 판 WIDTH-7 · 900px -->
 
    이 줄이 보이면 들어간 것입니다. 없으면 조각이 안 켜졌거나
    위치(Location)가 「어디서나 실행」이 아닙니다.
@@ -82,25 +83,25 @@
      보이면 번역된 것입니다.
    ══════════════════════════════════════════════════════════ */
 
-if ( ! function_exists( 'stella_look6_css' ) ) {
+if ( ! function_exists( 'stella_look7_css' ) ) {
 
 /* 조건을 두지 않습니다. #ssb 는 책 쪽에만 있으니
    다른 쪽에서는 이 규칙이 걸릴 자리가 없습니다.
    ★ 머리와 바닥 양쪽에 겁니다. 한쪽이 막혀도 다른 쪽이 나갑니다. */
 add_action( 'wp_head', function () {
-	echo stella_look6_css( '머리' );
+	echo stella_look7_css( '머리' );
 }, 99 );
 
 add_action( 'wp_footer', function () {
-	echo stella_look6_css( '바닥' );
-	echo stella_look6_js();
+	echo stella_look7_css( '바닥' );
+	echo stella_look7_js();
 }, 99 );
 
-function stella_look6_css( $where = '' ) {
+function stella_look7_css( $where = '' ) {
 
 	$wide = 900;      /* ★ 이 숫자 하나가 책 전체 폭입니다 */
 
-	$out  = "\n<!-- stella 모양 판 WIDTH-6 · " . $wide . "px · " . $where . " -->\n";
+	$out  = "\n<!-- stella 모양 판 WIDTH-7 · " . $wide . "px · " . $where . " -->\n";
 	$out .= '<style id="stella-width">' . "\n";
 
 	/* 모든 쪽을 같은 폭으로, 가운데에.
@@ -152,7 +153,7 @@ function stella_look6_css( $where = '' ) {
 	   줄어듭니다. 그래서 900px 쪽 안에서 460px 만 쓰고 있었습니다.
 	   도로 표로 세우고 폭을 채웁니다. 글씨도 한 단계 키웁니다.
 
-	   ★ WIDTH-6 (2026-09-12) — 처음에는 .tw 상자 안의 표만 고쳤습니다.
+	   ★ WIDTH-7 (2026-09-12) — 처음에는 .tw 상자 안의 표만 고쳤습니다.
 	     그런데 책의 표는 열아홉 개이고 그 가운데 열한 개는 상자가 없는
 	     <table class="luck"> 입니다. 대운 표도 기둥 표도 그쪽이었습니다.
 	     그래서 쪽 안의 표를 전부 고칩니다.
@@ -174,29 +175,42 @@ function stella_look6_css( $where = '' ) {
 	   상자째 접습니다 — 안내문과 단추가 같이 들어 있습니다. */
 	$out .= "#ssb .more{ display:none !important; }\n";
 
-	/* ══ 장 속표지 ══════════════════════════════════════
-	   소희 님 : 「표지의 내용이 중간으로 갈 수 있게. 아래로 쏠려서
-	             아랫부분의 여백이 좁아 보여」
+	/* ══ 장 속표지 — 한 장을 통째로 ═════════════════════
+	   소희 님 : 「아래 위 여백은 완전 넓게 해야 해. 이 페이지는
+	             인쇄하면 한 페이지가 온전히 이 페이지만 되게」
 
-	   ★ WIDTH-6 — 속표지는 **이미 가운데로 서 있었습니다.**
-	     제가 WIDTH-5 에서 가운데로 세운다고 넣은 줄은 아무 일도
-	     안 했습니다. 이미 같은 규칙이 있었으니까요.
+	   ── 알아낸 것 ─────────────────────────────────────
+	   책은 화면과 인쇄가 아예 다르게 짜여 있습니다.
 
-	     진짜 문제는 쪽의 키였습니다.
+	     @media screen  쪽의 키를 0 으로 누릅니다 (min-height:0 !important)
+	                    테두리·그림자·쪽번호를 다 끕니다
+	                    쭉 이어서 내려 읽는 두루마리가 됩니다
+	     @media print   쪽마다 break-after:page — 낱장이 살아납니다
 
-	         #ssb .page{ min-height:clamp(560px, 138vw, 1100px); }
+	   그래서 화면에서는 속표지가 「글 높이 + 여백 조금」이었습니다.
+	   위 여백 46px, 아래 여백 6px. 그래서 아래로 쏠려 보였습니다.
+	   제가 WIDTH-6 에서 620px 로 줄인 것은 거꾸로 간 것이었습니다.
 
-	     모든 쪽이 1,100px 입니다. 속표지에 들어가는 글은 400px 남짓이라
-	     700px 이 빈 채로 남습니다. 가운데에 있어도 허공에 뜬 것처럼
-	     보입니다. 그래서 속표지만 키를 줄입니다. 620px 이면 글이
-	     가운데 앉고 위아래 여백이 비슷해집니다.
+	   ── 그래서 ────────────────────────────────────────
+	   화면   키를 860px 로 늘리고 글을 그 한가운데 놓습니다
+	   인쇄   낱장의 키를 종이 높이만큼(90vh) 잡습니다.
+	          속표지 한 장이 종이 한 장을 통째로 차지합니다.
+	          가운데 놓이고, 중간에 잘리지 않습니다.
 
 	   속표지에는 쪽번호를 안 답니다 — 종이책도 그렇습니다. */
-	$out .= "#ssb .page.divider{ min-height:620px !important;\n";
+	$out .= "#ssb .page.divider{ min-height:860px !important;\n";
 	$out .= "  display:flex !important; flex-direction:column !important;\n";
 	$out .= "  justify-content:center !important;\n";
-	$out .= "  padding-top:56px !important; padding-bottom:56px !important; }\n";
+	$out .= "  padding-top:120px !important; padding-bottom:120px !important; }\n";
 	$out .= "#ssb .page.divider .folio{ display:none !important; }\n";
+	$out .= "@media print{\n";
+	$out .= "  #ssb .page.divider{ min-height:90vh !important; height:auto !important;\n";
+	$out .= "    display:flex !important; flex-direction:column !important;\n";
+	$out .= "    justify-content:center !important;\n";
+	$out .= "    padding-top:0 !important; padding-bottom:0 !important;\n";
+	$out .= "    break-inside:avoid; page-break-inside:avoid;\n";
+	$out .= "    break-after:page; page-break-after:always; }\n";
+	$out .= "}\n";
 
 	/* 창이 좁으면 화면을 다 씁니다 */
 	$out .= "@media(max-width:960px){\n";
@@ -214,11 +228,11 @@ function stella_look6_css( $where = '' ) {
 /* 글자를 손대는 곳은 여기 두 군데뿐입니다.
    CSS 로는 글자를 바꿀 수도, 문장을 나눌 수도 없어서 그렇습니다.
    책 원본은 한 글자도 안 고칩니다 — 그려진 뒤에 고쳐 놓습니다. */
-function stella_look6_js() {
-	return <<<'STELLALOOK6'
+function stella_look7_js() {
+	return <<<'STELLALOOK7'
 <script>
 /* ═══════════════════════════════════════════════════════════
-   STELLA SAJU — 책 모양 손질 두 가지      판 WIDTH-6
+   STELLA SAJU — 책 모양 손질 두 가지      판 WIDTH-7
    ① 「여기까지가 제가 묻기 전에 읽은 전부입니다」 한 줄 감추기
    ② 맺음말 편지를 문장마다 줄 바꾸기
    ★ 홑 앰퍼샌드와 두 글자 논리기호를 쓰지 않습니다 (사이트 규칙)
@@ -314,7 +328,7 @@ function stella_look6_js() {
   } else { setTimeout(tick, 500); }
 })();
 </script>
-STELLALOOK6;
+STELLALOOK7;
 }
 
 }
