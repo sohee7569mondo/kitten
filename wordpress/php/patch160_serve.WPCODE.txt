@@ -1,6 +1,27 @@
 /* ══════════════════════════════════════════════════════════
    책 쪽은 우리가 직접 그립니다
-   ★ 2026-09-12 · 소희 님께      판 SERVE-4
+   ★ 2026-09-12 · 소희 님께      판 SERVE-5
+
+   ── SERVE-5 (2026-09-12 밤) — 이번엔 시간을 잽니다 ─────
+   소희 님 : 책이 열리는 데 1분쯤 걸립니다.
+
+   메모리는 511MB → 47MB 로 잡았는데 속도는 그대로입니다.
+   또 짐작하지 않고 잽니다. 시간을 네 토막으로 쪼갭니다.
+
+       워드프레스 뜨는 데   ← 우리 코드가 시작되기도 전
+       본문 읽고            ← 글 1MB 를 밑바닥에서 꺼내는 데
+       머리말 끝            ← wp_head() · 조각들과 글꼴
+       본문 내고            ← 1MB 를 브라우저로 보내는 데
+       바닥글 끝            ← wp_footer() · 덤 두 쪽 조각들
+
+   어디가 큰지 보고 거기만 고칩니다. 물어본 횟수와 글 크기도 적습니다.
+
+   ★ 보시는 법 — 책 주소 뒤에 붙이면 오른쪽 아래에 상자로 뜹니다.
+
+       https://stellasaju.com/reading-book/?stella_time=1
+
+     안 붙이셔도 Ctrl+U 소스 맨 끝에 늘 적혀 있습니다.
+     손님에게는 상자가 안 보입니다.
 
    ── SERVE-4 (2026-09-12 밤) ───────────────────────────
    소희 님 쪽에서 잰 값 : 끝까지 511MB · 한도 512M
@@ -80,21 +101,34 @@ add_action( 'template_redirect', function () {
 	if ( 'reading-book' !== $p->post_name ) { return; }
 
 	/* ── 구간마다 재어 둡니다 ─────────────────────────
-	   480MB 가 어디로 가는지 짐작하지 않고 잽니다. */
+	   메모리와 시간을 같이 잽니다. 짐작하지 않습니다.
+
+	   REQUEST_TIME_FLOAT 은 브라우저의 부름이 이 서버에 닿은 때입니다.
+	   그러니 「들어올 때」에 찍히는 시간이 곧 워드프레스가 뜨는 데
+	   걸린 시간입니다 — 우리 코드는 아직 한 줄도 안 돌았습니다. */
 	$stella_marks = array();
-	$stella_mark = function ( $where ) use ( &$stella_marks ) {
-		$stella_marks[] = sprintf( '%-14s 지금 %4dMB · 최대 %4dMB',
+	$stella_t0 = microtime( true );
+	if ( isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ) {
+		$stella_t0 = (float) $_SERVER['REQUEST_TIME_FLOAT'];
+	}
+	$stella_prev = $stella_t0;
+	$stella_mark = function ( $where ) use ( &$stella_marks, &$stella_prev, $stella_t0 ) {
+		$now = microtime( true );
+		$stella_marks[] = sprintf( '%-16s %6.2f초  (여기까지 %6.2f초)  %4dMB',
 			$where,
-			round( memory_get_usage( true ) / 1048576 ),
+			$now - $stella_prev,
+			$now - $stella_t0,
 			round( memory_get_peak_usage( true ) / 1048576 ) );
+		$stella_prev = $now;
 	};
-	$stella_mark( '들어올 때' );
+	$stella_mark( '워드프레스 뜨는 데' );
 
 	global $wpdb;
 	$c = (string) $wpdb->get_var( $wpdb->prepare(
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", (int) $p->ID ) );
 	if ( '' === $c ) { return; }   /* 못 읽었으면 워드프레스에 맡깁니다 */
 	$stella_mark( '본문 읽고' );
+	$stella_len = strlen( $c );
 
 	/* 본문 손길을 비웁니다 — wp_head 안에서 누가 부를 수도 있어서 */
 	global $wp_filter;
@@ -154,10 +188,88 @@ add_action( 'template_redirect', function () {
 
 	$stella_mark( '바닥글 끝' );
 
-	echo "\n<!-- stella 어디서 늘었나 ─────────────\n";
-	foreach ( $stella_marks as $m ) { echo '     ' . $m . "\n"; }
-	echo "   ───────────────────────────────── -->\n";
+	/* ── 시간표 ───────────────────────────────────────
+	   소스(Ctrl+U) 맨 끝에 늘 적힙니다. */
+	$stella_all = microtime( true ) - $stella_t0;
+	$stella_q   = function_exists( 'get_num_queries' ) ? get_num_queries() : 0;
+	$stella_zip = ini_get( 'zlib.output_compression' ) ? '켜짐' : '꺼짐';
+
+	$stella_tbl  = "\n<!-- stella 어디서 걸렸나 ─────────────────────────────\n";
+	foreach ( $stella_marks as $m ) { $stella_tbl .= '     ' . $m . "\n"; }
+	$stella_tbl .= sprintf( "     %-16s %6.2f초\n", '모두', $stella_all );
+	$stella_tbl .= sprintf( "     %-16s 글 %s · 물어본 횟수 %d · 눌러 보내기 %s\n",
+		'딸린 것', size_format( $stella_len ), $stella_q, $stella_zip );
+	$stella_tbl .= "   ───────────────────────────────────────────────── -->\n";
+	echo $stella_tbl;
 	echo "\n<!-- stella 끝까지 " . round( memory_get_peak_usage( true ) / 1048576 ) . "MB -->\n";
+
+	/* 주소에 ?stella_time=1 이 붙어 있을 때만 눈에 보이게 띄웁니다.
+	   손님에게는 안 보입니다. */
+	if ( isset( $_GET['stella_time'] ) ) {
+		echo '<div style="position:fixed;right:8px;bottom:8px;z-index:99999;'
+		   . 'background:#1d1a16;color:#f0e7d4;font:12px/1.55 monospace;'
+		   . 'padding:12px 14px;border-radius:8px;white-space:pre;max-width:92vw;'
+		   . 'overflow:auto">' . esc_html( trim( strip_tags( str_replace(
+			array( '<!--', '-->' ), '', $stella_tbl ) ) ) ) . '</div>' . "\n";
+	}
+
+	/* ── 브라우저 쪽도 잽니다 ─────────────────────────
+	   서버만 재면 반쪽입니다. 손님이 기다리는 1분은
+	   「서버가 만드는 시간 + 글이 오는 시간 + 브라우저가 그리는 시간」
+	   을 다 더한 것이니까요. 뒤의 둘은 브라우저만 압니다.
+	   ★ 홑 앰퍼샌드와 두 글자 논리기호를 쓰지 않습니다 (사이트 규칙). */
+	if ( isset( $_GET['stella_time'] ) ) {
+		echo stella_serve5_watch();
+	}
+
 	echo "\n</body>\n</html>";
 	exit;
 }, 5 );
+
+function stella_serve5_watch() {
+	return <<<'STELLAWATCH'
+<script>
+(function(){
+  'use strict';
+  var box=document.getElementById('stellatime');
+  if(!box){ return; }
+
+  function s(ms){ return (ms/1000).toFixed(2)+'초'; }
+
+  function pages(){
+    var b=document.getElementById('ssb');
+    if(!b){ return 0; }
+    return b.getElementsByClassName('page').length;
+  }
+
+  var same=0, last=-1, tries=0;
+  function watch(){
+    tries+=1;
+    var n=pages();
+    if(n===last){ same+=1; }
+    else { same=0; last=n; }
+    /* 쪽 수가 네 번(1.2초) 그대로면 다 그린 것으로 봅니다 */
+    if(same>=4){ if(n>0){ return done(n); } }
+    if(tries>400){ return done(n); }
+    setTimeout(watch, 300);
+  }
+
+  function done(n){
+    var t=null;
+    try{ t=performance.getEntriesByType('navigation')[0]; }catch(e){ t=null; }
+    var out='\n브라우저에서 ───────────────────────────\n';
+    if(t){
+      out+='     서버가 첫 글자 보낼 때까지  '+s(t.responseStart-t.startTime)+'\n';
+      out+='     글이 다 오는 데            '+s(t.responseEnd-t.responseStart)+'\n';
+      out+='     읽을 수 있게 될 때까지     '+s(t.domContentLoadedEventEnd-t.startTime)+'\n';
+    }
+    out+='     책이 다 그려질 때까지     '+s(performance.now())+'\n';
+    out+='     그린 쪽                   '+n+'쪽';
+    box.textContent=box.textContent+out;
+  }
+
+  setTimeout(watch, 400);
+})();
+</script>
+STELLAWATCH;
+}
