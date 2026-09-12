@@ -1,0 +1,294 @@
+/* ══════════════════════════════════════════════════════════
+   책을 이어 읽기 좋게 — 실선 정리 · 장 사이 여백 · 진행 막대
+   ★ 2026-09-12 · 소희 님께
+
+   ── 소희 님이 짚으신 것 ───────────────────────────────
+   1. 「실선은 없애자. 어떨 땐 단락선과 너무 붙어서 보기 안 좋아」
+   2. 「장 사이에만 실선 주는데 아래 위로 여백을 좀 주면…
+       페이지로 안 해도 될 거 같아」
+   3. 「1/28 표기 — 핸드폰이면 의미 없을듯」   ← 맞습니다. 제 제안이 틀렸습니다.
+   4. 「내 친구가 처음엔 여백이 많아서 끝난 줄 알았다」
+
+   ── 무엇을 하나 ───────────────────────────────────────
+   하나. **쪽과 쪽 사이 실선을 없앱니다.**
+         지금은 모든 쪽 사이에 실선이 있어서 단락선과 겹쳐 보였습니다.
+
+   둘.   **장이 바뀔 때만 실선을 두고 위아래로 넉넉히 벌립니다.**
+         장이 바뀌는 곳은 eyebrow(「맺음말」 「더 깊이 · 둘」 …)가
+         달라지는 지점입니다. 같은 장 안의 쪽들은 여백으로만 나눕니다.
+
+   셋.   **위쪽에 얇은 진행 막대를 답니다.**
+         스크롤하면 차오르고, 지금 읽는 장 이름이 같이 뜹니다.
+         쪽 번호가 뜻이 없는 이어읽기 구조에서 「아직 안 끝났구나」를
+         알려주는 자리입니다. 휴대폰에서도 자리를 먹지 않습니다.
+
+   ── 지키는 것 ─────────────────────────────────────────
+   · 글은 한 글자도 건드리지 않습니다. 보이는 모양만 바꿉니다.
+   · 두 글자짜리 논리기호를 쓰지 않고 if 를 겹쳐 썼습니다.
+   · 표지와 덤 두 쪽에는 진행 막대가 장 이름을 따로 잡습니다.
+   · 두 번 눌러도 한 번만 들어갑니다.
+
+   해보기   https://stellasaju.com/?stella_flow=preview
+   붙이기   https://stellasaju.com/?stella_flow=apply
+   되돌리기 https://stellasaju.com/?stella_flow=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_flow'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_flow'] ) );
+	$META = '_stella_flow_bak';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $id, $META, true );
+		if ( '' === $old ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다.';
+		exit;
+	}
+
+	$c    = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+	$MARK = 'BUILD: FLOW-1';
+
+	$BLOCK = <<<'STELLAFLOW'
+<!-- wp:html -->
+<style>
+/* ═══ 책을 이어 읽기 좋게   BUILD: FLOW-1   2026-09-12 ═══════════
+   쪽 사이 실선을 없애고, 장이 바뀔 때만 실선과 여백을 둡니다.
+   ═══════════════════════════════════════════════════════════ */
+
+/* 하나 · 쪽과 쪽 사이 실선을 없앱니다 */
+#ssb .page + .page{ border-top:0 !important; }
+
+/* 같은 장 안의 쪽들은 여백으로만 나눕니다 */
+#ssb .page{ padding-top:34px !important; padding-bottom:10px !important; }
+
+/* 둘 · 장이 바뀌는 쪽에만 실선과 넉넉한 여백 */
+#ssb .page[data-chap="1"]{
+  border-top:1px solid var(--rule) !important;
+  margin-top:74px !important;
+  padding-top:74px !important;
+}
+#ssb .page[data-chap="1"][data-part="cover"]{
+  border-top:0 !important; margin-top:0 !important;
+}
+/* 덤 두 쪽은 청록 실선으로 */
+#ssb .page[data-chap="1"][data-part="tail"]{
+  border-top-color:rgba(95,176,166,.32) !important;
+}
+
+@media(max-width:640px){
+  #ssb .page{ padding-top:26px !important; }
+  #ssb .page[data-chap="1"]{ margin-top:54px !important; padding-top:54px !important; }
+}
+
+/* 셋 · 위쪽 진행 막대 */
+#ssFlow{
+  position:fixed; left:0; right:0; top:0; z-index:60;
+  pointer-events:none;
+  font-family:var(--mono,ui-monospace,monospace);
+  opacity:0; transition:opacity .35s ease;
+}
+#ssFlow.on{ opacity:1; }
+#ssFlowLine{
+  height:2px; width:0%;
+  background:linear-gradient(90deg, rgba(212,175,106,.55), #d4af6a);
+  transition:width .18s linear;
+}
+#ssFlowBar{
+  display:flex; align-items:baseline; gap:10px;
+  padding:7px 14px 8px;
+  background:rgba(11,8,23,.86);
+  border-bottom:1px solid rgba(212,175,106,.14);
+  font-size:.64rem; letter-spacing:.16em;
+  color:rgba(242,236,224,.62);
+}
+#ssFlowNow{ color:#d4af6a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#ssFlowPct{ margin-left:auto; color:rgba(242,236,224,.42); white-space:nowrap; }
+@media(max-width:480px){
+  #ssFlowBar{ font-size:.6rem; letter-spacing:.1em; padding:6px 11px 7px; }
+}
+@media print{ #ssFlow{ display:none !important; } }
+</style>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 이어 읽기      BUILD: FLOW-1      2026-09-12
+   글은 건드리지 않습니다. 장 경계를 찾아 표시만 붙입니다.
+   두 글자짜리 논리기호를 쓰지 않고 if 를 겹쳐 썼습니다.
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+  'use strict';
+
+  var bar=null, line=null, now=null, pct=null, marked=0;
+
+  function ebOf(el){
+    var e=el.getElementsByClassName('eyebrow')[0];
+    if(!e){ return ''; }
+    var t=e.textContent;
+    if(!t){ return ''; }
+    return t.replace(/^\s+/,'').replace(/\s+$/,'');
+  }
+
+  /* 장이 바뀌는 쪽에 표를 붙입니다 */
+  function markChapters(){
+    var box=document.getElementById('ssb');
+    if(!box){ return 0; }
+    var pages=box.getElementsByClassName('page');
+    if(!pages.length){ return 0; }
+    var last='', i, t, first=1;
+    for(i=0;i<pages.length;i++){
+      pages[i].removeAttribute('data-chap');
+      t=ebOf(pages[i]);
+      if(pages[i].getAttribute('data-part')==='cover'){ last=''; first=0; continue; }
+      if(!t){ continue; }
+      if(t!==last){
+        if(first===0){ pages[i].setAttribute('data-chap','1'); }
+        first=0;
+        last=t;
+      }
+    }
+    return pages.length;
+  }
+
+  function build(){
+    if(bar){ return; }
+    var wrap=document.createElement('div');
+    wrap.id='ssFlow';
+    wrap.innerHTML='<div id="ssFlowBar">'+
+      '<span id="ssFlowNow">읽는 중</span>'+
+      '<span id="ssFlowPct">0%</span></div>'+
+      '<div id="ssFlowLine"></div>';
+    document.body.appendChild(wrap);
+    bar=wrap;
+    line=document.getElementById('ssFlowLine');
+    now=document.getElementById('ssFlowNow');
+    pct=document.getElementById('ssFlowPct');
+  }
+
+  function update(){
+    var box=document.getElementById('ssb');
+    if(!box){ return; }
+    if(!bar){ return; }
+
+    var r=box.getBoundingClientRect();
+    var top=r.top+(window.pageYOffset||document.documentElement.scrollTop||0);
+    var h=box.offsetHeight;
+    var y=(window.pageYOffset||document.documentElement.scrollTop||0);
+    var vh=window.innerHeight;
+
+    /* 책 앞이거나 다 지나갔으면 숨깁니다 */
+    var show=1;
+    if(y+vh<top+120){ show=0; }
+    if(y>top+h){ show=0; }
+    if(show===0){ bar.className=''; return; }
+    bar.className='on';
+
+    var run=h-vh;
+    if(run<1){ run=1; }
+    var p=(y-top)/run;
+    if(p<0){ p=0; }
+    if(p>1){ p=1; }
+    line.style.width=Math.round(p*1000)/10+'%';
+    pct.textContent=Math.round(p*100)+'%';
+
+    /* 화면에 걸린 쪽 중 가장 위쪽의 장 이름 */
+    var pages=box.getElementsByClassName('page'), i, b, name='';
+    for(i=0;i<pages.length;i++){
+      b=pages[i].getBoundingClientRect();
+      if(b.bottom<90){ continue; }
+      if(b.top>vh){ break; }
+      var t=ebOf(pages[i]);
+      if(t){ name=t; }
+      if(name){ break; }
+    }
+    if(!name){
+      /* 못 찾으면 위로 올라가며 마지막으로 나온 장 이름을 씁니다 */
+      for(i=pages.length-1;i>=0;i--){
+        b=pages[i].getBoundingClientRect();
+        if(b.top>vh){ continue; }
+        var t2=ebOf(pages[i]);
+        if(t2){ name=t2; break; }
+      }
+    }
+    if(name){ now.textContent=name; }
+  }
+
+  var timer=null;
+  function onScroll(){
+    if(timer){ return; }
+    timer=setTimeout(function(){ timer=null; update(); }, 80);
+  }
+
+  var tries=0;
+  function tick(){
+    tries+=1;
+    var n=markChapters();
+    if(n>0){
+      if(marked===0){
+        marked=1;
+        build();
+        window.addEventListener('scroll', onScroll, true);
+        window.addEventListener('resize', onScroll);
+        update();
+      }
+    }
+    /* 다른 조각들이 쪽을 더 넣을 수 있으니 잠깐 더 지켜봅니다 */
+    if(tries<40){ setTimeout(tick, 500); }
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(tick, 500); });
+  } else { setTimeout(tick, 500); }
+})();
+</script>
+<!-- /wp:html -->
+STELLAFLOW;
+
+	if ( 'preview' === $mode ) {
+		$has = ( strpos( $c, $MARK ) !== false );
+		echo "═══ 이어 읽기 (FLOW-1) ═══\n";
+		echo '쪽 160 · ' . number_format( mb_strlen( $c ) ) . "글자\n\n";
+		if ( $has ) { echo "이미 붙어 있습니다.\n되돌리려면 ?stella_flow=undo\n"; exit; }
+		echo '넣을 조각 ' . number_format( mb_strlen( $BLOCK ) ) . "글자\n";
+		echo "앰퍼샌드 " . substr_count( $BLOCK, '&' ) . "개\n\n";
+		echo "하는 일\n";
+		echo "  · 쪽과 쪽 사이 실선을 없앱니다\n";
+		echo "  · 장이 바뀔 때만 실선과 여백을 둡니다\n";
+		echo "  · 위쪽에 얇은 진행 막대와 지금 읽는 장 이름을 답니다\n\n";
+		echo "글은 한 글자도 건드리지 않습니다. 보이는 모양만 바뀝니다.\n\n";
+		echo "붙이려면 ?stella_flow=apply\n";
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) { echo '?stella_flow=preview 부터 보세요.'; exit; }
+	if ( strpos( $c, $MARK ) !== false ) { echo '이미 붙어 있습니다.'; exit; }
+
+	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
+		update_post_meta( $id, $META, $c );
+	}
+
+	$new = $c . "\n\n" . $BLOCK;
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "붙였습니다.\n";
+	echo '쪽 160 · ' . number_format( mb_strlen( $new ) ) . "글자\n\n";
+	echo "책을 열어 쭉 내려보세요. 위쪽에 막대가 뜨고,\n";
+	echo "장이 바뀔 때만 실선이 나옵니다.\n되돌리려면 ?stella_flow=undo\n";
+	exit;
+}, 1 );
