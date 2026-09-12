@@ -22,14 +22,34 @@
 
    보기 : https://stellasaju.com/?stella_gfind=look
 
+   ★ 2026-09-12 고침 — 처음 판은 init 에서 돌게 만들었습니다.
+     그 자리에서는 로그인 확인이 아직 안 되어 조용히 물러났고,
+     소희 님 화면에는 그냥 홈이 보였습니다.
+     이제 template_redirect 에서 돕니다 (gmenu 와 같은 자리).
+     ★ 그리고 물러날 때도 이유를 글자로 보여줍니다.
+       빈 화면이나 홈이 보이면 「조각이 안 켜졌다」는 뜻입니다.
+
    붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
    ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
    ══════════════════════════════════════════════════════════ */
 
-add_action( 'init', function () {
+add_action( 'template_redirect', function () {
 
 	if ( ! isset( $_GET['stella_gfind'] ) ) { return; }
-	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	/* 물러날 때도 이유를 말합니다. 홈이 보이는 일이 없게. */
+	if ( ! is_user_logged_in() ) {
+		echo "관리자로 로그인한 상태에서만 열립니다.\n";
+		echo "지금은 로그인한 것으로 보이지 않습니다.\n";
+		echo "wp-admin 에 로그인한 뒤 다시 열어주세요.\n";
+		exit;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo "로그인은 되어 있는데 관리자 권한이 아닙니다.\n";
+		exit;
+	}
 
 	global $wpdb;
 
@@ -39,7 +59,6 @@ add_action( 'init', function () {
 		'때를 아는 신', '별을 읽는 신'
 	);
 
-	header( 'Content-Type: text/plain; charset=utf-8' );
 	echo "═══ 옛 이름을 찾습니다 ═══════════════════════\n\n";
 
 	/* ── 하나 · 글 · 쪽 · 조각 ───────────────────────── */
