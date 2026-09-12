@@ -24,6 +24,8 @@
           https://stellasaju.com/?stella_gfind=snip    ★ 켜진 조각만, 그 줄까지
           https://stellasaju.com/?stella_gfind=code    한 조각의 옛 이름 든 줄 전부
                                                        (뒤에 [그리고]id=809 처럼)
+          https://stellasaju.com/?stella_gfind=near    ★ 그 줄의 앞뒤까지 (여섯 줄씩)
+                                                       (뒤에 [그리고]id=809 처럼)
 
    ★ WPCode 는 켜진 조각을 publish, 끈 조각을 draft 로 담습니다.
      그래서 publish 인 것만 보면 지금 화면에 나오는 것이 나옵니다.
@@ -129,6 +131,52 @@ add_action( 'template_redirect', function () {
 		}
 		if ( 0 === $hit ) { echo "이 조각에는 옛 이름이 없습니다.\n"; }
 		echo "\n모두 " . count( $lines ) . "줄 가운데 " . $hit . "줄입니다.\n";
+		exit;
+	}
+
+	/* ── 옛 이름이 든 줄의 앞뒤까지 ───────────────────── */
+	if ( 'near' === $mode ) {
+		$id = 0;
+		if ( isset( $_GET['id'] ) ) { $id = (int) $_GET['id']; }
+		if ( $id < 1 ) { echo "id 를 붙여주세요. 보기 : ?stella_gfind=near 뒤에 id=809\n"; exit; }
+		$pad = 6;
+		if ( isset( $_GET['pad'] ) ) { $pad = (int) $_GET['pad']; }
+		if ( $pad < 1 ) { $pad = 1; }
+		if ( $pad > 30 ) { $pad = 30; }
+
+		$r = $wpdb->get_row( $wpdb->prepare(
+			"SELECT ID, post_title, post_type, post_status, post_content
+			   FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		if ( ! $r ) { echo "#" . $id . " 이 없습니다.\n"; exit; }
+
+		echo '═══ #' . $r->ID . '  ' . $r->post_title . '  [' . $r->post_type . ' · ' . $r->post_status . "]\n";
+		echo "옛 이름이 든 줄의 앞뒤 " . $pad . "줄씩 보여드립니다.\n\n";
+
+		$lines = explode( "\n", $r->post_content );
+		$want = array();
+		foreach ( $lines as $i => $ln ) {
+			foreach ( $names as $nm ) {
+				if ( false === strpos( $ln, $nm ) ) { continue; }
+				$from = $i - $pad;
+				if ( $from < 0 ) { $from = 0; }
+				$to = $i + $pad;
+				if ( $to > count( $lines ) - 1 ) { $to = count( $lines ) - 1; }
+				for ( $k = $from; $k <= $to; $k++ ) { $want[ $k ] = 1; }
+				break;
+			}
+		}
+		if ( ! $want ) { echo "이 조각에는 옛 이름이 없습니다.\n"; exit; }
+
+		ksort( $want );
+		$last = -2;
+		foreach ( array_keys( $want ) as $k ) {
+			if ( $k > $last + 1 ) { echo "   ──────────────────────────────\n"; }
+			$txt = rtrim( $lines[ $k ] );
+			if ( mb_strlen( $txt ) > 300 ) { $txt = mb_substr( $txt, 0, 300 ) . ' …'; }
+			echo ( $k + 1 ) . ' : ' . $txt . "\n";
+			$last = $k;
+		}
+		echo "\n모두 " . count( $lines ) . "줄 가운데 " . count( $want ) . "줄입니다.\n";
 		exit;
 	}
 
