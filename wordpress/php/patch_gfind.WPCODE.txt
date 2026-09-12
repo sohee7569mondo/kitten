@@ -24,6 +24,8 @@
           https://stellasaju.com/?stella_gfind=snip    ★ 켜진 조각만, 그 줄까지
           https://stellasaju.com/?stella_gfind=code    한 조각의 옛 이름 든 줄 전부
                                                        (뒤에 [그리고]id=809 처럼)
+          https://stellasaju.com/?stella_gfind=snips   ★ 조각을 전부 헤아립니다
+                                                       (켜짐·꺼짐·휴지통 · 글자수)
           https://stellasaju.com/?stella_gfind=near    ★ 그 줄의 앞뒤까지 (여섯 줄씩)
                                                        (뒤에 [그리고]id=809 처럼)
 
@@ -177,6 +179,46 @@ add_action( 'template_redirect', function () {
 			$last = $k;
 		}
 		echo "\n모두 " . count( $lines ) . "줄 가운데 " . count( $want ) . "줄입니다.\n";
+		exit;
+	}
+
+	/* ── 조각을 전부 헤아립니다 ───────────────────────
+	   지우기 전에 저장소 사본과 대조하려고 만듭니다.
+	   지운 것은 되돌릴 수 없으니 먼저 세어 봅니다. */
+	if ( 'snips' === $mode ) {
+		$rows = $wpdb->get_results(
+			"SELECT ID, post_title, post_status, CHAR_LENGTH( post_content ) AS len
+			   FROM {$wpdb->posts}
+			  WHERE post_type = 'wpcode'
+			  ORDER BY CHAR_LENGTH( post_content ) DESC
+			  LIMIT 300" );
+
+		$on = 0; $off = 0; $bin = 0;
+		$onlen = 0; $offlen = 0; $binlen = 0;
+		foreach ( $rows as $r ) {
+			if ( 'publish' === $r->post_status ) { $on += 1; $onlen += (int) $r->len; continue; }
+			if ( 'trash' === $r->post_status )   { $bin += 1; $binlen += (int) $r->len; continue; }
+			$off += 1; $offlen += (int) $r->len;
+		}
+
+		echo "═══ 조각을 전부 헤아렸습니다 ═════════════════\n\n";
+		echo '  켜짐   ' . $on . '개 · ' . number_format( $onlen ) . "자\n";
+		echo '  꺼짐   ' . $off . '개 · ' . number_format( $offlen ) . "자\n";
+		echo '  휴지통 ' . $bin . '개 · ' . number_format( $binlen ) . "자\n";
+		echo '  모두   ' . count( $rows ) . '개 · '
+		   . number_format( $onlen + $offlen + $binlen ) . "자\n\n";
+		echo "── 큰 것부터 ────────────────────────────────\n";
+		foreach ( $rows as $r ) {
+			$mark = '꺼짐';
+			if ( 'publish' === $r->post_status ) { $mark = '★켜짐'; }
+			if ( 'trash' === $r->post_status )   { $mark = '휴지통'; }
+			$ttl = $r->post_title;
+			if ( '' === $ttl ) { $ttl = '(제목 없음)'; }
+			printf( "  %8s자  %s  #%d  %s\n",
+				number_format( (int) $r->len ), $mark, (int) $r->ID, $ttl );
+		}
+		echo "\n이 목록을 그대로 주시면 저장소 사본과 대조해서\n";
+		echo "지워도 되는 것과 먼저 사본을 떠야 할 것을 갈라 드리겠습니다.\n";
 		exit;
 	}
 
