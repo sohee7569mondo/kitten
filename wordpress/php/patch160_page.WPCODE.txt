@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    쪽이 어떻게 왔는지 잽니다
-   ★ 2026-09-12 · 소희 님께      BUILD: PAGE-2
+   ★ 2026-09-12 · 소희 님께      BUILD: PAGE-3
 
    ── 왜 ────────────────────────────────────────────────
    책 쪽이 하얗습니다. 본문은 1,334,526자로 멀쩡한데
@@ -100,8 +100,24 @@ function stella_page_probe() {
     var ssb=document.getElementById('ssb');
     if(ssb){
       L.push('빗장(data-tail) : '+(ssb.getAttribute('data-tail')||'없음'));
-      L.push('책 칸 높이 : '+ssb.offsetHeight+'px   보이나 : '+
-             (ssb.offsetParent?'예':'★ 아니오(숨어 있음)'));
+      L.push('책 칸 껍데기 : '+(ssb.className||'(없음)'));
+      var cs=getComputedStyle(ssb);
+      L.push('책 칸 : 높이 '+ssb.offsetHeight+'px · display '+cs.display+
+             ' · visibility '+cs.visibility+' · opacity '+cs.opacity);
+      if(!ssb.offsetParent){ L.push('★ 책 칸이 화면에 안 붙어 있습니다'); }
+      if(pages.length){
+        var p1=pages[0], c1=getComputedStyle(p1);
+        L.push('첫 쪽  : 높이 '+p1.offsetHeight+'px · display '+c1.display+
+               ' · visibility '+c1.visibility+' · opacity '+c1.opacity+
+               ' · 글자색 '+c1.color);
+        L.push('첫 쪽 글 : '+String(p1.textContent||'').replace(/\s+/g,' ').slice(0,80));
+      }
+      var bs=getComputedStyle(document.body);
+      L.push('바탕   : 높이 '+document.body.offsetHeight+'px · 색 '+bs.backgroundColor+
+             ' · display '+bs.display+' · 껍데기 '+(document.body.className||'(없음)'));
+      var hs=getComputedStyle(document.documentElement);
+      L.push('문서   : 높이 '+document.documentElement.offsetHeight+'px · 색 '+hs.backgroundColor);
+      L.push('style 칸 : '+document.getElementsByTagName('style').length+'개');
     }
     L.push('A 조각 : '+(html.indexOf('TAIL-FETCH-2')>=0?'나갔음':'★ 안 나갔음'));
     var ebs=[], q, e4;
