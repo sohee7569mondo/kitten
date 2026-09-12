@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    맺음말 앞 두 쪽 — 가벼운 판 (둘 중 하나)
-   ★ 2026-09-12 · 소희 님께      BUILD: TAIL-FETCH-3
+   ★ 2026-09-12 · 소희 님께      BUILD: TAIL-FETCH-4
 
    ── 왜 다시 만들었나 ──────────────────────────────────
    앞의 판은 글 504칸을 조각 안에 통째로 담아 책 쪽에 내보냈습니다.
@@ -73,7 +73,7 @@ function stella_tailfetch_html() {
 	return <<<'STELLATAILFETCH'
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   STELLA SAJU — 맺음말 앞 두 장 (가벼운 판)   BUILD: TAIL-FETCH-3
+   STELLA SAJU — 맺음말 앞 두 장 (가벼운 판)   BUILD: TAIL-FETCH-4
    ───────────────────────────────────────────────────────────────
    글을 담고 있지 않습니다. 짝 조각에게 두 칸만 물어봅니다.
    두 글자짜리 논리기호를 쓰지 않고 if 를 겹쳐 썼습니다.
@@ -179,6 +179,35 @@ function stella_tailfetch_html() {
     return '<div class="page" data-part="tail">'+
            '<div class="tailbox">'+html+'</div>'+
            '<div class="folio"></div></div>';
+  }
+
+  /* ── 폭 맞추기 ───────────────────────────────────────
+     소희 님 : 「위에 뜬 목차·PDF 단추가 있는 폭하고 본문 내용 폭하고
+     맞춰줘」. 숫자를 제가 정하지 않습니다. 책이 이미 쓰고 있는 폭을
+     재서 그대로 따라갑니다. 그래야 창 크기가 달라져도 같이 움직입니다. */
+  function bookWidth(){
+    var pages=document.getElementsByClassName('page'), i, ps, w;
+    for(i=0;i<pages.length;i++){
+      if(pages[i].getAttribute('data-part')==='tail'){ continue; }
+      ps=pages[i].getElementsByTagName('p');
+      if(!ps.length){ continue; }
+      w=ps[0].offsetWidth;
+      if(w>200){ return w; }
+    }
+    return 0;
+  }
+
+  function fitWidth(){
+    var w=bookWidth();
+    if(!w){ return; }
+    var boxes=document.getElementsByClassName('tailbox'), i, b;
+    for(i=0;i<boxes.length;i++){
+      b=boxes[i];
+      b.style.maxWidth=(w+60)+'px';
+      b.style.marginLeft='auto';
+      b.style.marginRight='auto';
+    }
+    say('글줄 폭을 '+w+'px 에 맞췄습니다');
   }
 
   function ttl(head, sub){
@@ -328,6 +357,13 @@ function stella_tailfetch_html() {
 
     box.setAttribute('data-tail','1');
     renumber();
+    fitWidth();
+    /* 창 크기가 바뀌면 다시 맞춥니다 */
+    var wt=null;
+    window.addEventListener('resize', function(){
+      if(wt){ clearTimeout(wt); }
+      wt=setTimeout(fitWidth, 250);
+    });
     say('두 쪽을 넣었습니다 — 끝');
     return true;
   }
