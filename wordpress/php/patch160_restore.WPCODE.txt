@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    다른 기기에서도 책이 열립니다      ★ 2026-09-12 · 소희 님께
-                                      판 RESTORE-1
+                                      판 RESTORE-2
 
    소희 님 : 「손님이 안 보이거나 하는 부분이 더 문제」
 
@@ -61,13 +61,21 @@
    ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
    ★ 크롬 번역을 끄고 붙여넣으세요.
 
-   ── 시험해 보시는 법 ──────────────────────────────────
-   ① 책이 잘 보이는 창에서 F12 → Application → Local Storage
-      stella_demo 를 지웁니다
-   ② 새로고침합니다
-   ③ 「불러오는 중」이 잠깐 뜨고 책이 다시 나오면 된 것입니다
+   ── 시험해 보시는 법 (RESTORE-2) ──────────────────────
+   시크릿 창도, 다시 가입도 필요 없습니다. 주소 하나면 됩니다.
 
-   더 쉬운 길 — 시크릿 창으로 로그인해서 책을 열어보세요.
+       https://stellasaju.com/reading-book/?stella_forget=1
+
+   이 주소는 **이 브라우저에 남은 주문을 잊게** 합니다.
+   폰을 바꾸신 손님과 똑같은 처지가 되는 것입니다. 그다음 —
+
+       ① 「받으신 책을 불러오는 중이에요…」가 잠깐 뜨고
+       ② 책이 그대로 다시 나오면 된 것입니다
+
+   ★ 소희 님(관리자)일 때만 듣습니다. 손님이 이 주소를 눌러도
+     아무 일도 안 일어납니다. 남의 것은 잊게 할 수 없습니다.
+   ★ 서버에 있는 것은 그대로입니다. 지워지는 것은 이 브라우저의
+     사본뿐이고, 그것마저 바로 되살아납니다.
    ══════════════════════════════════════════════════════════ */
 
 if ( ! function_exists( 'stella_keep_routes' ) ) {
@@ -140,14 +148,45 @@ add_action( 'wp_footer', function () {
 	if ( 'reading-book' !== $p->post_name ) { return; }
 	if ( ! is_user_logged_in() ) { return; }
 
+	/* ── 시험용 · 잊게 하기 ───────────────────────────
+	   ?stella_forget=1 이면 이 브라우저의 사본을 지우고 다시 엽니다.
+	   폰을 바꾼 손님과 똑같은 처지를 만들어 보는 것입니다.
+	   ★ 관리자일 때만 듣습니다. 손님 것은 건드릴 수 없습니다. */
+	if ( isset( $_GET['stella_forget'] ) ) {
+		if ( current_user_can( 'manage_options' ) ) {
+			echo stella_forget_js();
+			return;
+		}
+	}
+
 	echo stella_restore_js();
 }, 98 );
+
+function stella_forget_js() {
+	return <<<'STELLAFORGET'
+<script>
+(function(){
+  'use strict';
+  try{
+    localStorage.removeItem('stella_demo');
+    localStorage.removeItem('stella_answers');
+    localStorage.removeItem('stella_cards');
+    sessionStorage.removeItem('stella_restored');
+    sessionStorage.removeItem('stella_kept');
+  }catch(e){}
+  var m=document.getElementById('ssLockMsg');
+  if(m){ m.textContent='이 브라우저의 사본을 잊었습니다. 서버에서 다시 불러옵니다…'; }
+  setTimeout(function(){ location.replace('/reading-book/'); }, 700);
+})();
+</script>
+STELLAFORGET;
+}
 
 function stella_restore_js() {
 	return <<<'STELLARESTORE'
 <script>
 /* ═══════════════════════════════════════════════════════════
-   STELLA SAJU — 다른 기기에서도 책이 열립니다   판 RESTORE-1
+   STELLA SAJU — 다른 기기에서도 책이 열립니다   판 RESTORE-2
    ★ 홑 앰퍼샌드와 두 글자 논리기호를 쓰지 않습니다 (사이트 규칙)
    ═══════════════════════════════════════════════════════════ */
 (function(){
