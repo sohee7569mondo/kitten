@@ -49,7 +49,7 @@ add_action( 'wp_head', function () {
       box.setAttribute('id','stellaErrBox');
       box.style.cssText='position:fixed;left:0;right:0;top:0;z-index:2147483647;'+
         'background:#6E1020;color:#FFECEC;font:12px/1.65 ui-monospace,Menlo,monospace;'+
-        'padding:12px 14px;max-height:62vh;overflow:auto;white-space:pre-wrap;'+
+        'padding:12px 14px;max-height:70vh;overflow:auto;white-space:pre-wrap;'+
         'border-bottom:3px solid #D4AF6A';
       var host=document.body;
       if(!host){ host=document.documentElement; }
@@ -58,75 +58,71 @@ add_action( 'wp_head', function () {
     box.appendChild(document.createTextNode(n+'. '+m+'\n'));
   }
 
-  var pend=[], pulled=0;
-
   window.onerror=function(msg,src,line,col){
-    var f=String(src||'');
-    var cut=f.lastIndexOf('/');
-    if(cut>=0){ f=f.slice(cut+1); }
-    show('넘어짐  '+f+' '+line+'줄 '+col+'칸\n    '+msg);
-    pend.push({ line:line, col:col });
-    setTimeout(pull, 300);
+    show('넘어짐  '+line+'줄 '+col+'칸\n    '+msg);
     return false;
   };
 
-  /* ★ 넘어진 줄을 원문에서 그대로 읽어옵니다.
-     같은 쪽이라 그냥 불러올 수 있습니다. */
-  function pull(){
-    if(pulled===1){ return; }
-    if(pend.length===0){ return; }
-    pulled=1;
-    fetch(location.href, { credentials:'same-origin' })
-      .then(function(r){ return r.text(); })
-      .then(function(t){
-        var L=t.split('\n');
-        show('원문 ' + L.length + '줄');
-        var i, j, ln, col, row;
-        for(i=0;i<pend.length;i++){
-          ln=pend[i].line;
-          col=pend[i].col;
-          show('── ' + ln + '줄 둘레 ──────────────');
-          for(j=ln-1;j<=ln+1;j++){
-            if(j<1){ continue; }
-            if(j>L.length){ break; }
-            row=L[j-1];
-            if(row.length>300){ row=row.slice(0,300)+'…'; }
-            show(j + '| ' + row);
-          }
-          row=L[ln-1];
-          if(row){
-            var from=col-90;
-            if(from<0){ from=0; }
-            show('★ ' + col + '칸 둘레 : ' + row.slice(from, col+90));
-          }
+  /* ★ 화면에 들어 있는 <script> 를 하나씩 직접 문법 검사합니다.
+     네트워크를 안 씁니다. 막힐 데가 없습니다. */
+  function scan(){
+    var ss=document.getElementsByTagName('script');
+    var i, t, k, bad=0;
+    for(i=0;i<ss.length;i++){
+      if(ss[i].src){ continue; }
+      t=ss[i].textContent;
+      if(!t){ continue; }
+      if(t.length<40){ continue; }
+      try{ new Function(t); continue; }catch(err){ }
+      bad=bad+1;
+      show('★★ ' + bad + '번째 다친 덩어리 — 화면의 ' + i + '번째 script, ' + t.length + '자');
+
+      var e2=null;
+      try{ new Function(t); }catch(err){ e2=err; }
+      show('    ' + String(e2));
+
+      /* 어느 줄인지 브라우저가 알려줍니다 */
+      var ln=0, cl=0;
+      var st=String(e2 ? (e2.stack||'') : '');
+      var m=st.match(/<anonymous>:(\d+):(\d+)/);
+      if(m){ ln=parseInt(m[1],10)-2; cl=parseInt(m[2],10); }
+      var L=t.split('\n');
+      if(ln>0){
+        show('    다친 줄 ' + ln + ' / 모두 ' + L.length + '줄');
+        for(k=ln-1;k<=ln+1;k++){
+          if(k<1){ continue; }
+          if(k>L.length){ break; }
+          var row=L[k-1];
+          if(row.length>260){ row=row.slice(0,260)+'…'; }
+          show('    ' + k + '| ' + row);
         }
-      })
-      .catch(function(e){ show('원문 못 읽음  ' + e); });
+      } else {
+        show('    줄 번호를 못 받았습니다 / 모두 ' + L.length + '줄');
+      }
+
+      show('    ┌ 머리 200자');
+      show('    ' + t.slice(0,200).replace(/\n/g,' '));
+      show('    └ 꼬리 120자');
+      show('    ' + t.slice(-120).replace(/\n/g,' '));
+      if(bad>=3){ return bad; }
+    }
+    return bad;
   }
-
-  window.addEventListener('error', function(e){
-    if(!e.target){ return; }
-    if(!e.target.src){ return; }
-    show('못 불러옴  '+e.target.src);
-  }, true);
-
-  window.addEventListener('unhandledrejection', function(e){
-    show('약속 깨짐  '+e.reason);
-  });
 
   function look(){
     var b=document.getElementById('ssb');
-    if(!b){ show('ssb 칸이 없습니다'); return; }
-    show('쪽 개수      '+b.getElementsByClassName('page').length);
+    if(!b){ show('ssb 칸이 없습니다'); }
+    else {
+      show('쪽 개수      '+b.getElementsByClassName('page').length);
+    }
     show('계산기       '+(window.StellaSaju ? '있음' : '★ 없음'));
     show('풀이말       '+(window.StellaRead ? '있음' : '★ 없음'));
     var o=null;
     try{ o=localStorage.getItem('stella_demo'); }catch(err){ o='읽기 막힘'; }
     if(!o){ show('주문 자료    ★ 없음'); }
     else { show('주문 자료    있음 '+String(o).length+'자'); }
-    var s=document.getElementsByTagName('script');
-    show('script 칸    '+s.length);
-    if(n===0){ show('넘어진 데가 없습니다'); }
+    var bad=scan();
+    if(bad===0){ show('★ 다친 덩어리를 못 찾았습니다'); }
   }
 
   if(document.readyState==='loading'){
