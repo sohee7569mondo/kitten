@@ -37,18 +37,18 @@
    · 다른 조각들이 쪽을 다 넣은 뒤에 돌아야 해서 맺음말이 보일 때까지 기다립니다.
    · 두 번 눌러도 한 번만 들어갑니다.
 
-   ★★ 주소를 stella_tail4 으로 바꿨습니다.
+   ★★ 주소를 stella_tail5 으로 바꿨습니다.
       먼저 판이 붙은 스니펫이 아직 켜져 있으면 그것이 stella_tail 을
       먼저 받아서 「이미 붙어 있습니다」로 답합니다. 그래서 갈랐습니다.
 
       순서
         1. 옛 스니펫으로  ?stella_tail=undo      (먼저 판을 떼냅니다)
         2. 옛 스니펫을 꺼주세요 (Inactive) 또는 지우세요
-        3. 이 스니펫을 새로 만들고  ?stella_tail4=preview  →  =apply
+        3. 이 스니펫을 새로 만들고  ?stella_tail5=preview  →  =apply
 
-   해보기   https://stellasaju.com/?stella_tail4=preview
-   붙이기   https://stellasaju.com/?stella_tail4=apply
-   되돌리기 https://stellasaju.com/?stella_tail4=undo
+   해보기   https://stellasaju.com/?stella_tail5=preview
+   붙이기   https://stellasaju.com/?stella_tail5=apply
+   되돌리기 https://stellasaju.com/?stella_tail5=undo
 
    붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
    ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
@@ -56,14 +56,14 @@
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_tail4'] ) ) { return; }
+	if ( ! isset( $_GET['stella_tail5'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
 	header( 'Content-Type: text/plain; charset=utf-8' );
 
-	$mode = sanitize_text_field( wp_unslash( $_GET['stella_tail4'] ) );
-	$META = '_stella_tail4_bak';
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_tail5'] ) );
+	$META = '_stella_tail5_bak';
 
 	$page = get_page_by_path( 'reading-book' );
 	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
@@ -81,13 +81,13 @@ add_action( 'template_redirect', function () {
 
 	$c    = (string) $wpdb->get_var( $wpdb->prepare(
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
-	$MARK = 'BUILD: TAIL-4';
+	$MARK = 'BUILD: TAIL-5';
 
 	$BLOCK = <<<'STELLATAIL'
 <!-- wp:html -->
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   STELLA SAJU — 맺음말 앞 두 장      BUILD: TAIL-4      2026-09-12
+   STELLA SAJU — 맺음말 앞 두 장      BUILD: TAIL-5      2026-09-12
    ───────────────────────────────────────────────────────────────
    모든 권의 맺음말 앞에 두 쪽을 넣습니다.
      하나 · 별자리로 다시 보면   (태양 자리)
@@ -208,7 +208,9 @@ add_action( 'template_redirect', function () {
   }
 
   function sheet(html){
-    return '<div class="page" data-part="tail">'+html+'<div class="folio"></div></div>';
+    return '<div class="page" data-part="tail">'+
+           '<div class="tailbox">'+html+'</div>'+
+           '<div class="folio"></div></div>';
   }
 
   function build(topic, sign, animal){
@@ -369,38 +371,39 @@ add_action( 'template_redirect', function () {
 })();
 </script>
 <style>
-/* ── 덤으로 드리는 두 쪽 ─────────────────────────────────
-   책이 밝은 바탕이라 진한 청록으로 잡습니다.
-   사주 본문(금색)·더 깊이(보라)와 세 번째 색입니다. */
-#ssb .page[data-part="tail"]{
-  background:rgba(31,122,110,.055);
-  border-left:4px solid #1F7A6E;
-  border-top:0;
-  padding-left:22px;
+/* ── 덤으로 드리는 이야기 ────────────────────────────────
+   아르카나 육성 상자(.voice)와 같은 모양입니다. 색만 다릅니다.
+     사주 본문  금색  var(--gold)
+     육성 상자  금색  rgba(212,175,106,.055)
+     덤 두 쪽   청록  rgba(31,122,110,.07)      ← 이것 */
+#ssb .tailbox{
+  margin:0; padding:26px 28px;
+  background:rgba(31,122,110,.07);
+  border-left:3px solid #1F7A6E;
 }
+#ssb .page[data-part="tail"]{ border-top:0; }
 #ssb .page[data-part="tail"]::before{ background:#1F7A6E; }
-#ssb .page[data-part="tail"] .eyebrow{
-  color:#1F7A6E; letter-spacing:.08em;
-}
-#ssb .page[data-part="tail"] h2{ color:#17584F; }
-#ssb .page[data-part="tail"] h3{ color:#1F7A6E; margin-top:1.5em; }
-#ssb .page[data-part="tail"] .bonus{
-  display:inline-block; margin:0 0 18px;
+
+#ssb .tailbox .bonus{
+  display:inline-block; margin:0 0 16px;
   font-size:.7rem; letter-spacing:.02em; font-weight:700;
   color:#fff; background:#1F7A6E;
   border-radius:999px; padding:5px 14px;
 }
-#ssb .page[data-part="tail"] .dek{ color:rgba(23,88,79,.72); }
-#ssb .page[data-part="tail"] .cl{
+#ssb .tailbox .eyebrow{ color:#1F7A6E; letter-spacing:.08em; margin-top:0; }
+#ssb .tailbox h2{ color:#17584F; }
+#ssb .tailbox h3{ color:#1F7A6E; margin-top:1.5em; }
+#ssb .tailbox .dek{ color:rgba(23,88,79,.74); }
+#ssb .tailbox .cl{
   border-top:1px solid rgba(31,122,110,.28);
   padding-top:1em; margin-top:1.5em;
 }
-#ssb .page[data-part="tail"] .mini{
+#ssb .tailbox .mini{
   border-left:3px solid rgba(31,122,110,.34);
   padding-left:14px; margin-top:1.8em;
 }
 @media(max-width:640px){
-  #ssb .page[data-part="tail"]{ padding-left:16px; border-left-width:3px; }
+  #ssb .tailbox{ padding:20px 18px; border-left-width:3px; }
 }
 </style>
 <!-- /wp:html -->
@@ -410,8 +413,8 @@ STELLATAIL;
 		$has = ( strpos( $c, $MARK ) !== false );
 		echo "═══ 맺음말 앞 두 장 (TAIL-3) ═══\n";
 		echo '쪽 160 · ' . number_format( mb_strlen( $c ) ) . "글자\n\n";
-		if ( $has ) { echo "이미 붙어 있습니다.\n?stella_tail4=undo 로 되돌린 뒤 다시 붙이세요.\n"; exit; }
-		foreach ( array( 'BUILD: TAIL-4', 'BUILD: TAIL-4' ) as $old ) {
+		if ( $has ) { echo "이미 붙어 있습니다.\n?stella_tail5=undo 로 되돌린 뒤 다시 붙이세요.\n"; exit; }
+		foreach ( array( 'BUILD: TAIL-5', 'BUILD: TAIL-5' ) as $old ) {
 			if ( strpos( $c, $old ) !== false ) {
 				echo "★ 먼저 판(" . $old . ")이 붙어 있습니다.\n";
 				echo "  → apply 할 때 스스로 떼냅니다. 따로 undo 하지 않으셔도 됩니다.\n\n";
@@ -427,11 +430,11 @@ STELLATAIL;
 		echo "    별자리로 다시 보면 · 띠로 보면\n";
 		echo "    맺음말 · ○○님께\n";
 		echo "    뒤에 붙이는 것 · 근거 하나~여섯      ← 맨 뒤로 보냅니다\n\n";
-		echo "붙이려면 ?stella_tail4=apply\n";
+		echo "붙이려면 ?stella_tail5=apply\n";
 		exit;
 	}
 
-	if ( 'apply' !== $mode ) { echo '?stella_tail4=preview 부터 보세요.'; exit; }
+	if ( 'apply' !== $mode ) { echo '?stella_tail5=preview 부터 보세요.'; exit; }
 	if ( strpos( $c, $MARK ) !== false ) { echo '이미 붙어 있습니다.'; exit; }
 
 	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
@@ -442,7 +445,7 @@ STELLATAIL;
 	   정규식을 쓰지 않고 자리만 찾아 자릅니다. */
 	$body = $c;
 	$took = 0;
-	foreach ( array( 'BUILD: TAIL-1', 'BUILD: TAIL-2', 'BUILD: TAIL-3' ) as $oldmark ) {
+	foreach ( array( 'BUILD: TAIL-1', 'BUILD: TAIL-2', 'BUILD: TAIL-3', 'BUILD: TAIL-4' ) as $oldmark ) {
 		while ( true ) {
 			$at = strpos( $body, $oldmark );
 			if ( false === $at ) { break; }
@@ -466,6 +469,6 @@ STELLATAIL;
 	echo "붙였습니다.\n";
 	echo '쪽 160 · ' . number_format( mb_strlen( $new ) ) . "글자\n\n";
 	echo "책 뒷부분을 보세요. 별자리·띠 → 맺음말 → 편지 → 근거 순입니다.\n";
-	echo "되돌리려면 ?stella_tail4=undo\n";
+	echo "되돌리려면 ?stella_tail5=undo\n";
 	exit;
 }, 1 );
