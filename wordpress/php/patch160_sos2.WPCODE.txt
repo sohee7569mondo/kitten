@@ -28,6 +28,11 @@
      붙이기   https://stellasaju.com/?stella_sos2b=apply
      되돌리기 https://stellasaju.com/?stella_sos2b=undo
 
+   ★★ 다시 안 생기게 — 160쪽을 워드프레스 편집기로 열어 저장하지 마세요.
+      편집기로 저장하면 워드프레스가 홑 역슬래시를 한 겹 벗겨냅니다.
+      그러면 이 두 정규식이 그 자리에서 다시 깨집니다.
+      고칠 것이 있으면 늘 조각(WPCode)으로 고칩니다.
+
    ★ 스니펫 이름 「STELLA - 급한 수리 SOS2」
    ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
    ══════════════════════════════════════════════════════════ */
@@ -87,7 +92,7 @@ TAG;
 		$last = array_pop( $stack );
 		$wpdb->update( $wpdb->posts, array( 'post_content' => $last['body'] ), array( 'ID' => $id ) );
 		clean_post_cache( $id );
-		update_post_meta( $id, $STACK, $stack );
+		update_post_meta( $id, $STACK, wp_slash( $stack ) );  /* ★ wp_slash 없이 담으면 역슬래시가 벗겨집니다 */
 		echo '되돌렸습니다 — ' . $last['when'] . ' - ' . $last['name'] . "\n";
 		echo '남은 판 ' . count( $stack ) . '개';
 		exit;
@@ -146,7 +151,7 @@ TAG;
 
 	$stack[] = array( 'when' => current_time( 'Y-m-d H:i' ), 'name' => $ROUND, 'body' => $c );
 	while ( count( $stack ) > 5 ) { array_shift( $stack ); }
-	update_post_meta( $id, $STACK, $stack );
+	update_post_meta( $id, $STACK, wp_slash( $stack ) );  /* ★ wp_slash 없이 담으면 역슬래시가 벗겨집니다 */
 
 	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
 	clean_post_cache( $id );
