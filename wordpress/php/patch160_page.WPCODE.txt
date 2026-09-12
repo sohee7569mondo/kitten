@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    쪽이 어떻게 왔는지 잽니다
-   ★ 2026-09-12 · 소희 님께      BUILD: PAGE-1
+   ★ 2026-09-12 · 소희 님께      BUILD: PAGE-2
 
    ── 왜 ────────────────────────────────────────────────
    책 쪽이 하얗습니다. 본문은 1,334,526자로 멀쩡한데
@@ -13,8 +13,10 @@
    이 둘은 고치는 법이 아주 다릅니다. 그래서 먼저 잽니다.
 
    ── 무엇을 보여주나 ───────────────────────────────────
-   · 서버가 내보낸 글자 수        (PHP 가 세어 적어둡니다)
-   · 브라우저가 받은 글자 수      (화면에서 세어봅니다)
+   · 서버가 가진 글자 수 · 화면이 가진 글자 수
+     ★ 두 수는 원래 다릅니다. 브라우저가 읽어들이며 모양을 다듬으니까요.
+       끊겼는지는 </body> 로 끝났는지로 봅니다.
+   · ★ 쪽 수를 세 번 셉니다 (1.2초 · 4초 · 10초) — 멈췄는지 느린지
    · script 덩어리 개수
    · ssb 칸 · 계산기 · 풀이말 · 주문
    · ★ 맨 끝 300자 — 끊겼다면 여기가 문장 한가운데서 멈춰 있습니다
@@ -67,11 +69,14 @@ function stella_page_probe() {
 	$out .= "(function(){\n";
 	$out .= "  var SENT=" . $sent . ";\n";
 	$out .= <<<'PAGEJS'
-  function draw(){
+  var COUNTS=[];
+  function draw(sec){
     var box=document.getElementById('stellapagebox');
     if(!box){ return; }
     var html=document.documentElement.innerHTML;
     var got=html.length;
+    var pagesNow=document.getElementsByClassName('page').length;
+    COUNTS.push(sec+'초 '+pagesNow+'쪽');
     var scripts=document.getElementsByTagName('script');
     var js=0, data=0, i, t;
     for(i=0;i<scripts.length;i++){
@@ -84,13 +89,27 @@ function stella_page_probe() {
     L.push('═══ 쪽이 어떻게 왔나 ═══');
     L.push('본문(서버가 가진 것) : '+SENT.toLocaleString()+'자');
     L.push('화면이 가진 것       : '+got.toLocaleString()+'자');
-    if(got < SENT){ L.push('★ 화면이 더 적습니다 — 오다가 끊긴 것으로 보입니다'); }
-    else { L.push('★ 글은 다 왔습니다 — 그리는 중에 넘어진 것입니다'); }
+    if(html.indexOf('</body>')>=0){ L.push('★ </body> 로 끝났습니다 — 글은 다 왔습니다'); }
+    else { L.push('★ </body> 가 없습니다 — 오다가 끊겼습니다'); }
     L.push('');
+    L.push('쪽 수 : '+COUNTS.join(' / '));
     L.push('script 덩어리 : '+js+'개 (자료 '+data+'개는 뺀 수)');
     L.push('ssb 칸    : '+(document.getElementById('ssb')?'있음':'★ 없음'));
     var pages=document.getElementsByClassName('page');
     L.push('그려진 쪽 : '+pages.length+'개');
+    var ssb=document.getElementById('ssb');
+    if(ssb){
+      L.push('빗장(data-tail) : '+(ssb.getAttribute('data-tail')||'없음'));
+      L.push('책 칸 높이 : '+ssb.offsetHeight+'px   보이나 : '+
+             (ssb.offsetParent?'예':'★ 아니오(숨어 있음)'));
+    }
+    L.push('A 조각 : '+(html.indexOf('TAIL-FETCH-2')>=0?'나갔음':'★ 안 나갔음'));
+    var ebs=[], q, e4;
+    for(q=0;q<pages.length;q++){
+      e4=pages[q].getElementsByClassName('eyebrow')[0];
+      if(e4){ ebs.push(e4.textContent); }
+    }
+    L.push('마지막 눈썹줄 : '+ebs.slice(-10).join(' / '));
     L.push('계산기    : '+(window.StellaSaju?'있음':'★ 없음'));
     L.push('풀이말    : '+(window.StellaRead?'있음':'★ 없음'));
     var od=null;
@@ -108,8 +127,9 @@ function stella_page_probe() {
     L.push('└──────────────────────────');
     box.textContent=L.join('\n');
   }
-  setTimeout(draw, 1200);
-  setTimeout(draw, 4000);
+  setTimeout(function(){ draw(1.2); }, 1200);
+  setTimeout(function(){ draw(4); }, 4000);
+  setTimeout(function(){ draw(10); }, 10000);
 })();
 PAGEJS;
 	$out .= "\n</script>\n";
