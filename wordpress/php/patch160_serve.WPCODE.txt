@@ -1,0 +1,88 @@
+/* ══════════════════════════════════════════════════════════
+   책 쪽은 우리가 직접 그립니다
+   ★ 2026-09-12 · 소희 님께      판 SERVE-1
+
+   ── 여기까지 밝혀진 것 ────────────────────────────────
+   ?stella_raw=1 로는 책이 멀쩡히 보입니다.
+   → 본문은 온전합니다. 조각들 탓도 아닙니다.
+   → 워드프레스가 쪽을 그리는 길 어딘가에서 터집니다.
+
+   메모리 한도는 512M 로 박혀 있어 못 올립니다.
+   the_content 손길을 비워도 다른 길이 또 있습니다.
+   블록 테마는 템플릿까지 블록으로 파싱하면서 1.33MB 본문을
+   여러 겹으로 다시 만듭니다.
+
+   ── 그래서 이렇게 합니다 ──────────────────────────────
+   책 쪽에 들어오면 워드프레스의 긴 길을 타지 않고
+   우리가 곧바로 그려서 내보냅니다.
+
+       머리글  wp_head()   ← 글꼴·스타일·다른 조각들
+       본문    그대로
+       바닥글  wp_footer() ← tailrun 같은 조각들
+
+   ★ 책 쪽은 원래 테마 머리말·바닥글을 CSS 로 숨기고
+     있었습니다. 그러니 잃는 것이 없습니다.
+
+   ★ 필터를 한 번도 안 거칩니다. 그래서 —
+     · 메모리가 확 줄어듭니다
+     · 「&」를 써도 안 깨집니다
+     · 따옴표가 둥글게 안 바뀝니다
+     · 그림 태그에 decoding 이 두 번 안 끼입니다
+
+   ── 안전장치 ──────────────────────────────────────────
+   끄고 싶으면 조각을 비활성으로 두시면 됩니다.
+   급하면 주소로도 한 번 건너뜁니다 —
+       https://stellasaju.com/reading-book/?stella_serve=off
+
+   ── 지키는 것 ─────────────────────────────────────────
+   · 책 쪽에서만 합니다. 다른 쪽은 워드프레스가 그립니다.
+   · 본문을 한 글자도 안 바꿉니다.
+   · 손님도 그대로 봅니다. 로그인과 상관없습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ★★ patch160_light 는 꺼주세요. 이제 필요 없습니다.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	/* 관리자 화면과 피드는 건드리지 않습니다 */
+	if ( is_admin() ) { return; }
+	if ( is_feed() ) { return; }
+	if ( is_embed() ) { return; }
+
+	/* 건너뛰기 주소 */
+	if ( isset( $_GET['stella_serve'] ) ) {
+		if ( 'off' === $_GET['stella_serve'] ) { return; }
+	}
+
+	if ( ! is_singular() ) { return; }
+	$p = get_post();
+	if ( ! $p ) { return; }
+	if ( 'reading-book' !== $p->post_name ) { return; }
+
+	global $wpdb;
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", (int) $p->ID ) );
+	if ( '' === $c ) { return; }   /* 못 읽었으면 워드프레스에 맡깁니다 */
+
+	/* 본문 손길을 비웁니다 — wp_head 안에서 누가 부를 수도 있어서 */
+	global $wp_filter;
+	if ( isset( $wp_filter['the_content'] ) ) { unset( $wp_filter['the_content'] ); }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+
+	echo '<!doctype html>' . "\n";
+	echo '<html lang="ko">' . "\n<head>\n";
+	echo '<meta charset="utf-8">' . "\n";
+	echo '<meta name="viewport" content="width=device-width, initial-scale=1">' . "\n";
+	echo '<title>' . esc_html( get_the_title( $p ) ) . '</title>' . "\n";
+	wp_head();
+	echo "\n</head>\n<body class=\"stella-book\">\n";
+
+	echo $c;
+
+	wp_footer();
+	echo "\n</body>\n</html>";
+	exit;
+}, 5 );
