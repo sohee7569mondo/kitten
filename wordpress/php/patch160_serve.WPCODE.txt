@@ -1,6 +1,13 @@
 /* ══════════════════════════════════════════════════════════
    책 쪽은 우리가 직접 그립니다
-   ★ 2026-09-12 · 소희 님께      판 SERVE-3
+   ★ 2026-09-12 · 소희 님께      판 SERVE-4
+
+   ── SERVE-4 (2026-09-12 밤) ───────────────────────────
+   소희 님 쪽에서 잰 값 : 끝까지 511MB · 한도 512M
+   ★ 1MB 남기고 지나갑니다. 그래서 어떤 때는 넘고 어떤 때는 못 넘습니다.
+     오늘 흰 화면과 끊긴 소스가 전부 이것이었습니다.
+
+   이 판은 구간마다 재어 어디서 늘어나는지 적습니다. Ctrl+U 로 보입니다.
 
    ── SERVE-3 에서 달라진 것 ────────────────────────────
    · 만든 만큼 바로 내보냅니다 (여태는 1.33MB 를 통째로 안고 있다가
@@ -72,10 +79,22 @@ add_action( 'template_redirect', function () {
 	if ( ! $p ) { return; }
 	if ( 'reading-book' !== $p->post_name ) { return; }
 
+	/* ── 구간마다 재어 둡니다 ─────────────────────────
+	   480MB 가 어디로 가는지 짐작하지 않고 잽니다. */
+	$stella_marks = array();
+	$stella_mark = function ( $where ) use ( &$stella_marks ) {
+		$stella_marks[] = sprintf( '%-14s 지금 %4dMB · 최대 %4dMB',
+			$where,
+			round( memory_get_usage( true ) / 1048576 ),
+			round( memory_get_peak_usage( true ) / 1048576 ) );
+	};
+	$stella_mark( '들어올 때' );
+
 	global $wpdb;
 	$c = (string) $wpdb->get_var( $wpdb->prepare(
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", (int) $p->ID ) );
 	if ( '' === $c ) { return; }   /* 못 읽었으면 워드프레스에 맡깁니다 */
+	$stella_mark( '본문 읽고' );
 
 	/* 본문 손길을 비웁니다 — wp_head 안에서 누가 부를 수도 있어서 */
 	global $wp_filter;
@@ -115,6 +134,7 @@ add_action( 'template_redirect', function () {
 	echo '<meta name="viewport" content="width=device-width, initial-scale=1">' . "\n";
 	echo '<title>' . esc_html( get_the_title( $p ) ) . '</title>' . "\n";
 	wp_head();
+	$stella_mark( '머리말 끝' );
 	echo "\n</head>\n<body class=\"stella-book\">\n";
 	flush();
 
@@ -125,12 +145,18 @@ add_action( 'template_redirect', function () {
 	/* ★ 얼마나 아슬아슬한지 적어둡니다.
 	   Ctrl+U 로 소스를 보면 이 줄이 있습니다.
 	   이 줄이 아예 없으면 본문을 보내다 죽은 것입니다. */
+	$stella_mark( '본문 내고' );
 	echo "\n<!-- stella 본문까지 " . round( memory_get_peak_usage( true ) / 1048576 )
 	   . "MB · 한도 " . ini_get( 'memory_limit' ) . " -->\n";
 	flush();
 
 	wp_footer();
 
+	$stella_mark( '바닥글 끝' );
+
+	echo "\n<!-- stella 어디서 늘었나 ─────────────\n";
+	foreach ( $stella_marks as $m ) { echo '     ' . $m . "\n"; }
+	echo "   ───────────────────────────────── -->\n";
 	echo "\n<!-- stella 끝까지 " . round( memory_get_peak_usage( true ) / 1048576 ) . "MB -->\n";
 	echo "\n</body>\n</html>";
 	exit;
