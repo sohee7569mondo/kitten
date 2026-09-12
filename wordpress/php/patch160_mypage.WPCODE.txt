@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════════════════════
-   내 자리 — 안 보이는 글씨를 살립니다   ★ 2026-09-12 · 소희 님께
-                                          판 MYPAGE-1
+   안 보이는 글씨를 살립니다 — 내 자리 · 자료 정리
+   ★ 2026-09-12 · 소희 님께
+                                          판 MYPAGE-2
 
    소희 님 : 「중간에 글씨 안 보여」
 
@@ -45,17 +46,18 @@
    ★ 크롬 번역을 끄고 붙여넣으세요.
 
    보시는 법 : https://stellasaju.com/mypage/
+              https://stellasaju.com/reading-ready/
    ══════════════════════════════════════════════════════════ */
 
-if ( ! function_exists( 'stella_mypage1_css' ) ) {
+if ( ! function_exists( 'stella_mypage2_css' ) ) {
 
 add_action( 'wp_footer', function () {
-	echo stella_mypage1_css();
+	echo stella_mypage2_css();
 }, 99 );
 
-function stella_mypage1_css() {
+function stella_mypage2_css() {
 
-	$out  = "\n<!-- stella 내 자리 판 MYPAGE-1 -->\n";
+	$out  = "\n<!-- stella 내 자리 판 MYPAGE-2 -->\n";
 	$out .= '<style id="stella-mypage">' . "\n";
 
 	/* 본문 — 읽어야 하는 글 */
@@ -71,10 +73,32 @@ function stella_mypage1_css() {
 	$out .= "#ssm .guest{ background:rgba(212,175,106,.10) !important;\n";
 	$out .= "  border:1px solid rgba(192,154,82,.34) !important; }\n";
 
+	/* ══ 자료 정리 쪽의 분홍 알림 상자 ══════════════════
+	   소희 님 : 「첫 번째 사진의 글씨 안 보여. 진핑크로 글씨 해줘」
+
+	   그 상자입니다 —
+	   「진태양시가 시주 경계에 붙어 있습니다. 태어난 시각이 10분만
+	     달라도 시주가 바뀝니다.」
+
+	   여기도 어두운 바탕 시절의 색이 남아 있었습니다.
+
+	       color:#E9BFBF     ← 아주 연한 분홍. 밝은 바탕에서 지워집니다
+
+	   이 말은 **꼭 읽으셔야 하는 말**입니다. 태어난 시각이 경계에
+	   걸리면 사주가 통째로 바뀌니까요. 그런데 안 읽히고 있었습니다.
+	   진한 분홍으로 세우고 상자도 또렷하게 합니다. */
+	$out .= "#ssr .warn{ color:#9E2B50 !important;\n";
+	$out .= "  background:rgba(158,43,80,.07) !important;\n";
+	$out .= "  border:1px solid rgba(158,43,80,.34) !important; }\n";
+	$out .= "#ssr .warn p{ color:#9E2B50 !important; }\n";
+	$out .= "#ssr .warn em, #ssr .warn b, #ssr .warn strong{\n";
+	$out .= "  color:#7C1E3E !important; font-weight:700 !important; }\n";
+
 	/* ★ 글자에 직접 박아 둔 크림색까지 잡습니다.
 	   style=\"…rgba(242,236,224,…)…\" 가 붙은 자리는
 	   바깥 규칙으로는 안 바뀝니다. */
 	$out .= "#ssm [style*=\"242,236,224\"]{ color:#5A5148 !important; }\n";
+	$out .= "#ssr [style*=\"242,236,224\"]{ color:#5A5148 !important; }\n";
 
 	$out .= "</style>\n";
 	return $out;

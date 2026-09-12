@@ -1,53 +1,55 @@
-/* ════════════════════════════════════════════════════════════
-   일 문 · 어긋나는 자리 열 칸
+/* ══════════════════════════════════════════════════════════
+   맺음말의 「어긋난 자리」를 제대로 씁니다
+   ★ 2026-09-12 · 소희 님께      판 GAP-1
 
-   일 문(직성)의 어긋나는 자리는 지금 열 칸이 전부 이 한 줄로
-   끝납니다.
+   소희 님 : 「3가지만 기억하면 된다는 부분의 어긋난 부분…
+             이게 핵심인데 글 양이 작지 않아?」
 
-     그런데 답변에서는 안 보이는 것을 다루는 쪽을 고르셨습니다.
-     이 부분이 사주와 실제 생활이 어긋나는 자리입니다.
+   ── 맞습니다 ──────────────────────────────────────────
+   이 책에서 손님이 가장 오래 들여다보는 자리인데 두 문단이었습니다.
+   「사주가 가리키는 쪽과 답해주신 쪽이 달랐습니다」로 끝나고,
+   **무엇이 어떻게 다른지는 안 적혀 있었습니다.**
 
-   어긋났다고 말만 하고 끝납니다. 뭐가 어떻게 힘든지, 그래서
-   어떻게 하면 되는지가 없어요. 사랑 문에는 이 자리에 세 문단이
-   들어갑니다. 일 문에도 같은 것을 넣습니다.
+   손님 입장에서는 「그래서 뭐가 다른데?」로 끝납니다.
 
-   소희 님이 열 칸을 다 고쳐 쓰신 글입니다. 한 칸의 모양은
-   ① 답해주신 쪽을 짚습니다 → ② 「이렇게 하셨을 거예요」 + 이 결은
-   왜 그게 안 맞는지 → ③ 다독이는 한 줄.
+   ── 이제 이렇게 적습니다 ──────────────────────────────
+   어긋난 자리마다 한 덩이씩 —
 
-   손님은 열 칸 가운데 어긋난 칸만 읽습니다. 다섯 저울이 다
-   어긋나는 사람은 거의 없어요.
+       ① 사주는 어느 쪽인가        (혼자냐 함께냐 → 혼자 쪽)
+       ② 답해주신 것은 어느 쪽인가  (반대쪽이었습니다)
+       ③ 그 어긋남이 실제로 어떤 자리에서 힘이 되는가
+          「한순간도 혼자 두지 않는 관계가 오래 이어지면
+            같은 사랑을 해도 마음이 남보다 빨리 닳습니다」
+       ④ 그렇다고 지금 방식을 버려야 하는가 — 아닙니다
+       ⑤ 그러면 무엇을 해보면 되는가 — 한 달에 한 번
 
-     01 solo · 혼자    02 solo · 함께
-     03 form · 실물    04 form · 무형
-     05 many · 하나    06 many · 여럿
-     07 risk · 안정    08 risk · 변화
-     09 make · 정답    10 make · 창조
+   어긋난 자리가 **없는** 분께도 세 문단을 드립니다. 예전에는
+   한 문단으로 끝나서, 어긋남이 없는 분은 오히려 덜 받으셨습니다.
 
-   gap 은 AXIS_WARM['door-career'] 의 각 갈래 안에 들어갑니다.
-   tiny 뒤에 나오므로, 이미 있는 글을 한 줄도 안 지웁니다.
+   ── 새로 지어낸 말은 없습니다 ─────────────────────────
+   맺음말은 앞에서 이미 계산되어 나온 것을 줄이는 자리입니다.
+   그 규칙을 지켰습니다. 쓰는 값은 셋뿐입니다.
 
-   04번의 「당신」은 손님 이름으로 바뀝니다 — 「소희님이 없으면
-   돌아가지 않는 일이 따로 있는데요」. 님이 받침이라 조사는 늘
-   「이」로 맞습니다.
+       AGAINST[축][기운 쪽]   그 결을 거스르면 어떤 자리인지
+       AGAINST.cost           거스르면 무엇이 닳는지 (문마다 다릅니다)
+       NOTBAD[축][기운 쪽]    「그게 흠은 아닙니다」 한 줄
 
-   ★ 앞의 패치들(paper · today · box · voice · ask)이 들어가 있어야
-     합니다. 이 자리는 그 패치들이 안 건드리는 곳이지만, 순서를
-     맞춰두는 편이 나중에 헷갈리지 않습니다.
+   ── 글이 얼마나 늘어나나 ──────────────────────────────
+       전  300자 남짓 (두 문단)
+       후  1,000자 안팎 (어긋난 자리 둘일 때)
 
-   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
-   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
-
-   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
-   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로 바꾸세요.
-
-   ① 먼저 보기   https://stellasaju.com/?stella_gap=1
-   ② 정말 바꾸기 https://stellasaju.com/?stella_gap=apply
+   ── 하는 법 ───────────────────────────────────────────
+   ① 먼저 보기   https://stellasaju.com/?stella_gap=preview
+   ② 정말 넣기   https://stellasaju.com/?stella_gap=apply
    ③ 되돌리기    https://stellasaju.com/?stella_gap=undo
 
-   바꾸고 나서 볼 곳
-     https://stellasaju.com/reading-book/?demo=door-career
-   ════════════════════════════════════════════════════════════ */
+   ★ 한 군데가 정확히 한 번 걸릴 때만 바꿉니다. 아니면 아무것도
+     안 건드리고 그대로 알려드립니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ══════════════════════════════════════════════════════════ */
 
 add_action( 'template_redirect', function () {
 
@@ -55,150 +57,170 @@ add_action( 'template_redirect', function () {
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
 
-	$PAGE = 160;
-	$META = '_stella_gap_backup';
-	$mode = sanitize_key( wp_unslash( $_GET['stella_gap'] ) );
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_gap'] ) );
+	$META = '_stella_gap_bak';
 
-	header( 'Content-Type: text/html; charset=utf-8' );
-	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
-	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
-	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
-	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
-	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
-	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
-
-	$row = $wpdb->get_row( $wpdb->prepare(
-		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
-	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽을 못 찾았습니다.'; exit; }
+	$id = (int) $page->ID;
 
 	if ( 'undo' === $mode ) {
-		$old = get_post_meta( $PAGE, $META, true );
-		echo '<h1>되돌리기</h1>';
-		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
-		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
-		clean_post_cache( $PAGE );
-		delete_post_meta( $PAGE, $META );
-		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
-		echo '<p><a href="/reading-book/?demo=door-career">책 보기</a></p>';
+		$back = get_post_meta( $id, $META, true );
+		if ( '' === $back ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $back ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다. ' . number_format( strlen( $back ) ) . "자\n";
 		exit;
 	}
 
-	$c = $row->post_content;
-	$before = strlen( $c );
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
 
-	$jobs = array();
+	$find = stella_gap_old();
+	$to   = stella_gap_new();
 
-	$jobs[] = array(
-		'name' => '01 solo · 혼자',
-		'find' => '/아무에게도\\s+안\\s+불리는\\s+시간을\\s+만들어\\s+두세요\\.\\s+그\\s+두\\s+시간이\\s+하루치를\\s+합니다\\.\'\\s+\\}/u',
-		'to'   => " 아무에게도 안 불리는 시간을 만들어 두세요. 그 두 시간이 하루치를 합니다.',\n                 gap:[\n                   '그런데 답해주실 때는 <em>사람과 굴리는 일</em> 쪽을 고르셨습니다.',\n                 '사람들과 같이 하는 편이 낫다고 하셨을 거예요. 혼자 하면 외롭고, 물어볼 데도 없으니까요. 그런데 이 결은 <em>혼자 파고들어야 답이 나오는 쪽</em>이라, 회의에서 정한 방향도 자리에 앉는 순간 처음부터 다시 생각하게 됩니다. 회의가 길었던 날일수록 정작 한 일이 없으셨을 겁니다.',\n                 '사람이 싫으신 게 아니에요. <em>정리가 끝난 다음에 만나면 같은 이야기도 훨씬 잘 통합니다.</em> 순서만 바꾸면 되는 자리예요.'\n                 ] }",
-	);
+	echo "═══ 맺음말 · 어긋난 자리 ═══\n";
+	echo '책 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "자\n\n";
 
-	$jobs[] = array(
-		'name' => '02 solo · 함께',
-		'find' => '/보여주고\\s+의견을\\s+나눠\\s+보세요\\.\\s+혼자\\s+끌고\\s+가던\\s+일이\\s+다시\\s+움직이기\\s+시작합니다\\.\'\\s+\\}/u',
-		'to'   => "보여주고 의견을 나눠 보세요. 혼자 끌고 가던 일이 다시 움직이기 시작합니다.',\n                 gap:[\n                   '그런데 답해주실 때는 <em>혼자 파고드는 일</em> 쪽을 고르셨습니다.',\n                 '혼자 조용히 하는 게 편하다고 하셨을 거예요. 묻는 게 폐 끼치는 것 같아서, 또는 설명할 시간에 그냥 하는 게 빠를 것 같아서요. 그런데 이 결은 <em>말하면서 길이 뚫리는 쪽</em>이라, 혼자 붙들고 있으면 풀리는 게 아니라 그냥 오래 걸립니다.',\n                 '실력이 모자라서가 아닙니다. <em>물어본 십 분이 혼자 앓은 사흘을 덮는 자리예요.</em>'\n                 ] }",
-	);
-
-	$jobs[] = array(
-		'name' => '03 form · 실물',
-		'find' => '/니다\\.\\s+오늘\\s+한\\s+일을\\s+눈에\\s+보이게\\s+하나만\\s+남겨\\s+두세요\\s+—\\s+목록이든\\s+사진이든요\\.\'\\s+\\}/u',
-		'to'   => "니다. 오늘 한 일을 눈에 보이게 하나만 남겨 두세요 — 목록이든 사진이든요.',\n                 gap:[\n                   '그런데 답해주실 때는 <em>안 보이는 것을 다루는</em> 쪽을 고르셨습니다.',\n                 '기획하고 조율하는 일이 더 그럴듯해 보이셨을 거예요. 그런데 이 결은 <em>오늘 뭘 만들었는지 눈으로 봐야 힘이 나는 쪽</em>입니다. 회의만 하고 온 날 유난히 허탈하셨다면 그 때문이에요. 한 게 없어서가 아니라 <em>손에 쥔 게 없어서</em>입니다.',\n                 '기획을 못 하시는 게 아닙니다. 다만 이 결은 <em>결과가 보이는 자리에서 훨씬 빨리 인정받습니다.</em>'\n                 ] }",
-	);
-
-	$jobs[] = array(
-		'name' => '04 form · 무형',
-		'find' => '/안\\s+납니다\\.\\s+그래서\\s+적어\\s+두셔야\\s+해요\\.\\s+남이\\s+안\\s+세어주면\\s+내가\\s+세어야\\s+합니다\\.\'\\s+\\}/u',
-		'to'   => "안 납니다. 그래서 적어 두셔야 해요. 남이 안 세어주면 내가 세어야 합니다.',\n                 gap:[\n                   '그런데 답해주실 때는 <em>손에 잡히는 것을 만드는</em> 쪽을 고르셨습니다.',\n                 '눈에 보이는 결과가 있어야 일한 것 같다고 하셨을 거예요. 그런데 이 결은 <em>사람과 정보를 굴려서 판을 만드는 쪽</em>이라, 만든 개수로 재는 자리에 가면 정작 제일 잘하는 걸 쓰지 못합니다. 당신이 없으면 돌아가지 않는 일이 따로 있는데요.',\n                 '티가 안 나는 것과 값이 없는 것은 다릅니다. <em>이 결은 자리를 비워봐야 값이 보입니다.</em>'\n                 ] }",
-	);
-
-	$jobs[] = array(
-		'name' => '05 many · 하나',
-		'find' => '/다만\\s+「지금\\s+제일\\s+중요한\\s+하나」를\\s+매주\\s+정해\\s+두세요\\.\\s+나머지는\\s+그\\s+뒤입니다\\.\'\\s+\\}/u',
-		'to'   => " 다만 「지금 제일 중요한 하나」를 매주 정해 두세요. 나머지는 그 뒤입니다.',\n                 gap:[\n                   '그런데 답해주실 때는 <em>여러 개를 굴리는</em> 쪽을 고르셨습니다.',\n                 '여러 개를 해야 기회가 넓어진다고 하셨을 거예요. 그런데 이 결은 <em>하나를 오래 파야 깊이가 나오는 쪽</em>입니다. 벌여놓기는 여럿인데 어느 것도 남 앞에 내놓을 만큼은 안 된 채로 한 해가 간 적이 있으셨을 겁니다.',\n                 '욕심이 많으신 게 아닙니다. <em>하나를 끝까지 파본 사람은, 그다음 것도 끝까지 팝니다.</em>'\n                 ] }",
-	);
-
-	$jobs[] = array(
-		'name' => '06 many · 여럿',
-		'find' => '/씩\\s+「끝」\\s+표시를\\s+만드는\\s+것<\/em>입니다\\.\'\\s+\\]\\s+\\}/u',
-		'to'   => "씩 「끝」 표시를 만드는 것</em>입니다.'\n                 ],\n                 gap:[\n                   '그런데 답해주실 때는 <em>하나를 깊게 파는</em> 쪽을 고르셨습니다.',\n                 '한 우물을 파야 한다고 배우셨을 거예요. 그런데 이 결은 <em>여러 개가 서로 물려 돌아갈 때 머리가 열리는 쪽</em>이라, 하나만 붙들고 있으면 성실한데 지루합니다. 잘 다니다가도 어느 날 갑자기 다 놓고 싶어지는 게 그래서예요.',\n                 '끈기가 없는 게 아닙니다. <em>두 번째 일이 첫 번째 일을 살리는 결이에요.</em>'\n                 ] }",
-	);
-
-	$jobs[] = array(
-		'name' => '07 risk · 안정',
-		'find' => '/게\\s+아니에요\\.\\s+다만\\s+지금\\s+자리가\\s+십\\s+년\\s+뒤에도\\s+있을지만\\s+한\\s+번\\s+확인해\\s+보세요\\.\'\\s+\\}/u',
-		'to'   => "게 아니에요. 다만 지금 자리가 십 년 뒤에도 있을지만 한 번 확인해 보세요.',\n                 gap:[\n                   '그런데 답해주실 때는 <em>판을 흔드는</em> 쪽을 고르셨습니다.',\n                 '가만히 있으면 뒤처진다고 생각하셨을 거예요. 그런데 이 결은 <em>같은 자리에 쌓아야 힘이 붙는 쪽</em>입니다. 옮길 때마다 처음부터 다시 시작하느라, 쌓아둔 것이 남에게 넘어간 적이 있으셨을 겁니다.',\n                 '겁이 많으신 게 아닙니다. <em>오래 있어야 이자가 붙는 자리에 계신 거예요.</em>'\n                 ] }",
-	);
-
-	$jobs[] = array(
-		'name' => '08 risk · 변화',
-		'find' => '/도\\s+좋습니다\\.\\s+<em>작은\\s+변화\\s+하나가\\s+다음\\s+변화를\\s+여는\\s+사람<\/em>이에요\\.\'\\s+\\}/u',
-		'to'   => "도 좋습니다. <em>작은 변화 하나가 다음 변화를 여는 사람</em>이에요.',\n                 gap:[\n                   '그런데 답해주실 때는 <em>자리를 지키는</em> 쪽을 고르셨습니다.',\n                 '버티는 게 이기는 거라고 하셨을 거예요. 그런데 이 결은 <em>새로 벌어지는 게 있어야 힘이 도는 쪽</em>이라, 아무것도 바뀌지 않는 자리에서는 버티는 게 아니라 <em>말라갑니다.</em> 참다가 한 번에 놓게 되는 게 그래서입니다.',\n                 '참을성이 없는 게 아닙니다. <em>바꿀 게 하나 생기면 이 결은 그 자리를 몇 년 더 다닙니다.</em>'\n                 ] }",
-	);
-
-	$jobs[] = array(
-		'name' => '09 make · 정답',
-		'find' => '/기준이\\s+있는\\s+자리에서\\s+당신은\\s+누구보다\\s+정확합니다\\.\\s+그\\s+자리를\\s+고르시면\\s+됩니다\\.\'\\s+\\}/u',
-		'to'   => "기준이 있는 자리에서 당신은 누구보다 정확합니다. 그 자리를 고르시면 됩니다.',\n                 gap:[\n                   '그런데 답해주실 때는 <em>없던 답을 만드는</em> 쪽을 고르셨습니다.',\n                 '남들 하는 대로는 재미없다고 하셨을 거예요. 그런데 이 결은 <em>기준이 있어야 실력이 나오는 쪽</em>입니다. 아무도 답을 모르는 일을 맡고 나서, 남들보다 오래 붙들고도 결론을 못 낸 적이 있으셨을 겁니다.',\n                 '창의력이 없는 게 아닙니다. <em>기준이 정해진 다음에는, 그 안에서 누구보다 정확하게 답을 만들어내는 사람입니다.</em>'\n                 ] }",
-	);
-
-	$jobs[] = array(
-		'name' => '10 make · 창조',
-		'find' => '/생각으로\\s+끝나지\\s+않고\\s+실제\\s+결과로\\s+이어질\\s+때,\\s+그때\\s+창의력이\\s+실적이\\s+됩니다\\.\'\\s+\\}/u',
-		'to'   => " 생각으로 끝나지 않고 실제 결과로 이어질 때, 그때 창의력이 실적이 됩니다.',\n                 gap:[\n                   '그런데 답해주실 때는 <em>정해진 답을 지키는</em> 쪽을 고르셨습니다.',\n                 '시키는 대로 하는 게 안전하다고 하셨을 거예요. 그런데 이 결은 <em>「이렇게 하면 더 낫지 않을까」가 자꾸 올라오는 쪽</em>이라, 그걸 계속 삼키면 일은 하는데 재미가 없어집니다. 답답했던 날이 일이 힘들어서가 아니라 <em>말을 못 해서</em>였던 적이 많으셨을 거예요.',\n                 '튀려는 게 아닙니다. <em>바꾼 것이 결과로 나온 날, 그때부터 사람들이 먼저 물어봅니다.</em>'\n                 ] }",
-	);
-
-	$jobs[] = array(
-		'name' => '⑪ 주제별 표를 한 겹 더 섞기',
-		'find' => '/var\\s+__wt\\s+=\\s+__lt\\s+\\?\\s+AXIS_WARM_TOPIC\\[__lt\\]\\s+:\\s+null;\\s+if\\(__wt\\s+\\?\\s+__wt\\[key\\]\\s+:\\s+false\\)\\{\\s+var\\s+__over\\s+=\\s+AXIS_WARM_TOPIC\\[__lt\\]\\[key\\],\\s+__merged\\s+=\\s+\\{\\},\\s+__k;\\s+if\\(W\\)\\{\\s+for\\(__k\\s+in\\s+W\\)\\{\\s+if\\(Object\\.prototype\\.hasOwnProperty\\.call\\(W,__k\\)\\)\\{\\s+__merged\\[__k\\]=W\\[__k\\];\\s+\\}\\s+\\}\\s+\\}\\s+for\\(__k\\s+in\\s+__over\\)\\{\\s+if\\(Object\\.prototype\\.hasOwnProperty\\.call\\(__over,__k\\)\\)\\{\\s+__merged\\[__k\\]=__over\\[__k\\];\\s+\\}\\s+\\}\\s+W\\s+=\\s+__merged;\\s+\\}/u',
-		'to'   => "var __wt = __lt ? AXIS_WARM_TOPIC[__lt] : null; if(__wt ? __wt[key] : false){\n      /* 2026-09-07 · 한 겹 더 섞습니다.\n         여태 저울(축) 단위로만 섞어서, 주제별 표에 그 갈래가 있으면\n         갈래를 통째로 갈아끼웠습니다. 그러면 문 단위로 써 둔 글\n         (gap · what · cost · tiny 가운데 주제별 표에 없는 것)이\n         소리 없이 사라집니다. 재물운 손님이 일 문 어긋나는 자리\n         글을 못 보고 있던 것이 이 때문입니다.\n         이제 갈래 안에서도 칸 단위로 섞습니다 — 주제별 표에 있는\n         칸만 덮어쓰고 나머지는 문 단위 글이 그대로 남습니다.\n         배열(what · tiny)은 섞지 않고 통째로 바꿉니다. 문단 목록을\n         칸끼리 섞으면 말이 뒤엉키니까요. */\n      var __over = AXIS_WARM_TOPIC[__lt][key], __merged = {}, __k;\n      var __has = function(o,k){ return Object.prototype.hasOwnProperty.call(o,k); };\n      var __plain = function(v){\n        if(!v){ return false; }\n        if(typeof v !== 'object'){ return false; }\n        if(Object.prototype.toString.call(v) === '[object Array]'){ return false; }\n        return true;\n      };\n      if(W){ for(__k in W){ if(__has(W,__k)){ __merged[__k]=W[__k]; } } }\n      for(__k in __over){\n        if(!__has(__over,__k)){ continue; }\n        var __a = __merged[__k], __b = __over[__k];\n        if(__plain(__a) ? __plain(__b) : false){\n          var __m2 = {}, __k2;\n          for(__k2 in __a){ if(__has(__a,__k2)){ __m2[__k2]=__a[__k2]; } }\n          for(__k2 in __b){ if(__has(__b,__k2)){ __m2[__k2]=__b[__k2]; } }\n          __merged[__k] = __m2;\n        } else {\n          __merged[__k] = __b;\n        }\n      }\n      W = __merged;\n    }",
-	);
-
-	$apply = ( 'apply' === $mode );
-	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
-
-	$ok = true;
-	foreach ( $jobs as $j ) {
-		$n = preg_match_all( $j['find'], $c );
-		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
-		if ( 1 === $n ) {
-			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
-		} elseif ( 0 === $n ) {
-			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
-			$ok = false;
-		} else {
-			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
-			$ok = false;
-		}
-	}
-
-	if ( ! $ok ) {
-		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+	if ( false !== strpos( $c, '어긋난 자리를 제대로 씁니다' ) ) {
+		echo "이미 들어가 있습니다.\n";
+		echo "다시 넣으시려면 ?stella_gap=undo 로 걷어낸 뒤 하세요.\n";
 		exit;
 	}
 
-	$new = $c;
-	foreach ( $jobs as $j ) {
-		$new = preg_replace( $j['find'], str_replace( '\\', '\\\\', $j['to'] ), $new, 1 );
-		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	$n = substr_count( $c, $find );
+	if ( 1 !== $n ) {
+		echo '★ 바꿀 자리가 ' . $n . "군데입니다. 한 군데여야 합니다.\n";
+		echo "아무것도 안 건드렸습니다. 이 글을 그대로 주세요.\n";
+		exit;
 	}
+	echo "바꿀 자리를 찾았습니다 — 한 군데.\n";
 
-	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+	$made = str_replace( $find, $to, $c );
+	echo number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $made ) ) . "자 ("
+	   . '+' . number_format( strlen( $made ) - strlen( $c ) ) . ")\n\n";
 
-	if ( ! $apply ) {
-		echo '<p>정말 바꾸시려면 <code>/?stella_gap=apply</code> 를 여세요.</p>';
+	if ( 'apply' !== $mode ) {
+		echo "아직 안 바꿨습니다. 정말 넣으시려면 ?stella_gap=apply\n";
 		exit;
 	}
 
-	if ( ! get_post_meta( $PAGE, $META, true ) ) {
-		update_post_meta( $PAGE, $META, $c );
+	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
+		update_post_meta( $id, $META, $c );
 	}
-	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
-	clean_post_cache( $PAGE );
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $made ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
 
-	echo '<p class="ok">바꿨습니다.</p>';
-	echo '<p>되돌리려면 <code>/?stella_gap=undo</code></p>';
-	echo '<p><a href="/reading-book/?demo=door-love-2">책 보기</a></p>';
+	echo "넣었습니다. 책을 열어 맺음말을 보세요.\n";
+	echo "되돌리려면 ?stella_gap=undo\n";
 	exit;
-} );
+}, 1 );
+
+function stella_gap_old() {
+	return <<<'GAPOLD'
+  var COUNTW=['','한','두','세','네','다섯'];
+  keep+='<div class="k"><div class="kt">'+(gapKeys.length
+          ? '어긋난 자리가 '+(COUNTW[gapKeys.length]||gapKeys.length)+' 군데 있었습니다'
+          : '어긋난 자리는 없었습니다')+'</div>'+
+        '<p>'+(gapKeys.length
+          ? '<em>'+gapKeys.map(function(k){ return axTitle(k, AXNAME[k]); }).join(', ')+'</em>에서 사주가 가리키는 쪽과 '+
+            '실제로 답해주신 쪽이 달랐습니다.</p>'+
+            '<p>이것을 굳이 고쳐야 한다는 뜻은 아닙니다. 오히려 두 방향의 차이를 알아두면 좋아요. '+
+            '이 자리에서 유난히 답답하거나 지치는 순간이 있다면, 그것은 잘못하고 있어서가 아니라 '+
+            '<em>타고난 결과 지금 선택한 방식 사이에 차이가 있기 때문</em>일 수 있습니다. '+
+            '그 차이를 알고 나면, 왜 유독 그 부분에서 힘이 더 드는지 이해하게 되실 거예요.'
+          : '답해주신 것이 사주가 가리키는 쪽과 모두 같았습니다. 스스로를 꽤 정확히 알고 계신다는 뜻이에요. '+
+            '지금 하고 계신 판단을 크게 의심하지 않으셔도 됩니다.')+'</p></div>';
+GAPOLD;
+}
+
+function stella_gap_new() {
+	return <<<'GAPNEW'
+  var COUNTW=['','한','두','세','네','다섯'];
+
+  /* ══ 2026-09-12 · 어긋난 자리를 제대로 씁니다 ═══════════════
+     소희 님 : 「세 가지만 기억하면 된다는 부분의 어긋난 부분…
+               이게 핵심인데 글 양이 작지 않아?」
+
+     맞습니다. 이 책에서 손님이 가장 오래 들여다보는 자리인데
+     두 문단이었습니다. 「달랐습니다」로 끝나고 무엇이 어떻게
+     다른지는 안 적혀 있었습니다.
+
+     이제 어긋난 자리마다 이렇게 적습니다.
+         ① 사주는 어느 쪽인가
+         ② 답해주신 것은 어느 쪽인가
+         ③ 그 어긋남이 실제로 어떤 자리에서 힘으로 나타나는가
+         ④ 그렇다고 지금 방식을 버려야 하는가 (아닙니다)
+         ⑤ 그러면 무엇을 해보면 되는가
+
+     ★ 새로 지어내는 말은 한 줄도 없습니다. 앞 장에서 이미
+       계산되어 나온 값(AGAINST · NOTBAD · sideWord)만 씁니다. */
+
+  function gapOne(k){
+    var A=it.axis[k];
+    if(!A){ return ''; }
+    if(!A.lean){ return ''; }
+
+    var bad='';
+    if(AGAINST[k]){ if(AGAINST[k][A.lean]){ bad=AGAINST[k][A.lean]; } }
+
+    var o='<p><em>'+axTitle(k, AXNAME[k])+'</em> — 사주는 <em>'+sideWord(k,A.name)+
+          '</em> 쪽인데, 답해주신 것은 반대쪽이었습니다.';
+    if(bad){
+      o+=' '+bad+(R.hasBatchim(bad)?'이':'가')+' 오래 이어지면 '+AGAINST.cost+'. '+
+         '게을러서가 아니라 결을 거슬러 밀고 계셔서입니다.';
+    }
+    o+='</p>';
+
+    if(NOTBAD[k]){ if(NOTBAD[k][A.lean]){ o+='<p>'+NOTBAD[k][A.lean]+'</p>'; } }
+    return o;
+  }
+
+  keep+='<div class="k"><div class="kt">'+(gapKeys.length
+          ? '어긋난 자리가 '+(COUNTW[gapKeys.length]||gapKeys.length)+' 군데 있었습니다'
+          : '어긋난 자리는 없었습니다')+'</div>'+
+        (gapKeys.length
+          ? '<p><em>'+gapKeys.map(function(k){ return axTitle(k, AXNAME[k]); }).join(', ')+
+            '</em>에서 사주가 가리키는 쪽과 실제로 답해주신 쪽이 달랐습니다.</p>'+
+
+            '<p>먼저 말씀드릴 것이 있습니다. 이것은 <em>틀렸다는 뜻이 아닙니다.</em> '+
+            '사주는 태어날 때 받은 결이고, 답해주신 것은 지금 살고 계신 방식입니다. '+
+            '사람은 자라면서 제 결과 다른 방식을 익히기도 하고, 익혀야만 했던 자리에 '+
+            '오래 머물기도 합니다. 그래서 이 둘은 자주 갈립니다. 갈렸다는 것이 잘못은 아닙니다.</p>'+
+
+            gapKeys.map(gapOne).join('')+
+
+            '<p>여기서 기억하실 것은 하나입니다. <em>어긋난 자리에서는 같은 일을 해도 힘이 더 듭니다.</em> '+
+            '남들은 아무렇지 않게 넘어가는 것을 나만 유난히 버거워한 적이 있으셨다면, '+
+            '아마 그 자리였을 거예요. 모자라서가 아니라 결을 거슬러 밀고 계셨기 때문입니다.</p>'+
+
+            '<p>그렇다고 지금 방식을 버리시라는 말은 아닙니다. 익힌 방식에는 익힌 값이 있고, '+
+            '그 자리에서만 얻으신 것도 분명히 있습니다. 결을 거슬러 살아오신 분들은 '+
+            '대개 그쪽에서 남들보다 단단합니다. 다만 그 단단함에는 값이 붙어 있었을 뿐이에요. '+
+            '이제부터는 <em>그 자리에서 힘이 더 드는 것이 당연하다</em>는 것만 아시고 가시면 됩니다. '+
+            '아는 것과 모르는 것의 차이가 생각보다 큽니다.</p>'+
+
+            '<p>하나만 해보시겠어요. 다음에 그 자리에서 막히실 때, 고치려 하지 마시고 '+
+            '<em>사주가 가리키는 쪽으로 딱 한 번만</em> 해보세요. 한 달에 한 번이면 충분합니다. '+
+            '맞으면 그쪽을 조금 늘리시고, 아니면 그대로 두셔도 됩니다. '+
+            '그 한 번이 「나는 왜 이럴까」를 「나는 이런 사람이구나」로 바꿔줍니다. '+
+            '이 책에서 가져가실 것이 하나뿐이라면, 저는 이 자리를 고르겠습니다.</p>'
+
+          : '<p>답해주신 것이 사주가 가리키는 쪽과 <em>모두 같았습니다.</em> '+
+            '다섯 저울에서 한 군데도 어긋나지 않았습니다. 흔한 일은 아닙니다.</p>'+
+
+            '<p>이것은 스스로를 꽤 정확히 알고 계신다는 뜻입니다. '+
+            '타고난 결대로 살고 계시다는 뜻이기도 하고요. 그래서 지금 하고 계신 판단을 '+
+            '크게 의심하지 않으셔도 됩니다. 남의 말에 흔들리실 때, '+
+            '「내 결은 원래 이쪽이다」를 떠올리시면 됩니다.</p>'+
+
+            '<p>다만 한 가지만 곁들이겠습니다. 결대로 사는 사람은 그 결이 안 통하는 자리에서 '+
+            '유난히 크게 흔들립니다. 늘 되던 방식이 안 먹히니까요. '+
+            '그런 순간이 오면 내가 틀린 것이 아니라 <em>자리가 내 결과 안 맞는 것</em>이라고 '+
+            '보셔도 됩니다. 그때는 나를 고치기보다 자리를 바꾸는 편이 빠릅니다.</p>')+'</div>';
+GAPNEW;
+}
