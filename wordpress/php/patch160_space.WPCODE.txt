@@ -38,9 +38,9 @@
    · 글은 한 글자도 건드리지 않습니다. 보이는 모양만 바꿉니다.
    · 두 번 눌러도 한 번만 들어갑니다.
 
-   해보기   https://stellasaju.com/?stella_space5=preview
-   붙이기   https://stellasaju.com/?stella_space5=apply
-   되돌리기 https://stellasaju.com/?stella_space5=undo
+   해보기   https://stellasaju.com/?stella_space6=preview
+   붙이기   https://stellasaju.com/?stella_space6=apply
+   되돌리기 https://stellasaju.com/?stella_space6=undo
 
    붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
    ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
@@ -48,14 +48,14 @@
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_space5'] ) ) { return; }
+	if ( ! isset( $_GET['stella_space6'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
 	header( 'Content-Type: text/plain; charset=utf-8' );
 
-	$mode = sanitize_text_field( wp_unslash( $_GET['stella_space5'] ) );
-	$META = '_stella_space5_bak';
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_space6'] ) );
+	$META = '_stella_space6_bak';
 
 	$page = get_page_by_path( 'reading-book' );
 	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
@@ -73,14 +73,14 @@ add_action( 'template_redirect', function () {
 
 	$c    = (string) $wpdb->get_var( $wpdb->prepare(
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
-	$MARK = 'BUILD: SPACE-5';
+	$MARK = 'BUILD: SPACE-6';
 
 	/* 먼저 판(SPACE-1)이 붙어 있으면 apply 가 스스로 떼냅니다 */
 
 	$BLOCK = <<<'STELLAFLOW'
 <!-- wp:html -->
 <style>
-/* ═══ 읽기 좋게   BUILD: SPACE-5   2026-09-12 ═══════════════════
+/* ═══ 읽기 좋게   BUILD: SPACE-6   2026-09-12 ═══════════════════
    여백만 바꿉니다. 자바스크립트가 없습니다.
    ═══════════════════════════════════════════════════════════ */
 
@@ -135,9 +135,12 @@ add_action( 'template_redirect', function () {
   --page-edge:#F4F1EA !important;
   --void:#E4DFD2 !important;       /* 바깥을 한 단 내려 쪽이 떠 보이게 */
 }
+/* 소희 님 — 「그쪽에 그림자 주는 것도 빼고」.
+   그림자를 걷어내면 쪽이 종이 한 장처럼 평평해집니다.
+   나누는 일은 여백 200px 과 실낱같은 테두리가 맡습니다. */
 #ssb .page{
-  border-color:rgba(138,106,36,.22) !important;
-  box-shadow:0 1px 2px rgba(31,24,12,.05), 0 10px 26px -20px rgba(31,24,12,.26) !important;
+  border-color:rgba(138,106,36,.20) !important;
+  box-shadow:none !important;
 }
 
 /* 덤 두 쪽의 금색 상자도 한 단 옅게. 흰 종이 위에서는
@@ -159,6 +162,19 @@ add_action( 'template_redirect', function () {
   #ssb .page[data-part="cover"]{ padding-left:20px !important; padding-right:20px !important; }
   #ssb .tailbox{ padding:22px 20px !important; }
 }
+
+/* ── 둘의 넷 · 마지막 쪽의 여운 ───────────────────────
+   소희 님 — 「편지 부분은 마지막이라서 아랫부분도 여백이
+   있어야 여운이 필요해」.
+
+   맞습니다. 여태 모든 쪽의 아래를 10px 로 깎아두어서,
+   마지막 쪽은 마지막 문장이 바닥에 붙은 채 끝났습니다.
+   책을 덮는 자리인데 숨 돌릴 데가 없었습니다.
+   편지와 맺음말, 그리고 맨 끝 쪽만 아래를 크게 엽니다. */
+#ssb .page.farewell,
+#ssb .page.close,
+#ssb .page:last-child{ padding-bottom:190px !important; }
+#ssb .book{ padding-bottom:200px !important; }
 
 /* ── 셋 · 「세 가지만 기억하세요」의 넷째 덩어리 ────────
    「이 셋을 다 기억하지 않으셔도 됩니다」에 번호 4가 붙어 있었습니다.
@@ -191,7 +207,7 @@ STELLAFLOW;
 		$has = ( strpos( $c, $MARK ) !== false );
 		echo "═══ 이어 읽기 (FLOW-1) ═══\n";
 		echo '쪽 160 · ' . number_format( mb_strlen( $c ) ) . "글자\n\n";
-		if ( $has ) { echo "이미 붙어 있습니다.\n되돌리려면 ?stella_space5=undo\n"; exit; }
+		if ( $has ) { echo "이미 붙어 있습니다.\n되돌리려면 ?stella_space6=undo\n"; exit; }
 		echo '넣을 조각 ' . number_format( mb_strlen( $BLOCK ) ) . "글자\n";
 		echo "앰퍼샌드 " . substr_count( $BLOCK, '&' ) . "개\n\n";
 		echo "하는 일 — 스타일만 바꿉니다. 자바스크립트가 없습니다.\n";
@@ -203,11 +219,11 @@ STELLAFLOW;
 		echo "    가디언이 하는 말처럼 육성 상자 모양으로 바꿉니다\n";
 		echo "  · 장은 속표지가 알려주므로 실선을 겹치지 않습니다\n\n";
 		echo "글은 한 글자도 건드리지 않습니다. 보이는 모양만 바뀝니다.\n\n";
-		echo "붙이려면 ?stella_space5=apply\n";
+		echo "붙이려면 ?stella_space6=apply\n";
 		exit;
 	}
 
-	if ( 'apply' !== $mode ) { echo '?stella_space5=preview 부터 보세요.'; exit; }
+	if ( 'apply' !== $mode ) { echo '?stella_space6=preview 부터 보세요.'; exit; }
 	if ( strpos( $c, $MARK ) !== false ) { echo '이미 붙어 있습니다.'; exit; }
 
 	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
@@ -241,6 +257,6 @@ STELLAFLOW;
 	echo "붙였습니다.\n";
 	echo '쪽 160 · ' . number_format( mb_strlen( $new ) ) . "글자\n\n";
 	echo "책을 열어 쭉 내려보세요. 위쪽에 막대가 뜨고,\n";
-	echo "장이 바뀔 때만 실선이 나옵니다.\n되돌리려면 ?stella_space5=undo\n";
+	echo "장이 바뀔 때만 실선이 나옵니다.\n되돌리려면 ?stella_space6=undo\n";
 	exit;
 }, 1 );
