@@ -70,6 +70,19 @@ add_action( 'template_redirect', function () {
 	global $wp_filter;
 	if ( isset( $wp_filter['the_content'] ) ) { unset( $wp_filter['the_content'] ); }
 
+	/* ★★ 이 쪽은 절대 담아두지 않습니다 (2026-09-12 · 사고로 배움)
+	   아침에 글을 내보내다 끊긴 적이 있는데, 그 끊긴 글이 그대로
+	   담겨서 그 뒤로 계속 하얀 화면을 내주었습니다.
+	   처음 여는 주소(?stella_page=1 같은)에서만 책이 보이던 까닭입니다.
+	   책은 손님마다 다른 쪽이기도 하니 담아둘 이유가 없습니다. */
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) { define( 'DONOTCACHEPAGE', true ); }
+	if ( ! defined( 'DONOTCACHEOBJECT' ) ) { define( 'DONOTCACHEOBJECT', true ); }
+	if ( ! defined( 'DONOTCACHEDB' ) ) { define( 'DONOTCACHEDB', true ); }
+	if ( function_exists( 'nocache_headers' ) ) { nocache_headers(); }
+	header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+	header( 'Pragma: no-cache' );
+	header( 'X-Accel-Expires: 0' );
+
 	header( 'Content-Type: text/html; charset=utf-8' );
 
 	echo '<!doctype html>' . "\n";
