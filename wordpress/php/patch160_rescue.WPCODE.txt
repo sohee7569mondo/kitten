@@ -35,6 +35,7 @@
 
    ── 먼저 이것 ─────────────────────────────────────────
    재보기  https://stellasaju.com/?stella_rescue=look
+   끊긴 데  https://stellasaju.com/?stella_rescue=check
 
    그 결과를 그대로 저에게 보내주세요. 어디서 되살릴지
    제가 골라 알려드립니다.
@@ -142,6 +143,50 @@ add_action( 'template_redirect', function () {
 
 		echo "★ 역슬래시가 넉넉히 남아 있는 줄이 성한 판입니다.\n";
 		echo "  이 화면을 그대로 저에게 보내주세요.\n";
+		exit;
+	}
+
+	/* ── 하나의 반 · 어디가 끊겼는지 잽니다 ─────────────── */
+	if ( 'check' === $mode ) {
+
+		$o = substr_count( $now, '<script' );
+		$e = substr_count( $now, '</script>' );
+		echo "═══ 짝이 맞나 ═══════════════════════════\n";
+		echo '  <script    ' . $o . '   </script>  ' . $e;
+		echo ( $o === $e ? "   맞습니다\n" : "   ★ 어긋납니다\n" );
+
+		$bo = substr_count( $now, '<!-- wp:html -->' );
+		$be = substr_count( $now, '<!-- /wp:html -->' );
+		echo '  wp:html    ' . $bo . '   /wp:html   ' . $be;
+		echo ( $bo === $be ? "   맞습니다\n" : "   ★ 어긋납니다\n" );
+
+		echo '  class="page   ' . substr_count( $now, 'class="page' ) . "개\n";
+		echo '  <div id="ssb  ' . substr_count( $now, '<div id="ssb"' ) . "개\n\n";
+
+		echo "═══ 덩어리 하나씩 ═══════════════════════\n";
+		$parts = explode( '<!-- wp:html -->', $now );
+		$i = 0;
+		foreach ( $parts as $p ) {
+			$i = $i + 1;
+			if ( 1 === $i ) {
+				echo '  앞머리        ' . number_format( strlen( $p ) ) . "자\n";
+				continue;
+			}
+			$mark = '이름없음';
+			$at = strpos( $p, 'BUILD: ' );
+			if ( false !== $at ) {
+				$mark = trim( substr( $p, $at, 22 ) );
+			}
+			$shut = ( strpos( $p, '<!-- /wp:html -->' ) === false ) ? '  ★ 닫는 표 없음' : '';
+			echo '  ' . str_pad( (string) ( $i - 1 ), 2, ' ', STR_PAD_LEFT ) . '  '
+				. str_pad( $mark, 24 ) . number_format( strlen( $p ) ) . '자' . $shut . "\n";
+		}
+		echo "\n";
+
+		echo "═══ 맨 끝 300자 ═════════════════════════\n";
+		echo substr( $now, -300 ) . "\n\n";
+
+		echo "★ 이 화면을 그대로 저에게 보내주세요.\n";
 		exit;
 	}
 
