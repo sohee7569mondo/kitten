@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    맺음말 「세 가지만 기억하세요」를 다시 씁니다
-   ★ 2026-09-12 · 소희 님께      판 GAP-2
+   ★ 2026-09-12 · 소희 님께      판 GAP-3
 
    소희 님이 손으로 고쳐 오신 원고를 그대로 옮깁니다.
    문장은 소희 님 것이고, 제가 한 일은 두 가지뿐입니다.
@@ -43,6 +43,23 @@
    ── 글이 얼마나 늘어나나 ──────────────────────────────
        전  1,400자 안팎
        후  3,000자 안팎 (경우에 따라 다릅니다)
+
+   ── GAP-3 (2026-09-12) — 자리를 글자 그대로 찾지 않습니다 ──
+   소희 님 쪽에서 : 「바꿀 자리가 0군데입니다」
+   살아 있는 책은 1,334,526자, 제가 가진 사본은 1,116,100자였습니다.
+   그 사이 맺음말이 손질되어 글자가 한 자도 안 맞았습니다.
+
+   그래서 이제 **앞뒤 표시만 보고** 그 사이를 통째로 바꿉니다.
+
+       앞  var keep='<div class="keep">';
+       뒤  keep+='</div>';
+
+   이 두 줄은 이름이라 잘 안 바뀝니다. 가운데 글이 아무리 바뀌어도
+   자리를 찾습니다.
+
+   ★ preview 를 열면 **지금 그 자리에 있는 글을 그대로 보여드립니다.**
+     바꾸기 전에 무엇이 지워지는지 눈으로 보시고, 저에게도 주세요.
+     제가 사본을 지금 것으로 맞추겠습니다.
 
    ── 하는 법 ───────────────────────────────────────────
    ① 먼저 보기   https://stellasaju.com/?stella_gap=preview
@@ -100,16 +117,39 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 
-	$find = stella_gap_old();
-	$to   = stella_gap_new();
+	/* ── 앞뒤 표시로 자리를 찾습니다 ─────────────────
+	   글자 하나하나를 맞추지 않습니다. 가운데 글은 손질될 수 있고,
+	   실제로 손질되어 있었습니다. 이름은 잘 안 바뀝니다. */
+	$A = "var keep='<div class=\"keep\">';";
+	$B = "keep+='</div>';";
 
-	$n = substr_count( $c, $find );
-	if ( 1 !== $n ) {
-		echo '★ 바꿀 자리가 ' . $n . "군데입니다. 한 군데여야 합니다.\n";
-		echo "아무것도 안 건드렸습니다. 이 글을 그대로 주세요.\n";
+	$na = substr_count( $c, $A );
+	if ( 1 !== $na ) {
+		echo '★ 앞 표시가 ' . $na . "군데입니다. 한 군데여야 합니다.\n";
+		echo "  찾는 것 : " . $A . "\n";
 		exit;
 	}
-	echo "바꿀 자리를 찾았습니다 — 한 군데.\n";
+
+	$p1 = strpos( $c, $A );
+	$p2 = strpos( $c, $B, $p1 + strlen( $A ) );
+	if ( false === $p2 ) {
+		echo "★ 뒤 표시를 못 찾았습니다.\n";
+		echo "  찾는 것 : " . $B . "\n";
+		exit;
+	}
+	$p2 += strlen( $B );
+
+	$find = substr( $c, $p1, $p2 - $p1 );
+	$to   = stella_gap_new();
+
+	echo '바꿀 자리를 찾았습니다 — ' . number_format( strlen( $find ) ) . "자.\n\n";
+
+	/* ★ 지금 그 자리에 있는 글을 그대로 보여드립니다 */
+	if ( 'apply' !== $mode ) {
+		echo "───── 지금 그 자리에 있는 글 ─────────────────────\n";
+		echo $find . "\n";
+		echo "───── 여기까지 ───────────────────────────────────\n\n";
+	}
 
 	$made = str_replace( $find, $to, $c );
 	echo number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $made ) ) . '자 (+'
@@ -130,81 +170,6 @@ add_action( 'template_redirect', function () {
 	echo "되돌리려면 ?stella_gap=undo\n";
 	exit;
 }, 1 );
-
-function stella_gap_old() {
-	return <<<'GAPOLD'
-  var keep='<div class="keep">';
-  var leaned=false;
-  if(leanAxis){ if(leanAxis.lean){ leaned=true; } }
-  keep+='<div class="k"><div class="kt">결은 '+(leaned ? sideWord(leanKey, leanAxis.name)+' 쪽입니다' : '어느 쪽으로도 크게 기울지 않았습니다')+'</div>'+
-        '<p>'+(leaned
-          ? '여덟 글자에서 가장 크게 기운 저울은 <em>'+axTitle(leanKey, AXNAME[leanKey])+'</em>였습니다. '+
-            /* 2026-08-31 · saySide 값이 모두 「…쪽」으로 끝나 옛 문장에 넣으면 「쪽 쪽으로」가 됩니다 */
-            '당신은 <em>'+saySide(leanKey)+'</em>'+(R.hasBatchim(saySide(leanKey))?'이에요':'예요')+'.</p>'+
-            '<p>고르실 일이 생기면 이쪽을 기본값으로 삼아보세요. 반대쪽을 선택하는 것도 물론 가능하지만, '+
-            '익숙한 결에서 벗어날 때는 평소보다 조금 더 고민하고 확인하는 과정이 필요할 수 있습니다.'
-          : '다섯 저울이 고르게 나왔습니다. 어느 쪽이든 갈 수 있다는 뜻이라 좋기도 하지만, '+
-            '남이 정해주는 대로 흘러가기도 쉽습니다. 기준은 스스로 정하셔야 합니다.')+'</p></div>';
-
-  var COUNTW=['','한','두','세','네','다섯'];
-  keep+='<div class="k"><div class="kt">'+(gapKeys.length
-          ? '어긋난 자리가 '+(COUNTW[gapKeys.length]||gapKeys.length)+' 군데 있었습니다'
-          : '어긋난 자리는 없었습니다')+'</div>'+
-        '<p>'+(gapKeys.length
-          ? '<em>'+gapKeys.map(function(k){ return axTitle(k, AXNAME[k]); }).join(', ')+'</em>에서 사주가 가리키는 쪽과 '+
-            '실제로 답해주신 쪽이 달랐습니다.</p>'+
-            '<p>이것을 굳이 고쳐야 한다는 뜻은 아닙니다. 오히려 두 방향의 차이를 알아두면 좋아요. '+
-            '이 자리에서 유난히 답답하거나 지치는 순간이 있다면, 그것은 잘못하고 있어서가 아니라 '+
-            '<em>타고난 결과 지금 선택한 방식 사이에 차이가 있기 때문</em>일 수 있습니다. '+
-            '그 차이를 알고 나면, 왜 유독 그 부분에서 힘이 더 드는지 이해하게 되실 거예요.'
-          : '답해주신 것이 사주가 가리키는 쪽과 모두 같았습니다. 스스로를 꽤 정확히 알고 계신다는 뜻이에요. '+
-            '지금 하고 계신 판단을 크게 의심하지 않으셔도 됩니다.')+'</p></div>';
-
-  /* 한글 음을 두 글자 그대로 붙이면 '임신' 같은 낱말처럼 읽혀 오해가 생깁니다.
-     그래서 두 글자를 가운뎃점으로 갈라 '임 · 신'처럼, 이름의 두 글자를 부르듯 보여줍니다. */
-  function dotKor(kor){
-    if(!kor){ return kor; }
-    if(kor.length!==2){ return kor; }
-    return kor.charAt(0)+' · '+kor.charAt(1);
-  }
-  /* 2026-08-29 · '임신' 같은 대운 이름이 왜 그렇게 불리는지, 그리고 그 안의 두 기운이
-     구체적으로 무엇을 뜻하는지 설명이 없으면 그냥 낯선 낱말로만 남습니다.
-     천간(위 글자)·지지(아래 글자) 각각의 오행을 쉬운 말로 풀어 덧붙입니다. */
-  var ELMEAN={ '목':'나무처럼 뻗어나가는 기운', '화':'불처럼 타오르는 기운',
-               '토':'흙처럼 다지고 쌓는 기운', '금':'쇠처럼 정리하고 끊어내는 기운',
-               '수':'물처럼 흐르고 스며드는 기운' };
-  var luckExplain='';
-  if(nowIdx>=0){
-    var nowGanEl=TIME.GEL[lk.list[nowIdx].gan];
-    var nowJiEl=TIME.JEL[lk.list[nowIdx].ji];
-    luckExplain='<p>이 이름은 천간(위 글자)과 지지(아래 글자) 두 옛 글자를 이어 붙여 지은 것입니다. '+
-      '갑을병정무기경신임계 열 개의 천간과, 자축인묘진사오미신유술해 열두 개의 지지가 번갈아 짝을 지어 '+
-      '예순 가지 이름을 만드는데, 이번 판의 이름이 그 가운데 하나예요.</p>'+
-      '<p>위 글자는 <em>'+nowGanEl+'</em>의 기운, 아래 글자는 <em>'+nowJiEl+'</em>의 기운입니다. '+
-      (nowGanEl===nowJiEl
-        ? ELMEAN[nowGanEl]+'이 위아래에 겹쳐 있는 십 년이라는 뜻이에요.'
-        : ELMEAN[nowGanEl]+'과 '+ELMEAN[nowJiEl]+'이 함께 있는 십 년이라는 뜻이에요.')+'</p>';
-  }
-  keep+='<div class="k"><div class="kt">'+(nowIdx>=0
-          ? '지금 판은 '+lk.list[nowIdx].han+'('+dotKor(lk.list[nowIdx].kor)+') 대운입니다'
-          : '대운의 판은 아직 시작 전입니다')+'</div>'+
-        '<p>'+(nowIdx>=0
-          ? '사주에서는 약 십 년 단위로 바뀌는 큰 흐름을 <em>대운</em>이라고 부릅니다. '+
-            '지금 당신은 '+lk.list[nowIdx].han+'('+dotKor(lk.list[nowIdx].kor)+') 대운의 흐름을 지나고 있고, '+
-            '앞으로 '+Math.max(0, Math.round(lk.list[nowIdx].to-age))+'년쯤 이 흐름이 이어집니다.</p>'
-          : '아직 첫 대운에 들어서기 전입니다. 대운은 십 년마다 바뀌는 인생의 계절 같은 것인데, '+
-            '지금은 그 첫 계절이 시작되기 전이라 판보다 타고난 결이 훨씬 크게 작용하는 시기예요.')+
-        luckExplain+
-        (nowIdx>=0
-          ? '<p>대운은 미래의 사건을 정해놓는 표가 아니라, <em>지금 내가 어떤 흐름 속에서 선택하고 있는지</em>를 '+
-            '보여주는 배경에 가깝습니다. 그래서 큰 결정을 앞두고 계시다면, 지금 상황만 보기보다 '+
-            '이 흐름이 언제까지 이어지는지도 함께 살펴보시면 좋습니다.</p>'+
-            '<p>판이 바뀌는 시점을 안다고 해서 그때까지 결정을 미뤄야 한다는 뜻은 아니에요. '+
-            '다만 지금 꼭 정해야 하는 일인지, 조금 더 지켜봐도 되는 일인지 판단하는 기준 하나가 될 수 있습니다.</p>'
-          : '')+'</div>';
-  keep+='</div>';
-GAPOLD;
-}
 
 function stella_gap_new() {
 	return <<<'GAPNEW'
