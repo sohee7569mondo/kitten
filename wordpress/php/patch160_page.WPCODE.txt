@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    쪽이 어떻게 왔는지 잽니다
-   ★ 2026-09-12 · 소희 님께      BUILD: PAGE-4
+   ★ 2026-09-12 · 소희 님께      BUILD: PAGE-5
 
    ── 왜 ────────────────────────────────────────────────
    책 쪽이 하얗습니다. 본문은 1,334,526자로 멀쩡한데
@@ -23,6 +23,9 @@
    · 넘어진 말 세 개까지 (자료 덩어리는 빼고 셉니다)
 
    보기 : https://stellasaju.com/reading-book/?stella_page=1
+   목차 속 : https://stellasaju.com/reading-book/?stella_page=toc
+             ★ 목차와 보통 쪽의 생김새를 그대로 보여줍니다.
+               덤 두 쪽을 목차에 끼우려면 그 생김새를 알아야 합니다.
 
    ★ 표시를 안 붙이면 한 글자도 안 나옵니다. 손님에게는 안 보입니다.
 
@@ -167,6 +170,66 @@ function stella_page_probe() {
     L.push('└──────────────────────────');
     box.textContent=L.join('\n');
   }
+  /* ── 목차 속을 들여다봅니다 ──────────────────────── */
+  function peek(){
+    var box=document.getElementById('stellapagebox');
+    if(!box){ return; }
+    var L=[], i, el, q;
+    L.push('═══ 목차와 쪽의 생김새 ═══');
+
+    var cand=document.querySelectorAll('[id*=toc],[class*=toc],[id*=idx],[class*=idx],[id*=index],[class*=index],[id*=menu],[class*=menu]');
+    L.push('목차처럼 보이는 칸 : '+cand.length+'개');
+    for(i=0;i<cand.length;i++){
+      if(i>3){ break; }
+      el=cand[i];
+      L.push('  '+i+' : '+el.tagName.toLowerCase()+
+             (el.id?('#'+el.id):'')+' . '+(el.className||'')+
+             '  자식 '+el.children.length+'개 · 높이 '+el.offsetHeight+'px');
+    }
+    var best=null;
+    for(i=0;i<cand.length;i++){
+      if(cand[i].children.length>5){ best=cand[i]; break; }
+    }
+    if(best){
+      L.push('');
+      L.push('┌ 목차 속 1200자 ─────────');
+      L.push(best.innerHTML.slice(0,1200));
+      L.push('└─────────────────────────');
+    }
+
+    var pages=document.getElementsByClassName('page');
+    var normal=null, mine=null;
+    for(i=0;i<pages.length;i++){
+      if(pages[i].getAttribute('data-part')==='tail'){ mine=pages[i]; continue; }
+      if(!normal){ q=pages[i].getElementsByClassName('eyebrow')[0];
+        if(q){ normal=pages[i]; } }
+    }
+    if(normal){
+      L.push('');
+      L.push('┌ 보통 쪽 500자 ──────────');
+      L.push(normal.outerHTML.slice(0,500));
+      L.push('└─────────────────────────');
+      L.push('보통 쪽 안쪽 너비 : '+normal.clientWidth+'px');
+      if(normal.children.length){
+        var c0=normal.children[0];
+        L.push('  첫 자식 : '+c0.tagName.toLowerCase()+' . '+(c0.className||'')+
+               ' · 너비 '+c0.offsetWidth+'px');
+      }
+    }
+    if(mine){
+      L.push('');
+      L.push('덤 쪽 안쪽 너비 : '+mine.clientWidth+'px');
+      var tb=mine.getElementsByClassName('tailbox')[0];
+      if(tb){ L.push('  덤 상자 너비 : '+tb.offsetWidth+'px'); }
+    }
+    box.textContent=L.join('\n');
+  }
+  if(String(location.search).indexOf('stella_page=toc')>=0){
+    setTimeout(peek, 2500);
+    setTimeout(peek, 8000);
+    return;
+  }
+
   setTimeout(function(){ draw(1.2); }, 1200);
   setTimeout(function(){ draw(4); }, 4000);
   setTimeout(function(){ draw(10); }, 10000);
