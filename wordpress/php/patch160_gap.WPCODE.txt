@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    맺음말 「세 가지만 기억하세요」를 다시 씁니다
-   ★ 2026-09-12 · 소희 님께      판 GAP-5
+   ★ 2026-09-12 · 소희 님께      판 GAP-6
 
    소희 님이 손으로 고쳐 오신 원고를 그대로 옮깁니다.
    문장은 소희 님 것이고, 제가 한 일은 두 가지뿐입니다.
@@ -103,6 +103,32 @@
        재물운  「큰돈이 걸린 결정 앞에 서실 때」
                「이 돈을 어디에 모을 것인가?」
 
+   ── ★★ 판 GAP-6 (2026-09-13) · 되돌리기를 막았습니다 ──
+   소희 님 쪽에서 : 「이미 들어가 있습니다 (GAP-2).」
+   그런데 세는 자는 KEEPTOPIC 이 **없다**고 합니다.
+
+   옛 판이 들어가 있고 그 판에는 주제별 표가 없었던 것입니다.
+
+   ★★ 여기서 ?stella_gap=undo 를 누르면 큰일 납니다.
+       이 조각의 백업은 **GAP 을 처음 넣은 그 순간의 책**입니다.
+       그 뒤에 넣으신 조각들 — 결혼운 미혼·기혼, 이혼운, 거스르는
+       자리, 여는 말, 질문과 저울 — 이 **전부 사라집니다.**
+
+   그래서 판 6 에서 이렇게 막았습니다.
+
+       ?stella_gap=undo          크기만 보여주고 멈춥니다
+                                 차이가 5만 자를 넘으면 위험하다고 알립니다
+       ?stella_gap=undo-really   정말 되돌립니다 (차이를 보고 정하세요)
+       ?stella_gap=apply         이미 들어가 있으면 덮어쓰지 않습니다
+
+   ── 지금 하실 일 하나 ─────────────────────────────────
+       https://stellasaju.com/?stella_gap=preview
+
+   지금 맺음말 자리에 무슨 글이 있는지 찍어 드립니다.
+   KEEPTOPIC 표가 있나 없나도 알려드립니다.
+   **그 화면을 그대로 벼리에게 주세요.** 그 글에 맞춰 주제별 표만
+   따로 얹는 조각을 만들겠습니다 — 되돌리지 않고요.
+
    ── 하는 법 ───────────────────────────────────────────
    ① 먼저 보기   https://stellasaju.com/?stella_gap=preview
    ② 정말 넣기   https://stellasaju.com/?stella_gap=apply
@@ -131,7 +157,34 @@ add_action( 'template_redirect', function () {
 	if ( ! $page ) { echo '책 쪽을 못 찾았습니다.'; exit; }
 	$id = (int) $page->ID;
 
+	/* ══ 판 GAP-6 (2026-09-13) · undo 를 두 단계로 ══════════════
+	   이 조각의 백업은 **GAP 을 처음 apply 한 그 순간의 책**입니다.
+	   그 뒤에 다른 조각을 여럿 넣으셨다면, undo 는 그것들까지 통째로
+	   되돌립니다. 그래서 크기를 먼저 보여드리고 한 번 더 물어봅니다. */
 	if ( 'undo' === $mode ) {
+		$back = get_post_meta( $id, $META, true );
+		if ( '' === $back ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$now = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		echo "═══ 되돌리기 · 먼저 크기를 보세요 ═══\n\n";
+		echo '  지금 책   ' . number_format( strlen( $now ) ) . "자\n";
+		echo '  백업      ' . number_format( strlen( $back ) ) . "자\n";
+		$gap = strlen( $now ) - strlen( $back );
+		echo '  차이      ' . number_format( $gap ) . "자\n\n";
+		if ( $gap > 50000 ) {
+			echo "★★ 위험합니다. 차이가 너무 큽니다.\n\n";
+			echo "   이 백업은 GAP 을 처음 넣으신 그때의 책입니다.\n";
+			echo "   그 뒤에 넣으신 다른 조각들(결혼운 미혼·기혼, 이혼운,\n";
+			echo "   거스르는 자리, 여는 말 …)이 **전부 사라집니다.**\n\n";
+			echo "   되돌리지 마세요. 벼리에게 이 화면을 보여주세요.\n";
+			exit;
+		}
+		echo "차이가 크지 않습니다. 정말 되돌리시려면\n";
+		echo "  ?stella_gap=undo-really\n";
+		exit;
+	}
+
+	if ( 'undo-really' === $mode ) {
 		$back = get_post_meta( $id, $META, true );
 		if ( '' === $back ) { echo '되돌릴 것이 없습니다.'; exit; }
 		$wpdb->update( $wpdb->posts, array( 'post_content' => $back ), array( 'ID' => $id ) );
@@ -148,10 +201,22 @@ add_action( 'template_redirect', function () {
 	echo "═══ 맺음말 · 세 가지 ═══\n";
 	echo '책 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "자\n\n";
 
-	if ( false !== strpos( $c, '맺음말 세 가지를 다시 씁니다' ) ) {
-		echo "이미 들어가 있습니다 (GAP-2).\n";
-		echo "다시 넣으시려면 ?stella_gap=undo 로 걷어낸 뒤 하세요.\n";
-		exit;
+	/* 판 GAP-6 · 이미 들어간 경우에도 preview 는 **지금 글을 찍어 줍니다.**
+	   막아버리면 무엇이 들어 있는지 볼 길이 없어서요. apply 만 막습니다. */
+	$already = ( false !== strpos( $c, '맺음말 세 가지를 다시 씁니다' ) );
+	if ( $already ) {
+		echo "★ 이미 어떤 판이 들어가 있습니다.\n";
+		if ( 'apply' === $mode ) {
+			echo "  덮어쓰지 않습니다. 아래를 보시고 벼리에게 주세요.\n";
+			echo "  ※ ?stella_gap=undo 는 위험할 수 있습니다 — 먼저 크기를 보세요.\n\n";
+			$mode = 'preview';
+		} else {
+			echo "  지금 그 자리에 무엇이 있는지 아래에 찍어 드립니다.\n\n";
+		}
+		$KEEPHAS = ( false !== strpos( $c, 'var KEEPTOPIC' ) );
+		echo '  KEEPTOPIC 표 : ' . ( $KEEPHAS ? '있음' : '없음 — 주제별로 안 갈립니다' ) . "\n";
+		$KTHAS = ( false !== strpos( $c, 'KEEPTOPIC[topic' ) );
+		echo '  그 표를 읽는 줄 : ' . ( $KTHAS ? '있음' : '없음' ) . "\n\n";
 	}
 	if ( false !== strpos( $c, '어긋난 자리를 제대로 씁니다' ) ) {
 		echo "먼저 넣으신 GAP-1 이 들어가 있습니다.\n";
