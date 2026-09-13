@@ -8,9 +8,13 @@
      하나를 ① ③ ⑥ 세 장에서 다 써서 「계속 토 얘기」가 나왔습니다.
      새 판은 장마다 다른 재료를 씁니다.
 
-   ★ 앞판을 지우지 않으셔도 됩니다. 이 조각이 나중에 돌아 덮어씁니다.
-     다만 헷갈리니 WPCode 에서 앞판(patch160_health)은 꺼두시는 편이
-     좋습니다.
+   ★ 앞판을 못 끄셨어도 이 판이 이깁니다 — 이 조각이 책을 갈아끼운 뒤
+     앞판의 깃발(data-health)까지 같이 꽂아서 앞판이 다시 덮어쓰지
+     못하게 합니다. 그래도 헷갈리니 WPCode 에서 앞판(patch160_health)은
+     꺼두시는 편이 좋습니다.
+   ★ 이름 붙은 PHP 함수를 쓰지 않습니다. 그래서 두 번 붙이셔도
+     「Cannot redeclare function」 탈이 나지 않습니다. 스크립트도
+     window.StellaHealth4 로 한 번만 돌게 막아 두었습니다.
 
    ── 앵커를 안 잡습니다 ────────────────────────────────
    쪽 글을 한 글자도 안 바꿉니다. 책이 다 그려진 뒤 주제가 건강운이면
@@ -68,6 +72,8 @@ add_action( 'wp_head', function () {
 /* ═══ 건강운 열 장 (HEALTH-4) ═══
    글은 소희 님 원고 그대로입니다. 쪽은 안 건드립니다. */
 (function(){
+
+  if(window.StellaHealth4){ return; }
 
   var AMP=String.fromCharCode(38);
   function esc(s){
@@ -406,6 +412,9 @@ add_action( 'wp_head', function () {
                 if(r){
                   bk.innerHTML=r.html;
                   bk.setAttribute('data-health4','1');
+                  /* 앞판(HEALTH-3)이 다시 덮어쓰지 않게 그쪽 깃발도 꽂습니다.
+                     앞판을 못 끄셨더라도 이 판이 이깁니다. */
+                  bk.setAttribute('data-health','1');
                   var t=document.getElementById('bkTitle');
                   if(t){ t.textContent=r.title; }
                   var c=document.getElementById('bkN');
