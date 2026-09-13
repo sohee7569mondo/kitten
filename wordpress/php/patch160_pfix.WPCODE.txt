@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    궁합 — 상대 생년월일이 주문에 안 담기던 것을 고칩니다
                                         ★ 2026-09-13 · 소희 님께
-                                        판 PFIX-2
+                                        판 PFIX-3
 
    ── 무엇이 잘못돼 있었나 ──────────────────────────────
    ?stella_gtext=1 에서 샘플 궁합 책은 잘 나왔습니다. 셈법(GCALC)과
@@ -20,6 +20,25 @@
        StellaGunghapCalc · StellaGunghapText · partner.year ·
        partner.month · partner.day
    뒤의 셋이 없어서 ready 가 거짓이 되고, 일반 책으로 흘러갔습니다.
+
+   ── ★ 판 3 에서 더한 것 · 상대 정보를 따로 챙겨 둡니다 ──
+   PFIX-1 을 넣으신 뒤에 남편분 생년월일을 넣고 책까지 보셨는데도
+   partner 가 여전히 없었습니다. 그렇다면 짚이는 자리가 둘입니다.
+
+     가. is_page 판정이 어긋나 체가 아예 안 걸렸다
+     나. 주문이 door-love 가 아닌 **다른 쪽에서** 저장된다
+         (가입이 서버로 가고, 돌아온 뒤 다른 쪽이 주문을 적는 길)
+
+   가 는 판 2 에서 없앴습니다 — 쪽을 안 따지고 머리와 발 두 군데서
+   겁니다.
+
+   나 를 없애려고 판 3 은 **상대 정보를 따로 챙겨 둡니다.**
+
+       상대 칸이 채워지는 순간            stella_partner 에 적어 둡니다
+       어느 쪽에서든 주문이 저장될 때     화면에 칸이 없으면
+                                          챙겨둔 것에서 꺼내 넣습니다
+
+   그래서 주문을 어느 쪽이 적든 partner 가 따라갑니다.
 
    ── 어떻게 고치나 (쪽을 안 건드립니다) ────────────────
    이 조각은 door-love 쪽의 글을 **한 글자도 바꾸지 않습니다.**
@@ -149,7 +168,7 @@ add_action( 'template_redirect', function () {
 
 
 /* ── ① 실제 고침 ──────────────────────────────────────
-   판 PFIX-2 에서 두 가지를 더 튼튼하게 했습니다.
+   판 PFIX-3 에서 두 가지를 더 튼튼하게 했습니다.
 
    가. 「door-love 쪽인가」를 따지지 않습니다.
        is_page 가 어긋나면 체가 아예 안 걸립니다. 그런데 이 체는
@@ -212,6 +231,44 @@ function stella_pfix_script() {
     return out;
   }
 
+  /* ── 챙겨 두는 자리 ────────────────────────────────
+     주문이 door-love 가 아닌 다른 쪽에서 저장되는 길이 있을 수 있어,
+     상대 칸이 채워지는 순간 따로 적어 둡니다. */
+  var STASH='stella_partner';
+  function keepPartner(){
+    var P=readPartnerNow();
+    if(!P){ return null; }
+    try{ window.localStorage.setItem(STASH, JSON.stringify(P)); }catch(e){}
+    return P;
+  }
+  function takePartner(){
+    try{
+      var v=window.localStorage.getItem(STASH);
+      if(!v){ return null; }
+      var P=JSON.parse(v);
+      if(!P){ return null; }
+      if(!P.year){ return null; }
+      if(!P.month){ return null; }
+      if(!P.day){ return null; }
+      return P;
+    }catch(e){ return null; }
+  }
+  window.StellaPartnerStash=takePartner;
+
+  /* 상대 칸이 있는 쪽에서는 값이 바뀔 때마다 챙겨 둡니다.
+     ★ 통째로 try 로 감쌉니다. 여기서 탈이 나도 아래의 체는 걸려야
+     합니다 — 챙겨두기는 거들 뿐이고, 체가 본 일입니다. */
+  function watch(){
+    try{
+      if(!document.getElementById('pYear')){ return; }
+      document.addEventListener('change', keepPartner, true);
+      document.addEventListener('input',  keepPartner, true);
+      var go=document.getElementById('goBtn');
+      if(go){ if(go.addEventListener){ go.addEventListener('click', keepPartner, true); } }
+      keepPartner();
+    }catch(e){}
+  }
+
   /* 주문 하나를 보고, 궁합인데 partner 가 비었으면 채웁니다.
      채웠으면 참, 그대로 두었으면 거짓을 돌려줍니다. */
   function fill(o){
@@ -219,14 +276,15 @@ function stella_pfix_script() {
     var t=String(o.topic===undefined?'':o.topic).replace(/^\s+/,'').replace(/\s+$/,'');
     if(t!=='궁합'){ return false; }
     if(o.partner){ if(o.partner.year){ return false; } }
-    var P=readPartnerNow();
+    var P=readPartnerNow();          /* 먼저 화면에서 */
+    if(!P){ P=takePartner(); }       /* 없으면 챙겨둔 것에서 */
     if(!P){ return false; }
     o.partner=P;
     return true;
   }
   window.StellaFillPartner=fill;
 
-  /* ── 하나 · 체험판으로 저장하는 길 (localStorage) ── */
+  /* ── 하나 · 주문이 저장되는 길 (localStorage) ── */
   try{
     var LS=window.localStorage;
     var origSet=LS.setItem.bind(LS);
@@ -265,6 +323,15 @@ function stella_pfix_script() {
       };
     }
   }catch(err2){}
+
+  /* ★ 체를 다 건 다음에 지켜보기를 시작합니다 (차례가 중요합니다) */
+  try{
+    if(document.readyState==='loading'){
+      document.addEventListener('DOMContentLoaded', watch);
+    } else {
+      watch();
+    }
+  }catch(err3){}
 
 })();
 </script>

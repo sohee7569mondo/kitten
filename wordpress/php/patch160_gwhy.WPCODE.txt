@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    궁합이 왜 안 나오나 — 막힌 자리를 한 줄로 찍습니다
                                         ★ 2026-09-13 · 소희 님께
-                                        판 GWHY-1
+                                        판 GWHY-2
 
    궁합 책이 나오려면 다섯 가지가 다 있어야 합니다.
 
@@ -22,10 +22,10 @@
        책      https://stellasaju.com/reading-book/?gwhy=1
        문      https://stellasaju.com/door-love/?gwhy=1
 
-   책 쪽에서는 — 주문에 무엇이 들었나 · 조각 둘이 살아 있나 ·
-                 그래서 어디서 막혔나
-   문 쪽에서는 — PFIX 체가 걸려 있나 · 지금 상대 칸에 무엇이 들었나 ·
-                 고른 주제가 무엇인가
+   어느 쪽이든 — 주문에 무엇이 들었나 · 챙겨둔 상대 정보가 있나 ·
+                 PFIX 체가 걸려 있나
+   책 쪽에서는 — 조각 둘이 살아 있나 · 그래서 어디서 막혔나
+   문 쪽에서는 — 지금 상대 칸 여덟에 무엇이 들었나 · 고른 주제
 
    ★ 로그인한 관리자에게만 보입니다. 손님 화면에는 안 뜹니다.
    ★ ?gwhy=1 을 안 붙이면 아무 일도 안 합니다.
@@ -83,6 +83,20 @@ add_action( 'wp_head', function () {
     }
   }
 
+  /* ── 어느 쪽이든 · 챙겨둔 상대 정보가 있나 ── */
+  var stash=null;
+  try{
+    var sv=localStorage.getItem('stella_partner');
+    if(sv){ stash=JSON.parse(sv); }
+  }catch(e){ stash=null; }
+  if(stash){
+    lines.push('챙겨둔 상대(stella_partner) 있음 · 해='+(stash.year||'?')+
+               ' 달='+(stash.month||'?')+' 날='+(stash.day||'?')+' 이름='+(stash.alias||'(없음)'));
+  } else {
+    lines.push('챙겨둔 상대(stella_partner) 없음');
+  }
+  lines.push('PFIX 체(StellaFillPartner) '+mark(typeof window.StellaFillPartner==='function'));
+
   /* ── 책 쪽 · 조각 둘이 살아 있나 ── */
   if(path.indexOf('reading-book')>=0){
     var GC=window.StellaGunghapCalc;
@@ -109,7 +123,6 @@ add_action( 'wp_head', function () {
 
   /* ── 문 쪽 · 체가 걸려 있나 · 칸에 무엇이 들었나 ── */
   if(path.indexOf('door-love')>=0){
-    lines.push('PFIX 체(StellaFillPartner) '+mark(typeof window.StellaFillPartner==='function'));
     lines.push('상대 칸 — 이름='+txt(el('pAlias'))+' 관계='+txt(el('pRel'))+' 성별='+txt(el('pSex'))+
                ' 해='+txt(el('pYear'))+' 달='+txt(el('pMonth'))+' 날='+txt(el('pDay'))+
                ' 시='+txt(el('pHour'))+' 분='+txt(el('pMin')));
