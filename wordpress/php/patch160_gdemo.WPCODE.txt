@@ -1,11 +1,40 @@
 /* ══════════════════════════════════════════════════════════
    궁합 책을 보기 자료로 열어 봅니다  ★ 2026-09-13 · 소희 님께
-                                     판 GDEMO-1
+                                     판 GDEMO-2
 
-   소희 님 : 「글안나와」
+   소희 님 : 「?stella_gtext=1 이거까지 나와서 샘플나오는데
+             실제 사이트에선 아직이네」
 
-   어디서 막혔는지 짐작하지 않고 **실제 책 쪽에서** 봅니다.
-   진단 화면을 따로 만들지 않습니다 — 그게 지난번 탈의 원인이었어요.
+   그러면 **두 조각은 살아 있습니다.** 원인이 좁혀졌어요.
+
+   책의 궁합 갈래는 다섯 가지를 봅니다 —
+
+       StellaGunghapCalc 이 있나        ← 있습니다 (샘플이 나왔으니)
+       StellaGunghapText 이 있나        ← 있습니다
+       order.partner.year 가 있나       ← ★ 여기가 의심됩니다
+       order.partner.month 가 있나      ← ★
+       order.partner.day 가 있나        ← ★
+
+   door-love 의 입력 칸(pYear · pMonth · pDay)은 있는데, 그것을
+   **order.partner 라는 이름으로 저장하지 않는 것** 같습니다.
+   그래서 책이 「상대 정보가 없다」고 보고 일반 책으로 흘러갑니다.
+
+   ── 세 가지를 할 수 있습니다 ──────────────────────────
+       ?stella_gdemo=see   지금 저장된 주문을 그대로 찍어 봅니다  ★ 이것부터
+       ?stella_gdemo=1     보기 자료를 넣고 책으로 갑니다
+       ?stella_gdemo=0     보기 자료를 지웁니다
+
+   ★★ 하시는 법 — 이 순서로 하시면 원인이 잡힙니다
+
+       1  /door-love/ 에서 궁합을 고르고 상대 생년월일을 넣어
+          **실제로 주문**하십니다 (책이 열립니다)
+       2  그 자리에서 ?stella_gdemo=see 를 엽니다
+       3  「상대 정보(partner)」 칸을 보십니다
+             비어 있으면  →  door-love 가 저장을 안 하는 것입니다
+             차 있으면    →  책 쪽을 더 봐야 합니다
+       4  ?stella_gdemo=1 로 보기 자료를 넣어 보십니다
+             여기서 궁합 책이 나오면 → 책과 두 조각은 멀쩡합니다.
+             door-love 의 저장만 고치면 끝입니다.
 
    ── 어떻게 하나 ───────────────────────────────────────
    이 주소를 열면 보기 자료로 된 주문을 넣고 책 쪽으로 보냅니다.
@@ -37,7 +66,9 @@ add_action( 'template_redirect', function () {
 	if ( ! isset( $_GET['stella_gdemo'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
-	$on = ( '0' !== (string) $_GET['stella_gdemo'] );
+	$mode = (string) $_GET['stella_gdemo'];
+	$on   = ( '0' !== $mode );
+	$see  = ( 'see' === $mode );
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo '<!DOCTYPE html><html lang="ko" translate="no"><head><meta charset="utf-8">'
@@ -47,7 +78,65 @@ add_action( 'template_redirect', function () {
 	   . 'padding:0 24px;color:#26211C}b{color:#9E2B50}a{color:#9E2B50}</style>'
 	   . '</head><body>';
 
-	if ( $on ) {
+	if ( $see ) {
+		echo '<h3>지금 저장된 주문</h3><pre id="out">보는 중…</pre>';
+		?>
+<script>
+(function(){
+  var o=document.getElementById('out'), L=[];
+  function say(s){ L.push(s); o.textContent=L.join('\n'); }
+  var raw=null;
+  try{ raw=localStorage.getItem('stella_demo'); }catch(e){
+    say('★ 브라우저가 자료를 못 읽습니다 (시크릿 창이거나 쿠키를 막아두셨습니다)');
+    return;
+  }
+  if(!raw){ say('★ 주문이 아예 없습니다. 먼저 주문을 하나 하셔야 합니다.'); return; }
+  var d=null;
+  try{ d=JSON.parse(raw); }catch(e){ say('★ 주문이 깨져 있습니다.'); return; }
+
+  say('문      ' + (d.guardian_slug||'(없음)'));
+  say('주제    ' + (d.topic||'(없음)'));
+  say('');
+  say('내 정보(profile)');
+  if(d.profile){
+    ['name','year','month','day','hour','minute','sex','city','country'].forEach(function(k){
+      say('   ' + k + (new Array(10-k.length).join(' ')) + ' ' +
+          (d.profile[k]===undefined ? '(없음)' : d.profile[k]));
+    });
+  } else { say('   ★ 없습니다'); }
+  say('');
+  say('상대 정보(partner)   ← 궁합에 꼭 있어야 합니다');
+  if(!d.partner){
+    say('   ★★ 아예 없습니다.');
+    say('   door-love 가 상대 생년월일을 order.partner 로 저장하지 않습니다.');
+    say('   이것이 궁합 책이 안 나오는 까닭입니다.');
+  } else {
+    ['year','month','day','hour','minute','sex','rel','alias'].forEach(function(k){
+      var v=d.partner[k];
+      var miss=(v===undefined); if(v===null){ miss=true; } if(v===''){ miss=true; }
+      say('   ' + k + (new Array(8-k.length).join(' ')) + ' ' +
+          (miss ? '★ 없음' : v));
+    });
+    var ok=true;
+    if(!d.partner.year){ ok=false; }
+    if(!d.partner.month){ ok=false; }
+    if(!d.partner.day){ ok=false; }
+    say('');
+    say(ok ? '   → 년·월·일이 다 있습니다. 책이 궁합으로 가야 합니다.'
+           : '   → ★ 년·월·일 가운데 빠진 것이 있어 책이 일반으로 흘러갑니다.');
+  }
+  say('');
+  say('셈 조각');
+  say('   StellaGunghapCalc  ' + (window.StellaGunghapCalc ? '있음' : '★ 없음'));
+  say('   StellaGunghapText  ' + (window.StellaGunghapText ? '있음' : '★ 없음'));
+  say('   (이 화면은 책 쪽이 아니라 조각이 안 보일 수 있습니다 — 책에서는 보입니다)');
+  say('');
+  say('── 주문 전체 (그대로) ──');
+  say(raw.length>3000 ? raw.slice(0,3000)+' …' : raw);
+})();
+</script>
+		<?php
+	} elseif ( $on ) {
 		echo '<p><b>보기 자료를 넣었습니다.</b> 곧 책으로 넘어갑니다…</p>';
 		?>
 <script>
