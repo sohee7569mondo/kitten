@@ -1,0 +1,126 @@
+/* ══════════════════════════════════════════════════════════
+   무엇이 주제로 갈려 있나 — 세는 자   ★ 2026-09-13 · 소희 님께
+                                        판 AUDIT-1
+
+   소희 님 : 「이거 어제 다 한 건데 한번 찾아보면 안 돼?」
+
+   맞습니다. 저장소에 이미 만들어 둔 조각이 여럿 있었습니다.
+   그런데 **어느 것이 실제로 책에 들어가 있는지**는 제 사본으로
+   알 수 없습니다. 제 사본은 9월 7일 것이고, 살아 있는 책은
+   그보다 218KB 큽니다.
+
+   그래서 짐작하지 않고 셉니다. 이 자가 살아 있는 책을 열어
+   표마다 **어느 주제가 들어 있는지** 세어 보여줍니다.
+
+   ── 보는 법 ───────────────────────────────────────────
+       https://stellasaju.com/?stella_audit=1
+
+   이렇게 나옵니다.
+
+       AXIS_WARM_TOPIC   39,131자  주제 5 : 결혼운 연애운 이별운 재회운 짝사랑
+       COMBO_TOPIC       17,392자  주제 4 : 결혼운 연애운 재회운 이별운
+       AGAINST_ALL        2,788자  주제 0  ← 아직 문으로만 갈립니다
+
+   ★ 책을 한 글자도 안 건드립니다. 세기만 합니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_audit'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽을 못 찾았습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
+
+	$TOPICS = array(
+		'연애운', '결혼운', '재회운', '이별운', '짝사랑', '궁합',
+		'취업운', '직장운', '이직운', '퇴사운', '사업운', '재물운',
+	);
+
+	/* 세어볼 표 — 이름과 그 표가 어디에 쓰이는지 */
+	$TABLES = array(
+		'AXIS_WARM_TOPIC'  => '저울 다섯의 긴 설명 (1부·어긋나는 자리)',
+		'AXIS_TITLE_TOPIC' => '저울 제목',
+		'AXIS_SIDE_TOPIC'  => '저울 양쪽 이름',
+		'COMBO_TOPIC'      => '조합 풀이',
+		'CLOSE_TOPIC'      => '맺음말 편지',
+		'LAST_TOPIC'       => '배웅 한 줄',
+		'LENS_TOPIC'       => '1부 렌즈 (비겁·관성·인성)',
+		'KEEPTOPIC'        => '맺음말 세 가지',
+		'AGAINST_ALL'      => '거스르면 어떤 자리인지',
+		'AXIS_WARM'        => '저울 설명 (문 단위 기본)',
+		'ASKED'            => '2부 안내문',
+		'DOOR_TOPICS'      => '문마다 고를 수 있는 주제',
+	);
+
+	/* 중괄호를 세어 표 하나의 끝을 찾습니다 */
+	$span = function ( $name ) use ( $c ) {
+		$at = strpos( $c, 'var ' . $name );
+		if ( false === $at ) { return null; }
+		$open = strpos( $c, '{', $at );
+		if ( false === $open ) { return null; }
+		$d = 0;
+		$len = strlen( $c );
+		for ( $i = $open; $i < $len; $i++ ) {
+			if ( '{' === $c[ $i ] ) { $d++; }
+			elseif ( '}' === $c[ $i ] ) {
+				$d--;
+				if ( 0 === $d ) { return substr( $c, $at, $i - $at + 1 ); }
+			}
+		}
+		return null;
+	};
+
+	echo "═══ 무엇이 주제로 갈려 있나 ═══\n";
+	echo '책 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "바이트\n\n";
+
+	$none = array();
+
+	foreach ( $TABLES as $name => $what ) {
+		$blk = $span( $name );
+		if ( null === $blk ) {
+			printf( "  %-17s %9s  %s\n", $name, '없음', $what );
+			continue;
+		}
+
+		$have = array();
+		foreach ( $TOPICS as $t ) {
+			if ( false !== strpos( $blk, "'" . $t . "'" ) ) { $have[] = $t; }
+		}
+
+		printf( "  %-17s %6s자  주제 %2d : %s\n",
+			$name,
+			number_format( strlen( $blk ) ),
+			count( $have ),
+			count( $have ) ? implode( ' ', $have ) : '(문으로만 갈립니다)' );
+
+		if ( ! count( $have ) ) { $none[] = $name . ' — ' . $what; }
+	}
+
+	echo "\n";
+	if ( count( $none ) ) {
+		echo "── 아직 주제로 안 갈린 것 ─────────────────────\n";
+		foreach ( $none as $n ) { echo '  · ' . $n . "\n"; }
+	} else {
+		echo "모든 표가 주제로 갈려 있습니다.\n";
+	}
+
+	/* 주제마다 몇 군데에서 이름이 불리나 — 손이 얼마나 닿았는지 */
+	echo "\n── 주제 이름이 책에 몇 번 나오나 ──────────────\n";
+	foreach ( $TOPICS as $t ) {
+		printf( "  %-6s %4d번\n", $t, substr_count( $c, "'" . $t . "'" ) );
+	}
+
+	exit;
+}, 1 );
