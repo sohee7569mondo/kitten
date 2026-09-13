@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    궁합 셈 · StellaGunghapCalc   ★ 2026-09-13 · 소희 님께
-                                  판 GCALC-2
+                                  판 GCALC-3
 
    책은 이미 궁합 갈래를 갖고 있고 상대 생년월일도 받습니다.
    없던 것이 이 둘이었습니다 —
@@ -219,7 +219,7 @@ add_action( 'wp_head', function () {
   var GAPFIX={0:'같은 띠',4:'삼합',6:'충',8:'삼합'};
 
   /* ══ 밖으로 내놓는 것 ════════════════════════════════ */
-  window.StellaGunghapCalc = {
+  var MINE = {
     keys: function(mine, yours, opt){
       opt = opt || {};
       var mg=mine.pillars.day.gan,  yg=yours.pillars.day.gan;
@@ -287,6 +287,24 @@ add_action( 'wp_head', function () {
       };
     }
   };
+
+  /* ★ 자물쇠 — 쪽 안에 있는 옛 StellaGunghapCalc 가 우리 것을 덮어씁니다.
+     책 본문이 통째로 읽히는 동안 그 줄이 나중에 돌기 때문입니다.
+     그래서 이름을 「읽기만 되는 자리」로 바꿔 답니다.
+       읽으면  우리 것이 나오고
+       덮어쓰려 하면  조용히 무시합니다 (탈은 안 납니다)
+     덮어쓰기를 막지 않고 「받아서 버리는」 꼴이라, 엄격 모드에서도
+     그 줄이 멈추지 않습니다. */
+  try{
+    Object.defineProperty(window, 'StellaGunghapCalc', {
+      get: function(){ return MINE; },
+      set: function(){},
+      configurable: true
+    });
+  }catch(e){
+    window.StellaGunghapCalc = MINE;
+  }
+
 })();
 </script>
 	<?php
@@ -308,7 +326,7 @@ add_action( 'template_redirect', function () {
 	   . 'b{color:#1a7f37}i{color:#9E2B50;font-style:normal}</style>';
 	do_action( 'wp_head' );
 	echo '</head><body>';
-	echo '<h3>궁합 셈이 살아 있나 — 판 GCALC-2</h3><pre id="out">보는 중…</pre>';
+	echo '<h3>궁합 셈이 살아 있나 — 판 GCALC-3</h3><pre id="out">보는 중…</pre>';
 	?>
 <script>
 (function(){

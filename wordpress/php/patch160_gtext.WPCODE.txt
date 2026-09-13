@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    궁합 본문 · StellaGunghapText   ★ 2026-09-13 · 소희 님께
-                                    판 GTEXT-2 (1단계)
+                                    판 GTEXT-3 (1단계)
 
    ★ patch160_gcalc 를 **먼저** 넣으셔야 합니다.
      둘이 다 있어야 궁합 책이 나옵니다.
@@ -92,7 +92,7 @@ add_action( 'wp_head', function () {
            '</div>';
   }
 
-  window.StellaGunghapText = {
+  var MINE = {
     build: function(GK, opt){
       opt=opt||{};
       var alias=opt.alias ? esc(opt.alias) : '그분';
@@ -248,6 +248,24 @@ add_action( 'wp_head', function () {
       return o;
     }
   };
+
+  /* ★ 자물쇠 — 쪽 안에 있는 옛 StellaGunghapText 가 우리 것을 덮어씁니다.
+     책 본문이 통째로 읽히는 동안 그 줄이 나중에 돌기 때문입니다.
+     그래서 이름을 「읽기만 되는 자리」로 바꿔 답니다.
+       읽으면  우리 것이 나오고
+       덮어쓰려 하면  조용히 무시합니다 (탈은 안 납니다)
+     덮어쓰기를 막지 않고 「받아서 버리는」 꼴이라, 엄격 모드에서도
+     그 줄이 멈추지 않습니다. */
+  try{
+    Object.defineProperty(window, 'StellaGunghapText', {
+      get: function(){ return MINE; },
+      set: function(){},
+      configurable: true
+    });
+  }catch(e){
+    window.StellaGunghapText = MINE;
+  }
+
 })();
 </script>
 	<?php
