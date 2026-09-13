@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    살아 있는 사이트를 들여다봅니다   ★ 2026-09-13 · 소희 님께
-                                    판 CHECK-2
+                                    판 CHECK-3
 
    소희 님 : 「궁합을 선택하면 정보 입력칸 아래에 상대 생년월일
              묻게 설계된 걸로 아는데」
@@ -20,6 +20,7 @@
        ②  궁합에 필요한 것 셋이 살아 있나
        ③  WPCode 조각 — 켜진 것과 꺼진 것
        라  상대 정보를 어떤 이름으로 담나 (궁합 계산기를 짜는 데 씁니다)
+       마  주문을 저장하는 대목 — 어디에 partner 를 끼울지 보려고
 
    ★ 아무것도 안 건드립니다. 세기만 합니다.
 
@@ -35,7 +36,7 @@ add_action( 'template_redirect', function () {
 	global $wpdb;
 	header( 'Content-Type: text/plain; charset=utf-8' );
 
-	echo "═══ 살아 있는 사이트를 들여다봅니다   판 CHECK-2 ═══\n\n";
+	echo "═══ 살아 있는 사이트를 들여다봅니다   판 CHECK-3 ═══\n\n";
 
 	/* ── ① 쪽마다 크기 ──────────────────────────────────── */
 	echo "── ① 쪽마다 크기 ──────────────────────────────\n";
@@ -100,7 +101,7 @@ add_action( 'template_redirect', function () {
 	echo '      Text 를 만드는 조각 : ' . ( count( $textIn ) ? implode( ' / ', $textIn ) : '없음' ) . "\n";
 
 	/* ── ②-라 상대 정보를 어떤 이름으로 담나 ─────────────
-	   판 CHECK-2 · 궁합 계산기를 짜려면 order.partner 의 꼴을 알아야
+	   판 CHECK-3 · 궁합 계산기를 짜려면 order.partner 의 꼴을 알아야
 	   합니다. door-love 에서 그것을 만드는 대목을 찍어 드립니다. */
 	echo "\n  라. 상대 정보를 담는 대목 (궁합 계산기를 짜는 데 씁니다)\n\n";
 	$keys = array( 'partner', 'pY', 'pMonth', 'alias' );
@@ -131,6 +132,32 @@ add_action( 'template_redirect', function () {
 		echo "\n      ── 상대 입력 칸 앞뒤 ──────────────────────\n";
 		echo substr( $dl, max( 0, $at - 900 ), 2200 );
 		echo "\n      ── 여기까지 ──────────────────────────────\n";
+	}
+
+	/* ── ②-마 주문을 저장하는 대목 (판 CHECK-3) ───────────
+	   실제 주문에 partner 가 아예 없는 것이 확인됐습니다.
+	   door-love 가 상대 생년월일을 담지 않는 것입니다.
+	   저장하는 코드를 찍어 드립니다 — 어디에 무엇을 끼울지 정하려고요. */
+	echo "\n  마. 주문을 저장하는 대목 (door-love)\n\n";
+	$at = strpos( $dl, "stella_demo" );
+	if ( false === $at ) {
+		echo "      ★ door-love 에 stella_demo 라는 말이 없습니다.\n";
+		echo "      주문을 다른 이름으로 저장하는 듯합니다.\n";
+	} else {
+		$cnt = substr_count( $dl, 'stella_demo' );
+		echo '      stella_demo 가 ' . $cnt . "군데 나옵니다.\n";
+		/* setItem 하는 자리를 찾습니다 */
+		$set = strpos( $dl, "setItem('stella_demo'" );
+		if ( false === $set ) { $set = strpos( $dl, 'setItem("stella_demo"' ); }
+		if ( false === $set ) {
+			echo "      setItem 으로 저장하는 자리를 못 찾았습니다. 처음 나오는 자리를 보여드립니다.\n";
+			$set = $at;
+		} else {
+			echo "      저장하는 자리를 찾았습니다.\n";
+		}
+		echo "\n      ── 저장 대목 앞뒤 ──────────────────────────\n";
+		echo substr( $dl, max( 0, $set - 2200 ), 3200 );
+		echo "\n      ── 여기까지 ────────────────────────────────\n";
 	}
 
 	/* ── ③ WPCode 조각 ─────────────────────────────────── */
