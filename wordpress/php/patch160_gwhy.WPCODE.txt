@@ -1,38 +1,33 @@
 /* ══════════════════════════════════════════════════════════
-   궁합이 왜 안 나오나 — 막힌 자리를 한 줄로 찍습니다
+   궁합이 왜 안 나오나 — 살아 움직이는 띠
                                         ★ 2026-09-13 · 소희 님께
-                                        판 GWHY-2
+                                        판 GWHY-3
 
-   궁합 책이 나오려면 다섯 가지가 다 있어야 합니다.
+   ── 판 3 에서 바뀐 것 ─────────────────────────────────
+   판 2 의 띠는 쪽이 열릴 때 한 번만 찍었습니다. 그래서 소희 님이
+   궁합을 고르기 전의 모습만 보였습니다 — 「상대 칸이 하나도 없음」이
+   그래서 나온 것일 수 있습니다.
 
-       StellaGunghapCalc      셈법 조각 (patch160_gcalc)
-       StellaGunghapText      본문 조각 (patch160_gtext)
-       partner.year           상대 태어난 해
-       partner.month          상대 태어난 달
-       partner.day            상대 태어난 날
+   판 3 은 **2초마다 다시 읽습니다.** 궁합을 고르고 칸을 채우는 대로
+   띠가 따라 바뀝니다. 그래서 칸이 언제 생기는지 눈으로 보입니다.
 
-   하나만 없어도 일반 책으로 흘러갑니다. 그런데 화면에는 아무 말도
-   안 나옵니다. 그래서 「아무것도 안 나와」로 보입니다.
-
-   이 조각은 **어느 것이 없는지** 화면 맨 위에 찍어 줍니다.
+   그리고 문 쪽에서는 세 가지를 더 봅니다 —
+       지금 화면에 있는 p 로 시작하는 칸 이름을 **다 늘어놓습니다**
+       pBase(상대 칸을 담는 그릇)가 있나
+       쪽 글 안에 id=pYear 라는 글자가 있기는 한가
 
    ── 보는 법 ───────────────────────────────────────────
-   주소 뒤에 ?gwhy=1 을 붙이면 그 쪽에서만 띠가 뜹니다.
+       문    https://stellasaju.com/door-love/?gwhy=1
+             → 궁합을 고르고 남편분 생년월일을 채워 보세요.
+               채우는 동안 띠가 바뀌는지 봐주시면 됩니다.
+       책    https://stellasaju.com/reading-book/?gwhy=1
 
-       책      https://stellasaju.com/reading-book/?gwhy=1
-       문      https://stellasaju.com/door-love/?gwhy=1
-
-   어느 쪽이든 — 주문에 무엇이 들었나 · 챙겨둔 상대 정보가 있나 ·
-                 PFIX 체가 걸려 있나
-   책 쪽에서는 — 조각 둘이 살아 있나 · 그래서 어디서 막혔나
-   문 쪽에서는 — 지금 상대 칸 여덟에 무엇이 들었나 · 고른 주제
-
-   ★ 로그인한 관리자에게만 보입니다. 손님 화면에는 안 뜹니다.
-   ★ ?gwhy=1 을 안 붙이면 아무 일도 안 합니다.
+   ★ 로그인한 관리자에게만 보입니다. ?gwhy=1 이 없으면 아무 일도
+     안 합니다.
 
    ── 붙이는 법 ─────────────────────────────────────────
-   WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
-   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   WPCode -> 이미 있는 patch160_gwhy 조각에 덮어쓰기 -> 저장
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
    ★ 크롬 번역을 끄고 붙여넣으세요.
    ══════════════════════════════════════════════════════════ */
 
@@ -43,7 +38,7 @@ add_action( 'wp_head', function () {
 
 	$js = <<<'STELLAGWHY'
 <script>
-/* ═══ 궁합이 왜 안 나오나 (GWHY-1) ═══ */
+/* ═══ 궁합이 왜 안 나오나 (GWHY-3 · 살아 움직이는 띠) ═══ */
 (function(){
 
   function el(id){ return document.getElementById(id); }
@@ -54,103 +49,126 @@ add_action( 'wp_head', function () {
     return v;
   }
   function mark(ok){ if(ok){ return '○'; } return '✗'; }
-
-  function read(){
+  function read(k){
     try{
-      var v=localStorage.getItem('stella_demo');
+      var v=localStorage.getItem(k);
       if(!v){ return null; }
       return JSON.parse(v);
     }catch(e){ return null; }
   }
 
-  var lines=[];
-  var path=String(location.pathname||'');
+  /* 지금 화면에 있는 p 로 시작하는 칸 이름을 다 모읍니다 */
+  function pIds(){
+    var out=[];
+    try{
+      var all=document.querySelectorAll('[id]');
+      for(var i=0;i<all.length;i++){
+        var id=all[i].id;
+        if(id.charAt(0)==='p'){ out.push(id); }
+      }
+    }catch(e){}
+    return out;
+  }
 
-  /* ── 어느 쪽이든 · 주문에 무엇이 들었나 ── */
-  var o=read();
-  if(!o){
-    lines.push('주문(stella_demo) 이 아예 없습니다 — 문에서 한 번 걸어오셔야 합니다');
-  } else {
-    var tp=String(o.topic===undefined?'':o.topic);
-    lines.push('주문 있음 · 주제 = 「'+(tp===''?'(없음)':tp)+'」 · 문 = '+(o.guardian_slug||'(없음)'));
-    var P=o.partner;
-    if(!P){
-      lines.push('★ partner 가 주문에 없습니다 — 이것이 막힌 자리입니다');
+  function collect(){
+    var lines=[];
+    var path=String(location.pathname||'');
+
+    /* ── 주문 ── */
+    var o=read('stella_demo');
+    if(!o){
+      lines.push('주문(stella_demo) 이 아예 없습니다');
     } else {
-      lines.push('partner 있음 · 해='+(P.year||'(없음)')+' 달='+(P.month||'(없음)')+
-                 ' 날='+(P.day||'(없음)')+' 시='+(P.hour===null?'모름':P.hour)+
-                 ' 이름='+(P.alias||'(없음)')+' 관계='+(P.rel||'(없음)')+' 성별='+(P.sex||'(없음)'));
+      var tp=String(o.topic===undefined?'':o.topic);
+      lines.push('주문 있음 · 주제 = 「'+(tp===''?'(없음)':tp)+'」 · 문 = '+(o.guardian_slug||'(없음)'));
+      var P=o.partner;
+      if(!P){
+        lines.push('★ 주문에 partner 가 없습니다');
+      } else {
+        lines.push('주문 partner ○ · 해='+(P.year||'?')+' 달='+(P.month||'?')+' 날='+(P.day||'?')+
+                   ' 이름='+(P.alias||'(없음)'));
+      }
     }
-  }
 
-  /* ── 어느 쪽이든 · 챙겨둔 상대 정보가 있나 ── */
-  var stash=null;
-  try{
-    var sv=localStorage.getItem('stella_partner');
-    if(sv){ stash=JSON.parse(sv); }
-  }catch(e){ stash=null; }
-  if(stash){
-    lines.push('챙겨둔 상대(stella_partner) 있음 · 해='+(stash.year||'?')+
-               ' 달='+(stash.month||'?')+' 날='+(stash.day||'?')+' 이름='+(stash.alias||'(없음)'));
-  } else {
-    lines.push('챙겨둔 상대(stella_partner) 없음');
-  }
-  lines.push('PFIX 체(StellaFillPartner) '+mark(typeof window.StellaFillPartner==='function'));
-
-  /* ── 책 쪽 · 조각 둘이 살아 있나 ── */
-  if(path.indexOf('reading-book')>=0){
-    var GC=window.StellaGunghapCalc;
-    var GT=window.StellaGunghapText;
-    lines.push('셈법 StellaGunghapCalc '+mark(!!GC)+'   본문 StellaGunghapText '+mark(!!GT));
-
-    var why=[];
-    if(!GC){ why.push('셈법 조각(patch160_gcalc)'); }
-    if(!GT){ why.push('본문 조각(patch160_gtext)'); }
-    if(!o){ why.push('주문'); }
-    if(o){
-      if(String(o.topic||'')!=='궁합'){ why.push('주제가 궁합이 아님 — 지금 「'+(o.topic||'없음')+'」'); }
-      var Q=o.partner||{};
-      if(!Q.year){ why.push('partner.year'); }
-      if(!Q.month){ why.push('partner.month'); }
-      if(!Q.day){ why.push('partner.day'); }
-    }
-    if(why.length===0){
-      lines.push('★ 다 있습니다. 궁합 책이 나와야 합니다.');
+    /* ── 챙겨둔 것 · 체 ── */
+    var st=read('stella_partner');
+    if(st){
+      lines.push('챙겨둔 상대(stella_partner) ○ · 해='+(st.year||'?')+' 달='+(st.month||'?')+
+                 ' 날='+(st.day||'?')+' 이름='+(st.alias||'(없음)'));
     } else {
-      lines.push('★ 없는 것 — '+why.join(' · '));
+      lines.push('챙겨둔 상대(stella_partner) ✗');
     }
+    lines.push('PFIX 체(StellaFillPartner) '+mark(typeof window.StellaFillPartner==='function'));
+
+    /* ── 책 쪽 ── */
+    if(path.indexOf('reading-book')>=0){
+      var GC=window.StellaGunghapCalc, GT=window.StellaGunghapText;
+      lines.push('셈법 Calc '+mark(!!GC)+'   본문 Text '+mark(!!GT));
+      var why=[];
+      if(!GC){ why.push('셈법 조각'); }
+      if(!GT){ why.push('본문 조각'); }
+      if(!o){ why.push('주문'); }
+      if(o){
+        if(String(o.topic||'')!=='궁합'){ why.push('주제가 궁합이 아님'); }
+        var Q=o.partner||{};
+        if(!Q.year){ why.push('partner.year'); }
+        if(!Q.month){ why.push('partner.month'); }
+        if(!Q.day){ why.push('partner.day'); }
+      }
+      if(why.length===0){ lines.push('★ 다 있습니다 — 궁합 책이 나와야 합니다'); }
+      else { lines.push('★ 없는 것 — '+why.join(' · ')); }
+    }
+
+    /* ── 문 쪽 ── */
+    if(path.indexOf('door-love')>=0){
+      var te=document.querySelector('input[name=ssg-topic]:checked');
+      lines.push('고른 주제 = '+(te?te.value:'(아직 안 고름)'));
+
+      var ids=pIds();
+      lines.push('지금 화면의 p 칸 '+ids.length+'개 — '+(ids.length?ids.join(' · '):'(하나도 없음)'));
+      lines.push('그릇 pBase '+mark(!!el('pBase')));
+
+      var inMarkup=false;
+      try{
+        if(String(document.body.innerHTML).indexOf('pYear')>=0){ inMarkup=true; }
+      }catch(e){}
+      lines.push('쪽 글 안에 pYear 라는 글자가 있나 '+mark(inMarkup));
+
+      lines.push('상대 칸 값 — 이름='+txt(el('pAlias'))+' 관계='+txt(el('pRel'))+
+                 ' 성별='+txt(el('pSex'))+' 해='+txt(el('pYear'))+' 달='+txt(el('pMonth'))+
+                 ' 날='+txt(el('pDay'))+' 시='+txt(el('pHour'))+' 분='+txt(el('pMin')));
+    }
+
+    return lines;
   }
 
-  /* ── 문 쪽 · 체가 걸려 있나 · 칸에 무엇이 들었나 ── */
-  if(path.indexOf('door-love')>=0){
-    lines.push('상대 칸 — 이름='+txt(el('pAlias'))+' 관계='+txt(el('pRel'))+' 성별='+txt(el('pSex'))+
-               ' 해='+txt(el('pYear'))+' 달='+txt(el('pMonth'))+' 날='+txt(el('pDay'))+
-               ' 시='+txt(el('pHour'))+' 분='+txt(el('pMin')));
-    var uk=el('pHourUnknown');
-    lines.push('시각 모름 체크 = '+(uk?(uk.checked?'켜짐':'꺼짐'):'(칸 없음)'));
-    var te=document.querySelector('input[name=ssg-topic]:checked');
-    lines.push('고른 주제 = '+(te?te.value:'(아직 안 고름)'));
-  }
-
+  var bar=null;
   function draw(){
-    var bar=document.createElement('div');
-    bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;'+
-      'background:#0B0817;color:#BCADEA;padding:10px 14px;'+
-      'font-family:monospace;font-size:12px;line-height:1.7;'+
-      'border-bottom:2px solid #9E2B50;max-height:45vh;overflow:auto;';
-    var h='<b style=color:#fff>[GWHY] 궁합이 왜 안 나오나</b><br>';
+    if(!bar){
+      bar=document.createElement('div');
+      bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;'+
+        'background:#0B0817;color:#BCADEA;padding:10px 14px;'+
+        'font-family:monospace;font-size:12px;line-height:1.7;'+
+        'border-bottom:2px solid #9E2B50;max-height:48vh;overflow:auto;';
+      document.body.insertBefore(bar, document.body.firstChild);
+    }
+    var lines=collect();
+    var h='<b style=color:#fff>[GWHY] 궁합이 왜 안 나오나</b> '+
+          '<span style=color:#7a7a8c>(2초마다 다시 읽습니다)</span><br>';
     for(var i=0;i<lines.length;i++){
       h+=lines[i].split('<').join('(').split('>').join(')')+'<br>';
     }
-    h+='<span style=color:#7a7a8c>이 띠는 ?gwhy=1 을 붙였을 때, 관리자에게만 보입니다.</span>';
     bar.innerHTML=h;
-    document.body.insertBefore(bar, document.body.firstChild);
   }
 
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', draw);
-  } else {
+  function start(){
     draw();
+    setInterval(draw, 2000);
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
   }
 
 })();

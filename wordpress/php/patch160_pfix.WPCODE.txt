@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    궁합 — 상대 생년월일이 주문에 안 담기던 것을 고칩니다
                                         ★ 2026-09-13 · 소희 님께
-                                        판 PFIX-3
+                                        판 PFIX-4
 
    ── 무엇이 잘못돼 있었나 ──────────────────────────────
    ?stella_gtext=1 에서 샘플 궁합 책은 잘 나왔습니다. 셈법(GCALC)과
@@ -35,6 +35,7 @@
    나 를 없애려고 판 3 은 **상대 정보를 따로 챙겨 둡니다.**
 
        상대 칸이 채워지는 순간            stella_partner 에 적어 둡니다
+       (칸이 나중에 생겨도 됩니다 — 쪽 전체에 귀를 답니다)
        어느 쪽에서든 주문이 저장될 때     화면에 칸이 없으면
                                           챙겨둔 것에서 꺼내 넣습니다
 
@@ -168,7 +169,7 @@ add_action( 'template_redirect', function () {
 
 
 /* ── ① 실제 고침 ──────────────────────────────────────
-   판 PFIX-3 에서 두 가지를 더 튼튼하게 했습니다.
+   판 PFIX-4 에서 두 가지를 더 튼튼하게 했습니다.
 
    가. 「door-love 쪽인가」를 따지지 않습니다.
        is_page 가 어긋나면 체가 아예 안 걸립니다. 그런데 이 체는
@@ -260,11 +261,15 @@ function stella_pfix_script() {
      합니다 — 챙겨두기는 거들 뿐이고, 체가 본 일입니다. */
   function watch(){
     try{
-      if(!document.getElementById('pYear')){ return; }
+      /* ★ 판 4 — 「지금 칸이 있나」로 막지 않습니다.
+         궁합을 고른 뒤에야 상대 칸이 생기는 쪽이라면, 쪽이 열릴 때는
+         칸이 없어서 지켜보기가 아예 시작되지 않았습니다. 이제 쪽
+         전체에 귀를 답니다. 칸이 없으면 keepPartner 가 조용히
+         아무것도 안 하니 다른 쪽에서도 탈이 없습니다. */
       document.addEventListener('change', keepPartner, true);
       document.addEventListener('input',  keepPartner, true);
-      var go=document.getElementById('goBtn');
-      if(go){ if(go.addEventListener){ go.addEventListener('click', keepPartner, true); } }
+      document.addEventListener('click',  keepPartner, true);
+      document.addEventListener('blur',   keepPartner, true);
       keepPartner();
     }catch(e){}
   }
