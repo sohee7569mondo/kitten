@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    궁합이 왜 안 나오나 — 살아 움직이는 띠
                                         ★ 2026-09-13 · 소희 님께
-                                        판 GWHY-7
+                                        판 GWHY-8
 
    ── 판 3 에서 바뀐 것 ─────────────────────────────────
    판 2 의 띠는 쪽이 열릴 때 한 번만 찍었습니다. 그래서 소희 님이
@@ -31,6 +31,11 @@
    이제 ① 띠를 **먼저 그려 놓고** ② 읽습니다. 읽다가 멈춰도 그때까지
    읽은 것과 멈춘 까닭이 그대로 남습니다. 화면이 비는 일은 없습니다.
    그리고 조각이 켜져 있는지 **서버가 한 줄로 알려줍니다**(발치에).
+
+   ★ 판 8 — 탈이 난 **그 줄의 글을 그대로 떠서 보여줍니다.**
+   「줄 16347 에서 멈췄다」만으로는 어느 조각이 깨졌는지 모릅니다.
+   그래서 쪽을 한 번 더 받아와 그 앞뒤 두 줄을 잘라 찍습니다.
+   깨진 자리가 눈에 보이면 고치는 것은 금방입니다.
 
    판 3 은 **2초마다 다시 읽습니다.** 궁합을 고르고 칸을 채우는 대로
    띠가 따라 바뀝니다. 그래서 칸이 언제 생기는지 눈으로 보입니다.
@@ -72,7 +77,7 @@ add_action( 'wp_head', function () {
       m=String((ev.error!==null)?((ev.error?ev.error.message:'')||ev.message||''):(ev.message||''));
       where=String(ev.filename||'')+' 줄 '+String(ev.lineno||'');
     }catch(e){}
-    window.__gwhyErr={ msg:m, at:where };
+    window.__gwhyErr={ msg:m, at:where, ln:(ev.lineno||0), file:String(ev.filename||'') };
   }, true);
   window.addEventListener('unhandledrejection', function(ev){
     if(window.__gwhyErr){ return; }
@@ -139,6 +144,19 @@ add_action( 'wp_head', function () {
     return lines;
   }
 
+  /* 탈이 난 줄을 보려고 쪽을 한 번 더 받아옵니다 (같은 주소라 안전합니다) */
+  var SRC=null, tried=false;
+  function grabSrc(){
+    if(tried){ return; }
+    tried=true;
+    try{
+      window.fetch(location.href, { credentials:'same-origin' })
+        .then(function(r){ return r.text(); })
+        .then(function(x){ SRC=String(x).split(String.fromCharCode(10)); })
+        .catch(function(){});
+    }catch(e){}
+  }
+
   function gather(lines){
     var path=String(location.pathname||'');
 
@@ -171,6 +189,21 @@ add_action( 'wp_head', function () {
     var er=window.__gwhyErr;
     if(er){
       lines.push('★★ 이 쪽에서 처음 난 탈 — '+(er.msg||'(까닭 없음)')+'   ['+(er.at||'')+']');
+      if(er.ln){
+        grabSrc();
+        if(SRC){
+          var a=er.ln-2; if(a<1){ a=1; }
+          var b=er.ln+2; if(b>SRC.length){ b=SRC.length; }
+          lines.push('── 그 자리의 글 ──');
+          for(var q=a;q<=b;q++){
+            var one=String(SRC[q-1]||'');
+            if(one.length>300){ one=one.slice(0,300)+' …'; }
+            lines.push((q===er.ln?'★ ':'  ')+q+' | '+one);
+          }
+        } else {
+          lines.push('(그 자리의 글을 받아오는 중…)');
+        }
+      }
     } else {
       lines.push('이 쪽에서 난 탈 없음');
     }
@@ -337,6 +370,6 @@ add_action( 'wp_footer', function () {
 	$q = get_queried_object();
 	if ( $q ) { if ( isset( $q->post_name ) ) { $slug = (string) $q->post_name; } }
 	echo '<div style="background:#9E2B50;color:#fff;padding:10px 16px;'
-	   . 'font-family:monospace;font-size:13px;">[GWHY-7] 조각은 켜져 있습니다 · 이 쪽 slug = '
+	   . 'font-family:monospace;font-size:13px;">[GWHY-8] 조각은 켜져 있습니다 · 이 쪽 slug = '
 	   . esc_html( $slug ) . '</div>';
 }, 99 );
