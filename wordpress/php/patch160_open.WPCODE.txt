@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    여는 글을 주제마다 · 「두 부분」을 장 안내로
-   ★ 2026-09-13 · 소희 님께      판 OPEN-1
+   ★ 2026-09-13 · 소희 님께      판 OPEN-2
 
    소희 님 : 「앞부분의 결혼운에 대해 말하는 벼리의 말도 전부 갈라 있어?」
 
@@ -98,23 +98,57 @@ add_action( 'template_redirect', function () {
 			'name' => '셋 · 「두 부분으로 나뉩니다」를 장 안내로',
 			'find' => stella_open_f2(),
 			'to'   => stella_open_t2(),
+			'soft' => 1,
 		),
 	);
 
-	$bad = 0;
+	/* 판 OPEN-2 (2026-09-13)
+	   셋째는 네 줄짜리 긴 글자 일치라, 책이 손질되면 한 글자 차이로
+	   어긋납니다. 그래서 셋째만 「못 찾아도 멈추지 않고 건너뜁니다」로
+	   바꿉니다. 대신 그 자리에 지금 무슨 글이 있는지 찍어 보여드립니다.
+	   그 글을 저에게 주시면 제가 다음 판에서 정확히 맞추겠습니다. */
+	$bad  = 0;
+	$skip = 0;
+	$show = '';
+	$todo = array();
 	foreach ( $jobs as $j ) {
 		$n = substr_count( $c, $j['find'] );
-		if ( 1 === $n ) { printf( "  %-40s 찾음\n", $j['name'] ); continue; }
+		if ( 1 === $n ) {
+			printf( "  %-40s 찾음\n", $j['name'] );
+			$todo[] = $j;
+			continue;
+		}
 		printf( "  %-40s ★ %d군데\n", $j['name'], $n );
-		$bad++;
+		if ( ! isset( $j['soft'] ) ) { $bad++; continue; }
+		$skip++;
+		/* 짧은 표시로 다시 찾아 그 자리 글을 떠 옵니다 */
+		$at = strpos( $c, '이 책은 두 부분으로 나뉩니다' );
+		if ( false !== $at ) { $show = substr( $c, max( 0, $at - 260 ), 1500 ); }
 	}
 	if ( $bad ) {
 		echo "\n한 군데가 아닌 자리가 있어 아무것도 안 건드렸습니다.\n이 글을 그대로 주세요.\n";
 		exit;
 	}
+	if ( 0 === count( $todo ) ) {
+		echo "\n넣을 자리가 하나도 없습니다. 그만둡니다.\n";
+		exit;
+	}
+
+	if ( $skip ) {
+		echo "\n★ 셋째는 건너뜁니다 — 책이 손질되어 글자가 안 맞습니다.\n";
+		echo "  하나와 둘은 그대로 넣을 수 있습니다.\n";
+		if ( '' !== $show ) {
+			echo "\n──── 지금 그 자리에 있는 글 (이대로 저에게 주세요) ────\n";
+			echo $show;
+			echo "\n──── 여기까지 ─────────────────────────────────────\n";
+		} else {
+			echo "\n  「이 책은 두 부분으로 나뉩니다」라는 말도 못 찾았습니다.\n";
+			echo "  이미 누가 고쳐 두었거나 이 조각을 벌써 넣으셨을 수 있습니다.\n";
+		}
+	}
 
 	$made = $c;
-	foreach ( $jobs as $j ) { $made = str_replace( $j['find'], $j['to'], $made ); }
+	foreach ( $todo as $j ) { $made = str_replace( $j['find'], $j['to'], $made ); }
 
 	echo "\n" . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $made ) ) . '바이트 (+'
 	   . number_format( strlen( $made ) - strlen( $c ) ) . ")\n\n";
