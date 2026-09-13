@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    궁합이 왜 안 나오나 — 살아 움직이는 띠
                                         ★ 2026-09-13 · 소희 님께
-                                        판 GWHY-6
+                                        판 GWHY-7
 
    ── 판 3 에서 바뀐 것 ─────────────────────────────────
    판 2 의 띠는 쪽이 열릴 때 한 번만 찍었습니다. 그래서 소희 님이
@@ -26,6 +26,11 @@
    자리에** 그대로 놓입니다(떠 있지 않습니다). 그리고 책이 비어 있으면
    **비어 있는 책 자리에도 같은 글을 찍습니다.** 두 군데 중 한 군데는
    반드시 보입니다.
+
+   ★ 판 7 — 띠가 읽다가 멈추면 띠 자체가 안 그려졌습니다. 제 잘못입니다.
+   이제 ① 띠를 **먼저 그려 놓고** ② 읽습니다. 읽다가 멈춰도 그때까지
+   읽은 것과 멈춘 까닭이 그대로 남습니다. 화면이 비는 일은 없습니다.
+   그리고 조각이 켜져 있는지 **서버가 한 줄로 알려줍니다**(발치에).
 
    판 3 은 **2초마다 다시 읽습니다.** 궁합을 고르고 칸을 채우는 대로
    띠가 따라 바뀝니다. 그래서 칸이 언제 생기는지 눈으로 보입니다.
@@ -124,6 +129,17 @@ add_action( 'wp_head', function () {
 
   function collect(){
     var lines=[];
+    try{ gather(lines); }
+    catch(e){
+      var m='';
+      try{ m=String(e.message||e); }catch(e9){}
+      lines.push('★★ 띠가 읽다가 멈췄습니다 — '+m);
+      lines.push('(여기까지는 읽은 것입니다. 멈춘 자리가 곧 단서입니다.)');
+    }
+    return lines;
+  }
+
+  function gather(lines){
     var path=String(location.pathname||'');
 
     /* ── 주문 ── */
@@ -205,9 +221,11 @@ add_action( 'wp_head', function () {
             lines.push('★★ '+step+' 에서 멈췄습니다 — '+(bad===''?'(까닭 없음)':bad));
           } else {
             lines.push('돌려보니 다 지나갑니다 · 본문 '+String(html).length+'자');
-            lines.push('총점 '+GK.total+' · '+GK.grade.name+
-                       ' · 성격'+GK.score.char+' 연애'+GK.score.love+
-                       ' 결혼'+GK.score.marry+' 금전'+GK.score.money);
+            var gd=(GK.grade?GK.grade.name:'(구간 이름 없음)');
+            var sc=GK.score||{};
+            lines.push('총점 '+GK.total+' · '+gd+
+                       ' · 성격'+sc.char+' 연애'+sc.love+
+                       ' 결혼'+sc.marry+' 금전'+sc.money);
           }
         }
       }
@@ -245,8 +263,6 @@ add_action( 'wp_head', function () {
                  ' 성별='+txt(el('pSex'))+' 해='+txt(el('pYear'))+' 달='+txt(el('pMonth'))+
                  ' 날='+txt(el('pDay'))+' 시='+txt(el('pHour'))+' 분='+txt(el('pMin')));
     }
-
-    return lines;
   }
 
   var SKIN='background:#0B0817;color:#BCADEA;padding:14px 16px;'+
@@ -255,6 +271,16 @@ add_action( 'wp_head', function () {
 
   var bar=null, echo=null;
   function draw(){
+    /* ★ 판 7 — 띠를 먼저 만들어 놓습니다. 읽다가 멈춰도 자리는 남습니다. */
+    if(!bar){
+      bar=document.createElement('div');
+      bar.style.cssText=SKIN;
+      bar.innerHTML='<b style=color:#fff>[GWHY] 읽는 중…</b>';
+      try{ document.body.insertBefore(bar, document.body.firstChild); }
+      catch(e0){
+        try{ document.documentElement.appendChild(bar); }catch(e1){}
+      }
+    }
     var lines=collect();
     var h='<b style=color:#fff>[GWHY] 궁합이 왜 안 나오나</b> '+
           '<span style=color:#7a7a8c>(2초마다 다시 읽습니다)</span><br>';
@@ -262,13 +288,7 @@ add_action( 'wp_head', function () {
       h+=lines[i].split(AMP).join('(and)').split('<').join('(').split('>').join(')')+'<br>';
     }
 
-    /* 하나 · 쪽 맨 위에 — 떠 있지 않고 글이 흐르는 자리에 놓습니다.
-       떠 있게 두었더니 사이트 머리글에 눌려 한 줄로 찌그러졌습니다. */
-    if(!bar){
-      bar=document.createElement('div');
-      bar.style.cssText=SKIN;
-      try{ document.body.insertBefore(bar, document.body.firstChild); }catch(e){}
-    }
+    /* 쪽 맨 위 띠를 채웁니다 (떠 있지 않고 글이 흐르는 자리입니다) */
     bar.innerHTML=h;
 
     /* 둘 · 책이 비어 있으면 그 자리에도 같은 글을 찍습니다.
@@ -305,4 +325,18 @@ add_action( 'wp_head', function () {
 STELLAGWHY;
 
 	echo $js;
+}, 99 );
+
+/* ── 발치에 · 조각이 켜져 있다는 것을 서버가 알려줍니다 ──
+   이 줄이 안 보이면 조각이 저장·활성화가 안 된 것입니다.
+   자바스크립트가 하나도 안 도는 경우에도 이 줄은 보입니다. */
+add_action( 'wp_footer', function () {
+	if ( ! isset( $_GET['gwhy'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	$slug = '';
+	$q = get_queried_object();
+	if ( $q ) { if ( isset( $q->post_name ) ) { $slug = (string) $q->post_name; } }
+	echo '<div style="background:#9E2B50;color:#fff;padding:10px 16px;'
+	   . 'font-family:monospace;font-size:13px;">[GWHY-7] 조각은 켜져 있습니다 · 이 쪽 slug = '
+	   . esc_html( $slug ) . '</div>';
 }, 99 );
