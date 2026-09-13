@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    살아 있는 사이트를 들여다봅니다   ★ 2026-09-13 · 소희 님께
-                                    판 CHECK-1
+                                    판 CHECK-2
 
    소희 님 : 「궁합을 선택하면 정보 입력칸 아래에 상대 생년월일
              묻게 설계된 걸로 아는데」
@@ -19,6 +19,7 @@
        ①  쪽마다 크기와 제 사본과의 차이
        ②  궁합에 필요한 것 셋이 살아 있나
        ③  WPCode 조각 — 켜진 것과 꺼진 것
+       라  상대 정보를 어떤 이름으로 담나 (궁합 계산기를 짜는 데 씁니다)
 
    ★ 아무것도 안 건드립니다. 세기만 합니다.
 
@@ -34,7 +35,7 @@ add_action( 'template_redirect', function () {
 	global $wpdb;
 	header( 'Content-Type: text/plain; charset=utf-8' );
 
-	echo "═══ 살아 있는 사이트를 들여다봅니다   판 CHECK-1 ═══\n\n";
+	echo "═══ 살아 있는 사이트를 들여다봅니다   판 CHECK-2 ═══\n\n";
 
 	/* ── ① 쪽마다 크기 ──────────────────────────────────── */
 	echo "── ① 쪽마다 크기 ──────────────────────────────\n";
@@ -97,6 +98,40 @@ add_action( 'template_redirect', function () {
 	}
 	echo '      Calc 를 만드는 조각 : ' . ( count( $calcIn ) ? implode( ' / ', $calcIn ) : '없음' ) . "\n";
 	echo '      Text 를 만드는 조각 : ' . ( count( $textIn ) ? implode( ' / ', $textIn ) : '없음' ) . "\n";
+
+	/* ── ②-라 상대 정보를 어떤 이름으로 담나 ─────────────
+	   판 CHECK-2 · 궁합 계산기를 짜려면 order.partner 의 꼴을 알아야
+	   합니다. door-love 에서 그것을 만드는 대목을 찍어 드립니다. */
+	echo "\n  라. 상대 정보를 담는 대목 (궁합 계산기를 짜는 데 씁니다)\n\n";
+	$keys = array( 'partner', 'pY', 'pMonth', 'alias' );
+	$shown = 0;
+	foreach ( $keys as $k ) {
+		$from = 0;
+		while ( $shown < 6 ) {
+			$at = strpos( $dl, $k, $from );
+			if ( false === $at ) { break; }
+			$from = $at + strlen( $k );
+			/* 줄 하나를 떠 옵니다 */
+			$ls = strrpos( substr( $dl, 0, $at ), "\n" );
+			$ls = ( false === $ls ) ? 0 : $ls + 1;
+			$le = strpos( $dl, "\n", $at );
+			if ( false === $le ) { $le = strlen( $dl ); }
+			$line = trim( substr( $dl, $ls, $le - $ls ) );
+			if ( '' === $line ) { continue; }
+			if ( strlen( $line ) > 300 ) { $line = substr( $line, 0, 300 ) . ' …'; }
+			echo '      ' . $line . "\n";
+			$shown++;
+		}
+	}
+	if ( 0 === $shown ) { echo "      찾지 못했습니다.\n"; }
+
+	/* 상대 입력 칸이 있는 대목 통째로 (앞뒤 1,200자) */
+	$at = strpos( $dl, 'pMonth' );
+	if ( false !== $at ) {
+		echo "\n      ── 상대 입력 칸 앞뒤 ──────────────────────\n";
+		echo substr( $dl, max( 0, $at - 900 ), 2200 );
+		echo "\n      ── 여기까지 ──────────────────────────────\n";
+	}
 
 	/* ── ③ WPCode 조각 ─────────────────────────────────── */
 	echo "\n── ③ WPCode 조각 ──────────────────────────────\n";
