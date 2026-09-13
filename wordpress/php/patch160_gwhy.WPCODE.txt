@@ -1,0 +1,148 @@
+/* ══════════════════════════════════════════════════════════
+   궁합이 왜 안 나오나 — 막힌 자리를 한 줄로 찍습니다
+                                        ★ 2026-09-13 · 소희 님께
+                                        판 GWHY-1
+
+   궁합 책이 나오려면 다섯 가지가 다 있어야 합니다.
+
+       StellaGunghapCalc      셈법 조각 (patch160_gcalc)
+       StellaGunghapText      본문 조각 (patch160_gtext)
+       partner.year           상대 태어난 해
+       partner.month          상대 태어난 달
+       partner.day            상대 태어난 날
+
+   하나만 없어도 일반 책으로 흘러갑니다. 그런데 화면에는 아무 말도
+   안 나옵니다. 그래서 「아무것도 안 나와」로 보입니다.
+
+   이 조각은 **어느 것이 없는지** 화면 맨 위에 찍어 줍니다.
+
+   ── 보는 법 ───────────────────────────────────────────
+   주소 뒤에 ?gwhy=1 을 붙이면 그 쪽에서만 띠가 뜹니다.
+
+       책      https://stellasaju.com/reading-book/?gwhy=1
+       문      https://stellasaju.com/door-love/?gwhy=1
+
+   책 쪽에서는 — 주문에 무엇이 들었나 · 조각 둘이 살아 있나 ·
+                 그래서 어디서 막혔나
+   문 쪽에서는 — PFIX 체가 걸려 있나 · 지금 상대 칸에 무엇이 들었나 ·
+                 고른 주제가 무엇인가
+
+   ★ 로그인한 관리자에게만 보입니다. 손님 화면에는 안 뜹니다.
+   ★ ?gwhy=1 을 안 붙이면 아무 일도 안 합니다.
+
+   ── 붙이는 법 ─────────────────────────────────────────
+   WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+
+	if ( ! isset( $_GET['gwhy'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	$js = <<<'STELLAGWHY'
+<script>
+/* ═══ 궁합이 왜 안 나오나 (GWHY-1) ═══ */
+(function(){
+
+  function el(id){ return document.getElementById(id); }
+  function txt(e){
+    if(!e){ return '(칸 없음)'; }
+    var v=String(e.value===undefined?'':e.value);
+    if(v===''){ return '(빈칸)'; }
+    return v;
+  }
+  function mark(ok){ if(ok){ return '○'; } return '✗'; }
+
+  function read(){
+    try{
+      var v=localStorage.getItem('stella_demo');
+      if(!v){ return null; }
+      return JSON.parse(v);
+    }catch(e){ return null; }
+  }
+
+  var lines=[];
+  var path=String(location.pathname||'');
+
+  /* ── 어느 쪽이든 · 주문에 무엇이 들었나 ── */
+  var o=read();
+  if(!o){
+    lines.push('주문(stella_demo) 이 아예 없습니다 — 문에서 한 번 걸어오셔야 합니다');
+  } else {
+    var tp=String(o.topic===undefined?'':o.topic);
+    lines.push('주문 있음 · 주제 = 「'+(tp===''?'(없음)':tp)+'」 · 문 = '+(o.guardian_slug||'(없음)'));
+    var P=o.partner;
+    if(!P){
+      lines.push('★ partner 가 주문에 없습니다 — 이것이 막힌 자리입니다');
+    } else {
+      lines.push('partner 있음 · 해='+(P.year||'(없음)')+' 달='+(P.month||'(없음)')+
+                 ' 날='+(P.day||'(없음)')+' 시='+(P.hour===null?'모름':P.hour)+
+                 ' 이름='+(P.alias||'(없음)')+' 관계='+(P.rel||'(없음)')+' 성별='+(P.sex||'(없음)'));
+    }
+  }
+
+  /* ── 책 쪽 · 조각 둘이 살아 있나 ── */
+  if(path.indexOf('reading-book')>=0){
+    var GC=window.StellaGunghapCalc;
+    var GT=window.StellaGunghapText;
+    lines.push('셈법 StellaGunghapCalc '+mark(!!GC)+'   본문 StellaGunghapText '+mark(!!GT));
+
+    var why=[];
+    if(!GC){ why.push('셈법 조각(patch160_gcalc)'); }
+    if(!GT){ why.push('본문 조각(patch160_gtext)'); }
+    if(!o){ why.push('주문'); }
+    if(o){
+      if(String(o.topic||'')!=='궁합'){ why.push('주제가 궁합이 아님 — 지금 「'+(o.topic||'없음')+'」'); }
+      var Q=o.partner||{};
+      if(!Q.year){ why.push('partner.year'); }
+      if(!Q.month){ why.push('partner.month'); }
+      if(!Q.day){ why.push('partner.day'); }
+    }
+    if(why.length===0){
+      lines.push('★ 다 있습니다. 궁합 책이 나와야 합니다.');
+    } else {
+      lines.push('★ 없는 것 — '+why.join(' · '));
+    }
+  }
+
+  /* ── 문 쪽 · 체가 걸려 있나 · 칸에 무엇이 들었나 ── */
+  if(path.indexOf('door-love')>=0){
+    lines.push('PFIX 체(StellaFillPartner) '+mark(typeof window.StellaFillPartner==='function'));
+    lines.push('상대 칸 — 이름='+txt(el('pAlias'))+' 관계='+txt(el('pRel'))+' 성별='+txt(el('pSex'))+
+               ' 해='+txt(el('pYear'))+' 달='+txt(el('pMonth'))+' 날='+txt(el('pDay'))+
+               ' 시='+txt(el('pHour'))+' 분='+txt(el('pMin')));
+    var uk=el('pHourUnknown');
+    lines.push('시각 모름 체크 = '+(uk?(uk.checked?'켜짐':'꺼짐'):'(칸 없음)'));
+    var te=document.querySelector('input[name=ssg-topic]:checked');
+    lines.push('고른 주제 = '+(te?te.value:'(아직 안 고름)'));
+  }
+
+  function draw(){
+    var bar=document.createElement('div');
+    bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;'+
+      'background:#0B0817;color:#BCADEA;padding:10px 14px;'+
+      'font-family:monospace;font-size:12px;line-height:1.7;'+
+      'border-bottom:2px solid #9E2B50;max-height:45vh;overflow:auto;';
+    var h='<b style=color:#fff>[GWHY] 궁합이 왜 안 나오나</b><br>';
+    for(var i=0;i<lines.length;i++){
+      h+=lines[i].split('<').join('(').split('>').join(')')+'<br>';
+    }
+    h+='<span style=color:#7a7a8c>이 띠는 ?gwhy=1 을 붙였을 때, 관리자에게만 보입니다.</span>';
+    bar.innerHTML=h;
+    document.body.insertBefore(bar, document.body.firstChild);
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', draw);
+  } else {
+    draw();
+  }
+
+})();
+</script>
+STELLAGWHY;
+
+	echo $js;
+}, 99 );
