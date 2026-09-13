@@ -1,12 +1,26 @@
 /* ══════════════════════════════════════════════════════════
    궁합이 왜 안 나오나 — 살아 움직이는 띠
                                         ★ 2026-09-13 · 소희 님께
-                                        판 GWHY-3
+                                        판 GWHY-5
 
    ── 판 3 에서 바뀐 것 ─────────────────────────────────
    판 2 의 띠는 쪽이 열릴 때 한 번만 찍었습니다. 그래서 소희 님이
    궁합을 고르기 전의 모습만 보였습니다 — 「상대 칸이 하나도 없음」이
    그래서 나온 것일 수 있습니다.
+
+   ★ 판 4 — 책 쪽에서는 **궁합을 실제로 한 번 돌려봅니다.**
+   재료가 다 있는데도 책이 하얗게 나오면, 그리는 도중에 탈이 나서
+   멈춘 것입니다. 그러면 아무 말도 없이 화면이 빕니다. 그래서 띠가
+   다섯 단계를 하나씩 밟아보고 **어느 단계에서 무슨 탈이 났는지**
+   그대로 적어 줍니다 —
+       ① 태어난 곳 찾기(locate)  ② 내 원국(compute)
+       ③ 상대 원국(compute)      ④ 셈법(keys)   ⑤ 본문(build)
+
+   ★ 판 5 — 쪽에서 **가장 먼저 난 탈**을 잡아 둡니다.
+   책이 하얗게 나오는 가장 흔한 까닭은 그리는 도중에 자바스크립트가
+   멈추는 것입니다. 그러면 화면에는 아무 말도 안 나옵니다. 판 5 는
+   머리 맨 앞에 귀를 하나 달아, 그 쪽에서 처음 난 탈을 그대로
+   적어 둡니다. 띠에 「처음 난 탈」로 보입니다.
 
    판 3 은 **2초마다 다시 읽습니다.** 궁합을 고르고 칸을 채우는 대로
    띠가 따라 바뀝니다. 그래서 칸이 언제 생기는지 눈으로 보입니다.
@@ -31,6 +45,37 @@
    ★ 크롬 번역을 끄고 붙여넣으세요.
    ══════════════════════════════════════════════════════════ */
 
+/* ── 맨 먼저 · 쪽에서 처음 난 탈을 잡아 둡니다 ───────── */
+add_action( 'wp_head', function () {
+
+	if ( ! isset( $_GET['gwhy'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	?>
+<script>
+(function(){
+  if(window.__gwhyErr!==undefined){ return; }
+  window.__gwhyErr=null;
+  window.addEventListener('error', function(ev){
+    if(window.__gwhyErr){ return; }
+    var m=''; var where='';
+    try{
+      m=String((ev.error!==null)?((ev.error?ev.error.message:'')||ev.message||''):(ev.message||''));
+      where=String(ev.filename||'')+' 줄 '+String(ev.lineno||'');
+    }catch(e){}
+    window.__gwhyErr={ msg:m, at:where };
+  }, true);
+  window.addEventListener('unhandledrejection', function(ev){
+    if(window.__gwhyErr){ return; }
+    var m='';
+    try{ m=String(ev.reason?(ev.reason.message||ev.reason):''); }catch(e){}
+    window.__gwhyErr={ msg:m, at:'(약속이 깨짐)' };
+  }, true);
+})();
+</script>
+	<?php
+}, 1 );
+
+/* ── 그다음 · 띠 ─────────────────────────────────────── */
 add_action( 'wp_head', function () {
 
 	if ( ! isset( $_GET['gwhy'] ) ) { return; }
@@ -40,6 +85,8 @@ add_action( 'wp_head', function () {
 <script>
 /* ═══ 궁합이 왜 안 나오나 (GWHY-3 · 살아 움직이는 띠) ═══ */
 (function(){
+
+  var AMP=String.fromCharCode(38);
 
   function el(id){ return document.getElementById(id); }
   function txt(e){
@@ -100,6 +147,13 @@ add_action( 'wp_head', function () {
     }
     lines.push('PFIX 체(StellaFillPartner) '+mark(typeof window.StellaFillPartner==='function'));
 
+    var er=window.__gwhyErr;
+    if(er){
+      lines.push('★★ 이 쪽에서 처음 난 탈 — '+(er.msg||'(까닭 없음)')+'   ['+(er.at||'')+']');
+    } else {
+      lines.push('이 쪽에서 난 탈 없음');
+    }
+
     /* ── 책 쪽 ── */
     if(path.indexOf('reading-book')>=0){
       var GC=window.StellaGunghapCalc, GT=window.StellaGunghapText;
@@ -115,8 +169,49 @@ add_action( 'wp_head', function () {
         if(!Q.month){ why.push('partner.month'); }
         if(!Q.day){ why.push('partner.day'); }
       }
-      if(why.length===0){ lines.push('★ 다 있습니다 — 궁합 책이 나와야 합니다'); }
+      if(why.length===0){ lines.push('★ 재료는 다 있습니다'); }
       else { lines.push('★ 없는 것 — '+why.join(' · ')); }
+
+      /* ── 실제로 한 번 돌려봅니다 ── */
+      if(why.length===0){
+        var S=window.StellaSaju;
+        if(!S){
+          lines.push('★ 셈 바탕 StellaSaju 이 없습니다');
+        } else {
+          var pr=o.profile||{}, PP=o.partner||{};
+          var loc=null, chart=null, yours=null, GK=null, html=null;
+          var step='', bad='';
+          try{
+            step='① 태어난 곳 찾기';  loc=S.locate(pr.city, pr.country);
+            step='② 내 원국';        chart=S.compute({ year:pr.year, month:pr.month, day:pr.day,
+                                       hour:pr.hour, minute:pr.minute||0, sex:pr.sex,
+                                       lon:loc.lon, lat:loc.lat, tz:loc.tz });
+            step='③ 상대 원국';      yours=S.compute({ year:PP.year, month:PP.month, day:PP.day,
+                                       hour:PP.hour, minute:PP.minute||0, sex:PP.sex,
+                                       lon:loc.lon, lat:loc.lat, tz:loc.tz });
+            step='④ 셈법 keys';      GK=GC.keys(chart, yours, { year:(new Date()).getFullYear() });
+            step='⑤ 본문 build';     html=GT.build(GK, { rel:(PP.rel==='couple')?'couple':'lover',
+                                       alias:PP.alias });
+            step='';
+          }catch(e){
+            bad=String((e!==null)?(e.message||e):'');
+          }
+          if(step!==''){
+            lines.push('★★ '+step+' 에서 멈췄습니다 — '+(bad===''?'(까닭 없음)':bad));
+          } else {
+            lines.push('돌려보니 다 지나갑니다 · 본문 '+String(html).length+'자');
+            lines.push('총점 '+GK.total+' · '+GK.grade.name+
+                       ' · 성격'+GK.score.char+' 연애'+GK.score.love+
+                       ' 결혼'+GK.score.marry+' 금전'+GK.score.money);
+          }
+        }
+      }
+
+      /* ── 화면이 정말 비어 있나 ── */
+      var bk=el('bkBook'), be=el('bkEmpty');
+      lines.push('책 그릇 bkBook '+mark(!!bk)+
+                 (bk?(' · 안에 '+String(bk.innerHTML).length+'자'):'')+
+                 ' · 빈화면 bkEmpty '+(be?(be.style.display==='flex'?'떠 있음':'숨어 있음'):'(없음)'));
     }
 
     /* ── 문 쪽 ── */
@@ -156,7 +251,7 @@ add_action( 'wp_head', function () {
     var h='<b style=color:#fff>[GWHY] 궁합이 왜 안 나오나</b> '+
           '<span style=color:#7a7a8c>(2초마다 다시 읽습니다)</span><br>';
     for(var i=0;i<lines.length;i++){
-      h+=lines[i].split('<').join('(').split('>').join(')')+'<br>';
+      h+=lines[i].split(AMP).join('(and)').split('<').join('(').split('>').join(')')+'<br>';
     }
     bar.innerHTML=h;
   }
