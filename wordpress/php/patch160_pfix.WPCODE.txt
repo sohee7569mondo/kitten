@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    궁합 — 상대 생년월일이 주문에 안 담기던 것을 고칩니다
                                         ★ 2026-09-13 · 소희 님께
-                                        판 PFIX-1
+                                        판 PFIX-2
 
    ── 무엇이 잘못돼 있었나 ──────────────────────────────
    ?stella_gtext=1 에서 샘플 궁합 책은 잘 나왔습니다. 셈법(GCALC)과
@@ -35,8 +35,13 @@
    서버로 보내는 주문(order · signup)에도 같은 것을 얹습니다.
    그래서 체험판이든 가입 회원이든 똑같이 담깁니다.
 
-   칸 이름은 여러 가지로 찾아봅니다 (pMonth · pMonthSel 처럼).
-   제 사본이 낡아서 이름을 정확히 못 보는 까닭입니다.
+   칸 이름은 아홉 개 다 맞는 것을 ?stella_pfix=see 로 확인했습니다 —
+   pAlias · pRel · pSex · pYear · pMonth · pDay · pHour · pMin ·
+   pHourUnknown.
+
+   ★★ 이 체는 「다음에 저장되는 주문」부터 일을 합니다.
+   조각을 넣으신 뒤에 door-love 에서 **다시 한 번 걸어오셔야**
+   partner 가 담깁니다. 전에 저장된 주문은 그대로 비어 있습니다.
 
    ── 하는 법 ───────────────────────────────────────────
    ① 넣기만 하면 됩니다. preview · apply 가 없습니다.
@@ -143,10 +148,20 @@ add_action( 'template_redirect', function () {
 } );
 
 
-/* ── ① 실제 고침 — door-love 쪽에서만 ─────────────────── */
-add_action( 'wp_head', function () {
+/* ── ① 실제 고침 ──────────────────────────────────────
+   판 PFIX-2 에서 두 가지를 더 튼튼하게 했습니다.
 
-	if ( ! is_page( 'door-love' ) ) { return; }
+   가. 「door-love 쪽인가」를 따지지 않습니다.
+       is_page 가 어긋나면 체가 아예 안 걸립니다. 그런데 이 체는
+       주제가 「궁합」이고 · partner 가 비었고 · 화면에 상대 칸이
+       실제로 있을 때만 일을 합니다. 그 셋이 다 맞는 쪽은 door-love
+       뿐이라, 어디서나 켜 두어도 다른 쪽에는 아무 일도 안 합니다.
+
+   나. 머리(wp_head)와 발(wp_footer) 두 군데서 겁니다.
+       한쪽이 안 불려도 다른 쪽이 겁니다. 두 번 걸리지 않도록
+       표시를 하나 두고 이미 걸렸으면 그냥 지나갑니다.
+   ────────────────────────────────────────────────── */
+function stella_pfix_script() {
 
 	$js = <<<'STELLAPFIX'
 <script>
@@ -154,6 +169,9 @@ add_action( 'wp_head', function () {
    door-love 쪽 글은 건드리지 않습니다. 주문이 저장되는 통로에서만
    주제가 「궁합」일 때 partner 를 채워 넣습니다. */
 (function(){
+
+  /* 두 번 걸리지 않게 합니다 (머리와 발 두 군데서 부릅니다) */
+  if(window.StellaFillPartner){ return; }
 
   /* 칸 하나를 여러 이름으로 찾아봅니다 */
   function fld(names){
@@ -253,4 +271,6 @@ add_action( 'wp_head', function () {
 STELLAPFIX;
 
 	echo $js;
-}, 5 );
+}
+add_action( 'wp_head',   'stella_pfix_script', 5 );
+add_action( 'wp_footer', 'stella_pfix_script', 5 );
