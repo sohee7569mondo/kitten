@@ -1,0 +1,307 @@
+/* ══════════════════════════════════════════════════════════
+   궁합 본문 · StellaGunghapText   ★ 2026-09-13 · 소희 님께
+                                    판 GTEXT-1 (1단계)
+
+   ★ patch160_gcalc 를 **먼저** 넣으셔야 합니다.
+     둘이 다 있어야 궁합 책이 나옵니다.
+
+   ── 이 판에 들어간 것 (열 줄 가운데 셋) ───────────────
+       첫 쪽    점수 넷 · 총점 · 구간 이름 · 이 숫자가 어디서 나왔나
+       ⑨       이 궁합에서 딱 세 가지만 기억하세요
+       ⑩       마지막으로 두 분에게 건네는 말
+
+   **글은 소희 님이 쓰신 원고 그대로입니다.** 계산으로 채워지는
+   자리(점수 · 간지 · 십성 · 띠 · 나이 차이)만 제가 끼웠습니다.
+
+   그래서 이 조각을 넣으면 **궁합 책이 바로 나옵니다.** 나머지 일곱 줄
+   (①~⑧)은 다음 판에서 채웁니다. 지금도 읽을 수 있는 책입니다.
+
+   ── 소희 님이 지키라 하신 것 ──────────────────────────
+       상대는 답하지 않았습니다      ⑩ 에 그대로 적었습니다
+       등급을 매기지 않습니다        「가장 좋은」 같은 말을 안 씁니다
+       단정하지 않고 눕힙니다        「~일 수도 있습니다」
+       맺음은 바라보게 하는 말로     「그분이 당신에게 무엇을 주고
+                                     있는지도 가끔 바라봐주셔야 합니다」
+       점수 저울은 우리가 정한 것    첫 쪽에 밝혔습니다
+
+   ── 점수에 따라 갈리는 자리 ───────────────────────────
+       네 자리의 높낮이 차가 8점 넘으면   어디가 높고 낮은지 짚습니다
+       고르면                            「네 자리가 고르게 나왔습니다」
+       총점 62 미만                      「낮다는 것은 안 될 사이가 아니라」
+       62 이상                           「잘 맞는다는 것은 애쓰지
+                                          않아도 된다는 뜻이 아닙니다」
+       부부 / 연인                       마지막 한 줄이 갈립니다
+
+   ── 붙이는 법 ─────────────────────────────────────────
+   WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+
+   넣으신 뒤 — door-love 에서 **궁합**을 고르고 상대 생년월일을 넣어
+   책을 한 번 뽑아 보세요.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+	?>
+<style>
+/* 궁합 첫 쪽 — 점수 화면 (GTEXT-1) */
+#ssb .gh-total{ text-align:center; margin:26px 0 18px; }
+#ssb .gh-total b{ display:block; font-size:56px; line-height:1.1; font-weight:700; }
+#ssb .gh-total span{ display:block; margin-top:4px; font-size:1.05rem; color:#9E2B50; }
+#ssb .gh-say{ text-align:center; margin:0 0 20px; }
+#ssb .gh-bars{ margin:18px 0 6px; }
+#ssb .gh-row{ display:flex; align-items:center; gap:10px; margin:7px 0; }
+#ssb .gh-k{ width:40px; flex:0 0 40px; font-size:.95rem; }
+#ssb .gh-bar{ flex:1 1 auto; height:13px; border-radius:7px; overflow:hidden;
+  background:rgba(0,0,0,.09); }
+#ssb .gh-bar i{ display:block; height:100%; background:#9E2B50; border-radius:7px; }
+#ssb .gh-n{ width:30px; flex:0 0 30px; text-align:right; font-variant-numeric:tabular-nums; }
+@media print{
+  #ssb .gh-bar{ background:#e6e6e6 !important; print-color-adjust:exact;
+    -webkit-print-color-adjust:exact; }
+  #ssb .gh-bar i{ background:#9E2B50 !important; print-color-adjust:exact;
+    -webkit-print-color-adjust:exact; }
+  #ssb .gh-total b{ font-size:40pt; }
+}
+</style>
+<script>
+/* ══════════════════════════════════════════════════════════
+   궁합 본문 · StellaGunghapText  —  1단계
+   첫 쪽(점수) · ⑨ 딱 세 가지 · ⑩ 건네는 말
+   글은 wordpress/drafts/궁합-원고.md 의 소희 님 글 그대로입니다.
+   이 안에서 두 글자짜리 논리기호를 쓰지 않습니다. */
+(function(){
+  'use strict';
+  var AMP=String.fromCharCode(38);
+
+  function esc(s){
+    s=String(s===undefined?'':s);
+    s=s.split(AMP).join(AMP+'amp;');
+    s=s.split('<').join(AMP+'lt;');
+    s=s.split('>').join(AMP+'gt;');
+    return s;
+  }
+
+  /* 막대 하나 */
+  function bar(label, n){
+    var w=n; if(w<0){ w=0; } if(w>100){ w=100; }
+    return '<div class="gh-row">'+
+             '<span class="gh-k">'+label+'</span>'+
+             '<span class="gh-bar"><i style="width:'+w+'%"></i></span>'+
+             '<span class="gh-n">'+n+'</span>'+
+           '</div>';
+  }
+
+  window.StellaGunghapText = {
+    build: function(GK, opt){
+      opt=opt||{};
+      var alias=opt.alias ? esc(opt.alias) : '그분';
+      var couple=(opt.rel==='couple');
+      var s=GK.score, t=GK.total, g=GK.grade, p=GK.parts;
+      var o='';
+
+      /* ── 첫 쪽 · 점수 ──────────────────────────────── */
+      o+='<p class="eyebrow">두 분의 자리</p>'+
+         '<h2>'+alias+'님과의 궁합</h2>'+
+         '<p class="dek">여덟 글자를 나란히 놓고 네 자리에서 보았습니다</p>'+
+         '<div class="gh-total"><b>'+t+'</b><span>'+g.name+'</span></div>'+
+         '<p class="gh-say">'+g.say+'</p>'+
+         '<div class="gh-bars">'+
+           bar('성격', s.char)+
+           bar('연애', s.love)+
+           bar('결혼', s.marry)+
+           bar('금전', s.money)+
+         '</div>';
+
+      /* 네 숫자가 다른 까닭 */
+      var hi='', lo='', box=[['성격',s.char],['연애',s.love],['결혼',s.marry],['금전',s.money]];
+      var bh=box[0], bl=box[0], i;
+      for(i=1;i<box.length;i++){
+        if(box[i][1]>bh[1]){ bh=box[i]; }
+        if(box[i][1]<bl[1]){ bl=box[i]; }
+      }
+      o+='<hr>'+
+         '<p><em>네 숫자가 다 다릅니다.</em> 성격은 잘 맞지 않는데 살림은 맞는 사이일 수도 있습니다. '+
+         '사귈 때는 자주 부딪히는데, 막상 같이 살면 괜찮아지는 조합도 있습니다.</p>';
+      if(bh[1]-bl[1]>=8){
+        o+='<p>두 분은 <em>'+bh[0]+'</em>이 가장 높고 <em>'+bl[0]+'</em>이 가장 낮습니다. '+
+           '그 차이가 이 사이에서 무엇이 잘 되고 무엇이 어려운지를 알려주는 단서입니다.</p>';
+      } else {
+        o+='<p>두 분은 네 자리가 <em>고르게</em> 나왔습니다. 어느 한 곳이 크게 튀지 않는 사이예요. '+
+           '그래서 한 가지로 관계를 설명하기보다 네 자리를 함께 보셔야 합니다.</p>';
+      }
+
+      o+='<hr>'+
+         '<p>사주와 별자리에는 <em>원래 점수가 없습니다.</em> 두 분의 차이를 나란히 놓고 보기 쉽도록 '+
+         '숫자로 옮겨 적은 것입니다. 옮기는 저울은 저희가 정했습니다.</p>'+
+         '<p><em>숫자의 크기보다 어느 자리가 높고 어디가 낮은지를 보세요.</em></p>'+
+         '<p>점수가 낮다고 안 될 사이라는 뜻이 아닙니다. '+
+         '<em>어디서 부딪히는지를 미리 아는 사이라는 뜻입니다.</em></p>';
+
+      /* 근거 한 줄 — 무엇을 보고 이 숫자가 나왔나 */
+      o+='<hr>'+
+         '<h3>이 숫자는 어디서 나왔나</h3>'+
+         '<table class="luck"><tbody>'+
+         '<tr><td class="k">바탕(일간)</td><td>'+GK.han.mineGan+' 와 '+GK.han.yourGan+
+           ' — '+p.gan.name+'<br><span class="fine">음양이 '+p.gan.yinyang+'</span></td></tr>'+
+         '<tr><td class="k">자리(일지)</td><td>'+GK.han.mineJi+' 와 '+GK.han.yourJi+
+           ' — '+p.ji.name+'</td></tr>'+
+         '<tr><td class="k">서로에게</td><td>그분은 당신의 <em>'+p.sip.mine+'</em>으로 오고, '+
+           '당신은 그분의 <em>'+p.sip.yours+'</em>으로 갑니다</td></tr>'+
+         '<tr><td class="k">기운의 균형</td><td>둘을 합쳐 '+p.five.total+'자 가운데 '+
+           p.five.filled+'가지가 채워집니다'+
+           (p.five.empty.length ? '<br><span class="fine">두 분 다 비어 있는 것 — '+p.five.empty.join(' · ')+'</span>' : '')+
+           (p.five.lean ? '<br><span class="fine">'+p.five.topEl+'으로 쏠려 있습니다</span>' : '')+
+           '</td></tr>'+
+         '<tr><td class="k">띠</td><td>'+GK.tti.mine+'띠와 '+GK.tti.yours+'띠 — '+GK.tti.name+
+           '<br><span class="fine">'+GK.tti.gap+'살 차이'+
+           (GK.tti.gapFixed ? '입니다. 이 차이는 띠가 무엇이든 늘 '+GK.tti.name+'이 됩니다.' : '입니다.')+
+           '</span></td></tr>'+
+         '</tbody></table>'+
+         '<p class="fine">저울을 다르게 잡으면 숫자도 달라집니다. 다만 더 맞는 자리와 덜 맞는 자리의 '+
+         '순서는 크게 바뀌지 않습니다.</p>';
+
+      /* ── ⑨ 딱 세 가지 ─────────────────────────────── */
+      o+='<hr><h2>이 궁합에서 딱 세 가지만 기억하세요</h2>'+
+         '<p>여기까지 두 분의 여덟 글자를 여러 번 겹쳐 보았습니다. '+
+         '다 기억하지 않으셔도 됩니다. <em>세 가지만 가져가시면 충분합니다.</em></p>'+
+
+         '<div class="keep">'+
+
+         '<div class="k"><div class="kt">하나 · 두 분은 서로에게 다른 방향에 서 있습니다</div>'+
+         '<p>주는 쪽과 받는 쪽, 끌고 가는 쪽과 따라가는 쪽이 있습니다. '+
+         '두 사람이 똑같이 주고받는 구조는 원래 드뭅니다.</p>'+
+         '<p>두 분의 자리는 이렇습니다 — 그분은 당신의 <em>'+p.sip.mine+'</em>으로 오고 '+
+         '당신은 그분의 <em>'+p.sip.yours+'</em>으로 갑니다. '+
+         (p.sip.mine===p.sip.yours
+           ? '드물게 두 분이 같은 자리에서 서로를 봅니다. 그래서 서로를 알아보기는 쉽고, 대신 같은 것을 바라며 부딪히기도 합니다.'
+           : '같은 관계인데 두 분이 서 있는 자리가 다릅니다.')+'</p>'+
+         '<p>그걸 모르면 두 분 다 억울해집니다. 한 사람은 「나만 애썼다」고 하고, '+
+         '다른 사람은 「나는 늘 조심했다」고 하면서요.</p>'+
+         '<p><em>같은 관계를 두 사람이 다르게 기억하는 것은 누가 거짓말을 해서가 아닙니다. '+
+         '서 있는 자리가 달라서입니다.</em></p></div>'+
+
+         '<div class="k"><div class="kt">둘 · 부딪히는 자리는 사람이 아니라 자리에서 옵니다</div>'+
+         '<p>싸움은 여러 가지여도 걸리는 지점은 대개 하나나 둘입니다. '+
+         '두 분에게는 <em>'+p.ji.name+'</em>인 그 자리가 그렇습니다.</p>'+
+         '<p>그 자리를 아시면 다음에 같은 일이 시작될 때 「아, 또 여기구나」 하고 알아볼 수 있습니다. '+
+         '안다고 해서 싸움이 없어지는 것은 아닙니다. 다만 <em>크기가 줄어듭니다.</em></p>'+
+         '<p><em>그 사람이 나쁜 사람이라서 부딪히는 것이 아닙니다.</em> '+
+         '그것만 알아도 하지 않아도 될 말을 덜 하게 됩니다.</p></div>'+
+
+         '<div class="k"><div class="kt">셋 · 지금은 지나가는 때입니다</div>'+
+         '<p>두 분의 흐름은 계속 움직입니다. 지금 힘들다고 해서 그것이 관계의 결론은 아닐 수 있습니다. '+
+         '반대로 지금 좋다고 해서 그 모습이 그대로 이어지는 것도 아닙니다.</p>'+
+         '<p>그래서 이 책에서 본 때는 판결이 아니라 <em>날씨에 가깝습니다.</em> '+
+         '비가 오는 날에는 우산을 쓰고, 맑은 날에는 멀리 볼 수 있듯이 '+
+         '그때에 맞게 관계를 바라보면 됩니다.</p>'+
+         '<p><em>지금이 어떤 때인지 알면 서두르지 않게 됩니다.</em> '+
+         '그리고 이 책에서 두 분께 드리고 싶은 것도 결국 그 하나입니다.</p></div>'+
+
+         '</div>';
+
+      /* ── ⑩ 건네는 말 ──────────────────────────────── */
+      o+='<hr><h2>마지막으로 두 분에게 건네는 말</h2>'+
+         '<div class="close">'+
+         '<p class="lead">여기까지 읽어주셔서 고맙습니다.</p>'+
+         '<p>궁합을 보러 오시는 분들은 대개 하나를 물으러 오십니다. '+
+         '<em>「이 사람이랑 잘 맞아요?」</em></p>'+
+         '<p>그런데 저는 그 물음에 숫자로만 답하고 싶지 않았습니다. '+
+         '점수는 두 분의 차이를 한눈에 보기 쉽게 옮겨 적은 것일 뿐, '+
+         '사주와 별자리에 원래 점수가 있는 것은 아니거든요.</p>'+
+         '<p>그래서 이 책은 <em>어디가 맞고 어디가 어긋나는지</em>를 보여드리는 쪽으로 썼습니다. '+
+         '맞는 자리에는 이유가 있고, 어긋나는 자리에도 이유가 있습니다. '+
+         '그 이유를 아시는 것이 점수보다 오래 쓸모가 있습니다.</p>'+
+         '<hr>'+
+         '<p>한 가지만 다시 말씀드리고 싶습니다. '+
+         '<em>그분은 저에게 아무것도 답하지 않으셨습니다.</em></p>'+
+         '<p>이 책을 주문하신 것도 당신이고, 물음에 답하신 것도 당신입니다. '+
+         '그분에 대해 제가 가진 것은 태어난 날의 여덟 글자뿐입니다.</p>'+
+         '<p>그러니 여기 적힌 것으로 <em>그분을 다 안다고 생각하지는 마세요.</em> '+
+         '이 책은 두 사람의 자리가 어떻게 놓여 있는지를 보여줄 뿐, '+
+         '그 사람의 마음까지 대신 말해주지는 못합니다.</p>'+
+         '<p>그 마음은 물어봐야 압니다. '+
+         '<em>그리고 물어볼 수 있는 사이인지가, 사실은 어떤 점수보다 중요합니다.</em></p>'+
+         '<hr>';
+
+      if(t<62){
+        o+='<p>점수가 낮게 나오셨다면 이 말씀을 드리고 싶습니다. '+
+           '<em>점수가 낮다는 것은 안 될 사이라는 뜻이 아니라, '+
+           '어디서 부딪히는지를 미리 아는 사이라는 뜻입니다.</em></p>'+
+           '<p>미리 아는 것은 생각보다 큰 것입니다. '+
+           '오래 가는 부부 중에 처음부터 모든 것이 잘 맞았던 분들만 있는 것은 아닙니다. '+
+           '어디서 어긋나는지를 알고, 그 자리를 조금씩 다르게 다룬 분들도 많습니다.</p>';
+      } else {
+        o+='<p>잘 맞는다는 것은 <em>애쓰지 않아도 된다는 뜻이 아닙니다.</em> '+
+           '맞는 자리가 많을수록 그것을 당연하게 여기기 쉽습니다. '+
+           '그리고 당연해진 것은 고마운 줄 모르고 지나가기 쉽습니다.</p>'+
+           '<p>그분이 당신에게 무엇을 주고 있는지도 가끔 바라봐주셔야 합니다.</p>';
+      }
+
+      o+='<p>'+(couple
+          ? '두 분이 함께 살아온 시간에는 숫자로 옮길 수 없는 것이 이미 많습니다. '+
+            '이 책은 그 위에 얹는 지도 한 장일 뿐입니다.'
+          : '아직 함께 갈 길이 남아 있습니다. '+
+            '이 책은 그 길에서 어디가 오르막이고 어디가 평지인지를 미리 적어둔 지도입니다.')+'</p>'+
+         '</div>';
+
+      return o;
+    }
+  };
+})();
+</script>
+	<?php
+}, 2 );
+
+/* ─── 잘 들어갔나 보는 자리 ─────────────────────────────── */
+add_action( 'template_redirect', function () {
+	if ( ! isset( $_GET['stella_gtext'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!DOCTYPE html><html lang="ko" translate="no"><head><meta charset="utf-8">'
+	   . '<meta name="google" content="notranslate">'
+	   . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+	   . '<style>body{font:16px/1.8 system-ui,sans-serif;max-width:720px;margin:30px auto;padding:0 20px}'
+	   . '.gh-total{text-align:center;margin:24px 0}.gh-total b{font-size:52px;display:block}'
+	   . '.gh-total span{font-size:18px;color:#9E2B50}.gh-say{text-align:center}'
+	   . '.gh-row{display:flex;align-items:center;gap:10px;margin:6px 0}'
+	   . '.gh-k{width:42px}.gh-bar{flex:1;height:13px;background:#eee;border-radius:7px;overflow:hidden}'
+	   . '.gh-bar i{display:block;height:100%;background:#9E2B50}.gh-n{width:30px;text-align:right}'
+	   . 'table.luck{width:100%;border-collapse:collapse;margin:14px 0}'
+	   . 'table.luck td{border:1px solid #ddd;padding:8px;vertical-align:top}'
+	   . 'td.k{width:104px;background:#fafafa}.fine{font-size:13px;color:#777}'
+	   . '.keep>.k{margin:20px 0}.kt{font-weight:700;margin-bottom:6px;color:#9E2B50}'
+	   . 'em{font-style:normal;font-weight:600}h2{margin-top:34px}'
+	   . '.eyebrow{color:#9E2B50;font-size:13px;letter-spacing:.08em;margin-bottom:0}'
+	   . '.dek{color:#777;margin-top:2px}hr{border:0;border-top:1px solid #e8e8e8;margin:24px 0}'
+	   . '#warn{background:#fff4f4;border:1px solid #f0caca;padding:12px;border-radius:6px}'
+	   . '</style></head><body>';
+	echo '<div id="warn">보는 중…</div><div id="out"></div>';
+	?>
+<script>
+(function(){
+  var w=document.getElementById('warn'), o=document.getElementById('out');
+  if(!window.StellaGunghapCalc){
+    w.innerHTML='<b>★ StellaGunghapCalc 이 없습니다.</b><br>'+
+      'patch160_gcalc 를 먼저 넣으셔야 합니다.';
+    return;
+  }
+  if(!window.StellaGunghapText){
+    w.innerHTML='<b>★ StellaGunghapText 이 없습니다.</b><br>'+
+      '이 조각이 Active 인지, 위치가 「어디서나 실행」인지 보세요.';
+    return;
+  }
+  w.innerHTML='둘 다 살아 있습니다. 아래는 <b>보기 자료로 뽑은 궁합 책</b>입니다 — '+
+    '실제 손님 것이 아닙니다.';
+  function F(a){ var e=['목','화','토','금','수'],r=[],i;
+    for(i=0;i<5;i++){ r.push({element:e[i],count:a[i]}); } return r; }
+  function mk(g,j,y,a){ return {pillars:{day:{gan:g,ji:j},year:{ji:y}},five:F(a)}; }
+  var k=window.StellaGunghapCalc.keys(
+    mk(0,0,0,[2,2,2,1,1]), mk(5,4,4,[1,2,2,2,1]), {year:2026});
+  o.innerHTML=window.StellaGunghapText.build(k,{rel:'couple',alias:'남편'});
+})();
+</script>
+	<?php
+	echo '</body></html>';
+	exit;
+}, 1 );
