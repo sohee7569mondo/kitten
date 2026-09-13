@@ -71,6 +71,28 @@ add_action( 'wp_head', function () {
 #ssb .hcount{ font-family:IBM Plex Mono,monospace; font-size:.72rem; letter-spacing:.06em;
   color:#7a7a8c; margin:-6px 0 10px; }
 #ssb .mini{ font-size:.86rem; color:#6a6a78; }
+
+/* ── 쪽 폭 울타리 ──────────────────────────────────────────
+   소희 님 : 「가족운 책 폭이 이상해. 이것만 그런가봐, 다른건 괜찮아」
+   책의 화면 CSS 는 쪽 좌우 여백을 0 으로 둡니다
+   (@media screen 안에서 padding:46px 0 6px).
+   그런데 살아 있는 쪽에서 어떤 규칙이 우리 쪽만 밀어 넣고 있었습니다.
+   그래서 우리가 갈아끼운 책 안에서만 좌우를 0 으로 못 박습니다.
+   data-family 가 붙은 책에만 걸리므로 다른 책은 안 건드립니다. */
+@media screen{
+  #ssb .book[data-family="1"] > .page{
+    padding-left:0 !important; padding-right:0 !important;
+    margin-left:0 !important; margin-right:0 !important;
+    max-width:none !important; width:auto !important;
+  }
+  #ssb .book[data-family="1"] > .page > *{
+    margin-left:0 !important; margin-right:0 !important;
+    padding-left:0 !important; padding-right:0 !important;
+  }
+  #ssb .book[data-family="1"] > .page > h2,
+  #ssb .book[data-family="1"] > .page > h3,
+  #ssb .book[data-family="1"] > .page > p{ text-align:left; }
+}
 </style>
 <script>
 /* ═══ 가족운 열 장 (FAMILY-1) ═══
