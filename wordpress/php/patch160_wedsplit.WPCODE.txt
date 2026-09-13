@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    결혼운을 미혼과 기혼으로 가릅니다   ★ 2026-09-13 · 소희 님께
-                                        판 WEDSPLIT-1
+                                        판 WEDSPLIT-2
 
    소희 님이 두 벌을 다 써 오셨습니다. 벼리 말투로 다듬고, 빠져
    있던 세 가지는 제가 썼습니다.
@@ -71,7 +71,11 @@ add_action( 'template_redirect', function () {
 	echo "═══ 결혼운 · 미혼과 기혼으로 ═══\n";
 	echo '책 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "바이트\n\n";
 
-	if ( false !== strpos( $c, '결혼운_미혼' ) ) {
+	/* 판 WEDSPLIT-2 (2026-09-13) — 넣었는지 보는 표시를 고쳤습니다.
+	   전에는 「결혼운_미혼」이라는 글자를 봤는데, patch160_open 도 그 말을
+	   넣습니다. 그래서 open 을 먼저 넣으면 이 조각이 자기가 이미 들어간
+	   줄로 잘못 알고 멈췄습니다. 이제 이 조각만 만드는 줄을 봅니다. */
+	if ( 1 === preg_match( '/var\s+topicKey\s*=\s*topic\s*;/u', $c ) ) {
 		echo "이미 들어가 있습니다.\n";
 		echo "다시 넣으시려면 ?stella_wedsplit=undo 로 걷어낸 뒤 하세요.\n";
 		exit;
@@ -224,13 +228,13 @@ add_action( 'template_redirect', function () {
 
 function stella_wed_f0() {
 	return <<<'WEDF0'
-  var topic = order.topic || g.subject;
+var topic = order.topic || g.subject;
 WEDF0;
 }
 
 function stella_wed_t0() {
 	return <<<'WEDT0'
-  var topic = order.topic || g.subject;
+var topic = order.topic || g.subject;
 
   /* ══ 2026-09-13 · 결혼운은 미혼과 기혼이 다른 책입니다 ═══════
      소희 님 : 「결혼운은 전부 미혼과 기혼을 나눠야 할 듯해」
@@ -252,14 +256,13 @@ WEDT0;
 
 function stella_wed_f1() {
 	return <<<'WEDF1'
-  var AXIS_WARM_TOPIC = {
-
+var AXIS_WARM_TOPIC = {
 WEDF1;
 }
 
 function stella_wed_t1() {
 	return <<<'WEDT1'
-  var AXIS_WARM_TOPIC = {
+var AXIS_WARM_TOPIC = {
     '결혼운_미혼': {
       solo: {
         '혼자': { what: '사람을 만나고 있어도 그 관계를 혼자 생각하고 정리할 시간이 필요한 분이에요. 상대가 「우리 관계를 지금 당장 정해보자」고 다그치면 오히려 마음이 막힙니다. 그래서 「조금 생각해보고 이야기하고 싶어」라고 미리 말해두시는 게 좋습니다. 도망치는 것이 아니라 <em>이 사람과 결혼을 원하는지 확인하는 중</em>이라는 걸 알려두면, 그 시간이 관계를 흔들지 않습니다.' },
@@ -320,14 +323,13 @@ WEDT1;
 
 function stella_wed_f2() {
 	return <<<'WEDF2'
-    var COMBO_TOPIC={
-
+var COMBO_TOPIC={
 WEDF2;
 }
 
 function stella_wed_t2() {
 	return <<<'WEDT2'
-    var COMBO_TOPIC={
+var COMBO_TOPIC={
       '결혼운_미혼':{
         m0:'<p>세 장이 모두 <em>작은 카드</em>입니다. 큰 카드(메이저)가 한 장도 없어요.</p><p>여섯 달 안에 <em>결혼 이야기가 크게 뒤집히는 일은 오지 않습니다.</em> 누구를 만나는 과정이나 두 분 사이에 오가는 말처럼, 작은 일들이 결혼 여부를 만들어가는 반년이에요.</p>',
         m1:'<p>큰 카드(메이저)가 <em>한 장</em> 섞여 있습니다.</p><p>여섯 달 가운데 <em>한 번은 두 분 뜻과 상관없이 움직이는 일</em>이 옵니다. 가족의 이야기일 수도, 상대의 직장이나 집 문제일 수도 있어요. 나머지는 두 분이 이야기하고 정하는 대로 갑니다.</p>',
@@ -356,14 +358,13 @@ WEDT2;
 
 function stella_wed_f3() {
 	return <<<'WEDF3'
-  var CLOSE_TOPIC={
-
+var CLOSE_TOPIC={
 WEDF3;
 }
 
 function stella_wed_t3() {
 	return <<<'WEDT3'
-  var CLOSE_TOPIC={
+var CLOSE_TOPIC={
     '결혼운_미혼':[
       '결혼은 사람을 고르는 일 같지만, 실은 앞으로 어떤 생활을 함께할 사람을 고르는 일에 가깝습니다. 한 번 마음을 정한다고 끝나는 것이 아니라, 그 사람과 어떤 아침을 보내고 어떤 어려움을 함께 지나갈지를 고르는 일이에요.',
       '여기까지 걸어오면서 당신이 어떤 자리에서 편안하고 어떤 자리에서 유난히 힘이 드는지를 봤습니다. 결혼을 준비하는 과정은 그 두 가지가 처음으로 현실에서 부딪히는 곳입니다.',
@@ -380,14 +381,13 @@ WEDT3;
 
 function stella_wed_f4() {
 	return <<<'WEDF4'
-  var LAST_TOPIC={
-
+var LAST_TOPIC={
 WEDF4;
 }
 
 function stella_wed_t4() {
 	return <<<'WEDT4'
-  var LAST_TOPIC={
+var LAST_TOPIC={
     '결혼운_미혼':'결혼을 앞두고 망설여지신다면, 그 사람이 좋은 사람인지를 따지기 전에 그 사람과 있을 때의 내가 마음에 드는지를 먼저 보세요. 평생 같이 사는 것은 그 사람이 아니라, 그 사람 곁에 있는 나입니다.',
     '결혼운_기혼':'지금의 결혼생활이 힘들다고 느끼신다면, 그 사람이 달라지기를 기다리기 전에 그 사람 곁에 있을 때의 내가 마음에 드는지를 먼저 보세요. 매일 같이 사는 것은 그 사람이 아니라, 그 사람 곁에 있는 나입니다.',
 
@@ -396,14 +396,14 @@ WEDT4;
 
 function stella_wed_f5() {
 	return <<<'WEDF5'
-  var LENS_TOPIC = {
+var LENS_TOPIC = {
     '결혼운': {
 WEDF5;
 }
 
 function stella_wed_t5() {
 	return <<<'WEDT5'
-  var LENS_TOPIC = {
+var LENS_TOPIC = {
     '결혼운_미혼': {
       '비겁': '상대와 대등하려는 마음이 강합니다. 기대는 결혼보다 나란히 걷는 결혼을 바라시죠. 다만 지지 않으려다 먼저 말할 순간을 놓칩니다. 결혼 이야기를 꺼내고 싶은데 상대가 먼저 꺼내주기를 기다리다 몇 달이 지난 적이 있으실 거예요. 먼저 꺼내면 지는 것 같아서요. 한마디로 나란히 설 때 제일 편한데, 먼저 손 내미는 게 제일 어려운 사람입니다.',
       '관성': '관계에 틀을 두고 싶어합니다. 확실한 약속, 정해진 자리가 있어야 마음이 놓입니다. 애매한 채로 미뤄지는 걸 오래 견디지 못해요. 결혼 얘기가 나올 듯 안 나올 듯 흐지부지 길어지면 그 시간이 제일 힘드실 겁니다. 한마디로 애매한 건 싫고, 이름이 붙은 관계가 편한 사람입니다.',
@@ -420,101 +420,100 @@ WEDT5;
 
 function stella_wed_f6() {
 	return <<<'WEDF6'
-      return AXIS_WARM_TOPIC[t] ? t : '';
+return AXIS_WARM_TOPIC[t] ? t : '';
 WEDF6;
 }
 
 function stella_wed_t6() {
 	return <<<'WEDT6'
-      if(AXIS_WARM_TOPIC[topicKey]){ return topicKey; }
+if(AXIS_WARM_TOPIC[topicKey]){ return topicKey; }
       return AXIS_WARM_TOPIC[t] ? t : '';
 WEDT6;
 }
 
 function stella_wed_f7() {
 	return <<<'WEDF7'
-    var t=AXIS_TITLE_TOPIC[topic];
+var t=AXIS_TITLE_TOPIC[topic];
 WEDF7;
 }
 
 function stella_wed_t7() {
 	return <<<'WEDT7'
-    var t=AXIS_TITLE_TOPIC[topicKey] || AXIS_TITLE_TOPIC[topic];
+var t=AXIS_TITLE_TOPIC[topicKey] || AXIS_TITLE_TOPIC[topic];
 WEDT7;
 }
 
 function stella_wed_f8() {
 	return <<<'WEDF8'
-    var t=AXIS_SIDE_TOPIC[topic];
+var t=AXIS_SIDE_TOPIC[topic];
 WEDF8;
 }
 
 function stella_wed_t8() {
 	return <<<'WEDT8'
-    var t=AXIS_SIDE_TOPIC[topicKey] || AXIS_SIDE_TOPIC[topic];
+var t=AXIS_SIDE_TOPIC[topicKey] || AXIS_SIDE_TOPIC[topic];
 WEDT8;
 }
 
 function stella_wed_f9() {
 	return <<<'WEDF9'
-      var m=COMBO_TOPIC[topic];
+var m=COMBO_TOPIC[topic];
 WEDF9;
 }
 
 function stella_wed_t9() {
 	return <<<'WEDT9'
-      var m=COMBO_TOPIC[topicKey] || COMBO_TOPIC[topic];
+var m=COMBO_TOPIC[topicKey] || COMBO_TOPIC[topic];
 WEDT9;
 }
 
 function stella_wed_f10() {
 	return <<<'WEDF10'
-    if(topicAllowed(slug, topic)){ if(CLOSE_TOPIC[topic]){ return CLOSE_TOPIC[topic]; } }
+if(topicAllowed(slug, topic)){ if(CLOSE_TOPIC[topic]){ return CLOSE_TOPIC[topic]; } }
 WEDF10;
 }
 
 function stella_wed_t10() {
 	return <<<'WEDT10'
-    if(topicAllowed(slug, topic)){ if(CLOSE_TOPIC[topicKey]){ return CLOSE_TOPIC[topicKey]; } }
+if(topicAllowed(slug, topic)){ if(CLOSE_TOPIC[topicKey]){ return CLOSE_TOPIC[topicKey]; } }
     if(topicAllowed(slug, topic)){ if(CLOSE_TOPIC[topic]){ return CLOSE_TOPIC[topic]; } }
 WEDT10;
 }
 
 function stella_wed_f11() {
 	return <<<'WEDF11'
-    if(topicAllowed(slug, topic)){ if(LAST_TOPIC[topic]){ return LAST_TOPIC[topic]; } }
+if(topicAllowed(slug, topic)){ if(LAST_TOPIC[topic]){ return LAST_TOPIC[topic]; } }
 WEDF11;
 }
 
 function stella_wed_t11() {
 	return <<<'WEDT11'
-    if(topicAllowed(slug, topic)){ if(LAST_TOPIC[topicKey]){ return LAST_TOPIC[topicKey]; } }
+if(topicAllowed(slug, topic)){ if(LAST_TOPIC[topicKey]){ return LAST_TOPIC[topicKey]; } }
     if(topicAllowed(slug, topic)){ if(LAST_TOPIC[topic]){ return LAST_TOPIC[topic]; } }
 WEDT11;
 }
 
 function stella_wed_f12() {
 	return <<<'WEDF12'
-  var override = LENS_TOPIC[topic];
+var override = LENS_TOPIC[topic];
 WEDF12;
 }
 
 function stella_wed_t12() {
 	return <<<'WEDT12'
-  var override = LENS_TOPIC[topicKey] || LENS_TOPIC[topic];
+var override = LENS_TOPIC[topicKey] || LENS_TOPIC[topic];
 WEDT12;
 }
 
 function stella_wed_f13() {
 	return <<<'WEDF13'
-  var KEEPTOPIC={
-
+var KEEPTOPIC={
 WEDF13;
 }
 
 function stella_wed_t13() {
 	return <<<'WEDT13'
-  var KEEPTOPIC={
+var KEEPTOPIC={
     '결혼운_미혼':{
       first:'<p>특히 결혼을 앞두고는 이것이 중요합니다. 결혼은 한 번 고르고 끝나는 일이 아니라 <em>앞으로 어떤 아침을 함께 보낼지를 고르는 일</em>입니다. 남들 기준에 맞춰 고르시면, 고른 뒤에 더 오래 맞추셔야 합니다.</p>',
       once:'상대가 결혼할 사람인지 재게 되실 때,',
@@ -533,19 +532,19 @@ WEDT13;
 
 function stella_wed_f14() {
 	return <<<'WEDF14'
-  var KT = KEEPTOPIC[topic] || KEEPDOOR[slug] || KEEPDOOR['door-career'];
+var KT = KEEPTOPIC[topic] || KEEPDOOR[slug] || KEEPDOOR['door-career'];
 WEDF14;
 }
 
 function stella_wed_t14() {
 	return <<<'WEDT14'
-  var KT = KEEPTOPIC[topicKey] || KEEPTOPIC[topic] || KEEPDOOR[slug] || KEEPDOOR['door-career'];
+var KT = KEEPTOPIC[topicKey] || KEEPTOPIC[topic] || KEEPDOOR[slug] || KEEPDOOR['door-career'];
 WEDT14;
 }
 
 function stella_wed_f15() {
 	return <<<'WEDF15'
-    return t;
+return t;
   }
 
   var AGAINST = AGAINST_TOPIC[stellaAgainstKey()]
@@ -554,7 +553,7 @@ WEDF15;
 
 function stella_wed_t15() {
 	return <<<'WEDT15'
-    return topicKey;
+return topicKey;
   }
 
   var AGAINST = AGAINST_TOPIC[stellaAgainstKey()]

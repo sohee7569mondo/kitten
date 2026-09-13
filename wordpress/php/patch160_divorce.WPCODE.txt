@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    이혼운을 새 주제로 붙입니다   ★ 2026-09-13 · 소희 님께
-                                  판 DIVORCE-1
+                                  판 DIVORCE-2
 
    소희 님 : 「이별운과 이혼운을 분리해야 한다는 거지,
              이별을 이혼으로 고치라는 건 아닌 거 알지?」
@@ -26,6 +26,8 @@
        ⑥  편지                세 문단       ← 소희 님 글
        ⑦  배웅 한 줄          한 줄         ← 제가 씀
        ⑧  1부 렌즈            다섯 자리     ← 제가 씀
+           ★ 판 2 부터 옳은 자리에 넣습니다. LENS_TOPIC 은 책에 두 번
+             있고, 뒤의 것이 연성의 신 것입니다.
        ⑨  맺음말 세 가지      네 줄         ← 소희 님 글
 
    ⑨ 는 patch160_gap 을 넣으신 분만 해당합니다. 안 넣으셨어도
@@ -81,7 +83,7 @@ add_action( 'template_redirect', function () {
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
 	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
 
-	echo "이혼운을 새 주제로 붙입니다   판 DIVORCE-1\n";
+	echo "이혼운을 새 주제로 붙입니다   판 DIVORCE-2\n";
 	echo "지금 책 : " . number_format( strlen( $c ) ) . "바이트\n\n";
 
 	if ( false !== strpos( $c, $MARK ) ) {
@@ -140,9 +142,17 @@ add_action( 'template_redirect', function () {
 			continue;
 		}
 
-		/* 표 여덟 곳 */
-		$hit = preg_match( '/var\s+' . preg_quote( $j['var'], '/' ) . '\s*=\s*\{/u',
-			$out, $m, PREG_OFFSET_CAPTURE );
+		/* 표 여덟 곳
+		   ★ 판 DIVORCE-2 (2026-09-13) — LENS_TOPIC 은 책에 **두 번** 있습니다.
+		     앞의 것은 직성의 신(취업운…) 것이고 뒤의 것이 연성의 신(결혼운…)
+		     것입니다. 이혼운은 연성의 신이라 **뒤의 것**에 넣어야 합니다.
+		     판 1 은 앞의 것에 넣어 이혼운 렌즈가 안 나왔습니다. */
+		$want = 1;
+		if ( 'LENS' === $j['piece'] ) { $want = 2; }
+		$hit = preg_match_all( '/var\s+' . preg_quote( $j['var'], '/' ) . '\s*=\s*\{/u',
+			$out, $all, PREG_OFFSET_CAPTURE );
+		$hit = ( $hit >= $want ) ? 1 : 0;
+		if ( 1 === $hit ) { $m = array( $all[0][ $want - 1 ] ); }
 		if ( 1 !== $hit ) {
 			echo $j['name'] . " (" . $j['var'] . ") — 이 표가 책에 없습니다. 건너뜁니다.\n";
 			$skip++;
