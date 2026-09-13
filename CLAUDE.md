@@ -162,6 +162,96 @@ GWHY-6 이 `GK.grade.name` 한 줄 때문에 통째로 안 그려졌습니다.
 
 GCALC-2 · GTEXT-2 에서 그렇게 고쳤습니다.
 
+## ★ 화면 모양이 이상할 때 — 눈으로 재지 말고 크로미움으로 잽니다
+
+2026-09-13 에 가족운 책이 「폭이 이상해」 했습니다. 사진만 보고는 까닭을
+못 찾습니다. **책의 진짜 CSS 를 떠서 실제로 그려 재면 한 번에 끝납니다.**
+
+    # 1. 쪽에서 CSS 를 다 떠냅니다
+    python3 -c "import io,re; s=io.open('wordpress/pages/reading-book.html',
+      encoding='utf-8').read();
+      io.open('book.css','w',encoding='utf-8').write(
+        ''.join(re.findall(r'<style[^>]*>(.*?)</style>', s, re.S)))"
+
+    # 2. 시험 쪽을 만듭니다 — 겉 구조를 똑같이 해야 합니다
+    <div id=ssb><div class="book" id="bkBook" data-family="1"> … 우리 쪽들 … </div></div>
+    ★ #bkBook 은 class="book" 도 갖고 있습니다. 이걸 빼면 CSS 가 안 먹어서
+      엉뚱한 값이 나옵니다 (여백 0 으로 나와서 한참 헤맸습니다).
+
+    # 3. 크로미움으로 재봅니다
+    const {chromium}=require('playwright');
+    chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'})
+    ★ 그냥 launch() 하면 「Executable doesn't exist」 가 납니다.
+      경로를 손으로 넣어야 합니다. ls /opt/pw-browsers 로 판을 확인하세요.
+
+    # 4. 쪽마다 글 시작 자리를 잽니다
+    els.map(e => e.querySelector('h2,p').getBoundingClientRect().left)
+    → 다 같으면 우리 HTML 은 죄가 없습니다.
+
+## ★ 화면에서는 쪽 좌우 여백이 0 입니다
+
+책 CSS 에 이렇게 돼 있습니다 — 손님이 내려가며 읽는 편이 낫다고 하셔서
+2026-08-23 에 바꾼 것입니다.
+
+    @media screen{
+      #ssb .book{gap:0;}
+      #ssb .page{ background:transparent; border:0; box-shadow:none;
+                  min-height:0 !important; padding:46px 0 6px; }
+      #ssb .folio{display:none;}
+    }
+
+낱장 모양(테두리·그림자·쪽번호)은 **인쇄할 때만** 살아납니다.
+그리고 글이 시작하는 자리는 쪽이 아니라 **책 상자**가 정합니다 —
+`.book{ margin:0 140px; padding:32px 20px 120px }` → 140 + 20 = 160px.
+
+## ★ 책을 갈아끼우는 조각에는 폭 울타리를 칩니다
+
+살아 있는 쪽에는 제 사본에 없는 CSS 가 얹혀 있을 수 있습니다. 그래서
+우리가 갈아끼운 책에만 걸리는 못을 박아 둡니다.
+
+    @media screen{
+      #ssb .book[data-family="1"] > .page{
+        padding-left:0 !important; padding-right:0 !important;
+        margin-left:0 !important; margin-right:0 !important;
+        max-width:none !important; width:auto !important; }
+      #ssb .book[data-family="1"] > .page > *{ … 같은 못 … }
+    }
+
+★ `!important` 가 꼭 있어야 합니다. 없으면 훼방 규칙에 집니다
+  (일부러 `padding-left:135px !important` 를 넣고 겨뤄서 확인했습니다).
+★ 우리 깃발이 붙은 책에만 걸리므로 다른 책은 안 건드립니다.
+
+## ★ 같은 자리를 노리는 조각이 둘이면 깃발을 같이 꽂습니다
+
+`patch160_health`(HEALTH-3)와 `patch160_health4`는 둘 다 건강운 책을
+갈아끼웁니다. 깃발이 `data-health` / `data-health4` 로 달라서 서로를
+못 알아보고 덮어썼습니다.
+
+**새 조각이 일을 마친 뒤 옛 조각의 깃발까지 같이 꽂습니다.** 그러면 옛
+조각이 재시도할 때 「이미 됐구나」 하고 물러납니다. 소희 님이 옛 조각을
+못 끄셔도 새 조각이 이깁니다.
+
+그리고 조각은 **이름 붙은 PHP 함수를 쓰지 않습니다** — 전부 add_action 에
+이름 없는 함수를 넘깁니다. 그래야 두 번 붙여도 「Cannot redeclare」가
+안 납니다. 스크립트도 `if(window.StellaXxx){ return; }` 로 한 번만 돌게
+막습니다.
+
+## ★ 원고를 손으로 옮겨 적지 않습니다
+
+`wordpress/tools/` 에 원고(.md) 를 조각으로 바꾸는 도구가 있습니다.
+
+    build_family.py / emit_family.py     가족운
+    build_health4.py / emit_health4.py   건강운 (### 안에 ###### 가 있는 두 층)
+
+원고를 고치면 이 둘을 다시 돌려 조각을 새로 뽑습니다. 도구가 하는 일 —
+
+    · ★ 나 ☞ 로 시작하는 문단은 **제 메모**라 책에 안 내보냅니다
+      (HEALTH-1 때 메모가 책에 그대로 찍혔습니다)
+    · 태그 속성을 홑따옴표로 씁니다 → JSON 이스케이프가 안 생겨
+      **역빗금 0**. 편집기 저장에 역빗금이 벗겨지는 되풀이 탈을 피합니다
+    · 규칙에 적은 갈래 제목이 원고에 **실제로 있는지** 만들 때마다 검사합니다
+    · 제목에도 `{이름}` 을 넣습니다 (본문에만 넣어서 한 번 틀렸습니다)
+
 ## 검증 절차 (조각을 드리기 전에 다 합니다)
 
     php -l              앞에 <?php 를 붙여 문법 검사
