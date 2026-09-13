@@ -150,6 +150,10 @@ GCALC-2 · GTEXT-2 에서 그렇게 고쳤습니다.
     사본에 실제로 적용   str_replace 를 흉내내 돌려봅니다
     node --check        결과에서 <script> 를 다 뽑아 문법 검사
     로직 시험           node 로 함수를 실제로 돌려봅니다 (pickedSide 처럼)
+    화면 시험           **jsdom 을 깔 수 있습니다** (npm i jsdom). 살아 있는
+                        화면 글을 그대로 붙여 놓고 조각을 실제로 돌려봅니다.
+                        runScripts:'dangerously' 로 script 를 붙이고,
+                        DOMContentLoaded 뒤를 보려면 setTimeout 으로 기다립니다.
     겹치는 줄 검사       주제별 원고는 줄이 겹치면 안 됩니다
 
 ## 이미 있는 도구 — 짐작하지 말고 이것으로 봅니다
