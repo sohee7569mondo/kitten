@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    「두 부분으로 나뉩니다」를 장 안내로  ★ 2026-09-13 · 소희 님께
-                                        판 INTRO-1
+                                        판 INTRO-2
 
    소희 님 : 「바로 아래 「이 책은 두 부분으로 나뉩니다」 이 부분은
              다시 써야 할 거 같아」
@@ -24,10 +24,31 @@
    ★ preview 가 **지워질 글을 그대로 보여드립니다.** 눈으로
      확인하시고 apply 하세요. 이상하면 저에게 그 글을 주세요.
 
+   ── 판 INTRO-2 (2026-09-13) · 이름을 바꿨습니다 ────────
+   소희 님 : 「?stella_intro=preview 이거 홈으로 감」
+
+   조각이 안 돌고 홈으로 넘어갔습니다. 이름을 stella_bookintro 로
+   바꿨습니다 — intro 라는 말은 테마나 다른 플러그인이 가로채는
+   일이 있습니다.
+
+   ★ 그래도 홈으로 가면 조각이 안 켜진 것입니다. 이렇게 보세요.
+
+       1  WPCode -> Code Snippets 목록에서 이 조각을 찾습니다
+       2  Active(초록) 인지 봅니다. 회색이면 켜세요.
+       3  조각을 열어 Location(위치)이
+          「Run Everywhere / 어디서나 실행」인지 봅니다.
+          Auto Insert 의 다른 값이면 안 돕니다.
+       4  저장하고 다시 주소를 엽니다.
+
+   ★ 다른 조각이 도는지로 가려낼 수 있습니다.
+       https://stellasaju.com/?stella_audit=1
+     이것이 잘 나오면 WPCode 는 멀쩡하고 이 조각만 문제입니다.
+     이것도 홈으로 가면 WPCode 쪽을 보셔야 합니다.
+
    ── 하는 법 ───────────────────────────────────────────
-   ① 먼저 보기   https://stellasaju.com/?stella_intro=preview
-   ② 정말 바꾸기 https://stellasaju.com/?stella_intro=apply
-   ③ 되돌리기    https://stellasaju.com/?stella_intro=undo
+   ① 먼저 보기   https://stellasaju.com/?stella_bookintro=preview
+   ② 정말 바꾸기 https://stellasaju.com/?stella_bookintro=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_bookintro=undo
 
    붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
    ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
@@ -36,14 +57,14 @@
 
 add_action( 'template_redirect', function () {
 
-	if ( ! isset( $_GET['stella_intro'] ) ) { return; }
+	if ( ! isset( $_GET['stella_bookintro'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 	global $wpdb;
 	header( 'Content-Type: text/plain; charset=utf-8' );
 
-	$mode = sanitize_text_field( wp_unslash( $_GET['stella_intro'] ) );
-	$META = '_stella_intro_bak';
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_bookintro'] ) );
+	$META = '_stella_bookintro_bak';
 
 	$page = get_page_by_path( 'reading-book' );
 	if ( ! $page ) { echo '책 쪽을 못 찾았습니다.'; exit; }
@@ -63,7 +84,7 @@ add_action( 'template_redirect', function () {
 		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
 	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
 
-	echo "「두 부분으로 나뉩니다」를 장 안내로   판 INTRO-1\n";
+	echo "「두 부분으로 나뉩니다」를 장 안내로   판 INTRO-2\n";
 	echo '책 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "바이트\n\n";
 
 	/* stellaIntro 가 있어야 합니다 */
@@ -129,7 +150,7 @@ add_action( 'template_redirect', function () {
 	   . '바이트 (' . number_format( strlen( $made ) - strlen( $c ) ) . ")\n";
 
 	if ( 'apply' !== $mode ) {
-		echo "\n아직 안 바꿨습니다. 정말 바꾸시려면 ?stella_intro=apply\n";
+		echo "\n아직 안 바꿨습니다. 정말 바꾸시려면 ?stella_bookintro=apply\n";
 		exit;
 	}
 
@@ -140,6 +161,6 @@ add_action( 'template_redirect', function () {
 	clean_post_cache( $id );
 
 	echo "\n바꿨습니다. 주제를 바꿔가며 여는 쪽을 보세요.\n";
-	echo "되돌리기 : ?stella_intro=undo\n";
+	echo "되돌리기 : ?stella_bookintro=undo\n";
 	exit;
 }, 1 );
