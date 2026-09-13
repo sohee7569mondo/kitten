@@ -31,8 +31,27 @@
      그 조각은 이름이 딱 「결혼운」일 때만 묻습니다. 새 단추로
      고른 분께는 저절로 안 뜹니다. undo 하실 필요 없습니다.
 
-   ── 세 자리를 고칩니다 ────────────────────────────────
+   ── 배너에서 바로 들어오게 ────────────────────────────
+   소희 님 : 「그래야 배너에서 이혼운세 누르면 바로 들어가지」
+
+   지금 문 쪽은 주소에 실린 값을 안 읽습니다. 그것도 같이 넣습니다.
+   배너 링크를 이렇게 걸면 그 단추가 미리 골라진 채로 열립니다.
+
+       /door-love/?t=연애운
+       /door-love/?t=재회운
+       /door-love/?t=궁합
+       /door-love/?t=결혼운(미혼)
+       /door-love/?t=결혼운(기혼)
+       /door-love/?t=이별운
+       /door-love/?t=이혼운
+       /door-love/?t=짝사랑
+
+   값이 없거나 못 찾으면 아무 일도 안 일어납니다 — 연애운이 그대로
+   골라져 있습니다. 그냥 /door-love/ 로 오셔도 지금과 같습니다.
+
+   ── 네 자리를 고칩니다 ────────────────────────────────
        ①  /door-love/      단추 여섯 개 → 여덟 개
+       ①  /door-love/      주소에 실린 주제를 미리 고르기
        ②  /reading-book/   이름 판정에 두 줄
        ③  /reading-book/   주제 목록에 세 이름 더하기
 
@@ -110,6 +129,9 @@ add_action( 'template_redirect', function () {
 		array( 'page' => 'door-love',    'name' => '① 결혼운 단추를 둘로',
 		       'find' => 'value="결혼운"><span>결혼운</span></label>',
 		       'piece' => 'WEDBTN' ),
+		array( 'page' => 'door-love',    'name' => '① 배너에서 바로 들어오게',
+		       'find' => 'value="짝사랑"><span>짝사랑</span></label>' . "\n" . '          </div>',
+		       'piece' => 'PRE' ),
 		array( 'page' => 'reading-book', 'name' => '② 이름 판정에 두 줄',
 		       'find' => "  var topicKey = topic;\n  if(topic==='결혼운'){",
 		       'piece' => 'KEY' ),
@@ -204,6 +226,40 @@ STELLA_DOOR;
 value="결혼운(미혼)"><span>결혼운(미혼)</span></label>
             <label class="topic"><input type="radio" name="ssg-topic" value="결혼운(기혼)"><span>결혼운(기혼)</span></label>
 STELLA_WEDBTN;
+	}
+
+	if ( 'PRE' === $which ) {
+		return <<<'STELLA_PRE'
+value="짝사랑"><span>짝사랑</span></label>
+          </div>
+          <script>
+          /* 2026-09-13 · 배너에서 주제를 데리고 들어옵니다 (DOORLOVE-1)
+             /door-love/?t=이혼운 처럼 부르면 그 단추가 미리 골라집니다.
+             값이 없거나 못 찾으면 아무 일도 안 일어납니다 — 연애운이
+             그대로 골라져 있습니다.
+             ★ 이 쪽 규칙대로 앰퍼샌드를 글자로 쓰지 않습니다. */
+          (function(){
+            try{
+              var AMP=String.fromCharCode(38);
+              var q=String(window.location.search||'');
+              if(q.charAt(0)==='?'){ q=q.slice(1); }
+              if(!q){ return; }
+              var parts=q.split(AMP), want='', i;
+              for(i=0; i < parts.length; i++){
+                if(parts[i].slice(0,2)==='t='){ want=parts[i].slice(2); break; }
+              }
+              if(!want){ return; }
+              want=decodeURIComponent(want.replace(/[+]/g,' '));
+              want=want.replace(/^\s+/,'').replace(/\s+$/,'');
+              if(!want){ return; }
+              var els=document.getElementsByName('ssg-topic');
+              for(i=0; i < els.length; i++){
+                if(els[i].value===want){ els[i].checked=true; return; }
+              }
+            }catch(e){}
+          })();
+          </script>
+STELLA_PRE;
 	}
 
 	if ( 'KEY' === $which ) {
