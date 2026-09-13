@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    문에 단추를 고쳐 답니다   ★ 2026-09-13 · 소희 님께
-                            판 DOORLOVE-2
+                            판 DOORLOVE-3
 
    소희 님 : 「하는 김에 앞에 결혼운(기혼) 결혼운(미혼)
              이렇게 해버릴까?」
@@ -49,7 +49,7 @@
    값이 없거나 못 찾으면 아무 일도 안 일어납니다 — 연애운이 그대로
    골라져 있습니다. 그냥 /door-love/ 로 오셔도 지금과 같습니다.
 
-   ── 판 DOORLOVE-2 (2026-09-13) ────────────────────────
+   ── 판 DOORLOVE-3 (2026-09-13) ────────────────────────
    배너 미리 고르기 자리를 못 찾았습니다 — 살아 있는 쪽의 줄바꿈이
    제 사본과 달랐습니다. 찾는 글자를 한 줄로 줄였고, 그래도 못
    찾으면 그것만 건너뛰고 단추 여덟 개는 넣습니다.
@@ -83,7 +83,7 @@ add_action( 'template_redirect', function () {
 	header( 'Content-Type: text/plain; charset=utf-8' );
 
 	$mode = sanitize_text_field( wp_unslash( $_GET['stella_doorlove'] ) );
-	$MARK = 'DOORLOVE_2';
+	$MARK = 'DOORLOVE_3';
 
 	$pages = array(
 		array( 'door-love',   '_stella_doorlove_bak_d', '문 쪽' ),
@@ -107,7 +107,7 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 
-	echo "문에 단추를 고쳐 답니다   판 DOORLOVE-2\n\n";
+	echo "문에 단추를 고쳐 답니다   판 DOORLOVE-3\n\n";
 
 	$now = array();
 	foreach ( $pages as $p ) {
@@ -138,14 +138,45 @@ add_action( 'template_redirect', function () {
 		       'find' => 'value="짝사랑"><span>짝사랑</span></label>',
 		       'piece' => 'PRE', 'soft' => 1 ),
 		array( 'page' => 'reading-book', 'name' => '② 이름 판정에 두 줄',
-		       'find' => "  var topicKey = topic;\n  if(topic==='결혼운'){",
-		       'piece' => 'KEY' ),
+		       'find' => '', 'piece' => 'KEY' ),
 		array( 'page' => 'reading-book', 'name' => '③ 주제 목록에 세 이름',
 		       'find' => '', 'piece' => 'LIST' ),
 	);
 
 	foreach ( $jobs as $j ) {
 		$pk = $j['page'];
+
+		/* ② 도 꼴로 찾습니다 (판 DOORLOVE-3)
+		   전에는 두 줄을 붙여 찾다가 들여쓰기 한 칸 차이로 놓쳤습니다.
+		   이제 한 줄만, 공백이 몇 칸이든 찾습니다. 뒤에 오는 줄은
+		   건드리지 않고 그 줄 뒤에 두 줄만 끼웁니다. */
+		if ( 'KEY' === $j['piece'] ) {
+			$hit = preg_match( '/var\s+topicKey\s*=\s*topic\s*;/u',
+				$now[ $pk ]['c'], $m, PREG_OFFSET_CAPTURE );
+			if ( 1 !== $hit ) {
+				echo '★ ' . $j['name'] . " — 자리를 못 찾았습니다.\n";
+				echo "  patch160_wedsplit 를 먼저 넣으셨는지 보세요.\n";
+				$at = strpos( $now[ $pk ]['c'], 'topicKey' );
+				if ( false !== $at ) {
+					echo "\n──── topicKey 가 처음 나오는 자리 (이대로 주세요) ────\n";
+					echo substr( $now[ $pk ]['c'], max( 0, $at - 400 ), 1200 );
+					echo "\n──── 여기까지 ───────────────────────────────────\n";
+				} else {
+					echo "\n  책에 topicKey 라는 말이 아예 없습니다.\n";
+					echo "  patch160_wedsplit 를 안 넣으신 것입니다. 그것부터 넣으세요.\n";
+				}
+				echo "\n한 자리라도 틀리면 반쪽만 고쳐집니다. 그만둡니다.\n";
+				exit;
+			}
+			printf( "  %-24s 찾음\n", $j['name'] );
+			if ( 'preview' !== $mode ) {
+				$at  = (int) $m[0][1];
+				$len = strlen( $m[0][0] );
+				$now[ $pk ]['c'] = substr_replace( $now[ $pk ]['c'],
+					$m[0][0] . stella_doorlove_piece( 'KEY' ), $at, $len );
+			}
+			continue;
+		}
 
 		/* ③ 은 글자가 아니라 꼴로 찾습니다 */
 		if ( 'LIST' === $j['piece'] ) {
@@ -174,7 +205,7 @@ add_action( 'template_redirect', function () {
 			if ( 'KEY' === $j['piece'] ) {
 				echo "  patch160_wedsplit 를 먼저 넣으셨는지 보세요.\n";
 			}
-			/* 판 DOORLOVE-2 · 배너 미리 고르기는 없어도 탈나지 않습니다.
+			/* 판 DOORLOVE-3 · 배너 미리 고르기는 없어도 탈나지 않습니다.
 			   단추 여덟 개가 더 급하니 이것만 건너뛰고 갑니다.
 			   대신 그 자리 글을 찍어 드리니 저에게 그대로 주세요. */
 			if ( isset( $j['soft'] ) ) {
@@ -282,13 +313,12 @@ STELLA_PRE;
 
 	if ( 'KEY' === $which ) {
 		return <<<'STELLA_KEY'
-  var topicKey = topic;
-  /* 2026-09-13 · 문에서 이미 갈라 고르신 분 (DOORLOVE-1)
+
+  /* 2026-09-13 · 문에서 이미 갈라 고르신 분 (DOORLOVE-2)
      단추가 「결혼운(미혼)」·「결혼운(기혼)」으로 갈렸으니
      질문의 답을 볼 것도 없이 바로 정해집니다. */
   if(topic==='결혼운(미혼)'){ topicKey='결혼운_미혼'; }
   if(topic==='결혼운(기혼)'){ topicKey='결혼운_기혼'; }
-  if(topic==='결혼운'){
 STELLA_KEY;
 	}
 
