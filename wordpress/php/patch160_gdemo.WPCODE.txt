@@ -1,0 +1,105 @@
+/* ══════════════════════════════════════════════════════════
+   궁합 책을 보기 자료로 열어 봅니다  ★ 2026-09-13 · 소희 님께
+                                     판 GDEMO-1
+
+   소희 님 : 「글안나와」
+
+   어디서 막혔는지 짐작하지 않고 **실제 책 쪽에서** 봅니다.
+   진단 화면을 따로 만들지 않습니다 — 그게 지난번 탈의 원인이었어요.
+
+   ── 어떻게 하나 ───────────────────────────────────────
+   이 주소를 열면 보기 자료로 된 주문을 넣고 책 쪽으로 보냅니다.
+
+       https://stellasaju.com/?stella_gdemo=1
+
+   그러면 **정말 손님이 궁합을 주문한 것처럼** 책이 열립니다.
+   실제 주문이 아니라 보기 자료라 값이 나가지 않습니다.
+
+   ── 무엇을 보면 되나 ──────────────────────────────────
+       표지에 「소희님과 남편님의 궁합」          → 궁합 갈래가 돕니다
+       그 다음 쪽에 숫자 네 개와 막대            → 두 조각이 맞물렸습니다
+       일반 책(저울 다섯 · 조합 풀이)이 나오면   → 아직 안 맞물렸습니다
+
+   ── 안 나오면 이것을 보세요 ───────────────────────────
+   책 쪽을 열고 키보드 F12 를 눌러 「Console」 칸을 보시면 붉은 글이
+   있을 수 있습니다. 그 붉은 글을 그대로 주세요. 어디서 멈췄는지
+   그 한 줄에 다 적혀 있습니다.
+
+   ★ 되돌리기 — 보기 자료를 지우려면
+       https://stellasaju.com/?stella_gdemo=0
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_gdemo'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	$on = ( '0' !== (string) $_GET['stella_gdemo'] );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!DOCTYPE html><html lang="ko" translate="no"><head><meta charset="utf-8">'
+	   . '<meta name="google" content="notranslate">'
+	   . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+	   . '<style>body{font:16px/1.8 system-ui,sans-serif;max-width:640px;margin:60px auto;'
+	   . 'padding:0 24px;color:#26211C}b{color:#9E2B50}a{color:#9E2B50}</style>'
+	   . '</head><body>';
+
+	if ( $on ) {
+		echo '<p><b>보기 자료를 넣었습니다.</b> 곧 책으로 넘어갑니다…</p>';
+		?>
+<script>
+(function(){
+  /* 정말 손님이 주문한 것처럼 꾸밉니다.
+     책이 읽는 이름 그대로 넣습니다 — profile · partner · topic · guardian_slug */
+  var order={
+    guardian_slug:'door-love',
+    topic:'궁합',
+    profile:{
+      name:'소희', year:1974, month:6, day:12,
+      hour:14, minute:30, sex:'F',
+      calendar:'solar', leap:false,
+      country:'대한민국', city:'서울'
+    },
+    partner:{
+      year:1972, month:11, day:3,
+      hour:9, minute:0, sex:'M',
+      rel:'couple', alias:'남편'
+    },
+    oneline:'이 사람과 앞으로도 잘 지낼 수 있을까요?',
+    memo:'', length:'', work:'', deeps:[]
+  };
+  try{
+    localStorage.setItem('stella_demo', JSON.stringify(order));
+    localStorage.removeItem('stella_answers');
+    localStorage.removeItem('stella_cards');
+  }catch(e){
+    document.body.innerHTML='<p><b>브라우저가 자료를 저장하지 못했습니다.</b><br>'+
+      '시크릿 창이거나 쿠키를 막아두신 것일 수 있습니다.</p>';
+    return;
+  }
+  setTimeout(function(){ window.location.href='/reading-book/'; }, 600);
+})();
+</script>
+		<?php
+	} else {
+		echo '<p><b>보기 자료를 지웁니다.</b></p>';
+		?>
+<script>
+(function(){
+  try{
+    localStorage.removeItem('stella_demo');
+    localStorage.removeItem('stella_answers');
+    localStorage.removeItem('stella_cards');
+    document.body.innerHTML='<p><b>지웠습니다.</b> 이제 손님 주문에 영향이 없습니다.</p>';
+  }catch(e){}
+})();
+</script>
+		<?php
+	}
+
+	echo '</body></html>';
+	exit;
+}, 1 );
