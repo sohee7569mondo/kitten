@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    문 단추를 정리하고, 주제가 책까지 전해지게 합니다
                                         ★ 2026-09-13 · 소희 님께
-                                        판 DOORFIX-2
+                                        판 DOORFIX-3
 
    ── 왜 필요한가 ───────────────────────────────────────
    가. door-health · door-fortune 은 단추는 있는데 책의 DOOR_TOPICS
@@ -18,14 +18,18 @@
        가족운                   →  가족운        (단추를 안 건드립니다)
        부모운 · 자녀운 · 형제운  →  가족운 ②③④ 로 들어갑니다
 
-   door-fortune  여섯  →  넷
-       평생운                   →  인생총운      (손님이 찾는 말로)
-       대운 · 전환기            →  인생총운 ⑤ 로 들어갑니다
-       신년운세                 →  2026년 운세 · 2027년 운세 (둘로)
-       올해 총운                →  뺍니다 (신년운세와 같은 책입니다)
-       삼재                     →  삼재운        (결을 맞춥니다)
+   ★ 판 3 — 운세 문은 이번에 안 건드립니다
+     판 2 를 돌려보니 운세 문 단추 넷(대운 · 올해 총운 · 전환기 ·
+     평생운)이 **0군데**였습니다. 살아 있는 쪽의 단추 이름이 제
+     사본과 다릅니다. 짐작으로 고치면 또 헛돕니다.
+     그래서 이 판은 **지금 단추 이름을 그대로 찍어 보여주고**,
+     건강 문만 고칩니다. 운세 문은 그 이름을 보고 다음 판에서.
 
-   그리고 책의 DOOR_TOPICS 표에 네 문을 다 적습니다.
+   그리고 책의 DOOR_TOPICS 에서 door-health 줄만 바꿉니다.
+   (판 2 는 표를 통째로 바꾸려 했는데, 살아 있는 표에는 door-love 에
+    이혼운·결혼운(미혼)·결혼운(기혼)이 이미 들어 있었습니다.
+    통째로 바꾸면 그것을 제 옛 목록으로 덮어쓸 뻔했습니다.
+    **한 줄만 바꿉니다.**)
 
    ── 앵커 ──────────────────────────────────────────────
    단추는 **한 줄에 하나**입니다. 그래서 단추마다 한 줄 정규식으로
@@ -33,7 +37,7 @@
    DOOR_TOPICS 는 표 하나를 통째로 바꿉니다 — 지금 무엇이 들어
    있는지 preview 가 그대로 찍어 보여드립니다.
 
-   ★ 열한 자리 가운데 하나라도 못 찾으면 **아무것도 안 바꿉니다.**
+   ★ 여섯 자리 가운데 하나라도 못 찾으면 **아무것도 안 바꿉니다.**
      단추만 바뀌고 표가 안 바뀌면 손님이 고른 주제가 책에서 막힙니다.
 
    ── 하는 법 ───────────────────────────────────────────
@@ -73,11 +77,17 @@ add_action( 'template_redirect', function () {
 		array( 'door-fortune', '_stella_doorfix_bak_f', '운세 문' ),
 		array( 'reading-book', '_stella_doorfix_bak_b', '책 쪽' ),
 	);
+	/* 판 3 — 실제로 고치는 것은 건강 문과 책 쪽 둘뿐입니다.
+	   운세 문은 지금 단추 이름을 보여주기만 합니다. */
+	$FIX = array(
+		array( 'door-health',  '_stella_doorfix_bak_h', '건강 문' ),
+		array( 'reading-book', '_stella_doorfix_bak_b', '책 쪽' ),
+	);
 
-	echo "═══ 문 단추 정리 · 판 DOORFIX-2 ═══\n\n";
+	echo "═══ 문 단추 정리 · 판 DOORFIX-3 ═══\n\n";
 
 	if ( 'undo' === $mode ) {
-		foreach ( $PAGES as $p ) {
+		foreach ( $FIX as $p ) {
 			$pg = get_page_by_path( $p[0] );
 			if ( ! $pg ) { continue; }
 			$back = get_post_meta( (int) $pg->ID, $p[1], true );
@@ -105,6 +115,15 @@ add_action( 'template_redirect', function () {
 	}
 	echo "\n";
 
+	/* ── 지금 단추가 무엇인지 그대로 찍습니다 ── */
+	echo "── 지금 달려 있는 단추 ──\n";
+	foreach ( array( 'door-health' => '건강 문', 'door-fortune' => '운세 문' ) as $slug => $label ) {
+		$got = preg_match_all( '/name="ssg-topic" value="([^"]*)"/u', $C[ $slug ]['body'], $mm );
+		echo '  ' . $label . ' (' . (int) $got . ') : '
+		   . ( $got ? implode( ' · ', $mm[1] ) : '(없음)' ) . "\n";
+	}
+	echo "\n";
+
 	$bad = 0;
 
 	/* ── 건강 문 : 여섯 → 둘 ── */
@@ -129,51 +148,32 @@ add_action( 'template_redirect', function () {
 		$hMade = preg_replace( $pat, $j[1], $hMade, 1 );
 	}
 
-	/* ── 운세 문 : 여섯 → 넷 ── */
-	echo "\n── 운세 문 단추 ──\n";
-	$f    = $C['door-fortune']['body'];
-	$sp   = "\n            ";
-	$fNew = stella_doorfix_make( '인생총운', true ) . $sp
-	      . stella_doorfix_make( '2026년 운세', false ) . $sp
-	      . stella_doorfix_make( '2027년 운세', false ) . $sp
-	      . stella_doorfix_make( '삼재운', false );
-	$fJobs = array(
-		array( '신년운세',  $fNew ),
-		array( '대운',      '' ),
-		array( '올해 총운', '' ),
-		array( '전환기',    '' ),
-		array( '삼재',      '' ),
-		array( '평생운',    '' ),
-	);
-	$fMade = $f;
-	foreach ( $fJobs as $j ) {
-		$pat = stella_doorfix_btn( $j[0] );
-		$n   = preg_match_all( $pat, $fMade, $m );
-		if ( 1 !== $n ) { printf( "  ✗ %-10s %d군데\n", $j[0], $n ); $bad++; continue; }
-		printf( "  ○ %-10s %s\n", $j[0], ( '' === $j[1] ? '뺍니다' : '→ 넷으로' ) );
-		$fMade = preg_replace( $pat, $j[1], $fMade, 1 );
-	}
+	/* ── 운세 문 : 이번 판은 손대지 않습니다 ── */
+	echo "── 운세 문 ──\n";
+	echo "  이번 판은 건드리지 않습니다. 위의 「지금 달려 있는 단추」를\n";
+	echo "  그대로 보내주시면 다음 판에서 넷으로 줄이겠습니다.\n\n";
+	$fMade = $C['door-fortune']['body'];
 
-	/* ── 책 : DOOR_TOPICS 표 ── */
-	echo "\n── 책의 DOOR_TOPICS 표 ──\n";
+	/* ── 책 : DOOR_TOPICS 의 door-health 한 줄만 ── */
+	echo "── 책의 DOOR_TOPICS ──\n";
 	$b   = $C['reading-book']['body'];
-	$pat = '/var\s+DOOR_TOPICS\s*=\s*\{.*?\}\s*;/su';
+	$all = '/var\s+DOOR_TOPICS\s*=\s*\{.*?\}\s*;/su';
+	if ( preg_match( $all, $b, $mA ) ) {
+		echo "  지금 표 :\n" . $mA[0] . "\n\n";
+	}
+	$pat = '/\'door-health\'\s*:\s*\[[^\]]*\]/u';
 	$n   = preg_match_all( $pat, $b, $m );
 	$bMade = $b;
 	if ( 1 !== $n ) {
-		echo '  ✗ ' . $n . "군데\n";
+		echo '  ✗ door-health 줄 ' . $n . "군데\n";
 		$bad++;
 	} else {
-		echo "  지금 :\n" . $m[0][0] . "\n\n";
-		$to = "var DOOR_TOPICS={\n"
-		    . "    'door-love':  ['결혼운','결혼운(미혼)','결혼운(기혼)','연애운','재회운','이별운','이혼운','짝사랑','궁합'],\n"
-		    . "    'door-career':['취업운','직장운','이직운','퇴사운','사업운','재물운'],\n"
-		    . "    'door-health':['체질·건강운','가족운'],\n"
-		    . "    'door-fortune':['인생총운','2026년 운세','2027년 운세','삼재운']\n"
-		    . "  };";
-		echo "  바꿈 :\n" . $to . "\n";
+		$to = "'door-health':['체질·건강운','가족운']";
+		echo '  ○ door-health   ' . $m[0][0] . "\n";
+		echo "                  -> " . $to . "\n";
 		$bMade = preg_replace( $pat, $to, $b, 1 );
 	}
+	echo "\n";
 
 	if ( $bad ) {
 		echo "\n★ 못 찾은 자리가 " . $bad . "군데 있어 아무것도 안 바꿨습니다.\n";
@@ -181,9 +181,8 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 
-	echo "\n── 크기 ──\n";
+	echo "── 크기 ──\n";
 	echo '  건강 문 ' . number_format( strlen( $h ) ) . ' -> ' . number_format( strlen( $hMade ) ) . "\n";
-	echo '  운세 문 ' . number_format( strlen( $f ) ) . ' -> ' . number_format( strlen( $fMade ) ) . "\n";
 	echo '  책 쪽   ' . number_format( strlen( $b ) ) . ' -> ' . number_format( strlen( $bMade ) ) . "\n\n";
 
 	if ( 'apply' !== $mode ) {
@@ -193,19 +192,18 @@ add_action( 'template_redirect', function () {
 
 	$put = array(
 		array( 'door-health',  $h,  $hMade ),
-		array( 'door-fortune', $f,  $fMade ),
 		array( 'reading-book', $b,  $bMade ),
 	);
 	foreach ( $put as $i => $one ) {
 		$slug = $one[0];
 		$id   = $C[ $slug ]['id'];
-		update_post_meta( $id, $PAGES[ $i ][1], wp_slash( $one[1] ) );
+		update_post_meta( $id, $FIX[ $i ][1], wp_slash( $one[1] ) );
 		$wpdb->update( $wpdb->posts, array( 'post_content' => $one[2] ), array( 'ID' => $id ) );
 		clean_post_cache( $id );
-		echo $PAGES[ $i ][2] . " 넣었습니다\n";
+		echo $FIX[ $i ][2] . " 넣었습니다\n";
 	}
 
-	echo "\n건강 문과 운세 문을 열어 단추를 봐주세요.\n";
+	echo "\n건강 문을 열어 단추가 둘인지 봐주세요.\n";
 	echo "그리고 체질·건강운을 골라 책을 한 번 뽑아보세요.\n";
 	exit;
 } );
