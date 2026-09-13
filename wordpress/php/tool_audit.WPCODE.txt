@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    무엇이 주제로 갈려 있나 — 세는 자   ★ 2026-09-13 · 소희 님께
-                                        판 AUDIT-1
+                                        판 AUDIT-2
 
    소희 님 : 「이거 어제 다 한 건데 한번 찾아보면 안 돼?」
 
@@ -11,6 +11,22 @@
 
    그래서 짐작하지 않고 셉니다. 이 자가 살아 있는 책을 열어
    표마다 **어느 주제가 들어 있는지** 세어 보여줍니다.
+
+   ── 판 AUDIT-2 (2026-09-13) 에서 고친 것 ───────────────
+   판 1 은 세 가지를 놓쳤습니다.
+
+       ① 새 주제를 몰랐습니다
+          이혼운 · 결혼운_미혼 · 결혼운_기혼 을 목록에 넣었습니다.
+
+       ② 같은 이름이 두 번 선언되는 표를 하나만 셌습니다
+          LENS_TOPIC 은 두 번입니다 — 앞은 직성의 신, 뒤는 연성의 신.
+          이제 둘 다 세고 어느 문 것인지도 적습니다.
+
+       ③ 표 이름 넷이 빠져 있었습니다
+          AGAINST_TOPIC · OPEN_TOPIC · INTRO_MID · PICKS_TOPIC
+
+   그리고 맨 아래에 **주제마다 몇 표에 들어 있나**를 많은 순서로
+   줄세웁니다. 표 수가 적은 주제가 아직 손이 덜 닿은 주제입니다.
 
    ── 보는 법 ───────────────────────────────────────────
        https://stellasaju.com/?stella_audit=1
@@ -44,7 +60,8 @@ add_action( 'template_redirect', function () {
 	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
 
 	$TOPICS = array(
-		'연애운', '결혼운', '재회운', '이별운', '짝사랑', '궁합',
+		'연애운', '결혼운', '결혼운_미혼', '결혼운_기혼',
+		'재회운', '이별운', '이혼운', '짝사랑', '궁합',
 		'취업운', '직장운', '이직운', '퇴사운', '사업운', '재물운',
 	);
 
@@ -58,28 +75,53 @@ add_action( 'template_redirect', function () {
 		'LAST_TOPIC'       => '배웅 한 줄',
 		'LENS_TOPIC'       => '1부 렌즈 (비겁·관성·인성)',
 		'KEEPTOPIC'        => '맺음말 세 가지',
-		'AGAINST_ALL'      => '거스르면 어떤 자리인지',
+		'AGAINST_ALL'      => '거스르는 자리 (문 단위 기본)',
+		'AGAINST_TOPIC'    => '거스르는 자리 (주제별)',
+		'OPEN_TOPIC'       => '여는 말',
+		'INTRO_MID'        => '장 안내 가운데 한 줄',
+		'PICKS_TOPIC'      => '질문 답과 저울을 맞추는 표',
 		'AXIS_WARM'        => '저울 설명 (문 단위 기본)',
 		'ASKED'            => '2부 안내문',
 		'DOOR_TOPICS'      => '문마다 고를 수 있는 주제',
 	);
 
-	/* 중괄호를 세어 표 하나의 끝을 찾습니다 */
-	$span = function ( $name ) use ( $c ) {
-		$at = strpos( $c, 'var ' . $name );
-		if ( false === $at ) { return null; }
-		$open = strpos( $c, '{', $at );
-		if ( false === $open ) { return null; }
-		$d = 0;
-		$len = strlen( $c );
-		for ( $i = $open; $i < $len; $i++ ) {
-			if ( '{' === $c[ $i ] ) { $d++; }
-			elseif ( '}' === $c[ $i ] ) {
-				$d--;
-				if ( 0 === $d ) { return substr( $c, $at, $i - $at + 1 ); }
+	/* 중괄호를 세어 표 하나의 끝을 찾습니다.
+	   판 AUDIT-2 · 같은 이름이 여러 번 선언되는 표가 있습니다.
+	   LENS_TOPIC 은 두 번입니다 — 앞은 직성의 신, 뒤는 연성의 신.
+	   판 1 은 첫 번째만 세어 연성의 신 것을 못 봤습니다. 이제 다 셉니다. */
+	$spans = function ( $name ) use ( $c ) {
+		$out = array();
+		$from = 0;
+		$len  = strlen( $c );
+		while ( true ) {
+			$at = strpos( $c, 'var ' . $name, $from );
+			if ( false === $at ) { break; }
+			$from = $at + 4;
+			$open = strpos( $c, '{', $at );
+			if ( false === $open ) { continue; }
+			/* 이름 뒤에 바로 = { 가 와야 합니다 (다른 이름의 앞토막 걸러내기) */
+			$head = substr( $c, $at, $open - $at + 1 );
+			if ( ! preg_match( '/^var\s+' . preg_quote( $name, '/' ) . '\s*=\s*\{$/u', $head ) ) { continue; }
+			$d = 0;
+			for ( $i = $open; $i < $len; $i++ ) {
+				if ( '{' === $c[ $i ] ) { $d++; }
+				elseif ( '}' === $c[ $i ] ) {
+					$d--;
+					if ( 0 === $d ) { $out[] = substr( $c, $at, $i - $at + 1 ); break; }
+				}
 			}
 		}
-		return null;
+		return $out;
+	};
+
+	/* 그 표가 어느 문 안에 있는지 — 앞쪽 400자에서 찾습니다 */
+	$doorOf = function ( $blk ) use ( $c ) {
+		$at = strpos( $c, substr( $blk, 0, 60 ) );
+		if ( false === $at ) { return ''; }
+		$before = substr( $c, max( 0, $at - 400 ), 400 );
+		if ( false !== strpos( $before, 'door-career' ) ) { return '직성'; }
+		if ( false !== strpos( $before, 'door-love' ) ) { return '연성'; }
+		return '';
 	};
 
 	echo "═══ 무엇이 주제로 갈려 있나 ═══\n";
@@ -87,25 +129,41 @@ add_action( 'template_redirect', function () {
 
 	$none = array();
 
+	$seen = array();
 	foreach ( $TABLES as $name => $what ) {
-		$blk = $span( $name );
-		if ( null === $blk ) {
+		$blks = $spans( $name );
+		if ( 0 === count( $blks ) ) {
 			printf( "  %-17s %9s  %s\n", $name, '없음', $what );
 			continue;
 		}
 
-		$have = array();
-		foreach ( $TOPICS as $t ) {
-			if ( false !== strpos( $blk, "'" . $t . "'" ) ) { $have[] = $t; }
+		$anyTopic = false;
+		$k = 0;
+		foreach ( $blks as $blk ) {
+			$k++;
+			$have = array();
+			foreach ( $TOPICS as $t ) {
+				if ( false !== strpos( $blk, "'" . $t . "'" ) ) {
+					$have[] = $t;
+					if ( ! isset( $seen[ $t ] ) ) { $seen[ $t ] = 0; }
+					$seen[ $t ]++;
+				}
+			}
+			if ( count( $have ) ) { $anyTopic = true; }
+
+			$label = $name;
+			if ( count( $blks ) > 1 ) {
+				$dr = $doorOf( $blk );
+				$label = $name . ' ' . $k . ( $dr ? '·' . $dr : '' );
+			}
+			printf( "  %-19s %6s자  주제 %2d : %s\n",
+				$label,
+				number_format( strlen( $blk ) ),
+				count( $have ),
+				count( $have ) ? implode( ' ', $have ) : '(문으로만 갈립니다)' );
 		}
 
-		printf( "  %-17s %6s자  주제 %2d : %s\n",
-			$name,
-			number_format( strlen( $blk ) ),
-			count( $have ),
-			count( $have ) ? implode( ' ', $have ) : '(문으로만 갈립니다)' );
-
-		if ( ! count( $have ) ) { $none[] = $name . ' — ' . $what; }
+		if ( ! $anyTopic ) { $none[] = $name . ' — ' . $what; }
 	}
 
 	echo "\n";
@@ -116,10 +174,16 @@ add_action( 'template_redirect', function () {
 		echo "모든 표가 주제로 갈려 있습니다.\n";
 	}
 
-	/* 주제마다 몇 군데에서 이름이 불리나 — 손이 얼마나 닿았는지 */
-	echo "\n── 주제 이름이 책에 몇 번 나오나 ──────────────\n";
+	/* 주제마다 몇 표에 들어 있나 — 빈자리를 찾는 자리입니다 */
+	echo "\n── 주제마다 몇 표에 들어 있나 ─────────────────\n";
+	echo "   (표 수가 적은 주제가 아직 손이 덜 닿은 주제입니다)\n\n";
+	$rank = array();
 	foreach ( $TOPICS as $t ) {
-		printf( "  %-6s %4d번\n", $t, substr_count( $c, "'" . $t . "'" ) );
+		$rank[ $t ] = isset( $seen[ $t ] ) ? (int) $seen[ $t ] : 0;
+	}
+	arsort( $rank );
+	foreach ( $rank as $t => $cnt ) {
+		printf( "  %-12s %2d표   책에 %3d번\n", $t, $cnt, substr_count( $c, "'" . $t . "'" ) );
 	}
 
 	exit;
