@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    궁합 셈 · StellaGunghapCalc   ★ 2026-09-13 · 소희 님께
-                                  판 GCALC-1
+                                  판 GCALC-2
 
    책은 이미 궁합 갈래를 갖고 있고 상대 생년월일도 받습니다.
    없던 것이 이 둘이었습니다 —
@@ -297,11 +297,18 @@ add_action( 'template_redirect', function () {
 	if ( ! isset( $_GET['stella_gcalc'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 	header( 'Content-Type: text/html; charset=utf-8' );
+	/* ★ 판 2 에서 고쳤습니다.
+	   이 화면은 워드프레스 쪽을 안 그리고 직접 뿌리는 화면입니다. 그래서
+	   wp_head 가 안 불리고, 두 조각(Calc · Text)도 로드되지 않았습니다.
+	   「★ StellaGunghapCalc 이 없습니다」가 그 탓이었습니다 — 조각은 멀쩡했습니다.
+	   여기서 wp_head 를 손으로 불러 줍니다. */
 	echo '<!DOCTYPE html><html lang="ko" translate="no"><head><meta charset="utf-8">'
 	   . '<meta name="google" content="notranslate">'
 	   . '<style>body{font:14px/1.7 ui-monospace,monospace;padding:24px;max-width:760px}'
-	   . 'b{color:#1a7f37}i{color:#9E2B50;font-style:normal}</style></head><body>';
-	echo '<h3>궁합 셈이 살아 있나 — 판 GCALC-1</h3><pre id="out">보는 중…</pre>';
+	   . 'b{color:#1a7f37}i{color:#9E2B50;font-style:normal}</style>';
+	do_action( 'wp_head' );
+	echo '</head><body>';
+	echo '<h3>궁합 셈이 살아 있나 — 판 GCALC-2</h3><pre id="out">보는 중…</pre>';
 	?>
 <script>
 (function(){
