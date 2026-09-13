@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════
    결혼운을 미혼과 기혼으로 가릅니다   ★ 2026-09-13 · 소희 님께
-                                        판 WEDSPLIT-2
+                                        판 WEDSPLIT-3
 
    소희 님이 두 벌을 다 써 오셨습니다. 벼리 말투로 다듬고, 빠져
    있던 세 가지는 제가 썼습니다.
@@ -71,7 +71,7 @@ add_action( 'template_redirect', function () {
 	echo "═══ 결혼운 · 미혼과 기혼으로 ═══\n";
 	echo '책 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "바이트\n\n";
 
-	/* 판 WEDSPLIT-2 (2026-09-13) — 넣었는지 보는 표시를 고쳤습니다.
+	/* 판 WEDSPLIT-3 (2026-09-13) — 넣었는지 보는 표시를 고쳤습니다.
 	   전에는 「결혼운_미혼」이라는 글자를 봤는데, patch160_open 도 그 말을
 	   넣습니다. 그래서 open 을 먼저 넣으면 이 조각이 자기가 이미 들어간
 	   줄로 잘못 알고 멈췄습니다. 이제 이 조각만 만드는 줄을 봅니다. */
@@ -113,8 +113,12 @@ add_action( 'template_redirect', function () {
 			'to'   => stella_wed_t4(),
 		),
 		array(
+			/* 판 WEDSPLIT-3 · LENS_TOPIC 은 책에 두 번 있습니다.
+			   앞은 직성의 신(door-career), 뒤가 연성의 신(door-love)입니다.
+			   결혼운은 연성의 신이라 **뒤의 것**에 넣습니다. */
 			'name' => '여섯 · 1부 렌즈 두 벌',
 			'must' => true,
+			'nth'  => 2,
 			'find' => stella_wed_f5(),
 			'to'   => stella_wed_t5(),
 		),
@@ -183,7 +187,18 @@ add_action( 'template_redirect', function () {
 	$bad  = 0;
 	$skip = 0;
 	foreach ( $jobs as $j ) {
-		$n = substr_count( $c, $j['find'] );
+		$n    = substr_count( $c, $j['find'] );
+		$want = isset( $j['nth'] ) ? (int) $j['nth'] : 1;
+		if ( 1 < $want ) {
+			/* 몇 번째 자리를 쓰는 일감입니다. 그만큼 있으면 됩니다. */
+			if ( $n >= $want ) {
+				printf( "  %-46s 찾음 (%d번째)\n", $j['name'], $want );
+				continue;
+			}
+			printf( "  %-46s ★ %d군데 (%d번째가 있어야 합니다)\n", $j['name'], $n, $want );
+			$bad++;
+			continue;
+		}
 		if ( 1 === $n ) { printf( "  %-46s 찾음\n", $j['name'] ); continue; }
 		if ( ! $j['must'] ) {
 			if ( 0 === $n ) { printf( "  %-46s 건너뜀\n", $j['name'] ); $skip++; continue; }
@@ -200,6 +215,21 @@ add_action( 'template_redirect', function () {
 
 	$made = $c;
 	foreach ( $jobs as $j ) {
+		$want = isset( $j['nth'] ) ? (int) $j['nth'] : 1;
+		if ( 1 < $want ) {
+			/* nth 번째 자리만 바꿉니다 */
+			$at = -1; $from = 0; $k = 0;
+			while ( $k < $want ) {
+				$at = strpos( $made, $j['find'], $from );
+				if ( false === $at ) { break; }
+				$from = $at + 1;
+				$k++;
+			}
+			if ( false === $at ) { continue; }
+			if ( $k < $want ) { continue; }
+			$made = substr_replace( $made, $j['to'], $at, strlen( $j['find'] ) );
+			continue;
+		}
 		if ( 1 !== substr_count( $made, $j['find'] ) ) { continue; }
 		$made = str_replace( $j['find'], $j['to'], $made );
 	}
@@ -397,7 +427,6 @@ WEDT4;
 function stella_wed_f5() {
 	return <<<'WEDF5'
 var LENS_TOPIC = {
-    '결혼운': {
 WEDF5;
 }
 
@@ -414,7 +443,6 @@ var LENS_TOPIC = {
       '관성': '관계에 틀을 두고 싶어합니다. 누가 무엇을 맡을지, 돈은 어떻게 할지가 정해져 있어야 마음이 놓입니다. 애매한 채로 굴러가는 걸 오래 견디지 못해요. 말없이 넘어간 일이 쌓여 있으면 그 시간이 제일 힘드실 겁니다. 한마디로 흐지부지가 싫고, 정해진 자리가 편한 사람입니다.',
       '인성': '받는 데 익숙한 자리입니다. 챙겨주는 배우자에게 끌립니다. 다만 기대다가 어느 순간 상대가 지치는 것을 못 보고 지나갑니다. 살림도 결정도 상대가 도맡아 하면 처음엔 고마운데, 어느새 「원래 이 사람 몫」처럼 여기게 돼요.'
     },
-    '결혼운': {
 WEDT5;
 }
 
