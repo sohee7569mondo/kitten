@@ -1,0 +1,222 @@
+/* ══════════════════════════════════════════════════════════
+   문에 단추를 고쳐 답니다   ★ 2026-09-13 · 소희 님께
+                            판 DOORLOVE-1
+
+   소희 님 : 「하는 김에 앞에 결혼운(기혼) 결혼운(미혼)
+             이렇게 해버릴까?」
+
+   좋은 생각입니다. 그러면 질문을 하나 덜 물어도 되고,
+   손님이 문에서 바로 자기 자리를 고릅니다.
+
+       지금   연애운 · 재회운 · 궁합
+              결혼운 · 이별운 · 짝사랑          여섯 개
+
+       뒤     연애운 · 재회운 · 궁합
+              결혼운(미혼) · 결혼운(기혼) · 이별운
+              이혼운 · 짝사랑                   여덟 개
+
+   세 칸 줄이라 3 · 3 · 2 로 딱 맞게 앉습니다.
+
+   ── 왜 두 줄만 고치면 되나 ────────────────────────────
+   patch160_wedsplit 이 열여섯 자리를 모두 **topicKey 를 먼저
+   보게** 해 두었습니다. 그래서 이름을 알아보는 판정에 두 줄만
+   끼우면 나머지는 저절로 갈립니다.
+
+       전   결혼운을 고르면 → 질문의 답(wed)을 보고 갈랐습니다
+       후   결혼운(기혼)을 고르면 → 바로 기혼 글
+            결혼운(미혼)을 고르면 → 바로 미혼 글
+            그냥 결혼운(옛 손님)  → 예전처럼 답을 보고 갈림
+
+   ★ 질문 화면의 미혼·기혼 문항은 **그냥 두셔도 됩니다.**
+     그 조각은 이름이 딱 「결혼운」일 때만 묻습니다. 새 단추로
+     고른 분께는 저절로 안 뜹니다. undo 하실 필요 없습니다.
+
+   ── 세 자리를 고칩니다 ────────────────────────────────
+       ①  /door-love/      단추 여섯 개 → 여덟 개
+       ②  /reading-book/   이름 판정에 두 줄
+       ③  /reading-book/   주제 목록에 세 이름 더하기
+
+   ★ patch160_divorce 와 patch160_wedsplit 를 먼저 넣으셔야
+     합니다. 안 넣고 이것만 넣으면 손님이 골라도 책이 못 알아봅니다.
+
+   ── 하는 법 ───────────────────────────────────────────
+   ① 먼저 보기   https://stellasaju.com/?stella_doorlove=preview
+   ② 정말 넣기   https://stellasaju.com/?stella_doorlove=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_doorlove=undo
+                 (두 쪽을 같이 되돌립니다)
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_doorlove'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_doorlove'] ) );
+	$MARK = 'DOORLOVE_1';
+
+	$pages = array(
+		array( 'door-love',   '_stella_doorlove_bak_d', '문 쪽' ),
+		array( 'reading-book','_stella_doorlove_bak_b', '책 쪽' ),
+	);
+
+	if ( 'undo' === $mode ) {
+		$did = 0;
+		foreach ( $pages as $p ) {
+			$pg = get_page_by_path( $p[0] );
+			if ( ! $pg ) { continue; }
+			$back = get_post_meta( (int) $pg->ID, $p[1], true );
+			if ( '' === $back ) { echo $p[2] . " — 되돌릴 것이 없습니다.\n"; continue; }
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $back ), array( 'ID' => (int) $pg->ID ) );
+			clean_post_cache( (int) $pg->ID );
+			delete_post_meta( (int) $pg->ID, $p[1] );
+			echo $p[2] . ' — 되돌렸습니다. ' . number_format( strlen( $back ) ) . "바이트\n";
+			$did++;
+		}
+		if ( 0 === $did ) { echo "\n아무것도 되돌리지 않았습니다.\n"; }
+		exit;
+	}
+
+	echo "문에 단추를 고쳐 답니다   판 DOORLOVE-1\n\n";
+
+	$now = array();
+	foreach ( $pages as $p ) {
+		$pg = get_page_by_path( $p[0] );
+		if ( ! $pg ) { echo '★ ' . $p[2] . '(' . $p[0] . ")을 못 찾았습니다. 그만둡니다.\n"; exit; }
+		$id = (int) $pg->ID;
+		$c  = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		if ( '' === $c ) { echo '★ ' . $p[2] . "의 내용을 못 읽었습니다. 그만둡니다.\n"; exit; }
+		if ( false !== strpos( $c, $MARK ) ) {
+			echo "★ 이미 넣으셨습니다. 다시 넣지 않습니다.\n";
+			echo "   고치고 싶으시면 먼저 ?stella_doorlove=undo 를 하세요.\n";
+			exit;
+		}
+		$now[ $p[0] ] = array( 'id' => $id, 'c' => $c, 'meta' => $p[1], 'label' => $p[2] );
+		echo $p[2] . ' ' . $id . ' · ' . number_format( strlen( $c ) ) . "바이트\n";
+	}
+	echo "\n";
+
+	$jobs = array(
+		array( 'page' => 'door-love',    'name' => '① 이혼운 단추를 답니다',
+		       'find' => 'value="이별운"><span>이별운</span></label>',
+		       'piece' => 'DOOR' ),
+		array( 'page' => 'door-love',    'name' => '① 결혼운 단추를 둘로',
+		       'find' => 'value="결혼운"><span>결혼운</span></label>',
+		       'piece' => 'WEDBTN' ),
+		array( 'page' => 'reading-book', 'name' => '② 이름 판정에 두 줄',
+		       'find' => "  var topicKey = topic;\n  if(topic==='결혼운'){",
+		       'piece' => 'KEY' ),
+		array( 'page' => 'reading-book', 'name' => '③ 주제 목록에 세 이름',
+		       'find' => '', 'piece' => 'LIST' ),
+	);
+
+	foreach ( $jobs as $j ) {
+		$pk = $j['page'];
+
+		/* ③ 은 글자가 아니라 꼴로 찾습니다 */
+		if ( 'LIST' === $j['piece'] ) {
+			$hit = preg_match( "/('door-love'\s*:\s*\[[^\]]*?)'이별운'/u",
+				$now[ $pk ]['c'], $m, PREG_OFFSET_CAPTURE );
+			if ( 1 !== $hit ) {
+				echo '★ ' . $j['name'] . " — 자리를 못 찾았습니다.\n";
+				echo "  patch160_divorce 를 먼저 넣으셨는지 보세요.\n";
+				echo "\n한 자리라도 틀리면 반쪽만 고쳐집니다. 그만둡니다.\n";
+				exit;
+			}
+			printf( "  %-24s 찾음\n", $j['name'] );
+			if ( 'preview' !== $mode ) {
+				$at  = (int) $m[0][1];
+				$len = strlen( $m[0][0] );
+				$new = $m[1][0] . "'결혼운(미혼)','결혼운(기혼)','이별운'";
+				$now[ $pk ]['c'] = substr_replace( $now[ $pk ]['c'], $new, $at, $len );
+			}
+			continue;
+		}
+
+		$n = substr_count( $now[ $pk ]['c'], $j['find'] );
+		if ( 1 !== $n ) {
+			echo '★ ' . $j['name'] . ' — 자리가 ' . $n . "군데입니다. 한 군데여야 합니다.\n";
+			echo '  찾는 것 : ' . str_replace( "\n", ' / ', $j['find'] ) . "\n";
+			if ( 'KEY' === $j['piece'] ) {
+				echo "  patch160_wedsplit 를 먼저 넣으셨는지 보세요.\n";
+			}
+			echo "\n한 자리라도 틀리면 반쪽만 고쳐집니다. 그만둡니다.\n";
+			exit;
+		}
+		printf( "  %-24s 찾음\n", $j['name'] );
+		if ( 'preview' !== $mode ) {
+			$now[ $pk ]['c'] = str_replace( $j['find'],
+				stella_doorlove_piece( $j['piece'] ), $now[ $pk ]['c'] );
+		}
+	}
+
+	echo "\n네 자리 모두 찾았습니다.\n\n";
+	echo "고치고 나면 단추가 이렇게 됩니다 :\n";
+	echo "  연애운 · 재회운 · 궁합\n";
+	echo "  결혼운(미혼) · 결혼운(기혼) · 이별운\n";
+	echo "  이혼운 · 짝사랑\n";
+
+	if ( 'preview' === $mode ) {
+		echo "\n아직 아무것도 안 바꿨습니다.\n";
+		echo "정말 넣으시려면 ?stella_doorlove=apply 로 오세요.\n";
+		exit;
+	}
+
+	foreach ( $pages as $p ) {
+		$slot = $now[ $p[0] ];
+		$was  = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $slot['id'] ) );
+		$out  = $slot['c'] . "\n<!-- " . $MARK . " -->\n";
+		update_post_meta( $slot['id'], $slot['meta'], $was );
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $out ), array( 'ID' => $slot['id'] ) );
+		clean_post_cache( $slot['id'] );
+		echo "\n" . $slot['label'] . ' : ' . number_format( strlen( $was ) ) . ' → '
+			. number_format( strlen( $out ) ) . '바이트 (+'
+			. number_format( strlen( $out ) - strlen( $was ) ) . ')';
+	}
+
+	echo "\n\n넣었습니다. 이제 손님이 여덟 가지에서 고릅니다.\n";
+	echo "확인 : https://stellasaju.com/door-love/ 에서 단추를 보시고,\n";
+	echo "       결혼운(기혼)으로 한 번, 이혼운으로 한 번 뽑아보세요.\n";
+	echo "되돌리기 : ?stella_doorlove=undo (두 쪽을 같이)\n";
+	exit;
+}, 1 );
+
+/* 넣을 글 네 벌. 홑따옴표가 많아 nowdoc 으로 담습니다 */
+function stella_doorlove_piece( $which ) {
+
+	if ( 'DOOR' === $which ) {
+		return <<<'STELLA_DOOR'
+value="이별운"><span>이별운</span></label>
+            <label class="topic"><input type="radio" name="ssg-topic" value="이혼운"><span>이혼운</span></label>
+STELLA_DOOR;
+	}
+
+	if ( 'WEDBTN' === $which ) {
+		return <<<'STELLA_WEDBTN'
+value="결혼운(미혼)"><span>결혼운(미혼)</span></label>
+            <label class="topic"><input type="radio" name="ssg-topic" value="결혼운(기혼)"><span>결혼운(기혼)</span></label>
+STELLA_WEDBTN;
+	}
+
+	if ( 'KEY' === $which ) {
+		return <<<'STELLA_KEY'
+  var topicKey = topic;
+  /* 2026-09-13 · 문에서 이미 갈라 고르신 분 (DOORLOVE-1)
+     단추가 「결혼운(미혼)」·「결혼운(기혼)」으로 갈렸으니
+     질문의 답을 볼 것도 없이 바로 정해집니다. */
+  if(topic==='결혼운(미혼)'){ topicKey='결혼운_미혼'; }
+  if(topic==='결혼운(기혼)'){ topicKey='결혼운_기혼'; }
+  if(topic==='결혼운'){
+STELLA_KEY;
+	}
+
+	return "";
+}
