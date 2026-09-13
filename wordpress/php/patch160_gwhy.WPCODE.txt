@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════
    궁합이 왜 안 나오나 — 살아 움직이는 띠
                                         ★ 2026-09-13 · 소희 님께
-                                        판 GWHY-5
+                                        판 GWHY-6
 
    ── 판 3 에서 바뀐 것 ─────────────────────────────────
    판 2 의 띠는 쪽이 열릴 때 한 번만 찍었습니다. 그래서 소희 님이
@@ -21,6 +21,11 @@
    멈추는 것입니다. 그러면 화면에는 아무 말도 안 나옵니다. 판 5 는
    머리 맨 앞에 귀를 하나 달아, 그 쪽에서 처음 난 탈을 그대로
    적어 둡니다. 띠에 「처음 난 탈」로 보입니다.
+
+   ★ 판 6 — 띠가 화면 위에 눌려서 안 보였습니다. 이제 **글이 흐르는
+   자리에** 그대로 놓입니다(떠 있지 않습니다). 그리고 책이 비어 있으면
+   **비어 있는 책 자리에도 같은 글을 찍습니다.** 두 군데 중 한 군데는
+   반드시 보입니다.
 
    판 3 은 **2초마다 다시 읽습니다.** 궁합을 고르고 칸을 채우는 대로
    띠가 따라 바뀝니다. 그래서 칸이 언제 생기는지 눈으로 보입니다.
@@ -209,8 +214,15 @@ add_action( 'wp_head', function () {
 
       /* ── 화면이 정말 비어 있나 ── */
       var bk=el('bkBook'), be=el('bkEmpty');
+      var inner=0;
+      if(bk){
+        inner=String(bk.innerHTML).length;
+        var mineEcho=el('gwhyEcho');
+        if(mineEcho){ inner=inner-String(mineEcho.outerHTML).length; }
+        if(inner<0){ inner=0; }
+      }
       lines.push('책 그릇 bkBook '+mark(!!bk)+
-                 (bk?(' · 안에 '+String(bk.innerHTML).length+'자'):'')+
+                 (bk?(' · 안에 '+inner+'자 (이 띠는 뺀 숫자)'):'')+
                  ' · 빈화면 bkEmpty '+(be?(be.style.display==='flex'?'떠 있음':'숨어 있음'):'(없음)'));
     }
 
@@ -237,23 +249,45 @@ add_action( 'wp_head', function () {
     return lines;
   }
 
-  var bar=null;
+  var SKIN='background:#0B0817;color:#BCADEA;padding:14px 16px;'+
+    'font-family:monospace;font-size:13px;line-height:1.8;'+
+    'border:2px solid #9E2B50;white-space:normal;';
+
+  var bar=null, echo=null;
   function draw(){
-    if(!bar){
-      bar=document.createElement('div');
-      bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;'+
-        'background:#0B0817;color:#BCADEA;padding:10px 14px;'+
-        'font-family:monospace;font-size:12px;line-height:1.7;'+
-        'border-bottom:2px solid #9E2B50;max-height:48vh;overflow:auto;';
-      document.body.insertBefore(bar, document.body.firstChild);
-    }
     var lines=collect();
     var h='<b style=color:#fff>[GWHY] 궁합이 왜 안 나오나</b> '+
           '<span style=color:#7a7a8c>(2초마다 다시 읽습니다)</span><br>';
     for(var i=0;i<lines.length;i++){
       h+=lines[i].split(AMP).join('(and)').split('<').join('(').split('>').join(')')+'<br>';
     }
+
+    /* 하나 · 쪽 맨 위에 — 떠 있지 않고 글이 흐르는 자리에 놓습니다.
+       떠 있게 두었더니 사이트 머리글에 눌려 한 줄로 찌그러졌습니다. */
+    if(!bar){
+      bar=document.createElement('div');
+      bar.style.cssText=SKIN;
+      try{ document.body.insertBefore(bar, document.body.firstChild); }catch(e){}
+    }
     bar.innerHTML=h;
+
+    /* 둘 · 책이 비어 있으면 그 자리에도 같은 글을 찍습니다.
+       소희 님이 보고 계신 자리가 거기라서요. */
+    try{
+      var bk=el('bkBook');
+      if(bk){
+        var mine=el('gwhyEcho');
+        var bare=(String(bk.innerHTML).replace(/\s/g,'')==='');
+        if(mine){ mine.innerHTML=h; }
+        else if(bare){
+          echo=document.createElement('div');
+          echo.id='gwhyEcho';
+          echo.style.cssText=SKIN+'margin:20px;';
+          echo.innerHTML=h;
+          bk.appendChild(echo);
+        }
+      }
+    }catch(e2){}
   }
 
   function start(){
