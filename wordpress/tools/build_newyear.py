@@ -208,6 +208,12 @@ def parse(fn):
                 # emit 의 powerOf() 가 much / few / even 을 냅니다.
                 out.append({'kind': 'pick', 'axis': 'power', 'key': POWER[tag],
                             't': bare_t, 'h': h}); continue
+            # 무리 머리(#·##)가 꼬리표만 달고 있으면 갈래 열쇠도 같이 엽니다.
+            # 2026-09-14 · ③장에서 「# 내가 정하고 내가 서는 해」 머리가
+            # 손님 화면에 그대로 찍혔습니다 — 소희 님 판에는 없는 줄입니다.
+            # 「# [비겁]」 으로 적으면 제목은 안 나가고 갈래만 열립니다.
+            if lv in (1, 2):
+                group = tag; axis = None
             out.append({'kind': 'group', 'key': tag, 't': bare_t, 'h': h}); continue
 
         # ── 갈래 이름으로 시작하는 제목도 그 갈래 것입니다 ──────────
@@ -243,7 +249,15 @@ def parse(fn):
         if lv == 4 and axis:
             out.append({'kind': 'pick', 'axis': axis, 'key': key_of(axis, title), 't': t, 'h': h}); continue
         out.append({'kind': 'always', 't': t, 'h': h})
-    return [b for b in out if b['h'] or b['kind'] in ('group', 'branch', 'dae', 'title')]
+    out = [b for b in out if b['h'] or b['kind'] in ('group', 'branch', 'dae', 'title')]
+    # ★ 2026-09-14 · 그 장이 이미 「{대운이름}」을 말해 줬다면 갈래마다
+    #   「× 거두고 쌓는 십 년」 머리를 또 찍지 않습니다. 소희 님 판에는
+    #   그 줄이 없습니다 — 같은 말을 두 번 읽게 되니까요.
+    if any('{대운이름}' in str(b.get('h') or '') for b in out):
+        for b in out:
+            if b['kind'] == 'branch' and re.match(r'^\s*×\s', str(b.get('t') or '')):
+                b['t'] = ''
+    return out
 
 if __name__ == '__main__':
     year = sys.argv[1] if len(sys.argv) > 1 else '2027'
