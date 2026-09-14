@@ -47,6 +47,8 @@
       · 동물 자리의 이모지를 띠 그림 열두 장으로 갈아끼웁니다
       · 관계 딱지를 넷으로 색을 갈라 줍니다
       · 딱지의 한자말을 쉬운 말로 바꿉니다
+      · 행운의 색이 둘이면 동그라미도 둘 (흰색은 테를 진하게)
+      · 「조심할 띠」의 덧말을 아랫줄 작은 글씨로 내립니다
       · 열두 칸 위에 「이번주는 어떤 사이인가」 안내를 놓습니다
         · 내 띠가 정해지면 「호랑이띠이신 당신은 이번주 잔잔한 주를
           지납니다」 한 줄과 그 줄에 「내 띠」 표시
@@ -181,9 +183,33 @@ add_action( 'wp_footer', function () {
 #ssp .arow dd{ color:#221C33 !important; font-weight:500; }
 #ssp .swatch{
   width:14px !important; height:14px !important; border-radius:50% !important;
-  margin-right:7px !important;
-  border:1px solid rgba(34,28,51,.14) !important;
-  box-shadow:0 1px 3px rgba(34,28,51,.18) !important; }
+  margin-right:6px !important;
+  border:1px solid rgba(34,28,51,.2) !important;
+  box-shadow:0 1px 3px rgba(34,28,51,.16) !important;
+  vertical-align:-2px !important; }
+/* 흰색은 바탕이 흰색이라 테를 진하게 해야 보입니다 */
+#ssp .swatch[data-light="1"]{
+  border-color:rgba(34,28,51,.34) !important; }
+#ssp .arow dd .cpair{ display:inline-block; margin-right:12px; white-space:nowrap; }
+#ssp .arow dd .cpair:last-child{ margin-right:0; }
+/* 「부딪히면 크게 부딪힙니다」가 두 줄로 넘쳐 보기 어수선했습니다 */
+#ssp .arow dd .note{ display:block; margin-top:3px;
+  font-size:.78rem; color:#A79FB8 !important; }
+/* 삼재 줄(patch92_samjae)도 카드 여백을 받아야 합니다.
+   2026-09-14 · 소희 님 : 「삼재 글씨 부분에 여백이 필요해」
+   맞습니다. 제가 카드 padding 을 0 으로 바꾸면서 그 줄만 가장자리에
+   붙어버렸습니다. 남의 조각이 그린 것이라도 자리를 앗았으면
+   여기서 되돌려 줍니다. */
+#ssp .acard .sj-line{
+  margin:0 20px 18px !important;
+  padding:14px 0 0 !important;
+  border-top:1px solid #F1EBDD !important; }
+#ssp .acard .sj-line p{ margin:0 !important; font-size:.89rem !important;
+  line-height:1.85 !important; color:#4E4763 !important; opacity:1 !important; }
+#ssp .acard .sj-line a{ display:inline-block; margin-top:8px;
+  font-size:.89rem; color:#3A2E77 !important; font-weight:700;
+  text-decoration:underline; opacity:1 !important; }
+
 #ssp .amine{
   margin:0 20px 18px !important; padding:11px 13px;
   border-radius:9px; background:#F3EFFA;
@@ -290,6 +316,84 @@ add_action( 'wp_footer', function () {
         };
       })(sym);
       cards[i].setAttribute('data-pic', '1');
+    }
+  }
+
+  /* ⑦ 행운의 색 — 색이 둘이면 동그라미도 둘
+     2026-09-14 · 소희 님 : 「행운의 색이 흰색 은색인데 앞에 은색만
+     하나만 보여서 이상해. 흰색 앞에도 은색 앞에도 색 넣어줄 수 있어?」
+     쪽은 동그라미를 하나만 찍고 이름을 「흰색 · 은색」으로 붙입니다. */
+  var HEX = {
+    '흰색':'#FFFFFF', '백색':'#FFFFFF', '은색':'#C7CCD1', '은빛':'#C7CCD1',
+    '회색':'#9A92AC', '검정':'#221C33', '검은색':'#221C33', '흑색':'#221C33',
+    '남색':'#2B3A6B', '파랑':'#2E6FA8', '파란색':'#2E6FA8', '푸른색':'#2E6FA8',
+    '하늘색':'#7FB3D9', '초록':'#2F7D4A', '초록색':'#2F7D4A', '녹색':'#2F7D4A',
+    '연두':'#7BA84E', '청색':'#2E6FA8',
+    '빨강':'#C4453A', '빨간색':'#C4453A', '붉은색':'#C4453A', '적색':'#C4453A',
+    '주황':'#D98324', '주황색':'#D98324', '분홍':'#D98AA8', '분홍색':'#D98AA8',
+    '노랑':'#D9B23A', '노란색':'#D9B23A', '황색':'#D9B23A',
+    '금색':'#A9791F', '금빛':'#A9791F', '갈색':'#8A6520', '흙빛':'#8A6520',
+    '베이지':'#E2D6BC', '보라':'#6B4FB0', '보라색':'#6B4FB0', '자주':'#8A3F6B'
+  };
+
+  function isLight(h){
+    var t = String(h).replace('#', '');
+    if(t.length !== 6){ return false; }
+    var r = parseInt(t.slice(0, 2), 16);
+    var g = parseInt(t.slice(2, 4), 16);
+    var b = parseInt(t.slice(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 200;
+  }
+
+  function colors(){
+    var dds = document.querySelectorAll('#ssp .arow dd');
+    var i, dd, sw, base, txt, bits, j, h, out, one;
+    for(i = 0; i < dds.length; i++){
+      dd = dds[i];
+      if(dd.getAttribute('data-color') === '1'){ continue; }
+      sw = dd.querySelector('.swatch');
+      if(!sw){ continue; }
+      base = sw.style.background ? sw.style.background : sw.style.backgroundColor;
+      txt = String(dd.textContent).split(' ').join(' ');
+      while(txt.charAt(0) === ' '){ txt = txt.slice(1); }
+      bits = txt.split('·');
+      out = '';
+      for(j = 0; j < bits.length; j++){
+        one = bits[j];
+        while(one.charAt(0) === ' '){ one = one.slice(1); }
+        while(one.charAt(one.length - 1) === ' '){ one = one.slice(0, -1); }
+        if(!one){ continue; }
+        h = HEX[one] ? HEX[one] : (j === 0 ? base : '');
+        if(!h){ h = base; }
+        out += '<span class="cpair"><span class="swatch"'
+          + (isLight(h) ? ' data-light="1"' : '')
+          + ' style="background:' + h + '"></span>' + one + '</span>';
+      }
+      if(!out){ continue; }
+      dd.innerHTML = out;
+      dd.setAttribute('data-color', '1');
+    }
+  }
+
+  /* 「부딪히면 크게 부딪힙니다」를 아랫줄 작은 글씨로 */
+  function notes(){
+    var dds = document.querySelectorAll('#ssp .arow dd');
+    var i, dd, sp;
+    for(i = 0; i < dds.length; i++){
+      dd = dds[i];
+      if(dd.getAttribute('data-note') === '1'){ continue; }
+      sp = dd.querySelector('span[style]');
+      if(!sp){ continue; }
+      if(sp.className.indexOf('swatch') > -1){ continue; }
+      if(sp.className.indexOf('cpair') > -1){ continue; }
+      var t = String(sp.textContent);
+      while(t.charAt(0) === ' '){ t = t.slice(1); }
+      if(t.charAt(0) === '·'){ t = t.slice(1); }
+      while(t.charAt(0) === ' '){ t = t.slice(1); }
+      sp.className = 'note';
+      sp.removeAttribute('style');
+      sp.textContent = t;
+      dd.setAttribute('data-note', '1');
     }
   }
 
@@ -595,6 +699,8 @@ add_action( 'wp_footer', function () {
     pics();
     tidy();
     plain();
+    notes();
+    colors();
     findMine();
     relBox();
     markMine();

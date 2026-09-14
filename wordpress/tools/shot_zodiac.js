@@ -73,7 +73,8 @@ for(var z = 0; z < 12; z++){
   var k = K[z] || 'plain';
   cards += '<div class="acard' + (z === 2 ? ' mine' : '') + '" data-z="' + z + '" id="zc' + z + '">'
     + '<div class="ahead"><div class="asym">' + EMOJI[z] + '</div>'
-    + '<div><div class="aname">' + ANIMAL[z] + '띠 <span style="color:#A79FB8;font-size:.8rem">' + JI_H[z] + '</span></div>'
+    + '<div><div class="aname">' + ANIMAL[z] + '띠 <span style="color:#A79FB8;font-size:.8rem">' + JI_H[z] + '</span>'
+    + ({3:1,7:1,11:1}[z] ? '<span class="sj-tag">눌삼재</span>' : '') + '</div>'
     + '<div class="ayears">' + YEARS[z] + '</div></div></div>'
     + '<div class="arel">' + REL[k] + '</div>'
     + '<p class="atext">' + T1[k] + '</p>'
@@ -84,6 +85,7 @@ for(var z = 0; z < 12; z++){
     + '<div class="arow"><dt>행운의 색</dt><dd><span class="swatch" style="background:' + COLOR[z] + '"></span>' + CNAME[z] + '</dd></div>'
     + '<div class="arow"><dt>행운의 물건</dt><dd>나무로 만든 것</dd></div>'
     + '</dl>'
+    + ({3:1,7:1,11:1}[z] ? '<div class="sj-line"><p>올해 삼재입니다. 삼재 세 해 가운데 한가운데입니다. 가장 무겁게 느껴지는 해예요. 큰 결정은 한 해만 미루시면 한결 수월합니다.</p><a href="#">' + ANIMAL[z] + '띠의 삼재 풀이 보기 →</a></div>' : '')
     + (z === 2 ? '<p class="amine">1975년 1월 23일생이시라면 범띠입니다. 그 해 입춘 전에 태어나셔서, 사주로는 1974년에 들어갑니다.</p>' : '')
     + '</div>';
 }
@@ -92,6 +94,7 @@ var HTML = '<!doctype html><meta charset="utf-8">'
   + '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@700&display=swap" rel="stylesheet">'
   + css92 + WHITE
   + '<style>' + MYCSS + '</style>'
+  + '<style>#ssp .acard .sj-tag{margin-left:7px;font-size:.78rem;font-weight:400;opacity:.6;}</style>'
   + '<div id="ssp"><div class="wrap" style="max-width:1180px;margin:0 auto;padding:30px 22px 60px">'
   + '<div class="gz" id="zGz">辛卯</div>'
   + '<div class="gzk" id="zGzk">신묘 · 토끼의 자리 · 목(木)의 주</div>'
@@ -111,7 +114,7 @@ fs.writeFileSync(tmp, HTML);
   await p.goto('file://' + tmp);
   await p.waitForTimeout(2200);
   var dst = path.join(__dirname, 'zodiac-cards.png');
-  await p.screenshot({ path: dst, clip: { x: 0, y: 0, width: 1180, height: 1250 } });
+  await p.screenshot({ path: dst, clip: { x: 0, y: 900, width: 1180, height: 1150 } });
   console.log('찍었습니다 : ' + dst);
 
   /* 눈으로 보기 전에 숫자로도 재둡니다 */
