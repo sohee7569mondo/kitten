@@ -35,7 +35,12 @@
    ④ 「무관」이 어렵습니다
       소희 님 : 「삼합 육합이 뭔 뜻인지 모르겠어」
       손님도 모릅니다. 한자말은 화면에서 걷어냅니다.
-         무관 → 잔잔  ·  충 → 부딪힘  ·  합 → 잘 맞음
+      쪽의 딱지는 「삼합 · 손이 맞는 주」처럼 **앞이 한자말, 뒤가
+      쉬운 우리말**입니다. 그래서 앞을 떼기만 하면 됩니다 —
+         같은 기운 · 손이 맞는 주 · 붙잡아 주는 주 ·
+         흔들리는 주 · 어긋나는 주 · 잔잔한 주
+      본문에는 「삼합(三合)으로 묶입니다」처럼 한자가 그대로 있어
+      그것도 우리말로 바꿉니다.
 
    무엇을 하나
       · 내 띠 칸에 남색 테 두 겹과 「내 띠」 딱지
@@ -90,6 +95,9 @@ add_action( 'wp_footer', function () {
 #ssp .arel[data-rel="충"]{
   background:#FBEFEE !important; color:#C4453A !important;
   border:1px solid #EBC7C3 !important; }
+#ssp .arel[data-rel="해"]{
+  background:#FDF4EC !important; color:#A9611F !important;
+  border:1px solid #EDD7BE !important; }
 #ssp .arel[data-rel="무"]{
   background:#F7F3EA !important; color:#8B849C !important;
   border:1px solid #EAE2D2 !important; }
@@ -143,14 +151,51 @@ add_action( 'wp_footer', function () {
     ['원진', '거스름']
   ];
 
+  /* 갈래 판단 — 쪽이 실제로 쓰는 말 그대로 봅니다
+     비화 · 같은 기운   삼합 · 손이 맞는 주   육합 · 붙잡아 주는 주
+     충 · 흔들리는 주   해 · 어긋나는 주      무관 · 잔잔한 주      */
   function relKind(t){
+    if(t.indexOf('무관') > -1){ return '무'; }
+    if(t.indexOf('잔잔') > -1){ return '무'; }
     if(t.indexOf('충') > -1){ return '충'; }
-    if(t.indexOf('부딪') > -1){ return '충'; }
+    if(t.indexOf('흔들') > -1){ return '충'; }
+    if(t.indexOf('해 ') > -1){ return '해'; }
+    if(t.indexOf('어긋') > -1){ return '해'; }
     if(t.indexOf('육합') > -1){ return '짝'; }
-    if(t.indexOf('짝') > -1){ return '짝'; }
-    if(t.indexOf('합') > -1){ return '합'; }
-    if(t.indexOf('잘 맞') > -1){ return '합'; }
+    if(t.indexOf('붙잡') > -1){ return '짝'; }
+    if(t.indexOf('삼합') > -1){ return '합'; }
+    if(t.indexOf('손이 맞') > -1){ return '합'; }
+    if(t.indexOf('비화') > -1){ return '합'; }
+    if(t.indexOf('같은 기운') > -1){ return '합'; }
     return '무';
+  }
+
+  /* 본문에 남은 한자 — 손님이 읽는 글입니다 */
+  var BODY = [
+    ['삼합(三合)으로 묶입니다', '한편이 됩니다'],
+    ['육합(六合)으로 만납니다', '서로 붙잡아 주는 사이로 만납니다'],
+    ['충(沖)은 나쁜 게 아니라', '부딪힌다는 것은 나쁜 게 아니라'],
+    ['삼합(三合)', '한편'],
+    ['육합(六合)', '붙잡아 주는 사이'],
+    ['충(沖)', '부딪힘'],
+    ['비화(比和)', '같은 기운'],
+    ['해(害)', '어긋남']
+  ];
+
+  function plain(){
+    var ps = document.querySelectorAll('#ssp .acard .atext');
+    var i, j, el, t, was;
+    for(i = 0; i < ps.length; i++){
+      el = ps[i];
+      if(el.getAttribute('data-plain') === '1'){ continue; }
+      was = String(el.textContent);
+      t = was;
+      for(j = 0; j < BODY.length; j++){
+        t = t.split(BODY[j][0]).join(BODY[j][1]);
+      }
+      if(t !== was){ el.textContent = t; }
+      el.setAttribute('data-plain', '1');
+    }
   }
 
   function tidy(){
@@ -216,6 +261,7 @@ add_action( 'wp_footer', function () {
     if(grid.querySelectorAll('.acard').length < 12){ return 0; }
     pics();
     tidy();
+    plain();
     findMine();
     return 1;
   }

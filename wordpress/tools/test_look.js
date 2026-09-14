@@ -10,11 +10,26 @@ var JS   = out.match(/<script>([\s\S]*?)<\/script>/)[1];
 
 var ANIMAL = ['쥐','소','범','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
 var EMOJI  = ['🐭','🐮','🐯','🐰','🐲','🐍','🐴','🐐','🐵','🐓','🐶','🐷'];
-/* 이번주가 신묘(卯)일 때 쪽이 붙이는 딱지 — 살아 있는 화면에서 본 그대로 */
+/* ★ 쪽의 REL 표에서 **그대로 떠온** 딱지와 본문입니다.
+   2026-09-14 · 처음에는 제가 지어낸 말(「한 무리인 주」)로 시험했다가
+   화면에 없는 말을 고치고 있었습니다. 시험에 쓰는 글은 반드시
+   사본에서 떠옵니다. */
 var REL = ['무관 · 잔잔한 주','무관 · 잔잔한 주','무관 · 잔잔한 주',
-           '삼합 · 한 무리인 주','무관 · 잔잔한 주','무관 · 잔잔한 주',
-           '무관 · 잔잔한 주','삼합 · 한 무리인 주','무관 · 잔잔한 주',
-           '충 · 부딪히는 주','육합 · 짝이 되는 주','삼합 · 한 무리인 주'];
+           '비화 · 같은 기운','무관 · 잔잔한 주','무관 · 잔잔한 주',
+           '무관 · 잔잔한 주','삼합 · 손이 맞는 주','해 · 어긋나는 주',
+           '충 · 흔들리는 주','육합 · 붙잡아 주는 주','삼합 · 손이 맞는 주'];
+var BODY = ['이번주 기운과 특별히 얽히지 않습니다.',
+            '이번주 기운과 특별히 얽히지 않습니다.',
+            '이번주 기운과 특별히 얽히지 않습니다.',
+            '이번주 하늘의 기운이 이 띠와 같은 결로 들어옵니다.',
+            '이번주 기운과 특별히 얽히지 않습니다.',
+            '이번주 기운과 특별히 얽히지 않습니다.',
+            '이번주 기운과 특별히 얽히지 않습니다.',
+            '이번주 기운과 삼합(三合)으로 묶입니다. 혼자 하던 일에 사람이 붙습니다.',
+            '이번주 기운과 살짝 어긋납니다.',
+            '이번주 기운과 정면으로 부딪힙니다. 충(沖)은 나쁜 게 아니라 흔드는 것이라…',
+            '이번주 기운과 육합(六合)으로 만납니다. 크게 뻗기보다 안으로 단단해지는 흐름이에요.',
+            '이번주 기운과 삼합(三合)으로 묶입니다. 혼자 하던 일에 사람이 붙습니다.'];
 
 var cards = '';
 for(var z = 0; z < 12; z++){
@@ -22,7 +37,7 @@ for(var z = 0; z < 12; z++){
     + '<div class="ahead"><div class="asym">' + EMOJI[z] + '</div>'
     + '<div><div class="aname">' + ANIMAL[z] + '띠</div></div></div>'
     + '<div class="arel r' + z + '">' + REL[z] + '</div>'
-    + '<p class="atext">이번주 이야기</p>'
+    + '<p class="atext">' + BODY[z] + '</p>'
     + '<p class="amine" style="display:none">지금 보고 계신 띠예요.</p></div>';
 }
 var PAGE = '<div id="ssp"><div class="wrap">'
@@ -82,9 +97,14 @@ for(var i = 0; i < rs.length; i++){
   seen[t] = 1;
   console.log('  ' + ANIMAL[i] + '띠  「' + t + '」  갈래=' + k);
 }
-var han = ['삼합','육합','무관','충'].filter(function(x){
-  return w.document.querySelector('#ssp .agrid').textContent.indexOf(x) > -1; });
+var txt = w.document.querySelector('#ssp .agrid').textContent;
+var han = ['삼합','육합','무관','비화','三合','六合','沖'].filter(function(x){
+  return txt.indexOf(x) > -1; });
 console.log('  남은 한자말 : ' + (han.length ? '★ ' + han.join(' ') : '없음 ok'));
+console.log('');
+console.log('  본문 — 원숭이띠 : ' + w.document.querySelector('#zc7 .atext').textContent);
+console.log('  본문 — 닭띠     : ' + w.document.querySelector('#zc9 .atext').textContent);
+console.log('  본문 — 개띠     : ' + w.document.querySelector('#zc10 .atext').textContent);
 
 console.log('');
 console.log('=== ④ 안 들어오신 분 — 그림만 바뀌고 강조는 없어야 합니다');
