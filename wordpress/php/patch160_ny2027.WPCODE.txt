@@ -2,7 +2,7 @@
 /* ══════════════════════════════════════════════════════════
    2027년 운세 — 열 장짜리 별도 구조 책
                                         ★ 2026-09-14 · 소희 님께
-                                        판 2026-09-14 18:45
+                                        판 2026-09-14 18:59
 
    ── 무엇을 하나 ───────────────────────────────────────
    door-fortune 에서 「2027년 운세」를 고르면 우리 열 장이 나옵니다.
@@ -66,7 +66,7 @@ add_action( 'wp_head', function () {
 	   손님에게는 안 보입니다. patch160_fit(FIT-2)이 쓰는 길과 같습니다. */
 	$stella_admin = current_user_can( 'manage_options' ) ? '1' : '';
 	?>
-<!-- stella 2027년 운세 · 판 2026-09-14 18:45 -->
+<!-- stella 2027년 운세 · 판 2026-09-14 18:59 -->
 <style>
 #ssb .keepline{ font-weight:600; }
 #ssb .mini{ font-size:.86rem; color:#6a6a78; }
@@ -226,7 +226,7 @@ add_action( 'wp_head', function () {
      「원본 데이터에는 {연도}년 … 라고 저장합니다」
      그 말씀대로 해마다 바뀌는 것은 전부 빈칸으로 둡니다. 원고를
      다시 쓰지 않고 해만 갈아끼우면 되도록 하려는 것입니다. */
-  var STAMP   = '2026-09-14 18:45';
+  var STAMP   = '2026-09-14 18:59';
   var GANJI   = '정미년';
   var ELNAME  = '화';
   var YEARNAME = {'관성':'맡은 자리가 배움이 되는 해', '비겁':'내가 세운 것을 밖으로 내놓는 해', '식상':'내놓은 것이 결과가 되는 해', '인성':'채운 것이 나를 세우는 해', '재성':'거둔 것이 자리가 되는 해'};
@@ -434,14 +434,24 @@ add_action( 'wp_head', function () {
        제목(h2)에 카드·아르카나·타로가 있거나, 쪽 안에 카드 칸(.card)이
        실제로 있는 쪽만 고릅니다.
      ★ ?nycard=1 로 몇 쪽을 살렸는지 볼 수 있습니다. */
+  var CARDNAMES = [];
   function cardPages(bk){
-    var out=[], ps, i, p, h, t;
+    var out=[], names=CARDNAMES, ps, i, p, h, t;
+    names.length = 0;
     try{ ps=bk.querySelectorAll('.page'); }catch(e){ return out; }
     for(i=0;i<ps.length;i++){
       p=ps[i];
       t='';
       h=p.querySelector('h2');
       if(h){ t=String(h.textContent===undefined?'':h.textContent); }
+      /* ★ 2026-09-14 · 소희 님 : 「표지는 있는데 내용이 없어」
+         장 속표지(.divider)는 제목만 있고 본문이 없습니다. 제목에
+         「아르카나」가 들어 있어서 표지만 딸려오고 있었습니다.
+         표지는 거르고, 글이 실제로 든 쪽만 가져옵니다. */
+      if(String(p.className).indexOf('divider')>=0){ continue; }
+      /* ★ 역빗금을 안 쓰려고 정규식 대신 길이만 봅니다 (집 규칙) */
+      var body=String(p.textContent===undefined?'':p.textContent);
+      if(body.length<80){ continue; }
       var hit=false;
       if(t.indexOf('카드')>=0){ hit=true; }
       if(t.indexOf('아르카나')>=0){ hit=true; }
@@ -449,6 +459,7 @@ add_action( 'wp_head', function () {
       if(!hit){ if(p.querySelector('.cards')){ hit=true; } }
       if(!hit){ continue; }
       out.push(p.outerHTML);
+      names.push(t || '(제목없음)');
     }
     return out;
   }
@@ -656,9 +667,10 @@ add_action( 'wp_head', function () {
                     d.setAttribute('style','margin:12px;padding:10px 14px;'+
                       'border:2px solid #2F7D4A;background:#F3F8F4;'+
                       'border-radius:8px;font:13px/1.8 system-ui;color:#1d3a27;');
+                    var lab=CARDNAMES.length ? (' [' + CARDNAMES.join(' / ') + ']') : '';
                     d.textContent='관리자에게만 보입니다 · NY'+YEAR+' 판 '+STAMP+
                       ' · 우리 열 장 '+r.n+'쪽 + 원본에서 살린 카드 쪽 '+
-                      keep.length+'쪽 = 모두 '+nAll+'쪽';
+                      keep.length+'쪽'+lab+' = 모두 '+nAll+'쪽';
                     var ssb=document.getElementById('ssb');
                     if(ssb){ ssb.parentNode.insertBefore(d, ssb); }
                   }

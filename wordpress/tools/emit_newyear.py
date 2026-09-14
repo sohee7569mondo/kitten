@@ -502,14 +502,24 @@ TAIL = u''';
        제목(h2)에 카드·아르카나·타로가 있거나, 쪽 안에 카드 칸(.card)이
        실제로 있는 쪽만 고릅니다.
      ★ ?nycard=1 로 몇 쪽을 살렸는지 볼 수 있습니다. */
+  var CARDNAMES = [];
   function cardPages(bk){
-    var out=[], ps, i, p, h, t;
+    var out=[], names=CARDNAMES, ps, i, p, h, t;
+    names.length = 0;
     try{ ps=bk.querySelectorAll('.page'); }catch(e){ return out; }
     for(i=0;i<ps.length;i++){
       p=ps[i];
       t='';
       h=p.querySelector('h2');
       if(h){ t=String(h.textContent===undefined?'':h.textContent); }
+      /* ★ 2026-09-14 · 소희 님 : 「표지는 있는데 내용이 없어」
+         장 속표지(.divider)는 제목만 있고 본문이 없습니다. 제목에
+         「아르카나」가 들어 있어서 표지만 딸려오고 있었습니다.
+         표지는 거르고, 글이 실제로 든 쪽만 가져옵니다. */
+      if(String(p.className).indexOf('divider')>=0){ continue; }
+      /* ★ 역빗금을 안 쓰려고 정규식 대신 길이만 봅니다 (집 규칙) */
+      var body=String(p.textContent===undefined?'':p.textContent);
+      if(body.length<80){ continue; }
       var hit=false;
       if(t.indexOf('카드')>=0){ hit=true; }
       if(t.indexOf('아르카나')>=0){ hit=true; }
@@ -517,6 +527,7 @@ TAIL = u''';
       if(!hit){ if(p.querySelector('.cards')){ hit=true; } }
       if(!hit){ continue; }
       out.push(p.outerHTML);
+      names.push(t || '(제목없음)');
     }
     return out;
   }
@@ -724,9 +735,10 @@ TAIL = u''';
                     d.setAttribute('style','margin:12px;padding:10px 14px;'+
                       'border:2px solid #2F7D4A;background:#F3F8F4;'+
                       'border-radius:8px;font:13px/1.8 system-ui;color:#1d3a27;');
+                    var lab=CARDNAMES.length ? (' [' + CARDNAMES.join(' / ') + ']') : '';
                     d.textContent='관리자에게만 보입니다 · NY'+YEAR+' 판 '+STAMP+
                       ' · 우리 열 장 '+r.n+'쪽 + 원본에서 살린 카드 쪽 '+
-                      keep.length+'쪽 = 모두 '+nAll+'쪽';
+                      keep.length+'쪽'+lab+' = 모두 '+nAll+'쪽';
                     var ssb=document.getElementById('ssb');
                     if(ssb){ ssb.parentNode.insertBefore(d, ssb); }
                   }
