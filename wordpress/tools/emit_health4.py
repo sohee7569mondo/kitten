@@ -83,6 +83,34 @@ add_action( 'wp_head', function () {
    auto margin 을 0 으로 눌러 stretch 를 살립니다.
    ★ 앞에 #ssb 를 꼭 붙입니다 — WIDTH-7 이 #ssb .page 로 걸어서
      그게 없으면 힘이 모자라 집니다. 가족운 책과 같은 꼴입니다. */
+/* ══ 폭은 책 상자 한 곳에서만 정합니다 ═══════════════════════
+   2026-09-14 · 소희 님 : 「폭이 안맞는건」 「여러번 언급했음 찾아봐」
+   찾아보니 같은 날 두 번 고치면서 한 번은 되돌려 놓았습니다 —
+     a711f94  살아 있는 쪽의 여백 규칙 때문에 책이 왼쪽으로 쏠림
+              → 쪽을 max-width · margin auto 로 못 박음
+     405b0a2  flex 안에서 auto margin 이 stretch 를 끔
+              → 그 못을 빼고 margin 0 · max-width none 으로
+   둘 다 맞는 말인데 같은 자리(.page)에 걸어서, 하나를 고치면 다른
+   하나가 되살아났습니다. 자리를 갈라 놓습니다 —
+     책 상자(.book)  폭을 정합니다   max-width · margin auto · padding
+     쪽(.page)       늘어나게 둡니다 margin 0 · max-width none
+   auto margin 이 stretch 를 끄는 것은 flex 아이템에서 생기는 일이라,
+   상자 자신에 걸면 쪽은 그대로 늘어납니다. 그리고 상자에 못을 박으면
+   살아 있는 쪽이 무슨 여백을 얹든 우리 책은 안 밀립니다.
+   ★ 네 책(신년운세 둘 · 가족운 · 건강운)이 같은 값을 씁니다. */
+@media screen{
+  #ssb .book[data-health4="1"],
+  #ssb [data-health4="1"]{
+    max-width:900px !important;
+    margin-left:auto !important; margin-right:auto !important;
+    padding-left:20px !important; padding-right:20px !important;
+    box-sizing:border-box !important; }
+}
+@media screen and (max-width:820px){
+  #ssb .book[data-health4="1"],
+  #ssb [data-health4="1"]{
+    padding-left:16px !important; padding-right:16px !important; }
+}
 @media screen{
   #ssb .book[data-health4="1"] > .page,
   #ssb [data-health4="1"] > .page{

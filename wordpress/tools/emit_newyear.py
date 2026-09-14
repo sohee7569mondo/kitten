@@ -32,7 +32,11 @@ def year_luck_names(doc):
         t = re.sub(r'<[^>]+>', '', str(b.get('t', '')))
         m = re.match(r'^(비겁|식상|재성|관성|인성)\s*(?:→\s*\S+\s*)?·\s*(.+?)\s*$', t)
         if m:
-            yn[m.group(1)] = m.group(2)
+            # ★ 2026-09-14 · 소희 님 : 「올해의 이름에 인성 · 채우고 다음을
+            #   준비하는 해이 들어가야할거 같은데」
+            #   앞의 십성까지 통째로 씁니다 — 「인성 · 채우고 다음을
+            #   준비하는 해」. 그전에는 뒤 토막만 넣고 있었습니다.
+            yn[m.group(1)] = t
     for b in doc.get('02', []):
         t = re.sub(r'<[^>]+>', '', str(b.get('t', '')))
         m = re.match(r'^(비겁|식상|재성|관성|인성)\s*·\s*(.+?)\s*십\s*년\s*$', t)
@@ -144,6 +148,35 @@ add_action( 'wp_head', function () {
      그 책과 똑같이 적어 두 책이 같은 자리에서 시작합니다.
 
    깃발이 .book 에 달릴 수도, #bkBook 에만 달릴 수도 있어 둘 다 겁니다. */
+/* ══ 폭은 책 상자 한 곳에서만 정합니다 ═══════════════════════
+   2026-09-14 · 소희 님 : 「신년운세 폭이 안맞는건」
+                          「여러번 언급했음 찾아봐」
+   찾아보니 제가 같은 날 두 번 고치면서 한 번은 되돌려 놓았습니다 —
+
+     a711f94  「책이 왼쪽으로 쏠려 글이 잘렸습니다. 살아 있는 쪽에 제
+               사본에 없는 여백 규칙이 얹혀 있어서입니다」
+               → 쪽을 max-width 760px · margin auto 로 못 박음
+     405b0a2  「flex 안에서 auto margin 이 stretch 를 끕니다」
+               → 그 못을 빼고 margin 0 · max-width none 으로 바꿈
+               (쪽마다 폭이 달라지던 탈은 이걸로 고쳐졌습니다)
+
+   둘 다 맞는 말이었는데 **같은 자리에 걸었기 때문에** 하나를 고치면
+   다른 하나가 되살아났습니다. 자리를 갈라 놓습니다 —
+
+     책 상자(.book)  폭을 정합니다   max-width · margin auto · padding
+     쪽(.page)       늘어나게 둡니다 margin 0 · max-width none
+
+   auto margin 이 stretch 를 끄는 것은 **flex 아이템**에서 생기는 일이라,
+   상자 자신에 걸면 쪽은 그대로 늘어납니다. 그리고 상자에 못을 박아
+   두면 살아 있는 쪽이 무슨 여백을 얹든 우리 책은 안 밀립니다. */
+@media screen{
+  #ssb .book[data-ny%(Y)s="1"],
+  #ssb [data-ny%(Y)s="1"]{
+    max-width:900px !important;
+    margin-left:auto !important; margin-right:auto !important;
+    padding-left:20px !important; padding-right:20px !important;
+    box-sizing:border-box !important; }
+}
 @media screen{
   /* ★ 왜 쪽마다 폭이 달랐나 — 2026-09-14 크로미움으로 재현해서 잡았습니다
      소희 님 : 「중간에 폭이 달라짐」 · 「폭잡는것도 여러번 있던일이라서
@@ -177,6 +210,22 @@ add_action( 'wp_head', function () {
   #ssb .book[data-ny%(Y)s="1"] > .page.divider > *,
   #ssb [data-ny%(Y)s="1"] > .page.divider > *{
     margin-left:auto !important; margin-right:auto !important; }
+}
+/* ★★ 좁은 화면 좌우 여백 — 2026-09-14 · 소희 님 「폭이 안맞아」
+   제가 없앤 것을 되살립니다. 저장소를 찾아보니 답이 있었습니다.
+
+     2026-09-14  a711f94  「폭 — 책이 왼쪽으로 쏠려 글이 잘렸습니다」
+                 그때 넣은 것 : @media(max-width:820px){ padding 16px }
+     같은 날      405b0a2  flex 의 auto margin 을 잡으면서 여백 규칙을
+                 통째로 걷어냈습니다. 좁은 화면 여백까지 같이 사라졌습니다.
+
+   ★ 여백(padding)은 flex 의 stretch 를 끄지 않습니다 — auto margin 만
+     끕니다. 그래서 되살려도 쪽마다 폭이 달라지는 탈은 안 납니다.
+   ★ 넓은 화면에서는 책 상자(.book)가 여백을 대므로 0 이 맞습니다. */
+@media screen and (max-width:820px){
+  #ssb .book[data-ny%(Y)s="1"],
+  #ssb [data-ny%(Y)s="1"]{
+    padding-left:16px !important; padding-right:16px !important; }
   /* ★ 2026-09-14 · 소희 님 : 「2026년 폭이 안맞아」
      가족운 책(FAMILY-1)에는 있는데 여기만 빠져 있던 못입니다.
      살아 있는 쪽에 글을 가운데로 미는 규칙이 얹혀 있으면
