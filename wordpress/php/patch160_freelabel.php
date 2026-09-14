@@ -25,6 +25,9 @@
    ═══════════════════════════════════════════════════════ */
 
 add_action( 'wp_head', function () {
+	/* ★ 홈에서만 씁니다 — 무료 배너는 홈에만 있습니다.
+	   (홈은 쪽 id 62 를 앞쪽으로 쓰고 있어 is_front_page 로 봅니다) */
+	if ( ! is_front_page() ) { return; }
 	?>
 <script>
 (function(){

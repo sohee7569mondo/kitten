@@ -38,6 +38,8 @@
    ═══════════════════════════════════════════════════════ */
 
 add_action( 'wp_head', function () {
+	/* ★ 홈에서만 씁니다 — 이 줄은 홈에만 있습니다. */
+	if ( ! is_front_page() ) { return; }
 	?>
 <script>
 (function(){

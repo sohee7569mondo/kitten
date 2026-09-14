@@ -50,6 +50,12 @@
    ══════════════════════════════════════════════════════════ */
 
 add_action( 'wp_head', function () {
+	/* ★ 이 조각은 문 여섯 쪽에서만 씁니다.
+	   2026-09-14 · 소희 님 : 「스니펫이 많아서 그거 읽느라 사주가
+	   문제있다고 햇었는데」 — 울타리가 없으면 모든 쪽에 실립니다.
+	   슬러그는 워드프레스에서 직접 확인했습니다. */
+	if ( ! is_page( array( 'door-love', 'door-career', 'door-health',
+	                       'door-fortune', 'door-astro', 'door-tarot' ) ) ) { return; }
 	?>
 <script>
 (function(){
