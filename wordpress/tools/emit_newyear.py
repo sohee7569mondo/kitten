@@ -685,11 +685,40 @@ TAIL = u''';
       var SEAT=[['I','지금 서 있는 자리','now'],
                 ['II','넘어야 할 것','over'],
                 ['III','그 너머','then']];
+      /* ★ 2026-09-14 · 소희 님 : 「카드 그림이 없어서 없는줄」
+         글만 있으니 카드 장인 줄 모르셨습니다. 그림을 넣습니다.
+         ★ 그림은 책이 이미 쓰고 있는 것을 그대로 씁니다 —
+           door-tarot 의 「마지막에 놓는 세 장」이 st001.jpg ~ st078.jpg
+           를 부릅니다. 새로 올리실 것이 없습니다.
+         ★ 뒤집힘(역방향)은 아직 안 봅니다 — door-tarot 안의 함수라
+           여기서는 못 부릅니다. 필요하시면 따로 얹습니다. */
+      var UP='https://stellasaju.com/wp-content/uploads/2026/08/';
       var h='<p class="keepline">사주가 한 해의 결을 말한다면, 카드는 '+
             '지금 이 순간의 자리를 말합니다.</p>'+
             '<p>질문 화면에서 세 장을 뽑으셨습니다. 앞의 열 장을 뒤집는 것이 '+
             '아니라, 같은 해를 어떤 마음으로 지날지를 덧붙입니다.</p>';
-      var i, c, seat;
+      var i, c, seat, no;
+      /* 세 장을 나란히 폅니다 */
+      h+='<div style="display:flex;gap:12px;justify-content:center;'+
+         'margin:24px 0 10px;flex-wrap:wrap">';
+      for(i=0;i<3;i++){
+        c=T[pick[i]];
+        if(!c){ continue; }
+        seat=SEAT[i];
+        no=('00'+(Number(pick[i])+1));
+        no=no.slice(no.length-3);
+        h+='<figure style="flex:1 1 28%;max-width:190px;min-width:120px;'+
+           'margin:0;text-align:center">'+
+           '<img decoding="async" loading="lazy" alt="'+esc(c.ko)+'" '+
+           'src="'+UP+'st'+no+'.jpg" '+
+           'style="width:100%;display:block;border-radius:8px;'+
+           'border:1px solid rgba(212,175,106,.35)">'+
+           '<figcaption style="margin-top:9px;font-size:.78rem;line-height:1.6;'+
+           'opacity:.72">'+seat[0]+' · '+seat[1]+
+           '<br><b style="font-size:.92rem;opacity:1">'+esc(c.ko)+'</b>'+
+           '</figcaption></figure>';
+      }
+      h+='</div>';
       for(i=0;i<3;i++){
         c=T[pick[i]];
         if(!c){ continue; }
