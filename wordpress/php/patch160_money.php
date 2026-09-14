@@ -27,6 +27,13 @@
 
    이 조각은 아무것도 바꾸지 않습니다. 읽기만 합니다.
    다 보시고 나면 꺼두셔도 됩니다.
+
+   ★ 2026-09-14 · 비밀 열쇠를 가립니다
+     처음 판은 STELLA 로 시작하는 설정을 전부 그대로 찍었습니다.
+     그 바람에 포트원 비밀키가 화면에 통째로 나왔습니다. 이름에
+     SECRET · KEY · TOKEN · PASS · PW · REST · CHANNEL · STORE · HOOK 이
+     들어가면 앞 네 글자만 보이고 나머지는 ● 로 가립니다.
+     진단 도구가 비밀을 흘리면 안 됩니다.
    ═══════════════════════════════════════════════════════ */
 
 add_action( 'template_redirect', function () {
@@ -105,11 +112,29 @@ tr:last-child td{border-bottom:0;}
 			echo '<tr><td colspan="3" class="no">★ STELLA 로 시작하는 설정이 하나도 없습니다 '
 				. '— stella-signup 조각이 꺼져 있는 것 같습니다.</td></tr>';
 		}
+		/* ★ 비밀 열쇠는 절대로 찍지 않습니다 (2026-09-14 · 한 번 새어나갔습니다)
+		   이름에 아래 낱말이 들어가면 앞 네 글자만 보이고 나머지는 가립니다. */
+		$hide = array( 'SECRET', 'KEY', 'TOKEN', 'PASS', 'PW', 'REST', 'CHANNEL', 'STORE', 'HOOK' );
+
 		foreach ( $mine as $k => $v ) {
 			$show = $v;
 			if ( true === $v )  { $show = 'true'; }
 			if ( false === $v ) { $show = 'false'; }
 			if ( '' === $v )    { $show = '(비어 있음)'; }
+
+			$secret = false;
+			foreach ( $hide as $w ) {
+				if ( false !== strpos( $k, $w ) ) { $secret = true; }
+			}
+			if ( $secret ) {
+				$t = (string) $v;
+				if ( '' === $t ) {
+					$show = '(비어 있음)';
+				} else {
+					$show = mb_substr( $t, 0, 4 ) . str_repeat( '●', 8 )
+						. ' (' . mb_strlen( $t ) . '자 · 가렸습니다)';
+				}
+			}
 			$d = isset( $say[ $k ] ) ? $say[ $k ] : '';
 			echo '<tr><td class="k">' . esc_html( $k ) . '</td>'
 				. '<td class="v">' . esc_html( (string) $show ) . '</td>'
@@ -165,8 +190,12 @@ tr:last-child td{border-bottom:0;}
 				}
 			}
 			echo '<h2>③ 화면에 적힌 글과 맞나</h2>';
-			echo '<p class="note">체험판일 때는 설정값(STELLA_PRICE_BASE)으로 견줍니다 '
-				. '— 체험판을 끈 뒤에 손님이 보게 될 값이 그것이라서요.</p>';
+			if ( defined( 'STELLA_TRIAL' ) ) {
+				if ( constant( 'STELLA_TRIAL' ) ) {
+					echo '<p class="note">체험판일 때는 설정값(STELLA_PRICE_BASE)으로 견줍니다 '
+						. '— 체험판을 끈 뒤에 손님이 보게 될 값이 그것이라서요.</p>';
+				}
+			}
 			echo '<table><tr><th>어디</th><th>그 쪽에 적힌 값</th><th>실제</th><th></th></tr>';
 
 			$where = array(
