@@ -315,8 +315,17 @@ GCALC-2 · GTEXT-2 에서 그렇게 고쳤습니다.
                       → patch160_freelabel 이 고칩니다. 주소는 그대로 둡니다
                         (바꾸면 이미 퍼진 링크가 끊깁니다)
 
-    무료 여섯 장  /today/ · /saju/ · /weekly-summary/ · /zodiac/ ·
-                  /zodiac-year/ · /lotto/
+    무료 다섯 장  /today/ · /saju/ · /weekly-summary/ · /zodiac/ · /zodiac-year/
+    /lotto/       2026-09-14 소희 님 「로또 없애자」 — 홈 줄에서 숨깁니다
+                  (patch160_freeimg 의 HIDE 표). 쪽은 그대로 있습니다.
+                  지우지 않고 숨기는 까닭 : 가로로 미는 줄(rail)의 스크립트가
+                  배너 수를 세고 있을 수 있어 들어내면 화살표 셈이 틀어집니다.
+
+    무료 배너 사진  STELLASAJU_free_<자리>.jpg  (미디어, 2026/09)
+                  zodiac-year(토끼) · zodiac(별자리) · saju(오솔길) ·
+                  weekly(호수) · today(들꽃)
+                  ★ 토끼만 784x1168 이라 2:3 이 아닙니다 — 위아래 조금 잘립니다
+                  STELLASAJU_turn.jpg(사슴) 은 전환기/평생운 배너용으로 올려둠
 
 ★ 홈 배너 글씨는 **앵커를 안 잡고** 고칩니다 — `a.free-card` 를 href 로 찾아
   `.free-kicker` · `.free-sub` 만 갈아 끼웁니다. 사본이 낡아도 맞습니다.

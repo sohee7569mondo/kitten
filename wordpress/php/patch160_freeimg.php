@@ -44,6 +44,13 @@ add_action( 'wp_head', function () {
   content:''; position:absolute; inset:0; z-index:2;
   background:linear-gradient(to top,
     rgba(16,11,34,.94) 4%, rgba(16,11,34,.48) 44%, rgba(16,11,34,.04) 76%); }
+/* 로또 배너는 홈 줄에서 뺍니다 (소희 님: 「로또 없애자」).
+   ★ 쪽(/lotto/)은 그대로 있습니다 — 배너만 안 보이게 합니다.
+     지우지 않고 숨기는 까닭 : 가로로 미는 줄(rail)에 딸린 스크립트가
+     배너 수를 세고 있을 수 있어, 통째로 들어내면 화살표 셈이 틀어집니다.
+     display:none 이면 자리도 안 차지하면서 줄은 안 건드립니다. */
+#stellar-home a.free-card[data-freehide="1"]{ display:none !important; }
+
 /* 글씨는 사진 위로 올리고 흰색으로.
    ★ 「Free」 딱지는 원래 position:absolute 로 오른쪽 위에 붙어 있습니다.
      여기서 통째로 relative 로 덮으면 딱지가 흐름 안으로 들어와
@@ -68,6 +75,9 @@ add_action( 'wp_head', function () {
      달 칸(2026/09)은 올리신 달을 따라갑니다 — 여러 달을 다 찾아봅니다. */
   var BASE = '/wp-content/uploads/';
   var MONTHS = ['2026/09/', '2026/10/', '2026/11/'];
+  /* 홈 줄에서 뺄 배너 */
+  var HIDE = ['/lotto/'];
+
   var MAP = [
     ['/zodiac-year/',    'STELLASAJU_free_zodiac-year.jpg', '이번주 띠별운세'],
     ['/zodiac/',         'STELLASAJU_free_zodiac.jpg',      '이번주 별자리 운세'],
@@ -132,6 +142,16 @@ add_action( 'wp_head', function () {
       a = cards[i];
       if(a.getAttribute('data-freeimg-seen') === '1'){ continue; }
       h = tail(a.getAttribute('href'));
+      var hid = 0;
+      for(j = 0; j < HIDE.length; j++){
+        if(ends(h, HIDE[j])){
+          a.setAttribute('data-freehide', '1');
+          a.setAttribute('data-freeimg-seen', '1');
+          hid = 1;
+          break;
+        }
+      }
+      if(hid){ continue; }
       for(j = 0; j < MAP.length; j++){
         if(!ends(h, MAP[j][0])){ continue; }
         a.setAttribute('data-freeimg-seen', '1');
