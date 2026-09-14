@@ -97,12 +97,58 @@ add_action( 'wp_footer', function () {
     return n;
   }
 
+  /* ── 로그인 쪽 안내 ────────────────────────────────────
+     2026-09-14 · 소희 님
+       「그럼 로그인 페이지에 회원가입 안내도 있어야해」
+       「로그인에도 풀이 한판은 구슬3개 3000원입니다. 여는값이에요
+         안내 문구도 바꿔줘」
+     로그인 쪽에 「처음이신가요?」는 있는데, 가입 폼을 찾는 분께는
+     설명이 없습니다. 가입 절차가 없다는 것 자체를 말해드려야
+     헤매지 않습니다. 값도 여기서 한 번 알려드립니다. */
+  function loginNote(){
+    if(!ends(tail(location.pathname), '/login/')){ return 1; }
+    if(document.getElementById('joinNote')){ return 1; }
+
+    /* 「처음이신가요」가 적힌 자리를 찾습니다 */
+    var all = document.querySelectorAll('p, div, h2, h3'), i, host = null;
+    for(i = 0; i < all.length; i++){
+      if(String(all[i].textContent).indexOf('처음이신가요') < 0){ continue; }
+      if(all[i].children.length > 2){ continue; }   /* 큰 상자 말고 그 줄 */
+      host = all[i];
+    }
+    if(!host){ return 0; }
+
+    var box = document.createElement('div');
+    box.id = 'joinNote';
+    box.setAttribute('style',
+      'margin-top:14px;padding:16px 18px;border-radius:10px;'
+      + 'background:rgba(107,79,176,.08);border:1px solid rgba(107,79,176,.22);'
+      + 'font-size:.94rem;line-height:1.9;color:#4E4763;');
+    box.innerHTML =
+      '<b style="color:#221C33">가입 절차가 따로 없습니다.</b><br>'
+      + '문 하나를 고르고 생년월일시를 넣으시면 그 자리에서 계정이 '
+      + '만들어집니다. 비밀번호도 만들지 않으셔도 됩니다.'
+      + '<div style="margin-top:10px;padding-top:10px;'
+      + 'border-top:1px solid rgba(107,79,176,.18)">'
+      + '풀이 한 편은 <b style="color:#221C33">3구슬 · 3,000원</b>입니다. '
+      + '<b style="color:#C4453A">여는 기념 값</b>이고, 10월 31일까지예요. '
+      + '그 뒤에는 9구슬 · 9,000원이 됩니다.</div>'
+      + '<div style="margin-top:8px;color:#8B849C;font-size:.9rem">'
+      + '나의 사주풀이 · 타로 · 띠별운세 · 별자리운세 · 오늘의 운세는 '
+      + '값을 받지 않습니다.</div>';
+    if(host.nextSibling){ host.parentNode.insertBefore(box, host.nextSibling); }
+    else { host.parentNode.appendChild(box); }
+    return 1;
+  }
+
   run();
-  document.addEventListener('DOMContentLoaded', function(){ run(); });
+  loginNote();
+  document.addEventListener('DOMContentLoaded', function(){ run(); loginNote(); });
   var done = 0;
   var t2 = setInterval(function(){
     done++;
     run();
+    loginNote();
     if(done > 40){ clearInterval(t2); }
   }, 300);
 })();
