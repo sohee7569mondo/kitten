@@ -534,6 +534,7 @@ TAIL = u''';
        실제로 있는 쪽만 고릅니다.
      ★ ?nycard=1 로 몇 쪽을 살렸는지 볼 수 있습니다. */
   var CARDNAMES = [];
+  var CARDHTML = '';
   function cardPages(bk){
     var out=[], names=CARDNAMES, ps, i, p, h, t;
     names.length = 0;
@@ -707,7 +708,7 @@ TAIL = u''';
               '제 6 장','제 7 장','제 8 장','제 9 장','제 10 장','제 11 장'];
     /* 카드 장은 ⑨ 뒤 · ⑩(건네는 말) 앞에 놓습니다 — 배웅이 마지막이라야
        책이 제대로 닫힙니다. 그래서 ⑩ 은 「제 11 장」이 됩니다. */
-    var CARDHTML=cardChapter();
+    CARDHTML=cardChapter();
     var cardAt=CARDHTML ? 9 : -1;
     var mark=0;
     var i, j, blocks, b, html, tt;
@@ -863,10 +864,17 @@ TAIL = u''';
       if(t){ t.textContent=r.title; }
       var c=document.getElementById('bkN');
       if(c){ c.textContent=nAll+'쪽'; }
-      var lab=CARDNAMES.length ? (' [' + CARDNAMES.join(' / ') + ']') : '';
+      /* ★ 2026-09-14 · 띠 문구를 바로잡습니다.
+         「우리 열 장 22쪽」이라고 찍혀 헷갈렸습니다 — 그 22쪽 안에
+         카드 장이 이미 들어 있습니다. 무엇이 몇 쪽인지 나눠 찍습니다.
+         원본 카드 쪽 살리기는 살릴 것이 0쪽이라 (신년운세에는 원래
+         없습니다) 실제로 살렸을 때만 적습니다. */
+      var lab='';
+      if(keep.length){ lab=' + 원본에서 살린 쪽 '+keep.length+'쪽 ['+
+                            CARDNAMES.join(' / ')+']'; }
+      var cardMsg = CARDHTML ? '카드 장 있음' : '카드 장 없음 (카드를 안 뽑으셨습니다)';
       say('그렸습니다 · 갈래 '+r.sp+' × 십 년 '+r.dae+
-          ' · 우리 열 장 '+r.n+'쪽 + 원본에서 살린 카드 쪽 '+
-          keep.length+'쪽'+lab+' = 모두 '+nAll+'쪽');
+          ' · '+cardMsg+' · 우리 책 '+r.n+'쪽'+lab+' = 모두 '+nAll+'쪽');
       return;
     }catch(e){
       say('★ 멈췄습니다 — '+(e ? String(e.message||e) : '까닭 모름'));
