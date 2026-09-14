@@ -196,6 +196,11 @@ add_action( 'wp_head', function () {
   /* 한 장도 못 찾으면 그 자리 제목을 그대로 찍어 줍니다.
      그래야 왕복이 한 번에 끝납니다 (집 규칙 ⑤). */
   function note(pgs, stop){
+    /* ★ 2026-09-14 · 이 알림이 손님 화면에 그대로 떴습니다.
+       신년운세 책에는 자료 쪽이 **원래 없어서** 늘 「못 찾았습니다」가
+       나옵니다. 없는 것을 못 찾은 것은 탈이 아닙니다.
+       그래서 ?leadwhy=1 로 여실 때만 띄웁니다. */
+    if(!WHY){ return; }
     if(document.getElementById('stellaLeadWhy')){ return; }
     var names = [], i, t;
     for(i = 0; i < stop; i++){
