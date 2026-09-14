@@ -50,7 +50,13 @@ def md2html(block):
             txt = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', txt, flags=re.S)
             out.append("<blockquote class='nysay'>%s</blockquote>" % txt)
             continue
-        para = para.replace('\n', '<br>')
+        # ★ 2026-09-14 · 소희 님 : 「문단은 짧게 가지 말고 한 줄씩
+        #   갔으면 좋겠어」 — 보기로 주신 것 :
+        #     돈이 남아도 좋고,↵경력이 남아도 좋고,↵…    ← 쪼개짐
+        #     돈이 남아도 좋고, 경력이 남아도 좋고, …      ← 이것
+        #   원고에 줄을 나눠 적으셔도 책에서는 한 줄로 흐르게 합니다.
+        #   (인용구는 위에서 따로 다루므로 줄바꿈이 그대로 남습니다)
+        para = para.replace('\n', ' ')
         para = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', para, flags=re.S)
         para = re.sub(r'(?<!\*)\*([^*\n]+?)\*(?!\*)', r'<em>\1</em>', para)
         cls = ''
