@@ -435,6 +435,49 @@ add_action( 'wp_head', function () {
 
 TAIL = u''';
 
+  /* ── 덮기 전에 원본에서 「카드 쪽」을 골라 둡니다 ──────────
+     2026-09-14 · 소희 님 : 「비상… 신년운세에 카드 3장 고른거에 대한
+     내용이 안들어가」
+
+     우리 조각은 책 그릇을 통째로 갈아끼웁니다(bk.innerHTML). 그래서
+     원본이 그려 둔 카드 쪽이 같이 날아갑니다.
+     덮기 전에 카드 쪽만 떠서 우리 열 장 뒤에 도로 붙입니다.
+
+     ★ 원본에 카드 쪽이 없으면 아무 일도 안 일어납니다 — 위험이 없습니다.
+     ★ 「카드」라는 낱말만 보고 고르면 엉뚱한 쪽이 딸려옵니다. 그래서
+       제목(h2)에 카드·아르카나·타로가 있거나, 쪽 안에 카드 칸(.card)이
+       실제로 있는 쪽만 고릅니다.
+     ★ ?nycard=1 로 몇 쪽을 살렸는지 볼 수 있습니다. */
+  function cardPages(bk){
+    var out=[], ps, i, p, h, t;
+    try{ ps=bk.querySelectorAll('.page'); }catch(e){ return out; }
+    for(i=0;i<ps.length;i++){
+      p=ps[i];
+      t='';
+      h=p.querySelector('h2');
+      if(h){ t=String(h.textContent===undefined?'':h.textContent); }
+      var hit=false;
+      if(t.indexOf('카드')>=0){ hit=true; }
+      if(t.indexOf('아르카나')>=0){ hit=true; }
+      if(t.indexOf('타로')>=0){ hit=true; }
+      if(!hit){ if(p.querySelector('.cards')){ hit=true; } }
+      if(!hit){ continue; }
+      out.push(p.outerHTML);
+    }
+    return out;
+  }
+
+  /* 쪽번호를 다시 셉니다 — 뒤에 붙인 쪽이 옛 번호를 달고 있습니다 */
+  function refolio(bk){
+    var ps, i, f;
+    try{ ps=bk.querySelectorAll('.page'); }catch(e){ return 0; }
+    for(i=0;i<ps.length;i++){
+      f=ps[i].querySelector('.folio');
+      if(f){ f.textContent=two(i+1); }
+    }
+    return ps.length;
+  }
+
   /* ── 책 그리기 ──────────────────────────────────────── */
   function build(){
     var S=window.StellaSaju, R=window.StellaRead;
@@ -610,14 +653,27 @@ TAIL = u''';
           if(o){
             if(isMine(String(o.topic===undefined?'':o.topic))){
               if(String(bk.innerHTML).length>200){
+                var keep=cardPages(bk);
                 var r=build();
                 if(r){
-                  bk.innerHTML=r.html;
+                  bk.innerHTML=r.html+keep.join('');
                   bk.setAttribute('data-ny'+YEAR,'1');
+                  bk.setAttribute('data-nycard', String(keep.length));
+                  var nAll=refolio(bk);
                   var t=document.getElementById('bkTitle');
                   if(t){ t.textContent=r.title; }
                   var c=document.getElementById('bkN');
-                  if(c){ c.textContent=r.n+'쪽'; }
+                  if(c){ c.textContent=nAll+'쪽'; }
+                  if(location.search.indexOf('nycard=1')>=0){
+                    var d=document.createElement('div');
+                    d.setAttribute('style','margin:12px;padding:10px 14px;'+
+                      'border:2px solid #9E2B50;background:#fff;'+
+                      'font:13px/1.8 system-ui;color:#222;');
+                    d.textContent='NY'+YEAR+' · 우리 열 장 '+r.n+'쪽 + 원본 카드 쪽 '+
+                      keep.length+'쪽 = 모두 '+nAll+'쪽';
+                    var ssb=document.getElementById('ssb');
+                    if(ssb){ ssb.parentNode.insertBefore(d, ssb); }
+                  }
                   return;
                 }
               }
