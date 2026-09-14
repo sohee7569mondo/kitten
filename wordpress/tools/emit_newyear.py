@@ -49,6 +49,13 @@ def year_luck_names(doc):
         raise SystemExit('★ 이름표를 못 뽑았습니다: %s' % ', '.join(miss))
     return yn, ln, tn
 
+# ★ 2026-09-14 · 소희 님 「이거 수정안햇어」 — 파일은 고쳐져 있는데
+#   화면에는 옛 판이 돌고 있었습니다. 어느 판이 살아 있는지 눈으로
+#   확인할 수 있게 만든 시각을 조각에 찍습니다.
+#   화면에서 Ctrl+U 로 「stella 2026년 운세 · 판」 을 찾으면 보입니다.
+import datetime
+STAMP = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+
 YEAR = sys.argv[1] if len(sys.argv) > 1 else '2026'
 HERE = os.path.dirname(os.path.abspath(__file__))
 NY = io.open(os.path.join(HERE, 'NY%s.json' % YEAR), encoding='utf-8').read()
@@ -61,7 +68,7 @@ HEAD = u'''<?php
 /* ══════════════════════════════════════════════════════════
    %(Y)s년 운세 — 열 장짜리 별도 구조 책
                                         ★ 2026-09-14 · 소희 님께
-                                        판 NY%(Y)s-1
+                                        판 %(STAMP)s
 
    ── 무엇을 하나 ───────────────────────────────────────
    door-fortune 에서 「%(Y)s년 운세」를 고르면 우리 열 장이 나옵니다.
@@ -120,6 +127,7 @@ add_action( 'wp_head', function () {
 	   (쪽 슬러그는 워드프레스에서 직접 확인했습니다 — id 160) */
 	if ( ! is_page( 'reading-book' ) ) { return; }
 	?>
+<!-- stella %(Y)s년 운세 · 판 %(STAMP)s -->
 <style>
 #ssb .keepline{ font-weight:600; }
 #ssb .mini{ font-size:.86rem; color:#6a6a78; }
@@ -641,7 +649,8 @@ def _jstable(d):
 
 
 head = HEAD % {'Y': YEAR, 'YE': YEAR_EL, 'YG': YEAR_GAN,
-               'YN': _jstable(_YN), 'LN': _jstable(_LN), 'TN': _jstable(_TN)}
+               'YN': _jstable(_YN), 'LN': _jstable(_LN), 'TN': _jstable(_TN),
+               'STAMP': STAMP}
 out = head + NY + TAIL
 path = os.path.join(HERE, '..', 'php', 'patch160_ny%s.WPCODE.txt' % YEAR)
 io.open(path, 'w', encoding='utf-8').write(out)
