@@ -47,6 +47,20 @@
       · 동물 자리의 이모지를 띠 그림 열두 장으로 갈아끼웁니다
       · 관계 딱지를 넷으로 색을 갈라 줍니다
       · 딱지의 한자말을 쉬운 말로 바꿉니다
+      · 열두 칸 위에 「이번주는 어떤 사이인가」 안내를 놓습니다
+        (2026-09-14 · 소희 님 : 「삼합(띠 셋이 한편이 되는 것) —
+         이렇게 넣으면 어때?」 좋은 생각입니다. 다만 두 가지를
+         바로잡았습니다 —
+         ① 육합과 충은 해마다 바뀌는 것이 아니라 **고정된 짝**입니다.
+            쥐-소 · 범-돼지 · 토끼-개 · 용-닭 · 뱀-원숭이 · 말-양 (육합)
+            쥐-말 · 소-양 · 범-원숭이 · 용-개 · 뱀-돼지 · 토끼-닭 (충)
+            「2026년엔 토끼-개, 말-양」이라 쓰면 올해만 그런 것처럼
+            읽힙니다.
+         ② 이 쪽은 **이번주** 운세입니다. 카드 딱지가 이번주 기운
+            기준이라 「2026년엔」이라고 쓰면 카드와 어긋납니다.
+            삼재는 해 단위, 카드는 주 단위예요.
+         ★ 그리고 제가 다시 세지 않습니다. **카드가 이미 붙여둔
+           딱지를 읽어** 목록을 만듭니다. 두 번 세면 언젠가 어긋납니다.)
       · 칸에 생년이 있는데 강조가 없으면 「내 띠 찾기」를 눌러줍니다
       · 그것도 비었으면 로그인하신 분의 생년월일로 채워 눌러줍니다
         (브라우저를 바꾸면 저장값이 없어 강조가 안 되던 것을 메웁니다)
@@ -80,6 +94,18 @@ add_action( 'wp_footer', function () {
 #ssp .asym img{
   width:100%; height:100%; display:block;
   object-fit:cover; border-radius:50%; }
+
+/* ⑤ 이번주는 어떤 사이인가 — 열두 칸 위 안내 */
+#relBox{ margin:30px 0 6px; padding:18px 0; text-align:left;
+  border-top:1px solid rgba(128,128,128,.28);
+  border-bottom:1px solid rgba(128,128,128,.28); }
+#relBox h3{ margin:0 0 12px; font-size:1.02rem; font-weight:700; }
+#relBox .rb{ display:flex; gap:11px; align-items:baseline;
+  padding:7px 0; flex-wrap:wrap; }
+#relBox .rb .k{ flex:0 0 auto; }
+#relBox .rb .who{ font-weight:700; }
+#relBox .rb .why{ font-size:.9rem; opacity:.72; flex:1 1 16em;
+  min-width:12em; line-height:1.75; }
 
 /* ③ 관계 딱지 — 넷으로 색을 가릅니다 */
 #ssp .arel{
@@ -255,6 +281,99 @@ add_action( 'wp_footer', function () {
     btn.click();
   }
 
+  /* ⑤ 이번주는 어떤 사이인가 — 카드가 붙여둔 딱지를 읽어 모읍니다.
+     제가 다시 세지 않습니다. 두 번 세면 언젠가 어긋납니다. */
+  /* 갈래별 풀이. 비화(같은 기운)는 삼합과 색은 같아도 뜻이 다르므로
+     딱지 글로 먼저 찾고, 없으면 갈래로 물러납니다. */
+  var WHY_TAG = {
+    '같은 기운': '이번주 기운이 이 띠와 **같은 결**로 들어옵니다. 힘이 두 배로 '
+        + '실리는 대신 고집도 같이 세집니다. 밀어붙일 일이 있다면 이번주예요.'
+  };
+  var WHY = {
+    '합': '띠 셋이 **한편**이 되는 자리예요. 혼자 하던 일에 사람이 붙고, '
+        + '부탁이 잘 통합니다.',
+    '짝': '둘이 **짝**을 이루는 자리입니다. 크게 뻗기보다 안으로 단단해져요. '
+        + '미뤄둔 정리와 재계약에 좋습니다.',
+    '충': '정면으로 **부딪히는** 자리예요. 붙어 있던 것이 떨어지고 미뤄둔 것이 '
+        + '터져 나옵니다. 이동과 정리에는 오히려 힘이 실립니다.',
+    '해': '살짝 **어긋나는** 자리입니다. 크게 무너지진 않는데 말이 헛돌고 '
+        + '일정이 밀립니다. 약속은 한 번 더 확인하세요.',
+    '무': '이번주 기운과 특별히 얽히지 않습니다. 내가 정한 속도로 가기 좋아요.'
+  };
+  var ORDER = ['합', '짝', '충', '해', '무'];
+
+  function whyOf(tag, k){
+    if(WHY_TAG[tag]){ return WHY_TAG[tag]; }
+    return WHY[k] ? WHY[k] : '';
+  }
+
+  /* 굵게 — 별표 두 개로 감싼 곳만 */
+  function bold(t){
+    var bits = String(t).split('**');
+    var out = '', i;
+    for(i = 0; i < bits.length; i++){
+      out += (i % 2) ? ('<b>' + bits[i] + '</b>') : bits[i];
+    }
+    return out;
+  }
+
+  function relBox(){
+    if(document.getElementById('relBox')){ return; }
+    var grid = document.getElementById('zGrid');
+    if(!grid){ return; }
+    var cards = grid.querySelectorAll('.acard[data-z]');
+    if(cards.length < 12){ return; }
+
+    /* 딱지 **글**로 모읍니다. 갈래(색)로 모으면 「같은 기운」과
+       「손이 맞는 주」가 한 줄로 묶여버립니다 — 색은 같아도 뜻이
+       다릅니다 (2026-09-14 에 검사에서 잡았습니다). */
+    var bag = {}, keys = [], i, z, el, k, tag, name;
+    for(i = 0; i < cards.length; i++){
+      el = cards[i].querySelector('.arel');
+      if(!el){ continue; }
+      k = el.getAttribute('data-rel');
+      if(!k){ continue; }
+      tag = String(el.textContent);
+      z = parseInt(cards[i].getAttribute('data-z'), 10);
+      if(isNaN(z)){ continue; }
+      if(!bag[tag]){ bag[tag] = { rel: k, who: [] }; keys.push(tag); }
+      bag[tag].who.push(ANIMAL[z] + '띠');
+    }
+
+    /* 합 → 짝 → 충 → 해 → 잔잔 차례로, 같은 갈래는 나온 차례로 */
+    var sorted = [], oi, ki;
+    for(oi = 0; oi < ORDER.length; oi++){
+      for(ki = 0; ki < keys.length; ki++){
+        if(bag[keys[ki]].rel === ORDER[oi]){ sorted.push(keys[ki]); }
+      }
+    }
+
+    var h = '<h3>이번주 기운과 열두 띠는 이런 사이입니다</h3>';
+    var got = 0;
+    for(i = 0; i < sorted.length; i++){
+      tag = sorted[i];
+      k = bag[tag].rel;
+      if(k === '무'){
+        name = (bag[tag].who.length > 6) ? '나머지 띠' : bag[tag].who.join(' · ');
+      } else {
+        name = bag[tag].who.join(' · ');
+      }
+      h += '<div class="rb">'
+        + '<span class="k"><span class="arel" data-rel="' + k + '">'
+        + tag + '</span></span>'
+        + '<span class="who">' + name + '</span>'
+        + '<span class="why">' + bold(whyOf(tag, k)) + '</span>'
+        + '</div>';
+      got++;
+    }
+    if(got === 0){ return; }
+
+    var box = document.createElement('div');
+    box.id = 'relBox';
+    box.innerHTML = h;
+    grid.parentNode.insertBefore(box, grid);
+  }
+
   function run(){
     var grid = document.getElementById('zGrid');
     if(!grid){ return 0; }
@@ -262,6 +381,7 @@ add_action( 'wp_footer', function () {
     pics();
     tidy();
     plain();
+    relBox();
     findMine();
     return 1;
   }

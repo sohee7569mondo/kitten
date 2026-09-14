@@ -107,6 +107,22 @@ console.log('  본문 — 닭띠     : ' + w.document.querySelector('#zc9 .atext
 console.log('  본문 — 개띠     : ' + w.document.querySelector('#zc10 .atext').textContent);
 
 console.log('');
+console.log('=== ③-2 열두 칸 위 안내');
+var rb = w.document.getElementById('relBox');
+if(!rb){ console.log('  ★ 안 나옴'); }
+else {
+  console.log('  ' + rb.querySelector('h3').textContent);
+  var rows = rb.querySelectorAll('.rb');
+  for(var r = 0; r < rows.length; r++){
+    console.log('   [' + rows[r].querySelector('.arel').textContent + '] '
+      + rows[r].querySelector('.who').textContent);
+    console.log('      ' + rows[r].querySelector('.why').textContent.slice(0, 52) + ' …');
+  }
+  console.log('  자리 : ' + (rb.nextElementSibling === w.document.getElementById('zGrid')
+    ? '열두 칸 바로 위 ok' : '★ 엉뚱한 자리'));
+}
+
+console.log('');
 console.log('=== ④ 안 들어오신 분 — 그림만 바뀌고 강조는 없어야 합니다');
 var w2 = make(null);
 console.log('  그림 : ' + w2.document.querySelectorAll('#ssp .asym img').length + '장');
