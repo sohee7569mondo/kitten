@@ -316,6 +316,8 @@ add_action( 'wp_head', function () {
     if(LN){ t = t.split('{대운이름}').join(LN); }
     if(TN){ t = t.split('{대운십년}').join(TN); }
     t = t.split('{연도}').join(String(YEAR));
+    t = t.split('{다음해}').join(String(YEAR + 1));
+    t = t.split('{지난해}').join(String(YEAR - 1));
     t = t.split('{간지}').join(GANJI);
     t = t.split('{올해오행}').join(ELNAME);
     return t;
