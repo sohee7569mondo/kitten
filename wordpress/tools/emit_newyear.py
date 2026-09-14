@@ -120,18 +120,37 @@ add_action( 'wp_head', function () {
     return String(s===undefined?'':s).split('<').join('').split('>').join('');
   }
   function two(x){ return (x<10?'0':'')+x; }
-  function fill(s, nm){ return String(s).split('{이름}').join(nm); }
+  /* 이름이 비면 「님」까지 같이 걷어내고 「당신」으로 바꿉니다.
+     — 그냥 비워두면 「님의 2026년 운세」가 되고,
+       '손님' 을 넣으면 「손님님」이 됩니다. */
+  function fill(s, nm){
+    var t=String(s);
+    if(!nm){ return t.split('{이름}님').join('당신').split('{이름}').join('당신'); }
+    return t.split('{이름}').join(nm);
+  }
 
-  /* ── 성을 떼고 이름만 부릅니다 ─────────────────────────
+  /* ── 손님을 무엇이라 부를까 ────────────────────────────
      2026-09-14 · 소희 님 : 「우린 이소희라고 안 부르고 소희님이라고
      부르기로 했어. 성까지 부르면 너무 딱딱해보여」
-     ★ 두 글자 성(남궁·선우·황보…)도 봅니다.
-     ★ 외자 이름(김솔)은 성을 떼면 한 글자만 남아 어색하니 그대로 둡니다. */
-  var SURNAME2=['남궁','선우','황보','제갈','사공','서문','독고','동방','司馬'];
-  function callName(raw){
-    var v=String(raw===undefined?'':raw).split(' ').join('');
-    if(!v){ return '손님'; }
-    if(!/^[가-힣]+$/.test(v)){ return v; }      /* 한글 이름만 자릅니다 */
+     그리고 : 「입력폼을 성 따로 이름 따로 넣기로 했었어」
+
+     ★ 폼이 성·이름을 따로 주면 그것을 그대로 씁니다 — 추측이 없습니다.
+       남궁민수도 Sohee Lee 도 폼이 갈라준 대로 부릅니다.
+     ★ 아직 한 칸으로만 오는 폼(gName)도 있으니, 그때만 뒤로 물러나
+       한글 세 글자 이상이면 성을 뗍니다.
+     ── 폼이 쓸 수 있는 이름을 두루 봅니다 ───────────────── */
+  function firstOf(pr){
+    var K=['firstName','first_name','given','givenName','gFirst',
+           'name1','nameFirst','이름'];
+    var i, v;
+    for(i=0;i<K.length;i++){
+      v=pr[K[i]];
+      if(v){ v=String(v).split(' ').join(''); if(v){ return v; } }
+    }
+    return '';
+  }
+  var SURNAME2=['남궁','선우','황보','제갈','사공','서문','독고','동방'];
+  function cutSurname(v){
     var i;
     for(i=0;i<SURNAME2.length;i++){
       if(v.indexOf(SURNAME2[i])===0){
@@ -139,8 +158,32 @@ add_action( 'wp_head', function () {
         return v;
       }
     }
-    if(v.length>=3){ return v.slice(1); }       /* 이소희 → 소희 */
-    return v;                                    /* 김솔 두 글자는 그대로 */
+    if(v.length>=3){ return v.slice(1); }   /* 이소희 → 소희 */
+    return v;                                /* 김솔 두 글자는 그대로 */
+  }
+  function isHangul(v){
+    var i, c;
+    for(i=0;i<v.length;i++){
+      c=v.charCodeAt(i);
+      if(c<44032){ return false; }
+      if(c>55203){ return false; }
+    }
+    return v.length>0;
+  }
+  /* 한 칸 폼에 외국 이름이 오면 앞 토막만 씁니다 — Sohee Lee → Sohee */
+  function headWord(v){
+    var a=String(v).split(' '), i;
+    for(i=0;i<a.length;i++){ if(a[i]){ return a[i]; } }
+    return '';
+  }
+  function callName(pr){
+    var f=firstOf(pr);
+    if(f){ return f; }                       /* 폼이 갈라줬으면 그대로 */
+    var raw=String(pr.name===undefined?'':pr.name);
+    var v=raw.split(' ').join('');
+    if(!v){ return ''; }                     /* 이름이 없으면 빈 채로 */
+    if(!isHangul(v)){ return headWord(raw); }
+    return cutSurname(v);
   }
 
   function isMine(tp){
@@ -234,7 +277,7 @@ TAIL = u''';
     if(!DAE){ DAE=SP; }
 
     var WANT={ move:SP, dae:DAE, power:powerOf(chart), rel:relOf(SP, DAE) };
-    var nm=esc(callName(pr.name));
+    var nm=esc(callName(pr));
 
     var pages=[], n=0;
     function page(html, part){
@@ -298,7 +341,7 @@ TAIL = u''';
 
     if(n===0){ return null; }
     return { html:pages.join(''), n:n,
-             title:nm+'님의 '+YEAR+'년 운세',
+             title:(nm?nm+'님의 ':'당신의 ')+YEAR+'년 운세',
              sp:SP, dae:DAE };
   }
 

@@ -14,6 +14,10 @@
 import re, json, os, io, sys
 
 SRC = '/home/user/kitten/wordpress/drafts'
+# 2026-09-14 · 결과는 어디서 돌리든 이 도구 옆에 씁니다.
+#   그전에는 현재 폴더에 써서, 저장소 뿌리에서 돌리면 NY2026.json 이
+#   엉뚱한 데 떨어지고 emit 은 옛 파일을 읽었습니다 (⑩ 제목이 안 바뀜).
+HERE = os.path.dirname(os.path.abspath(__file__))
 FIVE = ['비겁', '식상', '재성', '관성', '인성']
 DAE = {'나를 세우는 십 년': '비겁', '밖으로 펼치는 십 년': '식상',
        '거두고 쌓는 십 년': '재성', '자리를 만드는 십 년': '관성',
@@ -181,5 +185,5 @@ if __name__ == '__main__':
         for b in bs: kinds[b['kind']] = kinds.get(b['kind'], 0) + 1
         miss = [b['t'] for b in bs if b['kind'] in ('branch', 'pick') and not b.get('key')]
         print('%-4s %-34s %s%s' % (no, f[9:24], kinds, ('  ★ 열쇠 없음: ' + str(miss[:3])) if miss else ''))
-    io.open('NY%s.json' % year, 'w', encoding='utf-8').write(json.dumps(doc, ensure_ascii=False))
+    io.open(os.path.join(HERE, 'NY%s.json' % year), 'w', encoding='utf-8').write(json.dumps(doc, ensure_ascii=False))
     print('\nNY%s.json 썼습니다 (%d 장)' % (year, len(doc)))
