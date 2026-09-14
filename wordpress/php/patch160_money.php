@@ -126,6 +126,14 @@ tr:last-child td{border-bottom:0;}
 			foreach ( $hide as $w ) {
 				if ( false !== strpos( $k, $w ) ) { $secret = true; }
 			}
+			/* 숫자나 참·거짓은 비밀이 아닙니다 — 열쇠는 늘 긴 글자입니다.
+			   STELLA_PW_MIN 이 8 인데 「8●●●●●●●● (1자)」로 나와
+			   헷갈렸습니다 (2026-09-14). */
+			if ( is_int( $v ) )  { $secret = false; }
+			if ( is_bool( $v ) ) { $secret = false; }
+			if ( is_string( $v ) ) {
+				if ( mb_strlen( $v ) < 12 ) { $secret = false; }
+			}
 			if ( $secret ) {
 				$t = (string) $v;
 				if ( '' === $t ) {
