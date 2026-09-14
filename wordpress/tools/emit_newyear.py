@@ -660,12 +660,64 @@ TAIL = u''';
       return v;
     }
 
+    /* ── 뽑으신 카드 세 장 ──────────────────────────────────
+       2026-09-14 · 소희 님 : 「비상… 신년운세에 카드 3장 고른거에
+       대한 내용이 안들어가」 · 「내용도 안보이고 표지도 없어」
+
+       관리자 띠가 「원본에서 살린 카드 쪽 0쪽」이라고 말해 주었습니다.
+       원본 신년운세 책에는 카드 대목이 **아예 없었습니다** — 카드
+       세 꼭지는 door-tarot 안에만 있습니다. 덮여서 사라진 것이
+       아니라 처음부터 없었던 것입니다. 그래서 새로 만듭니다.
+
+       ★ 카드 표를 다시 적지 않습니다. 책이 window.StellaTarot 로
+         일흔여덟 장을 이미 내놓고 있습니다 (메이저 스물둘 + 마이너
+         쉰여섯). 카드마다 now · over · then 세 가지 풀이가 다 있습니다.
+       ★ 자리마다 읽는 법이 다릅니다 (책 주석 그대로) —
+           I 지금 서 있는 자리 · II 넘어야 할 것 · III 그 너머
+       ★ 카드를 안 뽑으셨으면 이 장을 아예 안 만듭니다. */
+    function cardChapter(){
+      var T=window.StellaTarot;
+      if(!T){ return ''; }
+      var pick=read('stella_cards');
+      if(!(pick instanceof Array)){ return ''; }
+      if(pick.length<3){ return ''; }
+      var SEAT=[['I','지금 서 있는 자리','now'],
+                ['II','넘어야 할 것','over'],
+                ['III','그 너머','then']];
+      var h='<p class="keepline">사주가 한 해의 결을 말한다면, 카드는 '+
+            '지금 이 순간의 자리를 말합니다.</p>'+
+            '<p>질문 화면에서 세 장을 뽑으셨습니다. 앞의 열 장을 뒤집는 것이 '+
+            '아니라, 같은 해를 어떤 마음으로 지날지를 덧붙입니다.</p>';
+      var i, c, seat;
+      for(i=0;i<3;i++){
+        c=T[pick[i]];
+        if(!c){ continue; }
+        seat=SEAT[i];
+        h+='<h3>'+seat[0]+' · '+seat[1]+' — 「'+esc(c.ko)+'」</h3>';
+        h+='<p>'+esc(c[seat[2]])+'</p>';
+      }
+      h+='<blockquote class="nysay"><strong>카드는 올해를 정해주지 않습니다. '+
+         '다만 지금 어디에 서 있는지를 소리 내어 말해 줍니다.</strong></blockquote>';
+      h+='<p class="keepline">미르</p>';
+      return h;
+    }
+
     var NOS=['01','02','03','04','05','06','07','08','09','10'];
     var MARK=['제 1 장','제 2 장','제 3 장','제 4 장','제 5 장',
-              '제 6 장','제 7 장','제 8 장','제 9 장','제 10 장'];
+              '제 6 장','제 7 장','제 8 장','제 9 장','제 10 장','제 11 장'];
+    /* 카드 장은 ⑨ 뒤 · ⑩(건네는 말) 앞에 놓습니다 — 배웅이 마지막이라야
+       책이 제대로 닫힙니다. 그래서 ⑩ 은 「제 11 장」이 됩니다. */
+    var CARDHTML=cardChapter();
+    var cardAt=CARDHTML ? 9 : -1;
+    var mark=0;
     var i, j, blocks, b, html, tt;
 
     for(i=0;i<NOS.length;i++){
+      if(i===cardAt){
+        pages.push(sheet(MARK[mark], '카드가 말하는 것', 'two'));
+        mark++;
+        page(CARDHTML, 'two');
+      }
       blocks=NY[NOS[i]];
       if(!blocks){ continue; }
       /* 장 표지 한 쪽을 먼저 놓습니다 */
@@ -674,7 +726,7 @@ TAIL = u''';
         if(blocks[j].kind==='title'){ ct=bare(blocks[j].t); break; }
       }
       var hadSheet=false;
-      if(ct){ pages.push(sheet(MARK[i], fill(ct, nm), (i<4?'one':'two'))); hadSheet=true; }
+      if(ct){ pages.push(sheet(MARK[mark], fill(ct, nm), (i<4?'one':'two'))); mark++; hadSheet=true; }
       html='';
       for(j=0;j<blocks.length;j++){
         b=blocks[j];
