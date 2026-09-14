@@ -89,6 +89,11 @@ add_action( 'wp_head', function () {
     margin-left:0 !important; margin-right:0 !important;
     padding-left:0 !important; padding-right:0 !important;
   }
+  /* 장 속표지는 가운데 정렬이라 위 못에서 빼 줍니다 (2026-09-14) */
+  #ssb .book[data-family="1"] > .page.divider > *{
+    margin-left:auto !important; margin-right:auto !important; }
+  #ssb .book[data-family="1"] > .page.divider > h2,
+  #ssb .book[data-family="1"] > .page.divider > p{ text-align:center !important; }
   #ssb .book[data-family="1"] > .page > h2,
   #ssb .book[data-family="1"] > .page > h3,
   #ssb .book[data-family="1"] > .page > p{ text-align:left; }

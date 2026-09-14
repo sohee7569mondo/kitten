@@ -72,6 +72,32 @@ add_action( 'wp_head', function () {
 #ssb .hcount{ font-family:IBM Plex Mono,monospace; font-size:.72rem; letter-spacing:.06em;
   color:#7a7a8c; margin:-6px 0 10px; }
 #ssb .mini{ font-size:.86rem; color:#6a6a78; }
+
+/* ── 쪽 폭 울타리 ──────────────────────────────────────────
+   2026-09-14 · 소희 님 : 「중간에 폭이 달라짐」
+   책(.book)은 display:flex · flex-direction:column 입니다.
+   WIDTH-7 은 쪽을 width:auto + margin-left/right:auto 로 가운데
+   놓는데, flex 안에서 좌우 margin 이 auto 면 stretch 가 꺼집니다.
+   그래서 글이 짧은 쪽은 글 길이만큼 줄어들고 가운데로 몰립니다
+   (신년운세 책에서 239px ~ 780px 까지 제각각인 것을 재서 잡았습니다).
+   auto margin 을 0 으로 눌러 stretch 를 살립니다.
+   ★ 앞에 #ssb 를 꼭 붙입니다 — WIDTH-7 이 #ssb .page 로 걸어서
+     그게 없으면 힘이 모자라 집니다. 가족운 책과 같은 꼴입니다. */
+@media screen{
+  #ssb .book[data-health4="1"] > .page,
+  #ssb [data-health4="1"] > .page{
+    margin-left:0 !important; margin-right:0 !important;
+    padding-left:0 !important; padding-right:0 !important;
+    max-width:none !important; width:auto !important; }
+  #ssb .book[data-health4="1"] > .page > *,
+  #ssb [data-health4="1"] > .page > *{
+    padding-left:0 !important; padding-right:0 !important;
+    margin-left:0 !important; margin-right:0 !important;
+    max-width:none !important; }
+  #ssb .book[data-health4="1"] > .page.divider > *,
+  #ssb [data-health4="1"] > .page.divider > *{
+    margin-left:auto !important; margin-right:auto !important; }
+}
 </style>
 <script>
 /* ═══ 건강운 열 장 (HEALTH-4) ═══
