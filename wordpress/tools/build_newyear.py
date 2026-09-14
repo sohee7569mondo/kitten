@@ -267,6 +267,22 @@ if __name__ == '__main__':
         no = f.split('-')[1]
         bs = parse(f)
         doc[no] = bs
+        # ── 올해이름 표 — ①장의 갈래 제목에서 「 」 안을 떠옵니다 ──────
+        #   2026-09-14 · 소희 님이 ①장을 다시 쓰시면서 제목이
+        #   「{이름}님의 2026년은 「채우고 다음을 준비하는 해」입니다」로
+        #   바뀌었습니다. emit 이 「비겁 · …」 꼴만 읽고 있어서 이름표를
+        #   못 뽑게 됐습니다. 원고가 또 바뀌어도 안 깨지도록,
+        #   갈래를 아는 쪽(여기)이 제목 속 「 」 를 떠서 적어 둡니다.
+        if no == '01':
+            yn = {}
+            for b in bs:
+                if b['kind'] != 'group':
+                    continue
+                m2 = re.search(u'\u300c(.+?)\u300d', str(b.get('t') or ''))
+                if m2 and b['key'] not in yn:
+                    yn[b['key']] = m2.group(1)
+            if yn:
+                doc['_names']['year'] = yn
         kinds = {}
         for b in bs: kinds[b['kind']] = kinds.get(b['kind'], 0) + 1
         miss = [b['t'] for b in bs if b['kind'] in ('branch', 'pick') and not b.get('key')]
