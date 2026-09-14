@@ -2,6 +2,7 @@
 """건강운 원고(.md) -> WPCode 조각용 JS 표. 두 층(### / ######)을 살립니다."""
 import re, json, os, io
 SRC='/home/user/kitten/wordpress/drafts'
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 def inline(p):
     p = p.replace('\n','<br>')
@@ -201,7 +202,7 @@ for no,title,fn,tre in CH:
     book[no]={'t':title,'t2':bare,'A':A,'g':groups}
 
 js=json.dumps({'book':book},ensure_ascii=False,separators=(',',':'))
-io.open('H.json','w',encoding='utf-8').write(js)
+io.open(os.path.join(HERE, 'H.json'),'w',encoding='utf-8').write(js)
 print()
 for no,_,_,_ in CH:
     e=book[no]

@@ -286,6 +286,27 @@ add_action( 'wp_head', function () {
     function head(no, title){
       return '<p class="hmark">'+no+'</p><h2>'+title+'</h2>';
     }
+    /* ── 장 속표지 ────────────────────────────────────────
+       2026-09-14 · 소희 님 : 「모든 책엔 안에 장 표지가 있어야 해」
+       patch160_divider · patch160_dvbig 이 만든 틀을 그대로 씁니다.
+       클래스 이름이 같으면 책에 이미 얹혀 있는 CSS 가 그대로 먹어서
+       새 CSS 를 한 줄도 안 만들어도 다른 책과 모양이 같아집니다. */
+    var GUARDIAN='아람';
+    var DOORALT='건강운';
+    var DOORIMG='https://i0.wp.com/stellasaju.com/wp-content/uploads/'
+               +'2026/09/STELLASAJU_HEALTH-CAR.jpg?resize=264%2C264';
+    function sheet(no, title, part){
+      n++;
+      var attr=part?' data-part="'+part+'"':'';
+      pages.push('<div class="page divider"'+attr+'>'+
+        '<div class="dvmark"><img loading="lazy" decoding="async" '+
+        'alt="'+DOORALT+'" src="'+DOORIMG+'"></div>'+
+        '<p class="dvwho">'+GUARDIAN+'</p>'+
+        '<p class="dvno dvch">'+no+'</p>'+
+        '<h2>'+title+'</h2>'+
+        '<div class="dvrule"></div>'+
+        '<div class="folio">'+two(n)+'</div></div>');
+    }
 
     page('<div class="mark">STELLA SAJU</div>'+
          '<h1>'+nm+'님의<br>몸과 건강</h1>'+
@@ -389,7 +410,9 @@ add_action( 'wp_head', function () {
         h=h.split('{생활에서 먼저 나타나는 반응}').join(say.r);
       }
 
-      page(head(MARK[ci], e.t2)+h, null, (ci<4?'one':'two'));
+      /* 장 표지를 먼저 한 쪽 (소희 님: 「모든 책엔 안에 장 표지가 있어야 해」) */
+      sheet(MARK[ci], e.t2, (ci<4?'one':'two'));
+      page(h, null, (ci<4?'one':'two'));
     }
 
     return { html:pages.join(''), n:n, title:nm+'님의 몸과 건강' };

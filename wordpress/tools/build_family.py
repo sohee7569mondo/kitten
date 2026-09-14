@@ -3,6 +3,7 @@
 import re, json, os, io
 
 SRC = '/home/user/kitten/wordpress/drafts'
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 def md2html(block):
     """문단 덩어리를 <p>..</p> 로. **굵게** -> <strong>, 「」 그대로."""
@@ -143,7 +144,7 @@ for t,h in sections(ls):
 
 out = {'open':open_, 'book':book, 'lens':lens}
 js = json.dumps(out, ensure_ascii=False, separators=(',',':'))
-io.open('/tmp/claude-0/-home-user-kitten/c2a43b1d-0c4f-566e-ae2a-79f351d35055/scratchpad/fam/F.json','w',encoding='utf-8').write(js)
+io.open(os.path.join(HERE, 'F.json'),'w',encoding='utf-8').write(js)
 
 print('여는글 말상자', len(voice), '· 장안내', len(guide))
 print('십성', len(lens), '개:', ' '.join(sorted(lens)))

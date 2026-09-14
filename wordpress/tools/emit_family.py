@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import io, json
-F = io.open('F.json', encoding='utf-8').read()
+import io, json, os
+HERE = os.path.dirname(os.path.abspath(__file__))
+F = io.open(os.path.join(HERE, 'F.json'), encoding='utf-8').read()
 
 HEAD = u'''/* ══════════════════════════════════════════════════════════
    가족운 — 열 장짜리 별도 구조 책
@@ -214,6 +215,27 @@ TAIL = u''';
     function head(no, title){
       return '<p class="hmark">'+no+'</p><h2>'+title+'</h2>';
     }
+    /* ── 장 속표지 ────────────────────────────────────────
+       2026-09-14 · 소희 님 : 「모든 책엔 안에 장 표지가 있어야 해」
+       patch160_divider · patch160_dvbig 이 만든 틀을 그대로 씁니다.
+       클래스 이름이 같으면 책에 이미 얹혀 있는 CSS 가 그대로 먹어서
+       새 CSS 를 한 줄도 안 만들어도 다른 책과 모양이 같아집니다. */
+    var GUARDIAN='아람';
+    var DOORALT='가족운';
+    var DOORIMG='https://i0.wp.com/stellasaju.com/wp-content/uploads/'
+               +'2026/09/STELLASAJU_family.jpg?resize=264%2C264';
+    function sheet(no, title, part){
+      n++;
+      var attr=part?' data-part="'+part+'"':'';
+      pages.push('<div class="page divider"'+attr+'>'+
+        '<div class="dvmark"><img loading="lazy" decoding="async" '+
+        'alt="'+DOORALT+'" src="'+DOORIMG+'"></div>'+
+        '<p class="dvwho">'+GUARDIAN+'</p>'+
+        '<p class="dvno dvch">'+no+'</p>'+
+        '<h2>'+title+'</h2>'+
+        '<div class="dvrule"></div>'+
+        '<div class="folio">'+two(n)+'</div></div>');
+    }
 
     /* ── 표지 ── */
     page('<div class="mark">STELLA SAJU</div>'+
@@ -275,8 +297,10 @@ TAIL = u''';
         var ah=String(a.h).split('★ ').join('');
         h+='<h3>'+ah+'</h3>'+fill(a.b, nm);
       }
-      page(head(MARK[i3], e.t2)+h,
-           null, (i3<4?'one':'two'));
+      /* 장 표지를 먼저 한 쪽 놓고, 본문은 제목 없이 이어갑니다 —
+         표지가 「제 N 장 · 제목」을 이미 말했으므로 두 번 쓰지 않습니다 */
+      sheet(MARK[i3], e.t2, (i3<4?'one':'two'));
+      page(h, null, (i3<4?'one':'two'));
     }
 
     return { html:pages.join(''), n:n,
