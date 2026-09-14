@@ -79,14 +79,16 @@ add_action( 'wp_head', function () {
   if(window.StellaLead){ return; }
   window.StellaLead = 1;
 
-  /* 뒤로 보낼 여섯 쪽 — 제목을 공백 떼고 견줍니다 */
+  /* 뒤로 보낼 쪽 — 제목에 **들어 있으면** 잡습니다.
+     2026-09-14 · 처음에는 제목이 똑같아야 잡게 했다가 하나도 못
+     찾았습니다. 살아 있는 책은 제목에 이름이 붙습니다
+     (「이소희님의 여덟 글자」처럼). 그래서 조각으로 견줍니다. */
   var BACK = [
-    '시각을먼저바로잡습니다',
-    '여덟글자',
+    '바로잡',        /* 시각을 먼저 바로잡습니다 */
+    '여덟글자',      /* 여덟 글자 · 여덟 글자가 서로 부딪히는 자리 */
     '기운의저울',
-    '십년마다바뀌는판',
-    '태어나던밤의하늘',
-    '여덟글자가서로부딪히는자리'
+    '십년마다',      /* 십 년마다 바뀌는 판 */
+    '태어나던밤'     /* 태어나던 밤의 하늘 */
   ];
 
   var WHY = (location.search.indexOf('leadwhy=1') > -1);
@@ -115,9 +117,23 @@ add_action( 'wp_head', function () {
     if(!t){ return false; }
     var i;
     for(i = 0; i < BACK.length; i++){
-      if(t === BACK[i]){ return true; }
+      if(t.indexOf(BACK[i]) > -1){ return true; }
     }
     return false;
+  }
+
+  /* 어디까지가 「자료」인가 — 1부가 시작하는 쪽(class 에 turn)이
+     경계입니다. 책에 「여기까지가 기본 풀이였습니다」 띠가 붙는 그 쪽이에요.
+     그 뒤는 풀이라 조각으로 견주다 잘못 옮길 일이 없습니다. */
+  function edge(pgs){
+    var i;
+    for(i = 0; i < pgs.length; i++){
+      if(pgs[i].className.indexOf('turn') > -1){ return i; }
+    }
+    for(i = 0; i < pgs.length; i++){
+      if(eyebrow(pgs[i]).indexOf('1부') > -1){ return i; }
+    }
+    return pgs.length;
   }
 
   /* 맺음말이 시작하는 자리 — 자료를 그 바로 앞에 놓습니다 */
@@ -177,6 +193,25 @@ add_action( 'wp_head', function () {
       '［옮기기 전］' + NL + before + NL + NL + '［옮긴 뒤］' + NL + after));
   }
 
+  /* 한 장도 못 찾으면 그 자리 제목을 그대로 찍어 줍니다.
+     그래야 왕복이 한 번에 끝납니다 (집 규칙 ⑤). */
+  function note(pgs, stop){
+    if(document.getElementById('stellaLeadWhy')){ return; }
+    var names = [], i, t;
+    for(i = 0; i < stop; i++){
+      t = head(pgs[i]);
+      if(!t){ t = eyebrow(pgs[i]); }
+      names.push((i + 1) + '. ' + (t ? t : '(제목 없음)'));
+    }
+    var box = document.createElement('div');
+    box.id = 'stellaLeadWhy';
+    box.textContent = 'patch160_lead — 옮길 쪽을 한 장도 못 찾았습니다.' + NL
+      + '아래가 1부 앞에 있는 쪽들의 제목입니다. 이대로 벼리에게 보여주세요.'
+      + NL + NL + names.join(NL);
+    var bk = document.getElementById('bkBook');
+    if(bk){ bk.parentNode.insertBefore(box, bk); }
+  }
+
   function run(){
     var bk = document.getElementById('bkBook');
     if(!bk){ return 0; }
@@ -191,14 +226,16 @@ add_action( 'wp_head', function () {
 
     var before = WHY ? names(pgs) : '';
 
-    /* 옮길 쪽을 모읍니다 — 차례는 그대로 둡니다 */
+    /* 옮길 쪽을 모읍니다 — 1부가 시작하기 전까지만 봅니다 */
+    var stop = edge(pgs);
     var move = [];
-    for(i = 0; i < pgs.length; i++){
+    for(i = 0; i < stop; i++){
       if(isBack(pgs[i])){ move.push(pgs[i]); }
     }
     if(move.length === 0){
       bk.setAttribute('data-lead', 'none');
       if(WHY){ tell(before, before, 0); }
+      note(pgs, stop);
       return 1;
     }
 
