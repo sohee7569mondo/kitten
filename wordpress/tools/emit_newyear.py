@@ -708,50 +708,87 @@ TAIL = u''';
 
   window.StellaNY={ build:build, has:isMine, year:YEAR };
 
+  /* ── 관리자에게 보이는 진단 띠 ────────────────────────────
+     2026-09-14 · 소희 님 : 「표지도 없고 내용도 없어」
+     책이 하얗게 나오면 자바스크립트가 멈춘 것입니다. 그런데 지금까지는
+     catch(e){} 가 까닭을 통째로 삼켜서 아무 말도 안 나왔습니다.
+
+     ★ CLAUDE.md 의 GWHY 교훈대로 **띠를 먼저 그려 놓고** 읽습니다.
+       띠를 그리는 일 자체가 죽지 않도록 통째로 try 로 감쌉니다.
+     ★ 관리자에게만 보입니다. 손님 화면에는 안 나갑니다. */
+  var LOG = [];
+  function paint(){
+    if(!ADMIN){ return; }
+    try{
+      var d=document.getElementById('ny-admin-'+YEAR);
+      if(!d){
+        d=document.createElement('div');
+        d.id='ny-admin-'+YEAR;
+        d.setAttribute('style','margin:12px;padding:10px 14px;'+
+          'border:2px solid #2F7D4A;background:#F3F8F4;border-radius:8px;'+
+          'font:13px/1.8 system-ui;color:#1d3a27;white-space:pre-wrap;');
+        var ssb=document.getElementById('ssb');
+        if(ssb){ if(ssb.parentNode){ ssb.parentNode.insertBefore(d, ssb); } }
+        else { if(document.body){ document.body.appendChild(d); } }
+      }
+      d.textContent='관리자에게만 보입니다 · NY'+YEAR+' 판 '+STAMP+
+        String.fromCharCode(10)+LOG.join(String.fromCharCode(10));
+    }catch(e){}
+  }
+  function say(x){ LOG.push(x); paint(); }
+
   var tries=0;
   function go(){
     tries++;
     try{
       var bk=document.getElementById('bkBook');
-      if(bk){
-        if(bk.getAttribute('data-ny'+YEAR)!=='1'){
-          var o=read('stella_demo');
-          if(o){
-            if(isMine(String(o.topic===undefined?'':o.topic))){
-              if(String(bk.innerHTML).length>200){
-                var keep=cardPages(bk);
-                var r=build();
-                if(r){
-                  bk.innerHTML=r.html+keep.join('');
-                  bk.setAttribute('data-ny'+YEAR,'1');
-                  bk.setAttribute('data-nycard', String(keep.length));
-                  var nAll=refolio(bk);
-                  var t=document.getElementById('bkTitle');
-                  if(t){ t.textContent=r.title; }
-                  var c=document.getElementById('bkN');
-                  if(c){ c.textContent=nAll+'쪽'; }
-                  if(ADMIN){
-                    var d=document.createElement('div');
-                    d.setAttribute('style','margin:12px;padding:10px 14px;'+
-                      'border:2px solid #2F7D4A;background:#F3F8F4;'+
-                      'border-radius:8px;font:13px/1.8 system-ui;color:#1d3a27;');
-                    var lab=CARDNAMES.length ? (' [' + CARDNAMES.join(' / ') + ']') : '';
-                    d.textContent='관리자에게만 보입니다 · NY'+YEAR+' 판 '+STAMP+
-                      ' · 우리 열 장 '+r.n+'쪽 + 원본에서 살린 카드 쪽 '+
-                      keep.length+'쪽'+lab+' = 모두 '+nAll+'쪽';
-                    var ssb=document.getElementById('ssb');
-                    if(ssb){ ssb.parentNode.insertBefore(d, ssb); }
-                  }
-                  return;
-                }
-              }
-            } else { return; }
-          }
-        } else { return; }
+      if(!bk){
+        if(tries===1){ say('책 그릇(#bkBook)을 아직 못 찾음 — 기다립니다'); }
+        if(tries>40){ say('★ 끝까지 책 그릇을 못 찾았습니다'); return; }
+        setTimeout(go, 300); return;
       }
-    }catch(e){}
-    if(tries>40){ return; }
-    setTimeout(go, 300);
+      if(bk.getAttribute('data-ny'+YEAR)==='1'){ return; }
+
+      var o=read('stella_demo');
+      if(!o){
+        if(tries===1){ say('주문(stella_demo)이 아직 없음 — 기다립니다'); }
+        if(tries>40){ say('★ 끝까지 주문을 못 찾았습니다'); return; }
+        setTimeout(go, 300); return;
+      }
+      var tp=String(o.topic===undefined?'':o.topic);
+      if(!isMine(tp)){
+        say('주제가 「'+tp+'」 — 이 조각 것이 아닙니다 (물러납니다)');
+        return;
+      }
+      if(String(bk.innerHTML).length<=200){
+        if(tries>40){ say('★ 원본 책이 끝까지 안 그려졌습니다'); return; }
+        setTimeout(go, 300); return;
+      }
+
+      var keep=cardPages(bk);
+      var r=build();
+      if(!r){
+        say('★ 책을 못 지었습니다 — 사주 계산기(StellaSaju/StellaRead)나 '+
+            '생년월일을 못 읽었습니다');
+        return;
+      }
+      bk.innerHTML=r.html+keep.join('');
+      bk.setAttribute('data-ny'+YEAR,'1');
+      bk.setAttribute('data-nycard', String(keep.length));
+      var nAll=refolio(bk);
+      var t=document.getElementById('bkTitle');
+      if(t){ t.textContent=r.title; }
+      var c=document.getElementById('bkN');
+      if(c){ c.textContent=nAll+'쪽'; }
+      var lab=CARDNAMES.length ? (' [' + CARDNAMES.join(' / ') + ']') : '';
+      say('그렸습니다 · 갈래 '+r.sp+' × 십 년 '+r.dae+
+          ' · 우리 열 장 '+r.n+'쪽 + 원본에서 살린 카드 쪽 '+
+          keep.length+'쪽'+lab+' = 모두 '+nAll+'쪽');
+      return;
+    }catch(e){
+      say('★ 멈췄습니다 — '+(e ? String(e.message||e) : '까닭 모름'));
+      return;
+    }
   }
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded', go);
