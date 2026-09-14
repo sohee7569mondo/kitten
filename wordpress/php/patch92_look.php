@@ -48,6 +48,8 @@
       · 관계 딱지를 넷으로 색을 갈라 줍니다
       · 딱지의 한자말을 쉬운 말로 바꿉니다
       · 행운의 색이 둘이면 동그라미도 둘 (흰색은 테를 진하게)
+      · 한자 앞에 한글을 붙입니다 — 신묘(辛卯) · 쥐띠 자(子)
+      · 강조색을 남보라에서 금빛으로 (소희 님 : 「보라색 말고 골드색으로」)
       · 「조심할 띠」의 덧말을 아랫줄 작은 글씨로 내립니다
       · 열두 칸 위에 「이번주는 어떤 사이인가」 안내를 놓습니다
         · 내 띠가 정해지면 「호랑이띠이신 당신은 이번주 잔잔한 주를
@@ -101,9 +103,9 @@ add_action( 'wp_footer', function () {
 #ssp .acard:before{
   content:''; display:block; height:4px; background:#E2DACB; }
 #ssp .acard[data-rel="합"]:before{ background:#2F7D4A; }
-#ssp .acard[data-rel="짝"]:before{ background:#5A3FA0; }
+#ssp .acard[data-rel="짝"]:before{ background:#A9791F; }
 #ssp .acard[data-rel="충"]:before{ background:#C4453A; }
-#ssp .acard[data-rel="해"]:before{ background:#C08A3E; }
+#ssp .acard[data-rel="해"]:before{ background:#D99A93; }
 #ssp .acard[data-rel="무"]:before{ background:#DCD5C6; }
 
 /* ② 머리 — 옅은 바탕에 그림과 이름, 딱지는 오른쪽 */
@@ -117,8 +119,8 @@ add_action( 'wp_footer', function () {
   width:66px !important; height:66px !important; flex:0 0 66px !important;
   padding:0 !important; overflow:hidden;
   background:#241C4E !important;
-  border:1px solid #3A2E77 !important;
-  box-shadow:0 8px 18px -9px rgba(36,28,78,.5) !important; }
+  border:1px solid #B98A47 !important;
+  box-shadow:0 8px 18px -9px rgba(36,28,78,.45) !important; }
 #ssp .asym img{
   width:100%; height:100%; display:block;
   object-fit:cover; border-radius:50%; }
@@ -147,14 +149,14 @@ add_action( 'wp_footer', function () {
   background:#EDF7F0 !important; color:#2F7D4A !important;
   border:1px solid #BFE0C9 !important; }
 #ssp .arel[data-rel="짝"]{
-  background:#F3EFFA !important; color:#5A3FA0 !important;
-  border:1px solid #D9CFF2 !important; }
+  background:#FBF4E6 !important; color:#8A6520 !important;
+  border:1px solid #E8D6B0 !important; }
 #ssp .arel[data-rel="충"]{
   background:#FBEFEE !important; color:#C4453A !important;
   border:1px solid #EBC7C3 !important; }
 #ssp .arel[data-rel="해"]{
-  background:#FDF4EC !important; color:#A9611F !important;
-  border:1px solid #EDD7BE !important; }
+  background:#FBF2F1 !important; color:#B2665E !important;
+  border:1px solid #EDD3D0 !important; }
 #ssp .arel[data-rel="무"]{
   background:#F7F3EA !important; color:#8B849C !important;
   border:1px solid #EAE2D2 !important; }
@@ -207,13 +209,13 @@ add_action( 'wp_footer', function () {
 #ssp .acard .sj-line p{ margin:0 !important; font-size:.89rem !important;
   line-height:1.85 !important; color:#4E4763 !important; opacity:1 !important; }
 #ssp .acard .sj-line a{ display:inline-block; margin-top:8px;
-  font-size:.89rem; color:#3A2E77 !important; font-weight:700;
+  font-size:.89rem; color:#8A6520 !important; font-weight:700;
   text-decoration:underline; opacity:1 !important; }
 
 #ssp .amine{
   margin:0 20px 18px !important; padding:11px 13px;
-  border-radius:9px; background:transparent;
-  border:1px solid #E2DACB;
+  border-radius:9px; background:#FAF7F0;
+  border:1px solid #EAE2D2;
   font-size:.86rem !important; color:#4E4763 !important; line-height:1.8; }
 
 /* ⑧ 파스텔 보라 배경을 걷어냅니다
@@ -230,27 +232,34 @@ add_action( 'wp_footer', function () {
    테두리 하나로 감쌉니다 */
 #sjBox{
   margin:14px 0 8px !important; padding:20px 22px !important;
-  border:1px solid #E2DACB !important; border-radius:13px !important;
-  background:transparent !important; }
+  border:1px solid #E7E0D2 !important; border-radius:14px !important;
+  background:#FFFFFF !important;
+  box-shadow:0 1px 2px rgba(34,28,51,.04),
+             0 14px 30px -22px rgba(34,28,51,.22) !important; }
 
 /* ⑥ 내 띠 — 아이보리 바탕에서도 한눈에 */
 #ssp .acard.mine{
-  border-color:#3A2E77 !important;
-  box-shadow:0 0 0 2px #3A2E77,
-             0 22px 46px -24px rgba(58,46,119,.5) !important; }
+  border-color:#A9791F !important;
+  box-shadow:0 0 0 2px #A9791F,
+             0 22px 46px -24px rgba(169,121,31,.45) !important; }
 #ssp .acard.mine .ahead{
   background:linear-gradient(180deg,#FAF7F0 0%,#FFFFFF 100%) !important; }
 #ssp .acard.mine .aname:after{
   content:'내 띠'; margin-left:8px; padding:3px 10px; border-radius:20px;
-  background:#3A2E77; color:#FFFDF9;
+  background:#A9791F; color:#FFFDF9;
   font-size:.68rem; font-weight:800; vertical-align:middle; }
 
 /* ⑤ 이번주는 어떤 사이인가 — 열두 칸 위 안내 */
 /* 2026-09-14 · 소희 님 : 「두 번째 단락은 그냥 테두리만 하나 줘서
    분리시켜줘」 — 위아래 선 두 개씩이라 줄이 많아 어수선했습니다.
    테두리 하나로 감싸고 배경은 두지 않습니다. */
+/* 2026-09-14 · 소희 님 : 「테두리가 너무 얇아서 구분이 안 가.
+   흰색으로 배경을 처리해줘」 — 바탕이 아이보리라 흰 종이를 얹으면
+   테가 얇아도 확실히 떠오릅니다. 카드와 같은 결이 됩니다. */
 #relBox{ margin:30px 0 8px; padding:20px 22px; text-align:left;
-  border:1px solid #E2DACB; border-radius:13px; background:transparent; }
+  border:1px solid #E7E0D2; border-radius:14px; background:#FFFFFF;
+  box-shadow:0 1px 2px rgba(34,28,51,.04),
+             0 14px 30px -22px rgba(34,28,51,.22); }
 #relBox h3{ margin:0 0 12px; font-size:1.02rem; font-weight:700; }
 #relBox .rb{ display:flex; gap:11px; align-items:baseline;
   padding:7px 0; flex-wrap:wrap; }
@@ -260,12 +269,12 @@ add_action( 'wp_footer', function () {
   min-width:12em; line-height:1.75; }
 #relBox .rb.me{ background:transparent; border-radius:9px;
   padding:11px 13px; margin:4px -13px;
-  border:1px solid #3A2E77; }
-#relBox .rb.me .who{ color:#3A2E77; }
+  border:1px solid #A9791F; }
+#relBox .rb.me .who{ color:#8A6520; }
 #relBox .rb .memark{ margin-left:7px; padding:3px 9px; border-radius:20px;
-  background:#3A2E77; color:#FFFDF9; font-size:.68rem; font-weight:800; }
+  background:#A9791F; color:#FFFDF9; font-size:.68rem; font-weight:800; }
 #relBox .mine1{ margin:0 0 13px; font-size:1rem; line-height:1.8; }
-#relBox .mine1 b{ color:#3A2E77; }
+#relBox .mine1 b{ color:#8A6520; }
 
 /* ③ 관계 딱지 — 넷으로 색을 가릅니다 */
 #ssp .arel{
@@ -276,14 +285,14 @@ add_action( 'wp_footer', function () {
   background:#EDF7F0 !important; color:#2F7D4A !important;
   border:1px solid #BFE0C9 !important; }
 #ssp .arel[data-rel="짝"]{
-  background:#F3EFFA !important; color:#5A3FA0 !important;
-  border:1px solid #D9CFF2 !important; }
+  background:#FBF4E6 !important; color:#8A6520 !important;
+  border:1px solid #E8D6B0 !important; }
 #ssp .arel[data-rel="충"]{
   background:#FBEFEE !important; color:#C4453A !important;
   border:1px solid #EBC7C3 !important; }
 #ssp .arel[data-rel="해"]{
-  background:#FDF4EC !important; color:#A9611F !important;
-  border:1px solid #EDD7BE !important; }
+  background:#FBF2F1 !important; color:#B2665E !important;
+  border:1px solid #EDD3D0 !important; }
 #ssp .arel[data-rel="무"]{
   background:#F7F3EA !important; color:#8B849C !important;
   border:1px solid #EAE2D2 !important; }
@@ -335,6 +344,58 @@ add_action( 'wp_footer', function () {
         };
       })(sym);
       cards[i].setAttribute('data-pic', '1');
+    }
+  }
+
+  /* ⑨ 한자 앞에 한글을 붙입니다
+     2026-09-14 · 소희 님 : 「한자는 괄호하고 앞에 한글을 써줘」
+     맞습니다. 辛卯 만 크게 있으면 읽을 수가 없습니다.
+        辛卯  →  신묘(辛卯)
+        쥐띠 子 →  쥐띠 자(子)                                     */
+  var JI_K = ['자','축','인','묘','진','사','오','미','신','유','술','해'];
+
+  function hanja(){
+    /* ① 큰 간지 — 한글 음은 아래 풀이(#zGzk)의 첫 토막에 있습니다 */
+    var gz = document.getElementById('zGz');
+    if(gz){
+      if(gz.getAttribute('data-han') !== '1'){
+        var t = String(gz.textContent);
+        while(t.charAt(0) === ' '){ t = t.slice(1); }
+        if(t.length === 2){
+          var k = document.getElementById('zGzk');
+          var kor = '';
+          if(k){
+            var s2 = String(k.textContent).split('·')[0];
+            kor = s2.split(' ').join('');
+          }
+          if(kor.length === 2){
+            gz.textContent = kor + '(' + t + ')';
+            gz.setAttribute('data-han', '1');
+          }
+        }
+      }
+    }
+
+    /* ② 카드 이름 옆의 지지 한 글자 */
+    var cards = document.querySelectorAll('#ssp .acard[data-z]');
+    var i, z, nm, sp, ch, j;
+    for(i = 0; i < cards.length; i++){
+      if(cards[i].getAttribute('data-han') === '1'){ continue; }
+      z = parseInt(cards[i].getAttribute('data-z'), 10);
+      if(isNaN(z)){ continue; }
+      nm = cards[i].querySelector('.aname');
+      if(!nm){ continue; }
+      var spans = nm.querySelectorAll('span');
+      for(j = 0; j < spans.length; j++){
+        sp = spans[j];
+        if(sp.className.indexOf('sj-tag') > -1){ continue; }
+        ch = String(sp.textContent);
+        while(ch.charAt(0) === ' '){ ch = ch.slice(1); }
+        if(ch.length !== 1){ continue; }
+        if(ch.indexOf('(') > -1){ continue; }
+        sp.textContent = JI_K[z] + '(' + ch + ')';
+      }
+      cards[i].setAttribute('data-han', '1');
     }
   }
 
@@ -720,6 +781,7 @@ add_action( 'wp_footer', function () {
     plain();
     notes();
     colors();
+    hanja();
     findMine();
     relBox();
     markMine();
