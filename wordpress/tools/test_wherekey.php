@@ -20,15 +20,32 @@ define('STELLA_PORTONE_SECRET','FAKEfakeFAKEfakeFAKEfake1234');
 define('STELLA_PORTONE_STORE','store-0000-1111-2222-3333');
 define('STELLA_PORTONE_CHANNEL','');
 
-/* WPCode 스니펫 흉내 */
+/* WPCode 스니펫 흉내 — 네 가지 경우를 다 넣습니다 */
 function get_posts($a){
+  /* ① 설명 안에만 있는 것 — 잡히면 안 됩니다 */
   $s1=new stdClass(); $s1->ID=265; $s1->post_title='STELLA - 포트원 백엔드';
-  $s1->post_content="<?php\n/* 여기 적어두면 스니펫 보는 사람 누구나 봅니다\n"
-    ."   define('STELLA_PORTONE_SECRET', '...');\n*/\n"
+  $s1->post_content="<?php\n/* 1. 열쇠와 값\n"
+    ."   wp-config.php 의 That is all 위에 넣으세요\n"
+    ."   define('STELLA_PORTONE_STORE',   'store-xxxxxxxx-...');\n"
+    ."   define('STELLA_PORTONE_SECRET',  '...');\n*/\n"
     ."function stella_pay_key(\$w){ return ''; }\n";
-  $s2=new stdClass(); $s2->ID=301; $s2->post_title='STELLA - 열쇠';
-  $s2->post_content="<?php\ndefine( 'STELLA_PORTONE_CHANNEL', 'channel-key-aaaa-bbbb-cccc' );\n";
-  return array($s1,$s2);
+
+  /* ② defined() 로 읽기만 하는 것 — 잡히면 안 됩니다 */
+  $s2=new stdClass(); $s2->ID=704; $s2->post_title='tool_portone';
+  $s2->post_content="<?php\n\$secret='';\n"
+    ."if ( '' === \$secret ) { if ( defined( 'STELLA_PORTONE_SECRET' ) ) {\n"
+    ."  \$secret = (string) constant( 'STELLA_PORTONE_SECRET' );\n} }\n";
+
+  /* ③ 비어 있는 대비값 — 잡히되 「비어 있습니다」로 */
+  $s3=new stdClass(); $s3->ID=810; $s3->post_title='STELLA - 대비값';
+  $s3->post_content="<?php\nif ( ! defined( 'STELLA_UM_KAKAO_REST' ) ) {\n"
+    ."\tdefine( 'STELLA_UM_KAKAO_REST', '' );\n}\n";
+
+  /* ④ 진짜로 적어둔 것 */
+  $s4=new stdClass(); $s4->ID=301; $s4->post_title='STELLA - 열쇠';
+  $s4->post_content="<?php\ndefine( 'STELLA_PORTONE_CHANNEL', 'channel-key-aaaa-bbbb-cccc' );\n";
+
+  return array($s1,$s2,$s3,$s4);
 }
 function get_post_meta($id){ return array(); }
 

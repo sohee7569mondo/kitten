@@ -41,42 +41,92 @@ add_action( 'template_redirect', function () {
 	$NAMES = array( 'STELLA_PORTONE_SECRET', 'STELLA_PORTONE_STORE',
 		'STELLA_PORTONE_CHANNEL', 'STELLA_UM_KAKAO_REST' );
 
-	/* 따옴표 안을 가립니다 — 다만 상수 **이름**은 남깁니다.
-	   이름까지 가리면 어느 줄이 무엇인지 알 수가 없습니다
-	   (2026-09-14 · 처음 만들었을 때 그래서 못 알아봤습니다). */
-	$mask = function ( $line ) use ( $NAMES ) {
-		$keep = array();
-		foreach ( $NAMES as $i => $n ) { $keep[ $n ] = '{{K' . $i . '}}'; }
-		$out = str_replace( array_keys( $keep ), array_values( $keep ), (string) $line );
-		$out = preg_replace( "/'[^']{9,}'/", "'●●●●●●●●'", $out );
-		$out = preg_replace( '/"[^"]{9,}"/', '"●●●●●●●●"', $out );
-		return str_replace( array_values( $keep ), array_keys( $keep ), $out );
+	/* ── define 을 토큰으로 찾습니다 ───────────────────────────
+	   글자로 'define' 을 찾으면 **defined** 까지 걸립니다.
+	   2026-09-14 · 소희 님 화면에 tool_portone 의
+	       if ( '' === $secret ) { if ( defined( 'STELLA_PORTONE_SECRET' ) ) {
+	   가 「여기 고치세요」로 잘못 나왔습니다. 거기는 읽는 곳이지
+	   적는 곳이 아닙니다.
+
+	   PHP 자신에게 물어보면 틀릴 일이 없습니다 —
+	     · 설명(주석) 안의 define 은 T_COMMENT 한 덩어리로 묶여
+	       아예 안 잡힙니다
+	     · defined 는 T_STRING 값이 'defined' 라 저절로 걸러집니다
+	     · 값은 따옴표 토큰이라 정규식으로 자를 일이 없습니다 */
+	$scan = function ( $code ) use ( $NAMES ) {
+		$rows = array();
+		$src  = (string) $code;
+		if ( false === strpos( $src, '<' . '?php' ) ) {
+			$src = '<' . "?php\n" . $src;
+		}
+		$toks = @token_get_all( $src );
+		if ( ! is_array( $toks ) ) { return $rows; }
+		$n = count( $toks );
+		$i = 0;
+		while ( $i < $n ) {
+			$t = $toks[ $i ];
+			$i++;
+			if ( ! is_array( $t ) ) { continue; }
+			if ( T_STRING !== $t[0] ) { continue; }
+			if ( 'define' !== strtolower( $t[1] ) ) { continue; }
+
+			/* 다음에 여는 괄호가 와야 합니다 */
+			$j = $i;
+			while ( $j < $n ) {
+				if ( is_array( $toks[ $j ] ) ) {
+					if ( T_WHITESPACE === $toks[ $j ][0] ) { $j++; continue; }
+				}
+				break;
+			}
+			if ( $j >= $n ) { continue; }
+			if ( '(' !== $toks[ $j ] ) { continue; }
+
+			/* 첫 칸 — 상수 이름 */
+			$k = $j + 1;
+			while ( $k < $n ) {
+				if ( is_array( $toks[ $k ] ) ) {
+					if ( T_WHITESPACE === $toks[ $k ][0] ) { $k++; continue; }
+				}
+				break;
+			}
+			if ( $k >= $n ) { continue; }
+			if ( ! is_array( $toks[ $k ] ) ) { continue; }
+			if ( T_CONSTANT_ENCAPSED_STRING !== $toks[ $k ][0] ) { continue; }
+			$nm = trim( (string) $toks[ $k ][1], "'" . '"' );
+			if ( ! in_array( $nm, $NAMES, true ) ) { continue; }
+
+			/* 둘째 칸 — 값 */
+			$v = $k + 1;
+			while ( $v < $n ) {
+				if ( is_array( $toks[ $v ] ) ) {
+					if ( T_WHITESPACE === $toks[ $v ][0] ) { $v++; continue; }
+				}
+				if ( ',' === $toks[ $v ] ) { $v++; continue; }
+				break;
+			}
+			$val  = null;
+			if ( $v < $n ) {
+				if ( is_array( $toks[ $v ] ) ) {
+					if ( T_CONSTANT_ENCAPSED_STRING === $toks[ $v ][0] ) {
+						$val = trim( (string) $toks[ $v ][1], "'" . '"' );
+					}
+				}
+			}
+			$rows[] = array( 'line' => (int) $t[2], 'name' => $nm, 'val' => $val );
+		}
+		return $rows;
 	};
 
-	/* 그 줄이 설명(주석) 안에 있는지 봅니다.
-	   소희 님이 여신 「포트원 백엔드」 스니펫의 define 은 설명 안이라
-	   PHP 가 읽지 않습니다. 그것을 「여기 고치세요」라고 하면 안 됩니다. */
-	$commentLines = function ( $code ) {
-		$lines = array();
-		try {
-			$src = $code;
-			if ( false === strpos( $src, '<' . '?php' ) ) { $src = '<' . "?php\n" . $src; }
-			$toks = @token_get_all( $src );
-			if ( ! is_array( $toks ) ) { return $lines; }
-			foreach ( $toks as $t ) {
-				if ( ! is_array( $t ) ) { continue; }
-				if ( T_COMMENT !== $t[0] ) {
-					if ( T_DOC_COMMENT !== $t[0] ) { continue; }
-				}
-				$from = (int) $t[2];
-				$n    = substr_count( (string) $t[1], "\n" );
-				$i    = 0;
-				while ( $i <= $n ) { $lines[ $from + $i ] = true; $i++; }
-			}
-		} catch ( Throwable $e ) {
-			return array();
+	/* 찾은 줄을 사람이 읽게 — 값은 길이와 앞 네 글자만 */
+	$show = function ( $r ) {
+		$v = $r['val'];
+		if ( null === $v ) { $tail = '값이 글자가 아닙니다 (다른 상수를 가리킵니다)'; }
+		elseif ( '' === $v ) { $tail = '값이 비어 있습니다'; }
+		else {
+			$tail = '값 ' . mb_strlen( $v ) . '자 · 앞 네 글자 '
+				. mb_substr( $v, 0, 4 ) . '●●●●';
 		}
-		return $lines;
+		return $r['line'] . '줄   define( ' . "'" . $r['name'] . "'" . ', … )   ' . $tail;
 	};
 
 	echo '<!doctype html><meta charset="utf-8">';
@@ -136,22 +186,16 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.9rem;color:#4E4763;
 		$found = false;
 		foreach ( $paths as $p ) {
 			if ( ! @is_readable( $p ) ) { continue; }
-			$lines = @file( $p );
-			if ( ! $lines ) { continue; }
-			$rows = array();
-			foreach ( $lines as $i => $line ) {
-				foreach ( $NAMES as $n ) {
-					if ( false !== strpos( $line, $n ) ) {
-						$rows[] = ( $i + 1 ) . '줄  ' . trim( $mask( $line ) );
-					}
-				}
-			}
-			if ( $rows ) {
-				$found = true;
-				echo '<div class="box"><div class="hit">여기 있습니다 — '
-					. esc_html( $p ) . '</div><code>'
-					. esc_html( implode( "\n", $rows ) ) . '</code></div>';
-			}
+			$code = @file_get_contents( $p );
+			if ( ! $code ) { continue; }
+			$rows = $scan( $code );
+			if ( ! $rows ) { continue; }
+			$found = true;
+			$out = array();
+			foreach ( $rows as $r ) { $out[] = $show( $r ); }
+			echo '<div class="box"><div class="hit">여기 있습니다 — '
+				. esc_html( $p ) . '</div><code>'
+				. esc_html( implode( "\n", $out ) ) . '</code></div>';
 		}
 		if ( ! $found ) {
 			echo '<div class="box">wp-config.php 에는 없습니다 '
@@ -167,37 +211,36 @@ code{font-family:"IBM Plex Mono",monospace;font-size:.9rem;color:#4E4763;
 		) );
 		$any = false;
 		foreach ( $snips as $sn ) {
-			$code = (string) $sn->post_content;
-			$rows  = array();
-			$live  = 0;
-			$cmt   = $commentLines( $code );
-			$lines = explode( "\n", $code );
-			foreach ( $lines as $i => $line ) {
-				if ( false === strpos( $line, 'define' ) ) { continue; }
-				foreach ( $NAMES as $n ) {
-					if ( false === strpos( $line, $n ) ) { continue; }
-					$no    = $i + 1;
-					$inCmt = isset( $cmt[ $no ] );
-					if ( ! $inCmt ) { $live++; }
-					$rows[] = $no . '줄  ' . trim( $mask( $line ) )
-						. ( $inCmt ? '      ← 설명 안입니다 (PHP 가 안 읽습니다)' : '' );
+			$rows = $scan( (string) $sn->post_content );
+			if ( ! $rows ) { continue; }
+			foreach ( $rows as $r ) {
+				if ( null !== $r['val'] ) {
+					if ( '' !== $r['val'] ) { $any = true; }
 				}
 			}
-			if ( ! $rows ) { continue; }
-			$any = $any || ( $live > 0 );
-			echo '<div class="box"><div class="' . ( $live ? 'hit' : 'no' ) . '">스니펫 '
+			$out  = array();
+			$real = 0;
+			foreach ( $rows as $r ) {
+				$out[] = $show( $r );
+				if ( null !== $r['val'] ) {
+					if ( '' !== $r['val'] ) { $real++; }
+				}
+			}
+			echo '<div class="box"><div class="' . ( $real ? 'hit' : 'no' ) . '">스니펫 '
 				. (int) $sn->ID . ' · ' . esc_html( $sn->post_title )
-				. ( $live ? '' : '  — 설명뿐입니다' ) . '</div><code>'
-				. esc_html( implode( "\n", $rows ) ) . '</code>'
+				. ( $real ? '' : '  — 비워둔 대비값입니다' ) . '</div><code>'
+				. esc_html( implode( "\n", $out ) ) . '</code>'
 				. '<div class="where">'
-				. ( $live
-					? '이 스니펫을 열어 위 줄의 따옴표 안을 새 열쇠로 바꾸시면 됩니다.'
-					: '여기는 고칠 자리가 아닙니다. 설명일 뿐이에요.' )
+				. ( $real
+					? '이 스니펫을 열어 위 줄의 둘째 따옴표 안을 새 열쇠로 바꾸시면 됩니다.'
+					: '여기는 「값이 없을 때 대신 쓸 것」을 적어두는 자리라 일부러 비어 '
+					. '있습니다. 고칠 자리가 아닙니다.' )
 				. '</div></div>';
 		}
 		if ( ! $any ) {
 			echo '<div class="box">스니펫 ' . count( $snips )
-				. '개 가운데 define 으로 적어둔 곳이 없습니다.</div>';
+				. '개 가운데 define 으로 적어둔 곳이 없습니다. '
+				. '(설명 안에 적힌 본보기는 세지 않습니다.)</div>';
 		}
 
 		if ( $found ) {
