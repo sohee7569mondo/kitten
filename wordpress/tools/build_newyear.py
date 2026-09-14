@@ -144,7 +144,9 @@ def parse(fn):
 
         # 갈래 바로 뒤의 소제목/본문은 그 갈래에 이어 붙입니다
         if prev_branch is not None and lv >= 3 and not GROUP_SP.get(t or ''):
-            ttl = ('<p class="keepline">%s</p>' % t) if t else ''
+            # ★ 속성은 홑따옴표 — 쌍따옴표를 쓰면 JSON 이 \" 로 이스케이프해
+            #   역빗금이 생기고, 편집기 저장에 벗겨지면 책이 안 그려집니다
+            ttl = ("<p class='keepline'>%s</p>" % t) if t else ''
             prev_branch['h'] += ttl + h
             continue
         prev_branch = None
