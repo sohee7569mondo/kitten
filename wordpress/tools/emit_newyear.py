@@ -391,7 +391,7 @@ TAIL = u''';
       n++;
       var attr=part?' data-part="'+part+'"':'';
       return '<div class="page divider"'+attr+'>'+
-             '<div class="dvmark"><img loading="lazy" decoding="async" '+
+             '<div class="dvmark dvface"><img loading="lazy" decoding="async" '+
              'alt="'+DOORALT+'" src="'+DOORIMG+'"></div>'+
              '<p class="dvwho">'+GUARDIAN+'</p>'+
              '<p class="dvno dvch">'+no+'</p>'+
