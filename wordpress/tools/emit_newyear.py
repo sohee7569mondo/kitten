@@ -126,6 +126,11 @@ add_action( 'wp_head', function () {
 	   reading-book 에서만 내보내면 다른 쪽은 한 글자도 안 받습니다.
 	   (쪽 슬러그는 워드프레스에서 직접 확인했습니다 — id 160) */
 	if ( ! is_page( 'reading-book' ) ) { return; }
+	/* ★ 2026-09-14 · 소희 님 : 「?nycard=1 홈으로 가네」
+	   책 쪽은 주소를 건드리면 안 열릴 수 있습니다. 그래서 주소 대신
+	   **관리자로 로그인해 계시면 저절로** 한 줄이 뜨게 합니다.
+	   손님에게는 안 보입니다. patch160_fit(FIT-2)이 쓰는 길과 같습니다. */
+	$stella_admin = current_user_can( 'manage_options' ) ? '1' : '';
 	?>
 <!-- stella %(Y)s년 운세 · 판 %(STAMP)s -->
 <style>
@@ -276,6 +281,7 @@ add_action( 'wp_head', function () {
   if(window.StellaNY%(Y)s){ return; }
   window.StellaNY%(Y)s = 1;
 
+  var ADMIN = '<?php echo esc_js( $stella_admin ); ?>';
   var YEAR = %(Y)s;
   var YEAR_EL = '%(YE)s';
   /* 장 표지 얼굴 — 문(door-fortune)의 그 해 사진입니다 */
@@ -286,6 +292,7 @@ add_action( 'wp_head', function () {
      「원본 데이터에는 {연도}년 … 라고 저장합니다」
      그 말씀대로 해마다 바뀌는 것은 전부 빈칸으로 둡니다. 원고를
      다시 쓰지 않고 해만 갈아끼우면 되도록 하려는 것입니다. */
+  var STAMP   = '%(STAMP)s';
   var GANJI   = '%(YG)s';
   var ELNAME  = '%(YE)s';
   var YEARNAME = %(YN)s;
@@ -712,12 +719,13 @@ TAIL = u''';
                   if(t){ t.textContent=r.title; }
                   var c=document.getElementById('bkN');
                   if(c){ c.textContent=nAll+'쪽'; }
-                  if(location.search.indexOf('nycard=1')>=0){
+                  if(ADMIN){
                     var d=document.createElement('div');
                     d.setAttribute('style','margin:12px;padding:10px 14px;'+
-                      'border:2px solid #9E2B50;background:#fff;'+
-                      'font:13px/1.8 system-ui;color:#222;');
-                    d.textContent='NY'+YEAR+' · 우리 열 장 '+r.n+'쪽 + 원본 카드 쪽 '+
+                      'border:2px solid #2F7D4A;background:#F3F8F4;'+
+                      'border-radius:8px;font:13px/1.8 system-ui;color:#1d3a27;');
+                    d.textContent='관리자에게만 보입니다 · NY'+YEAR+' 판 '+STAMP+
+                      ' · 우리 열 장 '+r.n+'쪽 + 원본에서 살린 카드 쪽 '+
                       keep.length+'쪽 = 모두 '+nAll+'쪽';
                     var ssb=document.getElementById('ssb');
                     if(ssb){ ssb.parentNode.insertBefore(d, ssb); }
