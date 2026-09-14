@@ -117,6 +117,37 @@ HEAD = u'''<?php
    node 로 스물다섯 갈래를 다 그려봄
    ══════════════════════════════════════════════════════════ */
 
+/* ══ 서버가 직접 찍는 한 줄 — 울타리 밖에 둡니다 ═══════════════
+   2026-09-14 · 소희 님 「내용도 안보이고 표지도 없어」
+
+   자바스크립트가 아예 안 돌면 자바스크립트로 만든 띠도 안 뜹니다.
+   그러면 조각이 켜져 있는지조차 알 수 없습니다.
+   그래서 **서버(PHP)가 직접** 한 줄을 찍습니다. 조각이 켜져 있기만
+   하면 자바스크립트와 상관없이 무조건 보입니다.
+   (CLAUDE.md — 「서버가 발치에 한 줄 찍어 조각이 켜져 있는지를
+    따로 알려줍니다」)
+
+   ★ 일부러 울타리(is_page) **밖**에 둡니다. 어느 쪽에서 보시든 뜨므로,
+     소희 님이 계신 쪽이 우리가 노리는 쪽인지 한눈에 압니다.
+   ★ 관리자에게만 보입니다. 손님 화면에는 한 글자도 안 나갑니다.
+   ★ 이 줄이 안 보이면 — 조각이 안 켜졌거나 옛 판이 도는 것입니다. */
+add_action( 'wp_footer', function () {
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	global $post;
+	$slug = '(쪽 이름 모름)';
+	if ( isset( $post ) ) {
+		if ( is_object( $post ) ) {
+			if ( isset( $post->post_name ) ) { $slug = $post->post_name; }
+		}
+	}
+	$mine = is_page( 'reading-book' ) ? '예 — 우리 쪽입니다' : '아니오 — 여기서는 조각이 안 돕니다';
+	echo '<div style="margin:12px;padding:10px 14px;border:2px solid #A9791F;'
+	   . 'background:#FFFDF6;border-radius:8px;font:13px/1.8 system-ui;color:#4a3a10">'
+	   . '관리자에게만 보입니다 · NY%(Y)s 조각이 켜져 있습니다 · 판 %(STAMP)s'
+	   . '<br>지금 쪽 「' . esc_html( $slug ) . '」 · 우리 쪽인가 : ' . $mine
+	   . '</div>';
+}, 99 );
+
 add_action( 'wp_head', function () {
 	/* ★ 이 책은 전자책 쪽에서만 씁니다.
 	   2026-09-14 · 소희 님 : 「스니펫이 많아서 그거 읽느라 사주가
