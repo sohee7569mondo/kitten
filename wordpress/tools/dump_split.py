@@ -72,6 +72,12 @@ def run(year, only=None, skel=False):
                              re.sub(r'<[^>]+>', '', str(b['t'] or '')))
                 break
         picks = [b for b in bs if b['kind'] not in ('always', 'title')]
+        # ★ 2026-09-14 · 소희 님 : 「넌 20칸이라 했는데 10칸이잖아?」
+        #   맞는 말씀이었습니다. 제목도 본문도 없는 칸은 원고를 가르려고
+        #   제가 둔 뼈대일 뿐입니다 (「# [비겁]」 같은 줄). 채울 것이
+        #   없으니 세지 않습니다. 그래야 칸 수가 진짜 할 일과 맞습니다.
+        picks = [b for b in picks
+                 if str(b.get('t') or '').strip() or str(b.get('h') or '').strip()]
         if not picks:
             continue
         w(u'')
