@@ -23,6 +23,11 @@ def year_luck_names(doc):
     """
     G = ('비겁', '식상', '재성', '관성', '인성')
     yn, ln = {}, {}
+    # ★ build 가 적어 준 표가 있으면 그것을 먼저 씁니다.
+    #   2026-09-14 : ②장에서 대운 다섯 설명을 빼자 여기가 빈손이 되어
+    #   2026 이 통째로 안 만들어졌습니다. 원고 구조가 바뀌어도
+    #   안 깨지도록 표를 아는 쪽(build)이 적어 줍니다.
+    ln.update((doc.get('_names') or {}).get('luck') or {})
     for b in doc.get('01', []):
         t = re.sub(r'<[^>]+>', '', str(b.get('t', '')))
         m = re.match(r'^(비겁|식상|재성|관성|인성)\s*(?:→\s*\S+\s*)?·\s*(.+?)\s*$', t)
@@ -453,6 +458,13 @@ TAIL = u''';
         }
         if(b.kind==='group'){
           if(b.key!==SP){ continue; }
+          tt=b.t?('<h3>'+fill(b.t, nm)+'</h3>'):'';
+          html+=tt+fill(b.h, nm);
+          continue;
+        }
+        if(b.kind==='dae'){
+          /* 대운 갈래 — 지금 지나는 십 년 것만 냅니다 */
+          if(b.key!==DAE){ continue; }
           tt=b.t?('<h3>'+fill(b.t, nm)+'</h3>'):'';
           html+=tt+fill(b.h, nm);
           continue;

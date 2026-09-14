@@ -140,7 +140,14 @@ def parse(fn):
                            'key': DAE[mb.group(2)], 't': t, 'h': h}
             out.append(prev_branch); group = None; axis = None; continue
         # 「× 대운이름」 꼴이면 깊이와 상관없이 갈래입니다 (2026 은 ## · 2027 은 ####)
-        mm = re.match(r'^× (.+ 십 년)$', t or '')
+        # ★ 2026-09-14 · ⑤장(때)이 25갈래를 통째로 모두에게 내보내고
+        #   있었습니다 (10,613자 중 8,250자). 까닭이 둘이었습니다 —
+        #     ① 제목이 「× 나를 세우는 십 년 · 겹침」이라 뒤에 관계말이
+        #        붙어 있는데 정규식이 줄 끝($)을 요구했습니다
+        #     ② 무리 제목이 「내가 정하고 내가 서는 해의 시간」이라
+        #        GROUP_SP 의 열쇠와 정확히 같지 않아 group 이 안 열렸습니다
+        #   둘 다 풀어 줍니다. 꼬리말은 제목에 그대로 남깁니다.
+        mm = re.match(r'^× (.+? 십 년)(?:\s*·\s*.+)?$', t or '')
         if mm and DAE.get(mm.group(1)) and group:
             prev_branch = {'kind': 'branch', 'group': group,
                            'key': DAE[mm.group(1)], 't': t, 'h': h}
@@ -164,8 +171,54 @@ def parse(fn):
             h = re.sub(r'(<p[^>]*>)\s*작은\s*제목\s*·\s*', r'\1', h)
             h = h.replace('작은 제목 · ', '')
             out.append({'kind': 'title', 't': t, 'h': h}); group = None; axis = None; continue
+        # ── 대괄호 꼬리표 — 원고가 스스로 갈래를 알려 줍니다 ────────
+        #   2026-09-14 · 소희 님이 ②장을 새로 쓰시면서 제목 끝에
+        #   [비겁] [넉넉한 자리] 같은 표를 달아 두셨습니다.
+        #   원고 머리말에 「[비겁] 같은 꼬리표는 제가 갈래를 고르려고
+        #   다는 표시입니다. 책에는 안 나갑니다」라고 적혀 있습니다.
+        #   ★ 이것이 제일 든든한 길입니다 — 제목 글을 바꾸셔도 안 깨집니다.
+        #   ★ 꼬리표는 제목에서 뗍니다. 책에 나가면 안 됩니다.
+        _TAGS = list(FIVE) + list(POWER.keys()) + list(DAE.keys())
+        mt = re.match(r'^(.*?)\s*\[(' + '|'.join(re.escape(x) for x in _TAGS)
+                      + r')\]\s*$', t or '')
+        if mt:
+            bare_t = mt.group(1).strip()
+            tag = mt.group(2)
+            if tag in DAE:
+                # 대운 갈래 — 지금 지나는 십 년 것 하나만 나갑니다
+                out.append({'kind': 'dae', 'key': DAE[tag],
+                            't': bare_t, 'h': h}); continue
+            if tag in POWER:
+                # 1층 — 그 해 오행이 사주에 몇 개인가로 고릅니다.
+                # emit 의 powerOf() 가 much / few / even 을 냅니다.
+                out.append({'kind': 'pick', 'axis': 'power', 'key': POWER[tag],
+                            't': bare_t, 'h': h}); continue
+            out.append({'kind': 'group', 'key': tag, 't': bare_t, 'h': h}); continue
+
+        # ── 갈래 이름으로 시작하는 제목도 그 갈래 것입니다 ──────────
+        #   2026-09-14 · 소희 님 : 「시작부터 겹쳐서…」
+        #   ①장과 ②장이 비겁·식상·재성·관성·인성 다섯을 모두에게
+        #   내보내고 있었습니다(kind='always'). 손님은 자기와 상관없는
+        #   남의 이야기를 세 번씩 읽었습니다 — 다섯 가운데 넷이 남의 것.
+        #   「반복된다」는 리뷰의 진짜 자리가 여기입니다.
+        #     비겁 · 내가 정하고 내가 서는 해   → 세운 갈래 (group)
+        #     비겁 · 나를 세우는 십 년          → 대운 갈래 (dae)
+        mg = re.match(r'^(비겁|식상|재성|관성|인성)\s*·\s*(.+)$', t or '')
+        if mg:
+            gname = mg.group(1)
+            rest = mg.group(2)
+            if re.search(r'십\s*년\s*$', rest):
+                out.append({'kind': 'dae', 'key': gname, 't': t, 'h': h}); continue
+            out.append({'kind': 'group', 'key': gname, 't': t, 'h': h}); continue
+
         if lv in (1, 2):
-            g = GROUP_SP.get(re.sub(r'^\d무리 · ', '', t)) if t else None
+            bare = re.sub(r'^\d무리 · ', '', t) if t else ''
+            g = GROUP_SP.get(bare)
+            if not g and bare:
+                # 「내가 정하고 내가 서는 해의 시간」처럼 뒷말이 붙은 꼴
+                for _nm in GROUP_SP:
+                    if bare.startswith(_nm):
+                        g = GROUP_SP[_nm]; break
             if g:
                 group = g; axis = None
                 out.append({'kind': 'group', 'key': g, 't': t, 'h': h}); continue
@@ -175,7 +228,7 @@ def parse(fn):
         if lv == 4 and axis:
             out.append({'kind': 'pick', 'axis': axis, 'key': key_of(axis, title), 't': t, 'h': h}); continue
         out.append({'kind': 'always', 't': t, 'h': h})
-    return [b for b in out if b['h'] or b['kind'] in ('group', 'branch', 'title')]
+    return [b for b in out if b['h'] or b['kind'] in ('group', 'branch', 'dae', 'title')]
 
 if __name__ == '__main__':
     year = sys.argv[1] if len(sys.argv) > 1 else '2027'
@@ -184,6 +237,17 @@ if __name__ == '__main__':
                    and not f.startswith(year + '년운세-00')
                    and '보관' not in f)
     doc = {}
+    # ── 대운이름 표를 여기서 같이 적어 둡니다 ─────────────────────
+    #   2026-09-14 · 소희 님이 ②장에서 3층(대운 다섯 설명)을 빼셨습니다
+    #   — ①장에서 이미 한 이야기라 되풀이였습니다. 그런데 emit 이
+    #   {대운이름} 을 ②장 소제목에서만 읽고 있어서 2026 이 통째로
+    #   안 만들어졌습니다 (★ 이름표를 못 뽑았습니다).
+    #   원고 구조가 바뀌어도 안 깨지도록, 표를 아는 쪽(여기)이 적습니다.
+    #   「나를 세우는 십 년」 → 「나를 세우는 흐름」 (본문이 「의 십 년」 앞에
+    #   놓고 쓰므로 「십 년」을 떼고 「흐름」을 붙입니다)
+    doc['_names'] = {'luck': dict(
+        (sp, re.sub(r'\s*십\s*년\s*$', '', name).strip() + ' 흐름')
+        for name, sp in DAE.items())}
     for f in files:
         no = f.split('-')[1]
         bs = parse(f)
@@ -193,4 +257,4 @@ if __name__ == '__main__':
         miss = [b['t'] for b in bs if b['kind'] in ('branch', 'pick') and not b.get('key')]
         print('%-4s %-34s %s%s' % (no, f[9:24], kinds, ('  ★ 열쇠 없음: ' + str(miss[:3])) if miss else ''))
     io.open(os.path.join(HERE, 'NY%s.json' % year), 'w', encoding='utf-8').write(json.dumps(doc, ensure_ascii=False))
-    print('\nNY%s.json 썼습니다 (%d 장)' % (year, len(doc)))
+    print('\nNY%s.json 썼습니다 (%d 장)' % (year, len(files)))
