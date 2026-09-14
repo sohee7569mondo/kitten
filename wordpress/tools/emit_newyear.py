@@ -256,6 +256,12 @@ add_action( 'wp_head', function () {
   var GUARDIAN = '미르';
   var DOORALT  = '%(Y)s년 운세';
   var DOORIMG  = 'https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_FORTUNE-%(Y)s.jpg?resize=264%%2C264';
+  /* ★ 2026-09-14 · 소희 님 : 「2026년이라는 표현은 문장에서 빼세요」
+     「원본 데이터에는 {연도}년 … 라고 저장합니다」
+     그 말씀대로 해마다 바뀌는 것은 전부 빈칸으로 둡니다. 원고를
+     다시 쓰지 않고 해만 갈아끼우면 되도록 하려는 것입니다. */
+  var GANJI   = '%(YG)s';
+  var ELNAME  = '%(YE)s';
   var YEARNAME = %(YN)s;
   var LUCKNAME = %(LN)s;
   var TOPICS = ['%(Y)s년 운세', '%(Y)s년운세', '%(Y)s 운세'];
@@ -281,6 +287,9 @@ add_action( 'wp_head', function () {
     else { t = t.split('{이름}').join(nm); }
     if(YN){ t = t.split('{올해이름}').join(YN); }
     if(LN){ t = t.split('{대운이름}').join(LN); }
+    t = t.split('{연도}').join(String(YEAR));
+    t = t.split('{간지}').join(GANJI);
+    t = t.split('{올해오행}').join(ELNAME);
     return t;
   }
 
