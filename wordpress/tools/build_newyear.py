@@ -263,6 +263,13 @@ def parse(fn):
         for b in out:
             if b['kind'] == 'branch' and re.match(r'^\s*×\s', str(b.get('t') or '')):
                 b['t'] = ''
+    # ★ 2026-09-14 · 소희 님 : 「× 거두고 쌓는 십 년 에서 × 삭제하자」
+    #   곱셈표는 제가 원고에서 갈래를 가르려고 쓰는 표시입니다.
+    #   손님에게는 뜻이 안 통합니다 — 제목에서만 뗍니다.
+    #   (원고의 「## × …」 는 그대로 둡니다. 그것으로 갈래를 찾습니다)
+    for b in out:
+        if b['kind'] == 'branch':
+            b['t'] = re.sub(r'^\s*×\s*', '', str(b.get('t') or ''))
     return out
 
 if __name__ == '__main__':
