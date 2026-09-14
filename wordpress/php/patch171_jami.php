@@ -23,8 +23,14 @@
         · STEP 들과 물어보기 단추를 감춥니다 (결제로 가는 길을 끊습니다)
         · 다른 문 다섯으로 가는 길을 대신 냅니다
      ② 모든 쪽의 차림표 · 링크
-        · door-astro 로 가는 고리의 글에서 별자리 · 점성술을
-          자미두수로 바꾸고 「준비 중」을 붙입니다
+        · door-astro 로 가는 고리를 **아예 감춥니다**
+          2026-09-14 · 소희 님 : 「메뉴에서 링크를 아예 빼줘.
+          눌러지는데 가면 아무것도 없는 것이 이상해」
+          맞습니다. 「준비 중」이라 적어두어도 눌러보게 되고,
+          눌러서 닫힌 문을 만나면 기분이 상합니다.
+          고리가 든 칸(li)째 감춥니다 — 고리만 감추면 가운뎃점이나
+          구분선이 덩그러니 남습니다.
+        · 주소를 직접 치고 들어오시면 ① 의 안내가 나옵니다
 
    이미 아라 풀이를 받으신 분
      받으신 책은 그대로 열립니다. 이 조각은 문만 잠급니다.
@@ -173,25 +179,46 @@ add_action( 'wp_footer', function () {
    찾는 것이 없으면 그대로 물러납니다. */
 add_action( 'wp_footer', function () {
 	?>
+<style id="stella-jamimenu-css">
+[data-jamihide="1"]{ display:none !important; }
+</style>
 <script>
 (function(){
   if(window.StellaJamiMenu){ return; }
   window.StellaJamiMenu = 1;
 
+  /* 고리가 든 칸째 감춥니다 — 고리만 감추면 가운뎃점이나 구분선이
+     덩그러니 남습니다. 한 겹만 올라가 li 나 그 비슷한 칸을 찾습니다. */
+  function cell(a){
+    var n = a;
+    var p = a.parentNode;
+    var depth = 0;
+    while(p){
+      if(!p.tagName){ break; }
+      var tag = p.tagName.toLowerCase();
+      if(tag === 'li'){ return p; }
+      if(tag === 'nav'){ break; }
+      if(tag === 'ul'){ break; }
+      if(tag === 'body'){ break; }
+      /* 그 고리 **하나만** 품고 있을 때만 한 겹 올라갑니다.
+         곁에 다른 것이 있으면 그것까지 사라집니다. */
+      if(p.children.length !== 1){ break; }
+      n = p;
+      p = p.parentNode;
+      depth++;
+      if(depth > 0){ break; }   /* 한 겹까지만 — 더 올라가면 곁의 것까지 사라집니다 */
+    }
+    return n;
+  }
+
   function fix(){
     var a = document.querySelectorAll('a[href*="door-astro"]');
     if(a.length === 0){ return 0; }
-    var i, t;
+    var i;
     for(i = 0; i < a.length; i++){
       if(a[i].getAttribute('data-jami') === '1'){ continue; }
-      if(a[i].children.length > 0){ continue; }   /* 사진이 든 고리는 건드리지 않습니다 */
-      t = String(a[i].textContent);
-      if(t.indexOf('자미두수') > -1){ continue; }
-      t = t.split('점성술').join('자미두수');
-      t = t.split('별자리').join('자미두수');
-      if(t.indexOf('준비 중') < 0){ t = t + ' (준비 중)'; }
-      a[i].textContent = t;
       a[i].setAttribute('data-jami', '1');
+      cell(a[i]).setAttribute('data-jamihide', '1');
     }
     return 1;
   }

@@ -36,8 +36,14 @@
      있어서 밖에서 못 부릅니다. 하루 차이가 날 수 있는데, 삼재는
      해 단위라 2월 3~5일에만 문제가 되고 그때는 어차피 경계입니다.
 
+   ★ 2026-09-14 · 강조를 덜어냈습니다
+     소희 님 : 「제대로 나왔는데 너무 강조되어 있어. 강조하진 말고
+     그냥 문구만 쓰자」 — 붉은 바탕과 알약 딱지를 걷고, 위아래 얇은
+     선과 회색 글씨만 남겼습니다. 색을 직접 쓰지 않고 currentColor 와
+     opacity 만 써서 이 쪽 톤에 그대로 녹아듭니다.
+
    어디에 붙나
-     · 열두 칸 위에 안내 상자 하나
+     · 열두 칸 위에 안내 한 덩이 (선 위아래로만 나뉩니다)
      · 삼재인 띠 세 칸에만 붉은 딱지와 한 줄, 그리고 삼재 풀이로 가는 길
      · 나머지 아홉 칸은 한 자도 안 건드립니다
 
@@ -52,29 +58,27 @@ add_action( 'wp_footer', function () {
 	if ( ! is_page( 'zodiac-year' ) ) { return; }
 	?>
 <style id="stella-samjae-css">
-#sjBox{ margin:36px auto 0; padding:22px 24px; border-radius:13px;
-  background:#C4453A; color:#FFFDF9; text-align:left;
-  box-shadow:0 18px 40px -20px rgba(196,69,58,.75); }
-#sjBox .sj-kick{ font-size:.74rem; letter-spacing:.26em; opacity:.85;
-  margin-bottom:10px; }
-#sjBox h3{ margin:0 0 10px; font-size:1.28rem; font-weight:800;
-  line-height:1.5; }
-#sjBox p{ margin:0 0 8px; font-size:.96rem; line-height:1.85;
-  color:#FFF3F1; }
-#sjBox .sj-go{ display:inline-block; margin-top:12px; padding:13px 22px;
-  border-radius:8px; background:#FFFDF9; color:#C4453A;
-  font-weight:800; font-size:.95rem; text-decoration:none; }
-#ssp .acard[data-samjae] .sj-tag{ display:inline-block; margin-left:8px;
-  padding:3px 10px; border-radius:20px; background:#C4453A; color:#FFFDF9;
-  font-size:.7rem; font-weight:800; vertical-align:middle; }
-#ssp .acard[data-samjae] .sj-line{ margin-top:14px; padding:13px 15px;
-  border-radius:9px; background:rgba(196,69,58,.14);
-  border:1px solid rgba(196,69,58,.42); }
-#ssp .acard[data-samjae] .sj-line b{ color:#C4453A; }
-#ssp .acard[data-samjae] .sj-line p{ margin:0; font-size:.9rem;
-  line-height:1.8; }
-#ssp .acard[data-samjae] .sj-line a{ display:inline-block; margin-top:7px;
-  color:#C4453A; font-weight:800; font-size:.9rem; text-decoration:underline; }
+/* 2026-09-14 · 소희 님 : 「너무 강조되어 있어. 강조하진 말고 그냥
+   문구만 쓰자」 — 붉은 바탕과 알약 딱지를 걷어냈습니다.
+   색을 직접 쓰지 않고 currentColor 와 opacity 만 씁니다.
+   그러면 이 쪽이 어두운 톤이든 흰 톤이든 그대로 녹아듭니다. */
+#sjBox{ margin:34px auto 0; padding:18px 0; text-align:left;
+  border-top:1px solid currentColor; border-bottom:1px solid currentColor;
+  border-color:rgba(128,128,128,.28); }
+#sjBox h3{ margin:0 0 7px; font-size:1.02rem; font-weight:700;
+  line-height:1.65; }
+#sjBox p{ margin:0 0 5px; font-size:.94rem; line-height:1.8; opacity:.78; }
+#sjBox p:last-of-type{ margin-bottom:0; }
+#sjBox .sj-go{ display:inline-block; margin-top:9px; font-size:.92rem;
+  color:inherit; text-decoration:underline; opacity:.9; }
+#ssp .acard[data-samjae] .sj-tag{ margin-left:7px; font-size:.78rem;
+  font-weight:400; opacity:.6; }
+#ssp .acard[data-samjae] .sj-line{ margin-top:13px; padding-top:11px;
+  border-top:1px solid rgba(128,128,128,.22); }
+#ssp .acard[data-samjae] .sj-line p{ margin:0; font-size:.89rem;
+  line-height:1.8; opacity:.78; }
+#ssp .acard[data-samjae] .sj-line a{ display:inline-block; margin-top:6px;
+  font-size:.89rem; color:inherit; text-decoration:underline; opacity:.9; }
 </style>
 <script>
 (function(){
@@ -124,13 +128,10 @@ add_action( 'wp_footer', function () {
     var d = document.createElement('div');
     d.id = 'sjBox';
     d.innerHTML =
-      '<div class="sj-kick">SAMJAE</div>'
-      + '<h3>' + y + '년 삼재는 ' + names.join(' · ') + '입니다</h3>'
-      + '<p>이 세 띠는 지금 <b>' + NAME[stage] + '</b>'
-      + '(' + HEAD[stage] + ')를 지나고 있습니다. '
+      '<h3>' + y + '년 삼재 — ' + names.join(' · ') + '</h3>'
+      + '<p>이 세 띠는 ' + NAME[stage] + '(' + HEAD[stage] + ')를 지납니다. '
       + '삼재는 세 해 동안 이어집니다.</p>'
-      + '<p>같은 삼재라도 여덟 글자에 따라 무엇이 흔들리는지가 다릅니다. '
-      + '사람 때문에 오는 분이 있고, 몸으로 오는 분이 있어요.</p>'
+      + '<p>같은 삼재라도 여덟 글자에 따라 무엇이 흔들리는지가 다릅니다.</p>'
       + '<a class="sj-go" href="' + LINK + '">내 삼재는 어떻게 오는지 보기 ' + GO + '</a>';
 
     grid.parentNode.insertBefore(d, grid);
@@ -151,7 +152,7 @@ add_action( 'wp_footer', function () {
     var w = document.createElement('div');
     w.className = 'sj-line';
     w.innerHTML =
-      '<p><b>올해 삼재입니다.</b> ' + LINE[stage] + '</p>'
+      '<p>올해 삼재입니다. ' + LINE[stage] + '</p>'
       + '<a href="' + LINK + '">' + ANIMAL[z] + '띠의 삼재 풀이 보기 ' + GO + '</a>';
     card.appendChild(w);
   }

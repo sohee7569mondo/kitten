@@ -72,13 +72,17 @@ console.log('  자리      : ' + (box.nextElementSibling === steps[0] ? 'STEP �
 var doors = box.querySelectorAll('.jm-doors a');
 console.log('  다른 문   : ' + doors.length + '개 — '
   + Array.prototype.map.call(doors, function(a){ return a.textContent.trim().split(' ')[0]; }).join(' '));
-console.log('  차림표    : ' + w.document.querySelector('a[href="/door-astro/"]').textContent);
+var ml = w.document.querySelector('a[href="/door-astro/"]');
+console.log('  차림표    : ' + (ml.getAttribute('data-jami') === '1' ? '고리에 깃발 ok' : '★ 깃발 없음')
+  + ' · 감춘 칸 = ' + (w.document.querySelectorAll('[data-jamihide="1"]').length) + '개');
 
 console.log('');
 console.log('=== ② 다른 쪽에서는 차림표만');
-var OTHER = '<header><nav><a href="/door-astro/">아라 · 점성술</a>'
-  + '<a href="/door-love/">벼리 · 연애와 결혼</a>'
-  + '<a href="/door-astro/"><img src="x.jpg" alt="아라"></a></nav></header>'
+var OTHER = '<header><nav><ul>'
+  + '<li class="mi"><a href="/door-astro/">아라 · 점성술</a></li>'
+  + '<li class="mi"><a href="/door-love/">벼리 · 연애와 결혼</a></li>'
+  + '</ul></nav></header>'
+  + '<div class="cards"><div class="one"><a href="/door-astro/"><img src="x.jpg" alt="아라"></a></div></div>'
   + '<div id="main">홈입니다</div>';
 var w2 = make(OTHER, 'https://stellasaju.com/');
 w2.eval(JS_MENU);
@@ -86,9 +90,15 @@ var ev2 = w2.document.createEvent('Event');
 ev2.initEvent('DOMContentLoaded', true, true);
 w2.document.dispatchEvent(ev2);
 var links = w2.document.querySelectorAll('a[href="/door-astro/"]');
-console.log('  글자 고리 : ' + links[0].textContent);
-console.log('  사진 고리 : ' + (links[1].querySelector('img') ? '그대로 둠 ok' : '★ 사진이 사라졌습니다'));
-console.log('  다른 문   : ' + w2.document.querySelector('a[href="/door-love/"]').textContent + ' (안 건드림)');
+var hid = w2.document.querySelectorAll('[data-jamihide="1"]');
+console.log('  door-astro 고리 : ' + links.length + '개 · 감춰진 칸 ' + hid.length + '개'
+  + (hid.length === links.length ? '  둘 다 감춤 ok' : '  ★ 안 맞습니다'));
+console.log('  사진 고리도 : ' + (links[1].closest('[data-jamihide="1"]') ? '감춤 ok' : '★ 남아 있음'));
+var lv = w2.document.querySelector('a[href="/door-love/"]');
+console.log('  다른 문   : ' + lv.textContent + ' · 감춰졌나 = '
+  + (lv.parentNode.getAttribute('data-jamihide') === '1' ? '★ 감춰짐' : '아니요 ok'));
+console.log('  감춘 것   : ' + Array.prototype.map.call(hid, function(n){
+  return n.tagName.toLowerCase() + (n.className ? '.' + n.className : ''); }).join(' · '));
 console.log('  jamiBox   : ' + (w2.document.getElementById('jamiBox') ? '★ 딴 쪽에 붙음' : '안 붙음 ok'));
 
 console.log('');
