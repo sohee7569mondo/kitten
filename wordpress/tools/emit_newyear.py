@@ -22,12 +22,13 @@ def year_luck_names(doc):
             「십 년」을 떼고 「흐름」을 붙입니다.
     """
     G = ('비겁', '식상', '재성', '관성', '인성')
-    yn, ln = {}, {}
+    yn, ln, tn = {}, {}, {}
     # ★ build 가 적어 준 표가 있으면 그것을 먼저 씁니다.
     #   2026-09-14 : ②장에서 대운 다섯 설명을 빼자 여기가 빈손이 되어
     #   2026 이 통째로 안 만들어졌습니다. 원고 구조가 바뀌어도
     #   안 깨지도록 표를 아는 쪽(build)이 적어 줍니다.
     ln.update((doc.get('_names') or {}).get('luck') or {})
+    tn.update((doc.get('_names') or {}).get('ten') or {})
     yn.update((doc.get('_names') or {}).get('year') or {})
     for b in doc.get('01', []):
         t = re.sub(r'<[^>]+>', '', str(b.get('t', '')))
@@ -46,7 +47,7 @@ def year_luck_names(doc):
     miss = [g for g in G if g not in yn or g not in ln]
     if miss:
         raise SystemExit('★ 이름표를 못 뽑았습니다: %s' % ', '.join(miss))
-    return yn, ln
+    return yn, ln, tn
 
 YEAR = sys.argv[1] if len(sys.argv) > 1 else '2026'
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -281,6 +282,7 @@ add_action( 'wp_head', function () {
   var ELNAME  = '%(YE)s';
   var YEARNAME = %(YN)s;
   var LUCKNAME = %(LN)s;
+  var TENNAME  = %(TN)s;
   var TOPICS = ['%(Y)s년 운세', '%(Y)s년운세', '%(Y)s 운세'];
 
   function read(k){
@@ -297,13 +299,14 @@ add_action( 'wp_head', function () {
   /* 올해이름 · 대운이름 — build() 가 손님 무리를 셈한 뒤 채웁니다.
      2026-09-14 : 그전에는 아무도 안 채워서 손님 책에
      「{올해이름}」이 중괄호째로 찍혔습니다. */
-  var YN = '', LN = '';
+  var YN = '', LN = '', TN = '';
   function fill(s, nm){
     var t=String(s);
     if(!nm){ t = t.split('{이름}님').join('당신').split('{이름}').join('당신'); }
     else { t = t.split('{이름}').join(nm); }
     if(YN){ t = t.split('{올해이름}').join(YN); }
     if(LN){ t = t.split('{대운이름}').join(LN); }
+    if(TN){ t = t.split('{대운십년}').join(TN); }
     t = t.split('{연도}').join(String(YEAR));
     t = t.split('{간지}').join(GANJI);
     t = t.split('{올해오행}').join(ELNAME);
@@ -460,6 +463,7 @@ TAIL = u''';
     var WANT={ move:SP, dae:DAE, power:powerOf(chart), rel:relOf(SP, DAE) };
     YN = YEARNAME[SP] || '';
     LN = LUCKNAME[DAE] || '';
+    TN = TENNAME[DAE] || '';
     var nm=esc(callName(pr));
 
     var pages=[], n=0;
@@ -627,7 +631,7 @@ TAIL = u''';
 }, 3 );
 '''
 
-_YN, _LN = year_luck_names(json.loads(NY))
+_YN, _LN, _TN = year_luck_names(json.loads(NY))
 print('  올해이름 %d · 대운이름 %d 개를 원고에서 뽑았습니다' % (len(_YN), len(_LN)))
 
 
@@ -637,7 +641,7 @@ def _jstable(d):
 
 
 head = HEAD % {'Y': YEAR, 'YE': YEAR_EL, 'YG': YEAR_GAN,
-               'YN': _jstable(_YN), 'LN': _jstable(_LN)}
+               'YN': _jstable(_YN), 'LN': _jstable(_LN), 'TN': _jstable(_TN)}
 out = head + NY + TAIL
 path = os.path.join(HERE, '..', 'php', 'patch160_ny%s.WPCODE.txt' % YEAR)
 io.open(path, 'w', encoding='utf-8').write(out)

@@ -199,6 +199,19 @@ def parse(fn):
         #   다는 표시입니다. 책에는 안 나갑니다」라고 적혀 있습니다.
         #   ★ 이것이 제일 든든한 길입니다 — 제목 글을 바꾸셔도 안 깨집니다.
         #   ★ 꼬리표는 제목에서 뗍니다. 책에 나가면 안 됩니다.
+        # ── 「[이음]」 — 제목 없이 한 문장만 내보내는 자리 ───────────
+        #   2026-09-14 · 소희 님이 ④장을 이렇게 그려 주셨습니다 —
+        #     지금 지나는 「거두고 쌓는 십 년」까지 겹치면
+        #     사람마다 조심해야 할 자리가 달라집니다.
+        #     ×  ← 「× 거두고 쌓는 십 년」 제목은 지우자
+        #   갈래로 넘어가는 다리 한 줄입니다. 제목을 달면 같은 말이
+        #   두 번 나오니, 제목 없이 문장만 냅니다.
+        #   ★ 머리(#)가 있어야 앞 덩어리에 글이 붙지 않습니다. 그래서
+        #     머리는 두되 보이는 제목만 비웁니다.
+        if re.match(r'^\[이음\]$', t or ''):
+            group = None; axis = None; prev_branch = None
+            out.append({'kind': 'always', 't': '', 'h': h}); continue
+
         _TAGS = list(FIVE) + list(POWER.keys()) + list(DAE.keys())
         mt = re.match(r'^(.*?)\s*\[(' + '|'.join(re.escape(x) for x in _TAGS)
                       + r')\]\s*$', t or '')
@@ -303,7 +316,13 @@ if __name__ == '__main__':
                  '관성': '맡은 자리가 배움이 되는 해',
                  '인성': '채운 것이 나를 세우는 해'},
     }
-    doc['_names'] = {'year': dict(YEAR_NAMES.get(year) or {}), 'luck': dict(
+    #   {대운이름}  「거두고 쌓는 흐름」   — 「…의 십 년」 앞에 놓고 쓸 때
+    #   {대운십년}  「거두고 쌓는 십 년」   — 그 자체로 쓸 때
+    #   2026-09-14 · 소희 님이 다리 문장을 「지금 지나는 「거두고 쌓는
+    #   십 년」까지 겹치면」으로 쓰셔서 둘을 갈랐습니다.
+    doc['_names'] = {'year': dict(YEAR_NAMES.get(year) or {}),
+                     'ten': dict((sp, name) for name, sp in DAE.items()),
+                     'luck': dict(
         (sp, re.sub(r'\s*십\s*년\s*$', '', name).strip() + ' 흐름')
         for name, sp in DAE.items())}
     for f in files:
