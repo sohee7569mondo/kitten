@@ -48,6 +48,8 @@
       · 관계 딱지를 넷으로 색을 갈라 줍니다
       · 딱지의 한자말을 쉬운 말로 바꿉니다
       · 열두 칸 위에 「이번주는 어떤 사이인가」 안내를 놓습니다
+        · 내 띠가 정해지면 「호랑이띠이신 당신은 이번주 잔잔한 주를
+          지납니다」 한 줄과 그 줄에 「내 띠」 표시
         (2026-09-14 · 소희 님 : 「삼합(띠 셋이 한편이 되는 것) —
          이렇게 넣으면 어때?」 좋은 생각입니다. 다만 두 가지를
          바로잡았습니다 —
@@ -73,27 +75,132 @@ add_action( 'wp_footer', function () {
 	if ( ! is_page( 'zodiac-year' ) ) { return; }
 	?>
 <style id="stella-look-css">
-/* ① 내 띠 — 아이보리 바탕에서도 한눈에 */
+/* ═══ 카드 디자인 ═══════════════════════════════════════
+   2026-09-14 · 소희 님 : 「디자인이 별로야. 무료라서 신경 안 쓴 듯한?」
+                          「너무 그냥 박스에 글만 넣은 듯한 느낌이 들어」
+   맞습니다. 흰 상자 하나에 글이 쭉 이어져 층이 없었습니다.
+   층을 셋으로 나눕니다 — 색 띠 · 머리 · 본문. */
+
+#ssp .acard{
+  position:relative; overflow:hidden;
+  padding:0 !important;
+  border-radius:16px !important;
+  border:1px solid #E7E0D2 !important;
+  background:#FFFFFF !important;
+  box-shadow:0 1px 2px rgba(34,28,51,.04),
+             0 14px 30px -20px rgba(34,28,51,.26) !important; }
+#ssp .acard:hover{
+  transform:translateY(-4px) !important;
+  border-color:#D5CCB8 !important;
+  box-shadow:0 1px 2px rgba(34,28,51,.05),
+             0 26px 46px -22px rgba(34,28,51,.32) !important; }
+
+/* ① 카드 맨 위 색 띠 — 한눈에 갈립니다 */
+#ssp .acard:before{
+  content:''; display:block; height:4px; background:#E2DACB; }
+#ssp .acard[data-rel="합"]:before{ background:#2F7D4A; }
+#ssp .acard[data-rel="짝"]:before{ background:#5A3FA0; }
+#ssp .acard[data-rel="충"]:before{ background:#C4453A; }
+#ssp .acard[data-rel="해"]:before{ background:#C08A3E; }
+#ssp .acard[data-rel="무"]:before{ background:#DCD5C6; }
+
+/* ② 머리 — 옅은 바탕에 그림과 이름, 딱지는 오른쪽 */
+#ssp .ahead{
+  margin:0 !important; padding:18px 20px 16px !important;
+  gap:14px !important; align-items:center !important;
+  flex-wrap:wrap !important;
+  background:linear-gradient(180deg,#FAF7F0 0%,#FFFFFF 100%);
+  border-bottom:1px solid #F1EBDD; }
+#ssp .asym{
+  width:66px !important; height:66px !important; flex:0 0 66px !important;
+  padding:0 !important; overflow:hidden;
+  background:#241C4E !important;
+  border:1px solid #3A2E77 !important;
+  box-shadow:0 8px 18px -9px rgba(36,28,78,.5) !important; }
+#ssp .asym img{
+  width:100%; height:100%; display:block;
+  object-fit:cover; border-radius:50%; }
+#ssp .asym[data-pic="no"]{ font-size:1.8rem !important; }
+#ssp .aname{
+  font-size:1.2rem !important; color:#221C33 !important;
+  letter-spacing:-.01em; }
+#ssp .ayears{
+  margin-top:5px !important; font-size:.7rem !important;
+  color:#A79FB8 !important; line-height:1.75; }
+
+/* ③ 관계 딱지 — 머리 오른쪽으로, 색을 갈라서 */
+#ssp .ahead .arel{
+  margin:0 0 0 auto !important;
+  padding:6px 13px !important; border-radius:20px;
+  font-family:inherit !important;
+  font-size:.76rem !important; font-weight:700 !important;
+  letter-spacing:0 !important; }
+#ssp .arel{
+  display:inline-block;
+  padding:5px 12px !important; border-radius:20px;
+  font-family:inherit !important;
+  font-size:.76rem !important; font-weight:700 !important;
+  letter-spacing:0 !important; }
+#ssp .arel[data-rel="합"]{
+  background:#EDF7F0 !important; color:#2F7D4A !important;
+  border:1px solid #BFE0C9 !important; }
+#ssp .arel[data-rel="짝"]{
+  background:#F3EFFA !important; color:#5A3FA0 !important;
+  border:1px solid #D9CFF2 !important; }
+#ssp .arel[data-rel="충"]{
+  background:#FBEFEE !important; color:#C4453A !important;
+  border:1px solid #EBC7C3 !important; }
+#ssp .arel[data-rel="해"]{
+  background:#FDF4EC !important; color:#A9611F !important;
+  border:1px solid #EDD7BE !important; }
+#ssp .arel[data-rel="무"]{
+  background:#F7F3EA !important; color:#8B849C !important;
+  border:1px solid #EAE2D2 !important; }
+
+/* ④ 본문 — 첫 문단을 조금 크게 (읽는 눈이 걸릴 자리) */
+#ssp .atext{
+  margin:0 20px !important; padding-top:14px;
+  font-size:.94rem !important; line-height:1.9 !important;
+  color:#4E4763 !important; }
+#ssp .ahead + .atext{
+  font-size:1rem !important; color:#332B47 !important; }
+#ssp .atext + .atext{ padding-top:10px; }
+
+/* ⑤ 아래 표 — 줄을 나누고 이름은 작게 */
+#ssp .arows{
+  margin:16px 20px 18px !important; padding-top:12px !important;
+  border-top:1px solid #F1EBDD !important; }
+#ssp .arow{
+  padding:9px 0 !important; font-size:.87rem !important;
+  border-bottom:1px dashed #F1EBDD; }
+#ssp .arow:last-child{ border-bottom:0; }
+#ssp .arow dt{
+  flex:0 0 82px !important; font-family:inherit !important;
+  font-size:.78rem !important; color:#9A92AC !important;
+  padding-top:2px !important; }
+#ssp .arow dd{ color:#221C33 !important; font-weight:500; }
+#ssp .swatch{
+  width:14px !important; height:14px !important; border-radius:50% !important;
+  margin-right:7px !important;
+  border:1px solid rgba(34,28,51,.14) !important;
+  box-shadow:0 1px 3px rgba(34,28,51,.18) !important; }
+#ssp .amine{
+  margin:0 20px 18px !important; padding:11px 13px;
+  border-radius:9px; background:#F3EFFA;
+  font-size:.86rem !important; color:#4A3A86 !important; line-height:1.8; }
+
+/* ⑥ 내 띠 — 아이보리 바탕에서도 한눈에 */
 #ssp .acard.mine{
   border-color:#3A2E77 !important;
   box-shadow:0 0 0 2px #3A2E77,
-             0 20px 44px -24px rgba(58,46,119,.55) !important;
-  background:#FBF9F4 !important; }
+             0 22px 46px -24px rgba(58,46,119,.5) !important; }
+#ssp .acard.mine .ahead{
+  background:linear-gradient(180deg,#F3EFFA 0%,#FFFFFF 100%) !important;
+  border-bottom-color:#E4DBF6 !important; }
 #ssp .acard.mine .aname:after{
   content:'내 띠'; margin-left:8px; padding:3px 10px; border-radius:20px;
   background:#3A2E77; color:#FFFDF9;
   font-size:.68rem; font-weight:800; vertical-align:middle; }
-
-/* ② 동물 자리 — 그림으로 */
-#ssp .asym{
-  width:64px !important; height:64px !important; flex:0 0 64px !important;
-  padding:0 !important; overflow:hidden;
-  background:#241C4E !important;
-  border:1px solid #3A2E77 !important;
-  box-shadow:0 8px 18px -9px rgba(36,28,78,.55) !important; }
-#ssp .asym img{
-  width:100%; height:100%; display:block;
-  object-fit:cover; border-radius:50%; }
 
 /* ⑤ 이번주는 어떤 사이인가 — 열두 칸 위 안내 */
 #relBox{ margin:30px 0 6px; padding:18px 0; text-align:left;
@@ -106,6 +213,14 @@ add_action( 'wp_footer', function () {
 #relBox .rb .who{ font-weight:700; }
 #relBox .rb .why{ font-size:.9rem; opacity:.72; flex:1 1 16em;
   min-width:12em; line-height:1.75; }
+#relBox .rb.me{ background:#FBF9F4; border-radius:9px;
+  padding:11px 13px; margin:4px -13px;
+  box-shadow:0 0 0 1px #3A2E77 inset; }
+#relBox .rb.me .who{ color:#3A2E77; }
+#relBox .rb .memark{ margin-left:7px; padding:3px 9px; border-radius:20px;
+  background:#3A2E77; color:#FFFDF9; font-size:.68rem; font-weight:800; }
+#relBox .mine1{ margin:0 0 13px; font-size:1rem; line-height:1.8; }
+#relBox .mine1 b{ color:#3A2E77; }
 
 /* ③ 관계 딱지 — 넷으로 색을 가릅니다 */
 #ssp .arel{
@@ -157,9 +272,23 @@ add_action( 'wp_footer', function () {
       if(z > 11){ continue; }
       sym = cards[i].querySelector('.asym');
       if(!sym){ continue; }
+
+      /* 그림이 안 뜨면 빈 동그라미만 남습니다. 원래 이모지를 적어두고
+         못 불러올 때 되살립니다 (2026-09-14 · 크로미움으로 그려보다가
+         그림이 없을 때 남색 원만 남는 것을 보고 넣었습니다). */
+      var keep = String(sym.textContent);
+      sym.setAttribute('data-emoji', keep);
       sym.innerHTML = '<img loading="lazy" decoding="async" alt="'
         + ANIMAL[z] + '띠" src="' + UP + 'ji-' + FILE[z]
         + '.webp.jpg?resize=128%2C128">';
+      (function(box){
+        var im = box.querySelector('img');
+        if(!im){ return; }
+        im.onerror = function(){
+          box.textContent = box.getAttribute('data-emoji');
+          box.setAttribute('data-pic', 'no');
+        };
+      })(sym);
       cards[i].setAttribute('data-pic', '1');
     }
   }
@@ -246,6 +375,21 @@ add_action( 'wp_footer', function () {
       while(t.charAt(0) === ' '){ t = t.slice(1); }
       el.textContent = t.split('  ').join(' ');
       el.setAttribute('data-rel', k);
+
+      /* 카드에도 갈래를 적어 맨 위 색 띠를 칠합니다 */
+      var card = el.parentNode;
+      while(card){
+        if(card.className.indexOf('acard') > -1){ break; }
+        card = card.parentNode;
+        if(!card){ break; }
+        if(card === document.body){ card = null; break; }
+      }
+      if(card){
+        card.setAttribute('data-rel', k);
+        /* 딱지를 머리 오른쪽으로 옮깁니다 */
+        var hd = card.querySelector('.ahead');
+        if(hd){ if(el.parentNode !== hd){ hd.appendChild(el); } }
+      }
     }
     return rs.length;
   }
@@ -317,6 +461,33 @@ add_action( 'wp_footer', function () {
     return out;
   }
 
+  /* 이번주가 무슨 띠인가 — 쪽이 이미 찍어둔 간지에서 읽습니다.
+     2026-09-14 · 소희 님 : 「호랑이띠의 기운과 열두 띠는 이런
+     사이입니다」 — 제목에 띠를 넣자는 말씀이 맞습니다. 다만 이번주
+     기운은 호랑이가 아니라 **토끼**(辛卯)입니다. 쪽 위에 「신묘 ·
+     토끼의 자리」라고 나와 있어요. 호랑이는 소희 님 띠고요.
+     그래서 제가 정하지 않고 쪽이 세운 간지에서 그때그때 읽습니다. */
+  var JI_H = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+
+  function weekAnimal(){
+    var el = document.getElementById('zGz');
+    if(!el){ return ''; }
+    var t = String(el.textContent);
+    var i;
+    for(i = 0; i < JI_H.length; i++){
+      if(t.indexOf(JI_H[i]) > -1){ return ANIMAL[i]; }
+    }
+    /* 한자를 못 찾으면 한글 풀이에서 — 「신묘 · 토끼의 자리」 */
+    var k = document.getElementById('zGzk');
+    if(k){
+      var s2 = String(k.textContent);
+      for(i = 0; i < ANIMAL.length; i++){
+        if(s2.indexOf(ANIMAL[i] + '의 자리') > -1){ return ANIMAL[i]; }
+      }
+    }
+    return '';
+  }
+
   function relBox(){
     if(document.getElementById('relBox')){ return; }
     var grid = document.getElementById('zGrid');
@@ -348,7 +519,11 @@ add_action( 'wp_footer', function () {
       }
     }
 
-    var h = '<h3>이번주 기운과 열두 띠는 이런 사이입니다</h3>';
+    var wa = weekAnimal();
+    var title = wa
+      ? ('이번주는 ' + wa + '의 기운입니다 — 열두 띠와 이런 사이예요')
+      : '이번주 기운과 열두 띠는 이런 사이입니다';
+    var h = '<h3>' + title + '</h3>';
     var got = 0;
     for(i = 0; i < sorted.length; i++){
       tag = sorted[i];
@@ -374,6 +549,45 @@ add_action( 'wp_footer', function () {
     grid.parentNode.insertBefore(box, grid);
   }
 
+  /* 내 띠가 정해지면 그 줄을 짚어 줍니다.
+     2026-09-14 · 소희 님 : 「그냥 이번주 기운과 열두 띠라 하니까
+     모르겠더라고. 누구 얘기인지」 — 제목에 이번주 띠를 넣는 것만으로는
+     모자랍니다. 손님이 궁금한 것은 **내 띠가 어디 있느냐**입니다.
+     쪽이 mine 을 늦게 붙일 수 있어 따로 지켜보다가 표시합니다. */
+  function markMine(){
+    var box = document.getElementById('relBox');
+    if(!box){ return; }
+    if(box.getAttribute('data-me') === '1'){ return; }
+    var card = document.querySelector('#zGrid .acard.mine');
+    if(!card){ return; }
+    var z = parseInt(card.getAttribute('data-z'), 10);
+    if(isNaN(z)){ return; }
+    var tag = card.querySelector('.arel');
+    if(!tag){ return; }
+    var want = String(tag.textContent);
+
+    var rows = box.querySelectorAll('.rb');
+    var i, t;
+    for(i = 0; i < rows.length; i++){
+      t = rows[i].querySelector('.arel');
+      if(!t){ continue; }
+      if(String(t.textContent) !== want){ continue; }
+      rows[i].className = 'rb me';
+      var m = document.createElement('span');
+      m.className = 'memark';
+      m.textContent = '내 띠';
+      rows[i].querySelector('.who').appendChild(m);
+      break;
+    }
+
+    var one = document.createElement('p');
+    one.className = 'mine1';
+    one.innerHTML = '<b>' + ANIMAL[z] + '띠</b>이신 당신은 이번주 '
+      + '<b>' + want + '</b>를 지납니다.';
+    box.insertBefore(one, box.querySelector('.rb'));
+    box.setAttribute('data-me', '1');
+  }
+
   function run(){
     var grid = document.getElementById('zGrid');
     if(!grid){ return 0; }
@@ -381,17 +595,19 @@ add_action( 'wp_footer', function () {
     pics();
     tidy();
     plain();
-    relBox();
     findMine();
+    relBox();
+    markMine();
     return 1;
   }
 
   function watch(){
-    if(run()){ return; }
+    var ready = run();
     var n = 0;
     var t = setInterval(function(){
       n++;
-      if(run()){ clearInterval(t); return; }
+      if(!ready){ ready = run(); }
+      else { markMine(); }   /* 쪽이 늦게 내 띠를 붙여도 잡습니다 */
       if(n > 60){ clearInterval(t); }
     }, 300);
   }

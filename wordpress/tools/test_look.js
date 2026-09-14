@@ -41,6 +41,8 @@ for(var z = 0; z < 12; z++){
     + '<p class="amine" style="display:none">지금 보고 계신 띠예요.</p></div>';
 }
 var PAGE = '<div id="ssp"><div class="wrap">'
+  + '<div class="gz" id="zGz">辛卯</div>'
+  + '<div class="gzk" id="zGzk">신묘 · 토끼의 자리 · 목(木)의 주</div>'
   + '<input id="zYear" value=""><input id="zMon" value=""><input id="zDay" value="">'
   + '<button type="button" id="zFind">내 띠 찾기</button>'
   + '<div class="agrid" id="zGrid">' + cards + '</div></div></div>';
@@ -118,6 +120,11 @@ else {
       + rows[r].querySelector('.who').textContent);
     console.log('      ' + rows[r].querySelector('.why').textContent.slice(0, 52) + ' …');
   }
+  var m1 = rb.querySelector('.mine1');
+  console.log('  내 띠 한 줄 : ' + (m1 ? m1.textContent : '★ 없음'));
+  var mr = rb.querySelector('.rb.me');
+  console.log('  짚어준 줄   : ' + (mr ? mr.querySelector('.arel').textContent
+    + ' / ' + mr.querySelector('.who').textContent : '★ 없음'));
   console.log('  자리 : ' + (rb.nextElementSibling === w.document.getElementById('zGrid')
     ? '열두 칸 바로 위 ok' : '★ 엉뚱한 자리'));
 }
