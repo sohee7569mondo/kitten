@@ -124,7 +124,22 @@ add_action( 'wp_head', function () {
   #ssb .book[data-ny2027="1"] > .page.divider > *,
   #ssb [data-ny2027="1"] > .page.divider > *{
     margin-left:auto !important; margin-right:auto !important; }
-}
+  /* ★ 2026-09-14 · 소희 님 : 「2026년 폭이 안맞아」
+     가족운 책(FAMILY-1)에는 있는데 여기만 빠져 있던 못입니다.
+     살아 있는 쪽에 글을 가운데로 미는 규칙이 얹혀 있으면
+     쪽은 제 폭인데 글줄만 안쪽으로 몰려 「폭이 좁다」로 보입니다.
+     두 책이 똑같이 보이도록 같은 못을 박습니다. */
+  #ssb .book[data-ny2027="1"] > .page.divider > h2,
+  #ssb .book[data-ny2027="1"] > .page.divider > p,
+  #ssb [data-ny2027="1"] > .page.divider > h2,
+  #ssb [data-ny2027="1"] > .page.divider > p{
+    text-align:center !important; }
+  #ssb .book[data-ny2027="1"] > .page > h2,
+  #ssb .book[data-ny2027="1"] > .page > h3,
+  #ssb .book[data-ny2027="1"] > .page > p,
+  #ssb [data-ny2027="1"] > .page > h2,
+  #ssb [data-ny2027="1"] > .page > h3,
+  #ssb [data-ny2027="1"] > .page > p{ text-align:left; }
 }
 </style>
 <script>
