@@ -156,6 +156,13 @@ def parse(fn):
         prev_branch = None
 
         if lv == 5 or lv == 4 and t and t[0] in '①②③④⑤⑥⑦⑧⑨⑩':
+            # ★ 「작은 제목 · 」 은 소희 님이 원고를 쓰실 때 다신 딱지입니다.
+            #   2026-09-14 화면에 「작은 제목 · 25개의 조합을…」로 그대로
+            #   찍혀 있었습니다 (열아홉 장 전부). 뒤의 글이 진짜 소제목이라
+            #   딱지만 떼고 글은 그대로 둡니다.
+            h = re.sub(r'(<strong>)\s*작은\s*제목\s*·\s*', r'\1', h)
+            h = re.sub(r'(<p[^>]*>)\s*작은\s*제목\s*·\s*', r'\1', h)
+            h = h.replace('작은 제목 · ', '')
             out.append({'kind': 'title', 't': t, 'h': h}); group = None; axis = None; continue
         if lv in (1, 2):
             g = GROUP_SP.get(re.sub(r'^\d무리 · ', '', t)) if t else None
