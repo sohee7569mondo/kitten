@@ -423,7 +423,8 @@ TAIL = u''';
       for(j=0;j<blocks.length;j++){
         if(blocks[j].kind==='title'){ ct=bare(blocks[j].t); break; }
       }
-      if(ct){ pages.push(sheet(MARK[i], fill(ct, nm), (i<4?'one':'two'))); }
+      var hadSheet=false;
+      if(ct){ pages.push(sheet(MARK[i], fill(ct, nm), (i<4?'one':'two'))); hadSheet=true; }
       html='';
       for(j=0;j<blocks.length;j++){
         b=blocks[j];
@@ -437,6 +438,11 @@ TAIL = u''';
             if(c0===32){ tt=tt.slice(1); continue; }
             break;
           }
+          /* 장 속표지를 바로 앞에 놓았으면 같은 제목을 또 쓰지 않습니다.
+             2026-09-14 · ?leadwhy=1 차례에 제목이 두 번씩 찍혀 드러났습니다
+             (1. 올해나는어떤해를보내는가 / 2. 올해나는어떤해를보내는가).
+             속표지에 큰 글씨로 이미 있으니 본문은 머리글부터 시작합니다. */
+          if(hadSheet){ html+=fill(b.h, nm); continue; }
           html+='<h2>'+fill(tt, nm)+'</h2>'+fill(b.h, nm);
           continue;
         }
