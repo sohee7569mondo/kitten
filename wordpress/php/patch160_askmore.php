@@ -42,16 +42,21 @@ add_action( 'wp_head', function () {
 	if ( ! is_front_page() ) { return; }
 	?>
 <style id="stella-askmore-css">
-/* 오픈기념 무료 딱지 — 주제 딱지는 왼쪽 위에 있으니 오른쪽 위에 놓습니다.
-   금빛 바탕에 어두운 글씨라 사진 위에서도 읽힙니다. */
+/* 오픈기념 무료 딱지 — 2026-09-14 · 소희 님 「무료 표시를 좀 눈에 확 띄게」
+   ① 붉은 바탕에 흰 글씨. 사진이 보랏빛이라 붉은색이 제일 튑니다.
+   ② 주제 딱지(왼쪽 위)와 같은 줄에 두면 좁은 화면에서 부딪힙니다.
+      그래서 주제 딱지 바로 아래에 쌓습니다 — 어느 폭에서도 안 겹칩니다.
+   ③ 글씨를 키우고 그림자를 줘서 사진 위에 떠 보이게 합니다. */
 #stellar-home .ask-card .freetag{
-  position:absolute; top:12px; right:12px; z-index:5;
-  font-size:.66rem; letter-spacing:.04em; font-weight:700;
-  color:#241C4E; background:#E8CD96;
-  border-radius:20px; padding:3px 11px; line-height:1.7;
-  box-shadow:0 6px 16px -8px rgba(36,28,78,.6); }
+  position:absolute; top:46px; left:12px; z-index:6;
+  font-size:.82rem; letter-spacing:.02em; font-weight:800;
+  color:#FFFDF9; background:#C4453A;
+  border-radius:6px; padding:6px 13px; line-height:1.5;
+  box-shadow:0 8px 20px -6px rgba(196,69,58,.75),
+             0 0 0 3px rgba(255,253,249,.22); }
 @media(max-width:420px){
-  #stellar-home .ask-card .freetag{ font-size:.6rem; padding:2px 9px; } }
+  #stellar-home .ask-card .freetag{
+    top:42px; font-size:.74rem; padding:5px 11px; } }
 </style>
 <script>
 (function(){
