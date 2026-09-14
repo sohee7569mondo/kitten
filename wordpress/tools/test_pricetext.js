@@ -13,6 +13,13 @@ var PAGE = [
 '<h1>가격 안내</h1>',
 '<p class="dek">미리 충전해 두는 것이 없습니다.<br>',
 '  풀이를 열 때, 그 한 편의 값만 치르시면 됩니다.</p>',
+'<section><h2>풀이 한 편</h2>',
+'<div class="card"><div class="row"><div><div class="n">풀이 한 편</div>',
+'<div class="d">가디언 한 분에게 <b>주제 하나</b>를 묻습니다.<br>',
+'  마루(일·돈) · 벼리(연애·결혼) · 아람(건강·가족)<br>',
+'  미르(흐름·시기) · 아라(별자리)<br>',
+'  문마다 있는 <b>「더 깊이」 세 꼭지</b>도 따로 값을 받지 않습니다.</div>',
+'</div><div class="p">3,000원<small>구슬 3개</small></div></div></div></section>',
 '<section><h2>가입하시면 드리는 것</h2>',
 '<p class="sub">값을 치르지 않고도 두 편을 보실 수 있습니다.</p>',
 '<div class="free"><p><b>가입하시면 구슬 3개를 드립니다.</b> 가입 축하 2개 + 여는 기념 1개예요.<br>',
@@ -51,10 +58,17 @@ var ps = w.document.querySelectorAll('section p');
 console.log('   ' + ps[ps.length - 1].textContent.replace(/\s+/g, ' ').trim());
 console.log('   1,000원 남았나 : ' + (w.document.body.textContent.indexOf('1,000원') > -1 ? '★ 남음' : '없음 ok'));
 console.log('');
-console.log('④ 쪽 전체에 「충전」이 남아 있나 : '
+console.log('④ 파는 문 목록');
+var dd = w.document.querySelector('.d');
+console.log('   ' + dd.textContent.replace(/\s+/g, ' ').trim());
+console.log('   아라 남았나 : ' + (dd.textContent.indexOf('아라') > -1 ? '★ 남음' : '없음 ok'));
+console.log('   나머지 넷   : ' + ['마루','벼리','아람','미르'].filter(function(n){
+  return dd.textContent.indexOf(n) > -1; }).join(' ') );
+console.log('');
+console.log('⑤ 쪽 전체에 「충전」이 남아 있나 : '
   + (w.document.body.textContent.indexOf('충전') > -1 ? '★ 남음' : '없음 ok'));
 console.log('');
-console.log('⑤ ?pricewhy=1');
+console.log('⑥ ?pricewhy=1');
 var w2 = run('https://stellasaju.com/price/?pricewhy=1');
 var box = w2.document.getElementById('stellaPriceWhy');
 console.log(box ? box.textContent.split('\n').filter(function(l){ return l.trim(); }).map(function(l){ return '   ' + l; }).join('\n') : '   ★ 안 나옴');

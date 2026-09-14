@@ -27,6 +27,12 @@
       손님이 헤아리시는 데는 모자라지 않습니다.
       → 그 문장만 덜어냅니다.
 
+   ④ 「아라(별자리)」 — 파는 문 목록에서 뺍니다
+      소희 님 : 「별자리는 변별력이 없어서 거두기로 했어」
+      patch171_jami 가 문을 잠갔으므로 가격 안내에 남아 있으면
+      못 사는 것을 값과 함께 적어둔 꼴이 됩니다.
+      아라 줄만 덜어내고 나머지 넷은 그대로 둡니다.
+
    왜 쪽을 안 고치고 조각으로 하나
    워드프레스 편집기로 열어 저장하면 역빗금이 벗겨집니다.
    그래서 고칠 것은 늘 조각으로 합니다. 끄면 원래 글로 돌아갑니다.
@@ -88,6 +94,49 @@ add_action( 'wp_footer', function () {
     return hit;
   }
 
+  /* ④ — 파는 문 목록에서 「아라(별자리)」 줄을 덜어냅니다 */
+  function dropAstro(){
+    var box = document.getElementById('ssp');
+    if(!box){ return 0; }
+    var ds = box.querySelectorAll('.d');
+    var i, gone = 0;
+    for(i = 0; i < ds.length; i++){
+      var h = String(ds[i].innerHTML);
+      if(h.indexOf('아라') < 0){ continue; }
+      if(h.indexOf('미르') < 0){ continue; }
+      var BR = '<' + 'br>';
+      var lines = h.split(BR);
+      var keep = [], k;
+      for(k = 0; k < lines.length; k++){
+        if(lines[k].indexOf('아라') > -1){
+          var t = lines[k].split('·');
+          var left = [], m;
+          for(m = 0; m < t.length; m++){
+            if(t[m].indexOf('아라') > -1){ continue; }
+            left.push(t[m]);
+          }
+          if(left.join('').split(' ').join('') === ''){ continue; }
+          var one = left.join('·');
+          while(one.length){
+            var last = one.charAt(one.length - 1);
+            if(last === ' '){ one = one.slice(0, -1); continue; }
+            if(last === '·'){ one = one.slice(0, -1); continue; }
+            break;
+          }
+          keep.push(one);
+          continue;
+        }
+        keep.push(lines[k]);
+      }
+      var now = keep.join(BR);
+      if(now === h){ continue; }
+      ds[i].innerHTML = now;
+      gone++;
+      log.push('덜어냄 · 파는 문 목록에서 아라(별자리)');
+    }
+    return gone;
+  }
+
   /* ③ — 「구슬 한 개가 1,000원」이 든 <b> 와 바로 뒤의 「이에요.」를 덜어냅니다 */
   function dropRate(){
     var box = document.getElementById('ssp');
@@ -129,7 +178,7 @@ add_action( 'wp_footer', function () {
 
   function run(){
     if(!document.getElementById('ssp')){ return 0; }
-    var n = swapText() + dropRate();
+    var n = swapText() + dropRate() + dropAstro();
     if(WHY){ tell(); }
     return 1;
   }
