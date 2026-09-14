@@ -308,6 +308,49 @@ add_action( 'wp_head', function () {
      2026-09-14 : 그전에는 아무도 안 채워서 손님 책에
      「{올해이름}」이 중괄호째로 찍혔습니다. */
   var YN = '', LN = '', TN = '';
+  /* ── 절기 열둘을 책의 계산기로 직접 셉니다 ─────────────────
+     2026-09-14 · 소희 님이 ⑤장에 양력 날짜를 적어 주셨습니다.
+     그런데 절기는 해마다 하루씩 다릅니다 —
+       2026 백로 9월 7일 · 2027 백로 9월 8일
+       2026 소서~입추 7월 7일~8월 6일 · 2027 은 7월 7일~8월 7일
+     원고에 날짜를 박으면 다음 해에 틀린 날짜를 보여드리게 됩니다.
+     그래서 원고에는 {절기1}~{절기12} 만 두고, 책이 이미 가지고 있는
+     StellaSaju.terms() 로 그 해 값을 직접 셉니다. 해가 바뀌어도 맞습니다. */
+  var TERMLAB = [];
+  function fromJD(j){
+    var z=Math.floor(j+0.5), f=j+0.5-z, a=z;
+    if(z>=2299161){
+      var al=Math.floor((z-1867216.25)/36524.25);
+      a=z+1+al-Math.floor(al/4);
+    }
+    var b=a+1524, c=Math.floor((b-122.1)/365.25);
+    var d=Math.floor(365.25*c), e=Math.floor((b-d)/30.6001);
+    var day=b-d-Math.floor(30.6001*e)+f;
+    var mo=(e<14)?e-1:e-13;
+    var yr=(mo>2)?c-4716:c-4715;
+    return { y:yr, m:mo, d:Math.floor(day) };
+  }
+  function dayText(j, base){
+    var o=fromJD(j+9/24);   /* 한국시 */
+    var s=(o.y!==base) ? (o.y+'년 ') : '';
+    return s+o.m+'월 '+o.d+'일';
+  }
+  function termLabels(S){
+    var out=[], i;
+    try{
+      var a=S.terms(YEAR).concat(S.terms(YEAR+1));
+      var i0=-1;
+      for(i=0;i<a.length;i++){ if(a[i].name==='입춘'){ i0=i; break; } }
+      if(i0<0){ return out; }
+      for(i=0;i<12;i++){
+        var t=a[i0+i], n=a[i0+i+1];
+        if(!t){ break; }
+        if(!n){ break; }
+        out.push(t.name+' · '+dayText(t.jd, YEAR)+' ~ '+dayText(n.jd-1, YEAR));
+      }
+    }catch(e){ return []; }
+    return out;
+  }
   function fill(s, nm){
     var t=String(s);
     if(!nm){ t = t.split('{이름}님').join('당신').split('{이름}').join('당신'); }
@@ -320,6 +363,10 @@ add_action( 'wp_head', function () {
     t = t.split('{지난해}').join(String(YEAR - 1));
     t = t.split('{간지}').join(GANJI);
     t = t.split('{올해오행}').join(ELNAME);
+    var i;
+    for(i=0;i<TERMLAB.length;i++){
+      t = t.split('{절기'+(i+1)+'}').join(TERMLAB[i]);
+    }
     return t;
   }
 
@@ -513,6 +560,7 @@ TAIL = u''';
     }
     if(!DAE){ DAE=SP; }
 
+    TERMLAB = termLabels(S);
     var WANT={ move:SP, dae:DAE, power:powerOf(chart), rel:relOf(SP, DAE) };
     YN = YEARNAME[SP] || '';
     LN = LUCKNAME[DAE] || '';
