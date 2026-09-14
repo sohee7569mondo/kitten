@@ -41,6 +41,18 @@ add_action( 'wp_head', function () {
 	/* ★ 홈에서만 씁니다 — 이 줄은 홈에만 있습니다. */
 	if ( ! is_front_page() ) { return; }
 	?>
+<style id="stella-askmore-css">
+/* 오픈기념 무료 딱지 — 주제 딱지는 왼쪽 위에 있으니 오른쪽 위에 놓습니다.
+   금빛 바탕에 어두운 글씨라 사진 위에서도 읽힙니다. */
+#stellar-home .ask-card .freetag{
+  position:absolute; top:12px; right:12px; z-index:5;
+  font-size:.66rem; letter-spacing:.04em; font-weight:700;
+  color:#241C4E; background:#E8CD96;
+  border-radius:20px; padding:3px 11px; line-height:1.7;
+  box-shadow:0 6px 16px -8px rgba(36,28,78,.6); }
+@media(max-width:420px){
+  #stellar-home .ask-card .freetag{ font-size:.6rem; padding:2px 9px; } }
+</style>
 <script>
 (function(){
   if(window.StellaAskMore){ return; }
@@ -49,10 +61,15 @@ add_action( 'wp_head', function () {
   var UP = '/wp-content/uploads/2026/09/';
   var GO = ' ' + String.fromCharCode(8250);   /* › — 앰퍼샌드를 안 씁니다 */
 
-  /* [ 문, 주제, 사진, 딱지, 질문, 가디언 ] */
+  /* [ 문, 주제, 사진, 딱지, 질문, 가디언, 무료딱지 ]
+     2026-09-14 · 소희 님 : 「2026년운세를 제일 앞에 오픈기념 무료라는
+     버튼을 위에 넣어줘」 · 「무조건 유료로 시작을 해도 되는게
+     2026 신년운세도 공짜고」
+     무료를 상품 하나로 옮기면 가입 축하 구슬을 안 줘도 됩니다 —
+     손님은 여기서 한 권을 통째로 맛보고, 결제창은 살아 있습니다. */
   var CARDS = [
     ['/door-fortune/', '2026년 운세', 'STELLASAJU_FORTUNE-2026.jpg',
-     '2026년 운세', '올해 왜 이렇게 안 풀렸을까요?', '미르'],
+     '2026년 운세', '올해 왜 이렇게 안 풀렸을까요?', '미르', '오픈기념 무료'],
     ['/door-fortune/', '2027년 운세', 'STELLASAJU_FORTUNE-2027.jpg',
      '2027년 운세', '내년엔 좀 나아질까요?', '미르'],
     ['/door-health/',  '건강운', 'STELLASAJU_HEALTH-CAR.jpg',
@@ -95,6 +112,14 @@ add_action( 'wp_head', function () {
     tag.className = 'tag';
     tag.textContent = c[3];
 
+    /* 무료 딱지 — 있는 배너에만 붙습니다 */
+    var free = null;
+    if(c[6]){
+      free = document.createElement('span');
+      free.className = 'freetag';
+      free.textContent = c[6];
+    }
+
     var info = document.createElement('div');
     info.className = 'info';
     var q = document.createElement('div');
@@ -108,6 +133,7 @@ add_action( 'wp_head', function () {
 
     a.appendChild(wrap);
     a.appendChild(tag);
+    if(free){ a.appendChild(free); }
     a.appendChild(info);
     return a;
   }
