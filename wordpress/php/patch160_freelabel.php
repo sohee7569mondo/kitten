@@ -36,7 +36,7 @@ add_action( 'wp_head', function () {
     ['/zodiac-year/',    '태어난 해로',   '이번주<br>띠별운세'],
     ['/zodiac/',         '태어난 달로',   '이번주<br>별자리운세'],
     ['/saju/',           '네 기둥과 오행', '나의<br>사주풀이'],
-    ['/weekly-summary/', '내 사주로',     '이번주<br>총평'],
+    ['/weekly-summary/', '내 사주로',     '이번주<br>사주총평'],
     ['/lotto/',          '매주 새 번호',   '이번주<br>로또번호']
   ];
 
