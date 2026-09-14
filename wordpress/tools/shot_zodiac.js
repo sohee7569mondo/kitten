@@ -96,8 +96,10 @@ var HTML = '<!doctype html><meta charset="utf-8">'
   + '<style>' + MYCSS + '</style>'
   + '<style>#ssp .acard .sj-tag{margin-left:7px;font-size:.78rem;font-weight:400;opacity:.6;}</style>'
   + '<div id="ssp"><div class="wrap" style="max-width:1180px;margin:0 auto;padding:30px 22px 60px">'
+  + '<div class="weekbox"><div class="wk" id="zWeek">9월 14일 ~ 9월 20일</div>'
   + '<div class="gz" id="zGz">辛卯</div>'
   + '<div class="gzk" id="zGzk">신묘 · 토끼의 자리 · 목(木)의 주</div>'
+  + '<p class="say" id="zSay">이번주는 묘(卯)의 기운이 판을 잡습니다. 목(木)은 자라려는 기운이라, 새로 시작한 일에 힘이 붙습니다.</p></div>'
   + '<input id="zYear" value="1975"><input id="zMon" value="1"><input id="zDay" value="23">'
   + '<button type="button" id="zFind">내 띠 찾기</button>'
   + '<div class="agrid" id="zGrid">' + cards + '</div></div></div>'
@@ -114,7 +116,7 @@ fs.writeFileSync(tmp, HTML);
   await p.goto('file://' + tmp);
   await p.waitForTimeout(2200);
   var dst = path.join(__dirname, 'zodiac-cards.png');
-  await p.screenshot({ path: dst, clip: { x: 0, y: 900, width: 1180, height: 1150 } });
+  await p.screenshot({ path: dst, clip: { x: 0, y: 0, width: 1180, height: 1150 } });
   console.log('찍었습니다 : ' + dst);
 
   /* 눈으로 보기 전에 숫자로도 재둡니다 */

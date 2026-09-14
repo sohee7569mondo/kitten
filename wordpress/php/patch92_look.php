@@ -212,8 +212,26 @@ add_action( 'wp_footer', function () {
 
 #ssp .amine{
   margin:0 20px 18px !important; padding:11px 13px;
-  border-radius:9px; background:#F3EFFA;
-  font-size:.86rem !important; color:#4A3A86 !important; line-height:1.8; }
+  border-radius:9px; background:transparent;
+  border:1px solid #E2DACB;
+  font-size:.86rem !important; color:#4E4763 !important; line-height:1.8; }
+
+/* ⑧ 파스텔 보라 배경을 걷어냅니다
+   2026-09-14 · 소희 님 : 「그냥 파스텔 보라색 배경색을 없애줘.
+   그게 나을 듯」 — 2026-09-08 에 흰 바탕으로 덮으면서 남색이던
+   자리가 옅은 보라로 남았습니다. 종이빛으로 되돌립니다. */
+#ssp .weekbox{
+  background:#FFFFFF !important;
+  border:1px solid #E2DACB !important;
+  box-shadow:0 1px 2px rgba(34,28,51,.04),
+             0 14px 30px -22px rgba(34,28,51,.2) !important; }
+
+/* 삼재 안내(patch92_samjae)도 같은 모양으로 — 줄을 둘 긋는 대신
+   테두리 하나로 감쌉니다 */
+#sjBox{
+  margin:14px 0 8px !important; padding:20px 22px !important;
+  border:1px solid #E2DACB !important; border-radius:13px !important;
+  background:transparent !important; }
 
 /* ⑥ 내 띠 — 아이보리 바탕에서도 한눈에 */
 #ssp .acard.mine{
@@ -221,17 +239,18 @@ add_action( 'wp_footer', function () {
   box-shadow:0 0 0 2px #3A2E77,
              0 22px 46px -24px rgba(58,46,119,.5) !important; }
 #ssp .acard.mine .ahead{
-  background:linear-gradient(180deg,#F3EFFA 0%,#FFFFFF 100%) !important;
-  border-bottom-color:#E4DBF6 !important; }
+  background:linear-gradient(180deg,#FAF7F0 0%,#FFFFFF 100%) !important; }
 #ssp .acard.mine .aname:after{
   content:'내 띠'; margin-left:8px; padding:3px 10px; border-radius:20px;
   background:#3A2E77; color:#FFFDF9;
   font-size:.68rem; font-weight:800; vertical-align:middle; }
 
 /* ⑤ 이번주는 어떤 사이인가 — 열두 칸 위 안내 */
-#relBox{ margin:30px 0 6px; padding:18px 0; text-align:left;
-  border-top:1px solid rgba(128,128,128,.28);
-  border-bottom:1px solid rgba(128,128,128,.28); }
+/* 2026-09-14 · 소희 님 : 「두 번째 단락은 그냥 테두리만 하나 줘서
+   분리시켜줘」 — 위아래 선 두 개씩이라 줄이 많아 어수선했습니다.
+   테두리 하나로 감싸고 배경은 두지 않습니다. */
+#relBox{ margin:30px 0 8px; padding:20px 22px; text-align:left;
+  border:1px solid #E2DACB; border-radius:13px; background:transparent; }
 #relBox h3{ margin:0 0 12px; font-size:1.02rem; font-weight:700; }
 #relBox .rb{ display:flex; gap:11px; align-items:baseline;
   padding:7px 0; flex-wrap:wrap; }
@@ -239,9 +258,9 @@ add_action( 'wp_footer', function () {
 #relBox .rb .who{ font-weight:700; }
 #relBox .rb .why{ font-size:.9rem; opacity:.72; flex:1 1 16em;
   min-width:12em; line-height:1.75; }
-#relBox .rb.me{ background:#FBF9F4; border-radius:9px;
+#relBox .rb.me{ background:transparent; border-radius:9px;
   padding:11px 13px; margin:4px -13px;
-  box-shadow:0 0 0 1px #3A2E77 inset; }
+  border:1px solid #3A2E77; }
 #relBox .rb.me .who{ color:#3A2E77; }
 #relBox .rb .memark{ margin-left:7px; padding:3px 9px; border-radius:20px;
   background:#3A2E77; color:#FFFDF9; font-size:.68rem; font-weight:800; }
