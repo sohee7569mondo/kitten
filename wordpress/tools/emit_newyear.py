@@ -150,6 +150,10 @@ add_action( 'wp_head', function () {
 
   var YEAR = %(Y)s;
   var YEAR_EL = '%(YE)s';
+  /* 장 표지 얼굴 — 문(door-fortune)의 그 해 사진입니다 */
+  var GUARDIAN = '미르';
+  var DOORALT  = '%(Y)s년 운세';
+  var DOORIMG  = 'https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_FORTUNE-%(Y)s.jpg?resize=264%%2C264';
   var YEARNAME = %(YN)s;
   var LUCKNAME = %(LN)s;
   var TOPICS = ['%(Y)s년 운세', '%(Y)s년운세', '%(Y)s 운세'];
@@ -338,6 +342,42 @@ TAIL = u''';
                  '<div class="folio">'+two(n)+'</div></div>');
     }
 
+    /* ── 장 속표지 ────────────────────────────────────────
+       2026-09-14 · 소희 님 : 「다른 카테고리처럼 문 사진에 건강운 사진
+       넣고 제1장 0000 이렇게만 넣는 장이야. 템플릿 있을거야」
+       있었습니다 — patch160_divider 가 만들고 patch160_dvbig 이 키운
+       그 틀입니다. 클래스 이름을 그대로 쓰면 책에 이미 있는 CSS 가
+       그대로 먹습니다. 새 CSS 를 만들지 않는 까닭입니다.
+         .dvmark > img   얼굴 (132px 동그라미)
+         .dvwho          가디언 이름
+         .dvno dvch      제 N 장   ← 이 쪽이 있는 이유. 제일 큽니다
+         h2              장 제목
+         .dvrule         밑줄
+       소희 님이 「제1장 0000 이렇게만」이라 하셔서 설명(.dvwhat)은
+       넣지 않습니다. */
+    function sheet(no, title, part){
+      n++;
+      var attr=part?' data-part="'+part+'"':'';
+      return '<div class="page divider"'+attr+'>'+
+             '<div class="dvmark"><img loading="lazy" decoding="async" '+
+             'alt="'+DOORALT+'" src="'+DOORIMG+'"></div>'+
+             '<p class="dvwho">'+GUARDIAN+'</p>'+
+             '<p class="dvno dvch">'+no+'</p>'+
+             '<h2>'+title+'</h2>'+
+             '<div class="dvrule"></div>'+
+             '<div class="folio">'+two(n)+'</div></div>';
+    }
+    function bare(t){
+      var v=String(t);
+      while(v.length){
+        var c=v.charCodeAt(0);
+        if(c>=9312){ if(c<=9331){ v=v.slice(1); continue; } }
+        if(c===32){ v=v.slice(1); continue; }
+        break;
+      }
+      return v;
+    }
+
     var NOS=['01','02','03','04','05','06','07','08','09','10'];
     var MARK=['제 1 장','제 2 장','제 3 장','제 4 장','제 5 장',
               '제 6 장','제 7 장','제 8 장','제 9 장','제 10 장'];
@@ -346,7 +386,13 @@ TAIL = u''';
     for(i=0;i<NOS.length;i++){
       blocks=NY[NOS[i]];
       if(!blocks){ continue; }
-      html='<p class="nymark">'+MARK[i]+'</p>';
+      /* 장 표지 한 쪽을 먼저 놓습니다 */
+      var ct='';
+      for(j=0;j<blocks.length;j++){
+        if(blocks[j].kind==='title'){ ct=bare(blocks[j].t); break; }
+      }
+      if(ct){ pages.push(sheet(MARK[i], fill(ct, nm), (i<4?'one':'two'))); }
+      html='';
       for(j=0;j<blocks.length;j++){
         b=blocks[j];
         if(b.kind==='title'){

@@ -38,15 +38,16 @@ for(const sp of FIVE){
     const sc=w.document.createElement('script'); sc.textContent=JS; w.document.body.appendChild(sc);
     await sleep(60);            /* go() 가 setTimeout 으로 도니 기다립니다 */
     const bk=w.document.getElementById('bkBook');
-    const html=bk.innerHTML, pages=(html.match(/class="page"/g)||[]).length;
+    const html=bk.innerHTML, pages=(html.match(/class="page"/g)||[]).length,
+          dv=(html.match(/class="page divider"/g)||[]).length;
     const flag=bk.getAttribute('data-ny'+YEAR);
     sizes.push(html.length);
-    const ok = flag==='1' && pages===10 && html.length>10000;
+    const ok = flag==='1' && pages===10 && dv===10 && html.length>10000;
     if(!ok){ bad++; rows.push(['★',sp,dae,pages,html.length,flag]); }
     else rows.push(['ok',sp,dae,pages,html.length,w.document.getElementById('bkTitle').textContent]);
   }
 }
 rows.slice(0,3).concat(rows.slice(-2)).forEach(r=>console.log(r.join('  ')));
 console.log('\n'+YEAR+' · 스물다섯 갈래 · 어긋난 자리 '+bad);
-console.log('  쪽 10 · html '+Math.min(...sizes)+' ~ '+Math.max(...sizes)+'자');
+console.log('  본문 10 쪽 + 장 표지 10 쪽 · html '+Math.min(...sizes)+' ~ '+Math.max(...sizes)+'자');
 })();
