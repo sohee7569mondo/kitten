@@ -64,16 +64,27 @@ add_action( 'wp_head', function () {
 #ssb .nymark{ font-family:IBM Plex Mono,monospace; font-size:.62rem;
   letter-spacing:.18em; color:#9E2B50; margin:0 0 6px; }
 
-/* ── 쪽 폭 울타리 — 우리 책에만 걸립니다 ──────────────── */
+/* ── 쪽 폭 울타리 — 우리 책에만 걸립니다 ──────────────────
+   ★ 깃발이 .book 에 달릴 수도, #bkBook 에만 달릴 수도 있어 둘 다 겁니다.
+     2026-09-14 · 책이 왼쪽으로 쏠려 글이 잘렸습니다. 살아 있는 쪽에
+     제 사본에 없는 여백 규칙이 얹혀 있어서입니다. */
 @media screen{
-  #ssb .book[data-ny2027="1"] > .page{
+  [data-ny2027="1"]{
+    margin-left:auto !important; margin-right:auto !important;
+    padding-left:20px !important; padding-right:20px !important;
+    max-width:760px !important; width:auto !important;
+    box-sizing:border-box !important; }
+  [data-ny2027="1"] > .page{
     padding-left:0 !important; padding-right:0 !important;
     margin-left:0 !important; margin-right:0 !important;
     max-width:none !important; width:auto !important; }
-  #ssb .book[data-ny2027="1"] > .page > *{
+  [data-ny2027="1"] > .page > *{
     padding-left:0 !important; padding-right:0 !important;
     margin-left:0 !important; margin-right:0 !important;
     max-width:none !important; }
+}
+@media(max-width:820px){
+  [data-ny2027="1"]{ padding-left:16px !important; padding-right:16px !important; }
 }
 </style>
 <script>
@@ -94,6 +105,27 @@ add_action( 'wp_head', function () {
   }
   function two(x){ return (x<10?'0':'')+x; }
   function fill(s, nm){ return String(s).split('{이름}').join(nm); }
+
+  /* ── 성을 떼고 이름만 부릅니다 ─────────────────────────
+     2026-09-14 · 소희 님 : 「우린 이소희라고 안 부르고 소희님이라고
+     부르기로 했어. 성까지 부르면 너무 딱딱해보여」
+     ★ 두 글자 성(남궁·선우·황보…)도 봅니다.
+     ★ 외자 이름(김솔)은 성을 떼면 한 글자만 남아 어색하니 그대로 둡니다. */
+  var SURNAME2=['남궁','선우','황보','제갈','사공','서문','독고','동방','司馬'];
+  function callName(raw){
+    var v=String(raw===undefined?'':raw).split(' ').join('');
+    if(!v){ return '손님'; }
+    if(!/^[가-힣]+$/.test(v)){ return v; }      /* 한글 이름만 자릅니다 */
+    var i;
+    for(i=0;i<SURNAME2.length;i++){
+      if(v.indexOf(SURNAME2[i])===0){
+        if(v.length>=4){ return v.slice(2); }
+        return v;
+      }
+    }
+    if(v.length>=3){ return v.slice(1); }       /* 이소희 → 소희 */
+    return v;                                    /* 김솔 두 글자는 그대로 */
+  }
 
   function isMine(tp){
     var i; for(i=0;i<TOPICS.length;i++){ if(tp===TOPICS[i]){ return true; } }
@@ -184,7 +216,7 @@ add_action( 'wp_head', function () {
     if(!DAE){ DAE=SP; }
 
     var WANT={ move:SP, dae:DAE, power:powerOf(chart), rel:relOf(SP, DAE) };
-    var nm=esc(pr.name||'손님');
+    var nm=esc(callName(pr.name));
 
     var pages=[], n=0;
     function page(html, part){
@@ -206,7 +238,16 @@ add_action( 'wp_head', function () {
       for(j=0;j<blocks.length;j++){
         b=blocks[j];
         if(b.kind==='title'){
-          html+='<h2>'+fill(b.t, nm)+'</h2>'+fill(b.h, nm);
+          /* 원고에 붙은 ①②③ 은 제가 쓰기 좋으라고 단 번호입니다.
+             책에는 「제 1 장」 딱지가 따로 있으니 뗍니다. */
+          tt=String(b.t);
+          while(tt.length){
+            var c0=tt.charCodeAt(0);
+            if(c0>=9312){ if(c0<=9331){ tt=tt.slice(1); continue; } }
+            if(c0===32){ tt=tt.slice(1); continue; }
+            break;
+          }
+          html+='<h2>'+fill(tt, nm)+'</h2>'+fill(b.h, nm);
           continue;
         }
         if(b.kind==='always'){
