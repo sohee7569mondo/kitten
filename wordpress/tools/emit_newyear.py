@@ -4,7 +4,39 @@
     python3 emit_newyear.py 2026
     python3 emit_newyear.py 2027
 """
-import io, json, sys, os
+import io, json, sys, os, re
+
+
+def year_luck_names(doc):
+    """올해이름 · 대운이름을 원고에서 그대로 뽑습니다.
+
+    2026-09-14 · 소희 님 : 「올해 이름에 값이 들어가야 하는거 아닌가?」
+    맞습니다. {올해이름} {대운이름} 은 아무도 안 채우고 있어서 손님 책에
+    중괄호 그대로 찍히고 있었습니다.
+
+    손으로 옮겨 적지 않습니다 — 원고의 소제목에서 읽습니다.
+      01장  「비겁 · 내가 정하고 내가 서는 해」        → 올해이름
+            (2027 은 「비겁 → 식상 · …」 꼴이라 화살표도 흡수합니다)
+      02장  「비겁 · 나를 세우는 십 년」                → 대운이름
+            문장이 「「…」의 십 년을 지나고 있습니다」라서
+            「십 년」을 떼고 「흐름」을 붙입니다.
+    """
+    G = ('비겁', '식상', '재성', '관성', '인성')
+    yn, ln = {}, {}
+    for b in doc.get('01', []):
+        t = re.sub(r'<[^>]+>', '', str(b.get('t', '')))
+        m = re.match(r'^(비겁|식상|재성|관성|인성)\s*(?:→\s*\S+\s*)?·\s*(.+?)\s*$', t)
+        if m:
+            yn[m.group(1)] = m.group(2)
+    for b in doc.get('02', []):
+        t = re.sub(r'<[^>]+>', '', str(b.get('t', '')))
+        m = re.match(r'^(비겁|식상|재성|관성|인성)\s*·\s*(.+?)\s*십\s*년\s*$', t)
+        if m:
+            ln[m.group(1)] = m.group(2) + ' 흐름'
+    miss = [g for g in G if g not in yn or g not in ln]
+    if miss:
+        raise SystemExit('★ 이름표를 못 뽑았습니다: %s' % ', '.join(miss))
+    return yn, ln
 
 YEAR = sys.argv[1] if len(sys.argv) > 1 else '2026'
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -118,6 +150,8 @@ add_action( 'wp_head', function () {
 
   var YEAR = %(Y)s;
   var YEAR_EL = '%(YE)s';
+  var YEARNAME = %(YN)s;
+  var LUCKNAME = %(LN)s;
   var TOPICS = ['%(Y)s년 운세', '%(Y)s년운세', '%(Y)s 운세'];
 
   function read(k){
@@ -131,10 +165,17 @@ add_action( 'wp_head', function () {
   /* 이름이 비면 「님」까지 같이 걷어내고 「당신」으로 바꿉니다.
      — 그냥 비워두면 「님의 2026년 운세」가 되고,
        '손님' 을 넣으면 「손님님」이 됩니다. */
+  /* 올해이름 · 대운이름 — build() 가 손님 무리를 셈한 뒤 채웁니다.
+     2026-09-14 : 그전에는 아무도 안 채워서 손님 책에
+     「{올해이름}」이 중괄호째로 찍혔습니다. */
+  var YN = '', LN = '';
   function fill(s, nm){
     var t=String(s);
-    if(!nm){ return t.split('{이름}님').join('당신').split('{이름}').join('당신'); }
-    return t.split('{이름}').join(nm);
+    if(!nm){ t = t.split('{이름}님').join('당신').split('{이름}').join('당신'); }
+    else { t = t.split('{이름}').join(nm); }
+    if(YN){ t = t.split('{올해이름}').join(YN); }
+    if(LN){ t = t.split('{대운이름}').join(LN); }
+    return t;
   }
 
   /* ── 손님을 무엇이라 부를까 ────────────────────────────
@@ -285,6 +326,8 @@ TAIL = u''';
     if(!DAE){ DAE=SP; }
 
     var WANT={ move:SP, dae:DAE, power:powerOf(chart), rel:relOf(SP, DAE) };
+    YN = YEARNAME[SP] || '';
+    LN = LUCKNAME[DAE] || '';
     var nm=esc(callName(pr));
 
     var pages=[], n=0;
@@ -397,7 +440,17 @@ TAIL = u''';
 }, 3 );
 '''
 
-head = HEAD % {'Y': YEAR, 'YE': YEAR_EL, 'YG': YEAR_GAN}
+_YN, _LN = year_luck_names(json.loads(NY))
+print('  올해이름 %d · 대운이름 %d 개를 원고에서 뽑았습니다' % (len(_YN), len(_LN)))
+
+
+def _jstable(d):
+    """홑따옴표 JS 표 — 쌍따옴표를 안 써서 역빗금이 안 생깁니다."""
+    return '{' + ', '.join("'%s':'%s'" % (k, v) for k, v in sorted(d.items())) + '}'
+
+
+head = HEAD % {'Y': YEAR, 'YE': YEAR_EL, 'YG': YEAR_GAN,
+               'YN': _jstable(_YN), 'LN': _jstable(_LN)}
 out = head + NY + TAIL
 path = os.path.join(HERE, '..', 'php', 'patch160_ny%s.WPCODE.txt' % YEAR)
 io.open(path, 'w', encoding='utf-8').write(out)

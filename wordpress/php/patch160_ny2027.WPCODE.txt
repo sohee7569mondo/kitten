@@ -102,6 +102,8 @@ add_action( 'wp_head', function () {
 
   var YEAR = 2027;
   var YEAR_EL = '화';
+  var YEARNAME = {'관성':'맡은 자리가 배움이 되는 해', '비겁':'내가 세운 것을 밖으로 내놓는 해', '식상':'내놓은 것이 결과가 되는 해', '인성':'채운 것이 나를 세우는 해', '재성':'거둔 것이 자리가 되는 해'};
+  var LUCKNAME = {'관성':'자리를 만드는 흐름', '비겁':'나를 세우는 흐름', '식상':'밖으로 펼치는 흐름', '인성':'배우고 채우는 흐름', '재성':'거두고 쌓는 흐름'};
   var TOPICS = ['2027년 운세', '2027년운세', '2027 운세'];
 
   function read(k){
@@ -115,10 +117,17 @@ add_action( 'wp_head', function () {
   /* 이름이 비면 「님」까지 같이 걷어내고 「당신」으로 바꿉니다.
      — 그냥 비워두면 「님의 2026년 운세」가 되고,
        '손님' 을 넣으면 「손님님」이 됩니다. */
+  /* 올해이름 · 대운이름 — build() 가 손님 무리를 셈한 뒤 채웁니다.
+     2026-09-14 : 그전에는 아무도 안 채워서 손님 책에
+     「{올해이름}」이 중괄호째로 찍혔습니다. */
+  var YN = '', LN = '';
   function fill(s, nm){
     var t=String(s);
-    if(!nm){ return t.split('{이름}님').join('당신').split('{이름}').join('당신'); }
-    return t.split('{이름}').join(nm);
+    if(!nm){ t = t.split('{이름}님').join('당신').split('{이름}').join('당신'); }
+    else { t = t.split('{이름}').join(nm); }
+    if(YN){ t = t.split('{올해이름}').join(YN); }
+    if(LN){ t = t.split('{대운이름}').join(LN); }
+    return t;
   }
 
   /* ── 손님을 무엇이라 부를까 ────────────────────────────
@@ -267,6 +276,8 @@ add_action( 'wp_head', function () {
     if(!DAE){ DAE=SP; }
 
     var WANT={ move:SP, dae:DAE, power:powerOf(chart), rel:relOf(SP, DAE) };
+    YN = YEARNAME[SP] || '';
+    LN = LUCKNAME[DAE] || '';
     var nm=esc(callName(pr));
 
     var pages=[], n=0;
