@@ -355,29 +355,31 @@ if ( ! function_exists( 'stella_um_bg_img' ) ) {
    따로 둘 수 있게 했습니다. 소희 님은 판만 보내 주시면 됩니다 —
    자리는 제가 재서 넣습니다.
 
-     ?stella_um_pos=10|0.517,0.385,0.64,0.506,0.661,0.66
-                    칸  보라x,보라y,보라폭, 분홍x,분홍y,분홍폭   (비율)
-     ?stella_um_pos=1     지금 자리 보기
+     ?stella_um_pos=10|0.501,0.668,0.70
+                    칸  말풍선 가운데x, 가운데y, 안쪽 너비   (비율)
+     ?stella_um_pos=1       지금 자리 보기
      ?stella_um_pos=10|off  그 칸을 기본 자리로 되돌리기
 
-   위쪽 글(검사이름·두 사람·점수·요약)은 보라 말풍선 위에 알아서
-   자리를 잡습니다. 발치는 늘 맨 아래입니다. */
+   위쪽 글(검사이름·두 사람·점수·별명·요약)은 말풍선 위에 남은 자리에
+   알아서 쌓입니다. 발치는 늘 맨 아래입니다. */
 if ( ! function_exists( 'stella_um_pos' ) ) {
 	function stella_um_pos( $score ) {
-		/* 기본 자리 — 소희 님이 처음 주신 판(말풍선이 아래쪽) */
-		$d = array( 0.472, 0.663, 0.50, 0.505, 0.820, 0.50 );
+		/* 기본 자리 — 말풍선 가운데 x · 가운데 y · 안쪽 너비 (비율) */
+		$d = array( 0.501, 0.668, 0.70 );
 
 		$map = get_option( 'stella_um_pos_map', array() );
 		if ( ! is_array( $map ) ) { $map = array(); }
 		$b = stella_um_band_of( intval( $score ) );
 		if ( isset( $map[ $b ] ) ) {
 			if ( is_array( $map[ $b ] ) ) {
-				if ( 6 === count( $map[ $b ] ) ) { $d = $map[ $b ]; }
+				$g = $map[ $b ];
+				/* 예전에 여섯 개로 넣어둔 것은 뒤 셋만 씁니다 */
+				if ( 6 === count( $g ) ) { $g = array( $g[3], $g[4], $g[5] ); }
+				if ( 3 === count( $g ) ) { $d = $g; }
 			}
 		}
 		return array(
-			'nx' => (float) $d[0], 'ny' => (float) $d[1], 'nw' => (float) $d[2],
-			'bx' => (float) $d[3], 'by' => (float) $d[4], 'bw' => (float) $d[5],
+			'bx' => (float) $d[0], 'by' => (float) $d[1], 'bw' => (float) $d[2],
 		);
 	}
 }
@@ -391,18 +393,18 @@ add_action( 'init', function () {
 	if ( ! is_array( $map ) ) { $map = array(); }
 
 	if ( '1' === $v || '' === $v ) {
-		echo "말풍선 자리 (비율 · 보라x,보라y,보라폭, 분홍x,분홍y,분홍폭)\n\n";
+		echo "말풍선 자리 (비율 · 가운데x, 가운데y, 안쪽 너비)\n\n";
 		foreach ( stella_um_bands() as $k => $b ) {
 			$hi = ( 0 === $k ) ? 99 : ( stella_um_bands()[ $k - 1 ] - 1 );
 			$has = isset( $map[ $b ] ) ? implode( ',', $map[ $b ] ) : '(기본 자리)';
 			echo sprintf( "  %2d~%2d  %s\n", $b, $hi, $has );
 		}
-		echo "\n기본 자리  0.472,0.663,0.50, 0.505,0.820,0.50\n";
+		echo "\n기본 자리  0.501, 0.668, 0.70\n";
 		exit;
 	}
 	if ( false === strpos( $v, '|' ) ) {
-		echo "★ 「칸|숫자여섯」 꼴로 주세요. 보기 —\n"
-		   . "  ?stella_um_pos=10|0.517,0.385,0.64,0.506,0.661,0.66\n";
+		echo "★ 「칸|숫자셋」 꼴로 주세요. 보기 —\n"
+		   . "  ?stella_um_pos=10|0.501,0.668,0.70\n";
 		exit;
 	}
 	$two  = explode( '|', $v, 2 );
@@ -419,7 +421,7 @@ add_action( 'init', function () {
 		exit;
 	}
 	$six = array_map( 'floatval', array_map( 'trim', explode( ',', $rest ) ) );
-	if ( 6 !== count( $six ) ) { echo "★ 숫자가 여섯이라야 합니다.\n"; exit; }
+	if ( 3 !== count( $six ) ) { echo "★ 숫자가 셋이라야 합니다 — 가운데x, 가운데y, 너비\n"; exit; }
 	foreach ( $six as $one ) {
 		if ( $one <= 0 ) { echo "★ 0 보다 커야 합니다.\n"; exit; }
 		if ( $one > 1 ) { echo "★ 1 보다 작아야 합니다 (비율입니다).\n"; exit; }
@@ -709,15 +711,19 @@ add_action( 'init', function () {
 	   소희 님이 그려 주신 판에 맞춰 자리를 잡습니다.
 	   자리를 **비율**로 잡으므로 어떤 크기로 올리셔도 맞습니다.
 
-	       위 넓은 칸   유앤미 · 연인 궁합 / 소희 x 지훈 / 72 / 요약
-	       보라 말풍선   별명
-	       분홍 말풍선   본문
-	       점선 아래     나도 해보기 · stellasaju.com/uandme   */
+	       위 넓은 칸   유앤미 · 연인 궁합
+	                    소희 x 지훈          (이름마다 밑줄)
+	                    72 점                (숫자만 크게)
+	                    톰과 제리 같은 사이    (별명 — 주인공)
+	                    자꾸 신경 쓰이는 사이  (요약)
+	       말풍선 안     본문
+	       맨 아래       나도 해보기 · stellasaju.com/uandme   */
 	if ( $font ) { if ( $BG ) {
 
-		$w1 = imagecolorallocate( $im, 255, 255, 255 );
-		$d1 = imagecolorallocate( $im, 74, 56, 124 );
-		$d2 = imagecolorallocate( $im, 108, 86, 160 );
+		$w1   = imagecolorallocate( $im, 255, 255, 255 );
+		$d1   = imagecolorallocate( $im, 74, 56, 124 );
+		$d2   = imagecolorallocate( $im, 122, 100, 172 );
+		$pur2 = imagecolorallocate( $im, 91, 75, 150 );   /* 점수 — 진하게 해야 보입니다 */
 
 		/* 가운데 맞춤 · 자리가 좁으면 줄여 넣습니다 */
 		$mid = function ( $ff, $sz, $cx, $y, $text, $col, $max ) use ( $im ) {
@@ -752,44 +758,86 @@ add_action( 'init', function () {
 		$cx = $W * 0.5;
 		$P  = stella_um_pos( $score );
 
-		/* 위쪽 글 넷을 보라 말풍선 **위에 남은 자리**에 쌓습니다.
-		   ★ 글씨 크기를 그 자리에 비례시키면 안 됩니다. 말풍선이
-		     아래쪽에 있는 판에서는 점수가 괴물처럼 커집니다 —
-		     실제로 그려 보고 찾았습니다 (2026-09-15).
-		     크기는 고정하고, 자리가 모자랄 때만 다 같이 줄입니다. */
-		$have = $P['ny'] - 0.048;        /* 보라 말풍선 위에 남은 높이 (비율) */
-		$need = 0.300;                   /* 넷을 다 넣으려면 이만큼 있어야 합니다 */
+		/* 위쪽 글 다섯을 말풍선 위에 남은 자리에 쌓습니다.
+		   소희 님이 그려 주신 시안 차례 그대로입니다 —
+		     유앤미 · 연인 궁합
+		     소희 x 지훈            (이름마다 밑줄)
+		     72 점                  (숫자만 크게, 「점」은 작게)
+		     톰과 제리 같은 사이      (별명 — 주인공)
+		     자꾸 신경 쓰이는 사이    (요약)
+
+		   ★ 글씨 크기를 말풍선 자리에 비례시키면 안 됩니다. 말풍선이
+		     아래쪽인 판에서 점수가 괴물처럼 커집니다. 크기는 고정하고
+		     자리가 모자랄 때만 다 같이 줄입니다. */
+		$have = $P['by'] - 0.085;        /* 말풍선 위에 남은 높이 (비율) */
+		$need = 0.470;
 		$k    = ( $have < $need ) ? ( $have / $need ) : 1;
 
-		$s1 = $H * 0.024 * $k;   /* 검사 이름 */
-		$s2 = $H * 0.032 * $k;   /* 두 사람 */
-		$s3 = $H * 0.115 * $k;   /* 점수 */
-		$s4 = $H * 0.038 * $k;   /* 요약 */
-		$gg = $H * 0.022 * $k;   /* 사이 */
-		$tot = $s1 + $s2 + $s3 + $s4 + 3 * $gg;
-		$y   = ( $H * $have - $tot ) * 0.55;   /* 위 여백 — 살짝 위로 */
+		$s1 = $H * 0.023 * $k;   /* 검사 이름 */
+		$s2 = $H * 0.035 * $k;   /* 두 사람 */
+		$s3 = $H * 0.110 * $k;   /* 점수 숫자 */
+		$s3b= $H * 0.042 * $k;   /* 「점」 — 작게 (숫자가 잘 보이게) */
+		$s4 = $H * 0.046 * $k;   /* 별명 — 주인공 */
+		$s5 = $H * 0.030 * $k;   /* 요약 */
+		$gg = $H * 0.026 * $k;
+		$tot = $s1 + $s2 + $s3 + $s4 + $s5 + 4 * $gg;
+		$y   = ( $H * $have - $tot ) * 0.50;
 
 		/* ① 무슨 검사인지 */
 		$y += $s1;
-		$mid( $fDod, $s1, $cx, $y, '유앤미 · ' . $ko . ' 궁합', $w1, $W * 0.8 );
+		$mid( $fDod, $s1, $cx, $y, '유앤미 · ' . $ko . ' 궁합', $d2, $W * 0.8 );
 
-		/* ② 두 사람 */
+		/* ② 두 사람 — 이름마다 밑줄을 긋습니다 */
 		$y += $gg + $s2;
-		if ( $who ) { $mid( $fDod, $s2, $cx, $y, $who, $w1, $W * 0.8 ); }
+		if ( $who ) {
+			$two = explode( ' X ', $who );
+			if ( 2 === count( $two ) ) {
+				$wid = function ( $ff, $sz, $t ) {
+					$bx = imagettfbbox( intval( $sz ), 0, $ff, $t );
+					return $bx[2] - $bx[0];
+				};
+				$mark = ' × ';
+				$w_a = $wid( $font, $s2, $two[0] );
+				$w_m = $wid( $fDod, $s2 * 0.8, $mark );
+				$w_b = $wid( $font, $s2, $two[1] );
+				$x   = $cx - ( $w_a + $w_m + $w_b ) / 2;
+				$und = intval( $s2 * 0.22 );
+				$pinkL = imagecolorallocate( $im, 240, 150, 195 );
+				$blueL = imagecolorallocate( $im, 150, 170, 235 );
+				imagettftext( $im, intval( $s2 ), 0, intval( $x ), intval( $y ), $d1, $font, $two[0] );
+				imagefilledrectangle( $im, intval( $x ), intval( $y + $und ),
+					intval( $x + $w_a ), intval( $y + $und + max( 2, $s2 * 0.07 ) ), $pinkL );
+				$x += $w_a;
+				imagettftext( $im, intval( $s2 * 0.8 ), 0, intval( $x ), intval( $y ), $d2, $fDod, $mark );
+				$x += $w_m;
+				imagettftext( $im, intval( $s2 ), 0, intval( $x ), intval( $y ), $d1, $font, $two[1] );
+				imagefilledrectangle( $im, intval( $x ), intval( $y + $und ),
+					intval( $x + $w_b ), intval( $y + $und + max( 2, $s2 * 0.07 ) ), $blueL );
+			} else {
+				$mid( $font, $s2, $cx, $y, $who, $d1, $W * 0.8 );
+			}
+		}
 
-		/* ③ 점수 — 크게 */
+		/* ③ 점수 — 숫자만 크게, 「점」은 작게 */
 		$y += $gg + $s3;
-		$mid( $fBlk, $s3, $cx, $y, $score . '점', $w1, $W * 0.7 );
+		$bxN = imagettfbbox( intval( $s3 ), 0, $fBlk, (string) $score );
+		$wN  = $bxN[2] - $bxN[0];
+		$bxJ = imagettfbbox( intval( $s3b ), 0, $font, '점' );
+		$wJ  = $bxJ[2] - $bxJ[0];
+		$gapJ = $s3b * 0.30;
+		$x = $cx - ( $wN + $gapJ + $wJ ) / 2;
+		imagettftext( $im, intval( $s3 ), 0, intval( $x ), intval( $y ), $pur2, $fBlk, (string) $score );
+		imagettftext( $im, intval( $s3b ), 0, intval( $x + $wN + $gapJ ), intval( $y ), $d2, $font, '점' );
 
-		/* ④ 요약 — 점수 구간이 말해주는 한 줄 */
+		/* ④ 별명 — 이 카드의 주인공 */
 		$y += $gg + $s4;
-		$mid( $font, $s4, $cx, $y, $nick[5], $d1, $W * 0.8 );
+		$mid( $fBlk, $s4, $cx, $y, $nick[0], $d1, $W * 0.86 );
 
-		/* ⑤ 보라 말풍선 — 별명 */
-		$mid( $fBlk, $H * 0.034, $W * $P['nx'], $H * ( $P['ny'] + 0.015 ),
-			$nick[0], $w1, $W * $P['nw'] );
+		/* ⑤ 요약 */
+		$y += $gg + $s5;
+		$mid( $font, $s5, $cx, $y, $nick[5], $d2, $W * 0.8 );
 
-		/* ⑥ 분홍 말풍선 — 본문. 세 문장을 이어 붙여 줄을 나눕니다 */
+		/* ⑥ 말풍선 — 본문. 세 문장을 이어 붙여 줄을 나눕니다 */
 		$body = trim( $nick[2] . ' ' . $nick[3] . ' ' . $nick[4] );
 		$bs   = intval( $H * 0.026 );
 		$bw   = $W * $P['bw'];
@@ -808,7 +856,7 @@ add_action( 'init', function () {
 		}
 
 		/* ⑦ 발치 — 여기로 오게 하는 한 줄 */
-		$mid( $fDod, $H * 0.021, $cx, $H * 0.962,
+		$mid( $fDod, $H * 0.020, $cx, $H * 0.952,
 			'나도 해보기 · stellasaju.com/uandme', $d2, $W * 0.9 );
 
 	} else {
