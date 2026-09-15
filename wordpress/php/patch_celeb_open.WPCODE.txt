@@ -19,6 +19,8 @@
      ?stella_celeb=hunt      표가 어디 있는지 낱말로 훑습니다 (아무것도 안 바꿈)
      ?stella_celeb=peek      쪽 하나를 뜯어봅니다 (기본 193 · ?id= 로 바꿉니다)
      ?stella_celeb=stars     쪽에 든 사람을 세어 봅니다 — 겹친 이름 · 동명이인
+     ?stella_celeb=look      사람 이름이 어디 있는지 온 사이트에서 찾습니다
+     ?stella_celeb=dump      쪽 글을 토막내어 그대로 봅니다 (at · n 으로 옮김)
      ?stella_celeb=find      찾아낸 글을 확인합니다 (아무것도 안 바꿈)
      ?stella_celeb=preview   무엇이 어떻게 바뀌는지 그대로 보여줍니다
      ?stella_celeb=apply     실제로 넣습니다 (넣기 전 쪽 전체를 백업)
@@ -272,6 +274,56 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 
+	/* ── 사람 이름이 어디 있는지 온 사이트에서 찾습니다 ──────
+	   2026-09-15 · stars 가 쪽 193 에서 0명을 셌습니다.
+	   그 쪽에는 사주 계산기만 있고 사람 자료가 없습니다.
+	   그러니 500명은 다른 데 있습니다. 이름으로 찾습니다. */
+	if ( 'look' === $mode ) {
+		global $wpdb;
+		$who = isset( $_GET['who'] ) ? sanitize_text_field( wp_unslash( $_GET['who'] ) ) : '';
+		$names = $who ? array( $who ) : array( '유재석', '아이유', '차은우', '전지현' );
+
+		foreach ( $names as $n ) {
+			$rows = $wpdb->get_results( $wpdb->prepare(
+				"SELECT ID, post_type, post_title, post_name,
+				        CHAR_LENGTH(post_content) AS len
+				   FROM {$wpdb->posts}
+				  WHERE post_type <> 'revision'
+				    AND post_content LIKE %s
+			   ORDER BY len DESC LIMIT 10",
+				'%' . $wpdb->esc_like( $n ) . '%' ) );
+			printf( "\n「%s」 — %d곳\n", $n, count( $rows ) );
+			foreach ( $rows as $r ) {
+				printf( "   %-10s %5d  %-26s %d자\n", $r->post_type, $r->ID,
+					mb_substr( (string) $r->post_title, 0, 24 ), $r->len );
+				/* 그 이름 둘레를 그대로 보여줍니다 — 자료 모양을 봅니다 */
+				$c  = get_post_field( 'post_content', $r->ID );
+				$at = strpos( $c, $n );
+				if ( false !== $at ) {
+					echo "      " . str_replace( array( "\n", "\r" ), ' ',
+						substr( $c, max( 0, $at - 90 ), 220 ) ) . "\n";
+				}
+			}
+		}
+		echo "\n?stella_celeb=look&who=이름  으로 다른 이름도 찾습니다.\n";
+		exit;
+	}
+
+	/* ── 쪽 글을 토막내어 그대로 봅니다 ────────────────── */
+	if ( 'dump' === $mode ) {
+		$pid = isset( $_GET['id'] ) ? (int) $_GET['id'] : 193;
+		$at  = isset( $_GET['at'] ) ? (int) $_GET['at'] : 0;
+		$n   = isset( $_GET['n'] )  ? (int) $_GET['n']  : 2500;
+		if ( $n > 8000 ) { $n = 8000; }
+		$c = get_post_field( 'post_content', $pid );
+		printf( "쪽 %d · 모두 %d자 · %d 부터 %d자\n", $pid, strlen( $c ), $at, $n );
+		echo str_repeat( '─', 50 ) . "\n";
+		echo substr( $c, $at, $n );
+		echo "\n" . str_repeat( '─', 50 ) . "\n";
+		printf( "다음 : ?stella_celeb=dump&id=%d&at=%d&n=%d\n", $pid, $at + $n, $n );
+		exit;
+	}
+
 	/* ── 표가 있는 글을 찾습니다 (글종류를 안 가립니다) ───── */
 	$found = array();
 	$ids = $wpdb->get_col( $wpdb->prepare(
@@ -353,6 +405,6 @@ add_action( 'template_redirect', function () {
 		}
 	}
 
-	echo "\n쓸 수 있는 주소 : hunt · peek · stars · find · preview · apply · undo\n";
+	echo "\n쓸 수 있는 주소 : hunt · peek · stars · look · dump · find · preview · apply · undo\n";
 	exit;
 } );
