@@ -723,6 +723,64 @@ add_action( 'wp_head', function () {
     (X.getRoot() || document.body).appendChild(wrap);
   }
 
+  /* ── 일곱 관계를 한눈에 ────────────────────────────────
+     2026-09-15 · 소희 님
+       「친구 20 부부 80 동업 30 이렇게 나오면 부부 80점만 나오는거야?」
+     그랬습니다. 고른 하나만 나왔습니다.
+     이제 관계마다 점수가 크게 갈리므로 일곱을 같이 보여줍니다.
+     「우리 친구가 답이었네」가 이 자리에서 나옵니다. */
+  function relMap() {
+    var r = st.result;
+    if (!r) { return []; }
+    if (!r.chartA) { return []; }
+    var MM = window.StellaMatch;
+    if (!MM) { return []; }
+    var out = U.RELS.map(function (x) {
+      var n = 0;
+      try { n = MM.match(r.chartA, r.chartB, x.key).total; } catch (e) { n = 0; }
+      return { key: x.key, ko: x.ko, sc: n };
+    });
+    out.sort(function (a, b) { return b.sc - a.sc; });
+    return out;
+  }
+
+  function relMapHtml() {
+    var rows = relMap();
+    if (!rows.length) { return ''; }
+    var top = rows[0], low = rows[rows.length - 1];
+    var gap = top.sc - low.sc;
+    var say;
+    if (gap >= 20) {
+      say = '같은 두 사람인데 ' + top.ko + '으로 보면 ' + top.sc + '점, ' +
+            low.ko + '으로 보면 ' + low.sc + '점입니다.';
+    } else {
+      say = '어느 사이로 봐도 비슷하게 나옵니다. 결이 고른 두 분이에요.';
+    }
+    var h = ['<div class="pad" style="margin-top:22px">',
+      '<div class="lbl">일곱 가지 사이로 보면</div>',
+      '<div class="card" style="padding:18px 18px 8px">'];
+    rows.forEach(function (x) {
+      var on = (x.key === st.rel);
+      h.push('<button data-rel="' + x.key + '" style="display:flex;width:100%;' +
+        'align-items:center;gap:11px;border:0;background:transparent;padding:8px 0;' +
+        'cursor:pointer;text-align:left">' +
+        '<div style="width:62px;flex:none;font-size:13px;font-weight:' +
+        (on ? '800' : '500') + ';color:' + (on ? '#6B5BA8' : '#7C7392') + '">' +
+        esc(x.ko) + '</div>' +
+        '<div style="flex:1;height:12px;border-radius:6px;background:#EFE8FA;overflow:hidden">' +
+        '<div style="height:12px;border-radius:6px;width:' + Math.max(4, x.sc) + '%;' +
+        'background:linear-gradient(90deg,#C3B2F0,#F4B9D4)"></div></div>' +
+        '<div style="width:34px;flex:none;text-align:right;font-size:13.5px;' +
+        'font-weight:800;color:' + (on ? '#6B5BA8' : '#A79BC4') + '">' + x.sc + '</div>' +
+        '</button>');
+    });
+    h.push('<div style="font-size:12.5px;line-height:1.75;color:#8C82A6;' +
+      'margin:10px 0 12px;padding-top:12px;border-top:1px solid #F0EAFA">' +
+      esc(say) + '</div>');
+    h.push('</div></div>');
+    return h.join('');
+  }
+
   /* ── 화면 ────────────────────────────────────────────── */
   function relChips() {
     return U.RELS.map(function (r) {
@@ -1149,6 +1207,7 @@ add_action( 'wp_head', function () {
         cat('결혼', r.categories.marriage, '#FFEFE2', '#C4784A', '#C99578'),
         cat('금전', r.categories.money, '#E2F5EE', '#4F937A', '#7FAE9C'),
         '</div></div></div>',
+        relMapHtml(),
         '<div class="pad" style="margin-top:20px"><div class="lbl">왜 이 점수인지</div><div class="card" style="padding:20px">',
         '<div style="font-size:13.5px;line-height:1.85;color:#57506E">' + esc(r.blocks.zodiac.note) + '</div>',
         '<div style="font-size:13.5px;line-height:1.85;color:#57506E;margin-top:12px">' + esc(r.blocks.animal.note) + '</div>',
@@ -1223,7 +1282,13 @@ add_action( 'wp_head', function () {
 
   function wire() {
     X.on('[data-rel]', 'click', function () {
-      st.rel = this.getAttribute('data-rel'); render();
+      st.rel = this.getAttribute('data-rel');
+      /* 관계마다 점수가 다릅니다. 이름만 바꾸고 점수를 그대로 두면
+         화면이 거짓말을 합니다. 결과가 이미 있으면 다시 셉니다. */
+      if (st.result) { if (st.me) { if (st.you) {
+        try { U.compute(); } catch (e) {}
+      } } }
+      render();
     });
     X.on('[data-ampm]', 'click', function () {
       draft.ampm = this.getAttribute('data-ampm');
