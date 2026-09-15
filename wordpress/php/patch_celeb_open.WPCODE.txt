@@ -21,6 +21,7 @@
      ?stella_celeb=stars     쪽에 든 사람을 세어 봅니다 — 겹친 이름 · 동명이인
      ?stella_celeb=look      사람 이름이 어디 있는지 온 사이트에서 찾습니다
      ?stella_celeb=dump      쪽 글을 토막내어 그대로 봅니다 (at · n 으로 옮김)
+     ?stella_celeb=clean     겹쳐 들어간 사람을 지웁니다 (기본 406 · go=1 로 실행)
      ?stella_celeb=find      찾아낸 글을 확인합니다 (아무것도 안 바꿈)
      ?stella_celeb=preview   무엇이 어떻게 바뀌는지 그대로 보여줍니다
      ?stella_celeb=apply     실제로 넣습니다 (넣기 전 쪽 전체를 백업)
@@ -324,6 +325,133 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 
+	/* ── 겹쳐 들어간 사람을 지웁니다 ──────────────────────
+	   2026-09-15 · stars 로 알아낸 것 (쪽 406 · 537명)
+	     36명이 같은 사람인데 두 줄로 들어가 있습니다.
+	     자료를 보탤 때 칸이 어긋난 탓입니다 —
+	       차은우|ㅊ|1997-03-30|가수|…|배우
+	                           ↑직업        ↑그룹
+	     배우인데 직업 칸에 「가수」가, 그룹 칸에 「배우」가 들어가서
+	     이미 있던 「차은우·배우」와 이름이 겹쳐 「차은우(배우)」로
+	     갈라졌습니다. 직업도 「가수」로 틀리게 붙었습니다.
+
+	   지울 것 — 괄호가 붙었고, 괄호를 뗀 이름으로 **생일이 같은**
+	            짝이 있는 줄. (원래 줄이 직업 정보가 더 정확합니다)
+	   그대로 둘 것 — 생일이 다른 진짜 동명이인 열 명.
+
+	   ?stella_celeb=clean         지울 목록만 봅니다 (안 바꿈)
+	   ?stella_celeb=clean&go=1    실제로 지웁니다 (백업 뒤)
+	   ?stella_celeb=cleanundo     되돌립니다 */
+	if ( 'clean' === $mode || 'cleanundo' === $mode ) {
+		$pid  = isset( $_GET['id'] ) ? (int) $_GET['id'] : 406;
+		$post = get_post( $pid );
+		if ( ! $post ) { echo "★ 쪽 {$pid} 이 없습니다\n"; exit; }
+		$c = $post->post_content;
+
+		if ( 'cleanundo' === $mode ) {
+			$bak = get_post_meta( $pid, '_stella_celeb_clean_backup', true );
+			if ( ! $bak ) { echo "★ 백업이 없습니다\n"; exit; }
+			printf( "지금 %d자 → 백업 %d자\n", strlen( $c ), strlen( $bak ) );
+			wp_update_post( array( 'ID' => $pid, 'post_content' => $bak ) );
+			echo "→ 되돌렸습니다\n";
+			exit;
+		}
+
+		$go = ( isset( $_GET['go'] ) ? (int) $_GET['go'] : 0 ) === 1;
+		printf( "쪽 %d 「%s」 · %d자 · %s\n\n", $pid, $post->post_title,
+			strlen( $c ), $go ? '지웁니다' : '미리보기 (아직 안 지움)' );
+
+		/* JSON 을 자리와 함께 떠냅니다 */
+		$rows = array(); $from = 0;
+		while ( true ) {
+			$at = strpos( $c, '{"n":"', $from );
+			if ( false === $at ) { break; }
+			$depth = 0; $end = 0; $len = strlen( $c ); $inStr = false;
+			for ( $i = $at; $i < $len; $i++ ) {
+				$ch = $c[ $i ];
+				if ( '"' === $ch ) {
+					if ( $i > 0 ) { if ( '\\' !== $c[ $i - 1 ] ) { $inStr = ! $inStr; } }
+					continue;
+				}
+				if ( $inStr ) { continue; }
+				if ( '{' === $ch ) { $depth++; }
+				if ( '}' === $ch ) { $depth--; if ( 0 === $depth ) { $end = $i; break; } }
+			}
+			if ( $end <= $at ) { break; }
+			$one = json_decode( substr( $c, $at, $end - $at + 1 ), true );
+			if ( is_array( $one ) ) {
+				$rows[] = array( 'at' => $at, 'end' => $end, 'r' => $one );
+			}
+			$from = $end + 1;
+		}
+		printf( "모두 %d명\n", count( $rows ) );
+
+		/* 괄호를 뗀 이름으로 묶습니다 */
+		$byName = array();
+		foreach ( $rows as $k => $v ) {
+			$n = isset( $v['r']['n'] ) ? $v['r']['n'] : '';
+			$base = $n; $br = strpos( $base, '(' );
+			if ( false !== $br ) { $base = substr( $base, 0, $br ); }
+			$base = trim( $base );
+			if ( '' === $base ) { continue; }
+			if ( ! isset( $byName[ $base ] ) ) { $byName[ $base ] = array(); }
+			$byName[ $base ][] = $k;
+		}
+
+		/* 지울 자리를 고릅니다 */
+		$kill = array();
+		foreach ( $byName as $base => $ks ) {
+			if ( count( $ks ) < 2 ) { continue; }
+			$births = array();
+			foreach ( $ks as $k ) {
+				$b = isset( $rows[ $k ]['r']['b'] ) ? $rows[ $k ]['r']['b'] : '';
+				$births[ $b ] = 1;
+			}
+			if ( count( $births ) > 1 ) { continue; }   /* 진짜 동명이인 — 둡니다 */
+			foreach ( $ks as $k ) {
+				$n = $rows[ $k ]['r']['n'];
+				if ( strpos( $n, '(' ) === false ) { continue; }  /* 원래 줄은 둡니다 */
+				$kill[] = $k;
+			}
+		}
+
+		printf( "\n지울 줄 %d개 (남는 사람 %d명)\n\n",
+			count( $kill ), count( $rows ) - count( $kill ) );
+		foreach ( $kill as $k ) {
+			$r = $rows[ $k ]['r'];
+			printf( "   %-22s %-10s %s\n", $r['n'],
+				isset( $r['j'] ) ? $r['j'] : '?', isset( $r['b'] ) ? $r['b'] : '?' );
+		}
+
+		if ( ! $go ) {
+			echo "\n?stella_celeb=clean&go=1 로 실제로 지웁니다.\n";
+			echo "되돌리기 : ?stella_celeb=cleanundo\n";
+			exit;
+		}
+		if ( ! $kill ) { echo "\n지울 것이 없습니다.\n"; exit; }
+
+		/* 뒤에서부터 지웁니다 — 앞을 지우면 자리가 밀립니다.
+		   앞의 쉼표 하나까지 같이 떼어 목록이 안 깨지게 합니다. */
+		update_post_meta( $pid, '_stella_celeb_clean_backup', $c );
+		rsort( $kill );
+		$new = $c;
+		foreach ( $kill as $k ) {
+			$a = $rows[ $k ]['at']; $e = $rows[ $k ]['end'];
+			$cut = $a;
+			while ( $cut > 0 ) {
+				$ch = $new[ $cut - 1 ];
+				if ( ' ' === $ch || "\n" === $ch || "\r" === $ch || "\t" === $ch ) { $cut--; continue; }
+				if ( ',' === $ch ) { $cut--; }
+				break;
+			}
+			$new = substr( $new, 0, $cut ) . substr( $new, $e + 1 );
+		}
+		wp_update_post( array( 'ID' => $pid, 'post_content' => $new ) );
+		printf( "\n→ 지웠습니다 (%d자 → %d자)\n", strlen( $c ), strlen( $new ) );
+		echo "되돌리기 : ?stella_celeb=cleanundo\n";
+		exit;
+	}
+
 	/* ── 표가 있는 글을 찾습니다 (글종류를 안 가립니다) ───── */
 	$found = array();
 	$ids = $wpdb->get_col( $wpdb->prepare(
@@ -405,6 +533,6 @@ add_action( 'template_redirect', function () {
 		}
 	}
 
-	echo "\n쓸 수 있는 주소 : hunt · peek · stars · look · dump · find · preview · apply · undo\n";
+	echo "\n쓸 수 있는 주소 : hunt · peek · stars · look · dump · clean · cleanundo\n";
 	exit;
 } );
