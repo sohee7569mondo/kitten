@@ -399,8 +399,20 @@ add_action( 'template_redirect', function () {
 			$byName[ $base ][] = $k;
 		}
 
-		/* 지울 자리를 고릅니다 */
-		$kill = array();
+		/* ── 지울 자리와 이름을 살릴 자리를 고릅니다 ───────────
+		   2026-09-15 · 소희 님 「진 (방탄소년단)을 남기면안돼?」
+		   맞는 말씀입니다. 괄호 안이 무엇이냐에 따라 갈라야 합니다.
+
+		     괄호 안이 직업 이름(배우 · 솔로 …)  → 그룹이 아닙니다.
+		         원래 줄이 낫습니다 (아이유는 「가수·배우」).
+		         → 괄호 줄만 지웁니다.
+		     괄호 안이 진짜 그룹(방탄소년단 · 블랙핑크 …)
+		         → 그룹 이름이 있는 편이 손님에게 쓸모 있습니다.
+		         → 원래 줄의 이름을 「진(방탄소년단)」으로 바꾸고
+		           괄호 줄을 지웁니다. 한 줄만 남고 그룹도 살아납니다. */
+		$NOTGROUP = array( '배우', '솔로', '가수', '방송인', '프로듀서',
+		                   '음악인', '사업가', '모델', '개그맨' );
+		$kill = array(); $rename = array();
 		foreach ( $byName as $base => $ks ) {
 			if ( count( $ks ) < 2 ) { continue; }
 			$births = array();
@@ -409,15 +421,32 @@ add_action( 'template_redirect', function () {
 				$births[ $b ] = 1;
 			}
 			if ( count( $births ) > 1 ) { continue; }   /* 진짜 동명이인 — 둡니다 */
+
+			$plain = -1; $par = -1; $grp = '';
 			foreach ( $ks as $k ) {
 				$n = $rows[ $k ]['r']['n'];
-				if ( strpos( $n, '(' ) === false ) { continue; }  /* 원래 줄은 둡니다 */
-				$kill[] = $k;
+				$br = strpos( $n, '(' );
+				if ( false === $br ) { $plain = $k; continue; }
+				$par = $k;
+				$grp = trim( substr( $n, $br + 1, strlen( $n ) - $br - 2 ) );
 			}
+			if ( $par < 0 ) { continue; }
+			$kill[] = $par;
+			if ( $plain < 0 ) { continue; }
+			if ( in_array( $grp, $NOTGROUP, true ) ) { continue; }
+			$rename[ $plain ] = $rows[ $plain ]['r']['n'] . '(' . $grp . ')';
 		}
 
-		printf( "\n지울 줄 %d개 (남는 사람 %d명)\n\n",
-			count( $kill ), count( $rows ) - count( $kill ) );
+		printf( "\n지울 줄 %d개 · 이름을 살릴 줄 %d개 (남는 사람 %d명)\n",
+			count( $kill ), count( $rename ), count( $rows ) - count( $kill ) );
+
+		if ( $rename ) {
+			echo "\n★ 그룹 이름을 살립니다 (한 줄만 남고 그룹도 남습니다)\n";
+			foreach ( $rename as $k => $nn ) {
+				printf( "   %-10s → %s\n", $rows[ $k ]['r']['n'], $nn );
+			}
+		}
+		echo "\n★ 지울 줄\n";
 		foreach ( $kill as $k ) {
 			$r = $rows[ $k ]['r'];
 			printf( "   %-22s %-10s %s\n", $r['n'],
@@ -429,15 +458,34 @@ add_action( 'template_redirect', function () {
 			echo "되돌리기 : ?stella_celeb=cleanundo\n";
 			exit;
 		}
-		if ( ! $kill ) { echo "\n지울 것이 없습니다.\n"; exit; }
+		if ( ! $kill ) { echo "\n할 일이 없습니다.\n"; exit; }
 
 		/* 뒤에서부터 지웁니다 — 앞을 지우면 자리가 밀립니다.
 		   앞의 쉼표 하나까지 같이 떼어 목록이 안 깨지게 합니다. */
 		update_post_meta( $pid, '_stella_celeb_clean_backup', $c );
-		rsort( $kill );
+
+		/* 지우기와 이름 바꾸기를 한 목록에 모아 **뒤에서부터** 합니다.
+		   앞을 먼저 손대면 뒤의 자리가 밀립니다. */
+		$jobs = array();
+		foreach ( $kill as $k )            { $jobs[] = array( 'k' => $k, 'do' => 'kill' ); }
+		foreach ( $rename as $k => $nn )   { $jobs[] = array( 'k' => $k, 'do' => 'name', 'v' => $nn ); }
+		usort( $jobs, function ( $a, $b ) use ( $rows ) {
+			return $rows[ $b['k'] ]['at'] - $rows[ $a['k'] ]['at'];
+		} );
+
 		$new = $c;
-		foreach ( $kill as $k ) {
+		foreach ( $jobs as $j ) {
+			$k = $j['k'];
 			$a = $rows[ $k ]['at']; $e = $rows[ $k ]['end'];
+			if ( 'name' === $j['do'] ) {
+				$one = json_decode( substr( $new, $a, $e - $a + 1 ), true );
+				if ( ! is_array( $one ) ) { continue; }
+				$one['n'] = $j['v'];
+				$enc = wp_json_encode( $one, JSON_UNESCAPED_UNICODE );
+				if ( ! $enc ) { continue; }
+				$new = substr( $new, 0, $a ) . $enc . substr( $new, $e + 1 );
+				continue;
+			}
 			$cut = $a;
 			while ( $cut > 0 ) {
 				$ch = $new[ $cut - 1 ];
