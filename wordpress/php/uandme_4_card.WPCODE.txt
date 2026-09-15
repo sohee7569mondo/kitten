@@ -510,19 +510,41 @@ add_action( 'init', function () {
 		/* 같은 일을 하는 조각이 둘이면 먼저 걸린 쪽이 이깁니다 —
 		   함수에 function_exists 울타리가 있어 탈은 안 나지만,
 		   옛 그림이 그대로 나옵니다. 그래서 세어 봅니다. */
+		/* WPCode 는 판에 따라 코드를 글 본문에 두기도 하고 딸림값
+		   (postmeta) 에 두기도 합니다. 본문만 보면 0 개로 나옵니다 —
+		   2026-09-15 에 실제로 그랬습니다. 둘 다 봅니다. */
+		global $wpdb;
 		$mine = 0;
+		$hit  = array();
 		$rows = get_posts( array(
 			'post_type'      => 'wpcode',
 			'post_status'    => 'any',
 			'posts_per_page' => 300,
 		) );
-		$hit = array();
 		foreach ( $rows as $one ) {
-			if ( false === strpos( (string) $one->post_content, 'stella_um_card_name' ) ) { continue; }
+			$code = (string) $one->post_content;
+			if ( false === strpos( $code, 'stella_um_card_name' ) ) {
+				$metas = (array) get_post_meta( $one->ID );
+				foreach ( $metas as $mv ) {
+					$one_v = is_array( $mv ) ? reset( $mv ) : $mv;
+					if ( ! is_string( $one_v ) ) { continue; }
+					if ( false !== strpos( $one_v, 'stella_um_card_name' ) ) {
+						$code = $one_v;
+						break;
+					}
+				}
+			}
+			if ( false === strpos( $code, 'stella_um_card_name' ) ) { continue; }
 			$mine++;
 			$hit[] = '  · ' . $one->post_title . '  (' . $one->post_status . ')';
 		}
-		echo "카드를 그리는 조각 " . $mine . "개\n" . implode( "\n", $hit ) . "\n";
+		echo "WPCode 조각 " . count( $rows ) . "개 가운데, 카드를 그리는 것 "
+		   . $mine . "개\n";
+		if ( $hit ) { echo implode( "\n", $hit ) . "\n"; }
+		if ( 0 === $mine ) {
+			echo "  (0 개로 나와도 판 시각이 위에 보이면 새 조각은 돌고 있는 것입니다.\n";
+			echo "   WPCode 가 코드를 어디에 담는지 판마다 달라서 못 셀 때가 있습니다.)\n";
+		}
 		if ( $mine > 1 ) {
 			echo "  ★★ 둘 이상입니다. 옛 조각을 꺼 주세요 — 먼저 걸린 쪽이\n";
 			echo "      이겨서 새 조각이 안 보입니다.\n";
