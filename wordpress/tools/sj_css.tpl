@@ -99,9 +99,14 @@
     margin-left:0 !important; margin-right:0 !important;
     padding-left:0 !important; padding-right:0 !important;
     max-width:none !important; width:auto !important; }
+    /* ★★ padding 은 누르지 않습니다 — 2026-09-15
+       소희 님 「왼쪽에 바가 있을경우 여백이 좁고」
+       인용 한 마디(왼쪽 바)와 말상자의 안쪽 여백이 이 못에 눌려
+       글이 바에 딱 붙어 있었습니다. 예외를 하나씩 다는 대신
+       padding 을 아예 안 건드립니다. 밀려나는 것을 막는 데는
+       margin 과 max-width 만으로 충분합니다. */
   #ssb .book[data-samjae="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *,
   #ssb [data-samjae="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *{
-    padding-left:0 !important; padding-right:0 !important;
     margin-left:0 !important; margin-right:0 !important;
     max-width:none !important; }
   /* ★ 인용 한 마디는 왼쪽 바 옆에 여백이 있어야 합니다.
@@ -149,6 +154,38 @@
   #ssb [data-samjae="1"] > .page > h3,
   #ssb [data-samjae="1"] > .page > p{ text-align:left; }
 }
+/* ══ 겉표지의 아치문 — 크기와 모양도 우리가 박습니다 ══════
+   2026-09-15 · 소희 님 「삼재는 아직 메인에 그림안들어감」
+                        「2026 도 비슷하게 메인 사진 없고」
+   원본 책은 우리 주제를 몰라 표지 아치를 못 만들거나 비워 둡니다.
+   fixCover() 가 없으면 만들어 사진을 넣고, 모양은 여기서 정합니다.
+   네 책이 같은 모양이라야 한 세트로 보입니다. */
+#ssb .book[data-samjae="1"] > .page.cover > .dvmark.dvface,
+#ssb [data-samjae="1"] > .page.cover > .dvmark.dvface{
+  display:block !important;
+  width:262px !important; height:360px !important;
+  max-width:72% !important; min-width:0 !important;
+  margin:14px auto 30px !important; padding:0 !important;
+  border-radius:131px 131px 12px 12px !important;
+  overflow:hidden !important; box-sizing:border-box !important; }
+#ssb .book[data-samjae="1"] > .page.cover > .dvmark.dvface img,
+#ssb [data-samjae="1"] > .page.cover > .dvmark.dvface img{
+  width:100% !important; height:100% !important; display:block !important;
+  max-width:none !important; object-fit:cover !important;
+  object-position:center 34% !important; }
+@media (max-width:640px){
+  #ssb .book[data-samjae="1"] > .page.cover > .dvmark.dvface,
+  #ssb [data-samjae="1"] > .page.cover > .dvmark.dvface{
+    width:200px !important; height:275px !important;
+    border-radius:100px 100px 10px 10px !important;
+    margin-bottom:24px !important; }
+}
+@media print{
+  #ssb .book[data-samjae="1"] > .page.cover > .dvmark.dvface img,
+  #ssb [data-samjae="1"] > .page.cover > .dvmark.dvface img{
+    -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+
 /* ══ 장 속표지의 얼굴 — 우리가 직접 박습니다 ═════════════
    2026-09-15 · 소희 님 「중간에 미르 사진 안들어가고」
                         「중간에 중간에 사진없음」

@@ -1,7 +1,7 @@
 <?php
 /* ════════════════════════════════════════════════════════════
    삼재 — 여섯 장짜리 별도 구조 책
-   ★ 만든 판 2026-09-15 21:49 · 그 해 2026 (병오 · 화)
+   ★ 만든 판 2026-09-15 23:23 · 그 해 2026 (병오 · 화)
 
    무엇을 하나 — door-fortune 에서 「삼재」를 고르면 우리 여섯 장이
    나옵니다. 책 그릇(#bkBook)의 내용을 통째로 갈아끼웁니다.
@@ -36,7 +36,7 @@ add_action( 'wp_footer', function () {
 	$mine = is_page( 'reading-book' ) ? '예 — 우리 쪽입니다' : '아니오 — 여기서는 조각이 안 돕니다';
 	echo '<div style="margin:12px;padding:10px 14px;border:2px solid #A9791F;'
 	   . 'background:#FFFDF6;border-radius:8px;font:13px/1.8 system-ui;color:#4a3a10">'
-	   . '관리자에게만 보입니다 · 삼재 조각이 켜져 있습니다 · 판 2026-09-15 21:49'
+	   . '관리자에게만 보입니다 · 삼재 조각이 켜져 있습니다 · 판 2026-09-15 23:23'
 	   . '<br>지금 쪽 「' . esc_html( $slug ) . '」 · 우리 쪽인가 : ' . $mine
 	   . '</div>';
 }, 99 );
@@ -45,9 +45,41 @@ add_action( 'wp_head', function () {
 	/* ★ 울타리 — 전자책 쪽에서만 내보냅니다. 없으면 홈 · 무료 쪽 ·
 	   문 쪽까지 이 조각을 다 받습니다. */
 	if ( ! is_page( 'reading-book' ) ) { return; }
+	/* ★★ 사진 주소를 짐작하지 않고 워드프레스에게 묻습니다
+	   2026-09-15 · 소희 님 「장표지 글미 없음 — 저거 로고 같은데」
+
+	   동그라미 안에 사진 대신 흐린 로고(책 CSS 의 바탕무늬)만
+	   보였습니다. 자리도 크기도 맞으니 **그림을 못 받아온** 것입니다.
+
+	   까닭 : 같은 그림을 다시 올리시면 워드프레스가 파일 이름 끝에
+	   -1 을 붙입니다. 미디어를 열어보니 실제로
+	       STELLASAJU_FORTUNE-2026.jpg  와  STELLASAJU_FORTUNE-2026-1.jpg
+	   이 둘 다 있었습니다. 조각에 박아둔 주소가 살아 있는 쪽이
+	   아닐 수 있다는 뜻입니다.
+
+	   그래서 이름으로 미디어를 찾아 **워드프레스가 아는 주소**를
+	   씁니다. 못 찾으면 빈 값이 되고, 그때는 아래 박아둔 주소로
+	   물러납니다. */
+	$pic = '';
+	$hit = get_posts( array(
+		'post_type'      => 'attachment',
+		'post_status'    => 'inherit',
+		'post_mime_type' => 'image',
+		'posts_per_page' => 1,
+		'orderby'        => 'ID',
+		'order'          => 'DESC',
+		's'              => 'STELLASAJU_samjae',
+	) );
+	if ( $hit ) {
+		$one = wp_get_attachment_image_url( $hit[0]->ID, 'large' );
+		if ( $one ) { $pic = $one; }
+	}
+	?>
+<script>window.StellaPicSamjae = '<?php echo esc_js( $pic ); ?>';</script>
+	<?php
 	$stella_admin = current_user_can( 'manage_options' ) ? '1' : '';
 	?>
-<!-- stella 삼재 · 판 2026-09-15 21:49 -->
+<!-- stella 삼재 · 판 2026-09-15 23:23 -->
 <style>
 #ssb .sjkeep{ font-weight:600; }
 #ssb .mini{ font-size:.86rem; color:#6a6a78; }
@@ -149,9 +181,14 @@ add_action( 'wp_head', function () {
     margin-left:0 !important; margin-right:0 !important;
     padding-left:0 !important; padding-right:0 !important;
     max-width:none !important; width:auto !important; }
+    /* ★★ padding 은 누르지 않습니다 — 2026-09-15
+       소희 님 「왼쪽에 바가 있을경우 여백이 좁고」
+       인용 한 마디(왼쪽 바)와 말상자의 안쪽 여백이 이 못에 눌려
+       글이 바에 딱 붙어 있었습니다. 예외를 하나씩 다는 대신
+       padding 을 아예 안 건드립니다. 밀려나는 것을 막는 데는
+       margin 과 max-width 만으로 충분합니다. */
   #ssb .book[data-samjae="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *,
   #ssb [data-samjae="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *{
-    padding-left:0 !important; padding-right:0 !important;
     margin-left:0 !important; margin-right:0 !important;
     max-width:none !important; }
   /* ★ 인용 한 마디는 왼쪽 바 옆에 여백이 있어야 합니다.
@@ -199,6 +236,38 @@ add_action( 'wp_head', function () {
   #ssb [data-samjae="1"] > .page > h3,
   #ssb [data-samjae="1"] > .page > p{ text-align:left; }
 }
+/* ══ 겉표지의 아치문 — 크기와 모양도 우리가 박습니다 ══════
+   2026-09-15 · 소희 님 「삼재는 아직 메인에 그림안들어감」
+                        「2026 도 비슷하게 메인 사진 없고」
+   원본 책은 우리 주제를 몰라 표지 아치를 못 만들거나 비워 둡니다.
+   fixCover() 가 없으면 만들어 사진을 넣고, 모양은 여기서 정합니다.
+   네 책이 같은 모양이라야 한 세트로 보입니다. */
+#ssb .book[data-samjae="1"] > .page.cover > .dvmark.dvface,
+#ssb [data-samjae="1"] > .page.cover > .dvmark.dvface{
+  display:block !important;
+  width:262px !important; height:360px !important;
+  max-width:72% !important; min-width:0 !important;
+  margin:14px auto 30px !important; padding:0 !important;
+  border-radius:131px 131px 12px 12px !important;
+  overflow:hidden !important; box-sizing:border-box !important; }
+#ssb .book[data-samjae="1"] > .page.cover > .dvmark.dvface img,
+#ssb [data-samjae="1"] > .page.cover > .dvmark.dvface img{
+  width:100% !important; height:100% !important; display:block !important;
+  max-width:none !important; object-fit:cover !important;
+  object-position:center 34% !important; }
+@media (max-width:640px){
+  #ssb .book[data-samjae="1"] > .page.cover > .dvmark.dvface,
+  #ssb [data-samjae="1"] > .page.cover > .dvmark.dvface{
+    width:200px !important; height:275px !important;
+    border-radius:100px 100px 10px 10px !important;
+    margin-bottom:24px !important; }
+}
+@media print{
+  #ssb .book[data-samjae="1"] > .page.cover > .dvmark.dvface img,
+  #ssb [data-samjae="1"] > .page.cover > .dvmark.dvface img{
+    -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+
 /* ══ 장 속표지의 얼굴 — 우리가 직접 박습니다 ═════════════
    2026-09-15 · 소희 님 「중간에 미르 사진 안들어가고」
                         「중간에 중간에 사진없음」
@@ -245,7 +314,7 @@ add_action( 'wp_head', function () {
   var YEAR   = 2026;
   var YEAR_EL= '화';
   var GANJI  = '병오';
-  var STAMP  = '2026-09-15 21:49';
+  var STAMP  = '2026-09-15 23:23';
   var GUARDIAN = '미르';
   var TOPICS = ['삼재'];
 
@@ -864,7 +933,11 @@ add_action( 'wp_head', function () {
        크기는 CSS(.dvmark img)가 잡으므로 resize 도 필요 없습니다. */
     /* ★ 삼재는 제 그림이 따로 있습니다 — STELLASAJU_samjae.jpg
        (신년운세 그림을 빌려 쓰고 있었습니다) */
-    var DOORIMG='https://stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_samjae.jpg';
+    /* ★ 주소는 서버가 미디어에서 찾아 알려준 것을 먼저 씁니다.
+       못 찾았으면 아래 박아둔 주소로 갑니다 (2026-09-15). */
+    var DOORIMG=window.StellaPicSamjae ? window.StellaPicSamjae
+      : 'https://stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_samjae.jpg';
+    COVPIC=DOORIMG; COVALT=DOORALT;   /* 표지에서 쓰려고 옮겨 담습니다 */
     var mark=0;
 
     function sheet(title){
@@ -990,6 +1063,14 @@ add_action( 'wp_head', function () {
     }catch(e){}
   }
 
+  /* ★ 표지에 쓸 사진 — 책을 지을 때 담아 둡니다.
+     사진 주소(DOORIMG)는 book()/build() **안**에 있어서 fixCover 에서는
+     안 보입니다. 보이는 자리에 옮겨 담습니다 (2026-09-15).
+     이 한 줄이 없어 가족운·삼재 표지에 아치가 안 만들어졌습니다. */
+  var COVPIC, COVALT;   /* ★ 여기서 ='' 로 두면 안 됩니다 — 신년운세는
+     사진 주소를 이 줄보다 **위**에서 담는데, 그 값을 빈 글자로
+     덮어써서 표지에 사진이 안 들어갔습니다 (2026-09-15 에 그랬습니다). */
+
   /* ── 겉표지 손보기 ──────────────────────────
      2026-09-15 · 소희 님 「아치문이 없어」
 
@@ -1014,6 +1095,41 @@ add_action( 'wp_head', function () {
       e.className=cls;
       var s=e.querySelector('.sub');
       if(s){ if(COVSUB){ s.textContent=COVSUB; } }
+      /* ★ 표지 아치 안이 비어 있으면 우리 사진을 넣습니다 — 2026-09-15
+         소희 님 「삼재는 아직 메인에 그림안들어감」
+         원본 책은 「삼재」 같은 주제를 몰라 표지 사진을 못 고릅니다.
+         가족운 표지에는 사진이 들어 있고 삼재 표지는 비어 있던 까닭입니다. */
+      var fa=e.querySelector('.dvmark.dvface');
+      if(!fa){ fa=e.querySelector('.dvmark'); }
+      if(!fa){
+        /* ★ 아치가 아예 없으면 만들어 넣습니다 — 2026-09-15
+           소희 님 「2026 도 비슷하게 메인 사진 없고」
+           신년운세 표지에는 원본 책이 아치를 아예 안 만듭니다.
+           가족운 표지에는 있고 신년운세에는 없던 까닭입니다.
+           STELLA SAJU 딱지 바로 뒤, 제목 앞에 놓습니다. */
+        fa=document.createElement('div');
+        fa.className='dvmark dvface';
+        var mk=e.querySelector('.mark'), h0=e.querySelector('h1');
+        if(mk){ if(mk.nextSibling){ e.insertBefore(fa, mk.nextSibling); }
+                else { e.appendChild(fa); } }
+        else if(h0){ e.insertBefore(fa, h0); }
+        else { e.insertBefore(fa, e.firstChild); }
+      }
+      if(fa){
+        var cls2=String(fa.className===undefined?'':fa.className);
+        if(cls2.indexOf('dvface')<0){ fa.className=cls2+' dvface'; }
+        var fi=fa.querySelector('img');
+        if(!fi){
+          fi=document.createElement('img');
+          fi.setAttribute('decoding','async');
+          fa.appendChild(fi);
+        }
+        var cur=String(fi.getAttribute('src')===null?'':fi.getAttribute('src'));
+        if(!cur){ if(COVPIC){
+          fi.setAttribute('src', COVPIC);
+          fi.setAttribute('alt', COVALT?COVALT:'');
+        } }
+      }
       var h=e.querySelector('h1');
       if(h){ if(ttl){
         var t=String(ttl), i=t.indexOf('님의 ');

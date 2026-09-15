@@ -198,7 +198,11 @@
        크기는 CSS(.dvmark img)가 잡으므로 resize 도 필요 없습니다. */
     /* ★ 삼재는 제 그림이 따로 있습니다 — STELLASAJU_samjae.jpg
        (신년운세 그림을 빌려 쓰고 있었습니다) */
-    var DOORIMG='https://stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_samjae.jpg';
+    /* ★ 주소는 서버가 미디어에서 찾아 알려준 것을 먼저 씁니다.
+       못 찾았으면 아래 박아둔 주소로 갑니다 (2026-09-15). */
+    var DOORIMG=window.StellaPicSamjae ? window.StellaPicSamjae
+      : 'https://stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_samjae.jpg';
+    COVPIC=DOORIMG; COVALT=DOORALT;   /* 표지에서 쓰려고 옮겨 담습니다 */
     var mark=0;
 
     function sheet(title){
@@ -324,6 +328,14 @@
     }catch(e){}
   }
 
+  /* ★ 표지에 쓸 사진 — 책을 지을 때 담아 둡니다.
+     사진 주소(DOORIMG)는 book()/build() **안**에 있어서 fixCover 에서는
+     안 보입니다. 보이는 자리에 옮겨 담습니다 (2026-09-15).
+     이 한 줄이 없어 가족운·삼재 표지에 아치가 안 만들어졌습니다. */
+  var COVPIC, COVALT;   /* ★ 여기서 ='' 로 두면 안 됩니다 — 신년운세는
+     사진 주소를 이 줄보다 **위**에서 담는데, 그 값을 빈 글자로
+     덮어써서 표지에 사진이 안 들어갔습니다 (2026-09-15 에 그랬습니다). */
+
   /* ── 겉표지 손보기 ──────────────────────────
      2026-09-15 · 소희 님 「아치문이 없어」
 
@@ -348,6 +360,41 @@
       e.className=cls;
       var s=e.querySelector('.sub');
       if(s){ if(COVSUB){ s.textContent=COVSUB; } }
+      /* ★ 표지 아치 안이 비어 있으면 우리 사진을 넣습니다 — 2026-09-15
+         소희 님 「삼재는 아직 메인에 그림안들어감」
+         원본 책은 「삼재」 같은 주제를 몰라 표지 사진을 못 고릅니다.
+         가족운 표지에는 사진이 들어 있고 삼재 표지는 비어 있던 까닭입니다. */
+      var fa=e.querySelector('.dvmark.dvface');
+      if(!fa){ fa=e.querySelector('.dvmark'); }
+      if(!fa){
+        /* ★ 아치가 아예 없으면 만들어 넣습니다 — 2026-09-15
+           소희 님 「2026 도 비슷하게 메인 사진 없고」
+           신년운세 표지에는 원본 책이 아치를 아예 안 만듭니다.
+           가족운 표지에는 있고 신년운세에는 없던 까닭입니다.
+           STELLA SAJU 딱지 바로 뒤, 제목 앞에 놓습니다. */
+        fa=document.createElement('div');
+        fa.className='dvmark dvface';
+        var mk=e.querySelector('.mark'), h0=e.querySelector('h1');
+        if(mk){ if(mk.nextSibling){ e.insertBefore(fa, mk.nextSibling); }
+                else { e.appendChild(fa); } }
+        else if(h0){ e.insertBefore(fa, h0); }
+        else { e.insertBefore(fa, e.firstChild); }
+      }
+      if(fa){
+        var cls2=String(fa.className===undefined?'':fa.className);
+        if(cls2.indexOf('dvface')<0){ fa.className=cls2+' dvface'; }
+        var fi=fa.querySelector('img');
+        if(!fi){
+          fi=document.createElement('img');
+          fi.setAttribute('decoding','async');
+          fa.appendChild(fi);
+        }
+        var cur=String(fi.getAttribute('src')===null?'':fi.getAttribute('src'));
+        if(!cur){ if(COVPIC){
+          fi.setAttribute('src', COVPIC);
+          fi.setAttribute('alt', COVALT?COVALT:'');
+        } }
+      }
       var h=e.querySelector('h1');
       if(h){ if(ttl){
         var t=String(ttl), i=t.indexOf('님의 ');

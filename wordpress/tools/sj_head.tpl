@@ -45,6 +45,38 @@ add_action( 'wp_head', function () {
 	/* ★ 울타리 — 전자책 쪽에서만 내보냅니다. 없으면 홈 · 무료 쪽 ·
 	   문 쪽까지 이 조각을 다 받습니다. */
 	if ( ! is_page( 'reading-book' ) ) { return; }
+	/* ★★ 사진 주소를 짐작하지 않고 워드프레스에게 묻습니다
+	   2026-09-15 · 소희 님 「장표지 글미 없음 — 저거 로고 같은데」
+
+	   동그라미 안에 사진 대신 흐린 로고(책 CSS 의 바탕무늬)만
+	   보였습니다. 자리도 크기도 맞으니 **그림을 못 받아온** 것입니다.
+
+	   까닭 : 같은 그림을 다시 올리시면 워드프레스가 파일 이름 끝에
+	   -1 을 붙입니다. 미디어를 열어보니 실제로
+	       STELLASAJU_FORTUNE-2026.jpg  와  STELLASAJU_FORTUNE-2026-1.jpg
+	   이 둘 다 있었습니다. 조각에 박아둔 주소가 살아 있는 쪽이
+	   아닐 수 있다는 뜻입니다.
+
+	   그래서 이름으로 미디어를 찾아 **워드프레스가 아는 주소**를
+	   씁니다. 못 찾으면 빈 값이 되고, 그때는 아래 박아둔 주소로
+	   물러납니다. */
+	$pic = '';
+	$hit = get_posts( array(
+		'post_type'      => 'attachment',
+		'post_status'    => 'inherit',
+		'post_mime_type' => 'image',
+		'posts_per_page' => 1,
+		'orderby'        => 'ID',
+		'order'          => 'DESC',
+		's'              => 'STELLASAJU_samjae',
+	) );
+	if ( $hit ) {
+		$one = wp_get_attachment_image_url( $hit[0]->ID, 'large' );
+		if ( $one ) { $pic = $one; }
+	}
+	?>
+<script>window.StellaPicSamjae = '<?php echo esc_js( $pic ); ?>';</script>
+	<?php
 	$stella_admin = current_user_can( 'manage_options' ) ? '1' : '';
 	?>
 <!-- stella 삼재 · 판 %(STAMP)s -->
