@@ -2,7 +2,7 @@
 /* ══════════════════════════════════════════════════════════
    2026년 운세 — 열 장짜리 별도 구조 책
                                         ★ 2026-09-14 · 소희 님께
-                                        판 2026-09-14 23:56
+                                        판 2026-09-15 00:08
 
    ── 무엇을 하나 ───────────────────────────────────────
    door-fortune 에서 「2026년 운세」를 고르면 우리 열 장이 나옵니다.
@@ -77,7 +77,7 @@ add_action( 'wp_footer', function () {
 	$mine = is_page( 'reading-book' ) ? '예 — 우리 쪽입니다' : '아니오 — 여기서는 조각이 안 돕니다';
 	echo '<div style="margin:12px;padding:10px 14px;border:2px solid #A9791F;'
 	   . 'background:#FFFDF6;border-radius:8px;font:13px/1.8 system-ui;color:#4a3a10">'
-	   . '관리자에게만 보입니다 · NY2026 조각이 켜져 있습니다 · 판 2026-09-14 23:56'
+	   . '관리자에게만 보입니다 · NY2026 조각이 켜져 있습니다 · 판 2026-09-15 00:08'
 	   . '<br>지금 쪽 「' . esc_html( $slug ) . '」 · 우리 쪽인가 : ' . $mine
 	   . '</div>';
 }, 99 );
@@ -97,7 +97,7 @@ add_action( 'wp_head', function () {
 	   손님에게는 안 보입니다. patch160_fit(FIT-2)이 쓰는 길과 같습니다. */
 	$stella_admin = current_user_can( 'manage_options' ) ? '1' : '';
 	?>
-<!-- stella 2026년 운세 · 판 2026-09-14 23:56 -->
+<!-- stella 2026년 운세 · 판 2026-09-15 00:08 -->
 <style>
 #ssb .keepline{ font-weight:600; }
 #ssb .mini{ font-size:.86rem; color:#6a6a78; }
@@ -257,7 +257,7 @@ add_action( 'wp_head', function () {
      「원본 데이터에는 {연도}년 … 라고 저장합니다」
      그 말씀대로 해마다 바뀌는 것은 전부 빈칸으로 둡니다. 원고를
      다시 쓰지 않고 해만 갈아끼우면 되도록 하려는 것입니다. */
-  var STAMP   = '2026-09-14 23:56';
+  var STAMP   = '2026-09-15 00:08';
   var GANJI   = '병오년';
   var ELNAME  = '화';
   var YEARNAME = {'관성':'자리를 만들고 책임지는 해', '비겁':'내가 정하고 내가 서는 해', '식상':'내놓고 펼치는 해', '인성':'채우고 다음을 준비하는 해', '재성':'거두고 결과를 만드는 해'};
@@ -622,9 +622,41 @@ add_action( 'wp_head', function () {
          ★ 그림은 책이 이미 쓰고 있는 것을 그대로 씁니다 —
            door-tarot 의 「마지막에 놓는 세 장」이 st001.jpg ~ st078.jpg
            를 부릅니다. 새로 올리실 것이 없습니다.
-         ★ 뒤집힘(역방향)은 아직 안 봅니다 — door-tarot 안의 함수라
-           여기서는 못 부릅니다. 필요하시면 따로 얹습니다. */
+         ★ 뒤집힘(역방향)도 같이 봅니다 — 2026-09-15 · 소희 님
+           「역방향도 있어야지 크게 변화가 있을수 있는거잖아」
+           판정하는 함수는 door-tarot 안에 있어 못 부릅니다. 그런데
+           그것은 난수가 아니라 생년월일시와 오늘 날짜로 정해지는 셈이라,
+           그 셈을 그대로 옮기면 카드 쪽과 또같은 모양이 나옵니다.
+           역방향 글(StellaRev)은 window 에 나와 있어 그대로 씁니다 —
+           메이저 스물두 장만 역방향 글이 있고, 마이너는 늘 정방향입니다. */
       var UP='https://stellasaju.com/wp-content/uploads/2026/08/';
+      var REV=window.StellaRev ? window.StellaRev : {};
+      function numOf(x){ if(typeof x==='number'){ return x; } return 0; }
+      function seedOf(){
+        var d=new Date();
+        var v=numOf(pr.year)*10007 + numOf(pr.month)*331 + numOf(pr.day)*97
+            + numOf(pr.hour)*13 + numOf(pr.minute)*7
+            + d.getFullYear()*1103 + (d.getMonth()+1)*37 + d.getDate()*3 + 29;
+        var s2=v % 2147483647;
+        if(s2<=0){ s2+=2147483646; }
+        return s2;
+      }
+      var SEED=seedOf();
+      function flip(ci, nth){
+        if(Number(ci)>21){ return false; }
+        var v=(SEED + (Number(ci)+1)*911 + (nth+1)*577) % 100;
+        if(v<32){ return true; }
+        return false;
+      }
+      var RVS=[], z;
+      for(z=0;z<3;z++){ RVS.push(flip(pick[z], z)); }
+      function sayOf(c, rv, key){
+        if(rv){
+          var r=REV[c.n];
+          if(r){ if(r[key]){ return r[key]; } }
+        }
+        return c[key];
+      }
       var h='<p class="keepline">사주가 한 해의 결을 말한다면, 카드는 '+
             '지금 이 순간의 자리를 말합니다.</p>'+
             '<p>질문 화면에서 세 장을 뽑으셨습니다. 앞의 열 장을 뒤집는 것이 '+
@@ -644,10 +676,12 @@ add_action( 'wp_head', function () {
            '<img decoding="async" loading="lazy" alt="'+esc(c.ko)+'" '+
            'src="'+UP+'st'+no+'.jpg" '+
            'style="width:100%;display:block;border-radius:8px;'+
-           'border:1px solid rgba(212,175,106,.35)">'+
+           'border:1px solid rgba(212,175,106,.35)'+
+           (RVS[i] ? ';transform:rotate(180deg)' : '')+'">'+
            '<figcaption style="margin-top:9px;font-size:.78rem;line-height:1.6;'+
            'opacity:.72">'+seat[0]+' · '+seat[1]+
            '<br><b style="font-size:.92rem;opacity:1">'+esc(c.ko)+'</b>'+
+           (RVS[i] ? '<br><span style="opacity:.8">뒤집혀 나왔습니다</span>' : '')+
            '</figcaption></figure>';
       }
       h+='</div>';
@@ -655,13 +689,89 @@ add_action( 'wp_head', function () {
         c=T[pick[i]];
         if(!c){ continue; }
         seat=SEAT[i];
-        h+='<h3>'+seat[0]+' · '+seat[1]+' — 「'+esc(c.ko)+'」</h3>';
-        h+='<p>'+esc(c[seat[2]])+'</p>';
+        h+='<h3>'+seat[0]+' · '+seat[1]+' — 「'+esc(c.ko)+'」'+
+           (RVS[i] ? ' <em>뒤집힘</em>' : '')+'</h3>';
+        h+='<p>'+esc(sayOf(c, RVS[i], seat[2]))+'</p>';
+      }
+      /* ── 셋을 겹쳐 읽습니다 ────────────────────────────────
+         2026-09-14 · 소희 님 : 「카드가 의미하는거 말고
+                                 그 세개를 합께 말하는 거」
+         한 장씩 읽는 것과 셋을 겹쳐 읽는 것은 다릅니다. 조합이 너무
+         많아 하나하나 쓸 수 없으니, 책이 door-tarot 에서 쓰는 잣대를
+         그대로 가져옵니다 (책 주석 : 「세 잣대로만 읽습니다 — 큰 카드가
+         몇 장인가 · 숫자가 오르는가 내리는가 · 뒤집힌 것이 몇 장인가」).
+         ★ 세 잣대를 다 씁니다 — 뒤집힘은 위에서 책과 같은 셈으로
+           구해 두었습니다(RVS).
+         ★ 값 매기기도 책과 같은 결 — 메이저는 번호, 마이너는 spd(1~21). */
+      function valOf(ci){
+        var k=Number(ci);
+        if(k<=21){ return k; }
+        var cc=T[k];
+        if(cc){ if(cc.spd){ return Number(cc.spd); } }
+        return 11;
+      }
+      var maj=0, vs=[], q;
+      for(q=0;q<3;q++){
+        if(Number(pick[q])<=21){ maj++; }
+        vs.push(valOf(pick[q]));
+      }
+      h+='<h3>세 장을 겹쳐 놓으면</h3>';
+      if(maj===0){
+        h+='<p>세 장이 모두 <em>작은 카드</em>입니다. 큰 카드가 한 장도 없어요. '+
+           '올해가 바깥에서 통째로 흔들리는 해는 아니라는 뜻입니다. '+
+           '<strong>크게 터지는 일보다, 매일 하는 선택이 한 해를 만듭니다.</strong></p>';
+      } else if(maj===1){
+        h+='<p>큰 카드가 <em>한 장</em> 섞여 있습니다. '+
+           '올해 가운데 한 번은 내 뜻과 상관없이 움직이는 일이 옵니다. '+
+           '<strong>나머지는 {이름}님이 정하는 대로 갑니다.</strong></p>';
+      } else {
+        h+='<p>큰 카드가 <em>'+maj+' 장</em>이나 됩니다. '+
+           '올해가 조용히 지나가지는 않습니다. 좋은 쪽이든 아닌 쪽이든 '+
+           '<strong>지금과 같은 모양으로 끝나지는 않습니다.</strong> '+
+           '계획을 너무 촘촘히 잡아두시면 오히려 어긋납니다.</p>';
+      }
+      var gap=vs[2]-vs[0];
+      if(gap>=5){
+        h+='<p>숫자가 <em>올라갑니다.</em> 지금이 가장 낮고 뒤로 갈수록 커지는 모양이에요. '+
+           '<strong>지금 답답한 것이 올해의 바닥입니다.</strong> '+
+           '다만 올라가는 속도가 느려 한동안은 티가 안 납니다.</p>';
+      } else if(gap<=-5){
+        h+='<p>숫자가 <em>내려갑니다.</em> 지금이 가장 크고 뒤로 갈수록 작아지는 모양이에요. '+
+           '나빠진다는 뜻이 아닙니다. <strong>벌여둔 것을 정리하고 매듭짓는 해</strong>라는 '+
+           '뜻이에요. 새로 크게 벌이시면 올해 안에는 결론이 안 납니다.</p>';
+      } else {
+        h+='<p>숫자가 <em>크게 오르지도 내리지도 않습니다.</em> 평평한 모양이에요. '+
+           '답답하실 수 있는데 <strong>흔들리지 않는다는 뜻</strong>이기도 합니다. '+
+           '이런 해에 정해둔 것이 제일 오래 갑니다.</p>';
+      }
+      /* 세째 잣대 — 뒤집힌 것이 몇 장인가 */
+      var rvn=0, rvi=-1;
+      for(q=0;q<3;q++){
+        if(RVS[q]){ rvn++; if(rvi<0){ rvi=q; } }
+      }
+      if(rvn===0){
+        h+='<p>세 장이 모두 <em>바로 놓였습니다.</em> 뒤집혀 나온 카드가 한 장도 '+
+           '없어요. 카드가 말하는 것이 그대로 그 방향으로 흘러간다는 뜻입니다. '+
+           '<strong>올해는 보이는 대로 가는 해입니다.</strong> 다만 뒤집힌 것이 없다는 말은 '+
+           '뒤집히며 열리는 문도 없다는 뜻이라, 올해는 {이름}님이 밀어야 움직입니다.</p>';
+      } else if(rvn===1){
+        h+='<p><em>'+SEAT[rvi][1]+'</em> 한 장이 뒤집혀 나왔습니다. '+
+           '세 자리 가운데 그곳에서만 방향이 한 번 바뀝니다. '+
+           '<strong>그 자리는 처음 생각하신 대로 가지 않습니다.</strong> '+
+           '막혔다는 뜻은 아닙니다 — 다른 모양으로 풀린다는 뜻입니다. '+
+           '그 한 자리만 계획을 느슨하게 잡아두세요.</p>';
+      } else {
+        h+='<p>뒤집혀 나온 카드가 <em>'+rvn+' 장</em>입니다. '+
+           '올해는 생각하신 순서대로 가는 해가 아닙니다. '+
+           '<strong>한 해 가운데 한 번은 크게 바뀝니다.</strong> 나쁘다는 뜻이 아니라, '+
+           '지금 세워둔 계획이 그대로 쓰이기 어렵다는 뜻이에요. '+
+           '바뀌는 것을 받아낼 자리를 미리 비워두시는 편이 낫습니다.</p>';
       }
       h+='<blockquote class="nysay"><strong>카드는 올해를 정해주지 않습니다. '+
          '다만 지금 어디에 서 있는지를 소리 내어 말해 줍니다.</strong></blockquote>';
       h+='<p class="keepline">미르</p>';
-      return h;
+      /* 카드 장은 fill() 을 안 거치므로 {이름} 을 여기서 채웁니다 */
+      return h.split('{이름}').join(nm ? nm : '당신');
     }
 
     var NOS=['01','02','03','04','05','06','07','08','09','10'];
