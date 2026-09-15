@@ -16,7 +16,8 @@
      findPerson 함수 바로 앞. 그때 PEOPLE 은 이미 만들어져 있습니다.
 
    ── 쓰는 법 (차례대로) ──
-     ?stella_celeb=find      어느 쪽에 표가 있는지 찾습니다 (아무것도 안 바꿈)
+     ?stella_celeb=hunt      표가 어디 있는지 낱말로 훑습니다 (아무것도 안 바꿈)
+     ?stella_celeb=find      찾아낸 글을 확인합니다 (아무것도 안 바꿈)
      ?stella_celeb=preview   무엇이 어떻게 바뀌는지 그대로 보여줍니다
      ?stella_celeb=apply     실제로 넣습니다 (넣기 전 쪽 전체를 백업)
      ?stella_celeb=undo      백업으로 되돌립니다
@@ -41,27 +42,62 @@ add_action( 'template_redirect', function () {
 	$mark = 'window.StellaCeleb=PEOPLE;';
 	$re   = '#(function\s+findPerson\s*\()#u';
 
-	/* ── 표가 있는 쪽을 찾습니다 ───────────────────────── */
-	$found = array();
-	$q = new WP_Query( array(
-		'post_type'      => array( 'page', 'post' ),
-		'post_status'    => 'any',
-		'posts_per_page' => 200,
-		'fields'         => 'ids',
-	) );
-	foreach ( $q->posts as $pid ) {
-		$c = get_post_field( 'post_content', $pid );
-		if ( strpos( $c, 'var PEOPLE' ) === false ) { continue; }
-		if ( ! preg_match( $re, $c ) ) { continue; }
-		$found[] = $pid;
-	}
-
 	echo "═══ 스타 사주 · 사람 표 내놓기 ═══\n\n";
 
+	/* ── 어디에 있든 찾습니다 ──────────────────────────────
+	   2026-09-15 · 첫 판은 page 와 post 만 뒤져서 못 찾았습니다.
+	   500명짜리 표는 쪽이 아니라 WPCode 스니펫에 들어 있을 수
+	   있습니다. 그래서 글종류를 가리지 않고 훑습니다. */
+	global $wpdb;
+	$types = $wpdb->get_col(
+		"SELECT DISTINCT post_type FROM {$wpdb->posts}" );
+
+	$WORDS = array( 'function findPerson', 'var PEOPLE', 'cRoster',
+	                'StellaCeleb', 'PEOPLE', 'findPerson' );
+
+	if ( 'hunt' === $mode ) {
+		echo "── 어떤 글종류가 있나 ──\n";
+		foreach ( $types as $t ) {
+			$n = (int) $wpdb->get_var( $wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s", $t ) );
+			printf( "  %-22s %d개\n", $t, $n );
+		}
+		echo "\n── 낱말이 어디에 있나 ──\n";
+		foreach ( $WORDS as $w ) {
+			$rows = $wpdb->get_results( $wpdb->prepare(
+				"SELECT ID, post_type, post_title, post_name,
+				        CHAR_LENGTH(post_content) AS n
+				   FROM {$wpdb->posts}
+				  WHERE post_content LIKE %s
+			   ORDER BY n DESC LIMIT 12",
+				'%' . $wpdb->esc_like( $w ) . '%' ) );
+			printf( "\n  「%s」 — %d곳\n", $w, count( $rows ) );
+			foreach ( $rows as $r ) {
+				printf( "     %-9s %5d  %-26s %s  %d자\n",
+					$r->post_type, $r->ID,
+					mb_substr( (string) $r->post_title, 0, 24 ),
+					$r->post_name, $r->n );
+			}
+		}
+		echo "\n찾으신 자리를 알려주시면 그 자리에 맞춰 넣겠습니다.\n";
+		exit;
+	}
+
+	/* ── 표가 있는 글을 찾습니다 (글종류를 안 가립니다) ───── */
+	$found = array();
+	$ids = $wpdb->get_col( $wpdb->prepare(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_content LIKE %s",
+		'%' . $wpdb->esc_like( 'findPerson' ) . '%' ) );
+	foreach ( $ids as $pid ) {
+		$c = get_post_field( 'post_content', $pid );
+		if ( ! preg_match( $re, $c ) ) { continue; }
+		$found[] = (int) $pid;
+	}
+
 	if ( ! $found ) {
-		echo "★ 표를 품은 쪽을 못 찾았습니다.\n";
-		echo "  찾은 표시 : var PEOPLE  그리고  function findPerson(\n";
-		echo "  쪽 이름이나 주소를 알려주시면 그 쪽만 보고 다시 찾겠습니다.\n";
+		echo "★ 표를 품은 글을 못 찾았습니다.\n\n";
+		echo "  ?stella_celeb=hunt 로 여시면 어디에 무엇이 있는지\n";
+		echo "  낱말별로 훑어 표로 찍어 드립니다. 그것을 보여주세요.\n";
 		exit;
 	}
 
@@ -128,6 +164,6 @@ add_action( 'template_redirect', function () {
 		}
 	}
 
-	echo "\n쓸 수 있는 주소 : find · preview · apply · undo\n";
+	echo "\n쓸 수 있는 주소 : hunt · find · preview · apply · undo\n";
 	exit;
 } );
