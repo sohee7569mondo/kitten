@@ -18,6 +18,7 @@
    ── 쓰는 법 (차례대로) ──
      ?stella_celeb=hunt      표가 어디 있는지 낱말로 훑습니다 (아무것도 안 바꿈)
      ?stella_celeb=peek      쪽 하나를 뜯어봅니다 (기본 193 · ?id= 로 바꿉니다)
+     ?stella_celeb=stars     쪽에 든 사람을 세어 봅니다 — 겹친 이름 · 동명이인
      ?stella_celeb=find      찾아낸 글을 확인합니다 (아무것도 안 바꿈)
      ?stella_celeb=preview   무엇이 어떻게 바뀌는지 그대로 보여줍니다
      ?stella_celeb=apply     실제로 넣습니다 (넣기 전 쪽 전체를 백업)
@@ -154,6 +155,123 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 
+	/* ── 쪽에 든 사람 자료를 세어 봅니다 ───────────────────
+	   2026-09-15 · peek 으로 알아낸 것 —
+	     사람 자료는 쪽 193 안에 {"n":"이름", …} 꼴 JSON 으로 들어
+	     있습니다. patch_star1/2 가 필터로 모아 쪽 글에 직접 합칩니다.
+	     ?stella_starmerge=1 이 홈으로 튕기면 그 조각이 꺼진 것이므로,
+	     여기서 직접 세어 봅니다. */
+	if ( 'stars' === $mode ) {
+		$pid  = isset( $_GET['id'] ) ? (int) $_GET['id'] : 193;
+		$post = get_post( $pid );
+		if ( ! $post ) { echo "★ 쪽 {$pid} 이 없습니다\n"; exit; }
+		$c = $post->post_content;
+		printf( "쪽 %d 「%s」 · %d자\n\n", $pid, $post->post_title, strlen( $c ) );
+
+		/* JSON 을 하나씩 떠냅니다 (patch_star2 와 같은 방식) */
+		$rows = array(); $from = 0;
+		while ( true ) {
+			$at = strpos( $c, '{"n":"', $from );
+			if ( false === $at ) { break; }
+			$depth = 0; $end = 0; $len = strlen( $c ); $inStr = false;
+			for ( $i = $at; $i < $len; $i++ ) {
+				$ch = $c[ $i ];
+				if ( '"' === $ch ) {
+					if ( $i > 0 ) { if ( '\\' !== $c[ $i - 1 ] ) { $inStr = ! $inStr; } }
+					continue;
+				}
+				if ( $inStr ) { continue; }
+				if ( '{' === $ch ) { $depth++; }
+				if ( '}' === $ch ) { $depth--; if ( 0 === $depth ) { $end = $i; break; } }
+			}
+			if ( $end <= $at ) { break; }
+			$one = json_decode( substr( $c, $at, $end - $at + 1 ), true );
+			if ( is_array( $one ) ) { $rows[] = $one; }
+			$from = $end + 1;
+		}
+
+		printf( "모두 %d명\n\n", count( $rows ) );
+		if ( ! $rows ) {
+			echo "★ 사람 자료를 못 찾았습니다. 자료 모양이 바뀌었을 수 있습니다.\n";
+			exit;
+		}
+
+		/* 직업 분포 */
+		$job = array();
+		foreach ( $rows as $r ) {
+			$j = isset( $r['j'] ) ? $r['j'] : '(없음)';
+			$job[ $j ] = isset( $job[ $j ] ) ? $job[ $j ] + 1 : 1;
+		}
+		arsort( $job );
+		echo "── 직업 ──\n";
+		foreach ( $job as $k => $v ) { printf( "   %-12s %d명\n", $k, $v ); }
+
+		/* 이름이 겹치는 것 — 괄호를 뗀 기본 이름으로 묶습니다 */
+		$byName = array();
+		foreach ( $rows as $r ) {
+			$n = isset( $r['n'] ) ? $r['n'] : '';
+			$base = $n;
+			$br = strpos( $base, '(' );
+			if ( false !== $br ) { $base = substr( $base, 0, $br ); }
+			$base = trim( $base );
+			if ( '' === $base ) { continue; }
+			if ( ! isset( $byName[ $base ] ) ) { $byName[ $base ] = array(); }
+			$byName[ $base ][] = $r;
+		}
+
+		$same = array(); $diff = array();
+		foreach ( $byName as $base => $list ) {
+			if ( count( $list ) < 2 ) { continue; }
+			$births = array();
+			foreach ( $list as $r ) {
+				$b = isset( $r['b'] ) ? $r['b'] : '';
+				$births[ $b ] = 1;
+			}
+			if ( count( $births ) === 1 ) { $same[ $base ] = $list; }
+			else { $diff[ $base ] = $list; }
+		}
+
+		printf( "\n── 같은 이름이 여럿 ── (%d 쌍)\n", count( $byName ) ? count( $same ) + count( $diff ) : 0 );
+
+		printf( "\n★ 같은 사람이 두 줄 (생일이 같음) — %d명\n", count( $same ) );
+		foreach ( $same as $base => $list ) {
+			printf( "   %s · %s\n", $base, isset( $list[0]['b'] ) ? $list[0]['b'] : '?' );
+			foreach ( $list as $r ) {
+				printf( "      %-18s %s\n",
+					isset( $r['n'] ) ? $r['n'] : '?',
+					isset( $r['j'] ) ? $r['j'] : '?' );
+			}
+		}
+		if ( ! $same ) { echo "   없습니다 — 중복 등록은 없습니다\n"; }
+
+		printf( "\n★ 진짜 동명이인 (생일이 다름) — %d명\n", count( $diff ) );
+		foreach ( $diff as $base => $list ) {
+			printf( "   %s\n", $base );
+			foreach ( $list as $r ) {
+				printf( "      %-18s %-8s %s\n",
+					isset( $r['n'] ) ? $r['n'] : '?',
+					isset( $r['j'] ) ? $r['j'] : '?',
+					isset( $r['b'] ) ? $r['b'] : '?' );
+			}
+		}
+		if ( ! $diff ) { echo "   없습니다\n"; }
+
+		/* 괄호가 붙은 이름 */
+		$par = array();
+		foreach ( $rows as $r ) {
+			$n = isset( $r['n'] ) ? $r['n'] : '';
+			if ( strpos( $n, '(' ) !== false ) { $par[] = $n; }
+		}
+		printf( "\n── 괄호가 붙은 이름 %d명 ──\n", count( $par ) );
+		$k = 0;
+		foreach ( $par as $n ) {
+			$k++;
+			printf( "   %s%s", $n, ( $k % 4 === 0 ) ? "\n" : "  " );
+		}
+		if ( $k % 4 !== 0 ) { echo "\n"; }
+		exit;
+	}
+
 	/* ── 표가 있는 글을 찾습니다 (글종류를 안 가립니다) ───── */
 	$found = array();
 	$ids = $wpdb->get_col( $wpdb->prepare(
@@ -235,6 +353,6 @@ add_action( 'template_redirect', function () {
 		}
 	}
 
-	echo "\n쓸 수 있는 주소 : hunt · peek · find · preview · apply · undo\n";
+	echo "\n쓸 수 있는 주소 : hunt · peek · stars · find · preview · apply · undo\n";
 	exit;
 } );
