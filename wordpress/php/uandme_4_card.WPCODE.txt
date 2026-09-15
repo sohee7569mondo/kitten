@@ -26,6 +26,11 @@ if ( ! function_exists( 'stella_um_card_name' ) ) {
 		$base = intval( $score ) . '-' . preg_replace( '/[^a-z_]/', '', $rel ) . '-' .
 		        intval( $a ) . '-' . intval( $b ) . '-' . intval( $c );
 		if ( $n ) { $base .= '-' . preg_replace( '/[^A-Za-z0-9_-]/', '', $n ); }
+		/* 판이나 글이 바뀌면 이름도 바뀌게 합니다. 안 그러면 한 번 만든
+		   그림이 그대로 남아 새 판이 안 보입니다 — 2026-09-15 */
+		$base .= '-v' . substr( md5( (string) get_option( 'stella_um_bg', '' ) .
+		                             wp_json_encode( get_option( 'stella_um_bg_map', array() ) ) .
+		                             '2026-09-15' ), 0, 6 );
 		return $base . '.png';
 	}
 }
@@ -222,6 +227,174 @@ if ( ! function_exists( 'stella_um_font' ) ) {
 	}
 }
 
+/* ── 바탕 판 ────────────────────────────────────────────
+   소희 님이 그려 주신 빈 판 위에 글자만 얹습니다.
+   **별명 구간마다 다른 판**을 둘 수 있습니다 — 실과 바늘 칸에는
+   실타래와 바늘이, 톰과 제리 칸에는 고양이와 쥐가 나오게요.
+
+   넣는 법 (관리자만 · 주소창에 한 번씩)
+
+     구간 판   ?stella_um_bg=70|<그림 주소>      70~74 칸에만
+     기본 판   ?stella_um_bg=<그림 주소>         판이 없는 칸 전부
+     보기      ?stella_um_bg=1                  지금 어느 칸에 뭐가 있나
+     한 칸 빼기 ?stella_um_bg=70|off
+     다 빼기   ?stella_um_bg=off
+
+   판이 하나도 없으면 예전처럼 서버가 직접 그립니다.
+   그러니 판을 못 넣으셔도 카드는 늘 나옵니다. */
+if ( ! function_exists( 'stella_um_bg_open' ) ) {
+	function stella_um_bg_open( $u ) {
+		if ( ! $u ) { return null; }
+		if ( 'off' === $u ) { return null; }
+
+		$raw = '';
+		$up  = wp_upload_dir();
+		/* 우리 사이트 그림이면 파일을 바로 엽니다 — 빠르고 탈이 없습니다 */
+		if ( 0 === strpos( $u, $up['baseurl'] ) ) {
+			$path = $up['basedir'] . substr( $u, strlen( $up['baseurl'] ) );
+			if ( file_exists( $path ) ) { $raw = (string) @file_get_contents( $path ); }
+		}
+		if ( ! $raw ) {
+			$r = wp_remote_get( $u, array( 'timeout' => 20 ) );
+			if ( is_wp_error( $r ) ) { return null; }
+			if ( 200 !== intval( wp_remote_retrieve_response_code( $r ) ) ) { return null; }
+			$raw = wp_remote_retrieve_body( $r );
+		}
+		if ( strlen( $raw ) < 1000 ) { return null; }
+		$im = @imagecreatefromstring( $raw );
+		if ( ! $im ) { return null; }
+		return $im;
+	}
+}
+/* 구간 스무 칸 — 낱말표와 같은 자리입니다 */
+if ( ! function_exists( 'stella_um_bands' ) ) {
+	function stella_um_bands() {
+		return array( 95, 90, 85, 80, 75, 70, 65, 60, 55, 50,
+		              45, 40, 35, 30, 25, 20, 15, 10, 5, 0 );
+	}
+}
+if ( ! function_exists( 'stella_um_band_of' ) ) {
+	function stella_um_band_of( $n ) {
+		foreach ( stella_um_bands() as $b ) {
+			if ( $n >= $b ) { return $b; }
+		}
+		return 0;
+	}
+}
+if ( ! function_exists( 'stella_um_bg_url' ) ) {
+	function stella_um_bg_url( $score ) {
+		$map = get_option( 'stella_um_bg_map', array() );
+		if ( ! is_array( $map ) ) { $map = array(); }
+		$b = stella_um_band_of( intval( $score ) );
+		if ( isset( $map[ $b ] ) ) {
+			if ( $map[ $b ] ) {
+				if ( 'off' !== $map[ $b ] ) { return $map[ $b ]; }
+			}
+		}
+		return (string) get_option( 'stella_um_bg', '' );
+	}
+}
+if ( ! function_exists( 'stella_um_bg_img' ) ) {
+	function stella_um_bg_img( $score = 0 ) {
+		return stella_um_bg_open( stella_um_bg_url( $score ) );
+	}
+}
+
+/* 판 주소를 넣고 빼는 자리 — 관리자만 */
+add_action( 'init', function () {
+	if ( ! isset( $_GET['stella_um_bg'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	$v = trim( (string) wp_unslash( $_GET['stella_um_bg'] ) );
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$map = get_option( 'stella_um_bg_map', array() );
+	if ( ! is_array( $map ) ) { $map = array(); }
+
+	if ( '1' === $v || '' === $v ) {
+		$base = (string) get_option( 'stella_um_bg', '' );
+		echo "기본 판\n  " . ( $base ? $base : '(없습니다 — 서버가 직접 그립니다)' ) . "\n";
+		$im = stella_um_bg_open( $base );
+		if ( $im ) { echo '  열립니다 · ' . imagesx( $im ) . ' x ' . imagesy( $im ) . "\n"; }
+		echo "\n구간마다\n";
+		foreach ( stella_um_bands() as $k => $b ) {
+			$hi = ( 0 === $k ) ? 99 : ( stella_um_bands()[ $k - 1 ] - 1 );
+			$u  = isset( $map[ $b ] ) ? $map[ $b ] : '';
+			$say = $u ? ( 'off' === $u ? '(뺐습니다)' : $u ) : '(기본 판을 씁니다)';
+			echo sprintf( "  %2d~%2d  %s\n", $b, $hi, $say );
+		}
+		echo "\n넣는 법\n";
+		echo "  ?stella_um_bg=70|<그림 주소>   70~74 칸에만\n";
+		echo "  ?stella_um_bg=<그림 주소>      기본 판\n";
+		echo "  ?stella_um_bg=70|off           그 칸만 빼기\n";
+		echo "  ?stella_um_bg=off              다 빼기\n";
+		exit;
+	}
+	if ( 'off' === $v ) {
+		update_option( 'stella_um_bg', 'off' );
+		update_option( 'stella_um_bg_map', array() );
+		echo "판을 다 뺐습니다. 서버가 직접 그립니다.\n";
+		exit;
+	}
+
+	/* 「70|주소」 꼴이면 그 칸에만 */
+	$band = -1;
+	if ( false !== strpos( $v, '|' ) ) {
+		$two = explode( '|', $v, 2 );
+		if ( ctype_digit( trim( $two[0] ) ) ) {
+			$band = intval( trim( $two[0] ) );
+			$v    = trim( $two[1] );
+		}
+	}
+	if ( $band >= 0 ) {
+		if ( ! in_array( $band, stella_um_bands(), true ) ) {
+			echo "★ 그런 칸이 없습니다. 칸은 이 스물입니다 —\n  "
+			   . implode( ' ', stella_um_bands() ) . "\n";
+			exit;
+		}
+	}
+
+	if ( 'off' === $v ) {
+		if ( $band < 0 ) { echo "★ 어느 칸인지 말씀해 주세요. 보기 : ?stella_um_bg=70|off\n"; exit; }
+		unset( $map[ $band ] );
+		update_option( 'stella_um_bg_map', $map );
+		echo $band . " 칸의 판을 뺐습니다. 이제 기본 판을 씁니다.\n";
+		exit;
+	}
+
+	$v = esc_url_raw( $v );
+	if ( ! $v ) { echo "★ 주소가 아닙니다.\n"; exit; }
+
+	if ( $band >= 0 ) {
+		$map[ $band ] = $v;
+		update_option( 'stella_um_bg_map', $map );
+	} else {
+		update_option( 'stella_um_bg', $v );
+	}
+
+	$im = stella_um_bg_open( $v );
+	if ( $im ) {
+		echo ( $band >= 0 ? ( $band . ' 칸에 ' ) : '기본 판으로 ' ) . "넣었습니다 · "
+		   . imagesx( $im ) . ' x ' . imagesy( $im ) . "\n";
+		echo "카드를 다시 보시면 새 판으로 나옵니다.\n";
+	} else {
+		echo "★ 넣긴 했는데 그림을 못 엽니다. 주소를 다시 보세요.\n";
+	}
+	exit;
+}, 1 );
+
+/* 카카오에게 그림 크기를 알려주려면 화면이 판 크기를 알아야 합니다.
+   판을 세로로 바꾸면 800x400 이라고 말하던 것이 어긋납니다. */
+add_action( 'wp_head', function () {
+	if ( function_exists( 'stella_um_here' ) ) {
+		if ( ! stella_um_here() ) { return; }
+	}
+	$im = stella_um_bg_img( 70 );
+	if ( ! $im ) { return; }
+	echo "<script>window.UM_CARD_WH=[" . intval( imagesx( $im ) ) . ','
+	   . intval( imagesy( $im ) ) . "];</script>\n";
+}, 9 );
+
 /* ── 그림 그리기 ──────────────────────────────────────── */
 add_action( 'init', function () {
 
@@ -244,13 +417,21 @@ add_action( 'init', function () {
 	}
 	if ( ! $want ) { return; }
 
-	$W = 800; $H = 400;
-
 	$score = isset( $_GET['s'] ) ? max( 0, min( 99, intval( $_GET['s'] ) ) ) : 0;
 	$a     = isset( $_GET['a'] ) ? max( 0, min( 40, intval( $_GET['a'] ) ) ) : 0;
 	$b     = isset( $_GET['b'] ) ? max( 0, min( 30, intval( $_GET['b'] ) ) ) : 0;
 	$c     = isset( $_GET['c'] ) ? max( 0, min( 30, intval( $_GET['c'] ) ) ) : 0;
 	$rel   = isset( $_GET['r'] ) ? sanitize_key( $_GET['r'] ) : 'lover';
+
+	/* 판이 있으면 판 크기로, 없으면 예전 크기로 */
+	$BG = stella_um_bg_img( $score );
+	if ( $BG ) {
+		$W = imagesx( $BG );
+		$H = imagesy( $BG );
+	} else {
+		$W = 800; $H = 400;
+	}
+
 	$tier  = isset( $_GET['t'] ) ? wp_strip_all_tags( wp_unslash( $_GET['t'] ) ) : stella_um_tier( $score );
 	if ( mb_strlen( $tier ) > 14 ) { $tier = mb_substr( $tier, 0, 14 ); }
 	/* Jua 가 그릴 줄 아는 글자만 남깁니다 — 한글·영문·숫자·기본 부호.
@@ -317,12 +498,16 @@ add_action( 'init', function () {
 	$right = $pool[ wp_rand( 0, count( $pool ) - 1 ) ];
 
 	/* 두 배로 그린 뒤 줄입니다 — 동그라미 가장자리가 매끈해집니다 */
-	$S  = 2;
+	/* 판이 있으면 그대로 한 배로 그립니다 — 이미 큰 그림입니다.
+	   없으면 두 배로 그려 줄입니다 (동그라미 가장자리가 매끈해집니다). */
+	$S  = $BG ? 1 : 2;
 	$im = imagecreatetruecolor( $W * $S, $H * $S );
 	imagealphablending( $im, true );
 	imagesavealpha( $im, true );
+	if ( $BG ) { imagecopy( $im, $BG, 0, 0, 0, 0, $W, $H ); }
 
-	/* 파스텔 바탕 */
+	/* 파스텔 바탕 — 판이 없을 때만 */
+	if ( ! $BG ) {
 	for ( $y = 0; $y < $H * $S; $y++ ) {
 		$q  = $y / ( $H * $S - 1 );
 		$col = imagecolorallocate( $im,
@@ -330,6 +515,7 @@ add_action( 'init', function () {
 			intval( 241 + ( 238 - 241 ) * $q ),
 			intval( 253 + ( 246 - 253 ) * $q ) );
 		imagefilledrectangle( $im, 0, $y, $W * $S, $y, $col );
+	}
 	}
 
 	$ink   = imagecolorallocate( $im, 63, 58, 82 );
@@ -352,7 +538,7 @@ add_action( 'init', function () {
 		imagefilledellipse( $im, $x1 + $r, $y2 - $r, $r * 2, $r * 2, $col );
 		imagefilledellipse( $im, $x2 - $r, $y2 - $r, $r * 2, $r * 2, $col );
 	};
-	$rr( 24, 22, 776, 378, 30, $white );
+	if ( ! $BG ) { $rr( 24, 22, 776, 378, 30, $white ); }
 
 	/* ── 글로 된 카드 ────────────────────────────────────
 	   2026-09-15 · 소희 님 「그래프 말고 문구로 바이럴시킬까?」
@@ -375,15 +561,100 @@ add_action( 'init', function () {
 		$nick[0] = $tier;
 	}
 
-	/* 오른쪽 위에 부드러운 얼룩 둘 — 밋밋한 것을 막아줍니다 */
-	$blob1 = imagecolorallocatealpha( $im, 198, 176, 240, 82 );
-	$blob2 = imagecolorallocatealpha( $im, 248, 186, 206, 86 );
-	imagefilledellipse( $im, 700 * $S, 62 * $S, 210 * $S, 210 * $S, $blob1 );
-	imagefilledellipse( $im, 762 * $S, 128 * $S, 150 * $S, 150 * $S, $blob2 );
+	/* 오른쪽 위에 부드러운 얼룩 둘 — 판이 없을 때만 */
+	if ( ! $BG ) {
+		$blob1 = imagecolorallocatealpha( $im, 198, 176, 240, 82 );
+		$blob2 = imagecolorallocatealpha( $im, 248, 186, 206, 86 );
+		imagefilledellipse( $im, 700 * $S, 62 * $S, 210 * $S, 210 * $S, $blob1 );
+		imagefilledellipse( $im, 762 * $S, 128 * $S, 150 * $S, 150 * $S, $blob2 );
+	}
 
 	$font = stella_um_font();
 
-	if ( $font ) {
+	/* ── 판 위에 글자 얹기 ───────────────────────────────
+	   소희 님이 그려 주신 판에 맞춰 자리를 잡습니다.
+	   자리를 **비율**로 잡으므로 어떤 크기로 올리셔도 맞습니다.
+
+	       위 넓은 칸   유앤미 · 연인 궁합 / 소희 x 지훈 / 72 / 요약
+	       보라 말풍선   별명
+	       분홍 말풍선   본문
+	       점선 아래     나도 해보기 · stellasaju.com/uandme   */
+	if ( $font ) { if ( $BG ) {
+
+		$w1 = imagecolorallocate( $im, 255, 255, 255 );
+		$d1 = imagecolorallocate( $im, 74, 56, 124 );
+		$d2 = imagecolorallocate( $im, 108, 86, 160 );
+
+		/* 가운데 맞춤 · 자리가 좁으면 줄여 넣습니다 */
+		$mid = function ( $sz, $cx, $y, $text, $col, $max ) use ( $im, $font ) {
+			if ( '' === $text ) { return; }
+			$sz = intval( $sz );
+			$wd = 0;
+			while ( $sz > 8 ) {
+				$bx = imagettfbbox( $sz, 0, $font, $text );
+				$wd = $bx[2] - $bx[0];
+				if ( $wd <= $max ) { break; }
+				$sz = $sz - 1;
+			}
+			imagettftext( $im, $sz, 0, intval( $cx - $wd / 2 ), intval( $y ), $col, $font, $text );
+		};
+		/* 글을 말풍선 너비에 맞춰 여러 줄로 쪼갭니다 */
+		$wrap = function ( $sz, $text, $max ) use ( $font ) {
+			$out  = array();
+			$line = '';
+			$words = explode( ' ', $text );
+			foreach ( $words as $wd ) {
+				$try = ( '' === $line ) ? $wd : ( $line . ' ' . $wd );
+				$bx  = imagettfbbox( $sz, 0, $font, $try );
+				if ( ( $bx[2] - $bx[0] ) > $max ) {
+					if ( '' !== $line ) { $out[] = $line; $line = $wd; continue; }
+				}
+				$line = $try;
+			}
+			if ( '' !== $line ) { $out[] = $line; }
+			return $out;
+		};
+
+		$cx = $W * 0.5;
+
+		/* ① 무슨 검사인지 */
+		$mid( $H * 0.024, $cx, $H * 0.085, '유앤미 · ' . $ko . ' 궁합', $w1, $W * 0.8 );
+
+		/* ② 두 사람 */
+		if ( $who ) { $mid( $H * 0.034, $cx, $H * 0.150, $who, $w1, $W * 0.8 ); }
+
+		/* ③ 점수 — 크게 */
+		$mid( $H * 0.125, $cx, $H * 0.355, $score . '점', $w1, $W * 0.7 );
+
+		/* ④ 요약 — 점수 구간이 말해주는 한 줄 */
+		$mid( $H * 0.040, $cx, $H * 0.445, $nick[5], $d1, $W * 0.8 );
+
+		/* ⑤ 보라 말풍선 — 별명 */
+		$mid( $H * 0.034, $W * 0.472, $H * 0.678, $nick[0], $w1, $W * 0.50 );
+
+		/* ⑥ 분홍 말풍선 — 본문. 세 문장을 이어 붙여 줄을 나눕니다 */
+		$body = trim( $nick[2] . ' ' . $nick[3] . ' ' . $nick[4] );
+		$bs   = intval( $H * 0.026 );
+		$bw   = $W * 0.50;
+		$rows = $wrap( $bs, $body, $bw );
+		while ( count( $rows ) > 4 ) {
+			if ( $bs <= 12 ) { break; }
+			$bs   = $bs - 1;
+			$rows = $wrap( $bs, $body, $bw );
+		}
+		/* 글자는 밑선에 찍힙니다. 가운데로만 셈하면 첫 줄이 말풍선
+		   위로 삐져나옵니다 — 실제로 그려 보고 찾았습니다 (2026-09-15). */
+		$gap = $bs * 1.55;
+		$y0  = $H * 0.820 - ( count( $rows ) - 1 ) * $gap / 2 + $bs * 0.30;
+		foreach ( $rows as $k => $line ) {
+			$mid( $bs, $W * 0.505, $y0 + $k * $gap, $line, $d1, $bw );
+		}
+
+		/* ⑦ 발치 — 여기로 오게 하는 한 줄 */
+		$mid( $H * 0.021, $cx, $H * 0.962,
+			'나도 해보기 · stellasaju.com/uandme', $d2, $W * 0.9 );
+
+	} else {
 		/* 왼쪽 맞춤 · 자리가 좁으면 줄여 넣습니다 */
 		$put = function ( $size, $x, $y, $text, $col, $max ) use ( $im, $font, $S ) {
 			if ( '' === $text ) { return; }
@@ -426,7 +697,7 @@ add_action( 'init', function () {
 		$fw   = $wide( 18, $foot );
 		$rr( $X - 4, 336, $X + $fw + 32, 372, 18, imagecolorallocate( $im, 63, 58, 82 ) );
 		$put( 18, $X + 10, 361, $foot, $white, 420 );
-	}
+	} }
 
 	/* 두 배로 그린 것을 제 크기로 줄입니다 */
 	$out = imagecreatetruecolor( $W, $H );

@@ -263,7 +263,13 @@ add_action( 'wp_head', function () {
   /* 카톡 글머리 — 이모지와 별명이 먼저 보여야 눌러봅니다.
      그림에는 이모지를 못 그립니다(글꼴에 없어 네모가 납니다).
      글에는 얼마든지 쓸 수 있으므로 여기서만 씁니다. */
-  function kakaoTitle() {
+  /* 카드 그림의 크기 — 판을 바꾸면 서버가 알려줍니다 */
+  function cardWH() {
+    var v = window.UM_CARD_WH;
+    if (v) { if (v.length === 2) { return v; } }
+    return [800, 400];
+  }
+    function kakaoTitle() {
     if (!st.result) { return '우리 궁합, 몇 점일까?'; }
     var t = tierOf();
     var em = t.emoji ? t.emoji + ' ' : '';
@@ -306,8 +312,8 @@ add_action( 'wp_head', function () {
             title: kakaoTitle(),
             description: kakaoDesc(),
             imageUrl: kakaoPic(),
-            imageWidth: 800,
-            imageHeight: 400,
+            imageWidth: cardWH()[0],
+            imageHeight: cardWH()[1],
             link: { mobileWebUrl: url, webUrl: url }
           },
           buttons: [{ title: '자세히 보기',
