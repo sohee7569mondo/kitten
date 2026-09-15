@@ -59,25 +59,25 @@ if ( ! function_exists( 'stella_um_nick' ) ) {
 		$bmin = array( 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5, 0 );
 		$band = array(
 			array( '평생에 한 번 만날 사이', '💞', '실과 바늘 같은 사이' ),
-			array( '전생에 약속한 사이', '💖', '둘도 없는 사이' ),
-			array( '안 봐도 아는 사이', '💝', '한 몸처럼 움직이는 사이' ),
-			array( '말이 필요 없는 사이', '✨', '말 안 해도 아는 사이' ),
-			array( '오래 갈 사이', '🫶', '의좋은 짝꿍' ),
+			array( '전생에 약속한 사이', '💖', '한 쌍의 펭귄 같은 사이' ),
+			array( '안 봐도 아는 사이', '💝', '쌍둥이 같은 사이' ),
+			array( '말이 필요 없는 사이', '✨', '해와 달 같은 사이' ),
+			array( '오래 갈 사이', '🫶', '나무와 그늘 같은 사이' ),
 			array( '자꾸 신경 쓰이는 사이', '😂', '톰과 제리 같은 사이' ),
-			array( '적당히 좋은 사이', '😊', '티격태격 단짝' ),
-			array( '무던하게 가는 사이', '🙂', '비 오면 같이 젖는 사이' ),
-			array( '밀고 당기는 사이', '🎯', '눈치를 보는 사이' ),
-			array( '오르락내리락하는 사이', '🎢', '롤러코스터 같은 사이' ),
-			array( '거리를 재는 사이', '😅', '아직 어색한 사이' ),
-			array( '말이 반만 통하는 사이', '🤔', '번역기가 필요한 사이' ),
-			array( '각자 잘 사는 사이', '🤝', '따로 또 같이' ),
-			array( '웃긴 걸로 이긴 사이', '🤣', '콩트 파트너' ),
-			array( '나란히 가는 사이', '🛤', '평행선 같은 사이' ),
-			array( '예능이 된 사이', '🎬', '예능감 만렙' ),
+			array( '적당히 좋은 사이', '😊', '고양이와 강아지 같은 사이' ),
+			array( '무던하게 가는 사이', '🙂', '우산과 장화 같은 사이' ),
+			array( '밀고 당기는 사이', '🎯', '여우와 여우 같은 사이' ),
+			array( '오르락내리락하는 사이', '🎢', '롤러코스터와 안전바 같은 사이' ),
+			array( '거리를 재는 사이', '😅', '토끼와 거북이 같은 사이' ),
+			array( '말이 반만 통하는 사이', '🤔', '외계인과 지구인 같은 사이' ),
+			array( '각자 잘 사는 사이', '🤝', '고양이와 고양이 같은 사이' ),
+			array( '웃긴 걸로 이긴 사이', '🤣', '원숭이와 원숭이 같은 사이' ),
+			array( '나란히 가는 사이', '🛤', '기찻길과 기차 같은 사이' ),
+			array( '예능이 된 사이', '🎬', '광대와 관객 같은 사이' ),
 			array( '섞이지 않는 사이', '💧', '물과 기름 같은 사이' ),
-			array( '신기해서 보는 사이', '🔭', '다른 행성에서 온 사이' ),
-			array( '멀리서 보는 사이', '🛸', '이번 생은 관찰만' ),
-			array( '우주가 실수한 사이', '🌠', '우주가 손 미끄러진 조합' ),
+			array( '신기해서 보는 사이', '🔭', '화성인과 지구인 같은 사이' ),
+			array( '멀리서 보는 사이', '🛸', '망원경과 별 같은 사이' ),
+			array( '우주가 실수한 사이', '🌠', '운석과 지구 같은 사이' ),
 		);
 		$smin = array( 85, 70, 55, 40, 0 );
 		$talk = array(
@@ -381,21 +381,32 @@ if ( ! function_exists( 'stella_um_bg_find' ) ) {
 			'posts_per_page' => 20,
 			's'              => $name,
 		) );
+		/* 확장자를 빼고 주셔도 찾습니다 — 「threadneedle」처럼요.
+		   2026-09-15 · 소희 님이 판 이름을 영어 낱말로 지어 올리셨습니다. */
+		$stem = pathinfo( $name, PATHINFO_EXTENSION ) ? '' : $name;
 		foreach ( $hit as $one ) {
 			$u = wp_get_attachment_url( $one->ID );
 			if ( ! $u ) { continue; }
 			if ( basename( $u ) === $name ) { return $u; }
+			if ( $stem ) {
+				if ( pathinfo( basename( $u ), PATHINFO_FILENAME ) === $stem ) { return $u; }
+			}
 		}
 
 		/* ② 그래도 없으면 올린 달 서랍을 뒤집니다 */
 		$year = (int) gmdate( 'Y' );
+		$tries = $stem
+			? array( $stem . '.jpg', $stem . '.jpeg', $stem . '.png', $stem . '.webp' )
+			: array( $name );
 		$y = $year + 1;
 		while ( $y >= $year - 2 ) {
 			$m = 12;
 			while ( $m >= 1 ) {
-				$rel  = sprintf( '/%04d/%02d/%s', $y, $m, $name );
-				if ( file_exists( $up['basedir'] . $rel ) ) {
-					return $up['baseurl'] . $rel;
+				foreach ( $tries as $one2 ) {
+					$rel = sprintf( '/%04d/%02d/%s', $y, $m, $one2 );
+					if ( file_exists( $up['basedir'] . $rel ) ) {
+						return $up['baseurl'] . $rel;
+					}
 				}
 				$m--;
 			}

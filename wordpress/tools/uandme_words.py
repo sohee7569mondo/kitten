@@ -226,7 +226,7 @@ def check():
     for i, (sum_, em, nick) in enumerate(BAND):
         head = '이름 ' + str(BAND_MIN[i]) + '점'
         glyphs(sum_, 16, head + ' 요약')
-        glyphs(nick, 16, head + ' 별명')
+        glyphs(nick, 18, head + ' 별명')
         for w in BIAS:
             if w in sum_ or w in nick:
                 bad.append(head + ' 관계를 가리는 낱말 「' + w + '」')
