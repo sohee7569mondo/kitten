@@ -883,84 +883,118 @@ add_action( 'init', function () {
 		$cx = $W * 0.5;
 		$P  = stella_um_pos( $score );
 
-		/* 위쪽 글 다섯을 말풍선 위에 남은 자리에 쌓습니다.
-		   소희 님이 그려 주신 시안 차례 그대로입니다 —
-		     유앤미 · 연인 궁합
-		     소희 x 지훈            (이름마다 밑줄)
-		     72 점                  (숫자만 크게, 「점」은 작게)
-		     톰과 제리 같은 사이      (별명 — 주인공)
-		     자꾸 신경 쓰이는 사이    (요약)
+		/* ── 글자에 흰 테두리 ─────────────────────────────
+		   소희 님 「테두리를 하얀색으로 해야 이쁜듯해」
+		   같은 글자를 흰색으로 여덟 둘레에 먼저 찍고 그 위에 본색을
+		   얹습니다. GD 에는 테두리 기능이 없어 이렇게 합니다. */
+		$edge = function ( $ff, $sz, $x, $y, $t, $col, $th ) use ( $im, $w1 ) {
+			$sz = intval( $sz );
+			$th = intval( $th );
+			if ( $th < 1 ) { $th = 1; }
+			$i = -$th;
+			while ( $i <= $th ) {
+				$j = -$th;
+				while ( $j <= $th ) {
+					if ( $i || $j ) {
+						imagettftext( $im, $sz, 0, intval( $x + $i ), intval( $y + $j ), $w1, $ff, $t );
+					}
+					$j++;
+				}
+				$i++;
+			}
+			imagettftext( $im, $sz, 0, intval( $x ), intval( $y ), $col, $ff, $t );
+		};
+		$wide2 = function ( $ff, $sz, $t ) {
+			$bx = imagettfbbox( intval( $sz ), 0, $ff, $t );
+			return $bx[2] - $bx[0];
+		};
 
-		   ★ 글씨 크기를 말풍선 자리에 비례시키면 안 됩니다. 말풍선이
-		     아래쪽인 판에서 점수가 괴물처럼 커집니다. 크기는 고정하고
-		     자리가 모자랄 때만 다 같이 줄입니다. */
-		$have = $P['by'] - 0.085;        /* 말풍선 위에 남은 높이 (비율) */
-		$need = 0.470;
-		$k    = ( $have < $need ) ? ( $have / $need ) : 1;
+		/* ── 자리 ────────────────────────────────────────
+		   소희 님 2026-09-15
+		     「유앤미 연인 궁합 소희 지훈 글씨는 좀 위로」
+		     「숫자는 좀더 크게」
+		     「샘플처럼 숫자 글씨는 핑크 연보라로 다르게」
+		     「테두리를 하얀색으로」
+		     「톰과 제리 같은 사이 · 자꾸 신경쓰이는 사이는 좀 아래로」
 
-		$s1 = $H * 0.023 * $k;   /* 검사 이름 */
-		$s2 = $H * 0.035 * $k;   /* 두 사람 */
-		$s3 = $H * 0.110 * $k;   /* 점수 숫자 */
-		$s3b= $H * 0.042 * $k;   /* 「점」 — 작게 (숫자가 잘 보이게) */
-		$s4 = $H * 0.046 * $k;   /* 별명 — 주인공 */
-		$s5 = $H * 0.030 * $k;   /* 요약 */
-		$gg = $H * 0.026 * $k;
-		$tot = $s1 + $s2 + $s3 + $s4 + $s5 + 4 * $gg;
-		$y   = ( $H * $have - $tot ) * 0.50;
+		   위 두 줄은 판 맨 위에 붙이고, 점수·별명·요약은 말풍선 바로
+		   위에서부터 아래로 쌓습니다. 그래야 말풍선 자리가 다른 판에서도
+		   「좀 아래로」가 그대로 지켜집니다. */
+		$lid = $H * ( $P['by'] - 0.105 );   /* 말풍선 윗머리 */
 
-		/* ① 무슨 검사인지 */
-		$y += $s1;
-		$mid( $fDod, $s1, $cx, $y, '유앤미 · ' . $ko . ' 궁합', $d2, $W * 0.8 );
+		/* ① 무슨 검사인지 — 맨 위 */
+		$mid( $fDod, $H * 0.023, $cx, $H * 0.055, '유앤미 · ' . $ko . ' 궁합', $d2, $W * 0.8 );
 
-		/* ② 두 사람 — 이름마다 밑줄을 긋습니다 */
-		$y += $gg + $s2;
+		/* ② 두 사람 — 이름마다 밑줄 */
+		$s2 = $H * 0.036;
+		$y2 = $H * 0.118;
 		if ( $who ) {
 			$two = explode( ' X ', $who );
 			if ( 2 === count( $two ) ) {
-				$wid = function ( $ff, $sz, $t ) {
-					$bx = imagettfbbox( intval( $sz ), 0, $ff, $t );
-					return $bx[2] - $bx[0];
-				};
 				$mark = ' × ';
-				$w_a = $wid( $font, $s2, $two[0] );
-				$w_m = $wid( $fDod, $s2 * 0.8, $mark );
-				$w_b = $wid( $font, $s2, $two[1] );
+				$w_a = $wide2( $font, $s2, $two[0] );
+				$w_m = $wide2( $fDod, $s2 * 0.8, $mark );
+				$w_b = $wide2( $font, $s2, $two[1] );
 				$x   = $cx - ( $w_a + $w_m + $w_b ) / 2;
 				$und = intval( $s2 * 0.22 );
+				$thk = max( 2, intval( $s2 * 0.07 ) );
 				$pinkL = imagecolorallocate( $im, 240, 150, 195 );
 				$blueL = imagecolorallocate( $im, 150, 170, 235 );
-				imagettftext( $im, intval( $s2 ), 0, intval( $x ), intval( $y ), $d1, $font, $two[0] );
-				imagefilledrectangle( $im, intval( $x ), intval( $y + $und ),
-					intval( $x + $w_a ), intval( $y + $und + max( 2, $s2 * 0.07 ) ), $pinkL );
+				imagettftext( $im, intval( $s2 ), 0, intval( $x ), intval( $y2 ), $d1, $font, $two[0] );
+				imagefilledrectangle( $im, intval( $x ), intval( $y2 + $und ),
+					intval( $x + $w_a ), intval( $y2 + $und + $thk ), $pinkL );
 				$x += $w_a;
-				imagettftext( $im, intval( $s2 * 0.8 ), 0, intval( $x ), intval( $y ), $d2, $fDod, $mark );
+				imagettftext( $im, intval( $s2 * 0.8 ), 0, intval( $x ), intval( $y2 ), $d2, $fDod, $mark );
 				$x += $w_m;
-				imagettftext( $im, intval( $s2 ), 0, intval( $x ), intval( $y ), $d1, $font, $two[1] );
-				imagefilledrectangle( $im, intval( $x ), intval( $y + $und ),
-					intval( $x + $w_b ), intval( $y + $und + max( 2, $s2 * 0.07 ) ), $blueL );
+				imagettftext( $im, intval( $s2 ), 0, intval( $x ), intval( $y2 ), $d1, $font, $two[1] );
+				imagefilledrectangle( $im, intval( $x ), intval( $y2 + $und ),
+					intval( $x + $w_b ), intval( $y2 + $und + $thk ), $blueL );
 			} else {
-				$mid( $font, $s2, $cx, $y, $who, $d1, $W * 0.8 );
+				$mid( $font, $s2, $cx, $y2, $who, $d1, $W * 0.8 );
 			}
 		}
 
-		/* ③ 점수 — 숫자만 크게, 「점」은 작게 */
-		$y += $gg + $s3;
-		$bxN = imagettfbbox( intval( $s3 ), 0, $fBlk, (string) $score );
-		$wN  = $bxN[2] - $bxN[0];
-		$bxJ = imagettfbbox( intval( $s3b ), 0, $font, '점' );
-		$wJ  = $bxJ[2] - $bxJ[0];
+		/* ⑤ 요약 — 말풍선 바로 위 */
+		$s5 = $H * 0.032;
+		$y5 = $lid - $H * 0.030;
+		$mid( $font, $s5, $cx, $y5, $nick[5], $d2, $W * 0.8 );
+
+		/* ④ 별명 — 그 위. 흰 테두리를 둘러 또렷하게 */
+		$s4 = $H * 0.050;
+		$y4 = $y5 - $H * 0.052;
+		$nm = $nick[0];
+		$sz4 = intval( $s4 );
+		while ( $sz4 > 12 ) {
+			if ( $wide2( $fBlk, $sz4, $nm ) <= $W * 0.86 ) { break; }
+			$sz4 = $sz4 - 1;
+		}
+		$edge( $fBlk, $sz4, $cx - $wide2( $fBlk, $sz4, $nm ) / 2, $y4, $nm, $d1,
+			round( $sz4 * 0.055 ) );
+
+		/* ③ 점수 — 크게. 숫자는 한 글자씩 연보라와 핑크를 번갈아 씁니다.
+		   「점」은 작게 — 숫자가 잘 보여야 합니다. */
+		$s3  = $H * 0.150;
+		$s3b = $H * 0.046;
+		/* ★ 별명 밑선에서 여백만 빼면 글자 높이만큼 겹칩니다.
+		   별명 높이를 통째로 빼고 그 위에 여백을 둡니다 —
+		   실제로 그려 보고 찾았습니다 (2026-09-15). */
+		$y3  = $y4 - $s4 - $H * 0.040;
+
+		$pinkN = imagecolorallocate( $im, 242, 150, 196 );
+		$lilaN = imagecolorallocate( $im, 168, 150, 222 );
+		$digits = str_split( (string) $score );
+		$wNum = 0;
+		foreach ( $digits as $one ) { $wNum += $wide2( $fBlk, $s3, $one ); }
+		$wJ   = $wide2( $font, $s3b, '점' );
 		$gapJ = $s3b * 0.30;
-		$x = $cx - ( $wN + $gapJ + $wJ ) / 2;
-		imagettftext( $im, intval( $s3 ), 0, intval( $x ), intval( $y ), $pur2, $fBlk, (string) $score );
-		imagettftext( $im, intval( $s3b ), 0, intval( $x + $wN + $gapJ ), intval( $y ), $d2, $font, '점' );
-
-		/* ④ 별명 — 이 카드의 주인공 */
-		$y += $gg + $s4;
-		$mid( $fBlk, $s4, $cx, $y, $nick[0], $d1, $W * 0.86 );
-
-		/* ⑤ 요약 */
-		$y += $gg + $s5;
-		$mid( $font, $s5, $cx, $y, $nick[5], $d2, $W * 0.8 );
+		$x = $cx - ( $wNum + $gapJ + $wJ ) / 2;
+		$th3 = round( $s3 * 0.05 );
+		foreach ( $digits as $i => $one ) {
+			$col = ( 0 === $i % 2 ) ? $lilaN : $pinkN;
+			$edge( $fBlk, $s3, $x, $y3, $one, $col, $th3 );
+			$x += $wide2( $fBlk, $s3, $one );
+		}
+		$edge( $font, $s3b, $x + $gapJ, $y3, '점', $d2, round( $s3b * 0.06 ) );
 
 		/* ⑥ 말풍선 — 본문. 세 문장을 이어 붙여 줄을 나눕니다 */
 		$body = trim( $nick[2] . ' ' . $nick[3] . ' ' . $nick[4] );
