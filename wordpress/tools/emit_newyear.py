@@ -995,7 +995,16 @@ TAIL = u''';
             '생년월일을 못 읽었습니다');
         return;
       }
-      bk.innerHTML=r.html+keep.join('');
+      /* ★ 원본 책의 겉표지를 살려 맨 앞에 붙입니다 — 2026-09-15
+         소희 님 「제일 겉표지 안붙었어」
+         겉표지(.page.cover)는 원본 책이 짓습니다. innerHTML 로 통째로
+         갈아끼우면 같이 날아갑니다. 카드 쪽을 살리듯 표지도 살립니다. */
+      var cov=[];
+      try{
+        var cs=bk.querySelectorAll('.page.cover'), ci;
+        for(ci=0; ci<cs.length; ci++){ cov.push(cs[ci].outerHTML); }
+      }catch(e){}
+      bk.innerHTML=cov.join('')+r.html+keep.join('');
       bk.setAttribute('data-ny'+YEAR,'1');
       bk.setAttribute('data-nycard', String(keep.length));
       var nAll=refolio(bk);

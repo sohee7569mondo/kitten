@@ -355,7 +355,16 @@ TAIL = u''';
               if(String(bk.innerHTML).length>200){
                 var r=build();
                 if(r){
-                  bk.innerHTML=r.html;
+                  /* ★ 원본 책의 겉표지를 살려 맨 앞에 붙입니다 — 2026-09-15
+                     소희 님 「삼재에 속표지 붙었는제 제일 겉표지 안붙었어」
+                     겉표지(.page.cover)는 우리가 짓는 것이 아니라 원본 책이
+                     짓습니다. innerHTML 로 통째로 갈아끼우면 같이 날아갑니다. */
+                  var cov=[];
+                  try{
+                    var cs=bk.querySelectorAll('.page.cover'), ci;
+                    for(ci=0; ci<cs.length; ci++){ cov.push(cs[ci].outerHTML); }
+                  }catch(e){}
+                  bk.innerHTML=cov.join('')+r.html;
                   bk.setAttribute('data-family','1');
                   var t=document.getElementById('bkTitle');
                   if(t){ t.textContent=r.title; }

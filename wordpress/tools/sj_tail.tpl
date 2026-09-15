@@ -306,6 +306,19 @@
       }
       if(bk.getAttribute('data-samjae')==='1'){ return; }
 
+      /* ★★ 원본 책이 다 그려질 때까지 기다립니다 — 2026-09-15
+         소희 님 「삼재에 속표지 붙었는제 제일 겉표지 안붙었어」
+
+         까닭이 여기 있었습니다. 지금까지는 원본을 안 기다리고 바로
+         갈아끼워서, 책이 아직 비어 있을 때 덮어버리면 **겉표지가
+         통째로 사라졌습니다.** 겉표지는 우리가 짓는 것이 아니라
+         원본 책이 짓는 것입니다 (.page.cover). */
+      if(String(bk.innerHTML).length<=200){
+        if(tries===1){ say('원본 책을 기다립니다'); }
+        if(tries>40){ say('원본 책이 끝까지 안 그려졌습니다 — 겉표지 없이 갑니다'); }
+        if(tries<=40){ setTimeout(go, 300); return; }
+      }
+
       var o=read('stella_demo');
       if(!o){
         if(tries===1){ say('주문(stella_demo)이 아직 없음 — 기다립니다'); }
@@ -322,14 +335,23 @@
         say('★ 책을 못 지었습니다 — 사주 계산기나 주문을 확인하세요');
         return;
       }
-      bk.innerHTML=r.html;
+      /* 원본 책의 겉표지를 살려 맨 앞에 붙입니다 */
+      var cov=[];
+      try{
+        var cs=bk.querySelectorAll('.page.cover'), ci;
+        for(ci=0; ci<cs.length; ci++){ cov.push(cs[ci].outerHTML); }
+      }catch(e){}
+
+      bk.innerHTML=cov.join('')+r.html;
       bk.setAttribute('data-samjae','1');
+      bk.setAttribute('data-sjcover', String(cov.length));
       var t=document.getElementById('bkTitle');
       if(t){ t.textContent=r.title; }
       var ps=bk.querySelectorAll('.folio'), i;
       for(i=0;i<ps.length;i++){ ps[i].textContent=two(i+1); }
       say('그렸습니다 · '+SLOTNAME[r.slot]+' × '+r.sp+
-          ' · 삼재 '+r.first+'~'+(r.first+2)+' · 모두 '+r.n+'쪽');
+          ' · 삼재 '+r.first+'~'+(r.first+2)+
+          ' · 겉표지 '+cov.length+'쪽 · 모두 '+(r.n+cov.length)+'쪽');
     }catch(e){
       say('★ 멈췄습니다 — '+(e.message||e));
     }
