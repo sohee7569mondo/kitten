@@ -161,10 +161,10 @@ if ( ! function_exists( 'stella_um_tier' ) ) {
 /* 글꼴 세 벌을 나눠 씁니다 — 2026-09-15
      소희 님 「글씨가 안이쁜데...」 「글씨는 귀여운걸로」
 
-     점수       포핀스       단정한 볼드 고딕. 숫자가 또렷합니다.
-     별명       베이글팟원   통통한 젤리 같은 글씨. 파스텔 판과 맞습니다.
-     요약       Jua         둥글고 말랑합니다. 긴 줄에도 답답하지 않습니다.
-     본문       고운돋움     단정해서 읽힙니다. 네 줄이 빽빽하지 않습니다.
+     점수         포핀스        단정한 볼드 고딕. 숫자가 또렷합니다.
+     별명         고딕A1 블랙   굵고 평범한 고딕. 시안과 같은 결입니다.
+     이름·요약·점  고딕A1 볼드   블랙은 작은 글씨에 너무 굵습니다.
+     본문·발치     고운돋움      단정해서 읽힙니다.
 
    글꼴 열한 벌로 카드를 실제로 그려 견주고 골랐습니다.
    동글·큐트폰트는 획이 가늘어 작게 쓰면 안 읽히고, 블랙한산스·도현은
@@ -193,6 +193,22 @@ if ( ! function_exists( 'stella_um_font_kinds' ) ) {
 					'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/bagelfatone/BagelFatOne-Regular.ttf',
 					'https://raw.githubusercontent.com/google/fonts/main/ofl/bagelfatone/BagelFatOne-Regular.ttf',
 					'https://fonts.googleapis.com/css?family=Bagel+Fat+One',
+				),
+			),
+			'gothic' => array(
+				/* 별명 — 2026-09-15 소희 님 「평범한 고딕으로 가자」 */
+				'file'  => 'gothica1-black.ttf',
+				'where' => array(
+					'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/gothica1/GothicA1-Black.ttf',
+					'https://raw.githubusercontent.com/google/fonts/main/ofl/gothica1/GothicA1-Black.ttf',
+				),
+			),
+			'gothicb' => array(
+				/* 이름 · 요약 · 「점」 — 블랙은 작은 글씨에 너무 굵습니다 */
+				'file'  => 'gothica1-bold.ttf',
+				'where' => array(
+					'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/gothica1/GothicA1-Bold.ttf',
+					'https://raw.githubusercontent.com/google/fonts/main/ofl/gothica1/GothicA1-Bold.ttf',
 				),
 			),
 			'num' => array(
@@ -841,12 +857,14 @@ add_action( 'init', function () {
 	}
 
 	$font  = stella_um_font( 'jua' );     /* 요약 */
-	$fBlk  = stella_um_font( 'bagel' );   /* 별명 — 통통한 글씨 */
+	$fBlk  = stella_um_font( 'gothic' );  /* 별명 — 굵은 고딕 */
+	$fGb   = stella_um_font( 'gothicb' ); /* 이름 · 요약 · 「점」 */
 	$fNum  = stella_um_font( 'num' );     /* 점수 — 단정한 볼드 고딕 */
 	$fDod  = stella_um_font( 'dodum' );   /* 본문 · 딱지 · 발치 (가운뎃점이 있습니다) */
 	if ( ! $fBlk ) { $fBlk = $font; }
 	if ( ! $fDod ) { $fDod = $font; }
 	if ( ! $fNum ) { $fNum = $fBlk; }
+	if ( ! $fGb )  { $fGb  = $fBlk ? $fBlk : $font; }
 
 	/* ── 판 위에 글자 얹기 ───────────────────────────────
 	   소희 님이 그려 주신 판에 맞춰 자리를 잡습니다.
@@ -948,40 +966,40 @@ add_action( 'init', function () {
 			$two = explode( ' X ', $who );
 			if ( 2 === count( $two ) ) {
 				$mark = ' × ';
-				$w_a = $wide2( $font, $s2, $two[0] );
+				$w_a = $wide2( $fGb, $s2, $two[0] );
 				$w_m = $wide2( $fDod, $s2 * 0.8, $mark );
-				$w_b = $wide2( $font, $s2, $two[1] );
+				$w_b = $wide2( $fGb, $s2, $two[1] );
 				$x   = $cx - ( $w_a + $w_m + $w_b ) / 2;
 				$und = intval( $s2 * 0.22 );
 				$thk = max( 2, intval( $s2 * 0.07 ) );
 				$pinkL = imagecolorallocate( $im, 240, 150, 195 );
 				$blueL = imagecolorallocate( $im, 150, 170, 235 );
-				imagettftext( $im, intval( $s2 ), 0, intval( $x ), intval( $y2 ), $d1, $font, $two[0] );
+				imagettftext( $im, intval( $s2 ), 0, intval( $x ), intval( $y2 ), $d1, $fGb, $two[0] );
 				imagefilledrectangle( $im, intval( $x ), intval( $y2 + $und ),
 					intval( $x + $w_a ), intval( $y2 + $und + $thk ), $pinkL );
 				$x += $w_a;
 				imagettftext( $im, intval( $s2 * 0.8 ), 0, intval( $x ), intval( $y2 ), $d2, $fDod, $mark );
 				$x += $w_m;
-				imagettftext( $im, intval( $s2 ), 0, intval( $x ), intval( $y2 ), $d1, $font, $two[1] );
+				imagettftext( $im, intval( $s2 ), 0, intval( $x ), intval( $y2 ), $d1, $fGb, $two[1] );
 				imagefilledrectangle( $im, intval( $x ), intval( $y2 + $und ),
 					intval( $x + $w_b ), intval( $y2 + $und + $thk ), $blueL );
 			} else {
-				$mid( $font, $s2, $cx, $y2, $who, $d1, $W * 0.8 );
+				$mid( $fGb, $s2, $cx, $y2, $who, $d1, $W * 0.8 );
 			}
 		}
 
 		/* ⑤ 요약 — 말풍선 바로 위 */
 		$s5 = $H * 0.032;
 		$y5 = $lid - $H * 0.030;
-		$mid( $font, $s5, $cx, $y5, $nick[5], $d2, $W * 0.8 );
+		$mid( $fGb, $s5, $cx, $y5, $nick[5], $d2, $W * 0.8 );
 
 		/* ④ 별명 — 그 위. 흰 테두리를 둘러 또렷하게 */
 		$s4 = $H * 0.050;
-		$y4 = $y5 - $H * 0.052;
+		$y4 = $y5 - $H * 0.064;   /* 별명 높이(0.050)에 여백을 더한 값 */
 		$nm = $nick[0];
 		$sz4 = intval( $s4 );
 		while ( $sz4 > 12 ) {
-			if ( $wide2( $fBlk, $sz4, $nm ) <= $W * 0.86 ) { break; }
+			if ( $wide2( $fBlk, $sz4, $nm ) <= $W * 0.82 ) { break; }
 			$sz4 = $sz4 - 1;
 		}
 		$edge( $fBlk, $sz4, $cx - $wide2( $fBlk, $sz4, $nm ) / 2, $y4, $nm, $d1,
@@ -1004,7 +1022,7 @@ add_action( 'init', function () {
 		$digits = str_split( (string) $score );
 		$wNum = 0;
 		foreach ( $digits as $one ) { $wNum += $wide2( $fNum, $s3, $one ); }
-		$wJ   = $wide2( $font, $s3b, '점' );
+		$wJ   = $wide2( $fGb, $s3b, '점' );
 		$gapJ = $s3b * 0.30;
 		$x = $cx - ( $wNum + $gapJ + $wJ ) / 2;
 		$th3 = round( $s3 * 0.05 );
@@ -1013,7 +1031,7 @@ add_action( 'init', function () {
 			$edge( $fNum, $s3, $x, $y3, $one, $col, $th3 );
 			$x += $wide2( $fNum, $s3, $one );
 		}
-		$edge( $font, $s3b, $x + $gapJ, $y3, '점', $d2, round( $s3b * 0.06 ) );
+		$edge( $fGb, $s3b, $x + $gapJ, $y3, '점', $d2, round( $s3b * 0.06 ) );
 
 		/* ⑥ 말풍선 — 본문. 세 문장을 이어 붙여 줄을 나눕니다 */
 		$body = trim( $nick[2] . ' ' . $nick[3] . ' ' . $nick[4] );
