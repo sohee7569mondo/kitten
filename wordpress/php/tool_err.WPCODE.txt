@@ -1,0 +1,91 @@
+/* ══════════════════════════════════════════════════════════
+   책이 멈춘 자리를 화면에 띄우기 · 소희 님께   2026-09-11
+   ── 판 : ERR-3 (2026-09-11) ──
+
+   앞 판에서 「줄 14957 · 칸 35」까지 알아냈습니다.
+   이 판은 거기서 한 걸음 더 갑니다 —
+   그 줄의 글을 실제로 꺼내서 빨간 상자에 보여줍니다.
+
+   쓰는 법
+     앞에 만드신 「STELLA - 오류 보기」 스니펫의 내용을
+     이 글로 통째로 바꾸고 저장하세요. (새로 만드셔도 됩니다)
+     그리고 책을 그냥 여세요.
+        https://stellasaju.com/reading-book/?demo=door-love
+     빨간 상자를 찍어서 보내주세요.
+
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 관리자로 로그인했을 때만 보입니다.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	if ( ! is_page( 'reading-book' ) ) { return; }
+
+	?>
+<script>
+(function(){
+  var LOG = [];
+  var HITS = [];
+  function paint(){
+    var d = document.getElementById('stella-err');
+    if(!d){
+      if(!document.body){ return; }
+      d = document.createElement('div');
+      d.id = 'stella-err';
+      d.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:2147483647;'
+        + 'background:#b3261e;color:#fff;padding:14px 18px;font:12px/1.6 ui-monospace,monospace;'
+        + 'white-space:pre-wrap;word-break:break-all;max-height:75vh;overflow:auto;'
+        + 'box-shadow:0 2px 16px rgba(0,0,0,.45)';
+      document.body.appendChild(d);
+    }
+    d.textContent = '판 ERR-3 (2026-09-11)\n\n' + LOG.join('\n\n');
+  }
+  function box(msg){ LOG.push(msg); paint(); }
+
+  window.addEventListener('error', function(e){
+    if(!e.message){ return; }
+    var m = '【책이 멈춘 자리】\n' + e.message
+          + '\n줄 ' + (e.lineno || '?') + ' · 칸 ' + (e.colno || '?');
+    box(m);
+    if(e.lineno){ HITS.push([e.lineno, e.colno || 0]); }
+  }, true);
+
+  function dig(){
+    if(!HITS.length){ return; }
+    fetch(location.href, {credentials:'same-origin'})
+      .then(function(r){ return r.text(); })
+      .then(function(t){
+        var lines = t.split('\n');
+        HITS.forEach(function(h){
+          var ln = h[0], cl = h[1];
+          var s = lines[ln - 1];
+          if(s === undefined){
+            box('【' + ln + '줄】 없습니다. 온 줄 수 ' + lines.length);
+            return;
+          }
+          var a = Math.max(0, cl - 200);
+          var b = Math.min(s.length, cl + 200);
+          box('【' + ln + '줄 · ' + cl + '칸 둘레】  (그 줄 길이 ' + s.length + ')\n\n'
+              + '…' + s.slice(a, b) + '…');
+        });
+      })
+      .catch(function(err){ box('【줄을 못 꺼냈습니다】 ' + String(err)); });
+  }
+
+  function check(){
+    if(!LOG.length){
+      var b = document.getElementById('ssb');
+      if(!b){ box('【알림】 책을 담는 자리(#ssb)를 못 찾았습니다.'); }
+      else if(b.querySelectorAll('h2').length === 0){
+        box('【알림】 오류는 안 났는데 장이 하나도 안 그려졌습니다.');
+      }
+    }
+    dig();
+  }
+  if(document.readyState === 'complete'){ setTimeout(check, 2500); }
+  else { window.addEventListener('load', function(){ setTimeout(check, 2500); }); }
+})();
+</script>
+	<?php
+}, 1 );

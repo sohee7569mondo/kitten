@@ -1,0 +1,146 @@
+/* 로그인 페이지(227 /login/)의 거짓 문구 셋을 고칩니다.
+   ① 「가입하시면 구슬을 얹어드립니다」 → 「풀이 한 편은 구슬 1개, 1,000원입니다.」
+      (STELLA_WELCOME_ORBS 가 0이 되어 더는 안 드립니다)
+   ② 「무료로 시작하기」 → 「문 고르러 가기」 (1,000원이라 무료가 아닙니다)
+   ③ 관리자·편집자는 메일 링크로 못 들어온다는 안내 한 줄
+      (stella_login_allowed() 가 그 계정을 막는데 화면은 「보내드렸어요」라고 합니다)
+
+   ②의 needle 에서 화살표(→)와 태그를 뺀 이유 — 그것까지 넣으면 0건이 나왔습니다.
+   글자만 바꾸면 화살표는 그대로 남습니다.
+
+   미리보기  ?stella_lgfix=1      적용 ?stella_lgfix=1&go=1
+   되돌리기  ?stella_lgfix=1&undo=1                                  2026-09-01 */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_lgfix'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">';
+	echo '<body class="notranslate" translate="no" style="font:15px/1.9 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:900px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	global $wpdb;
+
+	$pid  = 227;
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	$pairs = array(
+		array(
+			'name' => '① 구슬을 준다는 약속 지우기',
+			'old'  => '가입하시면 구슬을 얹어드립니다.',
+			'new'  => '풀이 한 편은 구슬 1개, 1,000원입니다.',
+		),
+		array(
+			'name' => '② 「무료로 시작하기」 고치기',
+			'old'  => '무료로 시작하기',
+			'new'  => '문 고르러 가기',
+		),
+		array(
+			'name' => '③ 관리자 안내 한 줄 넣기',
+			'old'  => '그래도 없으면 <a href="/door-career/">문 앞에서 새로 시작</a>하셔도 됩니다.',
+			'new'  => '그래도 없으면 <a href="/door-career/">문 앞에서 새로 시작</a>하셔도 됩니다.<br>사이트를 관리하는 계정은 이 링크로 들어오실 수 없습니다. <a href="/wp-login.php">/wp-login.php</a> 를 써주세요.',
+		),
+	);
+
+	printf(
+		'<h1 style="color:#ffd76a">로그인 페이지 문구 고치기 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	$c = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( null === $c ) {
+		echo '<h2 style="color:#ff7b7b">227 을 못 읽었습니다.</h2>';
+		exit;
+	}
+
+	if ( $undo ) {
+		$bak = get_post_meta( $pid, '_stella_lgfix_backup', true );
+		if ( $bak ) {
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+			delete_post_meta( $pid, '_stella_lgfix_backup' );
+			clean_post_cache( $pid );
+			if ( function_exists( 'wp_cache_flush' ) ) {
+				wp_cache_flush();
+			}
+			echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2>';
+		} else {
+			echo '<h2 style="color:#888">사본이 없습니다.</h2>';
+		}
+		exit;
+	}
+
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>바꿀 것</td><td>찾음</td><td>이미 됨</td></tr>';
+
+	$ready = true;
+	$done  = true;
+
+	foreach ( $pairs as $p ) {
+		$n = substr_count( $c, $p['old'] );
+		$m = substr_count( $c, $p['new'] );
+
+		if ( $m > 0 ) {
+			printf(
+				'<tr style="border-top:1px solid #333"><td>%s</td><td style="color:#888">%d</td><td style="color:#9fd">이미 됨</td></tr>',
+				esc_html( $p['name'] ),
+				$n
+			);
+			continue;
+		}
+		$done = false;
+		if ( 1 !== $n ) {
+			$ready = false;
+		}
+		printf(
+			'<tr style="border-top:1px solid #333"><td>%s</td><td style="color:%s"><b>%d</b></td><td></td></tr>',
+			esc_html( $p['name'] ),
+			1 === $n ? '#7bff9b' : '#ff7b7b',
+			$n
+		);
+	}
+	echo '</table>';
+
+	if ( $done ) {
+		echo '<h2 style="color:#7bff9b">이미 다 되어 있습니다.</h2>';
+		exit;
+	}
+	if ( ! $ready ) {
+		echo '<h2 style="color:#ff7b7b">딱 한 번씩이 아닌 것이 있어 아무것도 바꾸지 않았습니다.</h2>'
+			. '<p>이 화면을 저에게 보내주세요.</p>';
+		exit;
+	}
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_lgfix=1&go=1">→ 이대로 바꾸기</a></p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, '_stella_lgfix_backup', true ) ) {
+		update_post_meta( $pid, '_stella_lgfix_backup', $c );
+	}
+	$out = $c;
+	foreach ( $pairs as $p ) {
+		if ( substr_count( $out, $p['new'] ) > 0 ) {
+			continue;
+		}
+		$out = str_replace( $p['old'], $p['new'], $out );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $out ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	printf( '<h2 style="color:#7bff9b">바꿨습니다 — %d → %d 바이트</h2>', strlen( $c ), strlen( $out ) );
+	echo '<p><a style="color:#ffd76a" href="/login/">→ 로그인 페이지에서 확인</a></p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_lgfix=1&undo=1</p>';
+	exit;
+} );

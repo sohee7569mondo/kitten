@@ -1,0 +1,242 @@
+/* ══════════════════════════════════════════════════════════
+   쪽이 어떻게 왔는지 잽니다
+   ★ 2026-09-12 · 소희 님께      BUILD: PAGE-5
+
+   ── 왜 ────────────────────────────────────────────────
+   책 쪽이 하얗습니다. 본문은 1,334,526자로 멀쩡한데
+   화면에는 ssb 칸도 계산기도 풀이말도 없습니다.
+   그러면 물어볼 것은 하나입니다 — 글이 몇 자나 왔나.
+
+       다 왔는데 안 그려진다   → 자바스크립트가 넘어진 것
+       오다가 끊겼다           → 서버가 내보내다 멈춘 것
+
+   이 둘은 고치는 법이 아주 다릅니다. 그래서 먼저 잽니다.
+
+   ── 무엇을 보여주나 ───────────────────────────────────
+   · 서버가 가진 글자 수 · 화면이 가진 글자 수
+     ★ 두 수는 원래 다릅니다. 브라우저가 읽어들이며 모양을 다듬으니까요.
+       끊겼는지는 </body> 로 끝났는지로 봅니다.
+   · ★ 쪽 수를 세 번 셉니다 (1.2초 · 4초 · 10초) — 멈췄는지 느린지
+   · script 덩어리 개수
+   · ssb 칸 · 계산기 · 풀이말 · 주문
+   · ★ 맨 끝 300자 — 끊겼다면 여기가 문장 한가운데서 멈춰 있습니다
+   · 넘어진 말 세 개까지 (자료 덩어리는 빼고 셉니다)
+
+   보기 : https://stellasaju.com/reading-book/?stella_page=1
+   목차 속 : https://stellasaju.com/reading-book/?stella_page=toc
+             ★ 목차와 보통 쪽의 생김새를 그대로 보여줍니다.
+               덤 두 쪽을 목차에 끼우려면 그 생김새를 알아야 합니다.
+
+   ★ 표시를 안 붙이면 한 글자도 안 나옵니다. 손님에게는 안 보입니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+if ( ! function_exists( 'stella_page_probe' ) ) {
+
+/* ① 오류를 일찍부터 받아 적습니다 — 머리말에 먼저 넣습니다 */
+add_action( 'wp_head', function () {
+	if ( ! isset( $_GET['stella_page'] ) ) { return; }
+	echo "\n<script>\n";
+	echo "window.STELLAPAGE={err:[],t0:Date.now()};\n";
+	echo "window.addEventListener('error',function(e){\n";
+	echo "  var m=String(e.message);\n";
+	echo "  if(window.STELLAPAGE.err.length<6){ window.STELLAPAGE.err.push(m); }\n";
+	echo "});\n";
+	echo "</script>\n";
+}, 1 );
+
+/* ② 바닥글에서 재어 보여줍니다 */
+add_action( 'wp_footer', function () {
+	if ( ! isset( $_GET['stella_page'] ) ) { return; }
+	echo "\n";
+	echo stella_page_probe();
+	echo "\n";
+}, 99 );
+
+function stella_page_probe() {
+	$sent = 0;
+	$p = get_post();
+	if ( $p ) {
+		global $wpdb;
+		$sent = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT CHAR_LENGTH( post_content ) FROM {$wpdb->posts} WHERE ID = %d", (int) $p->ID ) );
+	}
+	$css = 'position:fixed;left:8px;bottom:8px;z-index:99999;max-width:min(560px,92vw);'
+	     . 'max-height:70vh;overflow:auto;background:#1d1a16;color:#f0e7d4;'
+	     . 'font:12px/1.6 monospace;padding:12px 14px;border-radius:8px;white-space:pre-wrap';
+
+	$out  = "\n<div id=\"stellapagebox\" style=\"{$css}\">재는 중…</div>\n";
+	$out .= "<script>\n";
+	$out .= "(function(){\n";
+	$out .= "  var SENT=" . $sent . ";\n";
+	$out .= <<<'PAGEJS'
+  var COUNTS=[];
+  function draw(sec){
+    var box=document.getElementById('stellapagebox');
+    if(!box){ return; }
+    var html=document.documentElement.innerHTML;
+    var got=html.length;
+    var pagesNow=document.getElementsByClassName('page').length;
+    COUNTS.push(sec+'초 '+pagesNow+'쪽');
+    var scripts=document.getElementsByTagName('script');
+    var js=0, data=0, i, t;
+    for(i=0;i<scripts.length;i++){
+      t=scripts[i].getAttribute('type');
+      if(!t){ js+=1; continue; }
+      if(t.indexOf('json')>=0){ data+=1; continue; }
+      js+=1;
+    }
+    var L=[];
+    L.push('═══ 쪽이 어떻게 왔나 ═══');
+    L.push('본문(서버가 가진 것) : '+SENT.toLocaleString()+'자');
+    L.push('화면이 가진 것       : '+got.toLocaleString()+'자');
+    if(html.indexOf('</body>')>=0){ L.push('★ </body> 로 끝났습니다 — 글은 다 왔습니다'); }
+    else { L.push('★ </body> 가 없습니다 — 오다가 끊겼습니다'); }
+    L.push('');
+    L.push('쪽 수 : '+COUNTS.join(' / '));
+    L.push('script 덩어리 : '+js+'개 (자료 '+data+'개는 뺀 수)');
+    L.push('ssb 칸    : '+(document.getElementById('ssb')?'있음':'★ 없음'));
+    var pages=document.getElementsByClassName('page');
+    L.push('그려진 쪽 : '+pages.length+'개');
+    var ssb=document.getElementById('ssb');
+    if(ssb){
+      L.push('빗장(data-tail) : '+(ssb.getAttribute('data-tail')||'없음'));
+      L.push('책 칸 껍데기 : '+(ssb.className||'(없음)'));
+      var cs=getComputedStyle(ssb);
+      L.push('책 칸 : 높이 '+ssb.offsetHeight+'px · display '+cs.display+
+             ' · visibility '+cs.visibility+' · opacity '+cs.opacity);
+      if(!ssb.offsetParent){ L.push('★ 책 칸이 화면에 안 붙어 있습니다'); }
+      if(pages.length){
+        var p1=pages[0], c1=getComputedStyle(p1);
+        L.push('첫 쪽  : 높이 '+p1.offsetHeight+'px · display '+c1.display+
+               ' · visibility '+c1.visibility+' · opacity '+c1.opacity+
+               ' · 글자색 '+c1.color);
+        L.push('첫 쪽 글 : '+String(p1.textContent||'').replace(/\s+/g,' ').slice(0,80));
+      }
+      var bs=getComputedStyle(document.body);
+      L.push('바탕   : 높이 '+document.body.offsetHeight+'px · 색 '+bs.backgroundColor+
+             ' · display '+bs.display+' · 껍데기 '+(document.body.className||'(없음)'));
+      var hs=getComputedStyle(document.documentElement);
+      L.push('문서   : 높이 '+document.documentElement.offsetHeight+'px · 색 '+hs.backgroundColor);
+      L.push('style 칸 : '+document.getElementsByTagName('style').length+'개');
+
+      /* ── 화면을 무엇이 덮고 있나 ──────────────────────
+         책이 멀쩡한데 하얗다면, 그 위를 덮은 것이 있는 것입니다.
+         화면의 다섯 자리를 콕 집어 「거기 있는 것」을 물어봅니다. */
+      function who(x,y){
+        var el=document.elementFromPoint(x,y);
+        if(!el){ return '(없음)'; }
+        var nm=el.tagName.toLowerCase();
+        if(el.id){ nm+='#'+el.id; }
+        if(el.className){ nm+='.'+String(el.className).split(' ').slice(0,2).join('.'); }
+        var c=getComputedStyle(el);
+        return nm+' [바탕 '+c.backgroundColor+' · '+c.position+']';
+      }
+      var W=window.innerWidth, H=window.innerHeight;
+      L.push('');
+      L.push('화면 한가운데 : '+who(W/2, H/2));
+      L.push('화면 위       : '+who(W/2, 40));
+      L.push('화면 아래     : '+who(W/2, H-40));
+      L.push('창 크기 : '+W+' x '+H+'   내려온 거리 : '+Math.round(window.scrollY)+'px');
+      if(pages.length){
+        var r=pages[0].getBoundingClientRect();
+        L.push('첫 쪽 자리 : 위 '+Math.round(r.top)+'px · 왼쪽 '+Math.round(r.left)+
+               'px · 너비 '+Math.round(r.width)+'px');
+      }
+    }
+    L.push('A 조각 : '+(html.indexOf('TAIL-FETCH-2')>=0?'나갔음':'★ 안 나갔음'));
+    var ebs=[], q, e4;
+    for(q=0;q<pages.length;q++){
+      e4=pages[q].getElementsByClassName('eyebrow')[0];
+      if(e4){ ebs.push(e4.textContent); }
+    }
+    L.push('마지막 눈썹줄 : '+ebs.slice(-10).join(' / '));
+    L.push('계산기    : '+(window.StellaSaju?'있음':'★ 없음'));
+    L.push('풀이말    : '+(window.StellaRead?'있음':'★ 없음'));
+    var od=null;
+    try{ od=localStorage.getItem('stella_demo'); }catch(e){ od=null; }
+    L.push('주문      : '+(od?(od.length+'자'):'★ 없음'));
+    L.push('');
+    var E=window.STELLAPAGE;
+    if(E){ if(E.err.length){
+      L.push('넘어진 말 :');
+      for(i=0;i<E.err.length;i++){ if(i<3){ L.push('  '+E.err[i]); } }
+      L.push('');
+    } }
+    L.push('┌ 맨 끝 300자 ─────────────');
+    L.push(html.slice(-300));
+    L.push('└──────────────────────────');
+    box.textContent=L.join('\n');
+  }
+  /* ── 목차 속을 들여다봅니다 ──────────────────────── */
+  function peek(){
+    var box=document.getElementById('stellapagebox');
+    if(!box){ return; }
+    var L=[], i, el, q;
+    L.push('═══ 목차와 쪽의 생김새 ═══');
+
+    var cand=document.querySelectorAll('[id*=toc],[class*=toc],[id*=idx],[class*=idx],[id*=index],[class*=index],[id*=menu],[class*=menu]');
+    L.push('목차처럼 보이는 칸 : '+cand.length+'개');
+    for(i=0;i<cand.length;i++){
+      if(i>3){ break; }
+      el=cand[i];
+      L.push('  '+i+' : '+el.tagName.toLowerCase()+
+             (el.id?('#'+el.id):'')+' . '+(el.className||'')+
+             '  자식 '+el.children.length+'개 · 높이 '+el.offsetHeight+'px');
+    }
+    var best=null;
+    for(i=0;i<cand.length;i++){
+      if(cand[i].children.length>5){ best=cand[i]; break; }
+    }
+    if(best){
+      L.push('');
+      L.push('┌ 목차 속 1200자 ─────────');
+      L.push(best.innerHTML.slice(0,1200));
+      L.push('└─────────────────────────');
+    }
+
+    var pages=document.getElementsByClassName('page');
+    var normal=null, mine=null;
+    for(i=0;i<pages.length;i++){
+      if(pages[i].getAttribute('data-part')==='tail'){ mine=pages[i]; continue; }
+      if(!normal){ q=pages[i].getElementsByClassName('eyebrow')[0];
+        if(q){ normal=pages[i]; } }
+    }
+    if(normal){
+      L.push('');
+      L.push('┌ 보통 쪽 500자 ──────────');
+      L.push(normal.outerHTML.slice(0,500));
+      L.push('└─────────────────────────');
+      L.push('보통 쪽 안쪽 너비 : '+normal.clientWidth+'px');
+      if(normal.children.length){
+        var c0=normal.children[0];
+        L.push('  첫 자식 : '+c0.tagName.toLowerCase()+' . '+(c0.className||'')+
+               ' · 너비 '+c0.offsetWidth+'px');
+      }
+    }
+    if(mine){
+      L.push('');
+      L.push('덤 쪽 안쪽 너비 : '+mine.clientWidth+'px');
+      var tb=mine.getElementsByClassName('tailbox')[0];
+      if(tb){ L.push('  덤 상자 너비 : '+tb.offsetWidth+'px'); }
+    }
+    box.textContent=L.join('\n');
+  }
+  if(String(location.search).indexOf('stella_page=toc')>=0){
+    setTimeout(peek, 2500);
+    setTimeout(peek, 8000);
+    return;
+  }
+
+  setTimeout(function(){ draw(1.2); }, 1200);
+  setTimeout(function(){ draw(4); }, 4000);
+  setTimeout(function(){ draw(10); }, 10000);
+})();
+PAGEJS;
+	$out .= "\n</script>\n";
+	return $out;
+}
+
+}

@@ -1,0 +1,148 @@
+/* ════════════════════════════════════════════════════════════
+   책 속 지도 · 세 번째 (MAP-3)   ★ 2026-09-11 · 소희 님께
+
+   MAP-2 에서 it.slots 가 25번으로 가장 많이 쓰였습니다.
+   그런데 월지 · 시지 · 세운 · 대운이라는 이름은 하나도 없었습니다.
+
+   열 줄 원고가 세기로 한 것들이 이 책에 있는지 없는지를
+   여기서 가릅니다.
+
+       직장운 ②   월지 십성      → 있나?
+       직장운 ③④⑤ 올해 세운      → 있나?
+       직장운 ⑥   일지 십성      → it.day 로 있습니다
+       취업운 ⑥   시지 십성      → 있나?
+
+   아무것도 바꾸지 않습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   열기   https://stellasaju.com/?stella_map3=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_map3'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	echo "MAP-3  it 안에 무엇이 들었나  ★ 2026-09-11 판\n";
+	echo str_repeat( '=', 62 ) . "\n\n";
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", 160 ) );
+	if ( '' === $c ) { echo "책을 못 읽었습니다.\n"; exit; }
+
+	$lineno = function ( $s, $at ) {
+		return substr_count( substr( $s, 0, $at ), "\n" ) + 1;
+	};
+	$peek = function ( $s, $at, $before, $after ) {
+		$a = $at - $before; if ( $a < 0 ) { $a = 0; }
+		$t = substr( $s, $a, $before + $after );
+		$t = str_replace( array( "\r", "\n", "\t" ), array( '', ' ⏎ ', ' ' ), $t );
+		$t = preg_replace( '/ {2,}/', ' ', $t );
+		return trim( (string) $t );
+	};
+
+	/* ── 1 · it.slots 쓰이는 자리 전부 ─────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "1 · it.slots 가 쓰이는 자리 (앞 30 뒤 100)\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	$from = 0; $k = 0;
+	while ( true ) {
+		$at = strpos( $c, 'it.slots', $from );
+		if ( false === $at ) { break; }
+		$from = $at + 1;
+		$k++;
+		if ( $k > 26 ) { break; }
+		echo sprintf( "  줄 %-7d %s\n", $lineno( $c, $at ), $peek( $c, $at, 30, 100 ) );
+	}
+	if ( ! $k ) { echo "  없습니다.\n"; }
+	echo "\n";
+
+	/* ── 2 · it 이 만들어지는 자리 ─────────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "2 · it 을 만들어 넣는 자리 (it = / it: / slots:)\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	foreach ( array( 'slots:', 'slots =', 'var it', 'it =', 'groups:', 'axis:', 'day:' ) as $w ) {
+		echo "\n  [" . $w . "]  " . substr_count( $c, $w ) . "번\n";
+		$from = 0; $n = 0;
+		while ( true ) {
+			$at = strpos( $c, $w, $from );
+			if ( false === $at ) { break; }
+			$from = $at + 1;
+			$n++;
+			if ( $n > 5 ) { echo "    … 더 있습니다\n"; break; }
+			echo sprintf( "    줄 %-7d %s\n", $lineno( $c, $at ), $peek( $c, $at, 30, 110 ) );
+		}
+		if ( ! $n ) { echo "    없습니다.\n"; }
+	}
+	echo "\n";
+
+	/* ── 3 · 자리 이름이 코드에 있는지 ─────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "3 · 네 기둥 · 세운 · 대운을 가리키는 말이 있는지\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	$WORDS = array(
+		'월지'     => '월지',
+		'시지'     => '시지',
+		'일지'     => '일지',
+		'년지'     => '년지',
+		'세운'     => '세운',
+		'대운'     => '대운',
+		'month'   => 'month',
+		'hour'    => 'hour',
+		'pillars' => 'pillars',
+		'sewoon'  => 'sewoon',
+		'daeun'   => 'daeun',
+		'dae'     => 'dae',
+		'yearJi'  => 'yearJi',
+		'monthJi' => 'monthJi',
+		'hourJi'  => 'hourJi',
+		'dayJi'   => 'dayJi',
+	);
+	foreach ( $WORDS as $label => $needle ) {
+		$cnt = substr_count( $c, $needle );
+		echo sprintf( "  %-10s %-5d번  %s\n", $label, $cnt,
+			$cnt ? $peek( $c, strpos( $c, $needle ), 25, 85 ) : '—' );
+	}
+	echo "\n";
+
+	/* ── 4 · 한 손님의 it 을 실제로 찍어보기 ───────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "4 · it 을 만드는 함수 이름\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	if ( preg_match_all( '/function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(/', $c, $m, PREG_OFFSET_CAPTURE ) ) {
+		$seen = array();
+		foreach ( $m[1] as $hit ) {
+			$nm = $hit[0];
+			if ( isset( $seen[ $nm ] ) ) { $seen[ $nm ]++; continue; }
+			$seen[ $nm ] = 1;
+		}
+		$show = 0;
+		foreach ( $seen as $nm => $cnt ) {
+			$low = strtolower( $nm );
+			if ( false === strpos( $low, 'sip' )
+				&& false === strpos( $low, 'slot' )
+				&& false === strpos( $low, 'read' )
+				&& false === strpos( $low, 'build' )
+				&& false === strpos( $low, 'make' )
+				&& false === strpos( $low, 'lens' )
+				&& false === strpos( $low, 'calc' ) ) { continue; }
+			echo sprintf( "  %-26s %d번\n", $nm . '()', $cnt );
+			$show++;
+			if ( $show > 30 ) { break; }
+		}
+		if ( ! $show ) { echo "  이름에 sip · slot · read · build 가 든 함수가 없습니다.\n"; }
+	}
+
+	echo "\n" . str_repeat( '=', 62 ) . "\n";
+	echo "끝. 아무것도 바꾸지 않았습니다.\n";
+	exit;
+} );

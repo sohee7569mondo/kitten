@@ -1,0 +1,184 @@
+/* ════════════════════════════════════════════════════════════
+   후기 받는 자리 · 뒤쪽   ★ 2026-09-08
+
+   책을 다 읽고 마지막 장에서 후기를 남기면 여기로 들어옵니다.
+   이 스니펫 하나가 세 가지를 합니다 —
+
+     ① 「후기」 라는 글 종류를 하나 만듭니다.
+        워드프레스 왼쪽 메뉴에 ★ 후기 가 생깁니다.
+     ② 받는 문 : POST /wp-json/stella/v1/review
+     ③ 내주는 문 : GET  /wp-json/stella/v1/reviews
+
+   ★ 들어온 후기는 바로 안 보입니다. 「검토 대기」로 들어옵니다.
+     소희 님이 읽어보고 「공개」로 바꾸신 것만 밖으로 나갑니다.
+     남의 이름이나 험한 말이 그대로 나가면 안 되니까요.
+
+   ── 막아둔 것 ──────────────────────────────────
+     · 한 사람이 1분에 한 번, 하루 다섯 번까지
+     · 별은 1~5 사이 숫자만
+     · 글은 200자까지, 태그는 다 벗겨냅니다
+     · 이름은 12자까지
+     · 링크(http)가 들어 있으면 받지 않습니다 — 광고 글 막기
+
+   ── 밖으로 내줄 때 ─────────────────────────────
+     GET /wp-json/stella/v1/reviews?limit=12
+     별 · 글 · 이름 · 어느 문 · 날짜만 나갑니다.
+     이메일이나 아이디는 절대 안 나갑니다.
+
+   ★ 이 스니펫은 계속 켜두셔야 합니다. 끄면 후기를 못 받습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── ① 후기라는 글 종류 ───────────────────────────────── */
+add_action( 'init', function () {
+	register_post_type( 'stella_review', array(
+		'labels' => array(
+			'name'          => '후기',
+			'singular_name' => '후기',
+			'menu_name'     => '후기',
+			'all_items'     => '후기 모두 보기',
+		),
+		'public'             => false,
+		'show_ui'            => true,
+		'show_in_menu'       => true,
+		'menu_position'      => 26,
+		'menu_icon'          => 'dashicons-star-filled',
+		'supports'           => array( 'title', 'editor', 'custom-fields' ),
+		'capability_type'    => 'post',
+		'map_meta_cap'       => true,
+		'has_archive'        => false,
+		'exclude_from_search'=> true,
+	) );
+} );
+
+/* ── ② 받는 문 · ③ 내주는 문 ─────────────────────────── */
+add_action( 'rest_api_init', function () {
+
+	register_rest_route( 'stella/v1', '/review', array(
+		'methods'             => 'POST',
+		'permission_callback' => '__return_true',
+		'callback'            => function ( $req ) {
+
+			$b = $req->get_json_params();
+			if ( ! is_array( $b ) ) { $b = array(); }
+
+			/* 너무 자주 보내는 것을 막습니다 */
+			$who = md5( ( isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '' )
+			          . '|' . get_current_user_id() );
+			if ( get_transient( 'stella_rv_' . $who ) ) {
+				return new WP_REST_Response( array(
+					'ok' => false, 'message' => '조금 뒤에 다시 보내주세요.' ), 429 );
+			}
+			$day = (int) get_transient( 'stella_rvd_' . $who );
+			if ( $day >= 5 ) {
+				return new WP_REST_Response( array(
+					'ok' => false, 'message' => '오늘은 여기까지 받았습니다.' ), 429 );
+			}
+
+			$stars = isset( $b['stars'] ) ? intval( $b['stars'] ) : 0;
+			if ( $stars < 1 ) { $stars = 0; }
+			if ( $stars > 5 ) { $stars = 5; }
+			if ( ! $stars ) {
+				return new WP_REST_Response( array(
+					'ok' => false, 'message' => '별을 눌러주세요.' ), 400 );
+			}
+
+			$text = isset( $b['text'] ) ? wp_strip_all_tags( (string) $b['text'] ) : '';
+			$text = trim( mb_substr( $text, 0, 200 ) );
+			if ( false !== stripos( $text, 'http' ) ) {
+				return new WP_REST_Response( array(
+					'ok' => false, 'message' => '링크는 넣지 말아주세요.' ), 400 );
+			}
+
+			$name = isset( $b['name'] ) ? wp_strip_all_tags( (string) $b['name'] ) : '';
+			$name = trim( mb_substr( $name, 0, 12 ) );
+
+			$door  = isset( $b['door'] )  ? sanitize_key( (string) $b['door'] )  : '';
+			$topic = isset( $b['topic'] ) ? wp_strip_all_tags( (string) $b['topic'] ) : '';
+			$topic = trim( mb_substr( $topic, 0, 20 ) );
+
+			$title = '★' . $stars . ' · ' . ( $door ? $door : '문 모름' )
+			       . ( $topic ? ' · ' . $topic : '' )
+			       . ( $name ? ' · ' . $name : '' );
+
+			$id = wp_insert_post( array(
+				'post_type'    => 'stella_review',
+				'post_status'  => 'draft',        /* 소희 님이 읽고 공개로 바꾸십니다 */
+				'post_title'   => $title,
+				'post_content' => $text,
+				'post_author'  => get_current_user_id(),
+			), true );
+
+			if ( is_wp_error( $id ) ) {
+				return new WP_REST_Response( array(
+					'ok' => false, 'message' => '저장하지 못했습니다.' ), 500 );
+			}
+
+			update_post_meta( $id, 'rv_stars', $stars );
+			update_post_meta( $id, 'rv_name',  $name );
+			update_post_meta( $id, 'rv_door',  $door );
+			update_post_meta( $id, 'rv_topic', $topic );
+
+			set_transient( 'stella_rv_' . $who, 1, 60 );
+			set_transient( 'stella_rvd_' . $who, $day + 1, DAY_IN_SECONDS );
+
+			return new WP_REST_Response( array( 'ok' => true ), 200 );
+		},
+	) );
+
+	register_rest_route( 'stella/v1', '/reviews', array(
+		'methods'             => 'GET',
+		'permission_callback' => '__return_true',
+		'callback'            => function ( $req ) {
+
+			$limit = intval( $req->get_param( 'limit' ) );
+			if ( $limit < 1 )  { $limit = 12; }
+			if ( $limit > 50 ) { $limit = 50; }
+
+			$q = new WP_Query( array(
+				'post_type'      => 'stella_review',
+				'post_status'    => 'publish',      /* 공개로 바꾸신 것만 */
+				'posts_per_page' => $limit,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+				'no_found_rows'  => true,
+			) );
+
+			$out = array();
+			foreach ( $q->posts as $p ) {
+				$out[] = array(
+					'stars' => (int) get_post_meta( $p->ID, 'rv_stars', true ),
+					'text'  => $p->post_content,
+					'name'  => (string) get_post_meta( $p->ID, 'rv_name', true ),
+					'door'  => (string) get_post_meta( $p->ID, 'rv_door', true ),
+					'topic' => (string) get_post_meta( $p->ID, 'rv_topic', true ),
+					'date'  => mysql2date( 'Y-m-d', $p->post_date ),
+				);
+			}
+			return new WP_REST_Response( array( 'ok' => true, 'items' => $out ), 200 );
+		},
+	) );
+} );
+
+/* ── 목록 화면에 별과 글을 같이 보이게 ────────────────── */
+add_filter( 'manage_stella_review_posts_columns', function ( $c ) {
+	return array(
+		'cb'        => isset( $c['cb'] ) ? $c['cb'] : '',
+		'title'     => '후기',
+		'rv_text'   => '내용',
+		'rv_where'  => '어디서',
+		'date'      => '받은 날',
+	);
+} );
+add_action( 'manage_stella_review_posts_custom_column', function ( $col, $id ) {
+	if ( 'rv_text' === $col ) {
+		echo esc_html( get_post_field( 'post_content', $id ) );
+	}
+	if ( 'rv_where' === $col ) {
+		$d = get_post_meta( $id, 'rv_door', true );
+		$t = get_post_meta( $id, 'rv_topic', true );
+		echo esc_html( trim( $d . ' ' . $t ) );
+	}
+}, 10, 2 );

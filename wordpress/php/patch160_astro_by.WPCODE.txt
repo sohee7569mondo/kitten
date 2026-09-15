@@ -1,0 +1,173 @@
+/* ════════════════════════════════════════════════════════════
+   별자리 자리에 아라 얼굴   ★ 2026-09-08
+
+   소희 님 :「뒤 페이지에 별자리 부분은 아라 그림이 들어가야
+   할 듯」
+
+   맞습니다. 벼리가 쓴 책인데 「태어나던 밤의 하늘」 한 장만은
+   별을 읽는 자리입니다. 거기만 다른 사람이 읽습니다.
+
+   ── 하는 일 ────────────────────────────────────
+   그 장 제목 바로 아래에 작은 띠 하나를 놓습니다.
+
+     태어나던 밤의 하늘
+     (아라 얼굴)  이 자리를 읽은 이  아라
+
+   · 조사를 안 씁니다. 「아라가 읽습니다」 「아람이 읽습니다」처럼
+     이름마다 갈리는 문제를 피합니다. 표지 판권의 「쓴 이」와
+     같은 말투입니다.
+   · 이름과 얼굴은 표에서 그때그때 꺼냅니다. 나중에 이름을 또
+     바꾸셔도 여기가 따라옵니다.
+   · 점성술 문으로 산 책에서는 이 띠가 안 나옵니다. 그 책은
+     처음부터 끝까지 아라가 쓴 것이라 굳이 말할 필요가 없습니다.
+
+   ── 안 하는 것 ─────────────────────────────────
+   그 장의 글을 아라 목소리로 바꾸지는 않습니다. 그건 글까지
+   다시 써야 하는 일이라 버전2 로 적어두었습니다.
+   지금은 그림 하나로 「여기는 다른 사람이 읽는 자리」가 전해지면
+   충분합니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_astroby=1
+   ② 정말 넣기   https://stellasaju.com/?stella_astroby=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_astroby=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_astroby'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_astroby_backup';
+	$MARK = '2026-09-08 · 별자리 자리를 읽은 이';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_astroby'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:880px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<h1 class="no">이미 들어가 있습니다.</h1>';
+		echo '<p><code>/?stella_astroby=undo</code> 로 걷어낸 뒤 다시 넣으세요.</p>';
+		exit;
+	}
+
+	$A1 = "'<h2>태어나던 밤의 하늘</h2>'+";
+
+	$A2 = "'<h2>태어나던 밤의 하늘</h2>'+\n"
+	    . "    /* ══ " . $MARK . " ══\n"
+	    . "       벼리가 쓴 책이어도 이 한 장은 별을 읽는 자리입니다.\n"
+	    . "       조사를 안 쓰는 말투라 이름을 또 바꾸셔도 안 깨집니다. */\n"
+	    . "    (slug === 'door-astro' ? '' :\n"
+	    . "      '<div class=\"astro-by\">'+\n"
+	    . "        '<img loading=\"lazy\" decoding=\"async\" '+\n"
+	    . "          'src=\"https://stellasaju.com/wp-content/uploads/2026/08/'+G['door-astro'].face+'\" '+\n"
+	    . "          'alt=\"\" width=\"1408\" height=\"1408\">'+\n"
+	    . "        '<span>이 자리를 읽은 이 <b>'+esc(G['door-astro'].name)+'</b></span>'+\n"
+	    . "      '</div>')+";
+
+	$CSS = <<<'CSSX'
+
+<style>
+/* ══ 2026-09-08 · 별자리 자리를 읽은 이 ═══════════════════ */
+#ssb .astro-by{
+  display:flex; align-items:center; gap:11px;
+  margin:16px 0 6px; padding:9px 15px 9px 9px;
+  width:fit-content; border-radius:40px;
+  background:rgba(90,67,164,.07);
+  border:1px solid rgba(90,67,164,.20);
+}
+#ssb .astro-by img{
+  width:38px; height:38px; flex:0 0 auto;
+  border-radius:50%; display:block;
+  object-fit:cover; object-position:center 16%;
+  border:1px solid rgba(90,67,164,.24);
+}
+#ssb .astro-by span{
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.12em;
+  color:var(--dim); white-space:nowrap;
+}
+#ssb .astro-by b{
+  font-family:var(--serif); font-weight:700;
+  font-size:.98rem; letter-spacing:0;
+  color:var(--speak); margin-left:5px;
+}
+@media(max-width:640px){
+  #ssb .astro-by{ gap:9px; padding:8px 13px 8px 8px; }
+  #ssb .astro-by img{ width:32px; height:32px; }
+  #ssb .astro-by span{ font-size:.66rem; }
+  #ssb .astro-by b{ font-size:.9rem; }
+}
+@media print{
+  #ssb .astro-by img{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+</style>
+CSSX;
+
+	$n = substr_count( $c, $A1 );
+
+	echo '<h1>' . ( 'apply' === $mode ? '넣었습니다' : '넣으면 이렇게 됩니다 (아직 안 넣었습니다)' ) . '</h1>';
+	echo '<h2>붙일 자리</h2>';
+
+	if ( 1 !== $n ) {
+		echo '<p class="no">「태어나던 밤의 하늘」 제목이 ' . intval( $n )
+		   . '군데입니다. 한 군데여야 합니다.</p>';
+		exit;
+	}
+	echo '<p class="ok">찾았습니다 — 한 군데. 그 제목 바로 아래에 놓습니다.</p>';
+	echo '<h2>나오는 모습</h2>';
+	echo '<p class="ok">태어나던 밤의 하늘<br>'
+	   . '<span class="dim">(아라 얼굴) 이 자리를 읽은 이 <b>아라</b></span></p>';
+	echo '<p class="dim">점성술 문으로 산 책에서는 이 띠가 안 나옵니다. '
+	   . '그 책은 처음부터 끝까지 아라가 쓴 것이니까요.</p>';
+
+	$new = str_replace( $A1, $A2, $c ) . $CSS;
+
+	echo '<h2>정리</h2>';
+	echo '<p class="dim">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 넣으시려면 <code>/?stella_astroby=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+
+	echo '<p class="ok">넣었습니다.</p>';
+	echo '<p><a href="/reading-book/?demo=door-love">샘플 책으로 확인해보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_astroby=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

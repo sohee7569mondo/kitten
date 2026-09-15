@@ -1,0 +1,123 @@
+/* ════════════════════════════════════════════════════════════
+   책 · 일간이 무엇인지 한 줄 넣기   ★ 2026-09-09 · 소희 님께
+
+   소희 님 : 「일간(내가 앉은 사주 — 이게 맞다면 설명이 필요해 보임)」
+
+   확인해 보니 말이 반대였습니다.
+     일간 = 일주의 위칸 = 나 자신
+     일지 = 일주의 아래칸 = 내가 깔고 앉은 자리
+   그래서 「내가 앉은 사주」가 아니라 「나 자신」입니다.
+   그 설명을 「일간 ○ — …」 제목 바로 앞에 한 줄 넣습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   미리보기   https://stellasaju.com/?stella_ilgan=1
+   넣기       https://stellasaju.com/?stella_ilgan=apply
+   되돌리기   https://stellasaju.com/?stella_ilgan=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_ilgan'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_ilgan'] ) );
+	$META = '_stella_ilgan_bak_0909';
+	$SLUG = 'reading-book';
+	$MARK = '그 한 글자가 나 자신입니다';
+
+	$ANCHOR = <<<'STELLA_ANCHOR'
+'<h3>일간 '+it.dayHan+' — '+it.day.image+'</h3>'+
+STELLA_ANCHOR;
+
+	$ADD = <<<'STELLA_ADD'
+'<p>여덟 글자 가운데 <em>일주의 위칸</em>, 그 한 글자가 나 자신입니다. 이 글자를 <em>일간</em>이라고 불러요. 바로 아래 칸(일지)은 내가 깔고 앉은 자리이고, 나머지 여섯 글자는 그 둘을 둘러싼 형편입니다. 그래서 이 책의 모든 풀이는 이 한 글자에서 시작합니다.</p>'+
+STELLA_ADD;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.75;'
+	   . 'padding:28px 18px;max-width:900px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 10px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.7 monospace;border-left:3px solid #D4AF6A}'
+	   . '</style>';
+
+	$p = get_page_by_path( $SLUG );
+	if ( ! $p ) { echo '<p class="no">책 쪽이 없습니다.</p>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌립니다</h1>';
+		$bak = get_post_meta( $p->ID, $META, true );
+		if ( '' === $bak ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ),
+			array( 'ID' => $p->ID ) );
+		clean_post_cache( $p->ID );
+		delete_post_meta( $p->ID, $META );
+		if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+		echo '<p class="ok">되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+
+	$go = ( 'apply' === $mode );
+	echo '<h1>일간 설명 한 줄 — '
+	   . ( $go ? '넣습니다' : '미리보기 (아직 안 넣음)' ) . '</h1>';
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<p class="ok">이미 들어 있습니다.</p>';
+		echo '<p class="dim">되돌리시려면 /?stella_ilgan=undo 를 여세요.</p>';
+		exit;
+	}
+
+	$n = substr_count( $c, $ANCHOR );
+	echo '<h2>넣을 자리 (이 줄 바로 앞)</h2><pre>' . esc_html( $ANCHOR )
+	   . "\n\n" . '찾은 개수  ' . (int) $n . '</pre>';
+
+	if ( 1 !== $n ) {
+		echo '<p class="no">자리가 하나가 아닙니다. 넣지 않았습니다.</p>';
+		exit;
+	}
+
+	echo '<h2>넣을 글</h2><pre>' . esc_html( $ADD ) . '</pre>';
+	echo '<h2>화면에 이렇게 나옵니다</h2><pre>'
+	   . esc_html( wp_strip_all_tags( substr( $ADD, 4, strlen( $ADD ) - 8 ) ) )
+	   . '</pre>';
+
+	if ( false !== strpos( $ADD, '&' ) ) {
+		echo '<p class="no">앰퍼샌드가 들어 있습니다. 넣지 않았습니다.</p>';
+		exit;
+	}
+
+	if ( ! $go ) {
+		echo '<h2>끝</h2><p class="dim">이대로 괜찮으시면 '
+		   . '/?stella_ilgan=apply 를 여세요.</p>';
+		exit;
+	}
+
+	$new = str_replace( $ANCHOR, $ADD . "\n    " . $ANCHOR, $c );
+
+	if ( '' === get_post_meta( $p->ID, $META, true ) ) {
+		update_post_meta( $p->ID, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ),
+		array( 'ID' => $p->ID ) );
+	clean_post_cache( $p->ID );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<h2>끝</h2><p class="ok">넣었습니다. '
+	   . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p class="dim">되돌리시려면 /?stella_ilgan=undo 를 여세요.</p>';
+	exit;
+} );

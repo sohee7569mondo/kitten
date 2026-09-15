@@ -1,0 +1,55 @@
+<style>
+/* 2026-09-09 · 아르카나 말상자 (책 · 카드 대목) — STELLA-ARC-v1 */
+#ssb .arcv{
+  display:grid;
+  grid-template-columns:132px 1fr;
+  grid-template-areas:"pic who" "pic say";
+  align-content:start; gap:0 22px;
+  margin:32px 0 6px; padding:22px 24px 22px 22px;
+  border-left:4px solid #8F5518;
+  background:rgba(143,85,24,.055);
+  border-radius:0 14px 14px 0;
+}
+#ssb .arcv-pic{ grid-area:pic; }
+#ssb .arcv-who{ grid-area:who; }
+#ssb .arcv-say{ grid-area:say; }
+#ssb .arcv-pic img{ display:block; width:100%; height:auto; border-radius:12px; }
+#ssb .arcv-who{
+  font-family:var(--serif); font-weight:700; font-size:1.06rem;
+  color:#8F5518; margin:2px 0 12px; align-self:start;
+}
+#ssb .arcv-who i{
+  font-style:normal; font-family:var(--mono); font-weight:500;
+  font-size:.68rem; letter-spacing:.14em; color:var(--dim); margin-left:9px;
+}
+#ssb .arcv-say p{ margin:0 0 13px; }
+#ssb .arcv-say p:last-child{ margin-bottom:0; }
+
+/* 좁은 화면 — 사진을 작은 동그라미로 올리고 글은 아래로 */
+@media(max-width:640px){
+  #ssb .arcv{
+    grid-template-columns:56px 1fr;
+    grid-template-areas:"pic who" "say say";
+    gap:12px 13px; padding:18px 16px;
+  }
+  #ssb .arcv-pic img{
+    border-radius:999px; aspect-ratio:1/1;
+    object-fit:cover; object-position:50% 20%;
+  }
+  #ssb .arcv-who{ font-size:.98rem; margin:0; align-self:center; }
+  /* 소희 님 줄바꿈은 넓은 화면에서만. 좁으면 그냥 흐르게 둡니다 */
+  #ssb .arcv-say br{ display:none; }
+}
+@media print{
+  #ssb .arcv{ break-inside:avoid; page-break-inside:avoid; }
+}
+</style>
+<div class="arcv"><!-- STELLA-ARC-v1 -->
+<div class="arcv-pic"><img loading="lazy" src="https://stellasaju.com/wp-content/uploads/2026/08/stellardoorarcana.webp" alt="아르카나"></div>
+<div class="arcv-who">아르카나<i>THE ARCANA</i></div>
+<div class="arcv-say">
+<p>사주는 당신이 어떤 사람인지를 말합니다. <br>저는 그걸 바꾸지 않아요. 바꿀 수도 없고요.</p>
+<p>다만 같은 사람도 어제와 오늘이 다릅니다. <br><em>사주가 지도라면 카드는 오늘의 날씨예요.</em> <br>지도는 십 년을 가도 그대로지만, <br>오늘 우산을 챙길지는 날씨가 정합니다.</p>
+<p>그래서 세 장을 뽑으시라고 했습니다. <br>앞의 사주가 당신의 지도라면, <br><em>이 세 장은 지금 이 계절의 하늘입니다.</em></p>
+</div>
+</div>

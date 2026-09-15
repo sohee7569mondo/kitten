@@ -1,0 +1,133 @@
+/* ════════════════════════════════════════════════════════════
+   가입할 때 비밀번호를 받습니다 (서버 쪽)
+   ★ 2026-09-09 · 소희 님께
+
+   소희 님 : 「회원가입을 먼저 하는 걸로 하자. 아이디 패스워드 없으니까
+             운세 볼 때 힘들어. 모바일에서 보니까 메일 링크 보내주네」
+
+   ── 무엇이 문제였나 ────────────────────────────
+   지금 가입 코드가 이렇게 되어 있습니다.
+
+     $pass = wp_generate_password( 16, true, false );
+     wp_insert_user( array( ..., 'user_pass' => $pass, ... ) );
+
+   계정은 만들어지는데 **손님은 자기 비밀번호를 모릅니다.**
+   그래서 다시 들어올 길이 메일 링크뿐이고, 휴대폰에서는 메일 앱이
+   링크를 미리 열어버려 열쇠가 먼저 쓰이는 일까지 생깁니다.
+
+   ── 이 스니펫이 하는 일 ────────────────────────
+   가입 요청에 비밀번호가 실려 오면, 계정이 만들어진 직후에 그
+   비밀번호로 바꿔 끼웁니다.
+   ★ 가입 코드를 한 줄도 안 고칩니다. 옆에서 거들기만 합니다.
+
+   비밀번호가 안 실려 오면 아무 일도 안 합니다 — 지금처럼 돕니다.
+   그래서 이 스니펫만 먼저 넣어도 아무것도 안 깨집니다.
+
+   ── 규칙 ───────────────────────────────────────
+   여덟 자 이상. 그 이상 까다롭게 굴지 않습니다 — 까다로울수록 나갑니다.
+   너무 짧으면 그냥 무시하고 예전처럼 갑니다 (가입은 됩니다).
+
+   ── 다음 걸음 ──────────────────────────────────
+   문 페이지 폼에 비밀번호 칸을 놓고 같이 보내주면 끝납니다.
+   그건 따로 드립니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   확인   https://stellasaju.com/?stella_pass=1
+   ════════════════════════════════════════════════════════════ */
+
+/* 가입 요청이 들어오면 비밀번호를 잠깐 들고 있습니다 */
+add_filter( 'rest_pre_dispatch', function ( $result, $server, $request ) {
+
+	$route = '';
+	if ( is_object( $request ) ) { $route = (string) $request->get_route(); }
+	if ( false === strpos( $route, '/stella/v1/signup' ) ) { return $result; }
+
+	$p = '';
+	if ( is_object( $request ) ) {
+		$v = $request->get_param( 'pass' );
+		if ( null === $v ) { $v = $request->get_param( 'password' ); }
+		if ( is_string( $v ) ) { $p = $v; }
+	}
+
+	$GLOBALS['stella_signup_pass'] = $p;
+	return $result;
+}, 10, 3 );
+
+/* 계정이 만들어진 직후에 그 비밀번호로 바꿔 끼웁니다 */
+add_action( 'user_register', function ( $uid ) {
+
+	if ( ! isset( $GLOBALS['stella_signup_pass'] ) ) { return; }
+	$p = (string) $GLOBALS['stella_signup_pass'];
+	$GLOBALS['stella_signup_pass'] = '';   /* 한 번만 씁니다 */
+
+	if ( '' === $p ) { return; }
+	if ( strlen( $p ) < 8 ) { return; }    /* 너무 짧으면 그냥 둡니다 */
+
+	wp_set_password( $p, $uid );
+
+	/* 비밀번호를 스스로 정하신 분이라는 표시.
+	   나중에 「비밀번호로 들어오기」를 안내할 때 씁니다. */
+	update_user_meta( $uid, 'stella_has_pw', 1 );
+
+	/* wp_set_password 는 로그인 상태를 끊습니다.
+	   방금 가입하신 분이 그 자리에서 튕기지 않게 다시 앉혀드립니다. */
+	if ( get_current_user_id() === $uid ) {
+		wp_set_current_user( $uid );
+		wp_set_auth_cookie( $uid, true );
+	}
+}, 5 );
+
+/* ── 잘 되고 있는지 보는 자 ─────────────────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_pass'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.8;'
+	   . 'padding:28px 18px;max-width:900px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 10px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:24px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:12px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:13px/1.8 monospace;border-left:3px solid #D4AF6A}'
+	   . '</style>';
+
+	echo '<h1>가입 비밀번호 · 지금 상태</h1>';
+
+	$total = (int) $wpdb->get_var(
+		"SELECT COUNT(*) FROM {$wpdb->users}" );
+	$withPw = (int) $wpdb->get_var(
+		"SELECT COUNT(*) FROM {$wpdb->usermeta}
+		  WHERE meta_key = 'stella_has_pw' AND meta_value = '1'" );
+
+	echo '<pre>'
+	   . '회원 수                      ' . number_format( $total ) . "\n"
+	   . '비밀번호를 스스로 정한 분    ' . number_format( $withPw ) . "\n"
+	   . '가입 길                      /wp-json/stella/v1/signup' . "\n"
+	   . '들어오는 길                  /signin/'
+	   . '</pre>';
+
+	echo '<h2>지금 어디까지 됐나</h2><pre>'
+	   . "서버 쪽   준비됨 — 비밀번호가 실려 오면 그것으로 계정을 만듭니다\n"
+	   . "폼 쪽     아직 — 문 페이지에 비밀번호 칸이 없어서 안 실려 옵니다\n\n"
+	   . "폼 칸이 생기기 전까지는 지금과 똑같이 돕니다. 아무것도 안 깨집니다."
+	   . '</pre>';
+
+	echo '<h2>손으로 시험해 보시려면</h2><pre>'
+	   . "1. /signin/?join=1 에서 비밀번호를 정해 가입해 보세요\n"
+	   . "2. 로그아웃하고 /signin/ 에서 그 비밀번호로 들어와 보세요\n"
+	   . "3. 이 쪽을 다시 열면 「비밀번호를 스스로 정한 분」이 하나 늘어야 맞습니다"
+	   . '</pre>';
+
+	echo '<p class="dim">이 자는 읽기만 합니다.</p>';
+	exit;
+} );

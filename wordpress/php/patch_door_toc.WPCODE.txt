@@ -1,0 +1,207 @@
+/* ════════════════════════════════════════════════════════════
+   문마다 「이 책에 무엇이 들어 있나」   ★ 2026-09-08
+
+   소희 님 :「나도 목차 생각했었는데 이미 우린 있잖아」
+
+   있습니다. 그런데 /guide/ 에 있습니다.
+   연애 문에 들어와서 생년월일 넣고 단추를 누르려는 사람은
+   그 쪽을 안 봅니다. 값을 치르는 그 화면에는 목차가 없습니다.
+
+   옮기는 것이 아니라 **한 번 더 놓는** 것입니다.
+   결제 상자 바로 위에, 접어둔 채로요. 누르면 펼쳐집니다.
+   접혀 있으니 넣는 칸이 길어지지도 않습니다.
+
+   ── 무엇을 보여주나 ────────────────────────────
+   ① 이 문에서만 나오는 꼭지 (문마다 다름)
+   ② 어느 문에서나 같은 것 (근거 다섯 · 제1~3장 · 맺음말)
+   ③ 쪽수 · PDF · 보관 기간
+
+   사이트에 들어 있는 책에서 제목을 그대로 읽어 옮겼습니다.
+   지어낸 목차가 아닙니다.
+
+   ── 지금 넣는 문 ───────────────────────────────
+   벼리(연애와 결혼) · 마루(일과 돈) 둘만 넣습니다.
+   나머지 넷은 여는 날에 안 열기로 하셔서 빼뒀습니다.
+   나중에 열 때 아래 표에 한 덩이씩 더하면 됩니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_doortoc=1
+   ② 정말 넣기   https://stellasaju.com/?stella_doortoc=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_doortoc=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_doortoc'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_doortoc_backup';
+	$MARK = '2026-09-08 · 이 책에 무엇이 들어 있나';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_doortoc'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:900px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	/* 문마다 그 문에서만 나오는 꼭지 — 사이트의 책에서 그대로 읽었습니다 */
+	$doors = array(
+		'door-love' => array(
+			'name'  => '벼리 · 연애와 결혼',
+			'mine'  => array(
+				'올해 인연의 흐름',
+				'나는 왜 늘 비슷한 사람에게 끌릴까',
+				'나는 왜 늘 같은 데서 걸릴까',
+				'그래서 언제 말하고 언제 기다리는지',
+			),
+		),
+		'door-career' => array(
+			'name'  => '마루 · 일과 돈',
+			'mine'  => array(
+				'나에게 맞는 일의 결',
+				'돈이 들어오고 나가는 자리',
+				'올해의 시기 흐름',
+				'그래서 언제 움직이고 언제 기다리는지',
+			),
+		),
+	);
+
+	/* 어느 문에서나 같은 것 */
+	$same = array(
+		array( '근거 하나',  '시각을 먼저 바로잡습니다',   '시계가 가리킨 시각과 해가 있던 시각은 다릅니다' ),
+		array( '근거 둘',    '여덟 글자',                 '해 · 달 · 날 · 시를 각각 두 자씩' ),
+		array( '근거 셋',    '기운의 저울',               '무엇이 두텁고 무엇이 비어 있는지' ),
+		array( '근거 넷',    '십 년마다 바뀌는 판',        '지금이 어느 판인지' ),
+		array( '근거 다섯',  '태어나던 밤의 하늘',         '같은 사람을 서양의 언어로 한 번 더' ),
+		array( '제 1 장',    '사주가 보는 당신의 모습',
+			'여덟 글자에서 제일 센 것 &middot; 비어 있는 자리 &middot; 여덟 글자가 서로 부딪히는 자리' ),
+		array( '제 2 장',    '답에서 말하는 당신의 모습',  '답해주신 것 &middot; 적어주신 말' ),
+		array( '제 3 장',    '현실에서의 당신의 모습',     '사주가 가리키는 쪽과 지금 사시는 쪽이 어디서 어긋나는지' ),
+		array( '맺음말',     '세 가지만 기억하세요',       '마지막 편지 &middot; 배웅' ),
+	);
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$back = 0;
+		foreach ( $doors as $slug => $d ) {
+			$p = get_page_by_path( $slug );
+			if ( ! $p ) { continue; }
+			$old = get_post_meta( $p->ID, $META, true );
+			if ( ! $old ) { echo '<p class="no">' . esc_html( $d['name'] ) . ' — 되돌릴 것이 없습니다.</p>'; continue; }
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $p->ID ) );
+			clean_post_cache( $p->ID );
+			delete_post_meta( $p->ID, $META );
+			echo '<p class="ok">' . esc_html( $d['name'] ) . ' — 되돌렸습니다.</p>';
+			$back++;
+		}
+		echo '<h2>정리</h2><p>' . intval( $back ) . '쪽 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '넣었습니다' : '넣으면 이렇게 됩니다 (아직 안 넣었습니다)' ) . '</h1>';
+
+	$done = 0; $skip = 0;
+
+	foreach ( $doors as $slug => $d ) {
+
+		echo '<h2>' . esc_html( $d['name'] ) . '</h2>';
+
+		$p = get_page_by_path( $slug );
+		if ( ! $p ) { echo '<p class="no">쪽을 못 찾았습니다. 건너뜁니다.</p>'; $skip++; continue; }
+
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+		if ( ! $row ) { echo '<p class="no">내용을 못 읽었습니다. 건너뜁니다.</p>'; $skip++; continue; }
+		$c = $row->post_content;
+
+		if ( false !== strpos( $c, $MARK ) ) {
+			echo '<p class="dim">이미 들어가 있습니다. 건너뜁니다.</p>'; $skip++; continue;
+		}
+
+		$at = strpos( $c, '<section class="bill">' );
+		if ( false === $at ) {
+			echo '<p class="no">결제 상자를 못 찾았습니다. 건너뜁니다.</p>'; $skip++; continue;
+		}
+
+		/* ── 넣을 덩이 ── */
+		$box  = '<style>'
+		      . '/* ══ ' . $MARK . ' ══ */'
+		      . '#ssg .btoc{margin-bottom:18px;border:1px solid var(--line);border-radius:14px;'
+		      . 'background:var(--nebula);overflow:hidden;}'
+		      . '#ssg .btoc > summary{list-style:none;cursor:pointer;padding:20px 24px;'
+		      . 'display:flex;align-items:center;gap:10px;font-size:1.02rem;font-weight:500;}'
+		      . '#ssg .btoc > summary::-webkit-details-marker{display:none;}'
+		      . '#ssg .btoc > summary::after{content:"펴 보기";margin-left:auto;'
+		      . 'font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.1em;'
+		      . 'color:var(--g-accent);}'
+		      . '#ssg .btoc[open] > summary::after{content:"접기";}'
+		      . '#ssg .btoc .btoc-in{padding:0 24px 22px;}'
+		      . '#ssg .btoc h4{margin:14px 0 8px;font-size:.72rem;letter-spacing:.14em;'
+		      . 'font-family:"IBM Plex Mono",monospace;color:var(--g-accent);font-weight:400;}'
+		      . '#ssg .btoc .r{display:grid;grid-template-columns:5.2rem 1fr;gap:10px 14px;'
+		      . 'padding:9px 0;border-top:1px solid var(--line);align-items:baseline;}'
+		      . '#ssg .btoc .k{font-family:"IBM Plex Mono",monospace;font-size:.68rem;'
+		      . 'letter-spacing:.1em;color:var(--ink-dim);}'
+		      . '#ssg .btoc .t{font-size:.97rem;}'
+		      . '#ssg .btoc .d{display:block;margin-top:3px;font-size:.84rem;color:var(--ink-dim);'
+		      . 'line-height:1.7;}'
+		      . '#ssg .btoc .fine{margin-top:14px;font-size:.84rem;color:var(--ink-dim);line-height:1.8;}'
+		      . '@media(max-width:560px){#ssg .btoc .r{grid-template-columns:1fr;gap:2px;}'
+		      . '#ssg .btoc > summary,#ssg .btoc .btoc-in{padding-left:18px;padding-right:18px;}}'
+		      . '</style>';
+
+		$box .= '<details class="btoc"><summary>이 책에 무엇이 들어 있나</summary>'
+		      . '<div class="btoc-in">';
+
+		$box .= '<h4>이 문에서만</h4>';
+		foreach ( $d['mine'] as $t ) {
+			$box .= '<div class="r"><div class="k">주제</div><div class="t">' . $t . '</div></div>';
+		}
+
+		$box .= '<h4>어느 문에서나</h4>';
+		foreach ( $same as $s ) {
+			$box .= '<div class="r"><div class="k">' . $s[0] . '</div>'
+			      . '<div class="t">' . $s[1] . '<span class="d">' . $s[2] . '</span></div></div>';
+		}
+
+		$box .= '<p class="fine">스무 쪽이 넘습니다. 결제하시면 그 자리에서 만들어 펼쳐지고, '
+		      . 'PDF 로 저장하실 수 있습니다. 「내 자리」에 1년간 보관됩니다.</p>'
+		      . '</div></details>';
+
+		$new = substr( $c, 0, $at ) . $box . substr( $c, $at );
+
+		echo '<p class="ok">결제 상자 바로 앞에 놓습니다. '
+		   . '이 문에서만 ' . count( $d['mine'] ) . '꼭지 &middot; 어느 문에서나 ' . count( $same ) . '꼭지</p>';
+		echo '<p class="dim">' . number_format( strlen( $c ) ) . ' → '
+		   . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+		if ( ! $apply ) { $done++; continue; }
+
+		if ( ! get_post_meta( $p->ID, $META, true ) ) {
+			update_post_meta( $p->ID, $META, $c );
+		}
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $p->ID ) );
+		clean_post_cache( $p->ID );
+		$done++;
+	}
+
+	echo '<h2>정리</h2>';
+	echo '<p>' . intval( $done ) . '쪽 ' . ( $apply ? '넣었습니다' : '넣을 수 있습니다' )
+	   . ' &middot; ' . intval( $skip ) . '쪽 건너뜀</p>';
+	if ( ! $apply ) {
+		echo '<p>정말 넣으시려면 <code>/?stella_doortoc=apply</code> 를 여세요.</p>';
+	} else {
+		echo '<p><a href="/door-love/">연애 문에서 확인</a> &middot; '
+		   . '<a href="/door-career/">일 문에서 확인</a></p>';
+		echo '<p class="ok">되돌리시려면 <code>/?stella_doortoc=undo</code> 를 여세요.</p>';
+	}
+	exit;
+}, 0 );

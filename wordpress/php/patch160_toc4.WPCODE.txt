@@ -1,0 +1,148 @@
+/* ══════════════════════════════════════════════════════════
+   차례 셋 — 여는 장 빼기 · 제2장을 3장 안으로 · 부록 이름
+   ★ 2026-09-10 · 소희 님께
+
+   고칠목록 29번   「제 2 장을 3장 안으로」
+   소희 님 오늘    「뒤에 붙이는 것 · 제가 계산한 자리 →
+                    사주풀이의 근간 / 사주풀이의 근거자료모음」
+
+   ── 하나. 차례 첫 줄에서 「여는 장」 빼기 ─────────────
+
+     전  여는 장 사주를 읽기 전에 ......... 02
+     후  사주를 읽기 전에 ................. 02
+
+   ── 둘. 제2장을 3장 안으로 ────────────────────────────
+
+   지금
+     제 1 장  사주가 말하는 ○○님 모습     ← 1부
+     제 2 장  답이 말하는 ○○님 모습       ← 2부
+     제 3 장  현실에서의 ○○님 모습      ← 어긋나는 자리
+     제 4 장  {주제}
+     제 5 장  마지막에 놓는 세 장
+
+   바꾼 뒤
+     제 1 장  사주가 말하는 ○○님 모습     ← 1부
+     제 2 장  현실에서의 ○○님 모습      ← 2부 + 어긋나는 자리
+     제 3 장  {주제}
+     제 4 장  마지막에 놓는 세 장
+
+   제2장 속표지를 안 세우고, 「현재의 모습」 속표지를 2부 앞으로
+   당깁니다. 그러면 2부가 그 장 안으로 들어갑니다.
+   ★ 글은 한 줄도 안 지웁니다. 속표지 자리만 옮깁니다.
+   ★ 장 번호는 원래 코드가 들어간 순서대로 다시 세니 저절로
+     1·2·3·4 가 됩니다.
+
+   ── 셋. 부록 이름 ────────────────────────────────────
+
+     전  뒤에 붙이는 것 · 제가 계산한 자리
+         앞의 풀이가 어디서 나온 셈인지 궁금하시면 여기를 보세요…
+
+     후  뒤에 붙이는 것 · 사주풀이의 근간
+         사주풀이의 근거 자료를 모아 두었습니다. 앞의 풀이가
+         어디서 나온 셈인지 궁금하시면 보세요…
+
+   주신 두 이름을 하나는 제목으로, 하나는 설명으로 나눠 썼습니다.
+   차례도 속표지에서 이름을 가져가니 같이 바뀝니다.
+
+   해보기   https://stellasaju.com/?stella_toc4=preview
+   붙이기   https://stellasaju.com/?stella_toc4=apply
+   되돌리기 https://stellasaju.com/?stella_toc4=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_toc4'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_toc4'] ) );
+	$META = '_stella_toc4_bak';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $id, $META, true );
+		if ( '' === $old ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다.';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	$PAIRS = array(
+		array( '여는 장 빼기', 'var HEAD = \'여는 장\';', 'var HEAD = \'\';' ),
+		array( '제2장 안 세우기', 'if(p2>=0){', 'if(false){' ),
+		array( '3장을 2부 앞으로', 'put(findMark(\'<h2>타고난 성향과 적어주신\'),', 'put(findMark(\'이제 이 답들을 위의 사주와 맞대어 봅니다\')>=0 ? findMark(\'이제 이 답들을 위의 사주와 맞대어 봅니다\') : findMark(\'<h2>타고난 성향과 적어주신\'),' ),
+		array( '3장 설명', '\'사주 속 타고난 결하고 지금 살고 계신 모습을 살펴봅니다.\',\'two\',1));', '\'처음에 여쭤본 일곱 가지 답과, 사주 속 타고난 결을 맞대어 봅니다.\',\'two\',1));' ),
+		array( '부록 제목', 'sheet(\'뒤에 붙이는 것\',\'제가 계산한 자리\',', 'sheet(\'뒤에 붙이는 것\',\'사주풀이의 근간\',' ),
+		array( '부록 설명', '\'앞의 풀이가 어디서 나온 셈인지 궁금하시면 여기를 보세요. \'', '\'사주풀이의 근거 자료를 모아 두었습니다. 앞의 풀이가 어디서 나온 셈인지 궁금하시면 보세요. \'' ),
+	);
+
+	echo "═══ 차례 셋 ═══\n";
+	echo '쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	$bad  = false;
+	$done = 0;
+	foreach ( $PAIRS as $r ) {
+		list( $nm, $old, $new ) = $r;
+		$n = substr_count( $c, $old );
+		if ( 1 === $n ) { echo sprintf( "  %-18s 찾음\n", $nm ); continue; }
+		if ( 0 === $n ) {
+			if ( substr_count( $c, $new ) > 0 ) {
+				echo sprintf( "  %-18s 이미 고쳐져 있습니다\n", $nm );
+				$done++;
+				continue;
+			}
+		}
+		echo sprintf( "  %-18s ★ %d군데 (하나여야 합니다)\n", $nm, $n );
+		$bad = true;
+	}
+
+	if ( $bad ) {
+		echo "\n한 군데가 아닌 것이 있어 아무것도 안 바꿨습니다.\n";
+		echo "patch160_divider 를 아직 안 붙이셨을 수도 있습니다.";
+		exit;
+	}
+	if ( count( $PAIRS ) === $done ) { echo "\n이미 다 고쳐져 있습니다."; exit; }
+
+	$new = $c;
+	foreach ( $PAIRS as $r ) {
+		list( $nm, $o, $n2 ) = $r;
+		$new = str_replace( $o, $n2, $new );
+	}
+
+	if ( 'preview' === $mode ) {
+		echo "\n여섯 자리 모두 준비됐습니다. "
+		   . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
+		echo "\n바뀐 뒤 차례\n";
+		echo "  여는 장   사주를 읽기 전에\n";
+		echo "  제 1 장   사주가 말하는 ○○님 모습\n";
+		echo "  제 2 장   현실에서의 ○○님 모습  ← 2부가 이 안으로 들어옵니다\n";
+		echo "  제 3 장   (고르신 주제)\n";
+		echo "  제 4 장   마지막에 놓는 세 장\n";
+		echo "  뒤에 붙이는 것  사주풀이의 근간\n";
+		echo "\n붙이시려면 ?stella_toc4=apply\n";
+		exit;
+	}
+
+	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
+		update_post_meta( $id, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n고쳤습니다. 책을 열어 목차를 보세요.\n";
+	echo "되돌리려면 ?stella_toc4=undo\n";
+	exit;
+}, 1 );

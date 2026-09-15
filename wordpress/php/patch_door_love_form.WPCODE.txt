@@ -1,0 +1,176 @@
+/* ════════════════════════════════════════════════════════════
+   연애 문 · 넣는 칸 정리  (door-love)   ★ 2026-09-08 다시 만듦
+
+   ── 왜 다시 만들었나 ──────────────────────────────
+   처음 만든 판은 제 저장소 사본을 보고 자리를 잡았는데, 사이트의
+   진짜 글이 많이 달랐습니다. 이번에는 사이트에서 그대로 읽어와
+   맞췄습니다.
+
+   달랐던 것 —
+     · 「더 깊이 보기」는 사이트에 이미 없습니다. 대신 세 가지가
+       늘 들어갑니다 (올해 인연의 흐름 · 나와 맞는 사람의 결 ·
+       관계에서 되풀이되는 자리).
+     · 견본 상자에 style 이 붙어 있어 자리를 못 찾았습니다.
+     · 안내 문구 끝에 「따로 값을 받지 않습니다」가 붙어 있습니다.
+     · 가디언 이름이 아직 「연성의 신」입니다.
+
+   ── 하는 일 다섯 ────────────────────────────────
+   ① 왼쪽 가디언 소개 칸을 뺍니다. 폼이 가운데로 옵니다.
+   ② 「한 줄로 더 물어보기」를 「가장 궁금한 한 가지」로.
+   ③ 그 아래 안내를 한 줄로 줄입니다.
+   ④ 견본 두 장(덕선 · 선우)을 연애운 한 장으로.
+   ⑤ 단추를 「벼리에게 물어보기」로.
+   그리고 폼을 가운데로 놓고 메모 칸을 감춥니다 (CSS).
+
+   ★ 한 줄 질문은 남깁니다. 책에서 제일 많이 쓰이는 칸입니다 —
+     「말한 것」 표에 한 번, 마지막 편지에서 그 질문을 그대로 받아
+     답합니다.
+
+   ★ 메모 칸은 지우지 않고 감춥니다. 페이지 코드가 그 칸을 읽고
+     있어서, 없애면 「물어보기」 단추가 멈춥니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_dlform=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_dlform=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_dlform=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_dlform'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_dlform_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_dlform'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$page = get_page_by_path( 'door-love' );
+	if ( ! $page ) { echo '<h1 class="no">door-love 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	$jobs = array();
+
+	$jobs[] = array(
+		'name' => '① 왼쪽 가디언 소개 칸 빼기',
+		'find' => '/<aside class="g-card">.*?<\/aside>/su',
+		'to'   => "",
+	);
+
+	$jobs[] = array(
+		'name' => '② 「한 줄로 더 물어보기」 → 「가장 궁금한 한 가지」',
+		'find' => '/<span class="step-title">한 줄로 더 물어보기<\/span>/u',
+		'to'   => "<span class=\"step-title\">가장 궁금한 한 가지</span>",
+	);
+
+	$jobs[] = array(
+		'name' => '③ 그 아래 안내를 한 줄로',
+		'find' => '/<p class="hint">짧게 적어주실수록.*?<\/p>/su',
+		'to'   => "<p class=\"hint\">이 한 줄은 책 마지막 편지에서 그대로 받아 답해드립니다. "
+		        . "비워두셔도 괜찮아요. <b>따로 값을 받지 않습니다.</b></p>",
+	);
+
+	$jobs[] = array(
+		'name' => '④ 견본 두 장을 연애운 한 장으로',
+		'find' => '/<div class="samples"[^>]*>.*?<\/a>\s*<\/div>/su',
+		'to'   => "<div class=\"samples one\" style=\"margin-bottom:18px;\">"
+		        . "<a class=\"sample\" href=\"/reading-love/\">"
+		        . "<div class=\"sample-k\">Sample &middot; 정보 입력 전 미리 보기</div>"
+		        . "<div class=\"sample-t\">완성본 미리보기 &middot; 정환이의 연애운</div>"
+		        . "<div class=\"sample-d\">실제로 발행되는 책을 그대로 보실 수 있어요 &rarr;</div>"
+		        . "</a></div>",
+	);
+
+	$jobs[] = array(
+		'name' => '⑤ 단추를 「벼리에게 물어보기」로',
+		'find' => '/연성의 신에게 물어보기/u',
+		'to'   => "벼리에게 물어보기",
+	);
+
+	$jobs[] = array(
+		'name' => '⑥ 폼을 가운데로 · 메모 칸 감추기 (CSS)',
+		'find' => '/<\/style>\s*<div id="ssg"/u',
+		'to'   => "\n/* ══ 2026-09-08 · 넣는 칸 정리 ═════════════════════════\n"
+		        . "   왼쪽 가디언 칸을 뺐으니 두 칸 짜임을 한 칸으로 바꿉니다.\n"
+		        . "   메모 칸은 페이지 코드가 읽고 있어서 지우지 않고 감춥니다. */\n"
+		        . "#ssg .g-cols{ grid-template-columns:1fr !important; max-width:760px; margin:0 auto; }\n"
+		        . "#ssg .memo{ display:none !important; }\n"
+		        . "#ssg .samples.one{ grid-template-columns:1fr !important; }\n"
+		        . "</style><div id=\"ssg\"",
+	);
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 글이 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_dlform=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], str_replace( '\\', '\\\\', $j['to'] ), $new, 1 );
+		if ( null === $new ) {
+			echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 안 바꿨습니다.</p>';
+			exit;
+		}
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+
+	echo '<h2>정리</h2>';
+	echo '<p class="ok">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p><a href="/door-love/">연애 문 열어보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_dlform=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

@@ -1,0 +1,123 @@
+/* ════════════════════════════════════════════════════════════
+   주제 사진 열둘이 잘 올라갔나 (읽기만 합니다)   ★ 2026-09-08
+
+   소희 님이 그려주신 주제별 사진을 미디어 서랍에서 이름으로
+   찾아봅니다. 찾았으면 주소와 크기를 보여줍니다.
+
+   주소를 저에게 하나씩 보내실 필요가 없습니다. 이름만 맞으면
+   패치가 알아서 찾습니다. 올린 날짜 폴더도 신경 안 쓰셔도 됩니다.
+
+   ── 이름 ───────────────────────────────────────
+     love-yeonae      연애운      work-jikeop    직업운
+     love-jaehoe      재회운      work-jaemul    재물운
+     love-gyeolhon    결혼운      work-ijik      이직운
+     love-ibyeol      이별운      work-toesa     퇴사운
+     love-jjaksarang  짝사랑      work-jikjang   직장운
+     love-gunghap     궁합        work-saeop     사업운
+
+   ★ 워드프레스는 같은 이름이 이미 있으면 뒤에 -1 을 붙입니다.
+     그러면 못 찾습니다. 못 찾았다고 나오면 미디어 서랍에서
+     그 파일 이름을 확인해 주세요.
+
+   ★ 읽기만 합니다. 아무것도 바꾸지 않습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   여는 주소   https://stellasaju.com/?stella_pics=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_pics'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 6px}h2{color:#D4AF6A;font-size:1rem;margin:26px 0 8px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . '.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}'
+	   . '.c{background:rgba(255,255,255,.04);border:1px solid rgba(212,175,106,.2);'
+	   . 'border-radius:10px;padding:10px;text-align:center}'
+	   . '.c img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:7px;display:block;'
+	   . 'background:#0B0917}'
+	   . '.c .t{margin-top:8px;font-size:.86rem}.c .s{font-size:.7rem;color:#8B849C}'
+	   . '.c.miss{border-color:rgba(229,160,160,.4)}'
+	   . '.c.miss .box{width:100%;aspect-ratio:3/4;border-radius:7px;background:rgba(229,160,160,.08);'
+	   . 'display:flex;align-items:center;justify-content:center;color:#E5A0A0;font-size:.78rem}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px;font-size:.8rem}</style>';
+
+	$sets = array(
+		'연애 문 · 벼리' => array(
+			'love-yeonae'     => '연애운',
+			'love-jaehoe'     => '재회운',
+			'love-gyeolhon'   => '결혼운',
+			'love-ibyeol'     => '이별운',
+			'love-jjaksarang' => '짝사랑',
+			'love-gunghap'    => '궁합',
+		),
+		'일 문 · 마루' => array(
+			'work-jikeop'  => '직업운',
+			'work-jaemul'  => '재물운',
+			'work-ijik'    => '이직운',
+			'work-toesa'   => '퇴사운',
+			'work-jikjang' => '직장운',
+			'work-saeop'   => '사업운',
+		),
+	);
+
+	echo '<h1>주제 사진 찾기</h1>';
+	echo '<p class="dim">미디어 서랍에서 이름으로 찾습니다. 이 화면은 읽기만 합니다.</p>';
+
+	$found = 0; $all = 0;
+
+	foreach ( $sets as $title => $list ) {
+
+		echo '<h2>' . esc_html( $title ) . '</h2><div class="grid">';
+
+		foreach ( $list as $slug => $name ) {
+			$all++;
+
+			$q = new WP_Query( array(
+				'post_type'      => 'attachment',
+				'post_status'    => 'inherit',
+				'name'           => $slug,
+				'posts_per_page' => 1,
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+			) );
+
+			if ( $q->posts ) {
+				$id  = $q->posts[0];
+				$url = wp_get_attachment_url( $id );
+				$m   = wp_get_attachment_metadata( $id );
+				$wh  = '';
+				if ( isset( $m['width'] ) ) { $wh = intval( $m['width'] ) . ' x ' . intval( $m['height'] ); }
+				echo '<div class="c"><img src="' . esc_url( $url ) . '" alt="">'
+				   . '<div class="t ok">' . esc_html( $name ) . '</div>'
+				   . '<div class="s">' . esc_html( $slug ) . '<br>' . esc_html( $wh ) . '</div></div>';
+				$found++;
+			} else {
+				echo '<div class="c miss"><div class="box">아직 없음</div>'
+				   . '<div class="t no">' . esc_html( $name ) . '</div>'
+				   . '<div class="s">' . esc_html( $slug ) . '</div></div>';
+			}
+		}
+		echo '</div>';
+	}
+
+	echo '<h2>정리</h2>';
+	if ( $found === $all ) {
+		echo '<p class="ok">열둘 다 찾았습니다. 이제 책에 끼우면 됩니다.</p>';
+	} else {
+		echo '<p>' . intval( $found ) . ' / ' . intval( $all ) . ' 찾았습니다. '
+		   . '<span class="dim">못 찾은 주제는 지금 쓰는 그림을 그대로 씁니다 — '
+		   . '하나씩 채워 넣으셔도 책이 안 깨집니다.</span></p>';
+		echo '<p class="dim">이름이 다르게 올라갔을 수 있습니다. 워드프레스는 같은 이름이 '
+		   . '이미 있으면 뒤에 <code>-1</code> 을 붙입니다. 미디어 서랍에서 파일 이름을 '
+		   . '확인해 주세요.</p>';
+	}
+	exit;
+}, 0 );

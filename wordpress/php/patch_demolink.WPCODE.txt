@@ -1,0 +1,166 @@
+/* ════════════════════════════════════════════════════════════
+   견본을 살아 있는 책으로   ★ 2026-09-08
+
+   소희 님 :「샘플 페이지에도 표지 커버 볼 수 있는 거야?」
+
+   아니요. 그게 문제입니다.
+
+   ── 지금 ───────────────────────────────────────
+   문에서 「완성본 미리보기」를 누르면 /reading-love/ 로 갑니다.
+   그 쪽은 8월에 한 번 뽑아서 붙여둔 붙박이 글입니다.
+   오늘 넣은 손질이 하나도 안 들어갑니다 —
+   표지도, 장 여섯도, 넷씩 두 줄도, 얼굴도, 후기 상자도.
+
+   손님은 「실제로 발행되는 책 그대로」라고 적힌 걸 보고 누릅니다.
+   그런데 받는 책과 다릅니다.
+
+   ── 그런데 이미 답이 있습니다 ──────────────────
+   책 안에 샘플 장치가 들어 있고, 지어낸 사람이 **열둘** 있습니다.
+
+     직업운 서준      재물운 명주
+     연애운 하은      결혼운 도윤
+     건강운 민재      가족운 수아
+     시기운 지우      대운   현우
+     별자리 은설      별자리와 사주 라온
+     오늘의 선택 태윤 · 지훈
+
+   /reading-book/?demo=door-love 처럼 열면 **지금 엔진으로 그
+   자리에서** 그려집니다. 위에 「샘플」 딱지도 붙습니다.
+
+   ── 하는 일 ────────────────────────────────────
+   ① 견본으로 가는 주소 여섯을 살아 있는 책으로 돌립니다.
+
+        /reading-sample/   →  ?demo=door-career    직업운
+        /reading-wealth/   →  ?demo=door-career-2  재물운
+        /reading-love/     →  ?demo=door-love      연애운
+        /reading-health/   →  ?demo=door-health    건강운
+        /reading-fortune/  →  ?demo=door-fortune   시기운
+        /reading-astro/    →  ?demo=door-astro     별자리
+
+   ② 글에 적힌 사람 이름을 데모 사람으로 맞춥니다.
+        정환이의 연애운  →  하은이의 연애운
+
+   ★ 이제 책을 아무리 고쳐도 견본이 저절로 따라옵니다.
+     다시는 안 낡습니다.
+
+   ★ 옛 견본 쪽 여섯은 지우지 않습니다. 링크만 안 갑니다.
+     혹시 예전 링크로 들어오는 분이 있어도 그대로 열립니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_demolink=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_demolink=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_demolink=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_demolink'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_demolink_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_demolink'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:920px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	/* 옛 견본 쪽 자신은 건드리지 않습니다 — 안에서 서로 부르는 링크가 있습니다 */
+	$leave = array( 'reading-sample', 'reading-wealth', 'reading-love',
+	                'reading-health', 'reading-fortune', 'reading-astro' );
+
+	$swap = array(
+		'/reading-sample/'  => '/reading-book/?demo=door-career',
+		'/reading-wealth/'  => '/reading-book/?demo=door-career-2',
+		'/reading-love/'    => '/reading-book/?demo=door-love',
+		'/reading-health/'  => '/reading-book/?demo=door-health',
+		'/reading-fortune/' => '/reading-book/?demo=door-fortune',
+		'/reading-astro/'   => '/reading-book/?demo=door-astro',
+	);
+
+	$words = array(
+		'정환이의 연애운' => '하은이의 연애운',
+		'정환의 연애운'   => '하은이의 연애운',
+		'덕선이의 직업운' => '서준이의 직업운',
+		'동룡이의 건강운' => '민재의 건강운',
+	);
+
+	$ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} "
+		. "WHERE post_type = 'page' AND post_status IN ('publish','draft','private') ORDER BY ID" );
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$back = 0;
+		foreach ( $ids as $id ) {
+			$old = get_post_meta( $id, $META, true );
+			if ( ! $old ) { continue; }
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $id ) );
+			clean_post_cache( $id );
+			delete_post_meta( $id, $META );
+			echo '<p class="ok">' . esc_html( get_the_title( $id ) ) . ' — 되돌렸습니다.</p>';
+			$back++;
+		}
+		echo '<h2>정리</h2><p>' . intval( $back ) . '쪽 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$hit = 0; $total = 0;
+
+	foreach ( $ids as $id ) {
+
+		$p = get_post( $id );
+		if ( ! $p ) { continue; }
+		if ( in_array( $p->post_name, $leave, true ) ) { continue; }
+
+		$c = $p->post_content;
+		$new = $c;
+		$parts = array(); $sum = 0;
+
+		foreach ( $swap as $from => $to ) {
+			$n = 0;
+			$new = str_replace( 'href="' . $from . '"', 'href="' . $to . '"', $new, $n );
+			if ( $n ) { $parts[] = $from . ' ' . $n . '군데'; $sum += $n; }
+		}
+		foreach ( $words as $from => $to ) {
+			$n = 0;
+			$new = str_replace( $from, $to, $new, $n );
+			if ( $n ) { $parts[] = $from . ' → ' . $to . ' ' . $n . '군데'; $sum += $n; }
+		}
+
+		if ( ! $sum ) { continue; }
+
+		echo '<h2>' . esc_html( $p->post_title ) . ' <span class="dim">(' . intval( $id ) . ')</span></h2>';
+		echo '<p class="ok">' . esc_html( implode( ' &middot; ', $parts ) ) . '</p>';
+		$hit++; $total += $sum;
+
+		if ( ! $apply ) { continue; }
+
+		if ( ! get_post_meta( $id, $META, true ) ) {
+			update_post_meta( $id, $META, $c );
+		}
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+	}
+
+	echo '<h2>정리</h2>';
+	echo '<p>' . intval( $hit ) . '쪽에서 ' . intval( $total ) . '군데 '
+	   . ( $apply ? '바꿨습니다' : '바꿉니다' ) . '</p>';
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_demolink=apply</code> 를 여세요.</p>';
+	} else {
+		echo '<p><a href="/reading-book/?demo=door-love">하은이의 연애운 열어보기</a> &middot; '
+		   . '<a href="/door-love/">연애 문에서 눌러보기</a></p>';
+		echo '<p class="ok">되돌리시려면 <code>/?stella_demolink=undo</code> 를 여세요.</p>';
+	}
+	exit;
+}, 0 );

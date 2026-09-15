@@ -1,0 +1,154 @@
+/* ════════════════════════════════════════════════════════════
+   「태어나던 밤의 하늘」을 별자리 맛보기로
+
+   이 쪽에는 사주 풀이가 없습니다. 여덟 글자를 한 글자도 안 씁니다.
+   태어난 시각과 곳으로 태양·상승궁·천정을 뽑는, 서양 별자리입니다.
+   그런데 눈썹이 「근거 다섯」이라 사주 풀이의 근거처럼 보였습니다.
+   근거 하나=시각, 둘=여덟 글자, 셋=오행 저울, 넷=대운, 여섯=충·합 —
+   다섯만 사주가 아니었습니다.
+
+   셋을 고칩니다.
+
+   ① 눈썹을 「별자리 맛보기」로. 부제도 「이 쪽은 사주가 아닙니다」로
+      분명히 말합니다. 손님이 사주 근거로 오해할 일이 없어집니다.
+
+   ② 쪽 끝에 별자리 문으로 가는 길을 답니다. 이미 별자리 문을
+      사신 분께는 안 보입니다 — 산 것을 또 권하면 안 되니까요.
+      문 이름은 표에서 꺼내 쓰기 때문에, 가디언 이름이 바뀌어도
+      따라갑니다.
+
+   ③ 이 쪽만 부록으로 안 보냅니다. 속표지 패치가 근거 다섯 쪽을
+      맺음말 앞으로 옮기고 있었는데, 나머지 넷은 셈을 보여주는
+      쪽이라 궁금한 분만 보면 되지만 이 쪽은 다릅니다. 손님이
+      자기 이야기로 읽는 쪽이고, 별자리 문으로 가는 길이 붙어
+      있습니다. 뒤에 묻히면 아무도 안 봅니다.
+
+   그래서 앞에 남는 것은 두 쪽이 됩니다 — 여덟 글자, 별자리 맛보기.
+   둘 다 손님이 자기에 대해 보고 싶어 하는 쪽입니다. 나머지 넷은
+   그대로 뒤에 갑니다.
+
+   ★ 이 스니펫은 속표지 패치(patch160_divider)가 이미 들어간
+     상태를 고칩니다. 그게 안 들어가 있으면 ③이 안 걸립니다.
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로 바꾸세요.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_taste=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_taste=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_taste=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_taste'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_taste_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_taste'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		echo '<p><a href="/reading-book/?demo=door-love-2">책 보기</a></p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	$jobs = array();
+
+	$jobs[] = array(
+		'name' => '① 「근거 다섯」을 「별자리 맛보기」로',
+		'find' => '/\'<p\\s+class="eyebrow">근거\\s+다섯<\/p>\'\\+\\s+\'<h2>태어나던\\s+밤의\\s+하늘<\/h2>\'\\+\\s+\'<p\\s+class="dek">같은\\s+사람을\\s+서양의\\s+언어로\\s+한\\s+번\\s+더\\s+읽습니다<\/p>\'\\+/u',
+		'to'   => "    '<p class=\"eyebrow\">별자리 맛보기</p>'+\n    '<h2>태어나던 밤의 하늘</h2>'+\n    '<p class=\"dek\">이 쪽은 사주가 아닙니다 — 같은 시각을 서양 별자리로 읽으면 이렇게 나옵니다</p>'+\n",
+	);
+
+	$jobs[] = array(
+		'name' => '② 맛보기 끝에 별자리 문으로 가는 길',
+		'find' => '/return\\s+out;\\s+\\}\\)\\(\\)\\);/u',
+		'to'   => "      return out;\n    })()+\n    /* 2026-09-07 · 별자리 문으로 가는 길.\n       이미 그 문을 사신 분께는 안 보입니다 — 산 것을 또 권하면 안 되니까요.\n       이름은 표에서 꺼내 씁니다. 가디언 이름이 바뀌어도 따라갑니다. */\n    (slug==='door-astro' ? '' :\n      '<div class=\"more\">'+\n      '<p class=\"mt\">여기까지가 맛보기입니다</p>'+\n      '<p>사주는 태어난 때를 흙의 언어로 읽고, 별자리는 같은 때를 빛의 언어로 읽습니다. '+\n      '여기서는 세 자리만 짚었어요. 더 보고 싶으시면 그 이야기가 따로 있습니다.</p>'+\n      '<p><a class=\"mgo\" href=\"/door-astro/\">'+\n      ((G['door-astro'] ? G['door-astro'].name : '별자리 문'))+'에게 가기 →</a></p>'+\n      '</div>'));\n",
+	);
+
+	$jobs[] = array(
+		'name' => '③ 이 쪽만 뒤로 안 보내기',
+		'find' => '/var\\s+BACK=\\[\'근거\\s+하나\',\'근거\\s+셋\',\'근거\\s+넷\',\'근거\\s+다섯\',\'근거\\s+여섯\'\\];/u',
+		'to'   => "    /* 2026-09-07 · 「별자리 맛보기」는 뒤로 안 보냅니다.\n       나머지 넷은 셈을 보여주는 쪽이라 궁금한 분만 보면 되지만,\n       이 쪽은 손님이 자기 이야기로 읽는 쪽이고 별자리 문으로 가는\n       길이 붙어 있어서, 뒤에 묻히면 아무도 안 봅니다. */\n    var BACK=['근거 하나','근거 셋','근거 넷','근거 여섯'];\n",
+	);
+
+	$jobs[] = array(
+		'name' => '④ 길 안내 상자 모양 (CSS)',
+		'find' => '/<\/style>\\s+<div\\s+id="ssb">/u',
+		'to'   => "\n/* ══ 2026-09-07 · 맛보기 끝에 붙는 길 안내 ═══════════════════ */\n#ssb .more{\n  margin:34px 0 0; padding:22px 24px 20px;\n  border:1px solid var(--rule-s); border-radius:12px;\n}\n#ssb .more p{ margin:9px 0 0; font-size:.95rem; color:var(--soft); }\n#ssb .more .mt{\n  margin:0; font-family:var(--mono); font-size:.7rem; letter-spacing:.2em;\n  color:var(--speak-lite);\n}\n#ssb .more .mgo{\n  display:inline-block; margin-top:4px;\n  font-family:var(--mono); font-size:.8rem; letter-spacing:.06em;\n  color:var(--speak-lite); text-decoration:none;\n  border-bottom:1px solid var(--speak); padding-bottom:2px;\n}\n#ssb .more .mgo:hover{ color:var(--star); }\n</style>\n<div id=\"ssb\">\n",
+	);
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], str_replace( '\\', '\\\\', $j['to'] ), $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_taste=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_taste=undo</code></p>';
+	echo '<p><a href="/reading-book/?demo=door-love-2">책 보기</a></p>';
+	exit;
+} );

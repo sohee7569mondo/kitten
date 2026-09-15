@@ -1,0 +1,204 @@
+/* ════════════════════════════════════════════════════════════
+   책 · 아르카나 말상자 (카드 대목)   ★ 2026-09-09 · 소희 님께
+
+   소희 님 : 「여기가 포인트였어」
+
+   두 가지를 합니다.
+
+   1) 「벼리가 만지는 카드」 -> 「아르카나가 만지는 카드」
+      지금은 그 문의 가디언 이름(g.name)이 들어갑니다.
+      카드는 주제와 상관없이 늘 아르카나가 다룹니다.
+      ※ 「그 주제에서 나올 수 있는 카드만 섞었다」는 말은 그대로
+        참입니다 — 패는 문마다 골라 보내고, 만지는 것은 아르카나예요.
+
+   2) 그 아래에 아르카나 사진과 말상자를 세웁니다.
+      「카드는 성향을 바꾸지 않습니다」를 변명이 아니라 선언으로 씁니다.
+      사주가 지도라면 카드는 오늘의 날씨.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   미리보기   https://stellasaju.com/?stella_arc=1
+   넣기       https://stellasaju.com/?stella_arc=apply
+   되돌리기   https://stellasaju.com/?stella_arc=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_arc'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_arc'] ) );
+	$META = '_stella_arc_bak_0909';
+	$SLUG = 'reading-book';
+	$MARK = 'STELLA-ARC-v1';
+
+	$A1 = <<<'STELLA_A1'
+esc(g.name) + ga(g.name) + ' 만지는 카드는
+STELLA_A1;
+
+	$B1 = <<<'STELLA_B1'
+'아르카나가 만지는 카드는
+STELLA_B1;
+
+	$A2 = <<<'STELLA_A2'
+'섞어 내어드렸어요. 그래서 앞의 여덟 글자와 <em>같은 이야기를 다른 말로</em> 합니다.</p>');
+STELLA_A2;
+
+	$B2 = <<<'STELLA_B2'
+'섞어 내어드렸어요. 그래서 앞의 여덟 글자와 <em>같은 이야기를 다른 말로</em> 합니다.</p>'
+      + '<style> '
+      + '/* 2026-09-09 · 아르카나 말상자 (책 · 카드 대목) — STELLA-ARC-v1 */ '
+      + '#ssb .arcv{ '
+      + '  display:grid; '
+      + '  grid-template-columns:132px 1fr; '
+      + '  grid-template-areas:"pic who" "pic say"; '
+      + '  align-content:start; gap:0 22px; '
+      + '  margin:32px 0 6px; padding:22px 24px 22px 22px; '
+      + '  border-left:4px solid #8F5518; '
+      + '  background:rgba(143,85,24,.055); '
+      + '  border-radius:0 14px 14px 0; '
+      + '} '
+      + '#ssb .arcv-pic{ grid-area:pic; } '
+      + '#ssb .arcv-who{ grid-area:who; } '
+      + '#ssb .arcv-say{ grid-area:say; } '
+      + '#ssb .arcv-pic img{ display:block; width:100%; height:auto; border-radius:12px; } '
+      + '#ssb .arcv-who{ '
+      + '  font-family:var(--serif); font-weight:700; font-size:1.06rem; '
+      + '  color:#8F5518; margin:2px 0 12px; align-self:start; '
+      + '} '
+      + '#ssb .arcv-who i{ '
+      + '  font-style:normal; font-family:var(--mono); font-weight:500; '
+      + '  font-size:.68rem; letter-spacing:.14em; color:var(--dim); margin-left:9px; '
+      + '} '
+      + '#ssb .arcv-say p{ margin:0 0 13px; } '
+      + '#ssb .arcv-say p:last-child{ margin-bottom:0; } '
+      + '/* 좁은 화면 — 사진을 작은 동그라미로 올리고 글은 아래로 */ '
+      + '@media(max-width:640px){ '
+      + '  #ssb .arcv{ '
+      + '    grid-template-columns:56px 1fr; '
+      + '    grid-template-areas:"pic who" "say say"; '
+      + '    gap:12px 13px; padding:18px 16px; '
+      + '  } '
+      + '  #ssb .arcv-pic img{ '
+      + '    border-radius:999px; aspect-ratio:1/1; '
+      + '    object-fit:cover; object-position:50% 20%; '
+      + '  } '
+      + '  #ssb .arcv-who{ font-size:.98rem; margin:0; align-self:center; } '
+      + '  /* 소희 님 줄바꿈은 넓은 화면에서만. 좁으면 그냥 흐르게 둡니다 */ '
+      + '  #ssb .arcv-say br{ display:none; } '
+      + '} '
+      + '@media print{ '
+      + '  #ssb .arcv{ break-inside:avoid; page-break-inside:avoid; } '
+      + '} '
+      + '</style> '
+      + '<div class="arcv"><!-- STELLA-ARC-v1 --> '
+      + '<div class="arcv-pic"><img loading="lazy" src="https://stellasaju.com/wp-content/uploads/2026/08/stellardoorarcana.webp" alt="아르카나"></div> '
+      + '<div class="arcv-who">아르카나<i>THE ARCANA</i></div> '
+      + '<div class="arcv-say"> '
+      + '<p>사주는 당신이 어떤 사람인지를 말합니다. <br>저는 그걸 바꾸지 않아요. 바꿀 수도 없고요.</p> '
+      + '<p>다만 같은 사람도 어제와 오늘이 다릅니다. <br><em>사주가 지도라면 카드는 오늘의 날씨예요.</em> <br>지도는 십 년을 가도 그대로지만, <br>오늘 우산을 챙길지는 날씨가 정합니다.</p> '
+      + '<p>그래서 세 장을 뽑으시라고 했습니다. <br>앞의 사주가 당신의 지도라면, <br><em>이 세 장은 지금 이 계절의 하늘입니다.</em></p> '
+      + '</div> '
+      + '</div> '
+      );
+STELLA_B2;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.75;'
+	   . 'padding:28px 18px;max-width:960px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 10px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.7 monospace;border-left:3px solid #D4AF6A;'
+	   . 'word-break:break-all}'
+	   . '</style>';
+
+	$p = get_page_by_path( $SLUG );
+	if ( ! $p ) { echo '<p class="no">책 쪽이 없습니다.</p>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌립니다</h1>';
+		$bak = get_post_meta( $p->ID, $META, true );
+		if ( '' === $bak ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ),
+			array( 'ID' => $p->ID ) );
+		clean_post_cache( $p->ID );
+		delete_post_meta( $p->ID, $META );
+		if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+		echo '<p class="ok">되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c  = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+	$go = ( 'apply' === $mode );
+
+	echo '<h1>아르카나 말상자 — '
+	   . ( $go ? '넣습니다' : '미리보기 (아직 안 넣음)' ) . '</h1>';
+	echo '<p class="dim">크기 ' . number_format( strlen( $c ) ) . ' 바이트</p>';
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<p class="ok">이미 들어 있습니다.</p>';
+		echo '<p class="dim">되돌리시려면 /?stella_arc=undo 를 여세요.</p>';
+		exit;
+	}
+
+	$n1 = substr_count( $c, $A1 );
+	$n2 = substr_count( $c, $A2 );
+
+	echo '<h2>1. 이름 바꾸기</h2><pre>'
+	   . '찾은 개수  ' . (int) $n1 . "\n\n"
+	   . '전  ' . esc_html( $A1 ) . "\n"
+	   . '후  ' . esc_html( $B1 ) . '</pre>';
+
+	echo '<h2>2. 말상자 붙일 자리</h2><pre>'
+	   . '찾은 개수  ' . (int) $n2 . "\n\n"
+	   . esc_html( $A2 ) . '</pre>';
+
+	if ( 1 !== $n1 ) {
+		echo '<p class="no">이름 자리가 하나가 아닙니다. 넣지 않았습니다.</p>';
+		exit;
+	}
+	if ( 1 !== $n2 ) {
+		echo '<p class="no">말상자 자리가 하나가 아닙니다. 넣지 않았습니다.</p>';
+		exit;
+	}
+
+	echo '<h2>넣을 말상자</h2><pre>' . esc_html( $B2 ) . '</pre>';
+
+	if ( false !== strpos( $B2, '&' ) ) {
+		echo '<p class="no">앰퍼샌드가 들어 있습니다. 넣지 않았습니다.</p>';
+		exit;
+	}
+
+	if ( ! $go ) {
+		echo '<h2>끝</h2><p class="dim">이대로 괜찮으시면 '
+		   . '/?stella_arc=apply 를 여세요.</p>';
+		exit;
+	}
+
+	$new = str_replace( $A1, $B1, $c );
+	$new = str_replace( $A2, $B2, $new );
+
+	if ( '' === get_post_meta( $p->ID, $META, true ) ) {
+		update_post_meta( $p->ID, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ),
+		array( 'ID' => $p->ID ) );
+	clean_post_cache( $p->ID );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<h2>끝</h2><p class="ok">넣었습니다. '
+	   . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p class="dim">되돌리시려면 /?stella_arc=undo 를 여세요.</p>';
+	exit;
+} );

@@ -1,0 +1,178 @@
+/* ══════════════════════════════════════════════════════════
+   ② 기운의 저울 — 개수에서 비율로 · 소희 님께        2026-09-11
+
+   무엇을 고치나
+     지금 저울은 여덟 글자를 세어서 8로 나눕니다.
+       소희 님   목 25% · 화 37% · 토 0% · 금 12% · 수 25%
+     글자 속에 숨은 글자(지장간)까지 날 수로 세면 이렇게 됩니다.
+       소희 님   목 25% · 화 20% · 토 9% · 금 21% · 수 25%
+
+   왜 달라지나
+     巳(사) 한 글자 안에 불만 있는 게 아닙니다.
+     巳는 한 해의 열두 달 중 한 달을 맡은 글자이고,
+     그 한 달 30일을 나눠보면 이렇습니다.
+       앞 7일 무(토) · 다음 7일 경(금) · 나머지 16일 병(화)
+     소희 님은 巳가 셋이라 겉으로는 화가 셋인데,
+     실제 세력은 목과 수가 더 크고, 토도 9% 들어 있습니다.
+
+   ★ 이 패치는 숫자만 바꿉니다. 글은 안 건드립니다.
+     숫자가 맞는지 먼저 보시고, 그다음에 설명하는 글을 넣겠습니다.
+     (「글자에는 없는데 저울에는 있는 것」 꼭지와
+      「비어 있는 자리」 두 벌은 다음 패치입니다)
+
+   ★ 갈래(식상·비겁·재성·관성·인성)는 그대로 자릿수로 셉니다.
+     여기는 저울만 바꿉니다.
+
+   ★ 「빈 자리」는 그대로 글자 수로 셉니다.
+     토가 0글자인데 저울에 9% 나오는 것 — 그게 다음 패치에서 쓸 이야기입니다.
+
+   주소
+     해보기   https://stellasaju.com/?stella_scale=preview
+     붙이기   https://stellasaju.com/?stella_scale=apply
+     되돌리기 https://stellasaju.com/?stella_scale=undo
+     쌓인 것  https://stellasaju.com/?stella_scale=list
+
+   ★ 스니펫 이름 「STELLA - 기운의 저울」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_scale'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode  = sanitize_text_field( wp_unslash( $_GET['stella_scale'] ) );
+	$STACK = '_stella_scale_stack';
+	$ROUND = '기운의 저울 비율 2026-09-11';
+
+	/* ══ 여기부터 · 고칠 목록 ══════════════════════════════
+	   array( '이름', '지금 글', '바꿀 글' )
+	   ★ 지금 글은 화면에 보이는 그대로가 아니라, ?stella_find= 으로
+	     찾은 조각을 씁니다. 코드에서 문장이 잘려 있을 때가 많아서요. */
+	$FIX = array(
+
+		/* ① 세는 법 — 글자 수 대신 지장간 날 수로 */
+		array( '세는 법', 'var raw=ELEMENTS.map(function(e){ return {el:e, n:cnt[e], exact:cnt[e]/totalChars*100}; });',
+		                 'var HID5=[[[8,10],[9,20]],[[9,9],[7,3],[5,18]],[[4,7],[2,7],[0,16]],[[0,10],[1,20]],[[1,9],[9,3],[4,18]],[[4,7],[6,7],[2,16]],[[2,10],[5,9],[3,11]],[[3,9],[1,3],[5,18]],[[4,7],[8,7],[6,16]],[[6,10],[7,20]],[[7,9],[3,3],[4,18]],[[4,7],[0,7],[8,16]]]; var dy={}; ELEMENTS.forEach(function(e){ dy[e]=0; }); gans.forEach(function(g){ dy[GAN_EL[g]]+=30; }); jis.forEach(function(z){ var hh=HID5[z]; if(hh){ hh.forEach(function(p){ dy[GAN_EL[p[0]]]+=p[1]; }); } else { dy[JI_EL[z]]+=30; } }); var totalDays=0; ELEMENTS.forEach(function(e){ totalDays+=dy[e]; }); if(!totalDays){ totalDays=1; } var raw=ELEMENTS.map(function(e){ return {el:e, n:cnt[e], day:dy[e], exact:dy[e]/totalDays*100}; });' ),
+
+		/* ② 날 수를 five 에도 들고 갑니다 (나중 글에서 씁니다) */
+		array( '날 수 넘기기',
+		  'var five=raw.map(function(r,i){ return {element:r.el, count:r.n, percent:floors[i]}; });',
+		  'var five=raw.map(function(r,i){ return {element:r.el, count:r.n, day:r.day, percent:floors[i]}; });' ),
+
+		/* ③ 흐리게 표시하는 기준 — 글자 0개가 아니라 비율 0% 일 때만 */
+		array( '흐리게 기준',
+		  'return \'<div class="el\'+(f.count===0?\' zero\':\'\')+\'">\'+',
+		  'return \'<div class="el\'+(f.percent===0?\' zero\':\'\')+\'">\'+' ),
+
+		/* ④ 부제 한 줄 */
+		array( '부제',
+		  '<p class="dek">여덟 글자를 오행으로 나눠 세었습니다</p>',
+		  '<p class="dek">글자 속에 숨은 글자까지 열어 비율로 재었습니다</p>' ),
+
+		/* ⑤ 「○이 가장 강합니다」도 비율로 고릅니다.
+		   안 고치면 막대는 목·수가 제일 긴데 글은 「화가 가장 강합니다」가 됩니다. */
+		array( '가장 강한 기운',
+		  'var most=chart.five.slice().sort(function(a,b){ return b.count-a.count; })[0];',
+		  'var most=chart.five.slice().sort(function(a,b){ return b.percent-a.percent; })[0];' ),
+
+	);
+	/* ══ 여기까지 ═══════════════════════════════════════════ */
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$stack = get_post_meta( $id, $STACK, true );
+	if ( ! is_array( $stack ) ) { $stack = array(); }
+
+	if ( 'list' === $mode ) {
+		echo "═══ 되돌릴 수 있는 판 ═══\n";
+		if ( ! count( $stack ) ) { echo '쌓인 것이 없습니다.'; exit; }
+		$i = count( $stack );
+		foreach ( array_reverse( $stack ) as $s ) {
+			echo '  ' . $i . '. ' . $s['when'] . ' - ' . $s['name'] . ' - '
+			   . number_format( strlen( $s['body'] ) ) . "글자\n";
+			$i--;
+		}
+		echo "\n?stella_scale=undo 를 치면 맨 위 것부터 하나씩 돌아갑니다.";
+		exit;
+	}
+
+	if ( 'undo' === $mode ) {
+		if ( ! count( $stack ) ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$last = array_pop( $stack );
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $last['body'] ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		update_post_meta( $id, $STACK, $stack );
+		echo '되돌렸습니다 — ' . $last['when'] . ' - ' . $last['name'] . "\n";
+		echo '남은 판 ' . count( $stack ) . '개';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo "═══ 기운의 저울 — 개수에서 비율로 ═══\n";
+	echo '쪽 ' . $id . ' - ' . number_format( strlen( $c ) ) . "글자\n";
+	echo '고칠 자리 ' . count( $FIX ) . "개\n\n";
+
+	if ( ! count( $FIX ) ) {
+		echo "목록이 비어 있습니다.\n";
+		echo "고치실 데를 알려주시면 채워 드리겠습니다.";
+		exit;
+	}
+
+	$todo = array();
+	$done = 0;
+	$miss = 0;
+	foreach ( $FIX as $r ) {
+		list( $nm, $old, $new ) = $r;
+		$got = substr_count( $c, $old );
+		if ( $got > 0 ) {
+			echo sprintf( "  %-22s 찾음 %d군데\n", $nm, $got );
+			$todo[] = $r;
+			continue;
+		}
+		if ( substr_count( $c, $new ) > 0 ) {
+			echo sprintf( "  %-22s 이미 고쳐져 있습니다\n", $nm );
+			$done++;
+			continue;
+		}
+		echo sprintf( "  %-22s ★ 못 찾았습니다 — 건너뜁니다\n", $nm );
+		$miss++;
+	}
+
+	if ( ! count( $todo ) ) {
+		if ( $done ) { echo "\n이미 다 고쳐져 있습니다."; }
+		else { echo "\n하나도 못 찾았습니다. 아무것도 안 바꿨습니다.\n?stella_find= 으로 지금 글을 다시 확인해 주세요."; }
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $todo as $r ) { $new = str_replace( $r[1], $r[2], $new ); }
+
+	if ( 'preview' === $mode ) {
+		echo "\n" . count( $todo ) . "자리를 고칩니다";
+		if ( $miss ) { echo ' (못 찾은 ' . $miss . '자리는 건너뜁니다)'; }
+		echo ".\n" . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
+		echo "\n괜찮으시면 ?stella_scale=apply\n";
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) { echo 'preview - apply - undo - list 중에 골라주세요.'; exit; }
+
+	$stack[] = array( 'when' => current_time( 'Y-m-d H:i' ), 'name' => $ROUND, 'body' => $c );
+	while ( count( $stack ) > 5 ) { array_shift( $stack ); }
+	update_post_meta( $id, $STACK, $stack );
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n고쳤습니다. " . count( $todo ) . "자리.\n";
+	echo "되돌리려면 ?stella_scale=undo\n";
+	exit;
+}, 1 );

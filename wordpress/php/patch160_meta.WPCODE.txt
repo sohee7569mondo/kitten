@@ -1,0 +1,121 @@
+/* ══════════════════════════════════════════════════════════
+   책 쪽에 쌓인 되돌림 꾸러미를 헤아리고 치웁니다
+   ★ 2026-09-12 · 소희 님께      BUILD: META-1
+
+   ── 왜 ────────────────────────────────────────────────
+   책 쪽이 511MB 를 씁니다. 한도가 512M 이니 1MB 남기고 지납니다.
+   그래서 어떤 때는 넘고 어떤 때는 못 넘습니다.
+
+   짚이는 데가 하나 있습니다. 찾아보니 쪽 #160 에 이런 꾸러미가
+   열일곱 개나 달려 있었습니다.
+
+       _stella_amp_backup   _stella_won_backup   _stella_lens_backup
+       _stella_break_backup _stella_money_backup _stella_love_backup
+       _stella_health_backup _stella_fortune_backup …
+
+   ★ 하나하나가 책 본문 통째 사본입니다. 1.3MB 짜리가 열일곱 개.
+
+   워드프레스는 꾸러미를 하나라도 꺼내면 **그 쪽의 꾸러미를 전부**
+   메모리로 불러옵니다. 검색엔진 조각 하나가 제목을 물어보기만 해도
+   책 열일곱 권이 통째로 올라옵니다.
+
+   ── 무엇을 하나 ───────────────────────────────────────
+   보기   ?stella_meta=look    몇 개가 얼마나 되는지만 셉니다 (안 지움)
+   치우기 ?stella_meta=clean   ★ 가장 최근 둘만 남기고 지웁니다
+
+   ★ 되돌림 꾸러미는 옛 패치를 물릴 때 쓰던 것입니다. 지금은 조각이
+     본문을 건드리지 않는 방식(SERVE·RUN)으로 바뀌었고, 원고는
+     저장소에 있습니다. 그래도 조심스러워 **둘은 남깁니다.**
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+if ( ! function_exists( 'stella_meta_tool' ) ) {
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_meta'] ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo "관리자로 로그인한 상태에서만 열립니다.\n";
+		exit;
+	}
+
+	stella_meta_tool( sanitize_text_field( wp_unslash( $_GET['stella_meta'] ) ) );
+	exit;
+}, 1 );
+
+function stella_meta_tool( $mode ) {
+	global $wpdb;
+
+	$rows = $wpdb->get_results(
+		"SELECT meta_id, post_id, meta_key, CHAR_LENGTH( meta_value ) AS len
+		   FROM {$wpdb->postmeta}
+		  WHERE meta_key LIKE '\_stella\_%'
+		  ORDER BY post_id ASC, meta_id DESC" );
+
+	if ( ! $rows ) {
+		echo "되돌림 꾸러미가 없습니다.\n";
+		return;
+	}
+
+	$byPost = array();
+	$total = 0;
+	foreach ( $rows as $r ) {
+		$byPost[ (int) $r->post_id ][] = $r;
+		$total += (int) $r->len;
+	}
+
+	echo "═══ 되돌림 꾸러미 ═══════════════════════════\n\n";
+	echo '  모두 ' . count( $rows ) . '개 · ' . number_format( $total ) . "자\n\n";
+
+	$killIds = array();
+	$killLen = 0;
+
+	foreach ( $byPost as $pid => $list ) {
+		$sum = 0;
+		foreach ( $list as $r ) { $sum += (int) $r->len; }
+		echo '── 쪽 #' . $pid . '  ' . count( $list ) . '개 · '
+		   . number_format( $sum ) . "자\n";
+
+		$n = 0;
+		foreach ( $list as $r ) {
+			$n += 1;
+			$keep = ( $n <= 2 );          /* 가장 최근 둘은 남깁니다 */
+			$mark = $keep ? '남김' : '치움';
+			if ( ! $keep ) {
+				$killIds[] = (int) $r->meta_id;
+				$killLen += (int) $r->len;
+			}
+			printf( "   %s  %10s자  %s\n", $mark, number_format( (int) $r->len ), $r->meta_key );
+		}
+		echo "\n";
+	}
+
+	if ( 'clean' !== $mode ) {
+		echo "치우면 " . count( $killIds ) . '개 · ' . number_format( $killLen ) . "자가 사라집니다.\n";
+		echo "가장 최근 둘은 쪽마다 남깁니다.\n\n";
+		echo "치우시려면 ?stella_meta=clean\n";
+		return;
+	}
+
+	if ( ! $killIds ) {
+		echo "치울 것이 없습니다.\n";
+		return;
+	}
+
+	$done = 0;
+	foreach ( $killIds as $id ) {
+		$ok = $wpdb->delete( $wpdb->postmeta, array( 'meta_id' => $id ), array( '%d' ) );
+		if ( $ok ) { $done += 1; }
+	}
+
+	echo '치웠습니다 : ' . $done . '개 · ' . number_format( $killLen ) . "자\n\n";
+	echo "책 쪽을 열어 Ctrl+U 로 메모리 줄을 다시 봐주세요.\n";
+	echo "얼마나 줄었는지 그 숫자로 알 수 있습니다.\n";
+}
+
+}

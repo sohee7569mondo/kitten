@@ -1,0 +1,112 @@
+/* ══════════════════════════════════════════════════════════
+   95초가 서버 어디서 가는지 · 소희 님께         2026-09-11
+   ── 판 : PROF-1 (2026-09-11) ──
+
+   앞에서 잰 값 :
+     서버가 첫 글자 보내기까지  94,883ms  ← 여기가 전부입니다
+     내려받기 282ms · 책 그리기 1,326ms  ← 이쪽은 아주 빠릅니다
+
+   그래서 서버 안을 들여다봅니다. 두 토막으로 나눠 잽니다.
+
+     ① 워드프레스가 켜지고 스니펫을 다 읽기까지
+     ② 1.3MB 본문에 손질(필터)을 거는 데 걸리는 시간
+        — 손질 하나하나를 따로 재서 오래 걸리는 순서로 보여줍니다
+
+   ★ 이 주소는 책을 안 그립니다. 숫자만 내놓습니다. 그래서 빠릅니다.
+   ★ 아무것도 안 바꿉니다.
+
+   주소  https://stellasaju.com/reading-book/?stella_prof911=1
+
+   ★ 스니펫 이름 「STELLA - 어디서 느린가」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_prof911'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb, $wp_filter;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+	@set_time_limit( 300 );
+
+	$boot = isset( $GLOBALS['timestart'] )
+		? ( microtime( true ) - (float) $GLOBALS['timestart'] ) * 1000
+		: -1;
+
+	echo "═══ 어디서 느린가 · 판 PROF-1 (2026-09-11) ═══\n\n";
+	echo '① 워드프레스가 켜지고 여기까지 온 시간 : ' . number_format( $boot, 0 ) . "ms\n";
+
+	$snips = get_posts( array(
+		'post_type' => 'wpcode', 'post_status' => 'publish',
+		'posts_per_page' => -1, 'fields' => 'ids',
+	) );
+	echo '   (켜진 스니펫 ' . count( $snips ) . "개)\n\n";
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+	$c  = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo '② 본문 손질 — 글 ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	if ( ! isset( $wp_filter['the_content'] ) ) {
+		echo "   손질 목록이 없습니다.\n";
+		exit;
+	}
+
+	$rows  = array();
+	$out   = $c;
+	$total = 0;
+
+	foreach ( $wp_filter['the_content']->callbacks as $prio => $cbs ) {
+		foreach ( $cbs as $idn => $cb ) {
+			$fn = $cb['function'];
+
+			if ( is_string( $fn ) ) { $nm = $fn; }
+			elseif ( is_array( $fn ) ) {
+				$cls = is_object( $fn[0] ) ? get_class( $fn[0] ) : (string) $fn[0];
+				$nm  = $cls . '::' . (string) $fn[1];
+			} elseif ( $fn instanceof Closure ) { $nm = '(이름 없는 조각)'; }
+			else { $nm = '(모름)'; }
+
+			$before = strlen( $out );
+			$t      = microtime( true );
+			try {
+				$res = call_user_func( $fn, $out );
+				if ( is_string( $res ) ) { $out = $res; }
+			} catch ( Throwable $e ) {
+				$rows[] = array( -1, $prio, $nm, 0, '오류 : ' . $e->getMessage() );
+				continue;
+			}
+			$ms     = ( microtime( true ) - $t ) * 1000;
+			$total += $ms;
+			$rows[] = array( $ms, $prio, $nm, strlen( $out ) - $before, '' );
+		}
+	}
+
+	echo '   손질 ' . count( $rows ) . '가지 · 모두 합쳐 '
+	   . number_format( $total, 0 ) . "ms\n\n";
+
+	usort( $rows, function ( $a, $b ) {
+		if ( $a[0] === $b[0] ) { return 0; }
+		return ( $a[0] < $b[0] ) ? 1 : -1;
+	} );
+
+	echo "─── 오래 걸리는 차례대로 ───\n";
+	foreach ( $rows as $r ) {
+		list( $ms, $prio, $nm, $dif, $err ) = $r;
+		if ( $err ) { echo sprintf( "  %9s  [%4s] %s  %s\n", '-', $prio, $nm, $err ); continue; }
+		echo sprintf( "  %7sms  [%4s] %-46s 글자 %+d\n",
+			number_format( $ms, 0 ), $prio, mb_substr( $nm, 0, 46, 'UTF-8' ), $dif );
+	}
+
+	echo "\n═══ 읽는 법 ═══\n";
+	echo "  ① 이 크고 ② 이 작으면  → 스니펫이 많아서 느린 것입니다. 더 끕니다.\n";
+	echo "  ② 가 크면              → 본문 손질이 느린 것입니다.\n";
+	echo "     그러면 위 목록에서 제일 오래 걸리는 그 하나만\n";
+	echo "     이 쪽에서 빼면 됩니다. 글은 그대로 두고요.\n\n";
+	echo "이 화면을 통째로 붙여주세요.\n";
+	exit;
+}, 1 );

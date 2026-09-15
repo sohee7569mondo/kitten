@@ -1,0 +1,859 @@
+<title>연애 문 · 정리한 판</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap">
+<style>body{margin:0;background:#FFFDF9}
+#ssg img{display:none}
+.ph-note{background:#241C4E;color:#E8CD96;font-size:.78rem;line-height:1.7;padding:11px 20px;text-align:center;font-family:"Noto Sans KR",-apple-system,sans-serif}
+.ph-note b{color:#FFFDF9}</style>
+<div class="ph-note"><b>연애 문 — 흰 바탕에 넣는 칸까지 정리한 모습입니다.</b> 가디언 소개 칸 · 더 깊이 보기 · 메모 칸을 뺐습니다. 가디언 그림은 여기서 못 불러옵니다.</div>
+
+<!--
+  STELLA SAJU — 인연을 잇는 신 (THE LOVERS) · 사랑과 인연
+  이 파일은 자동 생성됩니다. 여기서 직접 고치지 마세요.
+  고칠 일이 있으면 door-career.html(틀) 이나 build/guardians.py(내용) 를
+  고친 뒤 build/build_doors.py 를 다시 돌리면 여섯 장이 한꺼번에 맞춰집니다.
+  BUILD: G9
+
+
+  [구슬] 맨 아래 PRICE 에서 한 곳만 고치면 전체가 바뀝니다. 지금은 체험판이라 전부 0구슬.
+  [회원가입] 폼은 /wp-json/stella/v1/signup 으로 보냅니다.
+             WPCode 에 stella-signup.php 스니펫을 넣어야 실제로 가입이 됩니다.
+-->
+<style>
+#ssg{
+  --void:#0D0A1A; --void-deep:#070512;
+  --nebula:#1C1533; --nebula-soft:#251C42;
+  --purple-glow:rgba(140,101,214,.35);
+  --gold:#D4AF6A; --gold-soft:#C9A66B; --gold-lite:#E8CD96;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.46);
+  --line:rgba(212,175,106,.18);
+  --g-accent:#C9A66B;
+
+  max-width:none !important; width:auto !important;
+  margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
+  padding:0 !important;
+  position:relative; z-index:0; overflow-x:clip;
+  color:var(--star); text-align:left;
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:400; line-height:1.85; font-size:17.5px;
+  word-break:keep-all; overflow-wrap:break-word;
+}
+#ssg *{margin:0; padding:0; box-sizing:border-box;}
+#ssg h1,#ssg h2,#ssg h3{font-family:'Noto Serif KR',serif; color:var(--star); font-weight:700; letter-spacing:normal;}
+#ssg a{color:inherit; text-decoration:none;}
+#ssg button{font:inherit;}
+
+#ssg .g-stars{position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.9), transparent),
+    radial-gradient(1px 1px at 82% 12%, rgba(255,255,255,.7), transparent),
+    radial-gradient(1.5px 1.5px at 62% 62%, rgba(255,255,255,.8), transparent),
+    radial-gradient(1px 1px at 28% 78%, rgba(255,255,255,.6), transparent),
+    radial-gradient(1.5px 1.5px at 90% 52%, rgba(255,255,255,.7), transparent),
+    var(--void);}
+#ssg .g-inner{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:64px 26px 110px;}
+@media(max-width:700px){ #ssg .g-inner{padding:40px 18px 80px;} }
+
+/* ── 2단 배치: 왼쪽 소개 / 오른쪽 입력 ─────────────────── */
+#ssg .g-cols{display:grid !important; grid-template-columns:minmax(300px,400px) 1fr; gap:34px; align-items:start;}
+@media(max-width:900px){ #ssg .g-cols{grid-template-columns:1fr; gap:26px;} }
+
+/* 왼쪽 — 가디언 소개 */
+#ssg .g-card{background:var(--nebula); border:1px solid var(--line); border-radius:14px;
+  overflow:hidden; position:sticky; top:100px;}
+@media(max-width:900px){ #ssg .g-card{position:static;} }
+#ssg .g-portrait{position:relative; aspect-ratio:4/3; overflow:hidden; background:var(--nebula-soft);}
+#ssg .g-portrait img{width:100%; height:100%; object-fit:cover; object-position:center 18%; display:block;}
+#ssg .g-portrait::after{content:''; position:absolute; inset:0;
+  background:linear-gradient(to top, var(--nebula) 2%, rgba(28,21,51,.1) 55%, transparent 80%);}
+#ssg .g-body{padding:4px 26px 28px;}
+#ssg .g-theme{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--g-accent);}
+#ssg .g-name{margin-top:7px; font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.5rem;}
+#ssg .g-en{margin-top:3px; font-family:'Cinzel',serif; font-size:.72rem; letter-spacing:.1em; color:var(--ink-dim);}
+#ssg .g-greet{margin-top:20px; padding:20px 20px; border-radius:9px;
+  background:rgba(212,175,106,.07); border-left:2px solid var(--g-accent);
+  font-family:'Noto Serif KR',serif; font-size:1.08rem; line-height:1.9; color:var(--star);}
+#ssg .g-intro{margin-top:18px; font-size:.97rem; color:var(--ink-soft); line-height:1.9;}
+#ssg .g-method{margin-top:20px; padding:16px 18px; border:1px solid var(--line);
+  border-radius:8px; background:rgba(212,175,106,.045);}
+#ssg .g-method-t{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--g-accent); margin-bottom:9px;}
+#ssg .g-method p{font-size:.9rem; color:var(--ink-soft); line-height:1.85;}
+#ssg .g-method b{color:var(--star); font-weight:700;}
+
+/* 오른쪽 — 단계 */
+#ssg .samples{display:grid !important; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px;}
+@media(max-width:560px){ #ssg .samples{grid-template-columns:1fr;} }
+#ssg .sample{display:block; padding:18px 20px; border-radius:12px;
+  background:linear-gradient(150deg, rgba(140,101,214,.16), rgba(28,21,51,.9));
+  border:1px solid rgba(140,101,214,.34); transition:border-color .2s ease, transform .2s ease;}
+#ssg .sample:hover{border-color:#9A86D8; transform:translateY(-2px);}
+#ssg .sample-k{font-family:'IBM Plex Mono',monospace; font-size:.58rem; letter-spacing:.2em;
+  text-transform:uppercase; color:#BCADEA;}
+#ssg .sample-t{margin-top:7px; font-family:'Noto Serif KR',serif; font-weight:700;
+  font-size:1.06rem; color:var(--star);}
+#ssg .sample-d{margin-top:5px; font-size:.84rem; color:var(--ink-dim);}
+#ssg .lack{margin-top:12px; font-size:.85rem; color:#E5A0A0; text-align:center; display:none;}
+#ssg .lack.show{display:block;}
+#ssg .lack a{color:var(--gold); border-bottom:1px solid var(--gold); padding-bottom:2px;}
+#ssg .step{background:var(--nebula); border:1px solid var(--line); border-radius:14px;
+  padding:30px 30px 28px; margin-bottom:18px;}
+@media(max-width:700px){ #ssg .step{padding:24px 18px 22px;} }
+#ssg .step-head{display:flex !important; align-items:baseline; gap:11px; margin-bottom:20px;}
+#ssg .step-no{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.12em;
+  color:var(--void-deep); background:var(--g-accent); padding:4px 9px; border-radius:20px; flex:0 0 auto;}
+#ssg .step-title{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.18rem;}
+#ssg .step-sub{margin-left:auto; font-size:.82rem; color:var(--ink-dim); flex:0 0 auto;}
+
+/* 입력 */
+#ssg .frow{display:grid !important; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
+@media(max-width:560px){ #ssg .frow{grid-template-columns:1fr;} }
+#ssg .frow.one{grid-template-columns:1fr;}
+#ssg .f .note{font-size:.78rem; color:var(--ink-dim); line-height:1.6;}
+#ssg .f{display:flex; flex-direction:column; gap:7px;}
+#ssg .f label{font-family:'IBM Plex Mono',monospace; font-size:.76rem; color:var(--ink-dim); letter-spacing:.04em;}
+#ssg .f input,#ssg .f select{background:var(--void-deep); border:1px solid var(--line); color:var(--star);
+  padding:14px 15px; border-radius:5px; font-family:inherit; font-size:1rem; width:100%;
+  transition:border-color .2s ease;}
+#ssg .f input:focus,#ssg .f select:focus{outline:none; border-color:var(--g-accent);}
+#ssg .f select:disabled{opacity:.4;}
+#ssg .cal-switch{display:flex !important; margin-bottom:16px; border:1px solid var(--line);
+  border-radius:6px; overflow:hidden;}
+#ssg .cal-switch button{flex:1; padding:11px 8px; background:transparent; border:0; cursor:pointer;
+  color:var(--ink-soft); font-size:.86rem; transition:background .2s ease, color .2s ease;}
+#ssg .cal-switch button.on{background:var(--g-accent); color:var(--void-deep); font-weight:700;}
+#ssg .chk{display:flex !important; align-items:flex-start; gap:9px; margin-top:12px;
+  font-size:.92rem; color:var(--ink-soft); cursor:pointer; line-height:1.7;}
+#ssg .chk input{accent-color:var(--gold); width:16px; height:16px; flex:0 0 auto; margin-top:4px;}
+#ssg .chk.hide{display:none !important;}
+
+/* 로그인 분기 — 워드프레스가 body 에 붙이는 logged-in 클래스로 갈립니다 */
+#ssg .only-guest{display:block;}
+#ssg .only-member{display:none;}
+#ssg.has-saved .only-guest{display:none;}
+#ssg.has-saved .only-member{display:block;}
+
+#ssg .saved{background:var(--void-deep); border:1px solid var(--line); border-radius:9px; padding:20px 22px;}
+#ssg .saved-row{display:flex !important; gap:12px; font-size:.98rem; margin-top:8px;}
+#ssg .saved-row:first-child{margin-top:0;}
+#ssg .saved-k{flex:0 0 100px; color:var(--ink-dim); font-family:'IBM Plex Mono',monospace; font-size:.78rem; padding-top:3px;}
+#ssg .saved-v{color:var(--star);}
+#ssg .saved-edit{display:inline-block; margin-top:16px; font-size:.78rem; color:var(--g-accent);
+  border-bottom:1px solid var(--g-accent); padding-bottom:2px;}
+
+/* 가입 안내 */
+#ssg .signup-note{margin-top:18px; padding:18px 20px; border-radius:9px;
+  background:rgba(140,101,214,.09); border:1px solid rgba(140,101,214,.25); font-size:.93rem;
+  color:var(--ink-soft); line-height:1.85;}
+#ssg .signup-note b{color:var(--star); font-weight:700;}
+
+/* 주제 고르기 */
+#ssg .topics{display:grid !important; grid-template-columns:repeat(3,1fr); gap:10px;}
+@media(max-width:640px){ #ssg .topics{grid-template-columns:repeat(2,1fr);} }
+#ssg .topic{position:relative;}
+#ssg .topic input{position:absolute; opacity:0; width:0; height:0;}
+#ssg .topic span{display:block; padding:15px 10px; border-radius:8px; text-align:center;
+  background:var(--void-deep); border:1px solid var(--line); font-size:.99rem; color:var(--ink-soft);
+  cursor:pointer; transition:border-color .2s ease, color .2s ease, background .2s ease;}
+#ssg .topic input:checked + span{border-color:var(--g-accent); color:var(--star);
+  background:rgba(212,175,106,.1); font-weight:500;}
+#ssg .topic input:focus-visible + span{outline:2px solid var(--g-accent); outline-offset:2px;}
+
+/* 심화 질문 */
+#ssg .deep{display:flex !important; align-items:flex-start; gap:12px; padding:15px 16px; border-radius:8px;
+  background:var(--void-deep); border:1px solid var(--line); margin-top:10px; cursor:pointer;
+  transition:border-color .2s ease;}
+#ssg .deep:has(input:checked){border-color:var(--g-accent); background:rgba(212,175,106,.08);}
+#ssg .deep input{accent-color:var(--gold); width:17px; height:17px; flex:0 0 auto; margin-top:3px;}
+#ssg .deep-t{font-size:.99rem; color:var(--star); display:block;}
+#ssg .deep-d{margin-top:5px; font-size:.87rem; color:var(--ink-dim); display:block;}
+#ssg .deep-p{margin-left:auto; flex:0 0 auto; font-family:'IBM Plex Mono',monospace;
+  font-size:.78rem; color:var(--g-accent); white-space:nowrap; padding-top:3px;}
+#ssg .deep.maxed{opacity:.4; cursor:not-allowed;}
+
+/* 한 줄 질문 */
+#ssg .oneline{position:relative;}
+#ssg .oneline input{width:100%; background:var(--void-deep); border:1px solid var(--line); color:var(--star);
+  padding:16px 80px 16px 16px; border-radius:6px; font-family:inherit; font-size:1.02rem;
+  transition:border-color .2s ease;}
+#ssg .oneline input:focus{outline:none; border-color:var(--g-accent);}
+#ssg .oneline input::placeholder{color:var(--ink-dim);}
+#ssg .counter{position:absolute; right:14px; top:50%; transform:translateY(-50%);
+  font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--ink-dim); pointer-events:none;}
+#ssg .counter.full{color:var(--gold);}
+#ssg .memo{width:100%; margin-top:12px; background:var(--void-deep); border:1px solid var(--line);
+  color:var(--star); padding:15px 16px; border-radius:6px; font-family:inherit; font-size:.98rem;
+  min-height:88px; resize:vertical;}
+#ssg .memo:focus{outline:none; border-color:var(--g-accent);}
+#ssg .hint{margin-top:12px; font-size:.88rem; color:var(--ink-dim); line-height:1.85;}
+
+/* 결제 */
+#ssg .bill{background:linear-gradient(160deg, var(--nebula-soft), var(--nebula));
+  border:1px solid var(--g-accent); border-radius:14px; padding:28px 30px;}
+@media(max-width:700px){ #ssg .bill{padding:22px 18px;} }
+#ssg .bline{display:flex !important; justify-content:space-between; gap:14px;
+  font-size:.98rem; color:var(--ink-soft); padding:9px 0;}
+#ssg .bline.off{display:none !important;}
+#ssg .bline b{color:var(--star); font-weight:400;}
+#ssg .btotal{display:flex !important; justify-content:space-between; align-items:baseline;
+  margin-top:14px; padding-top:18px; border-top:1px solid var(--line);}
+#ssg .btotal-k{font-family:'Noto Serif KR',serif; font-weight:700; font-size:1.12rem;}
+#ssg .btotal-v{font-family:'IBM Plex Mono',monospace; font-size:1.7rem; color:var(--gold); font-weight:700;}
+#ssg .btotal-v small{font-size:.82rem; color:var(--ink-soft); font-weight:400; margin-left:5px;}
+#ssg .balance{margin-top:12px; font-size:.8rem; color:var(--ink-dim); text-align:right;}
+
+#ssg .go{width:100%; margin-top:20px; padding:18px 30px; border-radius:4px; border:none; cursor:pointer;
+  font-size:1rem; font-weight:700; color:var(--void-deep);
+  background:linear-gradient(135deg, var(--gold), #B98A47);
+  box-shadow:0 16px 34px -14px rgba(212,175,106,.55); transition:transform .2s ease, opacity .2s ease;}
+#ssg .go:hover{transform:translateY(-2px);}
+#ssg .go:disabled{opacity:.4; cursor:default; transform:none;}
+#ssg .msg{margin-top:14px; font-size:.93rem; text-align:center; line-height:1.8; display:none;}
+#ssg .msg.show{display:block;}
+#ssg .msg.err{color:#E5A0A0;}
+#ssg .msg.ok{color:#9AD1A5;}
+#ssg .fineprint{margin-top:16px; font-size:.8rem; color:var(--ink-dim); line-height:1.85; text-align:center;}
+#ssg .trial-note{margin-top:18px; padding:15px 18px; border-radius:8px; text-align:center;
+  background:rgba(154,209,165,.1); border:1px solid rgba(154,209,165,.32);
+  font-size:.95rem; color:#BFE3C7; line-height:1.8;}
+#ssg .trial-note b{color:#DDF3E2;}
+
+/* 모바일에서 입력칸을 누를 때 화면이 확대되지 않게 —
+   iOS 사파리는 글자 16px 미만 입력칸에 포커스가 가면 자동으로 줌인합니다. */
+@media(max-width:900px){
+  #ssg .f input, #ssg .f select,
+  #ssg .oneline input, #ssg .memo{font-size:17px !important;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  #ssg *,#ssg *::before,#ssg *::after{animation:none !important; transition:none !important;}
+}
+
+/* ══ 2026-09-08 · 넣는 칸 정리 ═════════════════════════
+   왼쪽 가디언 칸을 뺐으니 두 칸 짜임을 한 칸으로 바꿉니다.
+   메모 칸은 페이지 코드가 읽고 있어서 지우지 않고 감춥니다. */
+#ssg .g-cols{ grid-template-columns:1fr !important; max-width:760px; margin:0 auto; }
+#ssg .memo{ display:none !important; }
+#ssg .samples.one{ grid-template-columns:1fr !important; }
+
+/* ══ 2026-09-08 · 문을 흰 바탕으로 ═══════════════════════════════
+   앞의 색표를 지우지 않고 뒤에서 덮어씁니다. 되돌리기가 쉽습니다.
+   2판 · 바닥을 한 톤 내려서 흰 카드가 떠 보이게 했습니다. */
+#ssg{
+  --void:#F1EDE3; --void-deep:#FBF8F2;
+  --nebula:#FFFFFF; --nebula-soft:#F7F3EA;
+  --purple-glow:rgba(107,79,176,.16);
+  --gold:#A9791F; --gold-soft:#B98A47; --gold-lite:#8A6520;
+  --star:#221C33;
+  --ink-soft:#4E4763; --ink-dim:#8B849C;
+  --line:#E2DACB;
+  --g-accent:#A44E62 !important;
+  color:var(--star);
+}
+/* 밤하늘 별은 흰 바탕에서 안 보입니다. 아주 옅은 결만 남깁니다. */
+#ssg .g-stars{
+  background:
+    radial-gradient(58vw 44vw at 12% 2%, rgba(107,79,176,.05), transparent 62%),
+    radial-gradient(52vw 40vw at 92% 24%, rgba(169,121,31,.05), transparent 60%),
+    var(--void) !important;}
+/* 카드 · 상자 — 바닥보다 밝은 흰 종이. 테와 그림자를 또렷하게. */
+#ssg .g-card, #ssg .step, #ssg .bill{
+  background:#FFFFFF !important; border:1px solid #E2DACB !important;
+  box-shadow:0 2px 4px -2px rgba(34,28,51,.10),
+             0 12px 30px -16px rgba(34,28,51,.26) !important;}
+/* 카드 안에 또 상자가 있는 자리(저장된 내 정보)는 한 톤 낮춥니다.
+   흰 위에 흰이면 테두리가 있어도 눈에 안 걸립니다. */
+#ssg .saved{
+  background:#FAF7F0 !important; border:1px solid #EAE2D2 !important;
+  box-shadow:none !important;}
+/* 넣는 칸 */
+#ssg .f input, #ssg .f select, #ssg .oneline input, #ssg .memo,
+#ssg .topic span{ background:#FAF7F0 !important; color:var(--star) !important;
+  border-color:#D5CCB8 !important; }
+#ssg select option{ background:#FFFFFF !important; color:#221C33 !important; }
+#ssg ::placeholder{ color:#B7B0C4 !important; }
+#ssg .topic input:checked + span{
+  background:#F7F2EA !important; border-color:var(--g-accent) !important;
+  color:var(--star) !important; }
+/* 그림 위에 얹던 어두운 그라데이션 */
+#ssg .g-portrait::after{
+  background:linear-gradient(to top, rgba(255,255,255,.96) 2%,
+             rgba(255,255,255,.3) 55%, transparent 80%) !important;}
+/* 흰 바탕에서 안 보이던 글자들 */
+#ssg .msg.ok{ color:#2F7D4A !important; }
+#ssg .msg.err, #ssg .lack{ color:#C4453A !important; }
+/* 맨 위 견본 상자는 나머지와 색을 다르게 둡니다.
+   손님이 제일 먼저 눌러볼 자리라, 흰 카드 사이에서 튀어야 합니다.
+   문마다 제 빛깔의 옅은 빛을 깔고 테두리를 그 빛깔로 둘렀습니다. */
+#ssg .sample{ background:#FBF0F2 !important;
+  border:1px solid #A44E62 !important;
+  box-shadow:0 10px 26px -16px #A44E62 !important; }
+#ssg .sample:hover{ background:#FFFFFF !important;
+  box-shadow:0 16px 34px -16px #A44E62 !important; }
+#ssg .sample-k{ color:#A44E62 !important; }
+#ssg .sample-t{ color:#A44E62 !important; }
+#ssg .step-no{ color:#FFFFFF !important; }
+#ssg .cal-switch button.on{ color:#FFFFFF !important; }
+#ssg .go{ color:#FFFDF9 !important;
+  background:linear-gradient(120deg,#3A2E77,#241C4E) !important;
+  box-shadow:0 16px 34px -16px rgba(36,28,78,.7) !important; }
+#ssg .signup-note{ background:#F3EFFA !important; border-color:#D9CFF2 !important; }
+#ssg .pay-note, #ssg .gunghap-box, #ssg .g-greet, #ssg .g-method{
+  background:#FAF6EE !important; border-color:#E7E1D6 !important; }
+#ssg .pay-note b{ color:var(--gold) !important; }
+</style>
+<div id="ssg" style="--g-accent:#A44E62">
+  <div class="g-stars" aria-hidden="true"></div>
+  <div class="g-inner">
+    <div class="g-cols">
+
+      <div>
+
+
+        <section class="step">
+          <div class="step-head">
+            <span class="step-no">STEP 1</span>
+            <span class="step-title">사주 정보</span>
+          </div>
+
+          <div class="only-member">
+            <div class="saved">
+              <div class="saved-row"><div class="saved-k">이름</div><div class="saved-v" id="mName">—</div></div>
+              <div class="saved-row"><div class="saved-k">생년월일시</div><div class="saved-v" id="mBirth">—</div></div>
+              <div class="saved-row"><div class="saved-k">태어난 곳</div><div class="saved-v" id="mPlace">—</div></div>
+              <a class="saved-edit" href="/mypage/">정보 수정하기 →</a>
+            </div>
+          </div>
+
+          <div class="only-guest">
+            <div class="cal-switch" role="group" aria-label="양력 음력 고르기">
+              <button type="button" id="calSolar" class="on">양력</button>
+              <button type="button" id="calLunar">음력</button>
+            </div>
+
+            <div class="frow">
+              <div class="f"><label for="gName">이름</label>
+                <input type="text" id="gName" maxlength="20" placeholder="홍길동"></div>
+              <div class="f"><label for="gSex">성별</label>
+                <select id="gSex"><option value="">고르기</option><option value="F">여성</option><option value="M">남성</option></select>
+                <span class="note">대운(10년 운) 방향이 성별에 따라 반대로 갑니다.</span></div>
+            </div>
+            <div class="frow">
+              <div class="f"><label for="gYear">태어난 년도</label>
+                <input type="number" id="gYear" min="1900" max="2049" placeholder="1990" inputmode="numeric"></div>
+              <div class="f"><label for="gMonth">월</label><select id="gMonth"><option value="">월</option></select></div>
+            </div>
+            <div class="frow">
+              <div class="f"><label for="gDay">일</label><select id="gDay"><option value="">일</option></select></div>
+              <div class="f"><label for="gHour">태어난 시각</label>
+                <div style="display:flex; gap:8px;">
+                  <select id="gHour" style="flex:1"><option value="">시</option></select>
+                  <select id="gMin" style="flex:1"><option value="">분</option></select>
+                </div>
+                <span class="note">출생증명서나 어머니 기억 그대로 적어주세요. 분까지 넣으면 시주가 정확해집니다.</span></div>
+            </div>
+            <div class="frow">
+              <div class="f"><label for="gCountry">태어난 나라</label><select id="gCountry"></select></div>
+              <div class="f"><label for="gCity">태어난 도시</label>
+                <input type="text" id="gCity" maxlength="30" placeholder="서울">
+                <span class="note">진태양시 보정에 씁니다. 시 경계에서 기둥이 바뀔 수 있어요.</span></div>
+            </div>
+            <div class="frow one">
+              <div class="f"><label for="gEmail">이메일 <span style="color:var(--ink-dim);font-weight:400">· 선택</span></label>
+                <input type="email" id="gEmail" maxlength="60" placeholder="you@example.com (풀이가 완성되면 알려드려요)"></div>
+            </div>
+
+            <label class="chk hide" id="leapWrap"><input type="checkbox" id="gLeap"> 윤달이에요</label>
+            <label class="chk"><input type="checkbox" id="gHourUnknown"> 태어난 시간을 몰라요</label>
+
+            <div class="signup-note">
+              입력하신 정보는 <b>다른 서비스에서도 다시 입력하지 않으시도록 저장</b>돼요.<br>
+              결제를 진행하면 이 정보로 <b>회원가입이 함께 완료</b>됩니다 —
+              따로 가입 절차를 밟지 않으셔도 돼요.
+            </div>
+
+            <label class="chk"><input type="checkbox" id="gAgree">
+              생년월일시·출생지 저장 및 회원가입에 동의합니다.
+              <a href="/privacy/" style="color:var(--g-accent); border-bottom:1px solid var(--g-accent)">개인정보 처리방침</a></label>
+          </div>
+        </section>
+
+        <section class="step">
+          <div class="step-head">
+            <span class="step-no">STEP 2</span>
+            <span class="step-title">지금의 마음</span>
+            <span class="step-sub">선택</span>
+          </div>
+          <div class="frow">
+            <div class="f"><label for="gJob">지금의 관계</label>
+              <input type="text" id="gJob" maxlength="40" placeholder="예: 3년째 연애 중 / 짝사랑 / 헤어진 지 두 달"></div>
+            <div class="f"><label for="gYears">그 관계가 이어진 기간</label>
+              <select id="gYears">
+                <option value="">고르기</option>
+                <option value="아직 시작 전">아직 시작 전</option>
+                <option value="1년 미만">1년 미만</option>
+                <option value="1~3년">1~3년</option>
+                <option value="4~9년">4~9년</option>
+                <option value="10년 이상">10년 이상</option>
+                <option value="지금은 혼자예요">지금은 혼자예요</option>
+              </select></div>
+          </div>
+          <div class="frow one">
+            <div class="f"><label for="gWant">바라는 결말</label>
+              <input type="text" id="gWant" maxlength="40" placeholder="예: 이 사람과 결혼까지 가고 싶어요"></div>
+          </div>
+          <p class="hint">사주가 말하는 결론은 이 칸과 상관없이 똑같이 나옵니다. 다만 적어주시면 그 결론을 <b>지금 그 관계의 언어로 바꿔서</b> 설명해드려요. 비워두셔도 풀이는 그대로 나옵니다.</p>
+        </section>
+
+        <section class="step">
+          <div class="step-head">
+            <span class="step-no">STEP 3</span>
+            <span class="step-title">무엇이 궁금하세요?</span>
+            <span class="step-sub">하나만 골라주세요</span>
+          </div>
+          <div class="topics">
+            <label class="topic"><input type="radio" name="ssg-topic" value="연애운" checked><span>연애운</span></label>
+            <label class="topic"><input type="radio" name="ssg-topic" value="재회운"><span>재회운</span></label>
+            <label class="topic"><input type="radio" name="ssg-topic" value="궁합"><span>궁합</span></label>
+            <label class="topic"><input type="radio" name="ssg-topic" value="결혼운"><span>결혼운</span></label>
+            <label class="topic"><input type="radio" name="ssg-topic" value="이별운"><span>이별운</span></label>
+            <label class="topic"><input type="radio" name="ssg-topic" value="짝사랑"><span>짝사랑</span></label>
+          </div>
+        </section>
+
+        <section class="step">
+          <div class="step-head">
+            <span class="step-no">STEP 4</span>
+            <span class="step-title">가장 궁금한 한 가지</span>
+            <span class="step-sub">선택</span>
+          </div>
+          <div class="oneline">
+            <input type="text" id="oneline" maxlength="30" placeholder="예: 지금 그 사람과 이어질 수 있을까요?">
+            <span class="counter" id="counter">0 / 30</span>
+          </div>
+          <p class="hint">이 한 줄은 책 마지막 편지에서 그대로 받아 답해드립니다. 비워두셔도 괜찮아요.</p>
+          <textarea class="memo" id="memo" maxlength="200"
+            placeholder="가디언이 알아두면 좋을 상황이 있다면 적어주세요 (선택 · 200자)"></textarea>
+        </section>
+
+        <section class="bill">
+          <div class="bline"><b>기본 풀이</b><span id="pBase">무료</span></div>
+          <div class="bline off" id="lineOne"><b>한 줄 질문</b><span id="pOne">무료</span></div>
+          <div class="bline off" id="lineDeep"><b>심화 질문 <span id="deepN">0</span>개</b><span id="pDeep">무료</span></div>
+          <div class="btotal">
+            <div class="btotal-k">합계</div>
+            <div class="btotal-v"><span id="total">0</span><small>구슬</small></div>
+          </div>
+          <div class="balance only-member">내 잔액 <span id="balance">—</span>구슬</div>
+
+          <button type="button" class="go" id="goBtn">인연을 잇는 신에게 물어보기 →</button>
+          <div class="lack" id="lack"></div>
+          <div class="msg" id="msg"></div>
+          <div class="trial-note">지금은 <b>체험판 기간</b>이라 구슬을 받지 않습니다.
+            열여덟 쪽짜리 전자책까지 전부 무료로 보실 수 있어요.</div>
+          <div class="fineprint">풀이는 화면에서 바로 펼쳐지고 PDF 로도 저장하실 수 있습니다.<br>
+            정식 발행 뒤에는 구슬을 쓰며, 구슬은 충전일로부터 1년간 유효합니다.<br>
+            본 콘텐츠는 전통 사주명리학에 기반한 오락적 콘텐츠입니다.</div>
+        </section>
+
+        <div class="samples one">
+          <a class="sample" href="/reading-love/">
+            <div class="sample-k">Sample &middot; 정보 입력 전 미리 보기</div>
+            <div class="sample-t">완성본 미리보기 &middot; 정환이의 연애운</div>
+            <div class="sample-d">실제로 발행되는 책을 그대로 보실 수 있어요 &rarr;</div>
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var root=document.getElementById('ssg'); if(!root) return;
+  var $=function(id){return document.getElementById(id);};
+
+  var U = window.STELLA_USER || null;
+
+  /* 체험판 기간입니다. 구슬을 받지 않습니다.
+     정식으로 열 때 TRIAL 을 false 로 바꾸면 아래 값이 그대로 살아납니다. */
+  var TRIAL=true;
+  var PRICE = TRIAL ? {base:0, oneline:0, deep:0} : {base:5, oneline:5, deep:5};
+  var MAX_DEEP=2;
+
+  var oneline=$('oneline'), counter=$('counter');
+  function chosenDeeps(){
+    return [].slice.call(document.querySelectorAll('.deep-c')).filter(function(c){return c.checked;});
+  }
+  function recalc(){
+    var chosen=chosenDeeps();
+    var hasOne = oneline.value.trim().length>0;
+    var total = PRICE.base + (hasOne?PRICE.oneline:0) + chosen.length*PRICE.deep;
+
+    $('lineOne').classList.toggle('off', !hasOne);
+    $('pOne').textContent  = TRIAL ? '무료' : PRICE.oneline+'구슬';
+    $('lineDeep').classList.toggle('off', chosen.length===0);
+    $('deepN').textContent = chosen.length;
+    $('pDeep').textContent = TRIAL ? '무료' : (chosen.length*PRICE.deep)+'구슬';
+    $('pBase').textContent = TRIAL ? '무료' : PRICE.base+'구슬';
+    $('total').textContent = TRIAL ? '0' : total;
+
+    [].slice.call(document.querySelectorAll('.deep-c')).forEach(function(c){
+      var lock=false;
+      if(!c.checked){ if(chosen.length>=MAX_DEEP){ lock=true; } }
+      c.parentNode.classList.toggle('maxed', lock);
+      c.disabled = lock;
+    });
+    paint(total);
+    return total;
+  }
+
+  /* 버튼 상태 — 비회원 / 잔액 부족 / 충분 */
+  function paint(total){
+    var btn=$('goBtn'), lack=$('lack');
+    if(TRIAL){
+      btn.disabled=false;
+      btn.textContent='체험판으로 풀이 받기 · 무료 →';
+      lack.classList.remove('show');
+      return;
+    }
+    if(!U){
+      btn.disabled=false;
+      btn.textContent='가입하고 시작하기 →';
+      lack.classList.remove('show');
+      return;
+    }
+    var have = (U.balance!=null) ? U.balance : 0;
+    if(have < total){
+      btn.disabled=true;
+      btn.textContent='구슬이 모자라요';
+      lack.innerHTML='구슬 <b>'+(total-have)+'개</b>가 더 필요해요 · '
+        + '<a href="/mypage/?charge=1">구슬 충전하기</a>';
+      lack.classList.add('show');
+      return;
+    }
+    btn.disabled=false;
+    btn.textContent='운세 보기 ('+total+'구슬 사용) →';
+    lack.classList.remove('show');
+  }
+
+  root.addEventListener('change', function(e){
+    var t=e.target; if(!t) return;
+    if((''+t.className).indexOf('deep-c')>=0) recalc();
+  });
+  oneline.addEventListener('input', function(){
+    var n=oneline.value.length;
+    counter.textContent = n+' / 30';
+    counter.classList.toggle('full', n>=30);
+    recalc();
+  });
+
+  var monthSel=$('gMonth'), daySel=$('gDay'), hourSel=$('gHour'),
+      minSel=$('gMin'), unknown=$('gHourUnknown');
+  if(monthSel){
+    for(var m=1;m<=12;m++) monthSel.add(new Option(m+'월', m));
+    for(var d=1;d<=31;d++) daySel.add(new Option(d+'일', d));
+    var SIJIN=['자시','축시','인시','묘시','진시','사시',
+               '오시','미시','신시','유시','술시','해시'];
+    for(var hh=0; hh<24; hh++){
+      var si=SIJIN[Math.floor(((hh+1)%24)/2)];
+      hourSel.add(new Option((hh<10?'0':'')+hh+'시 · '+si, hh));
+    }
+    for(var mm=0; mm<60; mm+=5){ minSel.add(new Option((mm<10?'0':'')+mm+'분', mm)); }
+    ['대한민국','미국','일본','중국','캐나다','호주','영국','기타']
+      .forEach(function(c){ $('gCountry').add(new Option(c,c)); });
+    unknown.addEventListener('change', function(e){
+      hourSel.disabled=e.target.checked; minSel.disabled=e.target.checked;
+      if(e.target.checked){ hourSel.value=''; minSel.value=''; }
+    });
+  }
+
+  var isLunar=false;
+  if($('calSolar')){
+    $('calSolar').addEventListener('click', function(){ isLunar=false;
+      $('calSolar').classList.add('on'); $('calLunar').classList.remove('on');
+      $('leapWrap').classList.add('hide'); });
+    $('calLunar').addEventListener('click', function(){ isLunar=true;
+      $('calLunar').classList.add('on'); $('calSolar').classList.remove('on');
+      $('leapWrap').classList.remove('hide'); });
+  }
+
+  var hasSaved = false;
+  if(U){ if(U.birth){ hasSaved = true; } }
+  if(hasSaved){ root.classList.add('has-saved'); }
+
+  if(U){
+    if($('mName'))  $('mName').textContent  = U.name  || '—';
+    if($('mBirth')) $('mBirth').textContent = U.birth || '—';
+    if($('mPlace')) $('mPlace').textContent = U.place || '—';
+    if($('balance')) $('balance').textContent = (U.balance!=null ? U.balance : '—');
+    if(U.job)   $('gJob').value   = U.job;
+    if(U.years) $('gYears').value = U.years;
+    if(U.want)  $('gWant').value  = U.want;
+  }
+
+  var msg=$('msg');
+  function say(text, kind){ msg.textContent=text; msg.className='msg show '+(kind||''); }
+
+  /* 서버 응답을 안전하게 읽습니다.
+     기능이 아직 없으면 워드프레스가 JSON 이 아니라 HTML 오류 페이지를 주기도 해서,
+     r.json() 을 바로 부르면 엉뚱한 오류가 납니다. */
+  function readJson(r){
+    return r.text().then(function(t){
+      var j=null;
+      try{ j=JSON.parse(t); }catch(err){ j=null; }
+      return { ok:r.ok, status:r.status, body:(j || {}), parsed:(j!==null) };
+    });
+  }
+  /* 아직 서버 기능이 없는 상태인지 판단합니다 */
+  function isMissing(res){
+    if(!res.parsed) return true;                 // JSON 이 아니면 기능이 없는 것
+    if(res.status===404) return true;
+    if(res.body.code==='rest_no_route') return true;
+    return false;
+  }
+
+  /* 서버 기능이 아직 안 켜졌을 때 — 가입 없이 체험판으로 끝까지 걸어봅니다 */
+  function goDemo(payload){
+    try{ localStorage.setItem('stella_demo', JSON.stringify(payload)); }catch(err){}
+    say('체험판으로 진행합니다. 질문 화면으로 이동해요…','ok');
+    setTimeout(function(){ location.href='/reading-start/'; }, 800);
+  }
+
+
+  $('goBtn').addEventListener('click', function(){
+    var total=recalc();
+    var topicEl=document.querySelector('input[name="ssg-topic"]:checked');
+    var topic = topicEl ? topicEl.value : '';
+    var deeps = chosenDeeps().map(function(c){ return c.value; });
+
+    var payload={ guardian:'인연을 잇는 신', guardian_slug:'door-love',
+                  topic:topic, oneline:oneline.value.trim(), memo:$('memo').value.trim(),
+                  deeps:deeps, orbs:total,
+                  work:{ job:$('gJob').value.trim(), years:$('gYears').value,
+                         want:$('gWant').value.trim() } };
+
+    if(hasSaved){
+      if(!topic){ say('궁금한 주제를 하나 골라주세요.','err'); return; }
+      var mb=$('goBtn'); mb.disabled=true; say('구슬을 쓰고 있어요…','');
+      fetch('/wp-json/stella/v1/order', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        credentials:'same-origin', body:JSON.stringify(payload)
+      }).then(readJson)
+        .then(function(res){
+          if(isMissing(res)){ return goDemo(payload); }
+          var b = res.body;
+          if(!res.ok){ throw new Error(b.message || '주문에 실패했어요.'); }
+          location.href = b.next || '/reading-start/';
+        })
+        .catch(function(e){ mb.disabled=false; say(e.message,'err'); });
+      return;
+    }
+
+    var name=$('gName').value.trim(), email=$('gEmail').value.trim();
+    var y=parseInt($('gYear').value,10), m=parseInt(monthSel.value,10), d=parseInt(daySel.value,10);
+    var h=null, mn=0;
+    if(!unknown.checked){
+      if(hourSel.value!==''){ h=parseInt(hourSel.value,10); }
+      if(minSel.value!==''){ mn=parseInt(minSel.value,10); }
+    }
+
+    if(!name){ say('이름을 적어주세요.','err'); return; }
+    if(!$('gSex').value){ say('성별을 골라주세요. 대운 방향을 정하는 데 꼭 필요해요.','err'); return; }
+    if(email){ if(email.indexOf('@')<1){ say('이메일을 정확히 적어주세요.','err'); return; } }
+    if(!y){ say('태어난 년도를 적어주세요.','err'); return; }
+    if(!m){ say('태어난 월을 골라주세요.','err'); return; }
+    if(!d){ say('태어난 일을 골라주세요.','err'); return; }
+    if(!$('gCity').value.trim()){ say('태어난 도시를 적어주세요.','err'); return; }
+    if(!unknown.checked){
+      if(hourSel.value===''){ say('태어난 시각을 골라주세요. 정말 모르시면 아래 칸을 체크해주세요.','err'); return; }
+    }
+    if(!$('gAgree').checked){ say('정보 저장 및 회원가입에 동의해주세요.','err'); return; }
+    if(!topic){ say('궁금한 주제를 하나 골라주세요.','err'); return; }
+
+    var leapOn=false;
+    var lp=$('gLeap'); if(lp){ leapOn=lp.checked; }
+
+    payload.profile={ name:name, email:email, sex:$('gSex').value,
+                      year:y, month:m, day:d, hour:h, minute:mn,
+                      calendar:isLunar?'lunar':'solar', leap:leapOn,
+                      country:$('gCountry').value, city:$('gCity').value.trim() };
+
+    var btn=$('goBtn'); btn.disabled=true; say('가입하고 있어요…','');
+
+    fetch('/wp-json/stella/v1/signup', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      credentials:'same-origin', body:JSON.stringify(payload)
+    }).then(readJson)
+      .then(function(res){
+        if(isMissing(res)){ return goDemo(payload); }
+        var b = res.body;
+        if(!res.ok){ throw new Error(b.message || '가입에 실패했어요.'); }
+        say('가입이 완료됐어요. 결제 화면으로 이동합니다…','ok');
+        setTimeout(function(){ location.href = b.next || '/mypage/?charge=1'; }, 900);
+      })
+      .catch(function(){ return goDemo(payload); });
+  });
+
+  recalc();
+})();
+</script>
+
+
+<script>
+/* ═══ 태어난 도시 고르기 ═══
+   나라를 고르면 그 나라 주요 도시가 목록으로 뜹니다.
+   목록에 없는 곳은 '직접 입력'을 골라 적으시면 됩니다.
+
+   원래 칸(#gCity)은 그대로 두고 값만 넣어줍니다.
+   그래야 아래쪽 가입 코드를 하나도 건드리지 않습니다. */
+(function(){
+  function start(){
+    /* 올려둔 페이지에 옛 문구나 깨진 글자가 남아 있으면 되돌립니다.
+       이 파일들에는 이미 바른 글자로 적혀 있어, 여기 표는 라이브에서만 일을 합니다. */
+    var FIX=[
+      ['열네 쪽짜리','열여덟 쪽짜리'],
+      ['지쳌 누운','지쳐 누운'],
+      ['두터우고','두텁고'],
+      ['길흥','길흉'],
+      ['거둔 때인지','거둘 때인지'],
+      ['뺚를 정리하고','빚을 정리하고'],
+      ['곉으로 보이는','겉으로 보이는']
+    ];
+    function swap(t){
+      var i;
+      for(i=0;i<FIX.length;i++){
+        if(t.indexOf(FIX[i][0])>=0){ t=t.split(FIX[i][0]).join(FIX[i][1]); }
+      }
+      return t;
+    }
+    function mend(box){
+      if(!box){ return; }
+      var walk=document.createTreeWalker(box, NodeFilter.SHOW_TEXT, null, false);
+      var node, was;
+      while((node=walk.nextNode())){
+        was=node.nodeValue;
+        if(swap(was)!==was){ node.nodeValue=swap(was); }
+      }
+      var fields=box.querySelectorAll('input,textarea'), k, ph;
+      for(k=0;k<fields.length;k++){
+        ph=fields[k].placeholder;
+        if(ph){ if(swap(ph)!==ph){ fields[k].placeholder=swap(ph); } }
+      }
+    }
+    mend(document.getElementById('ssg'));
+
+    var sel=document.getElementById('gCountry');
+    var txt=document.getElementById('gCity');
+    if(!sel){ return; }
+    if(!txt){ return; }
+    if(document.getElementById('gCitySel')){ return; }
+
+    /* 나라와 그 나라 주요 도시.
+       여기 적힌 이름은 계산기가 경도·표준시·서머타임을 아는 곳들입니다. */
+    var PLACES=[
+      ['대한민국', ['서울','인천','수원','성남','고양','용인','부천','안산','안양','남양주',
+                  '화성','평택','의정부','파주','김포','광명','이천','양주',
+                  '춘천','원주','강릉','속초','동해',
+                  '대전','세종','천안','청주','충주','아산','공주','서산','제천',
+                  '대구','포항','경주','구미','안동','김천','경산','영주',
+                  '부산','울산','창원','진주','김해','통영','거제','양산','사천',
+                  '광주','전주','목포','여수','순천','군산','익산','나주','정읍',
+                  '제주','서귀포','평양','개성','함흥']],
+      ['미국',   ['로스앤젤레스','샌프란시스코','샌디에이고','새너제이','시애틀','포틀랜드',
+                  '라스베이거스','피닉스','덴버','솔트레이크시티','시카고','댈러스','휴스턴',
+                  '오스틴','애틀랜타','뉴욕','뉴저지','필라델피아','보스턴','워싱턴',
+                  '마이애미','올랜도','호놀룰루','앵커리지']],
+      ['캐나다', ['밴쿠버','빅토리아','캘거리','에드먼턴','위니펙','토론토','오타와','몬트리올']],
+      ['일본',   ['도쿄','요코하마','오사카','교토','나고야','후쿠오카','삿포로','오키나와']],
+      ['중국',   ['베이징','상하이','칭다오','선양','옌볜','광저우']],
+      ['홍콩·대만', ['홍콩','타이베이']],
+      ['싱가포르', ['싱가포르']],
+      ['필리핀', ['마닐라']],
+      ['베트남', ['하노이','호치민']],
+      ['태국',   ['방콕']],
+      ['인도네시아', ['자카르타']],
+      ['인도',   ['델리']],
+      ['아랍에미리트', ['두바이']],
+      ['호주',   ['시드니','멜버른','브리즈번','퍼스']],
+      ['뉴질랜드', ['오클랜드']],
+      ['영국',   ['런던']],
+      ['아일랜드', ['더블린']],
+      ['프랑스', ['파리']],
+      ['독일',   ['베를린','프랑크푸르트','뮌헨']],
+      ['네덜란드', ['암스테르담']],
+      ['벨기에', ['브뤼셀']],
+      ['스위스', ['취리히']],
+      ['오스트리아', ['빈']],
+      ['이탈리아', ['로마','밀라노']],
+      ['스페인', ['마드리드','바르셀로나']],
+      ['체코',   ['프라하']],
+      ['스웨덴', ['스톡홀름']],
+      ['러시아', ['모스크바']],
+      ['브라질', ['상파울루']],
+      ['아르헨티나', ['부에노스아이레스']],
+      ['멕시코', ['멕시코시티']],
+      ['이집트', ['카이로']],
+      ['남아프리카공화국', ['요하네스버그']],
+      ['기타',   []]
+    ];
+
+    function citiesOf(country){
+      for(var i=0;i<PLACES.length;i++){
+        if(PLACES[i][0]===country){ return PLACES[i][1]; }
+      }
+      return [];
+    }
+
+    /* 나라 목록을 다시 깝니다 (고르셨던 나라가 있으면 그대로 둡니다) */
+    var was=sel.value;
+    sel.innerHTML='';
+    for(var i=0;i<PLACES.length;i++){
+      sel.add(new Option(PLACES[i][0], PLACES[i][0]));
+    }
+    sel.value=was;
+    if(!sel.value){ sel.value=PLACES[0][0]; }
+
+    /* 도시 고르는 칸을 원래 칸 앞에 끼워 넣습니다 */
+    var pick=document.createElement('select');
+    pick.id='gCitySel';
+    txt.parentNode.insertBefore(pick, txt);
+
+    txt.placeholder='도시 이름을 적어주세요';
+    txt.style.marginTop='8px';
+
+    function fill(){
+      var list=citiesOf(sel.value);
+      pick.innerHTML='';
+      for(var k=0;k<list.length;k++){ pick.add(new Option(list[k], list[k])); }
+      pick.add(new Option('목록에 없어요 · 직접 입력', '__etc'));
+      if(list.length){ pick.value=list[0]; } else { pick.value='__etc'; }
+      apply();
+    }
+
+    function apply(){
+      if(pick.value==='__etc'){
+        txt.style.display='';
+        txt.value='';
+      } else {
+        txt.style.display='none';
+        txt.value=pick.value;
+      }
+    }
+
+    sel.addEventListener('change', fill);
+    pick.addEventListener('change', function(){
+      apply();
+      if(pick.value==='__etc'){ txt.focus(); }
+    });
+
+    fill();
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+})();
+</script>
+

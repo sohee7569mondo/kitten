@@ -1,0 +1,107 @@
+/* ════════════════════════════════════════════════════════════
+   책 한 조각만 꺼내 보기 (읽기만 합니다)   ★ 2026-09-08
+
+   왜 필요한가 —
+   제 저장소 사본이 사이트의 진짜 책보다 뒤처져 있습니다.
+   ?stella_state=1 로 세어보니 사이트에는 자국이 서른한 개인데
+   제가 가진 것은 열일곱 개뿐입니다. 17,220 바이트가 다릅니다.
+
+   그래서 표지나 장 속표지를 고치려 해도, 제가 보고 있는 코드가
+   사이트에 있는 것과 다릅니다. 짐작으로 고치면 또 안 걸립니다.
+
+   이 스니펫은 책에서 필요한 조각만 그대로 꺼내 보여줍니다.
+
+   쓰는 법 — 보고 싶은 조각 이름을 주소 뒤에 붙이세요.
+
+     https://stellasaju.com/?stella_peek=cover     표지 만드는 곳
+     https://stellasaju.com/?stella_peek=divider   장 속표지 만드는 곳
+     https://stellasaju.com/?stella_peek=voice     육성 상자
+     https://stellasaju.com/?stella_peek=chart     여덟 글자 표
+     https://stellasaju.com/?stella_peek=css       표지 · 속표지 색표
+
+   화면에 나온 것을 통째로 복사해서 보내주시면 됩니다.
+
+   ★ 읽기만 합니다. 아무것도 바꾸지 않습니다.
+   ★ 관리자로 들어오신 분에게만 보입니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_peek'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$what = sanitize_key( wp_unslash( $_GET['stella_peek'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 8px}h2{color:#D4AF6A;font-size:1rem;margin:24px 0 6px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'textarea{width:100%;height:60vh;background:#0B0917;color:#D8D2E8;'
+	   . 'border:1px solid rgba(212,175,106,.3);border-radius:8px;padding:12px;'
+	   . 'font-family:ui-monospace,monospace;font-size:.8rem;line-height:1.6}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $page->ID ) );
+	$c = $row->post_content;
+
+	/* 조각마다 : 어디서 시작해서 어디서 끝나나 */
+	$cuts = array(
+		'cover'   => array( '표지 만드는 곳',      "/* ── 01 표지",        "/* ── 02 여는 글" ),
+		'divider' => array( '장 속표지 만드는 곳',  'function sheet(',     'function put(' ),
+		'voice'   => array( '육성 상자 첫 자리',    '<div class="voice">', '' ),
+		'chart'   => array( '여덟 글자 표',         '<div class="chart',   '네 자리가' ),
+		'css'     => array( '표지 · 속표지 색표',   '#ssb .cover{',        '/* ── 가디언 육성' ),
+	);
+
+	echo '<h1>책 한 조각 꺼내 보기</h1>';
+
+	if ( ! isset( $cuts[ $what ] ) ) {
+		echo '<p class="dim">볼 수 있는 조각 —</p><ul>';
+		foreach ( $cuts as $k => $v ) {
+			echo '<li><a href="/?stella_peek=' . esc_attr( $k ) . '">'
+			   . '<code>?stella_peek=' . esc_html( $k ) . '</code></a> &middot; '
+			   . esc_html( $v[0] ) . '</li>';
+		}
+		echo '</ul>';
+		exit;
+	}
+
+	list( $name, $from, $to ) = $cuts[ $what ];
+	echo '<h2>' . esc_html( $name ) . '</h2>';
+
+	$a = strpos( $c, $from );
+	if ( false === $a ) {
+		echo '<p class="no">시작 자리(' . esc_html( $from ) . ')를 못 찾았습니다.</p>';
+		exit;
+	}
+
+	if ( '' === $to ) {
+		$len = 1800;
+	} else {
+		$b = strpos( $c, $to, $a );
+		if ( false === $b ) { $len = 4000; }
+		else { $len = $b - $a; }
+	}
+	if ( $len > 22000 ) { $len = 22000; }
+
+	$bit = substr( $c, $a, $len );
+
+	echo '<p class="ok">' . number_format( $a ) . '번째 글자부터 '
+	   . number_format( strlen( $bit ) ) . ' 바이트</p>';
+	echo '<p class="dim">아래 칸을 한 번 눌러 전체 선택(Ctrl+A 또는 Cmd+A)한 뒤 '
+	   . '복사해서 보내주세요.</p>';
+	echo '<textarea readonly onclick="this.select()">' . esc_textarea( $bit ) . '</textarea>';
+	echo '<p class="dim">이 화면은 읽기만 했습니다. 아무것도 바꾸지 않았습니다.</p>';
+	exit;
+}, 0 );

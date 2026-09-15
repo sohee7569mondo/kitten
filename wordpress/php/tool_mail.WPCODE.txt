@@ -1,0 +1,126 @@
+/* ════════════════════════════════════════════════════════════
+   메일이 왜 안 오나 — 보기만 하는 도구
+   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다. 마지막 칸(시험 보내기)만 실제로
+   메일을 한 통 보냅니다. 그것도 주소를 직접 적으셔야 갑니다.
+
+   보기        https://stellasaju.com/?stella_mail=1
+   시험 보내기  https://stellasaju.com/?stella_mail=1&send=주소@메일.com
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_mail'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	echo "═══ 메일 살펴보기 ═══\n\n";
+
+	/* ── 1. 보낸 기록 ───────────────────────────────── */
+	$log = get_option( 'stella_mail_log', array() );
+	if ( ! is_array( $log ) ) { $log = array(); }
+
+	echo "── 1. 최근 보낸 기록 (" . count( $log ) . "건) ──\n";
+	if ( ! $log ) {
+		echo "  아무 기록도 없습니다.\n";
+		echo "  → 메일을 「보내려는 시도조차」 안 했다는 뜻입니다.\n";
+		echo "    받는 쪽 문제가 아니라 이쪽 문제입니다.\n";
+	} else {
+		$log = array_slice( $log, -20 );
+		foreach ( $log as $e ) {
+			$at   = isset( $e['at'] ) ? (int) $e['at'] : 0;
+			$when = $at ? wp_date( 'm/d H:i', $at ) : '??';
+			$ok   = ! empty( $e['ok'] ) ? '보냈음' : '못보냄';
+			echo sprintf( "  %s  %s  %s\n", $when, $ok, isset( $e['to'] ) ? $e['to'] : '' );
+			echo sprintf( "            %s\n", isset( $e['subj'] ) ? $e['subj'] : '' );
+			if ( empty( $e['ok'] ) ) {
+				$why = isset( $e['why'] ) ? (string) $e['why'] : '';
+				echo '            사유: ' . ( $why !== '' ? $why : '(안 남음)' ) . "\n";
+			}
+		}
+	}
+	echo "\n";
+
+	/* ── 2. 마지막 실패 사유 ────────────────────────── */
+	$err = get_transient( 'stella_mail_err' );
+	echo "── 2. 마지막 실패 사유 ──\n";
+	echo '  ' . ( $err ? $err : '(없음)' ) . "\n\n";
+
+	/* ── 3. 로그인 링크를 받을 수 있는 계정인가 ─────── */
+	echo "── 3. 요즘 가입한 분들 ──\n";
+	echo "  메일 링크는 「손님 계정」에게만 갑니다.\n";
+	echo "  사이트를 고칠 수 있는 계정(관리자·편집자)에게는\n";
+	echo "  일부러 안 보냅니다. 메일함이 곧 열쇠가 되니까요.\n\n";
+
+	$users = get_users( array(
+		'number'  => 12,
+		'orderby' => 'registered',
+		'order'   => 'DESC',
+	) );
+	foreach ( $users as $u ) {
+		$can = true;
+		if ( user_can( $u->ID, 'edit_posts' ) )    { $can = false; }
+		if ( user_can( $u->ID, 'manage_options' ) ) { $can = false; }
+		echo sprintf(
+			"  %-32s %-12s %s\n",
+			$u->user_email,
+			implode( ',', (array) $u->roles ),
+			$can ? '링크 받음' : '★ 링크 안 감 (관리자·편집자)'
+		);
+		echo sprintf( "     가입 %s\n", $u->user_registered );
+	}
+	echo "\n";
+
+	/* ── 4. 보내는 사람 주소 ────────────────────────── */
+	echo "── 4. 보내는 사람 ──\n";
+	echo '  이름  ' . apply_filters( 'wp_mail_from_name', 'WordPress' ) . "\n";
+	$def = 'wordpress@' . preg_replace( '/^www\./', '', (string) parse_url( home_url(), PHP_URL_HOST ) );
+	echo '  주소  ' . apply_filters( 'wp_mail_from', $def ) . "\n\n";
+
+	/* ── 5. 함수가 살아 있나 ────────────────────────── */
+	echo "── 5. 스니펫이 켜져 있나 ──\n";
+	foreach ( array( 'stella_mail', 'stella_login_send', 'stella_rest_signup', 'stella_login_allowed' ) as $fn ) {
+		echo sprintf( "  %-24s %s\n", $fn, function_exists( $fn ) ? '있음' : '★ 없음' );
+	}
+	echo "\n";
+
+	/* ── 6. 가입 길이 열려 있나 ─────────────────────── */
+	echo "── 6. 가입 길 ──\n";
+	$routes = rest_get_server()->get_routes();
+	foreach ( array( '/stella/v1/signup', '/stella/v1/order', '/stella/v1/login' ) as $r ) {
+		echo sprintf( "  %-22s %s\n", $r, isset( $routes[ $r ] ) ? '열려 있음' : '★ 없음' );
+	}
+	echo "\n";
+
+	/* ── 7. 시험 보내기 ─────────────────────────────── */
+	echo "── 7. 시험 보내기 ──\n";
+	$to = isset( $_GET['send'] ) ? sanitize_email( wp_unslash( $_GET['send'] ) ) : '';
+	if ( $to === '' ) {
+		echo "  주소를 적으시면 한 통 보내봅니다.\n";
+		echo '  ' . home_url( '/?stella_mail=1&send=주소@메일.com' ) . "\n";
+	} else {
+		delete_transient( 'stella_mail_err' );
+		$sent = wp_mail(
+			$to,
+			'[스텔라사주] 메일이 가는지 보는 시험',
+			"이 메일이 도착했다면 보내는 쪽은 멀쩡합니다.\n\n— 스텔라 사주"
+		);
+		echo '  받는 곳  ' . $to . "\n";
+		echo '  결과     ' . ( $sent ? '보냈음' : '★ 못 보냄' ) . "\n";
+		if ( ! $sent ) {
+			$e2 = get_transient( 'stella_mail_err' );
+			echo '  사유     ' . ( $e2 ? $e2 : '(안 남음)' ) . "\n";
+		} else {
+			echo "  → 그래도 안 오면 스팸함을 보세요. 거기도 없으면\n";
+			echo "    도메인 인증(SPF·DKIM) 쪽입니다.\n";
+		}
+	}
+
+	echo "\n═══ 끝 ═══\n";
+	exit;
+}, 1 );
