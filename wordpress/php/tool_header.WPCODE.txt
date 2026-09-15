@@ -115,6 +115,49 @@ add_action( 'wp_footer', function () {
     }
     add('');
 
+    /* ── 바닥글 ──────────────────────────────────────────
+       2026-09-15 · 소희 님 : 「풋터가 어떨떈 아이보리바탕으로
+       어떨떈 진한 바탕으로 나오던데」
+       바닥글에 제 배경색이 없으면 뒤의 body 색이 그대로 비칩니다.
+       쪽마다 body 색이 달라서 그렇게 보일 수 있습니다.
+       그래서 바닥글과 그 위 상자들의 배경색을 차례로 찍습니다. */
+    function bgc(el){
+      try{
+        var v = window.getComputedStyle(el).backgroundColor;
+        if(!v){ return '(없음)'; }
+        return v;
+      }catch(e){ return '(못봄)'; }
+    }
+    add('── 바닥글 ──');
+    add('  body 배경 : ' + bgc(document.body));
+    var html0 = document.documentElement;
+    add('  html 배경 : ' + bgc(html0));
+    var fts = document.querySelectorAll('footer');
+    add('  footer 태그 ' + fts.length + '개');
+    for(i = 0; i < fts.length; i++){
+      add('    [' + i + '] .' + String(fts[i].className || '(이름없음)').slice(0, 44));
+      add('        배경색 ' + bgc(fts[i]) + (bg(fts[i]) ? ' · 배경그림 있음' : ''));
+      /* 위로 세 겹 올라가며 — 어디서 색이 오는지 */
+      var n = fts[i].parentNode, k = 0;
+      while(n){
+        if(!n.tagName){ break; }
+        if(n.tagName.toLowerCase() === 'body'){ break; }
+        add('        위 ' + n.tagName.toLowerCase() + ' .'
+          + String(n.className || '').slice(0, 36) + ' → ' + bgc(n));
+        k++;
+        if(k > 2){ break; }
+        n = n.parentNode;
+      }
+      /* 바닥글 안 첫 상자들 */
+      var kids = fts[i].children, j;
+      for(j = 0; j < kids.length; j++){
+        if(j > 3){ break; }
+        add('        안 ' + kids[j].tagName.toLowerCase() + ' .'
+          + String(kids[j].className || '').slice(0, 36) + ' → ' + bgc(kids[j]));
+      }
+    }
+    add('');
+
     /* 첫 머리글 속을 세 겹까지 그대로 */
     var h = alls.length ? alls[0] : (tp.length ? tp[0] : null);
     if(h){
