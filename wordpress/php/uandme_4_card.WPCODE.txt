@@ -15,6 +15,8 @@
    확인 : https://stellasaju.com/um-card/63-lover-30-12-24
    ════════════════════════════════════════════════════════════ */
 
+define( 'STELLA_UM_CARD_VER', '2026-09-15 카드-4' );
+
 /* ── 카드 파일과 그 CDN 주소 ───────────────────────────
    카카오가 우리 서버에서 그림을 못 가져오는 듯하여, 카드를 진짜 파일로
    남기고 워드프레스닷컴 그림 CDN(i0.wp.com) 주소를 알려줍니다.
@@ -443,7 +445,56 @@ add_action( 'init', function () {
 	$map = get_option( 'stella_um_bg_map', array() );
 	if ( ! is_array( $map ) ) { $map = array(); }
 
+	if ( 'clear' === $v ) {
+		/* 만들어 둔 카드 그림을 다 지웁니다. 판이나 글을 바꿨는데
+		   옛 그림이 그대로 보일 때 씁니다. */
+		$up  = wp_upload_dir();
+		$dir = $up['basedir'] . '/uandme/card';
+		$n   = 0;
+		if ( is_dir( $dir ) ) {
+			foreach ( (array) glob( $dir . '/*.png' ) as $f ) {
+				if ( @unlink( $f ) ) { $n++; }
+			}
+		}
+		echo "만들어 둔 카드 " . $n . "장을 지웠습니다.\n";
+		echo "이제 카드를 다시 열면 새로 그립니다.\n";
+		exit;
+	}
+
 	if ( '1' === $v || '' === $v ) {
+		echo "판 시각  " . STELLA_UM_CARD_VER . "\n";
+		echo "  ★ 이 줄이 안 보이거나 날짜가 옛것이면, WPCode 에 새 조각이\n";
+		echo "    안 들어갔거나 **옛 조각이 아직 켜져 있는** 것입니다.\n\n";
+
+		/* 같은 일을 하는 조각이 둘이면 먼저 걸린 쪽이 이깁니다 —
+		   함수에 function_exists 울타리가 있어 탈은 안 나지만,
+		   옛 그림이 그대로 나옵니다. 그래서 세어 봅니다. */
+		$mine = 0;
+		$rows = get_posts( array(
+			'post_type'      => 'wpcode',
+			'post_status'    => 'any',
+			'posts_per_page' => 300,
+		) );
+		$hit = array();
+		foreach ( $rows as $one ) {
+			if ( false === strpos( (string) $one->post_content, 'stella_um_card_name' ) ) { continue; }
+			$mine++;
+			$hit[] = '  · ' . $one->post_title . '  (' . $one->post_status . ')';
+		}
+		echo "카드를 그리는 조각 " . $mine . "개\n" . implode( "\n", $hit ) . "\n";
+		if ( $mine > 1 ) {
+			echo "  ★★ 둘 이상입니다. 옛 조각을 꺼 주세요 — 먼저 걸린 쪽이\n";
+			echo "      이겨서 새 조각이 안 보입니다.\n";
+		}
+		echo "\n";
+
+		$up  = wp_upload_dir();
+		$dir = $up['basedir'] . '/uandme/card';
+		$cnt = is_dir( $dir ) ? count( (array) glob( $dir . '/*.png' ) ) : 0;
+		echo "만들어 둔 카드 " . $cnt . "장\n";
+		echo "  옛 그림이 보이면  ?stella_um_bg=clear  로 지웁니다.\n";
+		echo "  브라우저도 한 번 세게 새로고침하세요 (Ctrl+Shift+R).\n\n";
+
 		$base = (string) get_option( 'stella_um_bg', '' );
 		echo "기본 판\n  " . ( $base ? $base : '(없습니다 — 서버가 직접 그립니다)' ) . "\n";
 		$im = stella_um_bg_open( $base );
@@ -925,11 +976,23 @@ add_action( 'init', function () {
 	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
 	$file = $dir . '/' . stella_um_card_name( $score, $rel, $a, $b, $c,
 		isset( $_GET['n'] ) ? $_GET['n'] : '' );
-	if ( ! file_exists( $file ) ) { @file_put_contents( $file, $png ); }
+	/* 관리자가 보고 있을 때는 늘 새로 그려 덮어씁니다.
+	   안 그러면 판을 바꿔도 처음 만든 그림이 계속 나옵니다. */
+	if ( current_user_can( 'manage_options' ) ) {
+		@file_put_contents( $file, $png );
+	} else {
+		if ( ! file_exists( $file ) ) { @file_put_contents( $file, $png ); }
+	}
 
 	header( 'Content-Type: image/png' );
 	header( 'Content-Length: ' . strlen( $png ) );
-	header( 'Cache-Control: public, max-age=604800' );
+	/* 손님에게는 오래 물려도 되지만, 소희 님이 고치면서 보실 때는
+	   브라우저가 옛 그림을 붙들고 있으면 안 됩니다. */
+	if ( current_user_can( 'manage_options' ) ) {
+		header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+	} else {
+		header( 'Cache-Control: public, max-age=604800' );
+	}
 	header( 'Accept-Ranges: none' );
 	header_remove( 'Expires' );
 	header_remove( 'Pragma' );
