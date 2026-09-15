@@ -71,8 +71,16 @@ add_action( 'wp_head', function () {
 		's'              => 'STELLASAJU_samjae',
 	) );
 	if ( $hit ) {
-		$one = wp_get_attachment_image_url( $hit[0]->ID, 'large' );
-		if ( $one ) { $pic = $one; }
+		/* ★★ image_url( ..., 'large' ) 를 쓰면 안 됩니다 — 2026-09-15
+		   그것은 젯팩 주소에 물음표 뒤 값이 붙은 것을 돌려줍니다
+		       i0.wp.com/....jpg?fit=683%%2C1024   <- 앰퍼샌드가 섞입니다
+		   집 규칙대로 조각 안에는 앰퍼샌드를 두지 않습니다. 워드프레스가
+		   그 글자를 바꿔버리면 주소가 깨져 그림이 안 뜹니다.
+		   파라미터 없는 원본 주소를 씁니다. */
+		$one = wp_get_attachment_url( $hit[0]->ID );
+		if ( $one ) {
+			if ( false === strpos( $one, '?' ) ) { $pic = $one; }
+		}
 	}
 	?>
 <script>window.StellaPicSamjae = '<?php echo esc_js( $pic ); ?>';</script>
