@@ -28,25 +28,44 @@ add_action( 'wp_head', function () {
 	$u = get_option( 'stella_banner_img', '' );
 	if ( ! $u ) { return; }
 	$u = esc_url( $u );
+
+	/* 덮개 세기 — 그림 위에 보라를 얼마나 씌울까
+	   진하게 : 지금 홈과 같음 (왼쪽 36% 를 아주 덮습니다)
+	   옅게   : 글씨 자리만 살짝
+	   없이   : 그림 그대로 (왼쪽이 이미 비어 있는 그림에 맞습니다) */
+	$veil = get_option( 'stella_banner_veil', 'thick' );
+	if ( 'none' === $veil ) {
+		$wide = 'none';
+		$thin = 'none';
+	} elseif ( 'thin' === $veil ) {
+		$wide = 'linear-gradient(100deg, rgba(42,26,86,.72) 0%, rgba(42,26,86,.55) 40%, rgba(42,26,86,.15) 62%, rgba(42,26,86,0) 80%)';
+		$thin = 'linear-gradient(170deg, rgba(42,26,86,.78) 0%, rgba(42,26,86,.62) 46%, rgba(42,26,86,.28) 74%, rgba(42,26,86,.08) 100%)';
+	} else {
+		$wide = 'linear-gradient(100deg, #2A1A56 0%, #2A1A56 36%, rgba(42,26,86,.88) 50%, rgba(42,26,86,.35) 68%, rgba(42,26,86,0) 86%)';
+		$thin = 'linear-gradient(170deg, rgba(42,26,86,.92) 0%, rgba(42,26,86,.86) 46%, rgba(42,26,86,.55) 74%, rgba(42,26,86,.25) 100%)';
+	}
+	$img  = "url('" . $u . "')";
+	$bgw  = ( 'none' === $wide ) ? $img : ( $wide . ', ' . $img );
+	$bgt  = ( 'none' === $thin ) ? $img : ( $thin . ', ' . $img );
+	$repw = ( 'none' === $wide ) ? 'no-repeat' : 'no-repeat, no-repeat';
+	$posw = ( 'none' === $wide ) ? 'right center' : 'center, right center';
+	$szw  = ( 'none' === $wide ) ? 'cover' : 'cover, cover';
+	$post = ( 'none' === $thin ) ? '82% center' : 'center, 82% center';
+	$szt  = ( 'none' === $thin ) ? 'auto 116%' : 'cover, auto 116%';
 	?>
 <!-- stella 홈 배너 그림 · 판 2026-09-15 -->
 <style id="stella-banner-img">
 #stellar-home .banner{
-  background-image:
-    linear-gradient(100deg, #2A1A56 0%, #2A1A56 36%, rgba(42,26,86,.88) 50%,
-                    rgba(42,26,86,.35) 68%, rgba(42,26,86,0) 86%),
-    url('<?php echo $u; ?>') !important;
-  background-repeat:no-repeat, no-repeat !important;
-  background-position:center, right center !important;
-  background-size:cover, cover !important; }
+  background-image: <?php echo $bgw; ?> !important;
+  background-repeat: <?php echo $repw; ?> !important;
+  background-position: <?php echo $posw; ?> !important;
+  background-size: <?php echo $szw; ?> !important; }
 @media(max-width:820px){
   #stellar-home .banner{
-    background-image:
-      linear-gradient(170deg, rgba(42,26,86,.92) 0%, rgba(42,26,86,.86) 46%,
-                      rgba(42,26,86,.55) 74%, rgba(42,26,86,.25) 100%),
-      url('<?php echo $u; ?>') !important;
-    background-position:center, 82% center !important;
-    background-size:cover, auto 116% !important; }
+    background-image: <?php echo $bgt; ?> !important;
+    background-repeat: <?php echo $repw; ?> !important;
+    background-position: <?php echo $post; ?> !important;
+    background-size: <?php echo $szt; ?> !important; }
 }
 </style>
 	<?php
@@ -67,7 +86,15 @@ add_action( 'template_redirect', function () {
 		check_admin_referer( 'stella_banner' );
 		$v = esc_url_raw( wp_unslash( $_GET['set'] ) );
 		if ( $v ) { update_option( 'stella_banner_img', $v ); }
-		else      { delete_option( 'stella_banner_img' ); }
+		else      { delete_option( 'stella_banner_img' ); delete_option( 'stella_banner_veil' ); }
+		wp_safe_redirect( add_query_arg( 'stella_banner', '1', home_url( '/' ) ) );
+		exit;
+	}
+	if ( isset( $_GET['veil'] ) ) {
+		check_admin_referer( 'stella_banner' );
+		$w = sanitize_text_field( wp_unslash( $_GET['veil'] ) );
+		if ( ! in_array( $w, array( 'thick', 'thin', 'none' ), true ) ) { $w = 'thick'; }
+		update_option( 'stella_banner_veil', $w );
 		wp_safe_redirect( add_query_arg( 'stella_banner', '1', home_url( '/' ) ) );
 		exit;
 	}
@@ -122,6 +149,24 @@ add_action( 'template_redirect', function () {
 	} else {
 		echo '<span class="dim">아직 안 고르셨습니다 — 쪽에 박힌 '
 		   . 'GVx48.jpg 가 그대로 나옵니다.</span>';
+	}
+	echo '</div>';
+
+	/* 덮개 세기 고르기 */
+	$veil = get_option( 'stella_banner_veil', 'thick' );
+	$VN = array( 'thick' => '진하게 (지금 홈과 같음)',
+	             'thin'  => '옅게 (글씨 자리만)',
+	             'none'  => '없이 (그림 그대로)' );
+	echo '<div class="now"><b>글씨 뒤 보라 덮개</b><br>';
+	echo '<span class="dim">왼쪽이 비어 있는 그림이면 「없이」가 깔끔합니다. '
+	   . '글씨가 안 읽히면 「옅게」로 올리세요.</span><br>';
+	foreach ( $VN as $k => $label ) {
+		$go = wp_nonce_url( add_query_arg(
+			array( 'stella_banner' => '1', 'veil' => $k ), home_url( '/' ) ),
+			'stella_banner' );
+		$on = ( $veil === $k );
+		echo '<a class="btn' . ( $on ? '' : ' gray' ) . '" style="margin:8px 8px 0 0" href="'
+		   . esc_url( $go ) . '">' . esc_html( $label ) . ( $on ? ' ✓' : '' ) . '</a>';
 	}
 	echo '</div>';
 
