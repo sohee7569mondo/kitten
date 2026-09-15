@@ -15,17 +15,18 @@
    어디에 넣나
      findPerson 함수 바로 앞. 그때 PEOPLE 은 이미 만들어져 있습니다.
 
-   ── 쓰는 법 (차례대로) ──
-     ?stella_celeb=hunt      표가 어디 있는지 낱말로 훑습니다 (아무것도 안 바꿈)
-     ?stella_celeb=peek      쪽 하나를 뜯어봅니다 (기본 193 · ?id= 로 바꿉니다)
-     ?stella_celeb=stars     쪽에 든 사람을 세어 봅니다 — 겹친 이름 · 동명이인
-     ?stella_celeb=look      사람 이름이 어디 있는지 온 사이트에서 찾습니다
-     ?stella_celeb=dump      쪽 글을 토막내어 그대로 봅니다 (at · n 으로 옮김)
-     ?stella_celeb=clean     겹쳐 들어간 사람을 지웁니다 (기본 406 · go=1 로 실행)
-     ?stella_celeb=find      찾아낸 글을 확인합니다 (아무것도 안 바꿈)
-     ?stella_celeb=preview   무엇이 어떻게 바뀌는지 그대로 보여줍니다
-     ?stella_celeb=apply     실제로 넣습니다 (넣기 전 쪽 전체를 백업)
-     ?stella_celeb=undo      백업으로 되돌립니다
+   ── 쓰는 법 ──
+   읽기만 (아무것도 안 바꿉니다)
+     ?stella_celeb=hunt      낱말이 어느 글에 있는지 훑습니다
+     ?stella_celeb=peek      쪽 하나를 뜯어봅니다 (?id= · 기본 193)
+     ?stella_celeb=stars     쪽에 든 사람을 셉니다 (?id=406)
+     ?stella_celeb=look      사람 이름이 어디 있는지 찾습니다 (?who=)
+     ?stella_celeb=dump      쪽 글을 토막내어 봅니다 (?at= ?n=)
+
+   정리
+     ?stella_celeb=clean       겹쳐 들어간 사람 목록만 봅니다 (기본 406)
+     ?stella_celeb=clean&go=1  실제로 지웁니다 (지우기 전 쪽 전체 백업)
+     ?stella_celeb=cleanundo   되돌립니다
 
    ★ 관리자로 로그인하신 뒤에 여세요.
    ★ 편집기로 저장하지 마세요 — 워드프레스가 역빗금을 벗겨냅니다.
@@ -452,87 +453,17 @@ add_action( 'template_redirect', function () {
 		exit;
 	}
 
-	/* ── 표가 있는 글을 찾습니다 (글종류를 안 가립니다) ───── */
-	$found = array();
-	$ids = $wpdb->get_col( $wpdb->prepare(
-		"SELECT ID FROM {$wpdb->posts} WHERE post_content LIKE %s",
-		'%' . $wpdb->esc_like( 'findPerson' ) . '%' ) );
-	foreach ( $ids as $pid ) {
-		$c = get_post_field( 'post_content', $pid );
-		if ( ! preg_match( $re, $c ) ) { continue; }
-		$found[] = (int) $pid;
-	}
+	/* ★ find · preview · apply · undo 는 걷어냈습니다 (2026-09-15)
+	   까닭 —
+	     ① 쪽 글에 window.StellaCeleb=PEOPLE; 를 넣을 이유가 없어졌습니다.
+	        살아 있는 스타 사주(쪽 406)는 자료가 쪽 안 JSON 이고
+	        findPerson 이라는 함수도 없습니다. 제 짐작이 틀렸습니다.
+	     ② 더 위험한 것 — 이 조각 머리말에 'function findPerson(' 이라는
+	        글자가 있어서, 찾기가 **제 조각 자신**을 집었습니다.
+	        apply 를 누르면 조각이 저를 고칩니다. 그래서 아예 뺍니다.
 
-	if ( ! $found ) {
-		echo "★ 표를 품은 글을 못 찾았습니다.\n\n";
-		echo "  ?stella_celeb=hunt 로 여시면 어디에 무엇이 있는지\n";
-		echo "  낱말별로 훑어 표로 찍어 드립니다. 그것을 보여주세요.\n";
-		exit;
-	}
-
-	foreach ( $found as $pid ) {
-		$post = get_post( $pid );
-		$c    = $post->post_content;
-		$has  = ( strpos( $c, $mark ) !== false );
-		printf( "쪽 %d 「%s」 · %s\n", $pid, $post->post_title,
-			$has ? '이미 넣어져 있습니다' : '아직 안 넣었습니다' );
-		printf( "   슬러그 %s · 글자 %d\n", $post->post_name, strlen( $c ) );
-
-		if ( 'find' === $mode ) { continue; }
-
-		/* 그 자리 글을 그대로 찍어 드립니다 */
-		if ( preg_match( $re, $c, $m, PREG_OFFSET_CAPTURE ) ) {
-			$at = $m[1][1];
-			$from = max( 0, $at - 120 );
-			echo "\n   ── 넣을 자리 앞뒤 ──\n";
-			echo "   " . str_replace( "\n", "\n   ",
-				substr( $c, $from, 240 ) ) . "\n";
-		}
-
-		if ( 'preview' === $mode ) {
-			if ( $has ) { echo "\n   → 이미 있으니 apply 해도 안 바뀝니다.\n\n"; continue; }
-			echo "\n   ── 넣고 나면 ──\n";
-			echo "   " . $mark . "\n";
-			echo "   function findPerson(...\n";
-			echo "\n   ?stella_celeb=apply 로 실제로 넣습니다.\n\n";
-			continue;
-		}
-
-		if ( 'apply' === $mode ) {
-			if ( $has ) { echo "   → 이미 있습니다. 안 건드립니다.\n\n"; continue; }
-			update_post_meta( $pid, '_stella_celeb_backup', $c );
-			$new = preg_replace( $re, $mark . "\n  $1", $c, 1 );
-			if ( $new === null ) { echo "   ★ 바꾸다 탈이 났습니다\n\n"; continue; }
-			if ( $new === $c )   { echo "   ★ 한 군데도 안 바뀌었습니다\n\n"; continue; }
-			wp_update_post( array( 'ID' => $pid, 'post_content' => $new ) );
-			printf( "   → 넣었습니다 (글자 %d → %d)\n", strlen( $c ), strlen( $new ) );
-			echo "   되돌리려면 ?stella_celeb=undo\n\n";
-			continue;
-		}
-
-		if ( 'undo' === $mode ) {
-			$bak = get_post_meta( $pid, '_stella_celeb_backup', true );
-			if ( ! $bak ) { echo "   ★ 백업이 없습니다\n\n"; continue; }
-			printf( "   지금 %d 자 → 백업 %d 자\n", strlen( $c ), strlen( $bak ) );
-			if ( abs( strlen( $c ) - strlen( $bak ) ) > 2000 ) {
-				echo "   ★ 차이가 너무 큽니다. 그 사이에 다른 것이 바뀐 듯합니다.\n";
-				echo "     정말 되돌리시려면 ?stella_celeb=undo2 로 여세요.\n\n";
-				continue;
-			}
-			wp_update_post( array( 'ID' => $pid, 'post_content' => $bak ) );
-			echo "   → 되돌렸습니다\n\n";
-			continue;
-		}
-
-		if ( 'undo2' === $mode ) {
-			$bak = get_post_meta( $pid, '_stella_celeb_backup', true );
-			if ( ! $bak ) { echo "   ★ 백업이 없습니다\n\n"; continue; }
-			wp_update_post( array( 'ID' => $pid, 'post_content' => $bak ) );
-			echo "   → 크기 차이를 무릅쓰고 되돌렸습니다\n\n";
-			continue;
-		}
-	}
-
-	echo "\n쓸 수 있는 주소 : hunt · peek · stars · look · dump · clean · cleanundo\n";
+	   지금 쓰는 것은 읽는 도구 다섯과 정리 하나뿐입니다. */
+	echo "이 주소는 이제 안 씁니다.\n\n";
+	echo "\n쓸 수 있는 주소\n  읽기만 : hunt · peek · stars · look · dump\n  정리   : clean (go=1 로 실행) · cleanundo\n";
 	exit;
 } );
