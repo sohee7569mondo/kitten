@@ -230,7 +230,7 @@ def check():
             bad.append(rel + ' 칸 수가 열이 아닙니다')
             continue
         for i, (name, sub) in enumerate(rows):
-            for t, txt, cap in (('이름', name, 11), ('훅', sub, 24)):
+            for t, txt, cap in (('이름', name, 16), ('훅', sub, 24)):
                 if '&' in txt or "'" in txt or '"' in txt:
                     bad.append(rel + ' ' + str(i) + ' ' + t + ' 따옴표/앰퍼샌드')
                 for ch in txt:
@@ -278,3 +278,78 @@ if __name__ == '__main__':
             print('★ ' + x)
     else:
         print('별명 ' + str(len(RELS) * len(MINS)) + '개 — 어긋남 0')
+
+
+# ══════════════════════════════════════════════════════════════
+#  원고가 있으면 원고가 이깁니다
+#
+#  drafts/유앤미-별명표.md 를 소희 님이 고치시면 그것이 원본입니다.
+#  위의 표는 그 원고를 처음 만들 때 쓴 초안일 뿐입니다.
+#  원고에 빠진 칸이 있으면 그 칸만 초안이 그대로 갑니다.
+# ══════════════════════════════════════════════════════════════
+import os as _os
+import io as _io
+
+_MD = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
+                    '..', 'drafts', '유앤미-별명표.md')
+
+
+def _band_index(title):
+    """「70~79점」 → 그 구간의 자리 번호"""
+    t = title.replace('점', '').strip()
+    if '~' not in t:
+        return -1
+    lo = t.split('~')[0].strip()
+    if not lo.isdigit():
+        return -1
+    lo = int(lo)
+    return MINS.index(lo) if lo in MINS else -1
+
+
+def load_md(path=None):
+    """원고를 읽어 NICK · BODY · EMOJI 를 갈아 끼웁니다."""
+    path = path or _MD
+    if not _os.path.exists(path):
+        return 0
+    rel = None
+    slot = -1
+    n = 0
+    body = []
+    for line in _io.open(path, encoding='utf-8').read().split('\n'):
+        raw = line.rstrip()
+        t = raw.strip()
+        if t.startswith('# ') and '[' in t and t.endswith(']'):
+            key = t[t.rindex('[') + 1:-1]
+            rel = key if key in RELS else None
+            slot = -1
+            continue
+        if t.startswith('## '):
+            if rel is not None:
+                slot = _band_index(t[3:])
+                body = []
+            continue
+        if rel is None or slot < 0:
+            continue
+        if t.startswith('별명'):
+            v = t[2:].strip()
+            if v:
+                NICK[rel][slot] = (v, NICK[rel][slot][1])
+                n += 1
+        elif t.startswith('훅'):
+            v = t[1:].strip()
+            if v:
+                NICK[rel][slot] = (NICK[rel][slot][0], v)
+        elif t.startswith('본문'):
+            v = t[2:].strip()
+            body = [v] if v else []
+            if len(body) == 3:
+                BODY[rel][slot] = list(body)
+        elif raw.startswith('       ') and body:
+            if t:
+                body.append(t)
+                if len(body) == 3:
+                    BODY[rel][slot] = list(body)
+    return n
+
+
+load_md()

@@ -9,7 +9,7 @@
 """
 import io, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from uandme_nick import NICK, RELS, MINS, check
+from uandme_nick import NICK, BODY, EMOJI, RELS, MINS, check
 
 PHP = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                    '..', 'php')
@@ -20,13 +20,19 @@ def js_block():
     L.append('/* ───── uandme-nick.js ───── */')
     L.append('/* 점수 구간마다 붙는 이름 — 관계 일곱 가지 각각 열 칸.')
     L.append('   「좋은 궁합」 같은 설명 대신 이름을 답니다. 카톡에 떴을 때')
-    L.append('   그 이름 하나로 눌러보고 싶어야 하기 때문입니다. */')
+    L.append('   그 이름 하나로 눌러보고 싶어야 하기 때문입니다.')
+    L.append('   칸마다 [별명, 훅 한 줄, [본문 세 문장]].')
+    L.append('   ★ 손으로 고치지 않습니다 — wordpress/tools/uandme_nick.py 를')
+    L.append('     고치고 emit_uandme_nick.py 를 돌립니다. */')
+    L.append('window.UANDME_EMOJI = [' +
+             ', '.join("'" + e + "'" for e in EMOJI) + '];')
     L.append('window.UANDME_NICK = {')
     for k, rel in enumerate(RELS):
-        rows = NICK[rel]
         L.append('  ' + rel + ': [')
-        for name, sub in rows:
-            L.append("    ['" + name + "', '" + sub + "'],")
+        for i, (name, hook) in enumerate(NICK[rel]):
+            b = BODY[rel][i]
+            L.append("    ['" + name + "', '" + hook + "', [" +
+                     ', '.join("'" + x + "'" for x in b) + ']],')
         L.append('  ]' + (',' if k < len(RELS) - 1 else ''))
     L.append('};')
     L.append('')
@@ -35,14 +41,17 @@ def js_block():
     L.append('  for (i = 0; i < t.length; i++) {')
     L.append('    if (score >= t[i].min) { if (score <= t[i].max) {')
     L.append('      var rows = N[rel] ? N[rel] : N.lover;')
-    L.append('      var one  = rows[i] ? rows[i] : [t[i].title, 0];')
+    L.append('      var one  = rows[i] ? rows[i] : [t[i].title, 0, []];')
     L.append('      return { title: one[0] ? one[0] : t[i].title,')
-    L.append('               sub: one[1] ? one[1] : 0,')
+    L.append('               hook: one[1] ? one[1] : 0,')
+    L.append('               lines: one[2] ? one[2] : [],')
+    L.append('               emoji: window.UANDME_EMOJI[i],')
     L.append('               plain: t[i].title,')
     L.append('               comment: t[i].c[rel] || t[i].c.lover };')
     L.append('    } }')
     L.append('  }')
-    L.append("  return { title: '알 수 없음', sub: 0, plain: 0, comment: '' };")
+    L.append("  return { title: '알 수 없음', hook: 0, lines: [], emoji: '',")
+    L.append("           plain: 0, comment: '' };")
     L.append('};')
     return '\n'.join(L) + '\n'
 
@@ -52,6 +61,7 @@ def php_block():
     L.append("/* ── 점수와 관계로 별명 알아내기 ─────────────────────")
     L.append("   주소에 한글을 싣지 않으려고 서버도 같은 표를 갖습니다.")
     L.append("   자바스크립트 쪽 uandme-nick.js 와 한 글자도 다르면 안 됩니다.")
+    L.append("   돌려주는 것 : array( 별명, 훅 한 줄, 본문1, 본문2, 본문3 )")
     L.append("   ★ 고칠 때는 wordpress/tools/uandme_nick.py 를 고치고")
     L.append("     emit_uandme_nick.py 를 돌립니다. 손으로 고치지 않습니다. */")
     L.append("if ( ! function_exists( 'stella_um_nick' ) ) {")
@@ -60,8 +70,10 @@ def php_block():
     L.append("\t\t$tab  = array(")
     for rel in RELS:
         L.append("\t\t\t'" + rel + "' => array(")
-        for name, sub in NICK[rel]:
-            L.append("\t\t\t\tarray( '" + name + "', '" + sub + "' ),")
+        for i, (name, hook) in enumerate(NICK[rel]):
+            b = BODY[rel][i]
+            L.append("\t\t\t\tarray( '" + name + "', '" + hook + "', '" +
+                     b[0] + "', '" + b[1] + "', '" + b[2] + "' ),")
         L.append("\t\t\t),")
     L.append("\t\t);")
     L.append("\t\t$rows = isset( $tab[ $rel ] ) ? $tab[ $rel ] : $tab['lover'];")

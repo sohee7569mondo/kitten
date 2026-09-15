@@ -256,19 +256,29 @@ add_action( 'wp_head', function () {
     if (a) { if (b) { return a + ' X ' + b; } }
     return '';
   }
+  function tierOf() {
+    try { return window.UANDME_TIER(st.result.total, st.rel); }
+    catch (e) { return { title: '', hook: '', emoji: '', lines: [] }; }
+  }
+  /* 카톡 글머리 — 이모지와 별명이 먼저 보여야 눌러봅니다.
+     그림에는 이모지를 못 그립니다(글꼴에 없어 네모가 납니다).
+     글에는 얼마든지 쓸 수 있으므로 여기서만 씁니다. */
   function kakaoTitle() {
     if (!st.result) { return '우리 궁합, 몇 점일까?'; }
-    var t = '';
-    try { t = window.UANDME_TIER(st.result.total, st.rel).title || ''; } catch (e) { t = ''; }
-    var who = twoNames();
-    if (who) { return who + ' - ' + t; }
-    return '우리 ' + st.result.total + '점 - ' + t;
+    var t = tierOf();
+    var em = t.emoji ? t.emoji + ' ' : '';
+    return em + t.title;
   }
   function kakaoDesc() {
     if (!st.result) {
       return '생일 두 개면 끝. 사주와 별자리와 띠를 함께 봅니다';
     }
-    return st.result.total + '점 · ' + U.relKo(st.rel) + ' 궁합' +
+    var t = tierOf();
+    var who = twoNames();
+    var head = U.relKo(st.rel) + ' 궁합 ' + st.result.total + '점';
+    if (who) { head = who + ' · ' + head; }
+    var line = t.hook ? t.hook : '';
+    return head + (line ? '\n' + line : '') +
       '\n생일만 넣으면 우리 것도 바로 나와요';
   }
 
@@ -337,67 +347,77 @@ add_action( 'wp_head', function () {
     g.fillStyle = bg; g.fillRect(0, 0, W, H);
 
     var r = st.result, tier = window.UANDME_TIER(r.total, st.rel);
-    g.textAlign = 'center';
 
-    g.fillStyle = '#A79BC4'; g.font = '600 34px "Noto Sans KR",sans-serif';
-    g.fillText('유앤미 · ' + U.relKo(st.rel) + ' 궁합', W / 2, 130);
+    /* ── 글로 된 카드 ──────────────────────────────────
+       2026-09-15 · 소희 님 「그래프 말고 문구로 바이럴시킬까?」
+       막대와 항목 칸을 걷어냈습니다. 받아 보는 사람에게 숫자는
+       아무 뜻이 없고, 글은 눌러보게 만듭니다. */
 
-    var who = (st.me.name || '나') + ' × ' + (st.you.name || '너');
-    g.fillStyle = '#8C82A6'; g.font = '500 38px "Noto Sans KR",sans-serif';
-    g.fillText(who, W / 2, 205);
+    /* 흰 판 */
+    g.fillStyle = '#FFFFFF';
+    rr(g, 40, 40, W - 80, H - 80, 48); g.fill();
 
-    /* 큰 점수 좌우로 둘이 마주봅니다 */
+    /* 오른쪽 위 부드러운 얼룩 둘 */
+    g.fillStyle = 'rgba(198,176,240,.55)';
+    g.beginPath(); g.arc(940, 120, 150, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(248,186,206,.52)';
+    g.beginPath(); g.arc(1020, 230, 110, 0, Math.PI * 2); g.fill();
+
+    var X = 96;
+    g.textAlign = 'left';
+
+    /* ① 딱지 — 무슨 검사이고 몇 점인지 */
+    var chip = U.relKo(st.rel) + ' 궁합 · ' + r.total + '점';
+    g.font = '700 34px "Noto Sans KR",sans-serif';
+    var cw = g.measureText(chip).width;
+    g.fillStyle = '#F4ECFF';
+    rr(g, X, 140, cw + 56, 68, 34); g.fill();
+    g.fillStyle = '#6B5BA8';
+    g.fillText(chip, X + 28, 185);
+
+    /* ② 두 사람 이름 */
+    var who = (st.me.name || '') + ' X ' + (st.you.name || '');
+    if (st.me.name) { if (st.you.name) {
+      g.fillStyle = '#A79BC4'; g.font = '500 30px "Noto Sans KR",sans-serif';
+      g.fillText(who, X + cw + 78, 185);
+    } }
+
+    /* ③ 훅 — 속으로 되묻게 되는 질문 */
+    g.fillStyle = '#7C7392'; g.font = '600 44px "Noto Sans KR",sans-serif';
+    g.fillText(tier.hook ? tier.hook : '', X, 300);
+
+    /* ④ 별명 — 이 카드의 주인공 */
+    var nm = tier.title, fs = 84;
+    g.font = '700 ' + fs + 'px Jua,"Noto Sans KR",sans-serif';
+    while (fs > 40) {
+      if (g.measureText(nm).width <= W - X * 2) { break; }
+      fs = fs - 2;
+      g.font = '700 ' + fs + 'px Jua,"Noto Sans KR",sans-serif';
+    }
+    g.fillStyle = '#3F3A52';
+    g.fillText(nm, X, 400);
+
+    /* ⑤ 본문 세 문장 */
+    var lines = tier.lines ? tier.lines : [], li;
+    g.font = '500 36px "Noto Sans KR",sans-serif';
+    g.fillStyle = '#7C7392';
+    for (li = 0; li < lines.length; li++) {
+      g.fillText(lines[li], X, 500 + li * 58);
+    }
+
+    /* ⑥ 캐릭터 둘 — 아래에서 마주봅니다 */
     var slotA2 = REL_PIC[st.rel] || '연인';
-    drawPic(g, P[slotA2], 166, 448, 280, 250);
-    drawPic(g, P['__lucky'], 914, 448, 280, 250);
+    drawPic(g, P[slotA2], 330, 900, 330, 300);
+    drawPic(g, P['__lucky'], 750, 900, 330, 300);
 
-    g.fillStyle = '#6B5BA8'; g.font = '700 300px Jua,"Noto Sans KR",sans-serif';
-    g.fillText(String(r.total), W / 2, 520);
-    g.fillStyle = '#A79BC4'; g.font = '500 44px "Noto Sans KR",sans-serif';
-    g.fillText('점', W / 2, 585);
-
-    g.fillStyle = '#3F3A52'; g.font = '700 76px Jua,"Noto Sans KR",sans-serif';
-    g.fillText(tier.title, W / 2, 700);
-
-    /* 세 덩어리 막대 */
-    var blocks = [['사주', r.blocks.saju.score, 40], ['별자리', r.blocks.zodiac.score, 30],
-                  ['띠', r.blocks.animal.score, 30]];
-    var y = 800, i;
-    for (i = 0; i < blocks.length; i++) {
-      var b = blocks[i];
-      g.textAlign = 'left';
-      g.fillStyle = '#8C82A6'; g.font = '700 32px "Noto Sans KR",sans-serif';
-      g.fillText(b[0], 120, y - 14);
-      g.textAlign = 'right';
-      g.fillStyle = '#6B5BA8'; g.font = '700 32px "Noto Sans KR",sans-serif';
-      g.fillText(b[1] + ' / ' + b[2], 960, y - 14);
-      g.fillStyle = '#EAE0F7';
-      rr(g, 120, y, 840, 22, 11); g.fill();
-      var gg = g.createLinearGradient(120, 0, 960, 0);
-      gg.addColorStop(0, '#C3B2F0'); gg.addColorStop(1, '#F4B9D4');
-      g.fillStyle = gg;
-      rr(g, 120, y, Math.max(24, 840 * (b[1] / b[2])), 22, 11); g.fill();
-      y += 92;
-    }
-
-    /* 네 항목 */
-    var cats = [['성격', r.categories.personality], ['연애', r.categories.love],
-                ['결혼', r.categories.marriage], ['금전', r.categories.money]];
-    var bx = 120, bw = (840 - 3 * 18) / 4;
-    for (i = 0; i < 4; i++) {
-      g.fillStyle = 'rgba(255,255,255,.85)';
-      rr(g, bx, 1090, bw, 130, 32); g.fill();
-      g.textAlign = 'center';
-      g.fillStyle = '#A79BC4'; g.font = '500 28px "Noto Sans KR",sans-serif';
-      g.fillText(cats[i][0], bx + bw / 2, 1138);
-      g.fillStyle = '#6B5BA8'; g.font = '700 54px Jua,"Noto Sans KR",sans-serif';
-      g.fillText(String(cats[i][1]), bx + bw / 2, 1196);
-      bx += bw + 18;
-    }
-
-    g.textAlign = 'center';
-    g.fillStyle = '#A79BC4'; g.font = '500 30px "Noto Sans KR",sans-serif';
-    g.fillText('너도 해볼래? · stellasaju.com/uandme', W / 2, 1290);
+    /* ⑦ 발치 — 여기로 오게 하는 한 줄 */
+    var foot = '나도 해보기 · stellasaju.com/uandme';
+    g.font = '700 36px "Noto Sans KR",sans-serif';
+    var fw = g.measureText(foot).width;
+    g.fillStyle = '#3F3A52';
+    rr(g, (W - fw - 76) / 2, 1200, fw + 76, 76, 38); g.fill();
+    g.fillStyle = '#FFFFFF';
+    g.fillText(foot, (W - fw) / 2, 1248);
 
     c.toBlob(function (blob) { cb(blob, c); }, 'image/png');
   }
