@@ -175,11 +175,69 @@
       pages.push('<section class="page"><div class="folio"></div>'+h+'</section>');
     }
 
+    /* ── 장 속표지 ────────────────────────────────────────
+       2026-09-15 · 소희 님 「삼재 들어가니 표지가 없어 숫자가 없어지고
+       제4장이라고 들어가야 하는거 같은데」
+
+       삼재 책에는 장 속표지가 아예 없었습니다. 제목에 붙은 ①②③ 이
+       본문 머리에 그대로 찍히고 있었습니다.
+       신년운세·가족운과 **같은 클래스 이름**을 씁니다. 그러면 책에
+       이미 있는 CSS 가 그대로 먹습니다 — 새 CSS 를 안 만드는 까닭입니다.
+         .dvmark > img   얼굴 (132px 동그라미)
+         .dvwho          가디언 이름
+         .dvno dvch      제 N 장   ← 제일 큽니다
+         h2              장 제목
+         .dvrule         밑줄 */
+    var MARK=['제 1 장','제 2 장','제 3 장','제 4 장','제 5 장',
+              '제 6 장','제 7 장','제 8 장','제 9 장','제 10 장'];
+    var GUARDIAN='미르';
+    var DOORALT='삼재';
+    var DOORIMG='https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_FORTUNE-2026.jpg?resize=264%2C264';
+    var mark=0;
+
+    function sheet(title){
+      var no=MARK[mark] ? MARK[mark] : '';
+      mark++;
+      pages.push('<section class="page divider">'+
+        '<div class="dvmark dvface"><img loading="lazy" decoding="async" '+
+        'alt="'+DOORALT+'" src="'+DOORIMG+'"></div>'+
+        '<p class="dvwho">'+GUARDIAN+'</p>'+
+        '<p class="dvno dvch">'+no+'</p>'+
+        '<h2>'+title+'</h2>'+
+        '<div class="dvrule"></div>'+
+        '<div class="folio"></div></section>');
+    }
+
+    /* 제목 앞에 붙은 ①②③ 은 제가 쓰기 좋으라고 단 번호입니다.
+       책에는 「제 N 장」 딱지가 따로 있으니 뗍니다. */
+    function bare(t){
+      var v=String(t);
+      while(v.length){
+        var c=v.charCodeAt(0);
+        if(c>=9312){ if(c<=9331){ v=v.slice(1); continue; } }
+        if(c===32){ v=v.slice(1); continue; }
+        break;
+      }
+      return v;
+    }
+    /* <h2 class='sjh2'>④ 제목</h2> 에서 제목만 꺼냅니다 */
+    function h2text(h){
+      var v=String(h);
+      var a=v.indexOf('>');
+      if(a<0){ return ''; }
+      var z=v.indexOf('<', a+1);
+      if(z<0){ z=v.length; }
+      return bare(v.slice(a+1, z));
+    }
+
     for(i=0;i<blocks.length;i++){
       b=blocks[i];
       if(b.kind==='always'){
         if(String(b.h).indexOf('sjh2')>=0){
           page(html); html='';
+          /* 제목은 속표지에 큰 글씨로 들어가므로 본문에는 안 넣습니다 */
+          sheet(fill(h2text(b.h), nm));
+          continue;
         }
         html+=fill(b.h, nm);
         continue;
@@ -199,6 +257,8 @@
     }
     page(html);
 
+    /* ★ 카드 장 제목은 원고에 sjh2 로 이미 있습니다 (「카드 세 장 —
+       삼재의 세 문」). 여기서 속표지를 또 놓으면 두 장이 됩니다. */
     var card=cardBlock(pr, nm, slot, blocks);
     if(card){ pages.push('<section class="page"><div class="folio"></div>'+card+'</section>'); }
 
