@@ -17,6 +17,7 @@
 
    ── 쓰는 법 (차례대로) ──
      ?stella_celeb=hunt      표가 어디 있는지 낱말로 훑습니다 (아무것도 안 바꿈)
+     ?stella_celeb=peek      쪽 하나를 뜯어봅니다 (기본 193 · ?id= 로 바꿉니다)
      ?stella_celeb=find      찾아낸 글을 확인합니다 (아무것도 안 바꿈)
      ?stella_celeb=preview   무엇이 어떻게 바뀌는지 그대로 보여줍니다
      ?stella_celeb=apply     실제로 넣습니다 (넣기 전 쪽 전체를 백업)
@@ -80,6 +81,76 @@ add_action( 'template_redirect', function () {
 			}
 		}
 		echo "\n찾으신 자리를 알려주시면 그 자리에 맞춰 넣겠습니다.\n";
+		exit;
+	}
+
+	/* ── 쪽 하나를 뜯어봅니다 ──────────────────────────────
+	   2026-09-15 · hunt 로 알아낸 것 —
+	     살아 있는 스타 사주는 page 193 「인물 사주」(celeb) 25,472자.
+	     제 사본(68,741자)과 딴 물건이고, findPerson 도 PEOPLE 도
+	     없습니다. 500명은 그 쪽에 안 들어갑니다.
+	   그래서 쪽이 표를 어디서 가져오는지 찾습니다. */
+	if ( 'peek' === $mode ) {
+		$pid = isset( $_GET['id'] ) ? (int) $_GET['id'] : 193;
+		$post = get_post( $pid );
+		if ( ! $post ) { echo "★ 쪽 {$pid} 이 없습니다\n"; exit; }
+		$c = $post->post_content;
+		printf( "쪽 %d 「%s」 · 슬러그 %s · %d자\n\n",
+			$pid, $post->post_title, $post->post_name, strlen( $c ) );
+
+		echo "── 큰 표 같은 변수 선언 ──\n";
+		if ( preg_match_all( '#(var|const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*[\[{]#u',
+		                     $c, $mm, PREG_SET_ORDER ) ) {
+			foreach ( $mm as $m ) { printf( "   %s %s\n", $m[1], $m[2] ); }
+		} else { echo "   없습니다\n"; }
+
+		echo "\n── 밖에서 가져오는 자리 ──\n";
+		$hit = 0;
+		foreach ( array( 'fetch(', 'wp-json', '.json', 'XMLHttpRequest',
+		                 'ajax', 'admin-ajax', 'window.Stella', 'apply_filters',
+		                 'shortcode', 'wp_localize' ) as $w ) {
+			$n = substr_count( $c, $w );
+			if ( ! $n ) { continue; }
+			$hit++;
+			printf( "   %-16s %d번\n", $w, $n );
+			$at = strpos( $c, $w );
+			echo "      " . str_replace( "\n", " ",
+				substr( $c, max( 0, $at - 60 ), 170 ) ) . "\n";
+		}
+		if ( ! $hit ) { echo "   없습니다 — 표가 쪽 안에 통째로 있을 수 있습니다\n"; }
+
+		echo "\n── window 에 내놓는 이름 ──\n";
+		if ( preg_match_all( '#window\.([A-Za-z_$][\w$]*)#u', $c, $mm ) ) {
+			$u = array_unique( $mm[1] );
+			foreach ( $u as $w ) { echo "   window.$w\n"; }
+		} else { echo "   없습니다\n"; }
+
+		echo "\n── 이름이 celeb · star · 스타 · 인물 인 스니펫 ──\n";
+		global $wpdb;
+		$rows = $wpdb->get_results(
+			"SELECT ID, post_title, post_name, CHAR_LENGTH(post_content) AS n
+			   FROM {$wpdb->posts}
+			  WHERE post_type = 'wpcode'
+			    AND ( post_title LIKE '%celeb%' OR post_title LIKE '%star%'
+			       OR post_title LIKE '%스타%' OR post_title LIKE '%인물%'
+			       OR post_name  LIKE '%celeb%' OR post_name  LIKE '%star%' )
+		   ORDER BY n DESC LIMIT 20" );
+		if ( $rows ) {
+			foreach ( $rows as $r ) {
+				printf( "   %5d  %-30s %s  %d자\n", $r->ID,
+					mb_substr( (string) $r->post_title, 0, 28 ), $r->post_name, $r->n );
+			}
+		} else { echo "   없습니다\n"; }
+
+		echo "\n── 큰 스니펫 열 개 (표가 든 것을 찾습니다) ──\n";
+		$rows = $wpdb->get_results(
+			"SELECT ID, post_title, CHAR_LENGTH(post_content) AS n
+			   FROM {$wpdb->posts} WHERE post_type = 'wpcode'
+		   ORDER BY n DESC LIMIT 10" );
+		foreach ( $rows as $r ) {
+			printf( "   %5d  %-34s %d자\n", $r->ID,
+				mb_substr( (string) $r->post_title, 0, 32 ), $r->n );
+		}
 		exit;
 	}
 
@@ -164,6 +235,6 @@ add_action( 'template_redirect', function () {
 		}
 	}
 
-	echo "\n쓸 수 있는 주소 : hunt · find · preview · apply · undo\n";
+	echo "\n쓸 수 있는 주소 : hunt · peek · find · preview · apply · undo\n";
 	exit;
 } );
