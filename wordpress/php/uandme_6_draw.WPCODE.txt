@@ -382,9 +382,9 @@ add_action( 'wp_head', function () {
       g.fillText(who, X + cw + 78, 185);
     } }
 
-    /* ③ 훅 — 속으로 되묻게 되는 질문 */
+    /* ③ 요약 — 점수 구간이 말해주는 한 줄 (관계를 안 가립니다) */
     g.fillStyle = '#7C7392'; g.font = '600 44px "Noto Sans KR",sans-serif';
-    g.fillText(tier.hook ? tier.hook : '', X, 300);
+    g.fillText(tier.sum ? tier.sum : '', X, 300);
 
     /* ④ 별명 — 이 카드의 주인공 */
     var nm = tier.title, fs = 84;
