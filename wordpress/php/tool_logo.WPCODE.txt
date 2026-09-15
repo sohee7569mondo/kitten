@@ -6,6 +6,11 @@
    어두운 배경용(흰색)과 밝은 배경용(남색), 가로형과 아이콘.
    머리글은 밤하늘(#0D0A1A)이라 **흰색 가로형**이 맞습니다.
 
+   ★★ 다른 로고 조각을 **꼭 끄세요** — patch_logo · patch_logotext ·
+     patch_logotext2. 켜져 있으면 그것이 글씨를 또 넣어 우리 그림과
+     겹칩니다 (소희 님이 보신 「기존것이 보이고 새로운 것이 덮는」).
+     못 끄셔도 우리가 이기도록 열다섯 초 동안 자리를 지키지만,
+     끄시는 편이 깨끗합니다.
    ★ 「로고를 글씨로」는 이제 필요 없습니다 — patch_logotext 두 판을
      다 끄세요. 새 로고에 글자가 이미 들어 있습니다.
    ★ 옛 patch_logo 도 끄세요. 그림 주소를 바꾸는 조각이라 서로 덮습니다.
@@ -165,6 +170,34 @@ add_action( 'wp_head', function () {
     return 0;
   }
 
+  /* ── 자리를 지킵니다 ──────────────────────────────────
+     2026-09-15 · 소희 님 : 「로고가 기존것이 보이고 새로운 것이
+     덮는 식으로 글씩가 나오는데」
+     다른 로고 조각(patch_logotext 1·2판)이 아직 켜져 있으면 그것이
+     나중에 글씨를 또 넣습니다. 그러면 우리 그림과 겹칩니다.
+     조각을 못 끄셔도 우리가 이기도록, 우리 그림 말고 다른 것이
+     들어오면 열 몇 초 동안 지켜보며 치웁니다. */
+  function guard(){
+    var a = document.querySelector('.ssnav-logo');
+    if(!a){ return; }
+    var mine = a.querySelector('.stella-logo-new');
+    if(!mine){ fill2(a); return; }
+    var kids = a.childNodes, i, k;
+    for(i = kids.length - 1; i >= 0; i--){
+      k = kids[i];
+      if(k === mine){ continue; }
+      if(k.nodeType === 1){
+        if(String(k.className || '').indexOf('stella-logo-new') >= 0){ continue; }
+      }
+      a.removeChild(k);
+    }
+  }
+  /* 지킬 때는 표(data-logoswap)를 무시하고 다시 채웁니다 */
+  function fill2(box){
+    box.removeAttribute('data-logoswap');
+    fill(box);
+  }
+
   function watch(){
     if(run()){ return; }
     var k = 0;
@@ -174,9 +207,18 @@ add_action( 'wp_head', function () {
       if(k > 30){ clearInterval(t); }
     }, 300);
   }
+  function keep(){
+    var n = 0;
+    var t = setInterval(function(){
+      n++;
+      try{ guard(); }catch(e){}
+      if(n > 30){ clearInterval(t); }     /* 열다섯 초쯤 지켜봅니다 */
+    }, 500);
+  }
+
   if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', watch);
-  } else { watch(); }
+    document.addEventListener('DOMContentLoaded', function(){ watch(); keep(); });
+  } else { watch(); keep(); }
 })();
 </script>
 	<?php
