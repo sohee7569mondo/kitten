@@ -286,8 +286,9 @@ if ( ! function_exists( 'stella_um_font' ) ) {
 
    넣는 법 (관리자만 · 주소창에 한 번씩)
 
-     구간 판   ?stella_um_bg=70|<그림 주소>      70~74 칸에만
-     기본 판   ?stella_um_bg=<그림 주소>         판이 없는 칸 전부
+     기본 판   ?stella_um_bg=0625r.jpg          파일 이름만 주셔도 됩니다
+     구간 판   ?stella_um_bg=70|0625r.jpg       70~74 칸에만
+     (주소를 통째로 넣으셔도 됩니다)
      보기      ?stella_um_bg=1                  지금 어느 칸에 뭐가 있나
      한 칸 빼기 ?stella_um_bg=70|off
      다 빼기   ?stella_um_bg=off
@@ -331,6 +332,46 @@ if ( ! function_exists( 'stella_um_band_of' ) ) {
 			if ( $n >= $b ) { return $b; }
 		}
 		return 0;
+	}
+}
+/* 파일 이름만 주셔도 미디어에서 찾아 줍니다.
+   주소를 통째로 넣으면 「https://」의 빗금 때문에 값이 잘리는 일이
+   있어서, 이름만으로도 되게 했습니다 — 2026-09-15
+     ?stella_um_bg=0625r.jpg */
+if ( ! function_exists( 'stella_um_bg_find' ) ) {
+	function stella_um_bg_find( $name ) {
+		$name = basename( trim( $name ) );
+		if ( '' === $name ) { return ''; }
+		$up = wp_upload_dir();
+
+		/* ① 미디어 서랍에서 이름으로 찾습니다 */
+		$hit = get_posts( array(
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'posts_per_page' => 20,
+			's'              => $name,
+		) );
+		foreach ( $hit as $one ) {
+			$u = wp_get_attachment_url( $one->ID );
+			if ( ! $u ) { continue; }
+			if ( basename( $u ) === $name ) { return $u; }
+		}
+
+		/* ② 그래도 없으면 올린 달 서랍을 뒤집니다 */
+		$year = (int) gmdate( 'Y' );
+		$y = $year + 1;
+		while ( $y >= $year - 2 ) {
+			$m = 12;
+			while ( $m >= 1 ) {
+				$rel  = sprintf( '/%04d/%02d/%s', $y, $m, $name );
+				if ( file_exists( $up['basedir'] . $rel ) ) {
+					return $up['baseurl'] . $rel;
+				}
+				$m--;
+			}
+			$y--;
+		}
+		return '';
 	}
 }
 if ( ! function_exists( 'stella_um_bg_url' ) ) {
@@ -507,8 +548,8 @@ add_action( 'init', function () {
 			echo sprintf( "  %2d~%2d  %s\n", $b, $hi, $say );
 		}
 		echo "\n넣는 법\n";
-		echo "  ?stella_um_bg=70|<그림 주소>   70~74 칸에만\n";
-		echo "  ?stella_um_bg=<그림 주소>      기본 판\n";
+		echo "  ?stella_um_bg=0625r.jpg        기본 판 (파일 이름만)\n";
+		echo "  ?stella_um_bg=70|0625r.jpg     70~74 칸에만\n";
 		echo "  ?stella_um_bg=70|off           그 칸만 빼기\n";
 		echo "  ?stella_um_bg=off              다 빼기\n";
 		exit;
@@ -545,6 +586,17 @@ add_action( 'init', function () {
 		exit;
 	}
 
+	/* 빗금도 콜론도 없으면 파일 이름으로 봅니다 */
+	if ( false === strpos( $v, '/' ) ) {
+		$found = stella_um_bg_find( $v );
+		if ( ! $found ) {
+			echo "★ 미디어에서 「" . $v . "」를 못 찾았습니다.\n";
+			echo "  미디어 서랍에서 그 그림을 눌러 「파일 URL」을 그대로 주셔도 됩니다.\n";
+			exit;
+		}
+		echo "미디어에서 찾았습니다 —\n  " . $found . "\n\n";
+		$v = $found;
+	}
 	$v = esc_url_raw( $v );
 	if ( ! $v ) { echo "★ 주소가 아닙니다.\n"; exit; }
 
