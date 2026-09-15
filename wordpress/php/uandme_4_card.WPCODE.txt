@@ -155,10 +155,54 @@ if ( ! function_exists( 'stella_um_tier' ) ) {
 /* ── 글꼴 한 벌 마련하기 ────────────────────────────────
    서버에 한글 글꼴이 없어서 한 번만 받아 uploads 에 둡니다.
    받는 곳을 여러 군데 두고 되는 데까지 가 봅니다. */
+/* 글꼴 세 벌을 나눠 씁니다 — 2026-09-15 · 소희 님 「글씨가 안이쁜데」
+
+     점수   블랙한산스   굵고 단단합니다. 숫자가 눈에 박힙니다.
+     별명   Jua         둥글고 말랑합니다. 판의 결과 맞습니다.
+     본문   고운돋움     단정해서 읽힙니다. 세 줄이 답답하지 않습니다.
+
+   ★ Jua 에는 **가운뎃점(·)이 없습니다.** 그래서 전부 Jua 로 찍던
+     「유앤미 · 연인 궁합」이 「유앤미 □ 연인 궁합」으로 나오고 있었습니다.
+     가운뎃점이 들어가는 줄은 고운돋움으로 찍습니다.
+   ★ 한 벌이라도 못 받으면 Jua 로 물러납니다. 카드는 늘 나옵니다. */
+if ( ! function_exists( 'stella_um_font_kinds' ) ) {
+	function stella_um_font_kinds() {
+		return array(
+			'jua' => array(
+				'file'  => 'jua.ttf',
+				'where' => array(
+					'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/jua/Jua-Regular.ttf',
+					'https://raw.githubusercontent.com/google/fonts/main/ofl/jua/Jua-Regular.ttf',
+					'https://fonts.googleapis.com/css?family=Jua',
+					'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosanskr/NotoSansKR%5Bwght%5D.ttf',
+					'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/gothica1/GothicA1-Bold.ttf',
+				),
+			),
+			'black' => array(
+				'file'  => 'blackhansans.ttf',
+				'where' => array(
+					'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/blackhansans/BlackHanSans-Regular.ttf',
+					'https://raw.githubusercontent.com/google/fonts/main/ofl/blackhansans/BlackHanSans-Regular.ttf',
+					'https://fonts.googleapis.com/css?family=Black+Han+Sans',
+				),
+			),
+			'dodum' => array(
+				'file'  => 'gowundodum.ttf',
+				'where' => array(
+					'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/gowundodum/GowunDodum-Regular.ttf',
+					'https://raw.githubusercontent.com/google/fonts/main/ofl/gowundodum/GowunDodum-Regular.ttf',
+					'https://fonts.googleapis.com/css?family=Gowun+Dodum',
+				),
+			),
+		);
+	}
+}
 if ( ! function_exists( 'stella_um_font_path' ) ) {
-	function stella_um_font_path() {
+	function stella_um_font_path( $which = 'jua' ) {
+		$k  = stella_um_font_kinds();
+		$f  = isset( $k[ $which ] ) ? $k[ $which ]['file'] : $k['jua']['file'];
 		$up = wp_upload_dir();
-		return $up['basedir'] . '/uandme/jua.ttf';
+		return $up['basedir'] . '/uandme/' . $f;
 	}
 }
 if ( ! function_exists( 'stella_um_font_try' ) ) {
@@ -195,10 +239,15 @@ if ( ! function_exists( 'stella_um_font_try' ) ) {
 	}
 }
 if ( ! function_exists( 'stella_um_font' ) ) {
-	function stella_um_font( &$log = null ) {
+	function stella_um_font( $which = 'jua', &$log = null ) {
 
+		/* 예전처럼 $log 만 넘기던 자리도 그대로 받아줍니다 */
+		if ( is_array( $which ) ) { $which = 'jua'; }
 		if ( null === $log ) { $log = array(); }
-		$ttf = stella_um_font_path();
+
+		$kinds = stella_um_font_kinds();
+		if ( ! isset( $kinds[ $which ] ) ) { $which = 'jua'; }
+		$ttf = stella_um_font_path( $which );
 
 		if ( file_exists( $ttf ) ) {
 			if ( filesize( $ttf ) > 40000 ) {
@@ -209,20 +258,15 @@ if ( ! function_exists( 'stella_um_font' ) ) {
 		$dir = dirname( $ttf );
 		if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
 
-		$where = array(
-			'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/jua/Jua-Regular.ttf',
-			'https://raw.githubusercontent.com/google/fonts/main/ofl/jua/Jua-Regular.ttf',
-			'https://fonts.googleapis.com/css?family=Jua',
-			'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosanskr/NotoSansKR%5Bwght%5D.ttf',
-			'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/gothica1/GothicA1-Bold.ttf',
-		);
-		foreach ( $where as $u ) {
+		foreach ( $kinds[ $which ]['where'] as $u ) {
 			$raw = stella_um_font_try( $u, $log );
 			if ( ! $raw ) { continue; }
 			$ok = @file_put_contents( $ttf, $raw );
 			$log[] = array( $ttf, $ok ? '저장함' : '저장 못 함', strlen( $raw ) . ' 바이트' );
 			if ( $ok ) { return $ttf; }
 		}
+		/* 못 받으면 Jua 로 물러납니다 — 카드는 늘 나와야 합니다 */
+		if ( 'jua' !== $which ) { return stella_um_font( 'jua', $log ); }
 		return '';
 	}
 }
@@ -569,7 +613,11 @@ add_action( 'init', function () {
 		imagefilledellipse( $im, 762 * $S, 128 * $S, 150 * $S, 150 * $S, $blob2 );
 	}
 
-	$font = stella_um_font();
+	$font  = stella_um_font( 'jua' );     /* 별명 · 요약 */
+	$fBlk  = stella_um_font( 'black' );   /* 점수 */
+	$fDod  = stella_um_font( 'dodum' );   /* 본문 · 딱지 · 발치 (가운뎃점이 있습니다) */
+	if ( ! $fBlk ) { $fBlk = $font; }
+	if ( ! $fDod ) { $fDod = $font; }
 
 	/* ── 판 위에 글자 얹기 ───────────────────────────────
 	   소희 님이 그려 주신 판에 맞춰 자리를 잡습니다.
@@ -586,26 +634,26 @@ add_action( 'init', function () {
 		$d2 = imagecolorallocate( $im, 108, 86, 160 );
 
 		/* 가운데 맞춤 · 자리가 좁으면 줄여 넣습니다 */
-		$mid = function ( $sz, $cx, $y, $text, $col, $max ) use ( $im, $font ) {
+		$mid = function ( $ff, $sz, $cx, $y, $text, $col, $max ) use ( $im ) {
 			if ( '' === $text ) { return; }
 			$sz = intval( $sz );
 			$wd = 0;
 			while ( $sz > 8 ) {
-				$bx = imagettfbbox( $sz, 0, $font, $text );
+				$bx = imagettfbbox( $sz, 0, $ff, $text );
 				$wd = $bx[2] - $bx[0];
 				if ( $wd <= $max ) { break; }
 				$sz = $sz - 1;
 			}
-			imagettftext( $im, $sz, 0, intval( $cx - $wd / 2 ), intval( $y ), $col, $font, $text );
+			imagettftext( $im, $sz, 0, intval( $cx - $wd / 2 ), intval( $y ), $col, $ff, $text );
 		};
 		/* 글을 말풍선 너비에 맞춰 여러 줄로 쪼갭니다 */
-		$wrap = function ( $sz, $text, $max ) use ( $font ) {
+		$wrap = function ( $ff, $sz, $text, $max ) {
 			$out  = array();
 			$line = '';
 			$words = explode( ' ', $text );
 			foreach ( $words as $wd ) {
 				$try = ( '' === $line ) ? $wd : ( $line . ' ' . $wd );
-				$bx  = imagettfbbox( $sz, 0, $font, $try );
+				$bx  = imagettfbbox( $sz, 0, $ff, $try );
 				if ( ( $bx[2] - $bx[0] ) > $max ) {
 					if ( '' !== $line ) { $out[] = $line; $line = $wd; continue; }
 				}
@@ -618,55 +666,57 @@ add_action( 'init', function () {
 		$cx = $W * 0.5;
 
 		/* ① 무슨 검사인지 */
-		$mid( $H * 0.024, $cx, $H * 0.085, '유앤미 · ' . $ko . ' 궁합', $w1, $W * 0.8 );
+		$mid( $fDod, $H * 0.024, $cx, $H * 0.085, '유앤미 · ' . $ko . ' 궁합', $w1, $W * 0.8 );
 
 		/* ② 두 사람 */
-		if ( $who ) { $mid( $H * 0.034, $cx, $H * 0.150, $who, $w1, $W * 0.8 ); }
+		if ( $who ) { $mid( $fDod, $H * 0.034, $cx, $H * 0.150, $who, $w1, $W * 0.8 ); }
 
 		/* ③ 점수 — 크게 */
-		$mid( $H * 0.125, $cx, $H * 0.355, $score . '점', $w1, $W * 0.7 );
+		$mid( $fBlk, $H * 0.125, $cx, $H * 0.355, $score . '점', $w1, $W * 0.7 );
 
 		/* ④ 요약 — 점수 구간이 말해주는 한 줄 */
-		$mid( $H * 0.040, $cx, $H * 0.445, $nick[5], $d1, $W * 0.8 );
+		$mid( $font, $H * 0.040, $cx, $H * 0.445, $nick[5], $d1, $W * 0.8 );
 
 		/* ⑤ 보라 말풍선 — 별명 */
-		$mid( $H * 0.034, $W * 0.472, $H * 0.678, $nick[0], $w1, $W * 0.50 );
+		$mid( $font, $H * 0.034, $W * 0.472, $H * 0.678, $nick[0], $w1, $W * 0.50 );
 
 		/* ⑥ 분홍 말풍선 — 본문. 세 문장을 이어 붙여 줄을 나눕니다 */
 		$body = trim( $nick[2] . ' ' . $nick[3] . ' ' . $nick[4] );
 		$bs   = intval( $H * 0.026 );
 		$bw   = $W * 0.50;
-		$rows = $wrap( $bs, $body, $bw );
+		$rows = $wrap( $fDod, $bs, $body, $bw );
 		while ( count( $rows ) > 4 ) {
 			if ( $bs <= 12 ) { break; }
 			$bs   = $bs - 1;
-			$rows = $wrap( $bs, $body, $bw );
+			$rows = $wrap( $fDod, $bs, $body, $bw );
 		}
 		/* 글자는 밑선에 찍힙니다. 가운데로만 셈하면 첫 줄이 말풍선
 		   위로 삐져나옵니다 — 실제로 그려 보고 찾았습니다 (2026-09-15). */
 		$gap = $bs * 1.55;
 		$y0  = $H * 0.820 - ( count( $rows ) - 1 ) * $gap / 2 + $bs * 0.30;
 		foreach ( $rows as $k => $line ) {
-			$mid( $bs, $W * 0.505, $y0 + $k * $gap, $line, $d1, $bw );
+			$mid( $fDod, $bs, $W * 0.505, $y0 + $k * $gap, $line, $d1, $bw );
 		}
 
 		/* ⑦ 발치 — 여기로 오게 하는 한 줄 */
-		$mid( $H * 0.021, $cx, $H * 0.962,
+		$mid( $fDod, $H * 0.021, $cx, $H * 0.962,
 			'나도 해보기 · stellasaju.com/uandme', $d2, $W * 0.9 );
 
 	} else {
 		/* 왼쪽 맞춤 · 자리가 좁으면 줄여 넣습니다 */
-		$put = function ( $size, $x, $y, $text, $col, $max ) use ( $im, $font, $S ) {
+		$put = function ( $size, $x, $y, $text, $col, $max, $ff = '' ) use ( $im, $font, $S ) {
+			if ( ! $ff ) { $ff = $font; }
 			if ( '' === $text ) { return; }
 			while ( $size > 9 ) {
-				$bx = imagettfbbox( $size * $S, 0, $font, $text );
+				$bx = imagettfbbox( $size * $S, 0, $ff, $text );
 				if ( ( $bx[2] - $bx[0] ) <= $max * $S ) { break; }
 				$size = $size - 1;
 			}
-			imagettftext( $im, $size * $S, 0, $x * $S, $y * $S, $col, $font, $text );
+			imagettftext( $im, $size * $S, 0, $x * $S, $y * $S, $col, $ff, $text );
 		};
-		$wide = function ( $size, $text ) use ( $font, $S ) {
-			$bx = imagettfbbox( $size * $S, 0, $font, $text );
+		$wide = function ( $size, $text, $ff = '' ) use ( $font, $S ) {
+			if ( ! $ff ) { $ff = $font; }
+			$bx = imagettfbbox( $size * $S, 0, $ff, $text );
 			return intval( ( $bx[2] - $bx[0] ) / $S );
 		};
 
@@ -674,9 +724,9 @@ add_action( 'init', function () {
 
 		/* ① 딱지 — 무슨 검사이고 몇 점인지 */
 		$chip = $ko . ' 궁합 · ' . $score . '점';
-		$cw   = $wide( 19, $chip );
+		$cw   = $wide( 19, $chip, $fDod );
 		$rr( $X, 46, $X + $cw + 34, 88, 21, imagecolorallocate( $im, 244, 236, 255 ) );
-		$put( 19, $X + 17, 74, $chip, $pur, 300 );
+		$put( 19, $X + 17, 74, $chip, $pur, 300, $fDod );
 
 		/* ② 두 사람 이름 — 있으면 딱지 옆에 작게 */
 		if ( $who ) { $put( 17, $X + $cw + 50, 74, $who, $soft, 200 ); }
@@ -688,15 +738,15 @@ add_action( 'init', function () {
 		$put( 41, $X, 196, $nick[0], $ink, 640 );
 
 		/* ⑤ 본문 세 문장 */
-		$put( 19, $X, 248, $nick[2], $sub, 672 );
-		$put( 19, $X, 280, $nick[3], $sub, 672 );
-		$put( 19, $X, 312, $nick[4], $sub, 672 );
+		$put( 19, $X, 248, $nick[2], $sub, 672, $fDod );
+		$put( 19, $X, 280, $nick[3], $sub, 672, $fDod );
+		$put( 19, $X, 312, $nick[4], $sub, 672, $fDod );
 
 		/* ⑥ 발치 — 여기로 오게 하는 한 줄 */
 		$foot = '나도 해보기 · stellasaju.com/uandme';
-		$fw   = $wide( 18, $foot );
+		$fw   = $wide( 18, $foot, $fDod );
 		$rr( $X - 4, 336, $X + $fw + 32, 372, 18, imagecolorallocate( $im, 63, 58, 82 ) );
-		$put( 18, $X + 10, 361, $foot, $white, 420 );
+		$put( 18, $X + 10, 361, $foot, $white, 420, $fDod );
 	} }
 
 	/* 두 배로 그린 것을 제 크기로 줄입니다 */
