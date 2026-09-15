@@ -229,7 +229,16 @@ add_action( 'wp_head', function () {
   #ssb [data-ny%(Y)s="1"]{
     max-width:900px !important;
     margin-left:auto !important; margin-right:auto !important;
-    padding-left:20px !important; padding-right:20px !important;
+    /* ★★ 좌우 여백 78px — 2026-09-15
+       소희 님 「왼쪽에 여백이 너무 없고」
+       까닭 : 쪽(.page)에 padding-left:0 을 못 박으면서, 원래 책이
+       갖고 있던 좌우 78px(patch160_spacerun)까지 같이 날아갔습니다.
+       크로미움으로 재 보니 1280px 화면에서 글줄이 744px 이 아니라
+       860px 이었습니다 — 116px 더 넓게 퍼져 있었습니다.
+       여백을 쪽이 아니라 **상자**에 줍니다. 그래야 flex 의 stretch 를
+       끄지 않으면서 900 - 156 = 744px 로 원래 폭과 같아집니다.
+       휴대폰은 spacerun 과 같은 22px. */
+    padding-left:78px !important; padding-right:78px !important;
     box-sizing:border-box !important; }
 }
 @media screen{
@@ -256,8 +265,8 @@ add_action( 'wp_head', function () {
     margin-left:0 !important; margin-right:0 !important;
     padding-left:0 !important; padding-right:0 !important;
     max-width:none !important; width:auto !important; }
-  #ssb .book[data-ny%(Y)s="1"] > .page > *,
-  #ssb [data-ny%(Y)s="1"] > .page > *{
+  #ssb .book[data-ny%(Y)s="1"] > .page:not(.divider) > *,
+  #ssb [data-ny%(Y)s="1"] > .page:not(.divider) > *{
     padding-left:0 !important; padding-right:0 !important;
     margin-left:0 !important; margin-right:0 !important;
     max-width:none !important; }
@@ -288,7 +297,7 @@ add_action( 'wp_head', function () {
 @media screen and (max-width:820px){
   #ssb .book[data-ny%(Y)s="1"],
   #ssb [data-ny%(Y)s="1"]{
-    padding-left:16px !important; padding-right:16px !important; }
+    padding-left:22px !important; padding-right:22px !important; }
   /* ★ 2026-09-14 · 소희 님 : 「2026년 폭이 안맞아」
      가족운 책(FAMILY-1)에는 있는데 여기만 빠져 있던 못입니다.
      살아 있는 쪽에 글을 가운데로 미는 규칙이 얹혀 있으면
@@ -306,6 +315,43 @@ add_action( 'wp_head', function () {
   #ssb [data-ny%(Y)s="1"] > .page > h3,
   #ssb [data-ny%(Y)s="1"] > .page > p{ text-align:left; }
 }
+
+/* ══ 장 속표지의 얼굴 — 우리가 직접 박습니다 ═════════════
+   2026-09-15 · 소희 님 「중간에 미르 사진 안들어가고」
+                        「중간에 중간에 사진없음」
+
+   까닭 : 동그라미(.dvmark.dvface)의 크기를 정하는 규칙이 우리
+   조각에 없었습니다. 남의 조각(patch160_face)이 살아 있는 쪽에
+   넣어둔 CSS 에 기대고 있었는데, 우리가 갈아끼운 책에는 그것이
+   안 닿았습니다. 크로미움으로 재 보니 사진이 0 x 0 이었습니다 —
+   자리는 있는데 크기가 없어 한 점도 안 그려집니다.
+
+   그래서 남에게 기대지 않고 우리 울타리 안에 크기를 박습니다.
+   화면과 인쇄 둘 다에 걸리도록 @media 밖에 둡니다. */
+#ssb .book[data-ny%(Y)s="1"] > .page.divider > .dvmark.dvface,
+#ssb [data-ny%(Y)s="1"] > .page.divider > .dvmark.dvface{
+  display:block !important;
+  width:132px !important; height:132px !important;
+  max-width:132px !important; min-width:0 !important;
+  margin:0 auto 16px !important; padding:0 !important;
+  border-radius:50%% !important; overflow:hidden !important;
+  box-sizing:border-box !important; }
+#ssb .book[data-ny%(Y)s="1"] > .page.divider > .dvmark.dvface img,
+#ssb [data-ny%(Y)s="1"] > .page.divider > .dvmark.dvface img{
+  width:100%% !important; height:100%% !important; display:block !important;
+  max-width:none !important; object-fit:cover !important;
+  object-position:center 16%% !important; }
+@media (max-width:640px){
+  #ssb .book[data-ny%(Y)s="1"] > .page.divider > .dvmark.dvface,
+  #ssb [data-ny%(Y)s="1"] > .page.divider > .dvmark.dvface{
+    width:108px !important; height:108px !important; max-width:108px !important;
+    margin-bottom:14px !important; }
+}
+@media print{
+  #ssb .book[data-ny%(Y)s="1"] > .page.divider > .dvmark.dvface img,
+  #ssb [data-ny%(Y)s="1"] > .page.divider > .dvmark.dvface img{
+    -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
 </style>
 <script>
 (function(){
@@ -318,7 +364,10 @@ add_action( 'wp_head', function () {
   /* 장 표지 얼굴 — 문(door-fortune)의 그 해 사진입니다 */
   var GUARDIAN = '미르';
   var DOORALT  = '%(Y)s년 운세';
-  var DOORIMG  = 'https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_FORTUNE-%(Y)s.jpg?resize=264%%2C264';
+  /* ★★ i0.wp.com(젯팩 사진 가속기)을 거치지 않습니다 — 2026-09-15
+     소희 님 「중간에 중간에 사진없음」. 파일은 미디어에 다 있는데
+     i0.wp.com 주소로는 안 떴습니다. 사이트 주소를 곧장 씁니다. */
+  var DOORIMG  = 'https://stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_FORTUNE-%(Y)s.jpg';
   /* ★ 2026-09-14 · 소희 님 : 「2026년이라는 표현은 문장에서 빼세요」
      「원본 데이터에는 {연도}년 … 라고 저장합니다」
      그 말씀대로 해마다 바뀌는 것은 전부 빈칸으로 둡니다. 원고를
@@ -929,6 +978,46 @@ TAIL = u''';
              sp:SP, dae:DAE };
   }
 
+
+  /* ── 겉표지 손보기 ──────────────────────────
+     2026-09-15 · 소희 님 「아치문이 없어」
+
+     ① 아치문(표지의 금빛 테두리)은 patch160_cover 가 쪽에 심어둔
+        CSS 가 그립니다. 그 CSS 는 `.page[data-part="cover"]` 에
+        걸려 있습니다. 살려온 표지에 그 **속성**이 없으면 테두리가
+        한 줄도 안 그려집니다 — 클래스(.cover)만으로는 안 걸립니다.
+        그래서 옮길 때 속성을 반드시 붙여 줍니다.
+
+     ② 부제(.sub)와 제목(h1)은 원본 책이 정합니다. 원본은 우리
+        주제를 모르므로 엉뚱한 기본값을 찍습니다 (소희 님이 보신
+        「THE ARCHITECT」 — 그것은 직업운 부제입니다).
+        글자만 갈아 끼웁니다. 테두리와 자리는 그대로입니다. */
+  var COVSUB='THE YEAR AHEAD';
+  function fixCover(el, ttl){
+    try{
+      var e=el.cloneNode(true);
+      e.setAttribute('data-part','cover');
+      var cls=String(e.className===undefined?'':e.className);
+      if(cls.indexOf('page')<0){ cls=cls+' page'; }
+      if(cls.indexOf('cover')<0){ cls=cls+' cover'; }
+      e.className=cls;
+      var s=e.querySelector('.sub');
+      if(s){ if(COVSUB){ s.textContent=COVSUB; } }
+      var h=e.querySelector('h1');
+      if(h){ if(ttl){
+        var t=String(ttl), i=t.indexOf('님의 ');
+        h.textContent='';
+        if(i<0){ h.appendChild(document.createTextNode(t)); }
+        else{
+          h.appendChild(document.createTextNode(t.slice(0, i+2)));
+          h.appendChild(document.createElement('br'));
+          h.appendChild(document.createTextNode(t.slice(i+3)));
+        }
+      } }
+      return e.outerHTML;
+    }catch(err){ return el.outerHTML; }
+  }
+
   window.StellaNY={ build:build, has:isMine, year:YEAR };
 
   /* ── 관리자에게 보이는 진단 띠 ────────────────────────────
@@ -1001,8 +1090,8 @@ TAIL = u''';
          갈아끼우면 같이 날아갑니다. 카드 쪽을 살리듯 표지도 살립니다. */
       var cov=[];
       try{
-        var cs=bk.querySelectorAll('.page.cover'), ci;
-        for(ci=0; ci<cs.length; ci++){ cov.push(cs[ci].outerHTML); }
+        var cs=bk.querySelectorAll('.page.cover, .page[data-part="cover"]'), ci;
+        for(ci=0; ci<cs.length; ci++){ cov.push(fixCover(cs[ci], r.title)); }
       }catch(e){}
       bk.innerHTML=cov.join('')+r.html+keep.join('');
       bk.setAttribute('data-ny'+YEAR,'1');

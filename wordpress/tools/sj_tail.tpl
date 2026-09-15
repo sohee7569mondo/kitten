@@ -192,12 +192,20 @@
               '제 6 장','제 7 장','제 8 장','제 9 장','제 10 장'];
     var GUARDIAN='미르';
     var DOORALT='삼재';
-    var DOORIMG='https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_FORTUNE-2026.jpg?resize=264%2C264';
+    /* ★★ i0.wp.com(젯팩 사진 가속기)을 거치지 않습니다 — 2026-09-15
+       소희 님 「중간에 중간에 사진없음」. 파일은 미디어에 다 있는데
+       i0.wp.com 주소로는 안 떴습니다. 사이트 주소를 곧장 씁니다.
+       크기는 CSS(.dvmark img)가 잡으므로 resize 도 필요 없습니다. */
+    /* ★ 삼재는 제 그림이 따로 있습니다 — STELLASAJU_samjae.jpg
+       (신년운세 그림을 빌려 쓰고 있었습니다) */
+    var DOORIMG='https://stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_samjae.jpg';
     var mark=0;
+    var TOC=[];          /* 목차에 쓸 장 이름을 여기 모읍니다 */
 
     function sheet(title){
       var no=MARK[mark] ? MARK[mark] : '';
       mark++;
+      TOC.push([no, title]);
       pages.push('<section class="page divider">'+
         '<div class="dvmark dvface"><img loading="lazy" decoding="async" '+
         'alt="'+DOORALT+'" src="'+DOORIMG+'"></div>'+
@@ -257,15 +265,77 @@
     }
     page(html);
 
+    /* ── 목차 ──────────────────────────────────────────
+       2026-09-15 · 소희 님 「이거 보니 삼재에 목차페이지가 없어」
+       장이 일곱이라 한눈에 보는 쪽이 있어야 합니다.
+       ★ 장 이름은 속표지를 만들 때 모아 둔 것을 그대로 씁니다 —
+         따로 적어두면 원고를 고칠 때 어긋납니다. */
+    function tocPage(){
+      if(!TOC.length){ return ''; }
+      var h=['<section class="page sjtoc">',
+             '<p class="sjtoc-lab">차례</p>',
+             '<ol class="sjtoc-list">'], i;
+      for(i=0;i<TOC.length;i++){
+        h.push('<li><span class="sjtoc-no">'+TOC[i][0]+'</span>'+
+               '<span class="sjtoc-t">'+TOC[i][1]+'</span></li>');
+      }
+      h.push('</ol><div class="folio"></div></section>');
+      return h.join('');
+    }
+
     /* ★ 카드 장 제목은 원고에 sjh2 로 이미 있습니다 (「카드 세 장 —
        삼재의 세 문」). 여기서 속표지를 또 놓으면 두 장이 됩니다. */
     var card=cardBlock(pr, nm, slot, blocks);
     if(card){ pages.push('<section class="page"><div class="folio"></div>'+card+'</section>'); }
 
+    /* 목차를 맨 앞에 놓습니다 (겉표지는 그보다 더 앞에 붙습니다) */
+    var toc=tocPage();
+    if(toc){ pages.unshift(toc); }
+
     if(!pages.length){ return null; }
     return { html:pages.join(''), n:pages.length,
              title:(nm?nm+'님의 ':'당신의 ')+'삼재',
              slot:slot, sp:SP, first:first };
+  }
+
+
+  /* ── 겉표지 손보기 ──────────────────────────
+     2026-09-15 · 소희 님 「아치문이 없어」
+
+     ① 아치문(표지의 금빛 테두리)은 patch160_cover 가 쪽에 심어둔
+        CSS 가 그립니다. 그 CSS 는 `.page[data-part="cover"]` 에
+        걸려 있습니다. 살려온 표지에 그 **속성**이 없으면 테두리가
+        한 줄도 안 그려집니다 — 클래스(.cover)만으로는 안 걸립니다.
+        그래서 옮길 때 속성을 반드시 붙여 줍니다.
+
+     ② 부제(.sub)와 제목(h1)은 원본 책이 정합니다. 원본은 우리
+        주제를 모르므로 엉뚱한 기본값을 찍습니다 (소희 님이 보신
+        「THE ARCHITECT」 — 그것은 직업운 부제입니다).
+        글자만 갈아 끼웁니다. 테두리와 자리는 그대로입니다. */
+  var COVSUB='THE THREE YEARS';
+  function fixCover(el, ttl){
+    try{
+      var e=el.cloneNode(true);
+      e.setAttribute('data-part','cover');
+      var cls=String(e.className===undefined?'':e.className);
+      if(cls.indexOf('page')<0){ cls=cls+' page'; }
+      if(cls.indexOf('cover')<0){ cls=cls+' cover'; }
+      e.className=cls;
+      var s=e.querySelector('.sub');
+      if(s){ if(COVSUB){ s.textContent=COVSUB; } }
+      var h=e.querySelector('h1');
+      if(h){ if(ttl){
+        var t=String(ttl), i=t.indexOf('님의 ');
+        h.textContent='';
+        if(i<0){ h.appendChild(document.createTextNode(t)); }
+        else{
+          h.appendChild(document.createTextNode(t.slice(0, i+2)));
+          h.appendChild(document.createElement('br'));
+          h.appendChild(document.createTextNode(t.slice(i+3)));
+        }
+      } }
+      return e.outerHTML;
+    }catch(err){ return el.outerHTML; }
   }
 
   window.StellaSamjae={ build:build, has:isMine, year:YEAR };
@@ -338,8 +408,8 @@
       /* 원본 책의 겉표지를 살려 맨 앞에 붙입니다 */
       var cov=[];
       try{
-        var cs=bk.querySelectorAll('.page.cover'), ci;
-        for(ci=0; ci<cs.length; ci++){ cov.push(cs[ci].outerHTML); }
+        var cs=bk.querySelectorAll('.page.cover, .page[data-part="cover"]'), ci;
+        for(ci=0; ci<cs.length; ci++){ cov.push(fixCover(cs[ci], r.title)); }
       }catch(e){}
 
       bk.innerHTML=cov.join('')+r.html;

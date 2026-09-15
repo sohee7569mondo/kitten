@@ -63,7 +63,16 @@
   #ssb [data-samjae="1"]{
     max-width:900px !important;
     margin-left:auto !important; margin-right:auto !important;
-    padding-left:20px !important; padding-right:20px !important;
+    /* ★★ 좌우 여백 78px — 2026-09-15
+       소희 님 「왼쪽에 여백이 너무 없고」
+       까닭 : 쪽(.page)에 padding-left:0 을 못 박으면서, 원래 책이
+       갖고 있던 좌우 78px(patch160_spacerun)까지 같이 날아갔습니다.
+       크로미움으로 재 보니 1280px 화면에서 글줄이 744px 이 아니라
+       860px 이었습니다 — 116px 더 넓게 퍼져 있었습니다.
+       여백을 쪽이 아니라 **상자**에 줍니다. 그래야 flex 의 stretch 를
+       끄지 않으면서 900 - 156 = 744px 로 원래 폭과 같아집니다.
+       휴대폰은 spacerun 과 같은 22px. */
+    padding-left:78px !important; padding-right:78px !important;
     box-sizing:border-box !important; }
 }
 @media screen{
@@ -90,8 +99,8 @@
     margin-left:0 !important; margin-right:0 !important;
     padding-left:0 !important; padding-right:0 !important;
     max-width:none !important; width:auto !important; }
-  #ssb .book[data-samjae="1"] > .page > *,
-  #ssb [data-samjae="1"] > .page > *{
+  #ssb .book[data-samjae="1"] > .page:not(.divider) > *,
+  #ssb [data-samjae="1"] > .page:not(.divider) > *{
     padding-left:0 !important; padding-right:0 !important;
     margin-left:0 !important; margin-right:0 !important;
     max-width:none !important; }
@@ -122,7 +131,7 @@
 @media screen and (max-width:820px){
   #ssb .book[data-samjae="1"],
   #ssb [data-samjae="1"]{
-    padding-left:16px !important; padding-right:16px !important; }
+    padding-left:22px !important; padding-right:22px !important; }
   /* ★ 2026-09-14 · 소희 님 : 「2026년 폭이 안맞아」
      가족운 책(FAMILY-1)에는 있는데 여기만 빠져 있던 못입니다.
      살아 있는 쪽에 글을 가운데로 미는 규칙이 얹혀 있으면
@@ -140,4 +149,58 @@
   #ssb [data-samjae="1"] > .page > h3,
   #ssb [data-samjae="1"] > .page > p{ text-align:left; }
 }
+/* ══ 장 속표지의 얼굴 — 우리가 직접 박습니다 ═════════════
+   2026-09-15 · 소희 님 「중간에 미르 사진 안들어가고」
+                        「중간에 중간에 사진없음」
+
+   까닭 : 동그라미(.dvmark.dvface)의 크기를 정하는 규칙이 우리
+   조각에 없었습니다. 남의 조각(patch160_face)이 살아 있는 쪽에
+   넣어둔 CSS 에 기대고 있었는데, 우리가 갈아끼운 책에는 그것이
+   안 닿았습니다. 크로미움으로 재 보니 사진이 0 x 0 이었습니다 —
+   자리는 있는데 크기가 없어 한 점도 안 그려집니다.
+
+   그래서 남에게 기대지 않고 우리 울타리 안에 크기를 박습니다.
+   화면과 인쇄 둘 다에 걸리도록 @media 밖에 둡니다. */
+#ssb .book[data-samjae="1"] > .page.divider > .dvmark.dvface,
+#ssb [data-samjae="1"] > .page.divider > .dvmark.dvface{
+  display:block !important;
+  width:132px !important; height:132px !important;
+  max-width:132px !important; min-width:0 !important;
+  margin:0 auto 16px !important; padding:0 !important;
+  border-radius:50% !important; overflow:hidden !important;
+  box-sizing:border-box !important; }
+#ssb .book[data-samjae="1"] > .page.divider > .dvmark.dvface img,
+#ssb [data-samjae="1"] > .page.divider > .dvmark.dvface img{
+  width:100% !important; height:100% !important; display:block !important;
+  max-width:none !important; object-fit:cover !important;
+  object-position:center 16% !important; }
+@media (max-width:640px){
+  #ssb .book[data-samjae="1"] > .page.divider > .dvmark.dvface,
+  #ssb [data-samjae="1"] > .page.divider > .dvmark.dvface{
+    width:108px !important; height:108px !important; max-width:108px !important;
+    margin-bottom:14px !important; }
+}
+@media print{
+  #ssb .book[data-samjae="1"] > .page.divider > .dvmark.dvface img,
+  #ssb [data-samjae="1"] > .page.divider > .dvmark.dvface img{
+    -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
 </style>
+/* ── 목차 쪽 ────────────────────────────────────────────
+   2026-09-15 · 소희 님 「삼재에 목차페이지가 없어」
+   책에 이미 있는 결(가운데 정렬 · 금빛 딱지)을 그대로 씁니다. */
+#ssb .book[data-samjae="1"] > .page.sjtoc,
+#ssb [data-samjae="1"] > .page.sjtoc{ text-align:center; }
+#ssb [data-samjae="1"] .sjtoc-lab{
+  letter-spacing:.32em; font-size:.78rem; opacity:.7;
+  margin:0 0 34px; }
+#ssb [data-samjae="1"] .sjtoc-list{
+  list-style:none; margin:0 auto; padding:0;
+  max-width:520px; text-align:left; }
+#ssb [data-samjae="1"] .sjtoc-list li{
+  display:flex; align-items:baseline; gap:16px;
+  padding:13px 0; border-bottom:1px solid rgba(0,0,0,.08); }
+#ssb [data-samjae="1"] .sjtoc-no{
+  flex:none; width:70px; font-size:.78rem; letter-spacing:.06em;
+  opacity:.68; }
+#ssb [data-samjae="1"] .sjtoc-t{ font-weight:700; line-height:1.6; }

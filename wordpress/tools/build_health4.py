@@ -5,7 +5,9 @@ SRC='/home/user/kitten/wordpress/drafts'
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 def inline(p):
-    p = p.replace('\n','<br>')
+    # ★★ 문단 안에서 줄을 쪼개지 않습니다 — 2026-09-15
+    # 소희 님 「문바꿈 고쳐야 할거 같고」. CLAUDE.md 의 규칙입니다.
+    p = p.replace('\n', ' ')
     p = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', p, flags=re.S)
     p = re.sub(r'(?<!\*)\*([^*\n]+?)\*(?!\*)', r'<em>\1</em>', p)
     return p
