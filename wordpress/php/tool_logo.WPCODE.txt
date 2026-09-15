@@ -36,6 +36,7 @@ add_action( 'wp_head', function () {
 	?>
 <!-- stella 머리글 로고 · 판 2026-09-15 -->
 <style id="stella-logo-swap">
+.ssnav-logo{ display:inline-flex !important; align-items:center; }
 .stella-logo-new{ display:block; height:<?php echo $h; ?>px; width:auto;
   max-width:min(70vw, 420px); object-fit:contain; }
 .stella-logo-old{ display:none !important; }
@@ -104,7 +105,38 @@ add_action( 'wp_head', function () {
     return 0;
   }
 
+  /* ── 로고 자리를 갈아 끼웁니다 ────────────────────────
+     2026-09-15 · ?stella_header=1 로 알아낸 것 —
+       머리글 로고는 <img> 가 아니라 **글자 고리**였습니다.
+         a.ssnav-logo  「STELLA SAJU」
+       그래서 그림을 찾는 그물에 하나도 안 걸렸습니다.
+       (바닥글 로고는 img.ssf-logo 로 그림입니다)
+
+     그러니 그림이든 글자든 **그 자리를 통째로** 새 그림으로 채웁니다.
+     찾는 차례 —
+       ① .ssnav-logo   우리 머리글 차림표의 로고 자리 (지금 이것)
+       ② 머리글 안 로고 그림 (테마가 바뀌었을 때를 대비)
+       ③ 사이트 제목 자리 */
+  function fill(box){
+    if(!box){ return 0; }
+    if(box.getAttribute('data-logoswap') === '1'){ return 0; }
+    var nu = document.createElement('img');
+    nu.className = 'stella-logo-new';
+    nu.setAttribute('src', URL);
+    nu.setAttribute('alt', '스텔라사주');
+    nu.setAttribute('decoding', 'async');
+    box.innerHTML = '';
+    box.appendChild(nu);
+    box.setAttribute('data-logoswap', '1');
+    return 1;
+  }
+
   function run(){
+    /* ① 이름난 자리부터 */
+    var a = document.querySelector('.ssnav-logo');
+    if(a){ if(fill(a)){ return 1; } }
+
+    /* ② 머리글 안 로고 그림 */
     var h = head();
     var imgs = h.querySelectorAll('img');
     var i, im, box, done = 0;
@@ -115,18 +147,24 @@ add_action( 'wp_head', function () {
       if(!looksLogo(im)){ continue; }
       box = im.parentNode;
       if(!box){ continue; }
-      var nu = document.createElement('img');
-      nu.className = 'stella-logo-new';
-      nu.setAttribute('src', URL);
-      nu.setAttribute('alt', '스텔라사주');
-      nu.setAttribute('decoding', 'async');
-      box.insertBefore(nu, im);
+      var n2 = document.createElement('img');
+      n2.className = 'stella-logo-new';
+      n2.setAttribute('src', URL);
+      n2.setAttribute('alt', '스텔라사주');
+      n2.setAttribute('decoding', 'async');
+      box.insertBefore(n2, im);
       im.className = im.className + ' stella-logo-old';
       im.setAttribute('data-logoswap', '1');
       done++;
     }
-    return done;
+    if(done){ return done; }
+
+    /* ③ 사이트 제목 자리 */
+    var t = h.querySelector('.wp-block-site-title a, .site-title a, h1.site-title a');
+    if(t){ if(fill(t)){ return 1; } }
+    return 0;
   }
+
   function watch(){
     if(run()){ return; }
     var k = 0;
