@@ -1,7 +1,7 @@
 <?php
 /* ════════════════════════════════════════════════════════════
    삼재 — 여섯 장짜리 별도 구조 책
-   ★ 만든 판 2026-09-15 21:12 · 그 해 2026 (병오 · 화)
+   ★ 만든 판 2026-09-15 21:49 · 그 해 2026 (병오 · 화)
 
    무엇을 하나 — door-fortune 에서 「삼재」를 고르면 우리 여섯 장이
    나옵니다. 책 그릇(#bkBook)의 내용을 통째로 갈아끼웁니다.
@@ -36,7 +36,7 @@ add_action( 'wp_footer', function () {
 	$mine = is_page( 'reading-book' ) ? '예 — 우리 쪽입니다' : '아니오 — 여기서는 조각이 안 돕니다';
 	echo '<div style="margin:12px;padding:10px 14px;border:2px solid #A9791F;'
 	   . 'background:#FFFDF6;border-radius:8px;font:13px/1.8 system-ui;color:#4a3a10">'
-	   . '관리자에게만 보입니다 · 삼재 조각이 켜져 있습니다 · 판 2026-09-15 21:12'
+	   . '관리자에게만 보입니다 · 삼재 조각이 켜져 있습니다 · 판 2026-09-15 21:49'
 	   . '<br>지금 쪽 「' . esc_html( $slug ) . '」 · 우리 쪽인가 : ' . $mine
 	   . '</div>';
 }, 99 );
@@ -47,7 +47,7 @@ add_action( 'wp_head', function () {
 	if ( ! is_page( 'reading-book' ) ) { return; }
 	$stella_admin = current_user_can( 'manage_options' ) ? '1' : '';
 	?>
-<!-- stella 삼재 · 판 2026-09-15 21:12 -->
+<!-- stella 삼재 · 판 2026-09-15 21:49 -->
 <style>
 #ssb .sjkeep{ font-weight:600; }
 #ssb .mini{ font-size:.86rem; color:#6a6a78; }
@@ -149,8 +149,8 @@ add_action( 'wp_head', function () {
     margin-left:0 !important; margin-right:0 !important;
     padding-left:0 !important; padding-right:0 !important;
     max-width:none !important; width:auto !important; }
-  #ssb .book[data-samjae="1"] > .page:not(.divider) > *,
-  #ssb [data-samjae="1"] > .page:not(.divider) > *{
+  #ssb .book[data-samjae="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *,
+  #ssb [data-samjae="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *{
     padding-left:0 !important; padding-right:0 !important;
     margin-left:0 !important; margin-right:0 !important;
     max-width:none !important; }
@@ -236,24 +236,6 @@ add_action( 'wp_head', function () {
     -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 }
 </style>
-/* ── 목차 쪽 ────────────────────────────────────────────
-   2026-09-15 · 소희 님 「삼재에 목차페이지가 없어」
-   책에 이미 있는 결(가운데 정렬 · 금빛 딱지)을 그대로 씁니다. */
-#ssb .book[data-samjae="1"] > .page.sjtoc,
-#ssb [data-samjae="1"] > .page.sjtoc{ text-align:center; }
-#ssb [data-samjae="1"] .sjtoc-lab{
-  letter-spacing:.32em; font-size:.78rem; opacity:.7;
-  margin:0 0 34px; }
-#ssb [data-samjae="1"] .sjtoc-list{
-  list-style:none; margin:0 auto; padding:0;
-  max-width:520px; text-align:left; }
-#ssb [data-samjae="1"] .sjtoc-list li{
-  display:flex; align-items:baseline; gap:16px;
-  padding:13px 0; border-bottom:1px solid rgba(0,0,0,.08); }
-#ssb [data-samjae="1"] .sjtoc-no{
-  flex:none; width:70px; font-size:.78rem; letter-spacing:.06em;
-  opacity:.68; }
-#ssb [data-samjae="1"] .sjtoc-t{ font-weight:700; line-height:1.6; }
 
 <script>
 (function(){
@@ -263,7 +245,7 @@ add_action( 'wp_head', function () {
   var YEAR   = 2026;
   var YEAR_EL= '화';
   var GANJI  = '병오';
-  var STAMP  = '2026-09-15 21:12';
+  var STAMP  = '2026-09-15 21:49';
   var GUARDIAN = '미르';
   var TOPICS = ['삼재'];
 
@@ -884,12 +866,10 @@ add_action( 'wp_head', function () {
        (신년운세 그림을 빌려 쓰고 있었습니다) */
     var DOORIMG='https://stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_samjae.jpg';
     var mark=0;
-    var TOC=[];          /* 목차에 쓸 장 이름을 여기 모읍니다 */
 
     function sheet(title){
       var no=MARK[mark] ? MARK[mark] : '';
       mark++;
-      TOC.push([no, title]);
       pages.push('<section class="page divider">'+
         '<div class="dvmark dvface"><img loading="lazy" decoding="async" '+
         'alt="'+DOORALT+'" src="'+DOORIMG+'"></div>'+
@@ -949,32 +929,24 @@ add_action( 'wp_head', function () {
     }
     page(html);
 
-    /* ── 목차 ──────────────────────────────────────────
-       2026-09-15 · 소희 님 「이거 보니 삼재에 목차페이지가 없어」
-       장이 일곱이라 한눈에 보는 쪽이 있어야 합니다.
-       ★ 장 이름은 속표지를 만들 때 모아 둔 것을 그대로 씁니다 —
-         따로 적어두면 원고를 고칠 때 어긋납니다. */
-    function tocPage(){
-      if(!TOC.length){ return ''; }
-      var h=['<section class="page sjtoc">',
-             '<p class="sjtoc-lab">차례</p>',
-             '<ol class="sjtoc-list">'], i;
-      for(i=0;i<TOC.length;i++){
-        h.push('<li><span class="sjtoc-no">'+TOC[i][0]+'</span>'+
-               '<span class="sjtoc-t">'+TOC[i][1]+'</span></li>');
-      }
-      h.push('</ol><div class="folio"></div></section>');
-      return h.join('');
-    }
+    /* ── 차례는 우리가 만들지 않습니다 ────────────────
+       2026-09-15 · 소희 님 사진에 차례가 **두 번** 나왔습니다.
+
+       까닭 : 원본 책이 이미 차례 쪽을 짓습니다. 우리 책의 장 제목을
+       읽어 제 결(가운데 「차 례」 · 줄 사이 가로줄)로 그려 줍니다.
+       그런데 우리가 또 하나 만들어 붙이고 있었습니다.
+
+       처음에 「삼재에 목차페이지가 없어」 하셨던 것은 차례가 없어서가
+       아니라, 겉표지를 안 살리던 때라 원본이 만든 차례까지 같이
+       지워지고 있었기 때문입니다. 겉표지를 살리면서 차례도 돌아왔습니다.
+
+       ★ 그러니 여기서는 아무것도 안 만듭니다. 장 이름을 모으던 표도
+         뺍니다 — 쓰는 데가 없습니다. */
 
     /* ★ 카드 장 제목은 원고에 sjh2 로 이미 있습니다 (「카드 세 장 —
        삼재의 세 문」). 여기서 속표지를 또 놓으면 두 장이 됩니다. */
     var card=cardBlock(pr, nm, slot, blocks);
     if(card){ pages.push('<section class="page"><div class="folio"></div>'+card+'</section>'); }
-
-    /* 목차를 맨 앞에 놓습니다 (겉표지는 그보다 더 앞에 붙습니다) */
-    var toc=tocPage();
-    if(toc){ pages.unshift(toc); }
 
     if(!pages.length){ return null; }
     return { html:pages.join(''), n:pages.length,
@@ -982,6 +954,41 @@ add_action( 'wp_head', function () {
              slot:slot, sp:SP, first:first };
   }
 
+
+
+  /* ── 장 속표지 사진이 안 뜨면 한 번 더 ───────────────
+     2026-09-15 · 소희 님 「중간표지에도 그림 안들어감」
+
+     동그라미 안에 사진 대신 흐린 로고만 보였습니다. 크기는 우리가
+     박았으니 자리는 있는데 **그림이 안 받아졌다**는 뜻입니다.
+     사이트 주소와 젯팩 주소(i0.wp.com) 가운데 어느 쪽이 살아 있는지
+     제가 여기서 확인할 수 없으므로, 안 뜨면 다른 쪽으로 한 번 더
+     시도하게 둡니다. 어느 쪽이 살아 있든 사진이 나옵니다. */
+  function altURL(src){
+    var s=String(src===null?'':src), k=s.indexOf('://');
+    if(k<0){ return ''; }
+    var rest=s.slice(k+3);
+    if(rest.indexOf('i0.wp.com/')===0){ return ''; }
+    return 'https://i0.wp.com/'+rest;
+  }
+  function retryImg(im){
+    if(!im){ return; }
+    if(im.getAttribute('data-retry')==='1'){ return; }
+    var go=function(){
+      if(im.getAttribute('data-retry')==='1'){ return; }
+      im.setAttribute('data-retry','1');
+      var u=altURL(im.getAttribute('src'));
+      if(u){ im.setAttribute('src', u); }
+    };
+    im.addEventListener('error', go);
+    if(im.complete){ if(!im.naturalWidth){ go(); } }
+  }
+  function fixFaces(root){
+    try{
+      var ims=root.querySelectorAll('.dvmark.dvface img'), i;
+      for(i=0;i<ims.length;i++){ retryImg(ims[i]); }
+    }catch(e){}
+  }
 
   /* ── 겉표지 손보기 ──────────────────────────
      2026-09-15 · 소희 님 「아치문이 없어」
@@ -1093,10 +1100,15 @@ add_action( 'wp_head', function () {
       var cov=[];
       try{
         var cs=bk.querySelectorAll('.page.cover, .page[data-part="cover"]'), ci;
-        for(ci=0; ci<cs.length; ci++){ cov.push(fixCover(cs[ci], r.title)); }
+        /* ★ 겉표지는 **한 장만** 살립니다 — 2026-09-15
+           소희 님 「건강운 표지가 2번들어감 목차 뒤에 또 표지가있음」
+           원본 책이 겉표지 꼴의 쪽을 둘 짓습니다 (겉표지 + 속표지).
+           둘 다 옮기면 목차 뒤에 또 표지가 나옵니다. 맨 앞 하나만. */
+        if(cs.length){ cov.push(fixCover(cs[0], r.title)); }
       }catch(e){}
 
       bk.innerHTML=cov.join('')+r.html;
+      fixFaces(bk);   /* 사진이 안 뜨면 다른 주소로 한 번 더 */
       bk.setAttribute('data-samjae','1');
       bk.setAttribute('data-sjcover', String(cov.length));
       var t=document.getElementById('bkTitle');

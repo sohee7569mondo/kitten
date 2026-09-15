@@ -265,8 +265,8 @@ add_action( 'wp_head', function () {
     margin-left:0 !important; margin-right:0 !important;
     padding-left:0 !important; padding-right:0 !important;
     max-width:none !important; width:auto !important; }
-  #ssb .book[data-ny%(Y)s="1"] > .page:not(.divider) > *,
-  #ssb [data-ny%(Y)s="1"] > .page:not(.divider) > *{
+  #ssb .book[data-ny%(Y)s="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *,
+  #ssb [data-ny%(Y)s="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *{
     padding-left:0 !important; padding-right:0 !important;
     margin-left:0 !important; margin-right:0 !important;
     max-width:none !important; }
@@ -979,6 +979,41 @@ TAIL = u''';
   }
 
 
+
+  /* ── 장 속표지 사진이 안 뜨면 한 번 더 ───────────────
+     2026-09-15 · 소희 님 「중간표지에도 그림 안들어감」
+
+     동그라미 안에 사진 대신 흐린 로고만 보였습니다. 크기는 우리가
+     박았으니 자리는 있는데 **그림이 안 받아졌다**는 뜻입니다.
+     사이트 주소와 젯팩 주소(i0.wp.com) 가운데 어느 쪽이 살아 있는지
+     제가 여기서 확인할 수 없으므로, 안 뜨면 다른 쪽으로 한 번 더
+     시도하게 둡니다. 어느 쪽이 살아 있든 사진이 나옵니다. */
+  function altURL(src){
+    var s=String(src===null?'':src), k=s.indexOf('://');
+    if(k<0){ return ''; }
+    var rest=s.slice(k+3);
+    if(rest.indexOf('i0.wp.com/')===0){ return ''; }
+    return 'https://i0.wp.com/'+rest;
+  }
+  function retryImg(im){
+    if(!im){ return; }
+    if(im.getAttribute('data-retry')==='1'){ return; }
+    var go=function(){
+      if(im.getAttribute('data-retry')==='1'){ return; }
+      im.setAttribute('data-retry','1');
+      var u=altURL(im.getAttribute('src'));
+      if(u){ im.setAttribute('src', u); }
+    };
+    im.addEventListener('error', go);
+    if(im.complete){ if(!im.naturalWidth){ go(); } }
+  }
+  function fixFaces(root){
+    try{
+      var ims=root.querySelectorAll('.dvmark.dvface img'), i;
+      for(i=0;i<ims.length;i++){ retryImg(ims[i]); }
+    }catch(e){}
+  }
+
   /* ── 겉표지 손보기 ──────────────────────────
      2026-09-15 · 소희 님 「아치문이 없어」
 
@@ -1091,9 +1126,14 @@ TAIL = u''';
       var cov=[];
       try{
         var cs=bk.querySelectorAll('.page.cover, .page[data-part="cover"]'), ci;
-        for(ci=0; ci<cs.length; ci++){ cov.push(fixCover(cs[ci], r.title)); }
+        /* ★ 겉표지는 **한 장만** 살립니다 — 2026-09-15
+           소희 님 「건강운 표지가 2번들어감 목차 뒤에 또 표지가있음」
+           원본 책이 겉표지 꼴의 쪽을 둘 짓습니다 (겉표지 + 속표지).
+           둘 다 옮기면 목차 뒤에 또 표지가 나옵니다. 맨 앞 하나만. */
+        if(cs.length){ cov.push(fixCover(cs[0], r.title)); }
       }catch(e){}
       bk.innerHTML=cov.join('')+r.html+keep.join('');
+      fixFaces(bk);   /* 사진이 안 뜨면 다른 주소로 한 번 더 */
       bk.setAttribute('data-ny'+YEAR,'1');
       bk.setAttribute('data-nycard', String(keep.length));
       var nAll=refolio(bk);

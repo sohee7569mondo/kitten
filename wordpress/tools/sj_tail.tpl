@@ -200,12 +200,10 @@
        (신년운세 그림을 빌려 쓰고 있었습니다) */
     var DOORIMG='https://stellasaju.com/wp-content/uploads/2026/09/STELLASAJU_samjae.jpg';
     var mark=0;
-    var TOC=[];          /* 목차에 쓸 장 이름을 여기 모읍니다 */
 
     function sheet(title){
       var no=MARK[mark] ? MARK[mark] : '';
       mark++;
-      TOC.push([no, title]);
       pages.push('<section class="page divider">'+
         '<div class="dvmark dvface"><img loading="lazy" decoding="async" '+
         'alt="'+DOORALT+'" src="'+DOORIMG+'"></div>'+
@@ -265,32 +263,24 @@
     }
     page(html);
 
-    /* ── 목차 ──────────────────────────────────────────
-       2026-09-15 · 소희 님 「이거 보니 삼재에 목차페이지가 없어」
-       장이 일곱이라 한눈에 보는 쪽이 있어야 합니다.
-       ★ 장 이름은 속표지를 만들 때 모아 둔 것을 그대로 씁니다 —
-         따로 적어두면 원고를 고칠 때 어긋납니다. */
-    function tocPage(){
-      if(!TOC.length){ return ''; }
-      var h=['<section class="page sjtoc">',
-             '<p class="sjtoc-lab">차례</p>',
-             '<ol class="sjtoc-list">'], i;
-      for(i=0;i<TOC.length;i++){
-        h.push('<li><span class="sjtoc-no">'+TOC[i][0]+'</span>'+
-               '<span class="sjtoc-t">'+TOC[i][1]+'</span></li>');
-      }
-      h.push('</ol><div class="folio"></div></section>');
-      return h.join('');
-    }
+    /* ── 차례는 우리가 만들지 않습니다 ────────────────
+       2026-09-15 · 소희 님 사진에 차례가 **두 번** 나왔습니다.
+
+       까닭 : 원본 책이 이미 차례 쪽을 짓습니다. 우리 책의 장 제목을
+       읽어 제 결(가운데 「차 례」 · 줄 사이 가로줄)로 그려 줍니다.
+       그런데 우리가 또 하나 만들어 붙이고 있었습니다.
+
+       처음에 「삼재에 목차페이지가 없어」 하셨던 것은 차례가 없어서가
+       아니라, 겉표지를 안 살리던 때라 원본이 만든 차례까지 같이
+       지워지고 있었기 때문입니다. 겉표지를 살리면서 차례도 돌아왔습니다.
+
+       ★ 그러니 여기서는 아무것도 안 만듭니다. 장 이름을 모으던 표도
+         뺍니다 — 쓰는 데가 없습니다. */
 
     /* ★ 카드 장 제목은 원고에 sjh2 로 이미 있습니다 (「카드 세 장 —
        삼재의 세 문」). 여기서 속표지를 또 놓으면 두 장이 됩니다. */
     var card=cardBlock(pr, nm, slot, blocks);
     if(card){ pages.push('<section class="page"><div class="folio"></div>'+card+'</section>'); }
-
-    /* 목차를 맨 앞에 놓습니다 (겉표지는 그보다 더 앞에 붙습니다) */
-    var toc=tocPage();
-    if(toc){ pages.unshift(toc); }
 
     if(!pages.length){ return null; }
     return { html:pages.join(''), n:pages.length,
@@ -298,6 +288,41 @@
              slot:slot, sp:SP, first:first };
   }
 
+
+
+  /* ── 장 속표지 사진이 안 뜨면 한 번 더 ───────────────
+     2026-09-15 · 소희 님 「중간표지에도 그림 안들어감」
+
+     동그라미 안에 사진 대신 흐린 로고만 보였습니다. 크기는 우리가
+     박았으니 자리는 있는데 **그림이 안 받아졌다**는 뜻입니다.
+     사이트 주소와 젯팩 주소(i0.wp.com) 가운데 어느 쪽이 살아 있는지
+     제가 여기서 확인할 수 없으므로, 안 뜨면 다른 쪽으로 한 번 더
+     시도하게 둡니다. 어느 쪽이 살아 있든 사진이 나옵니다. */
+  function altURL(src){
+    var s=String(src===null?'':src), k=s.indexOf('://');
+    if(k<0){ return ''; }
+    var rest=s.slice(k+3);
+    if(rest.indexOf('i0.wp.com/')===0){ return ''; }
+    return 'https://i0.wp.com/'+rest;
+  }
+  function retryImg(im){
+    if(!im){ return; }
+    if(im.getAttribute('data-retry')==='1'){ return; }
+    var go=function(){
+      if(im.getAttribute('data-retry')==='1'){ return; }
+      im.setAttribute('data-retry','1');
+      var u=altURL(im.getAttribute('src'));
+      if(u){ im.setAttribute('src', u); }
+    };
+    im.addEventListener('error', go);
+    if(im.complete){ if(!im.naturalWidth){ go(); } }
+  }
+  function fixFaces(root){
+    try{
+      var ims=root.querySelectorAll('.dvmark.dvface img'), i;
+      for(i=0;i<ims.length;i++){ retryImg(ims[i]); }
+    }catch(e){}
+  }
 
   /* ── 겉표지 손보기 ──────────────────────────
      2026-09-15 · 소희 님 「아치문이 없어」
@@ -409,10 +434,15 @@
       var cov=[];
       try{
         var cs=bk.querySelectorAll('.page.cover, .page[data-part="cover"]'), ci;
-        for(ci=0; ci<cs.length; ci++){ cov.push(fixCover(cs[ci], r.title)); }
+        /* ★ 겉표지는 **한 장만** 살립니다 — 2026-09-15
+           소희 님 「건강운 표지가 2번들어감 목차 뒤에 또 표지가있음」
+           원본 책이 겉표지 꼴의 쪽을 둘 짓습니다 (겉표지 + 속표지).
+           둘 다 옮기면 목차 뒤에 또 표지가 나옵니다. 맨 앞 하나만. */
+        if(cs.length){ cov.push(fixCover(cs[0], r.title)); }
       }catch(e){}
 
       bk.innerHTML=cov.join('')+r.html;
+      fixFaces(bk);   /* 사진이 안 뜨면 다른 주소로 한 번 더 */
       bk.setAttribute('data-samjae','1');
       bk.setAttribute('data-sjcover', String(cov.length));
       var t=document.getElementById('bkTitle');

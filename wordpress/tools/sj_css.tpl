@@ -99,8 +99,8 @@
     margin-left:0 !important; margin-right:0 !important;
     padding-left:0 !important; padding-right:0 !important;
     max-width:none !important; width:auto !important; }
-  #ssb .book[data-samjae="1"] > .page:not(.divider) > *,
-  #ssb [data-samjae="1"] > .page:not(.divider) > *{
+  #ssb .book[data-samjae="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *,
+  #ssb [data-samjae="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *{
     padding-left:0 !important; padding-right:0 !important;
     margin-left:0 !important; margin-right:0 !important;
     max-width:none !important; }
@@ -186,21 +186,3 @@
     -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 }
 </style>
-/* ── 목차 쪽 ────────────────────────────────────────────
-   2026-09-15 · 소희 님 「삼재에 목차페이지가 없어」
-   책에 이미 있는 결(가운데 정렬 · 금빛 딱지)을 그대로 씁니다. */
-#ssb .book[data-samjae="1"] > .page.sjtoc,
-#ssb [data-samjae="1"] > .page.sjtoc{ text-align:center; }
-#ssb [data-samjae="1"] .sjtoc-lab{
-  letter-spacing:.32em; font-size:.78rem; opacity:.7;
-  margin:0 0 34px; }
-#ssb [data-samjae="1"] .sjtoc-list{
-  list-style:none; margin:0 auto; padding:0;
-  max-width:520px; text-align:left; }
-#ssb [data-samjae="1"] .sjtoc-list li{
-  display:flex; align-items:baseline; gap:16px;
-  padding:13px 0; border-bottom:1px solid rgba(0,0,0,.08); }
-#ssb [data-samjae="1"] .sjtoc-no{
-  flex:none; width:70px; font-size:.78rem; letter-spacing:.06em;
-  opacity:.68; }
-#ssb [data-samjae="1"] .sjtoc-t{ font-weight:700; line-height:1.6; }

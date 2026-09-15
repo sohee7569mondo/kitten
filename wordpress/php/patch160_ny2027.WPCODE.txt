@@ -2,7 +2,7 @@
 /* ══════════════════════════════════════════════════════════
    2027년 운세 — 열 장짜리 별도 구조 책
                                         ★ 2026-09-14 · 소희 님께
-                                        판 2026-09-15 21:11
+                                        판 2026-09-15 21:47
 
    ── 무엇을 하나 ───────────────────────────────────────
    door-fortune 에서 「2027년 운세」를 고르면 우리 열 장이 나옵니다.
@@ -77,7 +77,7 @@ add_action( 'wp_footer', function () {
 	$mine = is_page( 'reading-book' ) ? '예 — 우리 쪽입니다' : '아니오 — 여기서는 조각이 안 돕니다';
 	echo '<div style="margin:12px;padding:10px 14px;border:2px solid #A9791F;'
 	   . 'background:#FFFDF6;border-radius:8px;font:13px/1.8 system-ui;color:#4a3a10">'
-	   . '관리자에게만 보입니다 · NY2027 조각이 켜져 있습니다 · 판 2026-09-15 21:11'
+	   . '관리자에게만 보입니다 · NY2027 조각이 켜져 있습니다 · 판 2026-09-15 21:47'
 	   . '<br>지금 쪽 「' . esc_html( $slug ) . '」 · 우리 쪽인가 : ' . $mine
 	   . '</div>';
 }, 99 );
@@ -97,7 +97,7 @@ add_action( 'wp_head', function () {
 	   손님에게는 안 보입니다. patch160_fit(FIT-2)이 쓰는 길과 같습니다. */
 	$stella_admin = current_user_can( 'manage_options' ) ? '1' : '';
 	?>
-<!-- stella 2027년 운세 · 판 2026-09-15 21:11 -->
+<!-- stella 2027년 운세 · 판 2026-09-15 21:47 -->
 <style>
 #ssb .keepline{ font-weight:600; }
 #ssb .mini{ font-size:.86rem; color:#6a6a78; }
@@ -199,8 +199,8 @@ add_action( 'wp_head', function () {
     margin-left:0 !important; margin-right:0 !important;
     padding-left:0 !important; padding-right:0 !important;
     max-width:none !important; width:auto !important; }
-  #ssb .book[data-ny2027="1"] > .page:not(.divider) > *,
-  #ssb [data-ny2027="1"] > .page:not(.divider) > *{
+  #ssb .book[data-ny2027="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *,
+  #ssb [data-ny2027="1"] > .page:not(.divider):not(.cover):not([data-part="cover"]) > *{
     padding-left:0 !important; padding-right:0 !important;
     margin-left:0 !important; margin-right:0 !important;
     max-width:none !important; }
@@ -306,7 +306,7 @@ add_action( 'wp_head', function () {
      「원본 데이터에는 {연도}년 … 라고 저장합니다」
      그 말씀대로 해마다 바뀌는 것은 전부 빈칸으로 둡니다. 원고를
      다시 쓰지 않고 해만 갈아끼우면 되도록 하려는 것입니다. */
-  var STAMP   = '2026-09-15 21:11';
+  var STAMP   = '2026-09-15 21:47';
   var GANJI   = '정미년';
   var ELNAME  = '화';
   var YEARNAME = {'관성':'맡은 자리가 배움이 되는 해', '비겁':'내가 세운 것을 밖으로 내놓는 해', '식상':'내놓은 것이 결과가 되는 해', '인성':'채운 것이 나를 세우는 해', '재성':'거둔 것이 자리가 되는 해'};
@@ -911,6 +911,41 @@ add_action( 'wp_head', function () {
   }
 
 
+
+  /* ── 장 속표지 사진이 안 뜨면 한 번 더 ───────────────
+     2026-09-15 · 소희 님 「중간표지에도 그림 안들어감」
+
+     동그라미 안에 사진 대신 흐린 로고만 보였습니다. 크기는 우리가
+     박았으니 자리는 있는데 **그림이 안 받아졌다**는 뜻입니다.
+     사이트 주소와 젯팩 주소(i0.wp.com) 가운데 어느 쪽이 살아 있는지
+     제가 여기서 확인할 수 없으므로, 안 뜨면 다른 쪽으로 한 번 더
+     시도하게 둡니다. 어느 쪽이 살아 있든 사진이 나옵니다. */
+  function altURL(src){
+    var s=String(src===null?'':src), k=s.indexOf('://');
+    if(k<0){ return ''; }
+    var rest=s.slice(k+3);
+    if(rest.indexOf('i0.wp.com/')===0){ return ''; }
+    return 'https://i0.wp.com/'+rest;
+  }
+  function retryImg(im){
+    if(!im){ return; }
+    if(im.getAttribute('data-retry')==='1'){ return; }
+    var go=function(){
+      if(im.getAttribute('data-retry')==='1'){ return; }
+      im.setAttribute('data-retry','1');
+      var u=altURL(im.getAttribute('src'));
+      if(u){ im.setAttribute('src', u); }
+    };
+    im.addEventListener('error', go);
+    if(im.complete){ if(!im.naturalWidth){ go(); } }
+  }
+  function fixFaces(root){
+    try{
+      var ims=root.querySelectorAll('.dvmark.dvface img'), i;
+      for(i=0;i<ims.length;i++){ retryImg(ims[i]); }
+    }catch(e){}
+  }
+
   /* ── 겉표지 손보기 ──────────────────────────
      2026-09-15 · 소희 님 「아치문이 없어」
 
@@ -1023,9 +1058,14 @@ add_action( 'wp_head', function () {
       var cov=[];
       try{
         var cs=bk.querySelectorAll('.page.cover, .page[data-part="cover"]'), ci;
-        for(ci=0; ci<cs.length; ci++){ cov.push(fixCover(cs[ci], r.title)); }
+        /* ★ 겉표지는 **한 장만** 살립니다 — 2026-09-15
+           소희 님 「건강운 표지가 2번들어감 목차 뒤에 또 표지가있음」
+           원본 책이 겉표지 꼴의 쪽을 둘 짓습니다 (겉표지 + 속표지).
+           둘 다 옮기면 목차 뒤에 또 표지가 나옵니다. 맨 앞 하나만. */
+        if(cs.length){ cov.push(fixCover(cs[0], r.title)); }
       }catch(e){}
       bk.innerHTML=cov.join('')+r.html+keep.join('');
+      fixFaces(bk);   /* 사진이 안 뜨면 다른 주소로 한 번 더 */
       bk.setAttribute('data-ny'+YEAR,'1');
       bk.setAttribute('data-nycard', String(keep.length));
       var nAll=refolio(bk);
