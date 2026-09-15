@@ -161,7 +161,8 @@ if ( ! function_exists( 'stella_um_tier' ) ) {
 /* 글꼴 세 벌을 나눠 씁니다 — 2026-09-15
      소희 님 「글씨가 안이쁜데...」 「글씨는 귀여운걸로」
 
-     점수·별명  베이글팟원   통통한 젤리 같은 글씨. 파스텔 판과 딱 맞습니다.
+     점수       포핀스       단정한 볼드 고딕. 숫자가 또렷합니다.
+     별명       베이글팟원   통통한 젤리 같은 글씨. 파스텔 판과 맞습니다.
      요약       Jua         둥글고 말랑합니다. 긴 줄에도 답답하지 않습니다.
      본문       고운돋움     단정해서 읽힙니다. 네 줄이 빽빽하지 않습니다.
 
@@ -192,6 +193,19 @@ if ( ! function_exists( 'stella_um_font_kinds' ) ) {
 					'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/bagelfatone/BagelFatOne-Regular.ttf',
 					'https://raw.githubusercontent.com/google/fonts/main/ofl/bagelfatone/BagelFatOne-Regular.ttf',
 					'https://fonts.googleapis.com/css?family=Bagel+Fat+One',
+				),
+			),
+			'num' => array(
+				/* 숫자 전용 — 한글이 없어도 되니 훨씬 예쁜 고딕을 씁니다.
+				   2026-09-15 소희 님 「숫자 글씨체가 안이뻐 …
+				   이쁜 고딕이 없으면 볼드한 고딕체를 써도 될거 같아」
+				   다섯 벌을 그려 견주고 포핀스를 골랐습니다. */
+				'file'  => 'poppins-eb.ttf',
+				'where' => array(
+					'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/poppins/Poppins-ExtraBold.ttf',
+					'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-ExtraBold.ttf',
+					'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/gothica1/GothicA1-Black.ttf',
+					'https://raw.githubusercontent.com/google/fonts/main/ofl/gothica1/GothicA1-Black.ttf',
 				),
 			),
 			'dodum' => array(
@@ -827,10 +841,12 @@ add_action( 'init', function () {
 	}
 
 	$font  = stella_um_font( 'jua' );     /* 요약 */
-	$fBlk  = stella_um_font( 'bagel' );   /* 점수 · 별명 — 통통한 글씨 */
+	$fBlk  = stella_um_font( 'bagel' );   /* 별명 — 통통한 글씨 */
+	$fNum  = stella_um_font( 'num' );     /* 점수 — 단정한 볼드 고딕 */
 	$fDod  = stella_um_font( 'dodum' );   /* 본문 · 딱지 · 발치 (가운뎃점이 있습니다) */
 	if ( ! $fBlk ) { $fBlk = $font; }
 	if ( ! $fDod ) { $fDod = $font; }
+	if ( ! $fNum ) { $fNum = $fBlk; }
 
 	/* ── 판 위에 글자 얹기 ───────────────────────────────
 	   소희 님이 그려 주신 판에 맞춰 자리를 잡습니다.
@@ -842,7 +858,7 @@ add_action( 'init', function () {
 	                    톰과 제리 같은 사이    (별명 — 주인공)
 	                    자꾸 신경 쓰이는 사이  (요약)
 	       말풍선 안     본문
-	       맨 아래       나도 해보기 · stellasaju.com/uandme   */
+	       맨 아래       stellasaju.com/uandme   */
 	if ( $font ) { if ( $BG ) {
 
 		$w1   = imagecolorallocate( $im, 255, 255, 255 );
@@ -975,24 +991,27 @@ add_action( 'init', function () {
 		   「점」은 작게 — 숫자가 잘 보여야 합니다. */
 		$s3  = $H * 0.150;
 		$s3b = $H * 0.046;
-		/* ★ 별명 밑선에서 여백만 빼면 글자 높이만큼 겹칩니다.
-		   별명 높이를 통째로 빼고 그 위에 여백을 둡니다 —
-		   실제로 그려 보고 찾았습니다 (2026-09-15). */
-		$y3  = $y4 - $s4 - $H * 0.040;
+		/* 소희 님 「숫자가 윗부분하고 아래 사이 중간에 위치하게」
+		   두 사람 이름 아래와 별명 윗머리, 그 사이 한가운데에 놓습니다.
+		   ★ 글자는 밑선에 찍히므로 가운데에서 다시 내려줘야 합니다.
+		     그냥 가운데를 밑선으로 주면 통째로 위로 떠 보입니다. */
+		$topEdge = $y2 + $H * 0.030;      /* 이름 아래 */
+		$botEdge = $y4 - $s4;             /* 별명 윗머리 */
+		$y3      = ( $topEdge + $botEdge ) / 2 + $s3 * 0.36;
 
 		$pinkN = imagecolorallocate( $im, 242, 150, 196 );
 		$lilaN = imagecolorallocate( $im, 168, 150, 222 );
 		$digits = str_split( (string) $score );
 		$wNum = 0;
-		foreach ( $digits as $one ) { $wNum += $wide2( $fBlk, $s3, $one ); }
+		foreach ( $digits as $one ) { $wNum += $wide2( $fNum, $s3, $one ); }
 		$wJ   = $wide2( $font, $s3b, '점' );
 		$gapJ = $s3b * 0.30;
 		$x = $cx - ( $wNum + $gapJ + $wJ ) / 2;
 		$th3 = round( $s3 * 0.05 );
 		foreach ( $digits as $i => $one ) {
 			$col = ( 0 === $i % 2 ) ? $lilaN : $pinkN;
-			$edge( $fBlk, $s3, $x, $y3, $one, $col, $th3 );
-			$x += $wide2( $fBlk, $s3, $one );
+			$edge( $fNum, $s3, $x, $y3, $one, $col, $th3 );
+			$x += $wide2( $fNum, $s3, $one );
 		}
 		$edge( $font, $s3b, $x + $gapJ, $y3, '점', $d2, round( $s3b * 0.06 ) );
 
@@ -1015,8 +1034,8 @@ add_action( 'init', function () {
 		}
 
 		/* ⑦ 발치 — 여기로 오게 하는 한 줄 */
-		$mid( $fDod, $H * 0.020, $cx, $H * 0.952,
-			'나도 해보기 · stellasaju.com/uandme', $d2, $W * 0.9 );
+		$mid( $fDod, $H * 0.022, $cx, $H * 0.952,
+			'stellasaju.com/uandme', $d2, $W * 0.9 );
 
 	} else {
 		/* 왼쪽 맞춤 · 자리가 좁으면 줄여 넣습니다 */
