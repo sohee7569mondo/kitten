@@ -602,6 +602,9 @@ add_action( 'init', function () {
 		echo "\n넣는 법\n";
 		echo "  ?stella_um_bg=0625r.jpg        기본 판 (파일 이름만)\n";
 		echo "  ?stella_um_bg=70|0625r.jpg     70~74 칸에만\n";
+		echo "  ?stella_um_bg=95=a.jpg;90=b.jpg   여러 칸을 한 줄에\n";
+		echo "  ?stella_um_bg=auto             이름에 칸 숫자가 든 그림을 다 찾아 넣기\n";
+		echo "  ?stella_um_sheet=1             스무 칸을 한 장에 모아 보기\n";
 		echo "  ?stella_um_bg=70|off           그 칸만 빼기\n";
 		echo "  ?stella_um_bg=off              다 빼기\n";
 		exit;
@@ -610,6 +613,83 @@ add_action( 'init', function () {
 		update_option( 'stella_um_bg', 'off' );
 		update_option( 'stella_um_bg_map', array() );
 		echo "판을 다 뺐습니다. 서버가 직접 그립니다.\n";
+		exit;
+	}
+
+	/* ── 스무 칸을 한 번에 ──────────────────────────────
+	   ?stella_um_bg=auto
+	     미디어에서 이름에 칸 숫자가 든 그림을 찾아 짝지어 넣습니다.
+	     um-95.jpg · um95.png · uandme-70.jpg … 모두 알아봅니다.
+
+	   ?stella_um_bg=95=a.jpg;90=b.jpg;85=c.jpg
+	     여러 칸을 한 줄에. 세미콜론으로 나눕니다. */
+	if ( 'auto' === $v ) {
+		$got  = 0;
+		$miss = array();
+		foreach ( stella_um_bands() as $b ) {
+			$found = '';
+			foreach ( array( 'um-' . $b, 'um' . $b, 'uandme-' . $b, 'uandme' . $b ) as $try ) {
+				$rows2 = get_posts( array(
+					'post_type'      => 'attachment',
+					'post_status'    => 'inherit',
+					'posts_per_page' => 30,
+					's'              => $try,
+				) );
+				foreach ( $rows2 as $one ) {
+					$u2 = wp_get_attachment_url( $one->ID );
+					if ( ! $u2 ) { continue; }
+					$base2 = strtolower( basename( $u2 ) );
+					/* 「um-9」가 「um-95」에 걸리지 않게, 숫자 뒤가 숫자면 건너뜁니다 */
+					$at = strpos( $base2, strtolower( $try ) );
+					if ( false === $at ) { continue; }
+					$next = substr( $base2, $at + strlen( $try ), 1 );
+					if ( '' !== $next ) { if ( ctype_digit( $next ) ) { continue; } }
+					$found = $u2;
+					break;
+				}
+				if ( $found ) { break; }
+			}
+			if ( $found ) {
+				$map[ $b ] = $found;
+				$got++;
+				echo sprintf( "  %2d  %s\n", $b, basename( $found ) );
+			} else {
+				$miss[] = $b;
+			}
+		}
+		update_option( 'stella_um_bg_map', $map );
+		echo "\n찾아 넣은 칸 " . $got . "개\n";
+		if ( $miss ) {
+			echo "못 찾은 칸 — " . implode( ' ', $miss ) . "\n";
+			echo "  그 칸들은 기본 판을 씁니다.\n";
+			echo "  파일 이름에 「um-95」처럼 칸 숫자를 넣어 올리시면 찾습니다.\n";
+		}
+		exit;
+	}
+
+	if ( false !== strpos( $v, ';' ) ) {
+		$done = 0;
+		foreach ( explode( ';', $v ) as $one ) {
+			$one = trim( $one );
+			if ( '' === $one ) { continue; }
+			$sep = ( false !== strpos( $one, '=' ) ) ? '=' : '|';
+			$pair = explode( $sep, $one, 2 );
+			if ( 2 !== count( $pair ) ) { continue; }
+			$bb = intval( trim( $pair[0] ) );
+			if ( ! in_array( $bb, stella_um_bands(), true ) ) {
+				echo "★ 그런 칸이 없습니다 — " . $bb . "\n";
+				continue;
+			}
+			$uu = trim( $pair[1] );
+			if ( false === strpos( $uu, '/' ) ) { $uu = stella_um_bg_find( $uu ); }
+			$uu = esc_url_raw( $uu );
+			if ( ! $uu ) { echo "★ " . $bb . " 칸 — 그림을 못 찾았습니다\n"; continue; }
+			$map[ $bb ] = $uu;
+			$done++;
+			echo sprintf( "  %2d  %s\n", $bb, basename( $uu ) );
+		}
+		update_option( 'stella_um_bg_map', $map );
+		echo "\n넣은 칸 " . $done . "개\n";
 		exit;
 	}
 
@@ -681,6 +761,50 @@ add_action( 'wp_head', function () {
 	echo "<script>window.UM_CARD_WH=[" . intval( imagesx( $im ) ) . ','
 	   . intval( imagesy( $im ) ) . "];</script>\n";
 }, 9 );
+
+/* ── 스무 칸을 한 장에 ─────────────────────────────────
+   판을 스무 장 올린 뒤, 어느 칸이 어떻게 나오는지 한눈에 봅니다.
+   ?stella_um_sheet=1
+   ★ 카드 주소를 그림으로 부르기만 합니다. 서버가 스무 번 그리므로
+     처음 여실 때는 조금 걸립니다. */
+add_action( 'init', function () {
+	if ( ! isset( $_GET['stella_um_sheet'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<title>유앤미 카드 스무 칸</title>'
+	   . '<style>body{background:#EFE9F8;margin:0;padding:20px;'
+	   . 'font-family:-apple-system,sans-serif;color:#3F3A52}'
+	   . 'h1{font-size:1.1rem;margin:0 0 14px}'
+	   . '.g{display:flex;flex-wrap:wrap;gap:14px}'
+	   . 'figure{margin:0;width:200px}'
+	   . 'img{width:200px;display:block;border-radius:10px;'
+	   . 'box-shadow:0 6px 16px -8px rgba(0,0,0,.4);background:#fff}'
+	   . 'figcaption{font-size:12px;margin-top:6px;color:#6B5BA8}'
+	   . '</style>';
+
+	$map = get_option( 'stella_um_bg_map', array() );
+	if ( ! is_array( $map ) ) { $map = array(); }
+	$base = (string) get_option( 'stella_um_bg', '' );
+
+	echo '<h1>유앤미 카드 스무 칸 · ' . esc_html( STELLA_UM_CARD_VER ) . '</h1>';
+	echo '<div class="g">';
+	$bands = stella_um_bands();
+	foreach ( $bands as $k => $b ) {
+		$hi = ( 0 === $k ) ? 99 : ( $bands[ $k - 1 ] - 1 );
+		$sc = $b + 2;
+		if ( $sc > $hi ) { $sc = $hi; }
+		/* 물음표 없는 주소로 부릅니다 — 앰퍼샌드가 안 생깁니다 */
+		$u = home_url( '/um-card/' . $sc . '-lover-30-20-20' );
+		$own = isset( $map[ $b ] ) ? basename( $map[ $b ] ) : ( $base ? '기본 판' : '판 없음' );
+		echo '<figure><img src="' . esc_url( $u ) . '" loading="lazy">'
+		   . '<figcaption>' . $b . '~' . $hi . '점 · ' . esc_html( $own )
+		   . '</figcaption></figure>';
+	}
+	echo '</div>';
+	exit;
+}, 1 );
 
 /* ── 그림 그리기 ──────────────────────────────────────── */
 add_action( 'init', function () {
