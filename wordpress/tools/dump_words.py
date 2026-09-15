@@ -21,7 +21,9 @@ HEAD = '''# 유앤미 낱말표
 맞습니다. 그래서 두 층으로 나눴습니다.
 
     이름 (스무 칸)    점수가 맡습니다. 관계를 안 가립니다.
+                      요약 · 이모지 · 별명 · 본문 두 문장 — **카드는 여기만 씁니다**
     해설 (서른다섯)   관계가 맡습니다.
+                      훅 한 줄 — 결과 화면과 카톡 설명글에 나갑니다
 
 합쳐서 **쉰다섯 칸**입니다. 일흔 칸이던 것보다 적으면서,
 이름은 스무 가지로 늘어 겹칠 일이 줄었습니다.
@@ -66,7 +68,10 @@ def main():
     L.append('# 이름 — 점수 구간 스무 칸')
     L.append('')
     L.append('관계를 안 가립니다. 연인에게도 친구에게도 동업자에게도 같은 말이 갑니다.')
-    for i, (sum_, em, nick) in enumerate(W.BAND):
+    L.append('**카드에 나가는 글은 전부 여기 있습니다** — 요약 · 별명 · 본문 두 문장.')
+    for i, row in enumerate(W.BAND):
+        sum_, em, nick = row[0], row[1], row[2]
+        body = row[3] if len(row) > 3 else ['', '']
         lo = W.BAND_MIN[i]
         hi = 99 if i == 0 else W.BAND_MIN[i - 1] - 1
         L.append('')
@@ -74,6 +79,8 @@ def main():
         L.append('이모지 ' + em)
         L.append('요약   ' + sum_)
         L.append('별명   ' + nick)
+        L.append('본문   ' + body[0])
+        L.append('       ' + (body[1] if len(body) > 1 else ''))
     L.append('')
     L.append('')
     L.append('# 해설 — 관계 일곱 × 큰 칸 다섯')

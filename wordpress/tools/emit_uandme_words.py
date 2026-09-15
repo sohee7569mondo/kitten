@@ -32,8 +32,11 @@ def js_block():
     L.append('     tools/emit_uandme_words.py 를 돌립니다. */')
     L.append('window.UANDME_BAND_MIN = [' + ', '.join(str(x) for x in W.BAND_MIN) + '];')
     L.append('window.UANDME_BAND = [')
-    for a, b, c in W.BAND:
-        L.append('  [' + q(a) + ', ' + q(b) + ', ' + q(c) + '],')
+    for row in W.BAND:
+        a, b, c = row[0], row[1], row[2]
+        body = row[3] if len(row) > 3 else []
+        L.append('  [' + q(a) + ', ' + q(b) + ', ' + q(c) + ', [' +
+                 ', '.join(q(x) for x in body) + ']],')
     L.append('];')
     L.append('window.UANDME_STEP_MIN = [' + ', '.join(str(x) for x in W.STEP_MIN) + '];')
     L.append('window.UANDME_TALK = {')
@@ -67,8 +70,10 @@ def js_block():
     L.append('      } }')
     L.append('    }')
     L.append('  }')
-    L.append('  return { sum: b[0], emoji: b[1], title: b[2],')
-    L.append('           hook: t[0], lines: t[1], plain: b[2], comment: say };')
+    L.append('  /* 카드에 나가는 글(요약·별명·본문)은 점수 칸이 맡고,')
+    L.append('     훅과 긴 글은 관계가 맡습니다 — 2026-09-15 */')
+    L.append('  return { sum: b[0], emoji: b[1], title: b[2], lines: b[3],')
+    L.append('           hook: t[0], talk: t[1], plain: b[2], comment: say };')
     L.append('};')
     L.append(END)
     return '\n'.join(L) + '\n'
@@ -79,15 +84,20 @@ def php_block():
     L.append("/* ── 점수와 관계로 낱말 알아내기 ─────────────────────")
     L.append("   자바스크립트 쪽 uandme-words.js 와 한 글자도 다르면 안 됩니다.")
     L.append("   돌려주는 것 :")
-    L.append("     0 별명   1 훅   2·3·4 본문 세 문장   5 요약   6 이모지")
+    L.append("     0 별명   1 훅   2·3 본문 두 문장   4 (안 씀)   5 요약   6 이모지")
     L.append("   ★ 고칠 때는 drafts/유앤미-낱말표.md 를 고치고")
     L.append("     tools/emit_uandme_words.py 를 돌립니다. */")
     L.append("if ( ! function_exists( 'stella_um_nick' ) ) {")
     L.append("\tfunction stella_um_nick( $n, $rel ) {")
     L.append("\t\t$bmin = array( " + ', '.join(str(x) for x in W.BAND_MIN) + " );")
     L.append("\t\t$band = array(")
-    for a, b, c in W.BAND:
-        L.append("\t\t\tarray( '" + a + "', '" + b + "', '" + c + "' ),")
+    for row in W.BAND:
+        a, b, c = row[0], row[1], row[2]
+        body = row[3] if len(row) > 3 else ['', '']
+        while len(body) < 2:
+            body.append('')
+        L.append("\t\t\tarray( '" + a + "', '" + b + "', '" + c + "', '" +
+                 body[0] + "', '" + body[1] + "' ),")
     L.append("\t\t);")
     L.append("\t\t$smin = array( " + ', '.join(str(x) for x in W.STEP_MIN) + " );")
     L.append("\t\t$talk = array(")
@@ -111,7 +121,10 @@ def php_block():
     L.append("\t\t\tif ( $n >= $smin[ $i ] ) { $t = $rows[ $i ]; break; }")
     L.append("\t\t\t$i++;")
     L.append("\t\t}")
-    L.append("\t\treturn array( $b[2], $t[0], $t[1], $t[2], $t[3], $b[0], $b[1] );")
+    L.append("\t\t/* 0 별명  1 훅  2·3·4 본문  5 요약  6 이모지")
+    L.append("\t\t   본문은 점수 칸에서 꺼냅니다 — 이름이 스무 가지인데 글이")
+    L.append("\t\t   다섯 가지면 아래쪽 여덟 칸이 전부 같은 글이 나옵니다. */")
+    L.append("\t\treturn array( $b[2], $t[0], $b[3], $b[4], '', $b[0], $b[1] );")
     L.append("\t}")
     L.append("}")
     L.append("/* 옛 이름 — 다른 조각이 아직 부를 수 있어 남겨 둡니다 */")
