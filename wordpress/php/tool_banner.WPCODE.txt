@@ -12,7 +12,10 @@
 
    ★ 쪽을 안 고칩니다. 고르신 것을 따로 적어두고 화면에서만 덮습니다.
      스위치를 끄면 그 즉시 옛 그림으로 돌아옵니다.
-   ★ 지금 그림 : 2026/09/GVx48.jpg
+   ★ 붙이기만 하면 새 배너(2026/09/jEnvE.jpg)로 바로 바뀝니다.
+     덮개도 「없이」로 두었습니다 — 그 그림은 왼쪽이 비어 있어
+     보라를 덧씌울 까닭이 없습니다.
+   ★ 옛 그림 : 2026/09/GVx48.jpg (쪽에 박혀 있습니다)
 
         고르기   https://stellasaju.com/?stella_banner=1
         되돌리기 그 화면 맨 아래 단추
@@ -22,18 +25,29 @@
    ★ 크롬 번역을 끄고 붙여넣으세요.
    ════════════════════════════════════════════════════════════ */
 
+/* 새 배너 그림 — 2026-09-15 소희 님이 주신 주소입니다 */
+if ( ! defined( 'STELLA_BANNER_NEW' ) ) {
+	define( 'STELLA_BANNER_NEW',
+		'https://stellasaju.com/wp-content/uploads/2026/09/jEnvE.jpg' );
+}
+
 /* ── 고른 그림을 홈에 씌웁니다 ────────────────────────── */
 add_action( 'wp_head', function () {
 	if ( ! is_front_page() ) { return; }
-	$u = get_option( 'stella_banner_img', '' );
+	/* ★ 2026-09-15 · 소희 님이 새 배너를 올리고 주소를 주셨습니다.
+	   붙이기만 하면 바로 바뀌도록 이것을 기본값으로 둡니다.
+	   화면에서 다른 그림으로 바꾸실 수 있고, 「원래대로」를 누르면
+	   쪽에 박힌 옛 그림(GVx48)으로 돌아갑니다. */
+	$u = get_option( 'stella_banner_img', STELLA_BANNER_NEW );
 	if ( ! $u ) { return; }
+	if ( 'off' === $u ) { return; }
 	$u = esc_url( $u );
 
 	/* 덮개 세기 — 그림 위에 보라를 얼마나 씌울까
 	   진하게 : 지금 홈과 같음 (왼쪽 36% 를 아주 덮습니다)
 	   옅게   : 글씨 자리만 살짝
 	   없이   : 그림 그대로 (왼쪽이 이미 비어 있는 그림에 맞습니다) */
-	$veil = get_option( 'stella_banner_veil', 'thick' );
+	$veil = get_option( 'stella_banner_veil', 'none' );
 	if ( 'none' === $veil ) {
 		$wide = 'none';
 		$thin = 'none';
@@ -79,14 +93,16 @@ add_action( 'template_redirect', function () {
 		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
 	}
 
-	$now = get_option( 'stella_banner_img', '' );
+	$now = get_option( 'stella_banner_img', STELLA_BANNER_NEW );
 
 	/* 고르기 · 되돌리기 */
 	if ( isset( $_GET['set'] ) ) {
 		check_admin_referer( 'stella_banner' );
 		$v = esc_url_raw( wp_unslash( $_GET['set'] ) );
+		/* 되돌리기는 'off' 로 적어둡니다. 옵션을 지우면 기본값(새 그림)
+		   으로 돌아가버려서 「원래대로」가 안 됩니다. */
 		if ( $v ) { update_option( 'stella_banner_img', $v ); }
-		else      { delete_option( 'stella_banner_img' ); delete_option( 'stella_banner_veil' ); }
+		else      { update_option( 'stella_banner_img', 'off' ); }
 		wp_safe_redirect( add_query_arg( 'stella_banner', '1', home_url( '/' ) ) );
 		exit;
 	}
@@ -143,17 +159,18 @@ add_action( 'template_redirect', function () {
 	   . '언제든 되돌릴 수 있습니다.</p>';
 
 	echo '<div class="now"><b>지금 배너</b><br>';
-	if ( $now ) {
+	if ( $now ) { if ( 'off' !== $now ) {
 		echo '<span class="dim">' . esc_html( $now ) . '</span>';
 		echo '<img src="' . esc_url( $now ) . '" alt="">';
-	} else {
-		echo '<span class="dim">아직 안 고르셨습니다 — 쪽에 박힌 '
+	} }
+	if ( ! $now || 'off' === $now ) {
+		echo '<span class="dim">되돌려 두셨습니다 — 쪽에 박힌 '
 		   . 'GVx48.jpg 가 그대로 나옵니다.</span>';
 	}
 	echo '</div>';
 
 	/* 덮개 세기 고르기 */
-	$veil = get_option( 'stella_banner_veil', 'thick' );
+	$veil = get_option( 'stella_banner_veil', 'none' );
 	$VN = array( 'thick' => '진하게 (지금 홈과 같음)',
 	             'thin'  => '옅게 (글씨 자리만)',
 	             'none'  => '없이 (그림 그대로)' );
