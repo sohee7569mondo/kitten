@@ -244,13 +244,24 @@ add_action( 'wp_head', function () {
    맞습니다. 머리글 조각이 `inFooter()` 로 바닥글을 **일부러 걸러내고**
    있었습니다. 머리글만 바꾸려던 조각이라 그랬습니다.
 
-   ★ 바닥글은 그림(img.ssf-logo)이고 바탕이 **밝습니다**(종이색 #CECDBD).
-     그래서 머리글의 흰색 로고를 그대로 쓰면 안 보입니다.
-     **남색 로고를 따로 고르셔야 합니다.** 안 고르시면 아무것도 안 합니다. */
+   ★ 2026-09-15 다시 봄 — 소희 님 「모바일엔 글자로고가 들어감」
+     바닥글 그림(img.ssf-logo)의 주소가 죽어 있어서, 테마가 넣어둔
+     대체 글자(div.ssf-fallback  「✦ STELLA SAJU」)가 대신 나오고
+     있었습니다. 그림이 아니라 **글자**라 로고를 바꿔치는 코드가
+     못 잡았습니다.
+
+   ★ 바닥글 바탕은 **어둡습니다**(#0D0A1A). 그래서 기본값을 흰 글자
+     로고로 둡니다. 이제 아무것도 안 고르셔도 바로 나옵니다.
+        stellasaju-logo-text-white.png  (1942 x 502)
+     다른 그림을 쓰시려면 ?stella_logo=1 에서 w=foot 으로 고르시면 되고,
+     'off' 로 두시면 이 부분이 아예 안 돕니다. */
 add_action( 'wp_head', function () {
 	$u = get_option( 'stella_logo_foot', '' );
-	if ( ! $u ) { return; }
 	if ( 'off' === $u ) { return; }
+	if ( ! $u ) {
+		/* 안 고르셨으면 흰 글자 로고를 씁니다 — 바닥글이 어둡습니다 */
+		$u = 'https://stellasaju.com/wp-content/uploads/2026/09/stellasaju-logo-text-white.png';
+	}
 	$h = (int) get_option( 'stella_logo_footh', 40 );
 	if ( $h < 16 )  { $h = 16; }
 	if ( $h > 140 ) { $h = 140; }
@@ -258,8 +269,16 @@ add_action( 'wp_head', function () {
 <!-- stella 바닥글 로고 · 판 2026-09-15 -->
 <style id="stella-logo-foot">
 .stella-foot-logo{ display:block; height:<?php echo $h; ?>px; width:auto;
-  max-width:min(70vw, 420px); object-fit:contain; }
+  max-width:min(70vw, 420px); object-fit:contain; margin:0 auto 18px; }
 .stella-foot-old{ display:none !important; }
+/* 테마가 넣어둔 대체 글자 — 그림이 뜨면 이건 안 보여야 합니다.
+   테마 스크립트가 style="display:block" 을 손으로 박으므로 !important 로 누릅니다 */
+#ss-footer .ssf-fallback{ display:none !important; }
+/* 바닥글 글이 옆으로 넘쳐 화면이 가로로 밀리던 것 — 접히게 둡니다.
+   모바일에서 「통신판매업신고 2026-서울양천-100…」 줄이 잘리고
+   화면이 좌우로 밀렸습니다. 긴 번호가 한 덩어리라 안 접힌 탓입니다. */
+footer, #ss-footer{ overflow-x:hidden; }
+footer *, #ss-footer *{ max-width:100%; overflow-wrap:anywhere; }
 </style>
 <script>
 (function(){
