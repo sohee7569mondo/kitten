@@ -1,0 +1,278 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주 — 이름 목록 접기 · 「191명」 바로잡기
+   ★ 2026-09-16 · 소희 님께
+
+   소희 님 : 「스타운세도 이름 리스트 가리기로 햇는데 안된거 같고
+              스타 사주 메뉴에 191명이라고 되어 있는데 이거 수정해야 할거 같아」
+
+   ── 191명이 어디에 있었나 ───────────────────────────
+   쪽 글이 아니라 **쪽의 발췌(excerpt)** 에 있었습니다.
+
+       「연예인 191명의 사주를 생년월일에서 계산했습니다. …」
+
+   그래서 쪽을 아무리 뒤져도 안 나왔던 것입니다. 발췌는 차림표·
+   카드·검색 결과에 나옵니다.
+
+   그 뒤에 patch_star1 · patch_star2 로 사람을 많이 더했으니 숫자가
+   맞지 않습니다. 그런데 **얼마나 늘었는지 제가 여기서 셀 수 없습니다.**
+   그래서 숫자를 다시 박지 않고 **그때그때 세어 넣습니다.**
+
+       사람 자료는 쪽 글 안에 {"n":"이름", …} 꼴로 들어 있습니다
+       (patch_star2 가 그렇게 넣습니다). 그것을 셉니다.
+
+   ★ 못 세면 아무것도 안 바꿉니다. 틀린 숫자를 넣느니 그대로 두는
+     편이 낫습니다.
+   ★ 사람을 더 넣으셔도 숫자가 저절로 따라옵니다.
+
+   ── 이름 목록 ───────────────────────────────────────
+   목록이 수백 명이라 쪽이 한없이 길어집니다. **접어 둡니다.**
+   머리말과 「이름 전체 보기」 단추는 남기고, 누르면 펼쳐집니다.
+   찾기 칸은 그대로라 이름을 아시면 바로 찾으실 수 있습니다.
+
+   ★ 아예 안 보이게 하시려면 아래 한 줄을 고치세요 —
+         var FOLD = 1;   →   var FOLD = 2;    (단추도 없이 통째로 감춤)
+
+   ── 세어보기 ────────────────────────────────────────
+   https://stellasaju.com/?stella_starn=1     몇 명인지 · 어디를 고치는지
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 사람 수 세기 ─────────────────────────────────────
+   하루에 한 번만 세고 담아 둡니다. 쪽 글이 크기 때문입니다.
+   사람을 더 넣으신 뒤 바로 보시려면 ?stella_starn=1 을 여세요 —
+   그때는 다시 셉니다. */
+if ( ! function_exists( 'stella_star_count' ) ) {
+	function stella_star_count( $fresh = false ) {
+		$key = 'stella_star_n';
+		if ( ! $fresh ) {
+			$n = (int) get_transient( $key );
+			if ( $n > 0 ) { return $n; }
+		}
+		$p = get_page_by_path( 'star-saju' );
+		if ( ! $p ) { return 0; }
+		$c = (string) $p->post_content;
+		/* patch_star2 가 넣는 꼴 */
+		$n = substr_count( $c, '{"n":"' );
+		if ( $n < 1 ) {
+			/* 쪽을 손으로 고치셨을 때를 위한 다른 꼴 */
+			$n = substr_count( $c, 'name:' );
+		}
+		if ( $n > 0 ) { set_transient( $key, $n, DAY_IN_SECONDS ); }
+		return $n;
+	}
+}
+
+/* ── ① 발췌의 숫자를 바로잡습니다 ─────────────────────
+   DB 는 안 건드립니다. 보여줄 때만 갈아 끼웁니다.
+   스니펫을 끄면 그대로 돌아옵니다. */
+add_filter( 'get_the_excerpt', function ( $text, $post = null ) {
+	if ( ! $post ) { return $text; }
+	$id = is_object( $post ) ? (int) $post->ID : (int) $post;
+	$p  = get_page_by_path( 'star-saju' );
+	if ( ! $p ) { return $text; }
+	if ( $id !== (int) $p->ID ) { return $text; }
+	$n = stella_star_count();
+	if ( $n < 1 ) { return $text; }
+	return preg_replace( '/[0-9][0-9,]*\s*명/u', number_format( $n ) . '명', $text, 1 );
+}, 20, 2 );
+
+/* ── ② 화면 ───────────────────────────────────────── */
+add_action( 'wp_head', function () {
+
+	$n = stella_star_count();
+
+	/* 스타 사주 쪽 — 목록 접기 */
+	if ( is_page( 'star-saju' ) ) {
+		?>
+<!-- stella 스타 사주 · 판 2026-09-16 -->
+<style id="stella-starfold">
+/* 접힌 동안은 이름 단추가 안 보입니다. 펼치면 살아납니다. */
+#ssc .roster .names[data-fold="1"]{ display:none !important; }
+#ssc .roster .names[data-fold="2"]{ display:none !important; }
+.stella-more{
+  display:inline-block; margin:6px 0 4px; padding:9px 18px;
+  border:1px solid rgba(212,175,106,.55); border-radius:999px;
+  background:transparent; cursor:pointer;
+  font:inherit; font-size:.92rem; letter-spacing:.02em;
+  color:inherit; opacity:.88;
+}
+.stella-more:hover{ opacity:1; }
+</style>
+<script>
+(function(){
+  if(window.StellaStarFold){ return; }
+  window.StellaStarFold = 1;
+
+  /* 1 = 접고 단추를 답니다 (기본)
+     2 = 단추도 없이 통째로 감춥니다 */
+  var FOLD = 1;
+
+  function label(n){
+    if(n > 0){ return '이름 전체 보기 (' + n + '명)'; }
+    return '이름 전체 보기';
+  }
+
+  function fold(){
+    var box = document.getElementById('cRoster');
+    if(!box){ return 0; }
+    var names = box.querySelector('.names');
+    if(!names){ return 0; }
+    if(names.getAttribute('data-fold')){ return 1; }
+
+    names.setAttribute('data-fold', String(FOLD));
+    if(FOLD === 2){ return 1; }
+
+    var n = names.querySelectorAll('.nm').length;
+    var b = document.createElement('button');
+    b.setAttribute('type', 'button');
+    b.className = 'stella-more';
+    b.textContent = label(n);
+    b.addEventListener('click', function(){
+      var open = names.getAttribute('data-fold') === '0';
+      if(open){
+        names.setAttribute('data-fold', '1');
+        b.textContent = label(n);
+      } else {
+        names.setAttribute('data-fold', '0');
+        b.textContent = '이름 접기';
+      }
+    });
+    if(names.parentNode){ names.parentNode.insertBefore(b, names); }
+    return 1;
+  }
+
+  /* 목록은 자바스크립트가 나중에 그립니다. 그려질 때까지 봅니다.
+     다시 그려지면 단추가 사라지므로 계속 지켜봅니다. */
+  function watch(){
+    fold();
+    var k = 0;
+    var t = setInterval(function(){
+      k++;
+      fold();
+      if(k > 120){ clearInterval(t); }   /* 1분쯤 보다가 멈춥니다 */
+    }, 500);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', watch);
+  } else { watch(); }
+})();
+</script>
+		<?php
+	}
+
+	/* 어느 쪽이든 — 글자로 박힌 「191명」을 지금 수로 바꿉니다.
+	   차림표·배너처럼 발췌를 안 쓰는 자리를 위한 것입니다. */
+	if ( $n > 0 ) {
+		?>
+<script>
+(function(){
+  if(window.StellaStarN){ return; }
+  window.StellaStarN = 1;
+
+  var NOW = '<?php echo esc_js( number_format( $n ) ); ?>';
+
+  /* 「숫자+명」을 찾아 바꿉니다. 사람 수를 말하는 자리만 고르려고
+     앞에 「연예인」이 붙은 것만 봅니다 — 다른 쪽의 숫자를 건드리면
+     안 되기 때문입니다. */
+  function fix(t){
+    var s = String(t);
+    var at = s.indexOf('연예인');
+    if(at < 0){ return null; }
+    var i = at + 3;
+    while(i < s.length){ if(s.charAt(i) === ' '){ i++; } else { break; } }
+    var j = i;
+    while(j < s.length){
+      var ch = s.charAt(j);
+      if(ch >= '0'){ if(ch <= '9'){ j++; continue; } }
+      if(ch === ','){ j++; continue; }
+      break;
+    }
+    if(j === i){ return null; }
+    if(s.charAt(j) !== '명'){ return null; }
+    var old = s.slice(i, j);
+    if(old === NOW){ return null; }
+    return s.slice(0, i) + NOW + s.slice(j);
+  }
+
+  function walk(){
+    var n = 0;
+    try{
+      var w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+      var list = [], t;
+      while((t = w.nextNode())){
+        if(String(t.nodeValue).indexOf('연예인') >= 0){ list.push(t); }
+      }
+      var i;
+      for(i = 0; i < list.length; i++){
+        var nu = fix(list[i].nodeValue);
+        if(nu !== null){ list[i].nodeValue = nu; n++; }
+      }
+    }catch(e){}
+    return n;
+  }
+
+  function go(){
+    if(!document.body){ return; }
+    walk();
+    /* 나중에 그려지는 자리도 한 번 더 봅니다 */
+    setTimeout(walk, 800);
+    setTimeout(walk, 2500);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', go);
+  } else { go(); }
+})();
+</script>
+		<?php
+	}
+} );
+
+/* ── ③ 세어보기 (관리자만) ───────────────────────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_starn'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$p = get_page_by_path( 'star-saju' );
+	if ( ! $p ) {
+		echo "★ /star-saju/ 쪽을 못 찾았습니다.\n";
+		exit;
+	}
+	$c = (string) $p->post_content;
+
+	$n = stella_star_count( true );   /* 다시 셉니다 */
+
+	echo "═══ 스타 사주 ═══\n";
+	echo '쪽 ' . (int) $p->ID . ' · /' . $p->post_name . "/\n";
+	echo '쪽 글자 수 ' . number_format( mb_strlen( $c ) ) . "\n\n";
+
+	echo "지금 몇 명인가\n";
+	echo '  {"n":" 꼴      ' . number_format( substr_count( $c, '{"n":"' ) ) . "명\n";
+	echo '  name: 꼴       ' . number_format( substr_count( $c, 'name:' ) ) . "명\n";
+	echo '  쓰는 값        ' . number_format( $n ) . "명\n\n";
+
+	echo "발췌 (차림표·카드에 나오는 글)\n";
+	$ex = (string) $p->post_excerpt;
+	echo '  지금 담긴 것 : ' . ( '' === $ex ? '(비어 있음)' : $ex ) . "\n";
+	if ( $n > 0 ) {
+		echo '  바꿔 보여줄 것 : '
+			. preg_replace( '/[0-9][0-9,]*\s*명/u', number_format( $n ) . '명', $ex, 1 ) . "\n";
+	}
+	echo "\n";
+
+	echo "이름 목록\n";
+	echo "  스타 사주 쪽에서 #cRoster 안의 이름 단추를 접습니다.\n";
+	echo "  머리말과 「이름 전체 보기」 단추는 남습니다.\n";
+	echo "  아예 감추시려면 스니펫에서 var FOLD = 1; 을 2 로 고치세요.\n\n";
+
+	echo "★ DB 는 한 글자도 안 바꿉니다. 보여줄 때만 갈아 끼웁니다.\n";
+	echo "  스니펫을 끄면 그대로 돌아옵니다.\n";
+	exit;
+} );
