@@ -41,6 +41,11 @@ add_action( 'wp_head', function () {
 	if ( ! $star ) { if ( ! $um ) { return; } }
 
 	$admin = current_user_can( 'manage_options' ) ? 1 : 0;
+
+	/* ★ 유앤미 쪽에는 **자바스크립트만** 내보냅니다.
+	   단추 모양(CSS)은 스타 사주에서만 쓰므로 거기서만 내보냅니다.
+	   유앤미 쪽에 얹는 것을 최소로 줄입니다. */
+	if ( $star ) {
 	?>
 <!-- stella 스타 → 유앤미 · 판 2026-09-16 -->
 <style id="stella-celebgo">
@@ -60,6 +65,9 @@ add_action( 'wp_head', function () {
   border-left:3px solid #2F7D4A; background:rgba(47,125,74,.07); color:#1d3a27;
 }
 </style>
+	<?php
+	}
+	?>
 <script>
 (function(){
   if(window.StellaCelebGo){ return; }
@@ -226,6 +234,13 @@ add_action( 'wp_head', function () {
     if(ON_UM){
       want = get(KEY);
       if(!want){ want = ''; }
+      /* ★★ 담아둔 이름이 없으면 유앤미에서는 **한 줄도 안 돕니다**
+         — 2026-09-16
+         소희 님이 유앤미를 여셨더니 쪽이 통째로 비어 있었습니다.
+         이 조각 탓인지 가리려면, 할 일이 없을 때 아예 손을 떼는 것이
+         가장 확실합니다. 스타 사주에서 단추를 누르고 오셨을 때만
+         움직입니다. */
+      if(!want){ return; }
     }
     tick();
     var k = 0;
