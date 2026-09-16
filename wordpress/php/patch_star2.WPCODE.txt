@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════════════════════════
    스타 사주 · 쪽 원본 고치기 2/3 — 글 · 오행과 십성
-   판 2026-09-16 09:09
+   판 2026-09-16 09:32
    (도구가 뽑았습니다 — build_starpage.py. 손으로 고치지 마세요)
 
    소희 님 : 「연애인 리스트도 떴다가 가려지는 형식이야
@@ -122,18 +122,6 @@ add_action( 'init', function () {
 		exit;
 	}
 
-	/* ★★ 찾을 글과 넣을 글의 줄끝도 가지런히 맞춥니다.
-	   같은 까닭입니다 — 조각 쪽 줄끝이 
- 이면 쪽(
-)과 안 맞습니다. */
-	foreach ( $EDITS as $ei => $ee ) {
-		$EDITS[ $ei ][2] = str_replace( array( "
-", "" ), "
-", $ee[2] );
-		$EDITS[ $ei ][3] = str_replace( array( "
-", "" ), "
-", $ee[3] );
-	}
 	$head = substr( $body, 0, $cut );
 	$tail = substr( $body, $cut );
 
@@ -154,6 +142,7 @@ add_action( 'init', function () {
 		}
 		wp_update_post( array( 'ID' => $pid, 'post_content' => $old ) );
 		clean_post_cache( $pid );
+		delete_post_meta( $pid, 'stella_done_p2' );   /* 자물쇠도 풉니다 */
 		echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2>';
 		exit;
 	}
@@ -275,66 +264,144 @@ STELLA_B
 		),
 	);
 
-	/* ── 찾아보기 ─────────────────────────────────────── */
-	$go   = isset( $_GET['go'] );
-	$miss = array();
-	$hit  = 0;
-	foreach ( $EDITS as $e ) {
-		$n = substr_count( 'h' === $e[1] ? $head : $tail, $e[2] );
-		if ( 1 === $n ) { $hit++; }
-		else { $miss[] = array( $e[0], $n ); }
+	/* ★★ 2026-09-16 · 여기까지 세 번 물렸습니다. 까닭을 적어 둡니다.
+
+	   ① 줄끝 맞추는 일을 $EDITS **앞**에 두어 헛돌았습니다.
+	      조각 파일은 HEAD + $EDITS + FOOT 순서로 붙는데, HEAD 에
+	      넣었으니 아직 있지도 않은 것을 맞추고 있었습니다.
+	      → 이제 $EDITS 가 만들어진 **뒤**인 여기서 맞춥니다.
+
+	   ② 살아 있는 쪽은 줄끝이 **섞여 있습니다** (
+ 373 · 
+ 1668).
+	      조각이 WPCode 에 담기며 줄끝이 바뀌면 여러 줄짜리 찾을 글이
+	      안 맞습니다. 한 줄짜리만 맞아서 「17군데 중 4군데」가 났습니다.
+	      → 그대로 못 찾으면 **빈칸을 흘려 넘기며** 한 번 더 찾습니다.
+	        글자만 같으면 들여쓰기·줄끝이 달라도 찾습니다.
+
+	   ③ 「하나도 못 찾음 = 이미 들어감」으로 본 것은 **거짓말**이었습니다.
+	      못 찾은 것과 이미 들어간 것은 다릅니다.
+	      → 이제 **넣을 글이 이미 쪽에 있는지**로 가립니다. */
+
+	/* ★★ 두 번 누르면 또 바뀌는 것을 막습니다 (자물쇠)
+	   넣는 자리 가운데에는 **원래 줄을 그대로 두고 그 둘레에 보태는**
+	   것이 있습니다. 그런 자리는 넣은 뒤에도 찾을 글이 그대로 남아
+	   있어서, 다시 누르면 또 보탭니다. 시험에서 실제로 그랬습니다.
+	   그래서 조각마다 「다 넣었음」 표를 남기고, 있으면 물러납니다.
+	   되돌리기를 하면 그 표도 같이 지웁니다. */
+	if ( get_post_meta( $pid, 'stella_done_p2', true ) ) {
+		echo '<h1 style="color:#7bff9b">이 조각은 이미 넣었습니다.</h1>';
+		echo '<p>두 번 넣으면 같은 글이 겹쳐 들어갑니다. 그래서 물러납니다.</p>';
+		echo '<p style="color:#888">정말 다시 넣으셔야 하면 먼저 '
+			. '<a style="color:#ffd76a" href="?stella_star2=1&amp;undo=1">되돌리기</a>를 하세요.</p>';
+		exit;
+	}
+
+	foreach ( $EDITS as $ei => $ee ) {
+		$EDITS[ $ei ][2] = str_replace( array( "
+", "" ), "
+", $ee[2] );
+		$EDITS[ $ei ][3] = str_replace( array( "
+", "" ), "
+", $ee[3] );
+	}
+
+	/* 빈칸을 흘려 넘기는 본 */
+	$mkpat = function ( $a ) {
+		$q = preg_quote( $a, '#' );
+		$q = preg_replace( '#\s+#u', '\\s+', $q );
+		return '#' . $q . '#u';
+	};
+
+	$go    = isset( $_GET['go'] );
+	$miss  = array();
+	$hit   = 0;
+	$soft  = 0;
+	$done  = 0;
+
+	foreach ( $EDITS as $ei => $e ) {
+		$sub = ( 'h' === $e[1] ) ? $head : $tail;
+
+		/* ★ 찾을 글을 **먼저** 봅니다.
+		   넣을 글이 찾을 글을 품고 있는 자리가 있어서(원래 줄을 두고
+		   그 둘레에 보태는 자리), 「이미」를 먼저 보면 거짓으로 걸립니다.
+		   실제로 한 군데가 그렇게 걸려 108자가 어긋났습니다. */
+		$n = substr_count( $sub, $e[2] );
+		if ( 1 === $n ) {
+			$EDITS[ $ei ][4] = '그대로';
+			$hit++;
+			continue;
+		}
+
+		$m = preg_match_all( $mkpat( $e[2] ), $sub );
+		if ( 1 === $m ) {
+			$EDITS[ $ei ][4] = '빈칸맞춰';
+			$hit++;
+			$soft++;
+			continue;
+		}
+
+		/* 찾을 글이 아예 없는데 넣을 글이 있으면 = 이미 들어간 것 */
+		if ( substr_count( $sub, $e[3] ) >= 1 ) {
+			$EDITS[ $ei ][4] = '이미';
+			$done++;
+			continue;
+		}
+
+		$EDITS[ $ei ][4] = '못찾음';
+		$miss[] = array( $e[0], $n, $m );
 	}
 
 	printf( '<h1 style="color:#ffd76a">스타 사주 쪽 고치기 2/3 — %s</h1>',
 		$go ? '넣기' : '<span style="color:#9fd">미리보기 · 아무것도 안 바뀝니다</span>' );
-	printf( '<p>쪽 406 · 지금 <b>%s자</b> · 고칠 자리 <b>%d</b>군데 가운데 '
-		. '<b style="color:%s">%d군데</b>를 찾았습니다.</p>',
+	printf( '<p>쪽 406 · 지금 <b>%s자</b> · 고칠 자리 <b>%d</b>군데 — '
+		. '찾음 <b style="color:#7bff9b">%d</b> · 이미 들어감 <b>%d</b> · '
+		. '못 찾음 <b style="color:%s">%d</b></p>',
 		number_format( strlen( $body ) ), count( $EDITS ),
-		count( $miss ) ? '#ff7b7b' : '#7bff9b', $hit );
-
-	/* 다 안 보이면 이미 들어간 것입니다 */
-	if ( 0 === $hit ) {
-		$zero = 0;
-		foreach ( $miss as $m ) { if ( 0 === $m[1] ) { $zero++; } }
-		if ( $zero === count( $EDITS ) ) {
-			echo '<h2 style="color:#7bff9b">이 조각은 이미 들어가 있습니다.</h2>';
-			echo '<p>바꿀 것이 없습니다. 다음 조각으로 가셔도 됩니다.</p>';
-			exit;
-		}
+		$hit, $done, count( $miss ) ? '#ff7b7b' : '#888', count( $miss ) );
+	if ( $soft ) {
+		printf( '<p style="color:#9fd">그 가운데 %d군데는 빈칸·줄끝이 달라서 '
+			. '빈칸을 흘려 넘기며 찾았습니다. 넣는 데는 문제 없습니다.</p>', $soft );
 	}
 
 	if ( count( $miss ) ) {
 		echo '<h2 style="color:#ff7b7b">★ 못 찾은 자리가 있어 아무것도 안 바꿉니다</h2>';
 		echo '<ul style="font-size:13px">';
 		foreach ( $miss as $m ) {
-			printf( '<li>%s — %d군데</li>', esc_html( $m[0] ), $m[1] );
+			printf( '<li>%s — 그대로 %d군데 · 빈칸 흘려 %d군데</li>',
+				esc_html( $m[0] ), $m[1], $m[2] );
 		}
 		echo '</ul>';
-		echo '<p style="color:#888">쪽이 그 사이에 바뀐 것입니다. 저에게 알려주세요 — '
-			. '지금 쪽을 다시 읽어 조각을 새로 뽑겠습니다.</p>';
-		/* 빈칸만 다른 것인지 한 번 더 봅니다 — 그러면 까닭이 바로 보입니다 */
-		echo '<h3 style="color:#ffd76a">빈칸을 다 떼고 보면</h3><ul style="font-size:13px">';
-		foreach ( $miss as $m ) {
-			$k = 0;
-			foreach ( $EDITS as $e ) {
-				if ( $e[0] !== $m[0] ) { continue; }
-				$a = preg_replace( '/\s+/u', '', $e[2] );
-				$t = preg_replace( '/\s+/u', '', 'h' === $e[1] ? $head : $tail );
-				$k = substr_count( $t, $a );
-			}
-			printf( '<li>%s — 빈칸 떼고 보면 %d군데</li>', esc_html( $m[0] ), $k );
-		}
-		echo '</ul><p style="color:#888">「빈칸 떼고 보면 1군데」로 나오면 '
-			. '줄끝이나 들여쓰기만 다른 것입니다.</p>';
+		echo '<p style="color:#888">이 표를 그대로 보여주세요.</p>';
 		exit;
 	}
 
-	/* ── 미리보기 ─────────────────────────────────────── */
+	if ( ! $hit ) {
+		echo '<h2 style="color:#7bff9b">이 조각은 이미 다 들어가 있습니다.</h2>';
+		echo '<p>바꿀 것이 없습니다. 다음 조각으로 가셔도 됩니다.</p>';
+		exit;
+	}
+
+	/* ── 넣어보기 ─────────────────────────────────────── */
 	$nh = $head;
 	$nt = $tail;
 	foreach ( $EDITS as $e ) {
-		if ( 'h' === $e[1] ) { $nh = str_replace( $e[2], $e[3], $nh ); }
-		else { $nt = str_replace( $e[2], $e[3], $nt ); }
+		if ( '이미' === $e[4] ) { continue; }
+		if ( 'h' === $e[1] ) {
+			if ( '그대로' === $e[4] ) { $nh = str_replace( $e[2], $e[3], $nh ); }
+			else {
+				$rep = $e[3];
+				$nh = preg_replace_callback( $mkpat( $e[2] ),
+					function () use ( $rep ) { return $rep; }, $nh, 1 );
+			}
+		} else {
+			if ( '그대로' === $e[4] ) { $nt = str_replace( $e[2], $e[3], $nt ); }
+			else {
+				$rep = $e[3];
+				$nt = preg_replace_callback( $mkpat( $e[2] ),
+					function () use ( $rep ) { return $rep; }, $nt, 1 );
+			}
+		}
 	}
 	$new = $nh . $nt;
 
@@ -343,8 +410,8 @@ STELLA_B
 
 	echo '<table cellpadding="6" style="border-collapse:collapse;font-size:13px">';
 	foreach ( $EDITS as $e ) {
-		printf( '<tr><td style="color:#9fd">%s</td><td style="color:#888">%d자 → %d자</td></tr>',
-			esc_html( $e[0] ), strlen( $e[2] ), strlen( $e[3] ) );
+		printf( '<tr><td style="color:#9fd">%s</td><td style="color:#888">%s · %d자 → %d자</td></tr>',
+			esc_html( $e[0] ), esc_html( $e[4] ), strlen( $e[2] ), strlen( $e[3] ) );
 	}
 	echo '</table>';
 
@@ -357,8 +424,8 @@ STELLA_B
 		exit;
 	}
 
-	/* ── 넣기 ─────────────────────────────────────────── */
-	update_post_meta( $pid, $bak, $body );   /* 지금 쪽을 백업 */
+	update_post_meta( $pid, $bak, $page->post_content );
+	update_post_meta( $pid, 'stella_done_p2', 1 );
 	wp_update_post( array( 'ID' => $pid, 'post_content' => $new ) );
 	clean_post_cache( $pid );
 	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
@@ -368,11 +435,7 @@ STELLA_B
 		number_format( strlen( $body ) ), number_format( strlen( $new ) ) );
 	printf( '<p style="font-size:18px"><a style="color:#ffd76a" href="%s">→ 스타 사주 열어보기</a></p>',
 		esc_url( get_permalink( $pid ) ) );
-	echo '<h3 style="color:#ffd76a;margin-top:24px">이제 조각 셋을 꺼주세요</h3>';
-	echo '<p><b>patch_startext</b> · <b>patch_starfind</b> · <b>patch_starfix</b><br>'
-		. '세 조각이 하던 일이 쪽 안으로 들어갔습니다. 켜 두면 같은 일을 두 번 합니다.</p>';
-	echo '<p style="color:#888">★ <b>patch_celebgo</b> 는 그대로 두세요 — '
-		. '유앤미 쪽에서 이름을 골라주는 일이 남아 있습니다.</p>';
-	echo '<p style="color:#888">이 조각도 이제 꺼두셔도 됩니다.</p>';
+	echo '<p style="color:#888">셋을 다 넣으신 뒤에 patch_startext · patch_starfind · '
+		. 'patch_starfix 를 꺼주세요. ★ patch_celebgo 는 두세요.</p>';
 	exit;
 }, 1 );
