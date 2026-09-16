@@ -47,7 +47,7 @@ add_action( 'wp_head', function () {
 	   유앤미 쪽에 얹는 것을 최소로 줄입니다. */
 	if ( $star ) {
 	?>
-<!-- stella 스타 → 유앤미 · 판 2026-09-16 b -->
+<!-- stella 스타 → 유앤미 · 판 2026-09-16 c -->
 <style id="stella-celebgo">
 .stella-go{
   display:block; width:100%; box-sizing:border-box;
@@ -60,6 +60,11 @@ add_action( 'wp_head', function () {
 .stella-go:hover{ filter:brightness(1.06); }
 .stella-go .s{ display:block; margin-top:5px; font-size:.82rem; font-weight:400; opacity:.88; }
 .stella-gonote{ margin:8px 2px 0; font-size:.8rem; opacity:.55; }
+.stella-oh{
+  margin:10px 0 18px; padding:9px 14px; border-radius:10px;
+  background:rgba(107,91,168,.06); color:#5B4A96;
+  font-size:.92rem; font-weight:700; letter-spacing:.02em; text-align:center;
+}
 .stella-goadm{
   margin:8px 0 0; padding:7px 11px; font-size:.8rem;
   border-left:3px solid #2F7D4A; background:rgba(47,125,74,.07); color:#1d3a27;
@@ -264,6 +269,217 @@ add_action( 'wp_head', function () {
     }catch(e){}
   }
 
+  /* ★★ 어려운 말 한 줄을 숨깁니다 — 2026-09-16
+     소희 님 「나와 이 사람에게 뭘 해 주고 싶어집니다 라고만
+              쓸까? 편재 기토 어려운말이야」
+
+         당신은 기토입니다. 산 님은 당신에게 편재입니다.   ← 숨김
+         뭘 해 주고 싶어집니다                              ← 남김
+         챙기게 됩니다. 잘 됐으면 좋겠고 …                  ← 남김
+
+     아래 두 줄이 같은 것을 이미 쉬운 말로 말해 줍니다.
+
+     ★★ **지우지 않고 숨깁니다.** 이름을 바로 이 문장에서
+       찾기 때문입니다 (「○○ 님은 당신에게」). 지워 버리면
+       단추가 다시 「스타 운세 님과」로 돌아갑니다.
+       display:none 은 글을 그대로 두므로 이름은 계속 찾힙니다. */
+  function hideJargon(){
+    try{
+      var all = document.querySelectorAll('p, div, li'), i, el, t, k, kid, inner;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.getAttribute('data-ssjar') === '1'){ continue; }
+        t = tidy(el.textContent);
+        if(t.indexOf(NAMEMARK) < 0){ continue; }
+        if(t.length > 70){ continue; }
+        /* 안쪽에 같은 문장을 품은 아이가 있으면 그 아이가 진짜입니다 */
+        inner = 0;
+        for(k = 0; k < el.children.length; k++){
+          kid = el.children[k];
+          if(String(kid.textContent === null ? '' : kid.textContent).indexOf(NAMEMARK) >= 0){ inner = 1; }
+        }
+        if(inner){ continue; }
+        el.setAttribute('data-ssjar', '1');
+        el.style.display = 'none';
+        JARGON++;
+      }
+    }catch(e){}
+  }
+  var JARGON = 0;
+
+  /* ★★ 팬이 안 볼 갈래를 통째로 접습니다 — 2026-09-16
+     소희 님 「이 사람은 얼마나 드문가 … 이내용은 관심없는 내용일듯」
+              「일간(계수(癸水))이 같은 사람 50명」
+
+     접는 것 둘 —
+         일간(계수(癸水))이 같은 사람 50명   이름 쉰 개가 줄줄이
+         이 사람은 얼마나 드문가             537명 가운데 몇 명 …
+
+     ★ 살리고 싶으시면 아래 FOLD 표에서 그 줄 하나만 지우면 됩니다.
+     ★ 지우지 않고 **숨깁니다.** 조각을 끄면 그대로 돌아옵니다.
+     ★ 제목 **그 자체**만 찾습니다 (스물넉 자 아래). 갈래를 통째로
+       싼 상자는 글이 길어서 안 걸립니다 — 그래야 이웃 갈래까지
+       접히지 않습니다.
+     ★ 아래 STOP 가운데 하나를 만나면 멈춥니다. */
+  var FOLD = [
+    ['일간(', '같은 사람'],          /* 둘 다 든 제목만 — 「일간 癸 — 이슬과 실개천」은 안 걸립니다 */
+    ['이 사람은 얼마나 드문가', '']
+  ];
+  var STOP = ['나와 이 사람', '이 사람은 얼마나 드문가', '뭘 해 주고'];
+  var RARE = 0;
+
+  function isStop(t){
+    var i;
+    for(i = 0; i < STOP.length; i++){
+      if(t.indexOf(STOP[i]) >= 0){ return 1; }
+    }
+    return 0;
+  }
+
+  function foldOne(a, b){
+    try{
+      var all = document.querySelectorAll('p, div, li, section, h1, h2, h3, h4, h5');
+      var i, el, t, n, k;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.getAttribute('data-ssrare') === '1'){ continue; }
+        t = tidy(el.textContent);
+        if(!t){ continue; }
+        if(t.length > 24){ continue; }      /* 갈래를 싼 상자는 거릅니다 */
+        if(t.indexOf(a) < 0){ continue; }
+        if(b){ if(t.indexOf(b) < 0){ continue; } }
+        el.setAttribute('data-ssrare', '1');
+        el.style.display = 'none';
+        RARE++;
+        n = el.nextElementSibling;
+        k = 0;
+        while(n){
+          if(k > 60){ break; }
+          if(isStop(tidy(n.textContent))){ break; }
+          n.setAttribute('data-ssrare', '1');
+          n.style.display = 'none';
+          RARE++;
+          n = n.nextElementSibling;
+          k++;
+        }
+        return;
+      }
+    }catch(e){}
+  }
+
+  function hideRare(){
+    var i;
+    for(i = 0; i < FOLD.length; i++){ foldOne(FOLD[i][0], FOLD[i][1]); }
+  }
+
+  /* ★★ 오행 막대 다섯 줄을 한 줄로 — 2026-09-16
+     소희 님 「밑에 토 금 수 화 이거 분량이 너무 많아 위에 6개 표에
+              있는 박스 아래에 금0개 화0개 이런식으로 한줄로 쓰면」
+
+         목 ────────────── 1자
+         화 ────────────── 0자      ← 다섯 줄이 자리를 많이 먹습니다
+         토 ────────────── 2자
+         금 ────────────── 1자
+         수 ────────────── 2자
+
+              ↓
+
+         목 1 · 화 0 · 토 2 · 금 1 · 수 2      ← 사주표 바로 아래 한 줄
+
+     ★ 값은 화면에서 그대로 읽습니다. 다시 셈하지 않습니다 —
+       셈을 두 군데서 하면 언젠가 어긋납니다.
+     ★ 막대는 지우지 않고 숨깁니다. 조각을 끄면 돌아옵니다. */
+  var OHS = ['목', '화', '토', '금', '수'];
+
+  /* 「목 1자」 처럼 오행 하나와 글자 수만 든 줄을 찾습니다 */
+  function ohRow(o){
+    var all = document.querySelectorAll('div, li, p, tr, span, td'), i, el, t, num;
+    for(i = 0; i < all.length; i++){
+      el = all[i];
+      if(el.getAttribute('data-ssoh') === '1'){ continue; }
+      t = squash(el.textContent);
+      if(t.length < 3){ continue; }
+      if(t.length > 6){ continue; }          /* 다섯을 싼 상자는 거릅니다 */
+      if(t.indexOf(o) !== 0){ continue; }
+      if(t.charAt(t.length - 1) !== '자'){ continue; }
+      num = t.slice(o.length, t.length - 1);
+      if(!num){ continue; }
+      if(num !== String(parseInt(num, 10))){ continue; }
+      return { el: el, n: num };
+    }
+    return null;
+  }
+
+  /* 다섯을 다 품는 가장 가까운 상자 */
+  function commonBox(els){
+    var n = els[0], i, ok, lv = 0;
+    while(n){
+      ok = 1;
+      for(i = 0; i < els.length; i++){
+        if(!n.contains(els[i])){ ok = 0; }
+      }
+      if(ok){ if(n !== els[0]){ return n; } }
+      n = n.parentElement;
+      lv++;
+      if(lv > 8){ break; }
+      if(!n){ break; }
+      if(n === document.body){ break; }
+    }
+    return null;
+  }
+
+  /* 사주표 — 「연주」와 「일주」가 둘 다 든 가장 안쪽 상자 */
+  function pillarBox(){
+    var all = document.querySelectorAll('table, div, section'), i, el, t, best = null;
+    for(i = 0; i < all.length; i++){
+      el = all[i];
+      t = String(el.textContent === null ? '' : el.textContent);
+      if(t.indexOf('연주') < 0){ continue; }
+      if(t.indexOf('일주') < 0){ continue; }
+      if(t.length > 400){ continue; }
+      if(!best){ best = el; }
+      else if(best.contains(el)){ best = el; }
+    }
+    return best;
+  }
+
+  var OHDONE = 0;
+
+  function ohOneLine(){
+    if(OHDONE){ return; }
+    try{
+      var rows = [], i, r;
+      for(i = 0; i < OHS.length; i++){
+        r = ohRow(OHS[i]);
+        if(!r){ return; }                 /* 다섯이 다 있어야 손댑니다 */
+        rows.push(r);
+      }
+      var els = [];
+      for(i = 0; i < rows.length; i++){ els.push(rows[i].el); }
+      var box = commonBox(els);
+      if(!box){ return; }
+
+      var p = document.createElement('p');
+      p.className = 'stella-oh';
+      var txt = '';
+      for(i = 0; i < rows.length; i++){
+        if(i){ txt += '   ·   '; }
+        txt += OHS[i] + ' ' + rows[i].n;
+      }
+      p.appendChild(document.createTextNode(txt));
+
+      var tb = pillarBox();
+      if(tb){ if(tb.parentNode){ tb.parentNode.insertBefore(p, tb.nextSibling); } }
+      if(!p.parentNode){ if(box.parentNode){ box.parentNode.insertBefore(p, box); } }
+      if(!p.parentNode){ return; }
+
+      for(i = 0; i < els.length; i++){ els[i].setAttribute('data-ssoh', '1'); }
+      box.setAttribute('data-ssoh', '1');
+      box.style.display = 'none';
+      OHDONE = 1;
+    }catch(e){}
+  }
+
   /* ★ 「내 사주로 같은 것을 보기」 단추는 뺍니다
      소희 님 「스타 사주 보고 내 사주 보고 싶진 않을듯」 */
   function hideMine(){
@@ -313,7 +529,9 @@ add_action( 'wp_head', function () {
       var a = document.createElement('p');
       a.className = 'stella-goadm';
       a.appendChild(document.createTextNode(
-        '관리자에게만 보입니다 · 「' + nm + '」 을 담아 유앤미로 보냅니다'));
+        '관리자에게만 보입니다 · 「' + nm + '」 을 담아 유앤미로 보냅니다'
+        + ' · 어려운 말 ' + JARGON + '줄 · 통계 갈래 ' + RARE + '줄 접음'
+        + ' · 오행 한 줄 ' + (OHDONE ? '됨' : '못 찾음')));
       wrap.appendChild(a);
     }
     box.appendChild(wrap);
@@ -394,6 +612,9 @@ add_action( 'wp_head', function () {
   /* ═══ 돌리기 ═══════════════════════════════════════ */
   function tick(){
     if(ON_STAR){ hideMine(); }
+    if(ON_STAR){ hideJargon(); }
+    if(ON_STAR){ hideRare(); }
+    if(ON_STAR){ ohOneLine(); }
     if(ON_STAR){ onStar(); }
     if(ON_STAR){ topGap(); }
     if(ON_UM){ onUm(); }
