@@ -1101,20 +1101,30 @@ TAIL = u''';
      관리자 띠에 찍습니다. 한 번만 보시면 까닭이 바로 나옵니다.
      ★ 손님에게는 안 보입니다 (관리자 띠 안에서만 부릅니다). */
   function picReport(root){
-    var out='사진 — ';
     try{
       var ims=root.querySelectorAll('.dvmark.dvface img');
-      if(!ims.length){ return out+'★ 동그라미 안에 그림칸이 하나도 없습니다'; }
-      var im=ims[0];
-      var st='아직 받는 중';
-      if(im.complete){ st = im.naturalWidth ? ('받았습니다 '+im.naturalWidth+'x'+im.naturalHeight)
-                                            : '★ 못 받았습니다 (주소가 죽었습니다)'; }
-      var box=im.parentNode ? im.parentNode.getBoundingClientRect() : null;
-      out += ims.length+'칸 · '+st;
-      if(box){ out += ' · 동그라미 '+Math.round(box.width)+'x'+Math.round(box.height); }
-      out += String.fromCharCode(10)+'  주소 '+String(im.getAttribute('src'));
-    }catch(e){ out+='★ '+e; }
-    return out;
+      if(!ims.length){ return '사진 — ★ 그림칸이 하나도 없습니다'; }
+      var i, im, got=0, bad=0, wait=0, cov=0, dv=0, first='', badone='', size='';
+      for(i=0;i<ims.length;i++){
+        im=ims[i];
+        var onCover=0;
+        try{ if(im.closest){ if(im.closest('.page.cover')){ onCover=1; } } }catch(e2){}
+        if(onCover){ cov++; } else { dv++; }
+        if(!im.complete){ wait++; }
+        else if(im.naturalWidth){
+          got++;
+          if(!first){ first=String(im.getAttribute('src'));
+                      size=im.naturalWidth+'x'+im.naturalHeight; }
+        }
+        else { bad++; if(!badone){ badone=String(im.getAttribute('src')); } }
+      }
+      var nl=String.fromCharCode(10);
+      var s='사진 — 표지 '+cov+'칸 · 장 속표지 '+dv+'칸';
+      s+=nl+'  받음 '+got+' · ★ 못 받음 '+bad+' · 받는 중 '+wait;
+      if(first){ s+=nl+'  받은 것 '+size+' · '+first; }
+      if(badone){ s+=nl+'  ★ 못 받은 주소 '+badone; }
+      return s;
+    }catch(e){ return '사진 — ★ '+e; }
   }
 
   /* ★ 표지에 쓸 사진 — 책을 지을 때 담아 둡니다.
