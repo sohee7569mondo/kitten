@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════
-   유앤미 조각이 몇 개나 켜져 있나              판 UMON-1
+   유앤미 조각이 몇 개나 켜져 있나              판 UMON-2
                                                2026-09-16
 
    소희 님 : 유앤미 쪽이 통째로 비어 있습니다.
@@ -32,7 +32,7 @@ add_action( 'template_redirect', function () {
 	global $wpdb;
 	header( 'Content-Type: text/plain; charset=utf-8' );
 
-	echo "═══ 유앤미 조각 아홉 · 켜짐 꺼짐   판 UMON-1 ═══\n\n";
+	echo "═══ 유앤미 조각 아홉 · 켜짐 꺼짐   판 UMON-2 ═══\n\n";
 
 	/* 조각마다 그 조각에만 있는 표지말.
 	   표지말로 찾으므로 소희 님이 이름을 어떻게 붙이셨든 찾아냅니다. */
@@ -81,7 +81,10 @@ add_action( 'template_redirect', function () {
 				$r->post_title,
 				( 'publish' === $r->post_status ? '켜짐' : '꺼짐' ),
 				$r->ID );
-			if ( 'publish' !== $r->post_status ) { $offList[] = $r->post_title; }
+			if ( 'publish' !== $r->post_status ) {
+				$offList[] = $r->post_title;
+				printf( "        → %s\n", admin_url( 'admin.php?page=wpcode-snippet-manager&snippet_id=' . $r->ID ) );
+			}
 		}
 		if ( ! count( $found ) ) {
 			echo "      · WPCode 어디에도 없습니다 — 새로 붙이셔야 합니다\n";
@@ -98,8 +101,12 @@ add_action( 'template_redirect', function () {
 	if ( count( $missing ) ) {
 		echo "  ★ 유앤미가 비는 까닭 — 꼭 있어야 할 것이 꺼져 있습니다\n";
 		foreach ( $missing as $m ) { echo '      ' . $m . "\n"; }
-		echo "\n  WPCode 목록에서 위에 적힌 **꺼짐** 이름을 찾아\n";
-		echo "  Active 로 켜시고 /uandme/ 를 새로고침해 보세요.\n";
+		echo "\n  위에 적힌 **꺼짐** 옆의 → 주소를 그대로 여시면\n";
+		echo "  그 조각의 고치는 자리로 바로 갑니다. 오른쪽 위\n";
+		echo "  단추를 Active 로 켜고 저장하신 뒤 /uandme/ 를\n";
+		echo "  새로고침해 보세요.\n";
+		echo "\n  「아예 없음」 이라고 나온 것은 켤 것이 없습니다 —\n";
+		echo "  그 조각을 새로 붙이셔야 합니다. 저에게 말씀해 주세요.\n";
 	} else {
 		echo "  꼭 있어야 할 것 셋(①②⑥)은 다 켜져 있습니다.\n";
 		echo "  그래도 화면이 비면 자바스크립트가 멈춘 것입니다 —\n";
