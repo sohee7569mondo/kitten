@@ -26,8 +26,9 @@ OUT  = os.path.join(HERE, '..', 'php', 'patch_starsrc.WPCODE.txt')
 EDITS = []          # (이름, 찾을 것, 바꿀 것)
 
 
-def E(name, a, b):
-    EDITS.append((name, a, b))
+def E(name, a, b, where='t'):
+    """where='t' 스타 사주 덩어리 / 'h' 그 앞(화면 뼈대와 모양)"""
+    EDITS.append((name, a, b, where))
 
 
 def para(ps):
@@ -220,6 +221,129 @@ def build():
         E('십성 ' + k + ' 글', m.group(0),
           "'%s':{ t:'%s',\n      d:'%s' }" % (k, m.group(1), para(sip[k])))
 
+    # ── ⑧ 서강준을 명단에 넣습니다 ────────────────────────────
+    #   네이버 검색어 추이 2026-09 에서 1위인데 명단에 없었습니다.
+    #   생년월일은 서로 다른 세 곳에서 1993-10-12 로 확인했습니다.
+    #   사주는 **쪽 안의 계산기**(StellaSaju.compute)로 세웠습니다 —
+    #   제가 따로 셈하면 나머지 537명과 어긋납니다. 「산」으로 맞춰
+    #   己卯·辛未·癸亥 가 명단과 같은 것을 확인했습니다.
+    #   십성 두 개를 고르는 규칙도 537명 전부에 맞춰 되찾았습니다
+    #   (일간을 뺀 다섯 글자에서 많은 둘, 같으면 먼저 나온 것).
+    SEO = ('{"n":"서강준","c":"ㅅ","b":"1993-10-12","k":"","j":"배우","a":"닭",'
+           '"y":"癸酉","m":"壬戌","dd":"丙寅","g":"丙","gk":"병화",'
+           '"el":{"목":1,"화":1,"토":1,"금":1,"수":2},"hi":"수","no":[],'
+           '"sip":["정관","정재"],"s":"천칭자리"}')
+    E('서강준 넣기', '  var STARS=[{"n":"유재석"', '  var STARS=[' + SEO + ',{"n":"유재석"')
+
+    # ── ⑨ 검색칸 + 「요즘 많이 보는 사람」 여덟 ────────────────
+    E('검색칸과 여덟 장',
+      """  <div class="bar" id="svCho"><div class="lb">ㄱㄴㄷ 으로 찾기</div></div>""",
+      """  <div class="find">
+   <div class="lb">누구를 볼까요?</div>
+   <input id="svFind" type="text" autocomplete="off" placeholder="이름을 쳐보세요 — 서강준">
+   <div class="found" id="svFound" style="display:none"></div>
+   <div class="lb2">요즘 많이 보는 사람</div>
+   <div class="hot" id="svHot"></div>
+   <button type="button" class="moreall" id="svMoreAll">537명 전체에서 찾기</button>
+  </div>
+
+  <div id="svAll" style="display:none">
+  <div class="bar" id="svCho"><div class="lb">ㄱㄴㄷ 으로 찾기</div></div>""", 'h')
+
+    E('전체 목록 닫기',
+      """  <div class="empty" id="svEmpty" style="display:none">고른 조건에 맞는 사람이 없습니다.</div>""",
+      """  <div class="empty" id="svEmpty" style="display:none">고른 조건에 맞는 사람이 없습니다.</div>
+  </div>""", 'h')
+
+    E('검색 돌리기',
+      """  function open(name){
+    var p=find(name);
+    if(!p){ return; }
+    show(p, true);
+  }""",
+      """  function open(name){
+    var p=find(name);
+    if(!p){ return; }
+    show(p, true);
+  }
+
+  /* ── 2026-09-16 · 검색칸과 「요즘 많이 보는 사람」 ────────────
+     소희 님 「아래 리스트는 필요없어 고르는게 더 힘들어」
+     537명 벽 대신 검색칸 하나와 여덟 장을 둡니다. 전체는 접어
+     두고 눌러야 열립니다.
+
+     여덟은 **네이버 검색어 추이**(2026년 6~9월)로 골랐습니다.
+     바꾸시려면 아래 HOT 한 줄만 고치면 됩니다. */
+  var HOT = ['서강준','송강','아이유','변우석','한소희','카리나','장원영','정해인'];
+
+  function bindGo(box){
+    var gs = box.querySelectorAll('[data-go]'), i;
+    for(i = 0; i < gs.length; i++){
+      gs[i].addEventListener('click', function(){
+        open(this.getAttribute('data-go'));
+      });
+    }
+  }
+
+  function findRun(q){
+    var r = $('svFound');
+    if(!r){ return; }
+    var s = '', i, ch;
+    var raw = String(q === null ? '' : q);
+    for(i = 0; i < raw.length; i++){
+      ch = raw.charAt(i);
+      if(ch !== ' '){ s += ch; }
+    }
+    if(!s){ r.innerHTML = ''; r.style.display = 'none'; return; }
+    var h = '', n = 0;
+    for(i = 0; i < STARS.length; i++){
+      if(STARS[i].n.indexOf(s) < 0){ continue; }
+      h += '<button type="button" data-go="' + esc(STARS[i].n) + '">' +
+           esc(STARS[i].n) + '<span>' + esc(STARS[i].j) + '</span></button>';
+      n++;
+      if(n >= 16){ break; }
+    }
+    if(!h){
+      h = '<p class="no">그 이름은 아직 없습니다. 아래 「찾는 사람이 목록에 없나요」' +
+          '에서 생일로 바로 세울 수 있어요.</p>';
+    }
+    r.innerHTML = h;
+    r.style.display = '';
+    bindGo(r);
+  }
+
+  function findUI(){
+    var box = $('svHot');
+    if(!box){ return; }
+    var i, h = '';
+    for(i = 0; i < HOT.length; i++){
+      if(!find(HOT[i])){ continue; }
+      h += '<button type="button" data-go="' + esc(HOT[i]) + '">' + esc(HOT[i]) + '</button>';
+    }
+    box.innerHTML = h;
+    bindGo(box);
+
+    var inp = $('svFind');
+    if(inp){
+      inp.addEventListener('input', function(){ findRun(this.value); });
+    }
+    var mo = $('svMoreAll');
+    if(mo){
+      mo.addEventListener('click', function(){
+        var a = $('svAll');
+        if(!a){ return; }
+        if(a.style.display === 'none'){
+          a.style.display = '';
+          mo.textContent = '전체 목록 접기';
+        } else {
+          a.style.display = 'none';
+          mo.textContent = '537명 전체에서 찾기';
+        }
+      });
+    }
+  }
+  setTimeout(findUI, 0);""")
+
     # ── ⑧ 새로 쓰는 모양 (한 줄 오행 · 맺음말 · 궁합 단추) ─────
     E('새 모양 CSS',
       """<style>
@@ -236,18 +360,37 @@ def build():
     font-weight:700; text-decoration:none; }
   #ssv a.go.sr-um span{ display:block; margin-top:5px;
     font-size:.82rem; font-weight:400; opacity:.88; }
+  /* 검색칸과 여덟 장 */
+  #ssv .find{ margin:18px 0 6px; }
+  #ssv .find .lb{ font-size:13px; font-weight:700; margin-bottom:7px; }
+  #ssv .find .lb2{ font-size:12px; opacity:.72; margin:16px 0 8px; }
+  #ssv .find input{ width:100%; box-sizing:border-box; padding:13px 15px;
+    border-radius:12px; font-size:16px; }
+  #ssv .find .hot{ display:flex; flex-wrap:wrap; gap:8px; }
+  #ssv .find .hot button{ padding:10px 15px; border-radius:11px; font-size:14px;
+    font-weight:700; cursor:pointer; }
+  #ssv .find .found{ margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
+  #ssv .find .found button{ padding:9px 13px; border-radius:10px; font-size:14px;
+    font-weight:700; cursor:pointer; }
+  #ssv .find .found button span{ display:block; font-size:11px; font-weight:400; opacity:.6; }
+  #ssv .find .found .no{ font-size:13px; opacity:.7; margin:6px 2px; }
+  #ssv .find .moreall{ display:block; width:100%; margin-top:16px; padding:12px;
+    border-radius:11px; font-size:13.5px; cursor:pointer; }
 </style>
 <style>
 /* 2026-09-09 · 글꼴을 고딕으로, 작은 글씨를 키웁니다""")
 
     # ── 적용 ──────────────────────────────────────────────────
     bad = []
-    for name, a, b in EDITS:
-        n = s.count(a)
-        if n != 1:
-            bad.append('%s : %d군데' % (name, n))
+    for name, a, b, where in EDITS:
+        if where == 'h':
+            n = head.count(a)
+            if n != 1: bad.append('%s : %d군데 (앞쪽)' % (name, n))
+            else: head = head.replace(a, b, 1)
         else:
-            s = s.replace(a, b, 1)
+            n = s.count(a)
+            if n != 1: bad.append('%s : %d군데' % (name, n))
+            else: s = s.replace(a, b, 1)
     if bad:
         print('★ 한 군데가 아닌 자리 %d :' % len(bad))
         for x in bad:
@@ -383,7 +526,7 @@ FOOT = '''
 	$miss = array();
 	$hit  = 0;
 	foreach ( $EDITS as $e ) {
-		$n = substr_count( $tail, $e[1] );
+		$n = substr_count( 'h' === $e[1] ? $head : $tail, $e[2] );
 		if ( 1 === $n ) { $hit++; }
 		else { $miss[] = array( $e[0], $n ); }
 	}
@@ -408,11 +551,13 @@ FOOT = '''
 	}
 
 	/* ── 미리보기 ─────────────────────────────────────── */
-	$new = $tail;
+	$nh = $head;
+	$nt = $tail;
 	foreach ( $EDITS as $e ) {
-		$new = str_replace( $e[1], $e[2], $new );
+		if ( 'h' === $e[1] ) { $nh = str_replace( $e[2], $e[3], $nh ); }
+		else { $nt = str_replace( $e[2], $e[3], $nt ); }
 	}
-	$new = $head . $new;
+	$new = $nh . $nt;
 
 	printf( '<p>고친 뒤 <b>%%s자</b> (%%+d자)</p>',
 		number_format( strlen( $new ) ), strlen( $new ) - strlen( $body ) );
@@ -420,7 +565,7 @@ FOOT = '''
 	echo '<table cellpadding="6" style="border-collapse:collapse;font-size:13px">';
 	foreach ( $EDITS as $e ) {
 		printf( '<tr><td style="color:#9fd">%%s</td><td style="color:#888">%%d자 → %%d자</td></tr>',
-			esc_html( $e[0] ), strlen( $e[1] ), strlen( $e[2] ) );
+			esc_html( $e[0] ), strlen( $e[2] ), strlen( $e[3] ) );
 	}
 	echo '</table>';
 
@@ -460,9 +605,9 @@ def emit():
     stamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M')
 
     rows = []
-    for name, a, b in EDITS:
-        rows.append("\t\tarray( '%s',\n\t\t\t<<<'STELLA_A'\n%s\nSTELLA_A\n\t\t\t,\n\t\t\t<<<'STELLA_B'\n%s\nSTELLA_B\n\t\t),"
-                    % (name.replace("'", ''), a, b))
+    for name, a, b, where in EDITS:
+        rows.append("\t\tarray( '%s', '%s',\n\t\t\t<<<'STELLA_A'\n%s\nSTELLA_A\n\t\t\t,\n\t\t\t<<<'STELLA_B'\n%s\nSTELLA_B\n\t\t),"
+                    % (name.replace("'", ''), where, a, b))
     php = "\t$EDITS = array(\n" + '\n'.join(rows) + "\n\t);\n"
 
     out = (HEAD % {'S': stamp, 'N': len(EDITS)}) + php + FOOT
