@@ -29,6 +29,21 @@
 
    ★ 쪽 글은 한 글자도 안 바꿉니다. 스니펫을 끄면 그대로 돌아옵니다.
 
+   ── 결과 팝업 ───────────────────────────────────────
+   소희 님 : 「결과 값보여주는 페이지가 좀 어색해… 팝업처럼뜨고
+              내가 천천히 보고 싶어도 갑자기 사라지기도 하고」
+              「진한 파랑색바탕을 클릭하면 화면이 없어져」
+
+   결과는 쪽이 팝업으로 띄웁니다. 그 어두운 바탕을 누르면 닫히게
+   되어 있어서, 글을 읽다가 옆을 잘못 누르면 사라집니다.
+
+   **바탕을 눌러도 안 닫히게** 합니다. 닫는 것은 단추로만.
+   단추가 없으면 오른쪽 위에 하나 만들어 답니다.
+   ★ 닫는 방법 자체는 쪽 것을 그대로 씁니다 — 우리가 만든 단추도
+     바탕을 대신 눌러 주는 것뿐이라, 쪽이 어떻게 닫든 따라갑니다.
+   ★ 팝업을 찾는 법도 이름에 안 기댑니다 — 화면을 거의 다 덮는
+     붙박이(position:fixed) 상자가 팝업입니다.
+
    ── 켜졌는지 보기 ───────────────────────────────────
    관리자로 보시면 칸 아래에 한 줄이 뜹니다 —
        「관리자에게만 보입니다 · 이름 537개를 찾았습니다」
@@ -106,6 +121,13 @@ add_action( 'wp_head', function () {
 }
 .stella-hits button:hover{ border-color:rgba(212,175,106,.85); }
 .stella-hits .none{ font-size:.9rem; opacity:.6; padding:6px 2px; }
+.stella-x{
+  position:absolute; top:14px; right:16px; z-index:99;
+  padding:9px 16px; font:inherit; font-size:.9rem; cursor:pointer;
+  border:1px solid rgba(255,255,255,.45); border-radius:999px;
+  background:rgba(0,0,0,.35); color:#fff; letter-spacing:.02em;
+}
+.stella-x:hover{ background:rgba(0,0,0,.55); }
 .stella-adm{
   margin:10px 0 0; padding:7px 11px; font-size:.8rem;
   border-left:3px solid #2F7D4A; background:rgba(47,125,74,.07);
@@ -443,13 +465,94 @@ add_action( 'wp_head', function () {
     return 1;
   }
 
+  /* ── 결과 팝업이 바탕 클릭으로 안 닫히게 ────────────
+     2026-09-16 · 소희 님 「천천히 보고 싶어도 갑자기 사라지기도」
+
+     팝업을 이름으로 안 찾습니다 — 화면을 거의 다 덮는 붙박이
+     (position:fixed) 상자가 팝업 바탕입니다.
+     그 바탕을 **정확히** 눌렀을 때만 막습니다. 안쪽 글이나 단추를
+     누르는 것은 그대로 둡니다. */
+  var allowClose = 0;
+
+  function isBackdrop(el){
+    if(!el){ return 0; }
+    if(el === document.body){ return 0; }
+    if(el.nodeType !== 1){ return 0; }
+    try{
+      var st = window.getComputedStyle(el);
+      if(!st){ return 0; }
+      if(st.position !== 'fixed'){ return 0; }
+      if(st.display === 'none'){ return 0; }
+      if(st.visibility === 'hidden'){ return 0; }
+      var r = el.getBoundingClientRect();
+      if(r.width < window.innerWidth * 0.85){ return 0; }
+      if(r.height < window.innerHeight * 0.85){ return 0; }
+      return 1;
+    }catch(e){ return 0; }
+  }
+
+  /* 닫기 단추 — 팝업 안에 이미 있으면 안 만듭니다 */
+  function closeBtn(back){
+    if(back.getAttribute('data-stellaclose') === '1'){ return; }
+    back.setAttribute('data-stellaclose', '1');
+
+    var has = 0;
+    try{
+      var bs = back.querySelectorAll('button, a'), i, t;
+      for(i = 0; i < bs.length; i++){
+        t = tidy(bs[i].textContent);
+        if(t === '닫기'){ has = 1; break; }
+        if(t === '×'){ has = 1; break; }
+        if(t === 'X'){ has = 1; break; }
+        if(t === '✕'){ has = 1; break; }
+        var al = String(bs[i].getAttribute('aria-label') === null ? '' : bs[i].getAttribute('aria-label'));
+        if(al.indexOf('닫') >= 0){ has = 1; break; }
+      }
+    }catch(e){}
+    if(has){ return; }
+
+    var b = document.createElement('button');
+    b.setAttribute('type', 'button');
+    b.className = 'stella-x';
+    b.textContent = '닫기';
+    b.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      allowClose = 1;
+      try{ back.click(); }catch(e){}
+      setTimeout(function(){ allowClose = 0; }, 120);
+    });
+    back.appendChild(b);
+  }
+
+  function guard(){
+    if(window.StellaStarGuard){ return; }
+    window.StellaStarGuard = 1;
+    document.addEventListener('click', function(e){
+      if(allowClose){ return; }
+      if(!isBackdrop(e.target)){ return; }
+      e.stopPropagation();
+      if(e.preventDefault){ e.preventDefault(); }
+    }, true);
+  }
+
+  function watchPopup(){
+    try{
+      var all = document.querySelectorAll('div, section, aside'), i;
+      for(i = 0; i < all.length; i++){
+        if(isBackdrop(all[i])){ closeBtn(all[i]); }
+      }
+    }catch(e){}
+  }
+
   /* 목록은 쪽의 자바스크립트가 나중에 그리고, 다시 그리기도 합니다 */
   function watch(){
+    guard();
     run();
     var k = 0;
     var t = setInterval(function(){
       k++;
       keepHidden();
+      watchPopup();
       if(!wrap){ run(); }
       if(k > 120){ clearInterval(t); }
     }, 500);
