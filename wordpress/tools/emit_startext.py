@@ -45,7 +45,8 @@ def main():
     data = ('var D_DAY  = %s;\n\nvar D_MUCH = %s;\n\nvar D_NONE = %s;\n\nvar D_SIP  = %s;\n'
             % (js_map(day, GAN), js_map(much, OH),
                js_map(none, OH), js_map(sip, SIP)))
-    out = head + data + BODY   # BODY 는 치환하지 않습니다 (i % 2 가 있어 % 가 깨집니다)
+    # BODY 는 통째로 치환하면 「i % 2」 에 걸립니다. 판 시각 자리만 손으로 바꿉니다.
+    out = head + data + BODY.replace('%(S)s', stamp)
 
     io.open(OUT, 'w', encoding='utf-8').write(out)
     print('썼습니다 : %s' % os.path.normpath(OUT))
@@ -246,15 +247,10 @@ BODY = '''
   }
 
   /* ═══ 갈아끼우기 ═════════════════════════════════════ */
-  function swap(h, list, nm){
+  function swap(h, olds, list, nm){
     if(h.getAttribute('data-sstext') === '1'){ return 0; }
-    var olds = [], n = h.nextElementSibling, i;
-    while(n){
-      if(String(n.tagName).toLowerCase() !== 'p'){ break; }
-      olds.push(n);
-      n = n.nextElementSibling;
-    }
     if(!olds.length){ return 0; }          /* 문단이 없으면 안 건드립니다 */
+    var i;
     h.setAttribute('data-sstext', '1');
     var at = olds[0];
     if(!at.parentNode){ return 0; }
@@ -267,20 +263,71 @@ BODY = '''
     return 1;
   }
 
-  var done = 0, seen = 0, lastName = '';
+  /* ═══ 제목 찾기 — 태그에 안 기댑니다 ═════════════════
+     ★ 2026-09-16 · 소희 님 「내용이 안바뀠다는거야」
+       처음에는 h1~h5 만 뒤졌습니다. 그런데 살아 있는 쪽의
+       「일간 癸 — 이슬과 실개천」은 제목 태그가 아니라 그냥
+       굵은 글씨 상자일 수 있습니다. 그래서 **아무 태그나** 보되
+       조건으로 가립니다 —
+
+         · 글이 40자 아래
+         · 갈래 이름으로 읽힘 (일간 · 오행 · 십성)
+         · 그 안에 <p> 가 하나도 없음  ← 껍데기를 거릅니다
+         · 바로 뒤에 문단이 옴
+
+     문단은 두 가지 모양을 다 받습니다 —
+         제목 다음이 <p> 들           (형제로 나란히)
+         제목 다음이 <p> 만 든 상자   (한 겹 싸여 있음) */
+
+  var SKIPTAG = 'SCRIPT STYLE P BR IMG SVG CANVAS INPUT TEXTAREA SELECT OPTION TABLE THEAD TBODY TR TD TH';
+
+  function parasAfter(el){
+    var out = [], n = el.nextElementSibling, i, kids, ok;
+    if(!n){ return out; }
+    if(String(n.tagName).toUpperCase() === 'P'){
+      while(n){
+        if(String(n.tagName).toUpperCase() !== 'P'){ break; }
+        out.push(n);
+        n = n.nextElementSibling;
+      }
+      return out;
+    }
+    /* 한 겹 싸여 있는 경우 — 그 안이 전부 <p> 일 때만 */
+    kids = n.children;
+    if(!kids){ return out; }
+    if(!kids.length){ return out; }
+    ok = 1;
+    for(i = 0; i < kids.length; i++){
+      if(String(kids[i].tagName).toUpperCase() !== 'P'){ ok = 0; }
+    }
+    if(!ok){ return out; }
+    for(i = 0; i < kids.length; i++){ out.push(kids[i]); }
+    return out;
+  }
+
+  var done = 0, seen = 0, lastName = '', why = [];
+  var DONEKEY = {};
 
   function run(){
     try{
       var nm = findName();
-      if(!nm){ return; }
+      if(!nm){ band(); return; }
       lastName = nm;
-      var hs = document.querySelectorAll('h1, h2, h3, h4, h5'), i, h, t, k, tbl, list;
-      for(i = 0; i < hs.length; i++){
-        h = hs[i];
-        if(h.getAttribute('data-sstext') === '1'){ continue; }
-        t = tidy(h.textContent);
+      var all = document.querySelectorAll('*'), i, el, tg, t, k, kk, tbl, list, ps;
+      seen = 0; why = [];
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        tg = String(el.tagName === undefined ? '' : el.tagName).toUpperCase();
+        if(SKIPTAG.indexOf(tg) >= 0){ continue; }
+        if(el.getAttribute('data-sstext') === '1'){ continue; }
+        t = tidy(el.textContent);
+        if(!t){ continue; }
+        if(t.length > 40){ continue; }
         k = classify(t);
         if(!k){ continue; }
+        try{ if(el.querySelector('p')){ continue; } }catch(e){ continue; }
+        kk = k[0] + ':' + k[1];
+        if(DONEKEY[kk]){ continue; }
         seen++;
         tbl = null;
         if(k[0] === 'day'){  tbl = D_DAY;  }
@@ -290,7 +337,19 @@ BODY = '''
         if(!tbl){ continue; }
         list = tbl[k[1]];
         if(!list){ continue; }
-        done += swap(h, list, nm);
+        ps = parasAfter(el);
+        if(!ps.length){
+          if(why.length < 4){
+            var nx = el.nextElementSibling;
+            why.push(t.slice(0, 14) + ' 뒤가 '
+              + (nx ? String(nx.tagName) : '아무것도 없음'));
+          }
+          continue;
+        }
+        if(swap(el, ps, list, nm)){
+          DONEKEY[kk] = 1;
+          done++;
+        }
       }
       band();
     }catch(e){ band(String(e)); }
@@ -310,8 +369,9 @@ BODY = '''
         if(last.parentNode){ last.parentNode.appendChild(b); }
       }
       var msg = '관리자에게만 보입니다 · 스타 사주 글 판 ' + STAMP
-              + ' · 갈아끼운 자리 ' + done + '개 (찾은 제목 ' + seen + '개)'
+              + ' · 갈아끼운 자리 ' + done + '개'
               + ' · 이름 ' + (lastName ? lastName : '못 찾음');
+      if(why.length){ msg += ' · 못 바꾼 자리 : ' + why.join(' / '); }
       if(err){ msg += ' · 멈춘 까닭 ' + err; }
       b.textContent = msg;
     }catch(e){}
@@ -333,6 +393,32 @@ BODY = '''
 </script>
 	<?php
 } );
+
+/* ★★ 진단은 두 겹으로 (CLAUDE.md) — 자바스크립트가 안 돌면
+   자바스크립트 띠도 안 뜹니다. 그래서 서버가 **울타리 밖에서**
+   노란 줄을 하나 찍습니다. 조각이 켜져 있기만 하면 무조건 보입니다.
+   지금 쪽의 슬러그도 같이 찍어, 울타리가 맞는지 바로 압니다.
+   관리자에게만 보입니다. */
+add_action( 'wp_footer', function () {
+
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	$slug = '';
+	$id   = get_queried_object_id();
+	if ( $id ) {
+		$p = get_post( $id );
+		if ( $p ) { $slug = $p->post_name; }
+	}
+	$in = is_page( 'star-saju' ) ? '예 — 글을 갈아끼웁니다' : '아니오 — 이 쪽에서는 아무것도 안 합니다';
+
+	echo '<p style="margin:14px 22px;padding:8px 12px;font-size:12px;line-height:1.7;'
+		. 'border-left:3px solid #C9A227;background:rgba(201,162,39,.09);color:#5a4a10">'
+		. '관리자에게만 보입니다 · 스타 사주 글 조각이 <b>켜져 있습니다</b> · 판 %(S)s'
+		. '<br>지금 쪽 슬러그 : <b>' . esc_html( $slug ? $slug : '(없음)' ) . '</b>'
+		. ' · star-saju 인가 : <b>' . esc_html( $in ) . '</b>'
+		. '<br>노란 줄만 있고 초록 줄이 없으면 자바스크립트가 멈춘 것입니다.'
+		. '</p>';
+}, 99 );
 '''
 
 if __name__ == '__main__':

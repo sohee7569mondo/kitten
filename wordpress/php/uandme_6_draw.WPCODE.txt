@@ -339,8 +339,11 @@ add_action( 'wp_head', function () {
     /* 결과가 아직 없으면(초대 화면) 초대용 그림을 그립니다 */
     if (!st.result) { makeInvite(cb); return; }
     /* 캐릭터를 먼저 받아두고 나서 그립니다 */
-    var slotA = REL_PIC[st.rel] || '연인';
-    loadPics([slotA, '__lucky'], function (P) { drawResult(P, cb); });
+    /* ★ 2026-09-16 · 소희 님 「곰돌이 사진은 랜덤으로 돌려서 여러 동물
+       나오면 더 좋고」 — 왼쪽은 관계에 매인 그림이라 늘 같았습니다.
+       이제 카드를 만들 때마다 곳간에서 **서로 다른 두 장**을 뽑습니다. */
+    rollLucky();
+    loadPics(['__lucky', '__lucky2'], function (P) { drawResult(P, cb); });
   }
   function drawResult(P, cb) {
     var W = 1080, H = 1350;
@@ -412,9 +415,8 @@ add_action( 'wp_head', function () {
     }
 
     /* ⑥ 캐릭터 둘 — 아래에서 마주봅니다 */
-    var slotA2 = REL_PIC[st.rel] || '연인';
-    drawPic(g, P[slotA2], 330, 900, 330, 300);
-    drawPic(g, P['__lucky'], 750, 900, 330, 300);
+    drawPic(g, P['__lucky'], 330, 900, 330, 300);
+    drawPic(g, P['__lucky2'], 750, 900, 330, 300);
 
     /* ⑦ 발치 — 여기로 오게 하는 한 줄 */
     var foot = '나도 해보기 · stellasaju.com/uandme';
@@ -429,8 +431,8 @@ add_action( 'wp_head', function () {
   }
   /* 초대 화면에서 나갈 그림 — 아직 점수가 없으니 물음표를 크게 */
   function makeInvite(cb) {
-    var slotB = REL_PIC[st.rel] || '연인';
-    loadPics([slotB, '__lucky'], function (P) { drawInvite(P, cb); });
+    rollLucky();
+    loadPics(['__lucky', '__lucky2'], function (P) { drawInvite(P, cb); });
   }
   function drawInvite(P, cb) {
     var W = 1080, H = 1350;
@@ -443,9 +445,8 @@ add_action( 'wp_head', function () {
     g.textAlign = 'center';
     g.fillStyle = '#A79BC4'; g.font = '600 34px "Noto Sans KR",sans-serif';
     g.fillText('유앤미 · ' + U.relKo(st.rel) + ' 궁합', W / 2, 150);
-    var slotB2 = REL_PIC[st.rel] || '연인';
-    drawPic(g, P[slotB2], 166, 466, 280, 250);
-    drawPic(g, P['__lucky'], 914, 466, 280, 250);
+    drawPic(g, P['__lucky'], 166, 466, 280, 250);
+    drawPic(g, P['__lucky2'], 914, 466, 280, 250);
 
     g.fillStyle = '#6B5BA8'; g.font = '700 300px Jua,"Noto Sans KR",sans-serif';
     g.fillText('?', W / 2, 540);
@@ -891,6 +892,7 @@ add_action( 'wp_head', function () {
   function picUrl(slot) {
     var u = '';
     if (slot === '__lucky') { u = luckyPic(); }
+    else if (slot === '__lucky2') { u = luckyPic2(); }
     else if (window.UM_SET) { if (window.UM_SET.그림) { u = window.UM_SET.그림[slot] || ''; } }
     if (u === '없음') { return ''; }
     if (u) { if (u.indexOf('/') < 0) {
@@ -967,20 +969,44 @@ add_action( 'wp_head', function () {
     var dw = t.w * k, dh = t.h * k;
     g.drawImage(im, t.x, t.y, t.w, t.h, cx - dw / 2, cy - dh / 2, dw, dh);
   }
-  /* 그림 곳간에서 아무거나 한 장 — 들어올 때 한 번 정하고 그대로 씁니다 */
-  var LUCKY = null;
-  function luckyPic() {
-    if (LUCKY) { return LUCKY; }
-    if (!window.UM_PIC) { return ''; }
+  /* 그림 곳간에서 **서로 다른 두 장** — 카드를 그릴 때마다 새로 뽑습니다.
+     전에는 들어올 때 한 번 정하고 그대로 썼고, 왼쪽은 관계에 매여 있어
+     늘 같은 아이가 나왔습니다 (소희 님 사진의 곰 두 마리). */
+  var LUCKY = null, LUCKY2 = null;
+  function picKeys() {
     var keys = [], k;
+    if (!window.UM_PIC) { return keys; }
     for (k in window.UM_PIC) {
       if (!window.UM_PIC.hasOwnProperty(k)) { continue; }
       if (k === '로고그림') { continue; }
+      if (k === '히어로그림') { continue; }
       keys.push(k);
     }
-    if (!keys.length) { return ''; }
-    LUCKY = keys[Math.floor(Math.random() * keys.length)];
+    return keys;
+  }
+  function rollLucky() {
+    var keys = picKeys();
+    if (!keys.length) { LUCKY = ''; LUCKY2 = ''; return; }
+    var i = Math.floor(Math.random() * keys.length);
+    var j = i;
+    if (keys.length > 1) {
+      var guard = 0;
+      while (j === i) {
+        j = Math.floor(Math.random() * keys.length);
+        guard = guard + 1;
+        if (guard > 12) { j = (i + 1) % keys.length; }
+      }
+    }
+    LUCKY = keys[i];
+    LUCKY2 = keys[j];
+  }
+  function luckyPic() {
+    if (LUCKY === null) { rollLucky(); }
     return LUCKY;
+  }
+  function luckyPic2() {
+    if (LUCKY2 === null) { rollLucky(); }
+    return LUCKY2;
   }
 
   function art(slot, fb) {
