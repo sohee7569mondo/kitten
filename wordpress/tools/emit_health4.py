@@ -640,6 +640,29 @@ TAIL = u''';
     if(rest.indexOf('i0.wp.com/')===0){ return ''; }
     return 'https://i0.wp.com/'+rest;
   }
+  /* ★ 표지에서 **실제로 뜬** 사진 주소를 배워 둡니다 — 2026-09-16
+     소희 님 「장표지는 왜 자꾸 스텔라 로고가 나오지?」
+     표지 사진은 나오는데 장 속표지만 안 나옵니다. 표지 것은 원본 책이
+     넣은 주소이고, 장 속표지는 우리가 아는 주소입니다. 우리 주소가
+     이 사이트에서는 안 열린다는 뜻입니다(파일이 다른 이름이거나
+     직접 주소가 막혔거나). 마지막 수단으로 **뜬 주소**를 씁니다.
+     같은 문 사진이라 어색하지 않고, 빈 동그라미보다 낫습니다. */
+  var COVSRC = '';
+  function learnCover(root){
+    try{
+      var cov = root.querySelector('.page.cover');
+      if(!cov){ return; }
+      var ims = cov.querySelectorAll('img'), i, im, s;
+      for(i = 0; i < ims.length; i++){
+        im = ims[i];
+        if(!im.complete){ continue; }
+        if(!im.naturalWidth){ continue; }
+        s = String(im.getAttribute('src'));
+        if(s.indexOf('http') === 0){ COVSRC = s; return; }
+      }
+    }catch(e){}
+  }
+
   function retryImg(im){
     if(!im){ return; }
     /* ★ 미루지 말고 바로 받게 합니다 — 2026-09-16
@@ -653,12 +676,23 @@ TAIL = u''';
         if(cur0){ im.setAttribute('src', cur0); }
       }
     }catch(e0){}
-    if(im.getAttribute('data-retry')==='1'){ return; }
     var go=function(){
-      if(im.getAttribute('data-retry')==='1'){ return; }
-      im.setAttribute('data-retry','1');
-      var u=altURL(im.getAttribute('src'));
-      if(u){ im.setAttribute('src', u); }
+      var step = Number(im.getAttribute('data-retry'));
+      if(!step){ step = 0; }
+      if(step >= 2){ return; }
+      step++;
+      im.setAttribute('data-retry', String(step));
+      if(step === 1){
+        /* 첫째 — 젯팩 주소로 한 번 더 */
+        var u = altURL(im.getAttribute('src'));
+        if(u){ im.setAttribute('src', u); return; }
+        im.setAttribute('data-retry', '2');
+        step = 2;
+      }
+      /* 둘째 — 표지에서 뜬 주소로 */
+      if(COVSRC){
+        if(String(im.getAttribute('src')) !== COVSRC){ im.setAttribute('src', COVSRC); }
+      }
     };
     im.addEventListener('error', go);
     if(im.complete){ if(!im.naturalWidth){ go(); } }
@@ -744,8 +778,22 @@ TAIL = u''';
 
   function fixFaces(root){
     try{
-      var ims=root.querySelectorAll('.dvmark.dvface img'), i;
-      for(i=0;i<ims.length;i++){ retryImg(ims[i]); }
+      var ims=root.querySelectorAll('.dvmark.dvface img'), i, im;
+      for(i=0;i<ims.length;i++){
+        im=ims[i];
+        retryImg(im);
+        /* ★ 두 번 시도했는데 아직 안 떴고, 그 사이에 표지에서 뜬
+           주소를 배웠으면 그것을 물려 줍니다 (2026-09-16).
+           재시도는 못 받자마자 끝나는데 표지 주소는 조금 뒤에야
+           알 수 있어서, 여기서 한 번 더 기회를 줍니다. */
+        if(COVSRC){
+          if(im.complete){ if(!im.naturalWidth){
+            if(String(im.getAttribute('src')) !== COVSRC){
+              im.setAttribute('src', COVSRC);
+            }
+          } }
+        }
+      }
     }catch(e){}
   }
   /* ── 사진이 왜 안 뜨는지 찍어 줍니다 ──────────────────
@@ -876,6 +924,9 @@ TAIL = u''';
                   bk.innerHTML=cov.join('')+toc.join('')+r.html;
                   fixFaces(bk);   /* 사진이 안 뜨면 다른 주소로 한 번 더 */
                   fixCoverArch(bk);   /* 표지 아치가 아예 없을 때만 만듭니다 */
+            /* 표지 사진이 뜬 뒤에 그 주소를 배우고, 안 뜬 동그라미에 물려 줍니다 */
+            setTimeout(function(){ learnCover(bk); fixFaces(bk); }, 900);
+            setTimeout(function(){ learnCover(bk); fixFaces(bk); }, 2600);
                   bk.setAttribute('data-health4','1');
                   /* 관리자에게 판 시각과 사진 상태를 알려 줍니다 */
                   band('그렸습니다 · ' + r.n + '쪽');
