@@ -515,6 +515,85 @@ add_action( 'wp_head', function () {
     im.addEventListener('error', go);
     if(im.complete){ if(!im.naturalWidth){ go(); } }
   }
+  /* ── 겉표지 아치 ────────────────────────────
+     2026-09-16 · 소희 님 사진에 아치가 **둘** 나왔습니다.
+
+     원본 표지의 아치는 <img> 태그가 아니라 **배경 그림**으로
+     그려집니다. 태그만 찾으면 「없다」고 보고 하나 더 만듭니다.
+     그래서 책이 화면에 붙은 **뒤에** 배경까지 읽어 판단합니다.
+
+     아치가 이미 있으면(태그로든 배경으로든) 아무것도 안 합니다.
+     아예 없을 때만 만듭니다 — 신년운세 표지가 그렇습니다. */
+
+  /* ── 관리자 띠 ──────────────────────────────
+     2026-09-16 · 소희 님 「가족운도 아직이야」
+     새 판을 붙이셨는지 눈으로 확인할 길이 없었습니다.
+     판 시각과 사진 상태를 찍습니다. 손님에게는 안 보입니다. */
+  var ADMIN = <?php echo current_user_can( 'manage_options' ) ? 1 : 0; ?>;
+  var STAMP = '2026-09-16 01:55';
+  function band(msg){
+    if(!ADMIN){ return; }
+    try{
+      var d = document.getElementById('stella-band-family');
+      if(!d){
+        d = document.createElement('div');
+        d.id = 'stella-band-family';
+        d.setAttribute('style', 'margin:12px;padding:10px 14px;'+
+          'border:2px solid #2F7D4A;background:#F3F8F4;border-radius:8px;'+
+          'font:13px/1.8 system-ui;color:#1d3a27;white-space:pre-wrap;');
+        var ssb = document.getElementById('ssb');
+        if(ssb){ if(ssb.parentNode){ ssb.parentNode.insertBefore(d, ssb); } }
+        else if(document.body){ document.body.appendChild(d); }
+      }
+      d.textContent = '관리자에게만 보입니다 · 가족운 판 ' + STAMP +
+        String.fromCharCode(10) + msg;
+    }catch(e){}
+  }
+
+  function fixCoverArch(root){
+    try{
+      var cov = root.querySelector('.page.cover');
+      if(!cov){ cov = root.querySelector('.page[data-part="cover"]'); }
+      if(!cov){ return; }
+      if(cov.getAttribute('data-archdone') === '1'){ return; }
+      cov.setAttribute('data-archdone', '1');
+
+      /* ① 그림 태그가 있으면 이미 아치가 있는 것입니다 */
+      if(cov.querySelector('img')){ return; }
+
+      /* ② 배경 그림으로 그려진 것도 찾습니다 */
+      var kids = cov.querySelectorAll('*'), i, st, bg;
+      for(i = 0; i < kids.length; i++){
+        try{
+          st = window.getComputedStyle(kids[i]);
+          if(!st){ continue; }
+          bg = String(st.backgroundImage === undefined ? '' : st.backgroundImage);
+          if(bg){ if(bg !== 'none'){ if(bg.indexOf('url') >= 0){ return; } } }
+        }catch(e1){}
+      }
+
+      /* ③ 아무것도 없을 때만 만듭니다 */
+      if(!COVPIC){ return; }
+      var fa = document.createElement('div');
+      fa.className = 'dvmark dvface';
+      fa.setAttribute('data-ourarch', '1');
+      var im = document.createElement('img');
+      im.setAttribute('decoding', 'async');
+      im.setAttribute('src', COVPIC);
+      im.setAttribute('alt', COVALT ? COVALT : '');
+      fa.appendChild(im);
+
+      var mk = cov.querySelector('.mark'), h0 = cov.querySelector('h1');
+      if(mk){
+        if(mk.nextSibling){ cov.insertBefore(fa, mk.nextSibling); }
+        else { cov.appendChild(fa); }
+      }
+      else if(h0){ cov.insertBefore(fa, h0); }
+      else { cov.insertBefore(fa, cov.firstChild); }
+      retryImg(im);
+    }catch(e){}
+  }
+
   function fixFaces(root){
     try{
       var ims=root.querySelectorAll('.dvmark.dvface img'), i;
@@ -586,48 +665,13 @@ add_action( 'wp_head', function () {
       e.className=cls;
       var s=e.querySelector('.sub');
       if(s){ if(COVSUB){ s.textContent=COVSUB; } }
-      /* ★ 표지 아치 안이 비어 있으면 우리 사진을 넣습니다 — 2026-09-15
-         소희 님 「삼재는 아직 메인에 그림안들어감」
-         원본 책은 「삼재」 같은 주제를 몰라 표지 사진을 못 고릅니다.
-         가족운 표지에는 사진이 들어 있고 삼재 표지는 비어 있던 까닭입니다. */
-      var fa=e.querySelector('.dvmark.dvface');
-      if(!fa){ fa=e.querySelector('.dvmark'); }
-      /* ★★ 표지에 이미 사진이 있으면 아무것도 만들지 않습니다 — 2026-09-15
-         소희 님 사진에 아치가 **둘** 나왔습니다 (숲길 + 산길).
-         원본 표지의 아치는 .dvmark 가 아닌 다른 이름이라 우리가 못 찾고
-         하나 더 만들어 붙인 것입니다. 이름을 모르니 사진이 있는지로
-         봅니다 — 표지 안에 그림이 하나라도 있으면 원본이 이미 넣은
-         것이므로 우리는 손대지 않습니다. */
-      if(!fa){ if(e.querySelector('img')){ fa=null; return e.outerHTML; } }
-      if(!fa){
-        /* ★ 아치가 아예 없으면 만들어 넣습니다 — 2026-09-15
-           소희 님 「2026 도 비슷하게 메인 사진 없고」
-           신년운세 표지에는 원본 책이 아치를 아예 안 만듭니다.
-           가족운 표지에는 있고 신년운세에는 없던 까닭입니다.
-           STELLA SAJU 딱지 바로 뒤, 제목 앞에 놓습니다. */
-        fa=document.createElement('div');
-        fa.className='dvmark dvface';
-        var mk=e.querySelector('.mark'), h0=e.querySelector('h1');
-        if(mk){ if(mk.nextSibling){ e.insertBefore(fa, mk.nextSibling); }
-                else { e.appendChild(fa); } }
-        else if(h0){ e.insertBefore(fa, h0); }
-        else { e.insertBefore(fa, e.firstChild); }
-      }
-      if(fa){
-        var cls2=String(fa.className===undefined?'':fa.className);
-        if(cls2.indexOf('dvface')<0){ fa.className=cls2+' dvface'; }
-        var fi=fa.querySelector('img');
-        if(!fi){
-          fi=document.createElement('img');
-          fi.setAttribute('decoding','async');
-          fa.appendChild(fi);
-        }
-        var cur=String(fi.getAttribute('src')===null?'':fi.getAttribute('src'));
-        if(!cur){ if(COVPIC){
-          fi.setAttribute('src', COVPIC);
-          fi.setAttribute('alt', COVALT?COVALT:'');
-        } }
-      }
+      /* ★ 표지 아치는 여기서 만들지 않습니다 — 2026-09-16
+         소희 님 사진에 아치가 또 둘 나왔습니다.
+         까닭 : 원본 표지의 아치는 <img> 태그가 아니라 **배경 그림**
+         으로 그려집니다. querySelector('img') 로는 못 찾습니다.
+         그리고 여기서는 쪽이 아직 화면에 붙기 전이라 배경을 읽을
+         수도 없습니다. 그래서 책을 다 그린 뒤에 fixCoverArch() 가
+         배경까지 보고 판단합니다. 여기서는 글자만 고칩니다. */
       var h=e.querySelector('h1');
       if(h){ if(ttl){
         var t=String(ttl), i=t.indexOf('님의 ');
@@ -683,7 +727,13 @@ add_action( 'wp_head', function () {
                   }catch(e){}
                   bk.innerHTML=cov.join('')+toc.join('')+r.html;
                   fixFaces(bk);   /* 사진이 안 뜨면 다른 주소로 한 번 더 */
+                  fixCoverArch(bk);   /* 표지 아치가 아예 없을 때만 만듭니다 */
                   bk.setAttribute('data-family','1');
+                  /* 관리자에게 판 시각과 사진 상태를 알려 줍니다 */
+                  band('그렸습니다 · ' + r.n + '쪽');
+                  setTimeout(function(){
+                    band('그렸습니다 · ' + r.n + '쪽' + String.fromCharCode(10) + picReport(bk));
+                  }, 1400);
                   var t=document.getElementById('bkTitle');
                   if(t){ t.textContent=r.title; }
                   var c=document.getElementById('bkN');
