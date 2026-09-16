@@ -186,15 +186,113 @@ add_action( 'wp_head', function () {
     return pars[best];
   }
 
-  /* 감출 것 — 머리말이 같이 든 상자면 상자째 감춥니다 */
-  function hideTarget(inner){
-    var p = inner.parentNode;
-    if(!p){ return inner; }
-    if(p.querySelector('h2')){ return p; }
-    if(p.querySelector('h3')){ return p; }
-    var cls = String(p.className === undefined ? '' : p.className);
-    if(cls.indexOf('roster') >= 0){ return p; }
-    return inner;
+  /* ── 무엇을 감추나 ──────────────────────────
+     2026-09-16 · 소희 님 「내용이 너무 없어 기존의 내용은 넣고
+     이름넣는 칸만 넣고 가수 탤런트 선택하는 부분부터 아랫부분만
+     삭제했으면 될듯한데」
+
+     앞 판은 목록의 **부모**를 감췄습니다. 그 부모가 쪽의 큰 상자라
+     제목과 설명글까지 같이 사라졌습니다. 부모로 올라가지 않습니다.
+
+     소희 님 말씀 그대로 잡습니다 —
+         직업 고르는 줄(가수·배우·탤런트…)부터 이름 목록까지
+     그 사이만 감춥니다. 위의 제목과 설명글은 그대로 두고,
+     아래의 결과 자리도 그대로 둡니다. */
+  var ROLES = ['전체','가수','배우','탤런트','방송인','아이돌','개그맨',
+               '코미디언','운동선수','모델','성우','감독','작가','기타',
+               'MC','프로듀서','아나운서'];
+
+  function roleRow(){
+    var bs = document.querySelectorAll('button'), i, t, par;
+    var pars = [], hit = [];
+    for(i = 0; i < bs.length; i++){
+      t = tidy(bs[i].textContent);
+      if(ROLES.indexOf(t) < 0){ continue; }
+      par = bs[i].parentNode;
+      if(!par){ continue; }
+      var j = pars.indexOf(par);
+      if(j < 0){ pars.push(par); hit.push(1); }
+      else { hit[j]++; }
+    }
+    var best = -1, bn = 0, k;
+    for(k = 0; k < hit.length; k++){ if(hit[k] > bn){ bn = hit[k]; best = k; } }
+    if(best < 0){ return null; }
+    if(bn < 2){ return null; }          /* 두 개 넘게 모여야 거르개입니다 */
+    return pars[best];
+  }
+
+  var hidden = [];
+  function hide(el){
+    if(!el){ return; }
+    if(hidden.indexOf(el) >= 0){ return; }
+    el.style.display = 'none';
+    hidden.push(el);
+  }
+  function keepHidden(){
+    var i;
+    for(i = 0; i < hidden.length; i++){
+      if(hidden[i].style.display !== 'none'){ hidden[i].style.display = 'none'; }
+    }
+  }
+
+  /* 목록과, 그 바로 위의 머리말까지 — **딱 두 줄만** 올라갑니다.
+     2026-09-16 · 시험에서 쪽 설명글까지 감춰져 고쳤습니다.
+     설명글은 길고 「명」이 안 들어갑니다. 목록 머리말은 짧고
+     「가나다순 537명」처럼 「명」이 들어갑니다. 그것으로 가릅니다. */
+  function hideList(inner){
+    hide(inner);
+    var el = inner.previousElementSibling, k = 0;
+    while(el){
+      if(k > 1){ break; }
+      var tag = String(el.tagName === undefined ? '' : el.tagName).toLowerCase();
+      var t = tidy(el.textContent);
+      var ok = 0;
+      /* 「지금까지 올라온 인물」 같은 목록 머리말 — 바로 위 하나만 */
+      if(k === 0){
+        if(tag === 'h2'){ if(t.length <= 24){ ok = 1; } }
+        if(tag === 'h3'){ if(t.length <= 24){ ok = 1; } }
+      }
+      /* 「가나다순 537명」 — 짧고 「명」이 들어간 줄만 */
+      if(tag === 'p'){
+        if(t.length <= 30){ if(t.indexOf('명') >= 0){ ok = 1; } }
+      }
+      if(!ok){ break; }
+      hide(el);
+      el = el.previousElementSibling;
+      k++;
+    }
+  }
+
+  /* 직업 고르는 줄부터 목록까지 (같은 부모일 때) */
+  function hideBetween(row, inner){
+    if(!row){ return; }
+    hide(row);
+    if(!inner){ return; }
+    if(row.parentNode !== inner.parentNode){ return; }
+    var el = row.nextElementSibling, k = 0;
+    while(el){
+      if(k > 12){ break; }
+      var isList = (el === inner);
+      if(!isList){ if(el.contains){ isList = el.contains(inner); } }
+
+      /* ★ 단추가 하나도 없는 글 문단은 남깁니다 — 2026-09-16
+         쪽 설명글이 직업 줄 아래에 올 수도 있습니다. 시험에서
+         그 경우에 설명글이 같이 사라져 고쳤습니다.
+         목록 머리말(「가나다순 537명」)은 hideList 가 따로 봅니다. */
+      var skip = 0;
+      if(!isList){
+        var btn = el.querySelectorAll ? el.querySelectorAll('button').length : 0;
+        if(btn === 0){
+          var tg = String(el.tagName === undefined ? '' : el.tagName).toLowerCase();
+          if(tg === 'p'){ skip = 1; }
+          if(tg === 'div'){ if(tidy(el.textContent).length > 40){ skip = 1; } }
+        }
+      }
+      if(!skip){ hide(el); }
+      if(isList){ return; }
+      el = el.nextElementSibling;
+      k++;
+    }
   }
 
   function collect(inner){
@@ -250,7 +348,8 @@ add_action( 'wp_head', function () {
     if(ADMIN){
       var a = document.createElement('p');
       a.className = 'stella-adm';
-      a.textContent = '관리자에게만 보입니다 · 이름 ' + names.length + '개를 찾았습니다';
+      a.textContent = '관리자에게만 보입니다 · 이름 ' + names.length +
+        '개를 찾았습니다 · 감춘 칸 ' + hidden.length + '개';
       d.appendChild(a);
     }
 
@@ -325,9 +424,22 @@ add_action( 'wp_head', function () {
     if(!inner){ return 0; }
     names = collect(inner);
     if(names.length < MANY){ return 0; }
-    box = hideTarget(inner);
-    box.style.display = 'none';
-    wrap = build(box);
+
+    var row = roleRow();
+    hideList(inner);
+    hideBetween(row, inner);
+
+    /* 이름 칸은 감춘 것들 가운데 **맨 위**에 놓습니다 */
+    var first = row ? row : inner;
+    var i;
+    for(i = 0; i < hidden.length; i++){
+      if(hidden[i].compareDocumentPosition){
+        /* 4 = 뒤에 있음 → 더 앞선 것을 고릅니다 */
+        if(first.compareDocumentPosition(hidden[i]) === 2){ first = hidden[i]; }
+      }
+    }
+    box = first;
+    wrap = build(first);
     return 1;
   }
 
@@ -337,7 +449,7 @@ add_action( 'wp_head', function () {
     var k = 0;
     var t = setInterval(function(){
       k++;
-      if(box){ if(box.style.display !== 'none'){ box.style.display = 'none'; } }
+      keepHidden();
       if(!wrap){ run(); }
       if(k > 120){ clearInterval(t); }
     }, 500);
