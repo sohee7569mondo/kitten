@@ -47,7 +47,7 @@ add_action( 'wp_head', function () {
 	   유앤미 쪽에 얹는 것을 최소로 줄입니다. */
 	if ( $star ) {
 	?>
-<!-- stella 스타 → 유앤미 · 판 2026-09-16 d -->
+<!-- stella 스타 → 유앤미 · 판 2026-09-16 e -->
 <style id="stella-celebgo">
 .stella-go{
   display:block; width:100%; box-sizing:border-box;
@@ -582,10 +582,8 @@ add_action( 'wp_head', function () {
     if(ADMIN){
       var a = document.createElement('p');
       a.className = 'stella-goadm';
-      a.appendChild(document.createTextNode(
-        '관리자에게만 보입니다 · 「' + nm + '」 을 담아 유앤미로 보냅니다'
-        + ' · 어려운 말 ' + JARGON + '줄 · 통계 갈래 ' + RARE + '줄 접음'
-        + ' · 오행 한 줄 ' + (OHDONE ? '됨' : '못 찾음')));
+      a.id = 'stella-goadm';
+      ADMNAME = nm;
       wrap.appendChild(a);
     }
     box.appendChild(wrap);
@@ -664,11 +662,46 @@ add_action( 'wp_head', function () {
   }
 
   /* ═══ 돌리기 ═══════════════════════════════════════ */
+  /* ★★ 관리자 줄 — 잰 값을 그대로 찍습니다 (2026-09-16)
+     소희 님 「아직도 그위치 그대로야」. 짐작으로 또 고치지 않으려고
+     **무엇을 얼마로 쟀는지** 화면에 내놓습니다. 이 한 줄이면
+     왜 안 밀렸는지 바로 압니다. 손님에게는 안 보입니다. */
+  var ADMNAME = '';
+
+  function admReport(){
+    if(!ADMIN){ return; }
+    try{
+      var a = document.getElementById('stella-goadm');
+      if(!a){ return; }
+      var hb = headBottom();
+      var anchor = NAMEHEAD ? NAMEHEAD : GAPBOX;
+      var dt = -1, tag = '없음';
+      if(anchor){
+        var sy = window.pageYOffset;
+        if(!sy){ sy = 0; }
+        dt = Math.round(anchor.getBoundingClientRect().top + sy);
+        tag = String(anchor.tagName) + ' 「'
+            + tidy(anchor.textContent).slice(0, 10) + '」';
+      }
+      var g = document.querySelector('[data-sstop="1"]');
+      a.textContent =
+        '관리자에게만 보입니다 · 「' + ADMNAME + '」 을 담아 유앤미로 보냅니다'
+        + ' · 어려운 말 ' + JARGON + '줄 · 통계 ' + RARE + '줄 접음'
+        + ' · 오행 한 줄 ' + (OHDONE ? '됨' : '못 찾음')
+        + '  ///  머리글 아랫변 ' + Math.round(hb)
+        + ' · 기준 ' + tag + ' 쪽 위에서 ' + dt
+        + ' · 있어야 할 자리 ' + Math.round((hb > 24 ? hb : 24) + 30)
+        + ' · 민 곳 ' + (g ? String(g.tagName) + ' ' + g.style.paddingTop : '안 밂')
+        + ' · 잰 횟수 ' + GAPTRY;
+    }catch(e){}
+  }
+
   function tick(){
     if(ON_STAR){ hideMine(); }
     if(ON_STAR){ hideJargon(); }
     if(ON_STAR){ hideRare(); }
     if(ON_STAR){ ohOneLine(); }
+    if(ON_STAR){ admReport(); }
     if(ON_STAR){ onStar(); }
     if(ON_STAR){ topGap(); }
     if(ON_UM){ onUm(); }
