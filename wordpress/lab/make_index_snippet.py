@@ -1,12 +1,21 @@
 # -*- coding: utf-8 -*-
 """labindex.html 을 /lab/ 을 맡는 WPCode 스니펫으로 감쌉니다."""
-import io, os
+import io, os, datetime
 HERE = os.path.dirname(os.path.abspath(__file__))
 body = io.open(os.path.join(HERE, 'labindex.html'), encoding='utf-8').read()
 assert 'STELLA_LAB_INDEX' not in body
 
+# ★ 2026-09-16 · 소희 님 「지금 보이는건 옛것이야」
+#   어느 판이 돌고 있는지 화면에서 바로 알 수 있게 시각을 박습니다.
+#   /lab/ 에서 Ctrl+U 를 눌러 「stella lab」 을 찾으면 보입니다.
+STAMP = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+body = body.replace('<head>', '<head>\n<!-- stella lab 목록 · 판 ' + STAMP
+                    + ' · 카드 ' + str(body.count('class="card"')) + '장 -->', 1)
+if '<!-- stella lab' not in body:
+    body = '<!-- stella lab 목록 · 판 ' + STAMP + ' -->\n' + body
+
 HEAD = '''/* ════════════════════════════════════════════════════════════
-   스텔라 랩 목록   ★ 2026-09-09 · 소희 님께
+   스텔라 랩 목록   ★ 2026-09-09 · 소희 님께\n   판 ''' + STAMP + '''
 
    주소   https://stellasaju.com/lab/
 

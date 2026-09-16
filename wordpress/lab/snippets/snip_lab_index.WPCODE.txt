@@ -1,5 +1,6 @@
 /* ════════════════════════════════════════════════════════════
    스텔라 랩 목록   ★ 2026-09-09 · 소희 님께
+   판 2026-09-16 06:18
 
    주소   https://stellasaju.com/lab/
 
@@ -34,6 +35,7 @@ add_action( 'init', function () {
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<!-- stella lab 목록 · 판 2026-09-16 06:18 · 카드 18장 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>스텔라 랩 — 가볍게 해보는 테스트</title>
