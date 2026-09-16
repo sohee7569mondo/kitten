@@ -44,6 +44,21 @@
    ★ 팝업을 찾는 법도 이름에 안 기댑니다 — 화면을 거의 다 덮는
      붙박이(position:fixed) 상자가 팝업입니다.
 
+   ── 배경색 ──────────────────────────────────────────
+   소희 님 : 「스타 사주 페이지 다른 페이지랑 비슷하게 아이보리를
+              배경색으로 해주라 가운데는 흰색 좋아」
+              「지금처럼 놔두고 배경색만 바꿔줘」
+
+   본문 바깥이 진한 남색이라 다른 쪽과 달라 보였습니다.
+   아이보리(#F5F1E8)로 바꿉니다 — 문 쪽에서 쓰는 그 색입니다.
+   가운데 흰 상자와 폭은 **한 군데도 안 건드립니다.**
+
+   ★ 색을 짐작으로 덮지 않습니다. 본문을 감싸는 상자를 위로
+     여덟 겹까지 훑어 **밝기를 재서 어두운 것만** 바꿉니다.
+     밝은 상자(가운데 흰색)는 그대로 둡니다.
+   ★ 결과 팝업의 어두운 바탕도 같은 아이보리로 바꿉니다.
+     머리글·바닥글은 제 배경이 있어 안 바뀝니다.
+
    ── 켜졌는지 보기 ───────────────────────────────────
    관리자로 보시면 칸 아래에 한 줄이 뜹니다 —
        「관리자에게만 보입니다 · 이름 537개를 찾았습니다」
@@ -124,10 +139,11 @@ add_action( 'wp_head', function () {
 .stella-x{
   position:absolute; top:14px; right:16px; z-index:99;
   padding:9px 16px; font:inherit; font-size:.9rem; cursor:pointer;
-  border:1px solid rgba(255,255,255,.45); border-radius:999px;
-  background:rgba(0,0,0,.35); color:#fff; letter-spacing:.02em;
+  border:1px solid rgba(0,0,0,.18); border-radius:999px;
+  background:rgba(255,255,255,.9); color:#3A3350; letter-spacing:.02em;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
 }
-.stella-x:hover{ background:rgba(0,0,0,.55); }
+.stella-x:hover{ background:#fff; }
 .stella-adm{
   margin:10px 0 0; padding:7px 11px; font-size:.8rem;
   border-left:3px solid #2F7D4A; background:rgba(47,125,74,.07);
@@ -470,6 +486,64 @@ add_action( 'wp_head', function () {
     return 1;
   }
 
+  /* ── 배경을 아이보리로 ──────────────────────
+     2026-09-16 · 소희 님 「다른 페이지랑 비슷하게 아이보리로,
+     가운데는 흰색 좋아」 「지금처럼 놔두고 배경색만」
+
+     색을 짐작으로 덮지 않습니다. 본문을 감싸는 상자를 위로 훑어
+     **밝기를 재서 어두운 것만** 바꿉니다. 가운데 흰 상자는 밝으니
+     그대로 있습니다. 폭도 한 군데 안 건드립니다. */
+  var IVORY = '#F5F1E8';
+
+  function darkness(css){
+    /* rgb(…) 에서 숫자를 꺼내 밝기를 잽니다. 0(검정) ~ 255(흰색) */
+    var s = String(css === null ? '' : css);
+    var a = s.indexOf('('), b = s.indexOf(')');
+    if(a < 0){ return -1; }
+    if(b < a){ return -1; }
+    var f = s.slice(a + 1, b).split(','), n = [], i, v;
+    for(i = 0; i < f.length; i++){
+      v = parseFloat(f[i]);
+      if(v !== v){ continue; }        /* 숫자가 아니면 건너뜁니다 */
+      n.push(v);
+    }
+    if(n.length < 3){ return -1; }
+    if(n.length > 3){ if(n[3] < 0.1){ return -1; } }   /* 거의 투명이면 셈에서 뺍니다 */
+    return (n[0] * 299 + n[1] * 587 + n[2] * 114) / 1000;
+  }
+
+  function paint(el){
+    if(!el){ return 0; }
+    if(el.nodeType !== 1){ return 0; }
+    if(el.getAttribute('data-stellabg') === '1'){ return 0; }
+    try{
+      var st = window.getComputedStyle(el);
+      if(!st){ return 0; }
+      var d = darkness(st.backgroundColor);
+      if(d < 0){ return 0; }      /* 투명 — 뒤가 비치므로 그대로 둡니다 */
+      if(d > 120){ return 0; }    /* 이미 밝습니다 (가운데 흰 상자) */
+      el.setAttribute('data-stellabg', '1');
+      el.style.backgroundColor = IVORY;
+      return 1;
+    }catch(e){ return 0; }
+  }
+
+  function ivory(){
+    try{
+      paint(document.body);
+      var start = document.getElementById('ssc');
+      if(!start){ start = document.querySelector('.stella-find'); }
+      if(!start){ return; }
+      var el = start, k = 0;
+      while(el){
+        if(k > 8){ break; }
+        paint(el);
+        el = el.parentNode;
+        k++;
+      }
+    }catch(e){}
+  }
+
   /* ── 결과 팝업이 바탕 클릭으로 안 닫히게 ────────────
      2026-09-16 · 소희 님 「천천히 보고 싶어도 갑자기 사라지기도」
 
@@ -544,7 +618,15 @@ add_action( 'wp_head', function () {
     try{
       var all = document.querySelectorAll('div, section, aside'), i;
       for(i = 0; i < all.length; i++){
-        if(isBackdrop(all[i])){ closeBtn(all[i]); }
+        if(!isBackdrop(all[i])){ continue; }
+        closeBtn(all[i]);
+        /* 팝업의 어두운 바탕도 아이보리로 — 뒤가 살짝 비치게 */
+        if(all[i].getAttribute('data-stellabg') !== '1'){
+          if(darkness(window.getComputedStyle(all[i]).backgroundColor) < 120){
+            all[i].setAttribute('data-stellabg', '1');
+            all[i].style.backgroundColor = 'rgba(245,241,232,.95)';
+          }
+        }
       }
     }catch(e){}
   }
@@ -552,12 +634,14 @@ add_action( 'wp_head', function () {
   /* 목록은 쪽의 자바스크립트가 나중에 그리고, 다시 그리기도 합니다 */
   function watch(){
     guard();
+    ivory();
     run();
     var k = 0;
     var t = setInterval(function(){
       k++;
       keepHidden();
       watchPopup();
+      ivory();
       if(!wrap){ run(); }
       if(k > 120){ clearInterval(t); }
     }, 500);

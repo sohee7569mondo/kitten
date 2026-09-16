@@ -1,0 +1,244 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주 → 유앤미 「○○과 나의 궁합 보기」
+   ★ 2026-09-16 · 소희 님께
+
+   소희 님 : 「그럼 아래 부분에 00과 나와의 궁합보기 해서 유앤미로
+              보낼까?」 「프로필사진을 만들어 주세요 해서 머무는
+              시간을 늘리는거지」
+
+   ── 새로 지을 것이 거의 없습니다 ────────────────────
+   유앤미에 **연예인 궁합이 이미 있습니다** — 「연예인이랑 볼래요」
+   단추가 그것입니다. 그러니 두 쪽을 이어주기만 하면 됩니다.
+
+       스타 사주에서 변우석을 봄
+         → 「변우석과 나의 궁합 보기」 단추
+         → 유앤미로 감 (변우석을 기억한 채)
+         → 손님은 **자기 생일만** 넣으면 됩니다
+         → 유앤미가 연예인 목록을 띄우는 순간 우리가 변우석을 눌러 줍니다
+
+   손님이 이름을 두 번 찾을 일이 없습니다.
+
+   ── 사진을 안 쓰는 까닭 ─────────────────────────────
+   팬이 올린 연예인 사진으로 갤러리를 만들면 사진 저작권(소속사·
+   언론사)과 초상권(본인)이 걸립니다. 스타 사주가 지금 안전한 것은
+   **공개된 생년월일만 쓰고 사진은 안 쓰기** 때문입니다.
+   머무는 시간은 이 길로 늘립니다 — 자기 생일을 넣어야 하니
+   사진을 구경하는 것보다 오래 머뭅니다. 그리고 퍼집니다.
+
+   ── 켜졌는지 보기 ───────────────────────────────────
+   스타 사주 결과 아래에 보라색 단추가 생깁니다.
+   관리자로 보시면 그 아래 한 줄이 더 뜹니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+
+	$star = is_page( 'star-saju' );
+	$um   = is_page( 'uandme' );
+	if ( ! $star ) { if ( ! $um ) { return; } }
+
+	$admin = current_user_can( 'manage_options' ) ? 1 : 0;
+	?>
+<!-- stella 스타 → 유앤미 · 판 2026-09-16 -->
+<style id="stella-celebgo">
+.stella-go{
+  display:block; width:100%; box-sizing:border-box;
+  margin:22px 0 4px; padding:16px 20px;
+  border:0; border-radius:14px; cursor:pointer;
+  font:inherit; font-size:1rem; font-weight:700; letter-spacing:.01em;
+  background:linear-gradient(135deg,#6B5BA8,#8E7BD0); color:#fff;
+  box-shadow:0 6px 18px rgba(107,91,168,.28);
+}
+.stella-go:hover{ filter:brightness(1.06); }
+.stella-go .s{ display:block; margin-top:5px; font-size:.82rem; font-weight:400; opacity:.88; }
+.stella-gonote{ margin:8px 2px 0; font-size:.8rem; opacity:.55; }
+.stella-goadm{
+  margin:8px 0 0; padding:7px 11px; font-size:.8rem;
+  border-left:3px solid #2F7D4A; background:rgba(47,125,74,.07); color:#1d3a27;
+}
+</style>
+<script>
+(function(){
+  if(window.StellaCelebGo){ return; }
+  window.StellaCelebGo = 1;
+
+  var ON_STAR = <?php echo $star ? 1 : 0; ?>;
+  var ON_UM   = <?php echo $um ? 1 : 0; ?>;
+  var ADMIN   = <?php echo (int) $admin; ?>;
+
+  var KEY = 'stella_celeb_go';   /* 고를 연예인 이름을 여기 담아 둡니다 */
+  var UM  = '/uandme/';
+
+  function tidy(v){
+    var s = String(v === null ? '' : v), out = '', i, ch;
+    var SP = ' ' + String.fromCharCode(9) + String.fromCharCode(10) + String.fromCharCode(13);
+    for(i = 0; i < s.length; i++){
+      ch = s.charAt(i);
+      if(SP.indexOf(ch) >= 0){ ch = ' '; }
+      out += ch;
+    }
+    while(out.indexOf('  ') >= 0){ out = out.split('  ').join(' '); }
+    return out.trim();
+  }
+  function squash(v){
+    var s = tidy(v), out = '', i;
+    for(i = 0; i < s.length; i++){ if(s.charAt(i) !== ' '){ out += s.charAt(i); } }
+    return out;
+  }
+  function put(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+  function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function drop(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+  /* ═══ 스타 사주 쪽 ═══════════════════════════════════
+     결과가 뜨면 그 아래에 단추를 답니다.
+     결과는 팝업으로 뜨므로, 팝업 안에서 이름을 찾습니다. */
+  function starName(box){
+    /* 결과 맨 위의 큰 제목이 그 사람 이름입니다 */
+    try{
+      var h = box.querySelector('h1, h2, h3');
+      if(!h){ return ''; }
+      var t = tidy(h.textContent);
+      if(!t){ return ''; }
+      if(t.length > 20){ return ''; }
+      return t;
+    }catch(e){ return ''; }
+  }
+
+  function addButton(box, nm){
+    if(box.getAttribute('data-gobtn') === '1'){ return; }
+    box.setAttribute('data-gobtn', '1');
+
+    var b = document.createElement('button');
+    b.setAttribute('type', 'button');
+    b.className = 'stella-go';
+    b.innerHTML = '';
+    b.appendChild(document.createTextNode(nm + '님과 나의 궁합 보기'));
+    var s = document.createElement('span');
+    s.className = 's';
+    s.appendChild(document.createTextNode('내 생일만 넣으면 됩니다 · 무료'));
+    b.appendChild(s);
+
+    b.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      put(KEY, nm);
+      location.href = UM;
+    });
+
+    var wrap = document.createElement('div');
+    wrap.appendChild(b);
+
+    var note = document.createElement('p');
+    note.className = 'stella-gonote';
+    note.appendChild(document.createTextNode(
+      '두 사람의 사주를 나란히 놓고 봅니다. 사진은 쓰지 않습니다.'));
+    wrap.appendChild(note);
+
+    if(ADMIN){
+      var a = document.createElement('p');
+      a.className = 'stella-goadm';
+      a.appendChild(document.createTextNode(
+        '관리자에게만 보입니다 · 「' + nm + '」 을 담아 유앤미로 보냅니다'));
+      wrap.appendChild(a);
+    }
+    box.appendChild(wrap);
+  }
+
+  function onStar(){
+    try{
+      /* 결과가 담긴 상자 — 화면을 크게 덮는 붙박이 안쪽,
+         또는 쪽 안의 결과 자리. 이름에 안 기댑니다. */
+      var pick = null;
+      var all = document.querySelectorAll('div, section, article'), i, el, st, r;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.getAttribute('data-gobtn') === '1'){ return; }
+        st = window.getComputedStyle(el);
+        if(!st){ continue; }
+        if(st.display === 'none'){ continue; }
+        r = el.getBoundingClientRect();
+        if(r.width < 260){ continue; }
+        if(r.height < 320){ continue; }
+        /* 그 안에 사주표(연주·월주)가 있으면 결과 상자입니다 */
+        var tx = String(el.textContent === null ? '' : el.textContent);
+        if(tx.indexOf('연주') < 0){ continue; }
+        if(tx.indexOf('일주') < 0){ continue; }
+        if(tx.length > 8000){ continue; }   /* 쪽 전체는 거릅니다 */
+        if(!pick){ pick = el; }
+        else if(el.contains(pick)){ }        /* 더 안쪽 것을 고릅니다 */
+        else if(pick.contains(el)){ pick = el; }
+      }
+      if(!pick){ return; }
+      var nm = starName(pick);
+      if(!nm){ return; }
+      addButton(pick, nm);
+    }catch(e){}
+  }
+
+  /* ═══ 유앤미 쪽 ═══════════════════════════════════════
+     담아 둔 이름이 있으면, 연예인 목록이 뜨는 순간 그것을 눌러 줍니다.
+     손님은 자기 생일만 넣으면 됩니다. */
+  var want = '';
+
+  function clickIf(sel){
+    try{
+      var b = document.querySelector(sel);
+      if(!b){ return 0; }
+      var st = window.getComputedStyle(b);
+      if(st){ if(st.display === 'none'){ return 0; } }
+      b.click();
+      return 1;
+    }catch(e){ return 0; }
+  }
+
+  function pickFromSheet(){
+    var sheet = document.getElementById('um-celeb');
+    if(!sheet){ return 0; }
+    var q = squash(want);
+    var bs = sheet.querySelectorAll('button, li, div[data-n], a'), i, el, t;
+    for(i = 0; i < bs.length; i++){
+      el = bs[i];
+      t = el.getAttribute('data-n');
+      if(!t){ t = tidy(el.textContent); }
+      if(squash(t) !== q){ continue; }
+      try{ el.click(); }catch(e){}
+      return 1;
+    }
+    return 0;
+  }
+
+  function onUm(){
+    if(!want){ return; }
+    /* ① 연예인 목록이 이미 떠 있으면 고릅니다 */
+    if(pickFromSheet()){ want = ''; drop(KEY); return; }
+    /* ② 아직이면 「연예인 고르기 / 연예인이랑 볼래요」 단추를 눌러 둡니다 */
+    clickIf('#celeb');
+  }
+
+  /* ═══ 돌리기 ═══════════════════════════════════════ */
+  function tick(){
+    if(ON_STAR){ onStar(); }
+    if(ON_UM){ onUm(); }
+  }
+  function start(){
+    if(ON_UM){
+      want = get(KEY);
+      if(!want){ want = ''; }
+    }
+    tick();
+    var k = 0;
+    var t = setInterval(function(){
+      k++;
+      tick();
+      if(k > 240){ clearInterval(t); }   /* 2분쯤 보다가 멈춥니다 */
+    }, 500);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+})();
+</script>
+	<?php
+} );
