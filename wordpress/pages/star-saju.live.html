@@ -1,0 +1,2041 @@
+<!-- wp:html -->
+<!--
+  STELLA SAJU — 스타 운세  (/star/)   BUILD: STAR-1
+  이름을 누르면 그 사람의 사주 여섯 글자와 풀이가 열립니다.
+
+  [원칙]
+  · 별점을 매기지 않습니다. 사람을 평가하지 않습니다.
+  · 여기 나오는 글은 전자책 엔진이 쓰는 문구 그대로입니다. 새로 지어내지 않았습니다.
+  · 태어난 시각은 공개된 자료가 없어 여섯 글자만 세웁니다. 시주는 비워 둡니다.
+  · 생년월일은 서로 독립된 두 곳 이상에서 확인한 것만 실었습니다.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&amp;family=Cinzel:wght@400;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
+<style>
+#ssv{
+  --void:#0B0817; --page:#14102A; --edge:#1D1740;
+  --gold:#D4AF6A; --gold-lite:#EBD3A0;
+  --speak:#9A86D8; --speak-lite:#BCADEA;
+  --star:#F2ECE0; --soft:rgba(242,236,224,.72); --dim:rgba(242,236,224,.44);
+  --rule:rgba(212,175,106,.20); --rule-s:rgba(154,134,216,.28);
+  --serif:'Gowun Batang','Nanum Myeongjo',serif;
+  --latin:'Cinzel',serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+#ssv *{box-sizing:border-box;}
+#ssv{
+  margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
+  max-width:none !important; width:auto !important; padding:0 !important;
+  background:var(--void); color:var(--star); font-family:var(--serif);
+  font-size:17px; line-height:1.95; word-break:keep-all; overflow-wrap:break-word;
+  position:relative; z-index:0; overflow-x:clip;
+}
+#ssv .wrap{max-width:1000px; margin:0 auto; padding:56px 20px 110px;}
+#ssv .mark{font-family:var(--latin); font-size:.68rem; letter-spacing:.4em; color:var(--gold); text-align:center;}
+#ssv h1{font-family:var(--serif); font-weight:700; font-size:2.1rem; line-height:1.45;
+  margin:24px 0 0; text-align:center; text-wrap:balance;}
+#ssv .dek{margin:14px auto 0; max-width:34em; text-align:center; color:var(--dim); font-size:.95rem;}
+#ssv .rule{width:44px; height:1px; background:var(--gold); margin:36px auto;}
+#ssv h2{font-family:var(--serif); font-weight:700; font-size:1.2rem; margin:0 0 14px; color:var(--gold-lite);}
+#ssv h3{font-family:var(--serif); font-weight:700; font-size:1.02rem; margin:26px 0 2px; color:var(--gold-lite);}
+#ssv p{margin:12px 0 0; color:var(--soft);}
+#ssv em{font-style:normal; color:var(--gold-lite);}
+#ssv .mini{font-size:.84rem; color:var(--dim); line-height:1.8;}
+
+/* 정직 상자 */
+#ssv .note{margin:30px auto 0; max-width:44em; padding:20px 22px;
+  border:1px solid var(--rule); background:rgba(212,175,106,.045);}
+#ssv .note .tag{font-family:var(--mono); font-size:.66rem; letter-spacing:.2em; color:var(--gold); margin-bottom:10px;}
+#ssv .note p{margin:8px 0 0; font-size:.9rem; line-height:1.85;}
+#ssv .note p:first-of-type{margin-top:0;}
+
+/* 거르개 */
+#ssv .bar{margin:38px 0 0; display:flex; flex-wrap:wrap; gap:7px; align-items:center;}
+#ssv .bar .lb{font-family:var(--mono); font-size:.64rem; letter-spacing:.16em; color:var(--dim);
+  width:100%; margin-bottom:2px;}
+#ssv button.chip{
+  font-family:var(--serif); font-size:.92rem; color:var(--soft); cursor:pointer;
+  background:none; border:1px solid var(--rule); padding:6px 13px; line-height:1.5;
+}
+#ssv button.chip:hover{border-color:var(--gold); color:var(--star);}
+#ssv button.chip.on{background:var(--gold); border-color:var(--gold); color:#0B0817; font-weight:700;}
+#ssv button.chip:focus-visible{outline:2px solid var(--gold-lite); outline-offset:2px;}
+
+#ssv .count{margin-top:18px; font-family:var(--mono); font-size:.72rem; letter-spacing:.1em; color:var(--dim);}
+
+/* 이름 격자 */
+#ssv .grid{margin-top:16px; display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:1px;
+  background:var(--rule); border:1px solid var(--rule);}
+#ssv .cell{background:var(--page); padding:15px 13px; text-align:left; cursor:pointer;
+  border:0; color:inherit; font-family:var(--serif); display:block; width:100%;}
+#ssv .cell:hover{background:var(--edge);}
+#ssv .cell .nm{font-size:1.04rem; color:var(--star);}
+#ssv .cell .sub{font-family:var(--mono); font-size:.66rem; letter-spacing:.06em; color:var(--dim); margin-top:5px;}
+#ssv .cell.hit .nm{color:var(--gold-lite);}
+#ssv .cell:focus-visible{outline:2px solid var(--gold-lite); outline-offset:-2px;}
+#ssv .empty{padding:40px 0; text-align:center; color:var(--dim);}
+
+/* 상세 */
+#ssv .sheet{position:fixed; inset:0; z-index:99; background:rgba(11,8,23,.94);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  display:none; overflow-y:auto; padding:26px 16px 60px;}
+#ssv .sheet.open{display:block;}
+#ssv .card{max-width:640px; margin:0 auto; background:var(--page);
+  border:1px solid var(--rule); padding:38px 34px 44px; position:relative;}
+@media(max-width:600px){ #ssv .card{padding:30px 20px 36px;} }
+#ssv .card::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--gold); opacity:.55;}
+#ssv .x{position:absolute; right:12px; top:10px; background:none; border:0; cursor:pointer;
+  font-family:var(--mono); font-size:.8rem; color:var(--dim); padding:8px 10px;}
+#ssv .x:hover{color:var(--star);}
+#ssv .card .who{font-family:var(--mono); font-size:.66rem; letter-spacing:.2em; color:var(--gold);}
+#ssv .card .nm2{font-size:1.8rem; font-weight:700; margin-top:10px; line-height:1.4;}
+#ssv .card .born{font-family:var(--mono); font-size:.76rem; color:var(--dim); margin-top:8px; letter-spacing:.04em;}
+
+#ssv .pill{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin-top:24px;
+  background:var(--rule); border:1px solid var(--rule);}
+#ssv .pill div{background:var(--edge); padding:15px 6px; text-align:center;}
+#ssv .pill .ph{background:var(--page); font-family:var(--mono); font-size:.62rem;
+  letter-spacing:.14em; color:var(--dim); padding:9px 6px;}
+#ssv .pill .han{font-size:1.5rem; line-height:1.3; color:var(--gold-lite);}
+#ssv .pill .kor{font-size:.72rem; color:var(--dim); margin-top:4px;}
+#ssv .pill .none{opacity:.28;}
+
+#ssv .scale{margin-top:22px; display:flex; flex-direction:column; gap:9px;}
+#ssv .el{display:grid; grid-template-columns:2.2rem 1fr 2.6rem; align-items:center; gap:12px;}
+#ssv .el-n{font-size:.9rem; color:var(--soft);}
+#ssv .el-bar{height:16px; background:rgba(255,255,255,.045); position:relative;}
+#ssv .el-bar span{position:absolute; inset:0 auto 0 0; background:var(--gold); opacity:.75;}
+#ssv .el-v{font-family:var(--mono); font-size:.74rem; color:var(--soft); text-align:right;}
+#ssv .el.zero .el-bar{border:1px dashed rgba(242,236,224,.26); background:none;}
+#ssv .el.zero .el-n,#ssv .el.zero .el-v{color:var(--dim);}
+
+#ssv .same{margin-top:14px; display:flex; flex-wrap:wrap; gap:6px;}
+#ssv .same button{font-family:var(--serif); font-size:.86rem; color:var(--speak-lite);
+  background:none; border:1px solid var(--rule-s); padding:4px 10px; cursor:pointer;}
+#ssv .same button:hover{color:var(--star); border-color:var(--speak);}
+
+#ssv .go{display:block; margin-top:32px; text-align:center;
+  background:var(--gold); color:#0B0817; font-family:var(--mono); font-size:.78rem;
+  letter-spacing:.08em; padding:14px 16px; text-decoration:none; font-weight:500;}
+#ssv .go:hover{background:var(--gold-lite);}
+
+#ssv .tw{overflow-x:auto; margin-top:22px;}
+#ssv table{border-collapse:collapse; width:100%; font-size:.9rem; min-width:420px;}
+#ssv th,#ssv td{padding:10px 11px; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top;}
+#ssv th{font-family:var(--mono); font-size:.66rem; letter-spacing:.12em; color:var(--dim); font-weight:400;}
+#ssv td{color:var(--soft);}
+#ssv td.k{font-family:var(--mono); color:var(--gold-lite); white-space:nowrap;}
+
+#ssv .foot{margin-top:60px; padding-top:26px; border-top:1px solid var(--rule);}
+
+/* 직접 넣어보기 */
+#ssv .ask{margin-top:56px; padding:28px 26px; border:1px solid var(--rule-s);
+  background:rgba(154,134,216,.055);}
+#ssv .ask h2{color:var(--speak-lite);}
+#ssv .askrow{margin-top:18px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;}
+#ssv .fld{display:flex; flex-direction:column; gap:6px;}
+#ssv .fld label{font-family:var(--mono); font-size:.64rem; letter-spacing:.14em; color:var(--dim);}
+#ssv .fld input{
+  font-family:var(--serif); font-size:1rem; color:var(--star);
+  background:rgba(255,255,255,.04); border:1px solid var(--rule); padding:10px 12px; width:150px;
+}
+#ssv .fld input:focus{outline:none; border-color:var(--gold);}
+#ssv .fld.wide input{width:190px;}
+#ssv button.doit{
+  font-family:var(--mono); font-size:.76rem; letter-spacing:.08em; cursor:pointer;
+  background:var(--speak); color:#0B0817; border:0; padding:12px 20px; font-weight:500;
+}
+#ssv button.doit:hover{background:var(--speak-lite);}
+#ssv button.doit:disabled{opacity:.4; cursor:default;}
+#ssv .say{margin-top:14px; font-size:.9rem; color:var(--speak-lite); min-height:1.2em;}
+#ssv .send{margin-top:22px; padding-top:18px; border-top:1px solid var(--rule-s);}
+#ssv .send label.chk{display:flex; gap:9px; align-items:flex-start; font-size:.86rem;
+  color:var(--soft); cursor:pointer; line-height:1.7;}
+#ssv .send input[type=checkbox]{margin-top:5px; accent-color:var(--gold); flex:0 0 auto;}
+@media(prefers-reduced-motion:reduce){ #ssv *{animation:none !important; transition:none !important;} }
+</style>
+
+<style>
+/* ══ 2026-09-08 · 남은 쪽을 흰 바탕으로 ═══════════════════════════════
+   앞의 색표를 지우지 않고 뒤에서 덮어씁니다. 되돌리기가 쉽습니다.
+   문 여섯 · 무료 여덟과 같은 종이빛입니다. */
+#ssv{
+  --void:#F1EDE3; --void-deep:#FBF8F2;
+  --nebula:#FFFFFF; --nebula-soft:#F7F3EA;
+  --card:#FFFFFF; --card-hi:#FAF7F0;
+  --lift:0 2px 4px -2px rgba(34,28,51,.10),
+         0 12px 30px -16px rgba(34,28,51,.26);
+  --purple-glow:rgba(107,79,176,.16); --lilac:#6B4FB0;
+  --speak:#6B4FB0; --speak-lite:#8A6FD0;
+  --gold:#A9791F; --gold-soft:#B98A47; --gold-lite:#8A6520;
+  --star:#221C33;
+  --ink-soft:#4E4763; --ink-dim:#8B849C;
+  --line:#E2DACB;
+  background:#F1EDE3 !important;
+  color:var(--star);
+}
+/* 밤하늘 별은 흰 바탕에서 안 보입니다. 아주 옅은 결만 남깁니다. */
+#ssv .q-stars, #ssv .g-stars, #ssv .ssp-stars, #ssv .sky{
+  background:
+    radial-gradient(58vw 44vw at 12% 2%, rgba(107,79,176,.05), transparent 62%),
+    radial-gradient(52vw 40vw at 92% 24%, rgba(169,121,31,.05), transparent 60%),
+    #F1EDE3 !important;}
+/* 상자는 바닥보다 밝은 흰 종이. 테와 그림자를 또렷하게. */
+#ssv .card, #ssv .last, #ssv .price, #ssv .why div,
+#ssv .doors a, #ssv .pick, #ssv .one, #ssv .g-face,
+#ssv .item{
+  background:#FFFFFF !important; border:1px solid #E2DACB !important;
+  color:var(--star) !important;
+  box-shadow:0 2px 4px -2px rgba(34,28,51,.10),
+             0 12px 30px -16px rgba(34,28,51,.26) !important;}
+/* 카드 안의 작은 상자는 한 톤 낮춥니다. 흰 위에 흰이면 안 걸립니다. */
+#ssv .pil, #ssv .calc div, #ssv .saved, #ssv .face{
+  background:#FAF7F0 !important; border:1px solid #EAE2D2 !important;
+  box-shadow:none !important;}
+/* 넣는 칸 */
+#ssv input, #ssv select, #ssv textarea{
+  background:#FAF7F0 !important; color:var(--star) !important;
+  border-color:#D5CCB8 !important;}
+#ssv select option{ background:#FFFFFF !important; color:#221C33 !important; }
+#ssv ::placeholder{ color:#B7B0C4 !important; }
+/* 단추 — 금빛 바탕에 어두운 글자였습니다. 남색 바탕에 흰 글자로. */
+#ssv .btn, #ssv .go, #ssv .join a, #ssv .cta a{
+  color:#FFFDF9 !important;
+  background:linear-gradient(120deg,#3A2E77,#241C4E) !important;
+  box-shadow:0 16px 34px -16px rgba(36,28,78,.7) !important;}
+/* 테만 있는 단추는 그대로 둡니다 */
+#ssv .btn.ghost{
+  background:none !important; color:var(--star) !important;
+  border:1px solid #D5CCB8 !important; box-shadow:none !important;}
+/* 번호 딱지 — 금빛 바탕에 밝은 글자라 안 보입니다 */
+#ssv .num, #ssv .why .n, #ssv .step-no{ color:#FFFFFF !important; }
+/* 막대의 홈 — 흰 바탕에서 사라집니다 */
+#ssv .bar-t, #ssv .ebar, #ssv .track{
+  background:rgba(34,28,51,.08) !important;}
+/* 알림 글씨 — 어두운 바탕에서만 읽히던 색이었습니다 */
+#ssv .say.ok{ background:#EDF7F0 !important; border-color:#BFE0C9 !important;
+  color:#2F7D4A !important; }
+#ssv .say.err, #ssv .again, #ssv .err{
+  background:#FBEFEE !important; border-color:#EBC7C3 !important;
+  color:#C4453A !important; }
+#ssv .join{ background:#F3EFFA !important; border-color:#D9CFF2 !important; }
+</style>
+<div id="ssv">
+ <div class="wrap">
+  <div class="mark">STELLA SAJU</div>
+  <h1>스타 운세</h1>
+  <p class="dek">이름을 누르면 그 사람이 태어난 날의 여섯 글자가 열립니다.<br>
+  잘된 사람의 사주가 따로 있는지, 직접 세어보세요.</p>
+  <div class="rule"></div>
+
+  <div class="note">
+   <div class="tag">먼저 알려드립니다</div>
+   <p><strong>사람을 평가하지 않습니다.</strong> 재능이나 인기에 점수를 매기지 않아요.
+   여기 있는 것은 태어난 날에서 <em>계산으로 나오는 값</em>뿐입니다.</p>
+   <p><strong>태어난 시각은 넣지 않았습니다.</strong> 공개된 자료가 없기 때문입니다.
+   그래서 여덟 글자 중 <em>여섯 자</em>만 섰습니다. 시주와 상승궁·달자리는 비워 두었어요.</p>
+   <p><strong>생년월일은 서로 독립된 두 곳 이상에서 확인한 것만</strong> 실었습니다.
+   널리 알려진 날짜가 음력이거나 호적상 날짜인 경우가 많아, 그런 분은 양력으로 고쳐 세웠습니다.</p>
+   <p class="mini">전통 사주명리학에 기반한 오락용 콘텐츠입니다. 특정인에 대한 사실의 적시나 평가가 아닙니다.</p>
+  </div>
+
+  <div class="bar" id="svCho"><div class="lb">ㄱㄴㄷ 으로 찾기</div></div>
+  <div class="bar" id="svJob"><div class="lb">하는 일</div></div>
+  <div class="bar" id="svGen"><div class="lb">세대</div></div>
+  <div class="bar" id="svAni"><div class="lb">띠</div></div>
+  <div class="bar" id="svGan"><div class="lb">일간 · 그 사람 자신을 가리키는 한 글자</div></div>
+  <div class="bar" id="svSun"><div class="lb">태양 별자리</div></div>
+  <div class="count" id="svCount">—</div>
+  <div class="grid" id="svGrid"></div>
+  <div class="empty" id="svEmpty" style="display:none">고른 조건에 맞는 사람이 없습니다.</div>
+
+  <div class="ask">
+   <h2>찾는 사람이 목록에 없나요</h2>
+   <p>생년월일만 넣으면 <em>이 자리에서 바로</em> 세워 보여드립니다.
+   계산은 손님 브라우저 안에서만 돕니다 — 넣으신 것은 아무 데도 보내지지 않습니다.</p>
+   <div class="askrow">
+    <div class="fld wide"><label>이름</label><input id="qName" type="text" maxlength="20" placeholder="예) 유재석"></div>
+    <div class="fld"><label>태어난 해</label><input id="qY" type="number" inputmode="numeric" placeholder="1972" min="1900" max="2026"></div>
+    <div class="fld"><label>달</label><input id="qM" type="number" inputmode="numeric" placeholder="8" min="1" max="12" style="width:80px"></div>
+    <div class="fld"><label>날</label><input id="qD" type="number" inputmode="numeric" placeholder="14" min="1" max="31" style="width:80px"></div>
+    <button type="button" class="doit" id="qGo">세워보기</button>
+   </div>
+   <div class="say" id="qSay"></div>
+
+   <div class="send">
+    <p class="mini"><strong>널리 알려진 사람만 넣어주세요.</strong>
+    친구 · 옛 애인 · 직장 사람처럼 <em>일반인의 이름과 생년월일은 보내지 마세요.</em>
+    남의 개인정보를 본인 허락 없이 넘기는 일이 됩니다. 그런 것은 이 자리에서 보기만 하고 보내지 않으시면 됩니다.</p>
+    <label class="chk" style="margin-top:12px">
+     <input type="checkbox" id="qOk">
+     <span>이 사람은 <strong>연예인 · 운동선수 · 공인</strong>이고, 생년월일이 이미 공개되어 있습니다.
+     스텔라사주가 확인한 뒤 목록에 넣어도 좋습니다.</span>
+    </label>
+    <div style="margin-top:14px"><button type="button" class="doit" id="qSend" disabled>목록에 넣어달라고 보내기</button></div>
+    <div class="say" id="qSent"></div>
+   </div>
+  </div>
+
+  <div class="foot">
+   <h2>잘된 사람의 사주는 따로 있을까요</h2>
+   <p>여기 모인 분들의 <em>일간</em> — 여덟 글자 가운데 그 사람 자신을 가리키는 한 글자 — 을 세어봤습니다.
+   열 가지가 고르게 나오면 한 가지에 열아홉 명씩입니다.</p>
+   <div class="tw"><table><thead><tr><th>일간</th><th>사람 수</th><th>고르게 나올 때</th></tr></thead>
+   <tbody id="svStat"></tbody></table></div>
+   <p>보시다시피 <em>한쪽으로 몰리지 않습니다.</em> 성공한 사람만 갖는 사주는 없다는 뜻이에요.
+   사주는 <em>어느 쪽이 덜 힘든지</em>를 알려줄 뿐, 잘되고 못되고를 정하지 않습니다.
+   같은 갑목이라도 어떤 사람은 배우가 되고 어떤 사람은 가수가 됩니다.</p>
+   <p class="mini">자료 191명 · 서로 독립된 두 곳 이상에서 확인한 생년월일만 씀 · 태어난 시각은 넣지 않음</p>
+  </div>
+ </div>
+
+ <div class="sheet" id="svSheet">
+  <div class="card" id="svCard"></div>
+ </div>
+</div>
+
+<script>
+/* ═══ 계산기 — 전자책(페이지 160)과 같은 코드입니다 ═══ */
+/* ═══ 계산기 ═══ */
+/* ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 브라우저에서 도는 사주 계산기
+   ───────────────────────────────────────────────────────────────
+   생년월일시와 태어난 곳을 넣으면 아래를 돌려줍니다.
+     · 진태양시 (경도 보정 + 균시차)
+     · 절기 (태양 황경 기준)
+     · 사주 원국 네 기둥
+     · 오행 비율
+     · 대운 (양남음녀 순행 / 음남양녀 역행)
+     · 태양 별자리 · 상승궁 · 천정
+   서버 없이 도는 순수 계산이라 회원가입 전에도 쓸 수 있습니다.
+   ═══════════════════════════════════════════════════════════════ */
+(function(root){
+  'use strict';
+
+  var GAN_H=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  var GAN_L=['갑','을','병','정','무','기','경','신','임','계'];
+  var JI_H =['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  var JI_L =['자','축','인','묘','진','사','오','미','신','유','술','해'];
+  var GAN_EL=['목','목','화','화','토','토','금','금','수','수'];
+  var JI_EL =['수','토','목','목','토','화','화','토','금','금','토','수'];
+  var JI_ANIMAL=['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
+  var ELEMENTS=['목','화','토','금','수'];
+
+  /* 12절(節). 월지가 바뀌는 지점입니다. 중기(中氣)는 월주를 가르지 않아 제외했습니다.
+     month 는 그 절기가 실제로 떨어지는 양력 달입니다 (모두 4~9일 사이). */
+  var TERMS=[
+    {deg:285, name:'소한', ji:1,  month:1},
+    {deg:315, name:'입춘', ji:2,  month:2},
+    {deg:345, name:'경칩', ji:3,  month:3},
+    {deg:15,  name:'청명', ji:4,  month:4},
+    {deg:45,  name:'입하', ji:5,  month:5},
+    {deg:75,  name:'망종', ji:6,  month:6},
+    {deg:105, name:'소서', ji:7,  month:7},
+    {deg:135, name:'입추', ji:8,  month:8},
+    {deg:165, name:'백로', ji:9,  month:9},
+    {deg:195, name:'한로', ji:10, month:10},
+    {deg:225, name:'입동', ji:11, month:11},
+    {deg:255, name:'대설', ji:0,  month:12}
+  ];
+
+  var SIGNS=['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리',
+             '천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
+
+
+  /* 태어난 곳 → 경도 · 위도 · 표준시 · 서머타임.
+     진태양시는 경도로 갈립니다. 서울과 부산도 8분쯤 차이가 나서
+     시 경계에 걸린 분은 시주가 바뀔 수 있습니다.
+     해외에서 태어나신 분은 그 나라 표준시와 서머타임까지 봐야 맞습니다. */
+  var CITIES={
+    '서울':[126.978,37.567], '인천':[126.705,37.456], '수원':[127.029,37.264],
+    '성남':[127.127,37.420], '고양':[126.832,37.658], '용인':[127.178,37.241],
+    '부천':[126.766,37.504], '안산':[126.831,37.322], '안양':[126.957,37.394],
+    '남양주':[127.216,37.636], '화성':[126.832,37.199], '평택':[127.113,36.992],
+    '의정부':[127.034,37.738], '파주':[126.780,37.760], '김포':[126.716,37.615],
+    '광명':[126.865,37.479], '이천':[127.435,37.272], '양주':[127.046,37.785],
+    '춘천':[127.730,37.881], '원주':[127.920,37.342], '강릉':[128.896,37.752],
+    '속초':[128.591,38.207], '동해':[129.114,37.525],
+    '대전':[127.385,36.350], '세종':[127.289,36.480], '천안':[127.115,36.815],
+    '청주':[127.489,36.642], '충주':[127.930,36.991], '아산':[126.980,36.790],
+    '공주':[127.119,36.447], '서산':[126.450,36.785], '제천':[128.191,37.133],
+    '대구':[128.601,35.872], '포항':[129.365,36.019], '경주':[129.225,35.856],
+    '구미':[128.344,36.120], '안동':[128.729,36.568], '김천':[128.114,36.140],
+    '경산':[128.741,35.825], '영주':[128.624,36.806],
+    '부산':[129.075,35.180], '울산':[129.311,35.539], '창원':[128.682,35.228],
+    '진주':[128.108,35.180], '김해':[128.882,35.229], '통영':[128.433,34.854],
+    '거제':[128.621,34.880], '양산':[129.037,35.335], '사천':[128.064,35.004],
+    '광주':[126.852,35.160], '전주':[127.148,35.824], '목포':[126.392,34.812],
+    '여수':[127.662,34.760], '순천':[127.487,34.951], '군산':[126.737,35.968],
+    '익산':[126.958,35.948], '나주':[126.711,35.016], '정읍':[126.856,35.570],
+    '제주':[126.532,33.499], '서귀포':[126.566,33.254],
+    '평양':[125.738,39.039], '개성':[126.556,37.971], '함흥':[127.536,39.918]
+  };
+
+  /* 해외 — [경도, 위도, 표준시, 서머타임 규칙]
+     규칙 : 'na' 북미 · 'eu' 유럽 · 'au' 호주 남동부 · '' 없음 */
+  var WORLD={
+    /* 캐나다 */
+    '밴쿠버':[-123.121,49.283,-8,'na'], '빅토리아':[-123.365,48.428,-8,'na'],
+    '캘거리':[-114.071,51.045,-7,'na'], '에드먼턴':[-113.491,53.546,-7,'na'],
+    '위니펙':[-97.138,49.895,-6,'na'],  '토론토':[-79.383,43.653,-5,'na'],
+    '오타와':[-75.697,45.421,-5,'na'],  '몬트리올':[-73.568,45.502,-5,'na'],
+    /* 미국 서부 */
+    '로스앤젤레스':[-118.243,34.052,-8,'na'], 'LA':[-118.243,34.052,-8,'na'],
+    '샌프란시스코':[-122.419,37.775,-8,'na'], '샌디에이고':[-117.161,32.716,-8,'na'],
+    '새너제이':[-121.887,37.339,-8,'na'],     '시애틀':[-122.332,47.606,-8,'na'],
+    '포틀랜드':[-122.676,45.512,-8,'na'],     '라스베이거스':[-115.139,36.170,-8,'na'],
+    '피닉스':[-112.074,33.448,-7,''],         '덴버':[-104.991,39.739,-7,'na'],
+    '솔트레이크시티':[-111.891,40.761,-7,'na'],
+    /* 미국 중부·동부 */
+    '시카고':[-87.630,41.878,-6,'na'],  '댈러스':[-96.797,32.777,-6,'na'],
+    '휴스턴':[-95.370,29.760,-6,'na'],  '오스틴':[-97.743,30.267,-6,'na'],
+    '애틀랜타':[-84.388,33.749,-5,'na'],'뉴욕':[-74.006,40.713,-5,'na'],
+    '뉴저지':[-74.406,40.058,-5,'na'],  '필라델피아':[-75.165,39.953,-5,'na'],
+    '보스턴':[-71.059,42.360,-5,'na'],  '워싱턴':[-77.037,38.907,-5,'na'],
+    '마이애미':[-80.192,25.762,-5,'na'],'올랜도':[-81.379,28.538,-5,'na'],
+    '호놀룰루':[-157.858,21.307,-10,''], '하와이':[-157.858,21.307,-10,''],
+    '앵커리지':[-149.900,61.218,-9,'na'],
+    /* 아시아 */
+    '도쿄':[139.692,35.690,9,''],   '요코하마':[139.638,35.444,9,''],
+    '오사카':[135.502,34.694,9,''], '교토':[135.768,35.012,9,''],
+    '나고야':[136.907,35.181,9,''], '후쿠오카':[130.402,33.590,9,''],
+    '삿포로':[141.355,43.062,9,''], '오키나와':[127.681,26.212,9,''],
+    '베이징':[116.407,39.904,8,''], '상하이':[121.474,31.230,8,''],
+    '칭다오':[120.383,36.067,8,''], '선양':[123.432,41.805,8,''],
+    '옌볜':[129.514,42.905,8,''],   '광저우':[113.264,23.129,8,''],
+    '홍콩':[114.169,22.319,8,''],   '타이베이':[121.566,25.033,8,''],
+    '싱가포르':[103.820,1.352,8,''],'방콕':[100.501,13.756,7,''],
+    '하노이':[105.834,21.028,7,''], '호치민':[106.660,10.823,7,''],
+    '마닐라':[120.984,14.599,8,''], '자카르타':[106.845,-6.208,7,''],
+    '델리':[77.209,28.614,5.5,''],  '두바이':[55.271,25.205,4,''],
+    /* 오세아니아 */
+    '시드니':[151.209,-33.868,10,'au'],  '멜버른':[144.946,-37.840,10,'au'],
+    '브리즈번':[153.026,-27.470,10,''],  '퍼스':[115.861,-31.950,8,''],
+    '오클랜드':[174.763,-36.848,12,'au'],
+    /* 유럽 */
+    '런던':[-0.128,51.507,0,'eu'],      '더블린':[-6.260,53.350,0,'eu'],
+    '파리':[2.352,48.857,1,'eu'],       '베를린':[13.405,52.520,1,'eu'],
+    '프랑크푸르트':[8.682,50.111,1,'eu'],'뮌헨':[11.582,48.135,1,'eu'],
+    '암스테르담':[4.904,52.367,1,'eu'], '브뤼셀':[4.352,50.847,1,'eu'],
+    '취리히':[8.542,47.377,1,'eu'],     '빈':[16.373,48.208,1,'eu'],
+    '로마':[12.496,41.903,1,'eu'],      '밀라노':[9.190,45.464,1,'eu'],
+    '마드리드':[-3.704,40.417,1,'eu'],  '바르셀로나':[2.173,41.385,1,'eu'],
+    '프라하':[14.438,50.076,1,'eu'],    '스톡홀름':[18.069,59.329,1,'eu'],
+    '모스크바':[37.618,55.756,3,''],
+    /* 남미·아프리카 */
+    '상파울루':[-46.633,-23.551,-3,''], '부에노스아이레스':[-58.382,-34.604,-3,''],
+    '멕시코시티':[-99.133,19.433,-6,''],'카이로':[31.236,30.044,2,''],
+    '요하네스버그':[28.034,-26.205,2,'']
+  };
+
+  /* 도시를 못 찾았을 때 쓰는 나라 대표 도시 */
+  var COUNTRY_CITY={
+    '대한민국':'서울', '미국':'로스앤젤레스', '캐나다':'토론토', '일본':'도쿄',
+    '중국':'베이징', '호주':'시드니', '영국':'런던', '뉴질랜드':'오클랜드',
+    '독일':'베를린', '프랑스':'파리', '싱가포르':'싱가포르', '필리핀':'마닐라',
+    '베트남':'호치민', '태국':'방콕', '기타':'서울'
+  };
+
+  /* ── 서머타임과 옛 표준시 ─────────────────────────────── */
+  function ymd(y,m,d){ return y*10000+m*100+d; }
+
+  /* 그 달 n번째 일요일 */
+  function nthSun(y,m,n){
+    var first=new Date(Date.UTC(y,m-1,1)).getUTCDay();      // 0=일
+    var day=1+((7-first)%7)+(n-1)*7;
+    return day;
+  }
+  /* 그 달 마지막 일요일 */
+  function lastSun(y,m){
+    var last=new Date(Date.UTC(y,m,0)).getUTCDate();
+    var dow=new Date(Date.UTC(y,m-1,last)).getUTCDay();
+    return last-dow;
+  }
+
+  /* 한국이 서머타임을 쓴 해와 기간 (표준시 자료 기준) */
+  var KR_DST=[
+    [19480601,19480913],[19490403,19490911],[19500401,19500910],[19510506,19510909],
+    [19550505,19550909],[19560520,19560930],[19570505,19570922],[19580504,19580921],
+    [19590504,19590920],[19600501,19600918],
+    [19870510,19871011],[19880508,19881009]
+  ];
+
+  /* 한국 표준시는 두 번 바뀌었습니다 (동경 135도 ↔ 127.5도) */
+  function koreaTz(y,mo,d){
+    var t=ymd(y,mo,d);
+    if(t < 19120101){ return 8.5; }
+    if(t < 19540321){ return 9; }
+    if(t < 19610810){ return 8.5; }
+    return 9;
+  }
+
+  /* 서머타임이면 60(분), 아니면 0 */
+  function dstMinutes(zone, y, mo, d){
+    var t=ymd(y,mo,d);
+    var i;
+
+    if(zone==='kr'){
+      for(i=0;i<KR_DST.length;i++){
+        if(t>=KR_DST[i][0]){ if(t<KR_DST[i][1]){ return 60; } }
+      }
+      return 0;
+    }
+
+    if(zone==='na'){                                  /* 미국 · 캐나다 */
+      if(y>=2007){
+        if(t>=ymd(y,3,nthSun(y,3,2))){ if(t<ymd(y,11,nthSun(y,11,1))){ return 60; } }
+        return 0;
+      }
+      if(y>=1987){
+        if(t>=ymd(y,4,nthSun(y,4,1))){ if(t<ymd(y,10,lastSun(y,10))){ return 60; } }
+        return 0;
+      }
+      if(y>=1976){
+        if(t>=ymd(y,4,lastSun(y,4))){ if(t<ymd(y,10,lastSun(y,10))){ return 60; } }
+        return 0;
+      }
+      return 0;
+    }
+
+    if(zone==='eu'){                                  /* 유럽 */
+      if(y>=1996){
+        if(t>=ymd(y,3,lastSun(y,3))){ if(t<ymd(y,10,lastSun(y,10))){ return 60; } }
+        return 0;
+      }
+      if(y>=1981){
+        if(t>=ymd(y,3,lastSun(y,3))){ if(t<ymd(y,9,lastSun(y,9))){ return 60; } }
+        return 0;
+      }
+      return 0;
+    }
+
+    if(zone==='au'){                                  /* 호주 남동부 · 뉴질랜드 (남반구) */
+      if(y>=2008){
+        if(t>=ymd(y,10,nthSun(y,10,1))){ return 60; }
+        if(t<ymd(y,4,nthSun(y,4,1))){ return 60; }
+        return 0;
+      }
+      if(y>=1972){
+        if(t>=ymd(y,10,lastSun(y,10))){ return 60; }
+        if(t<ymd(y,3,lastSun(y,3))){ return 60; }
+        return 0;
+      }
+      return 0;
+    }
+
+    return 0;
+  }
+
+  /* 옛 방식으로 부르는 화면을 위해 — 경도만 보고 어느 곳이었는지 되찾습니다.
+     locate() 가 이 표에서 꺼낸 값이라 소수점까지 그대로 맞습니다. */
+  function zoneOfLon(lon, tz){
+    var keys=Object.keys(WORLD), i, w;
+    for(i=0;i<keys.length;i++){
+      w=WORLD[keys[i]];
+      if(w[0]===lon){ if(w[2]===tz){ return w[3]; } }
+    }
+    keys=Object.keys(CITIES);
+    for(i=0;i<keys.length;i++){
+      if(CITIES[keys[i]][0]===lon){ return 'kr'; }
+    }
+    return '';
+  }
+
+  /* 도시 이름을 받아 좌표를 찾습니다. 못 찾으면 나라 대표 도시로.
+     태어난 날짜를 같이 주시면 그날의 서머타임까지 셈해 돌려줍니다. */
+  function locate(city, country, y, mo, d){
+    var name=(city||'').replace(/\s/g,'').toUpperCase();
+    var raw =(city||'').replace(/\s/g,'');
+    var keys, i;
+
+    /* 1) 해외 도시를 먼저 봅니다 (이름이 길어 더 정확합니다) */
+    keys=Object.keys(WORLD);
+    for(i=0;i<keys.length;i++){
+      if(raw.indexOf(keys[i])>=0 || name.indexOf(keys[i].toUpperCase())>=0){
+        var w=WORLD[keys[i]];
+        return { lon:w[0], lat:w[1], tz:w[2], zone:w[3],
+                 dst:dstMinutes(w[3],y,mo,d), matched:keys[i], exact:true, korea:false };
+      }
+    }
+
+    /* 2) 국내 도시 */
+    keys=Object.keys(CITIES);
+    for(i=0;i<keys.length;i++){
+      if(raw.indexOf(keys[i])>=0){
+        return { lon:CITIES[keys[i]][0], lat:CITIES[keys[i]][1],
+                 tz:koreaTz(y,mo,d), zone:'kr', dst:dstMinutes('kr',y,mo,d),
+                 matched:keys[i], exact:true, korea:true };
+      }
+    }
+
+    /* 3) 못 찾으면 나라 대표 도시 */
+    var cc = COUNTRY_CITY[country] || '서울';
+    if(CITIES[cc]){
+      return { lon:CITIES[cc][0], lat:CITIES[cc][1],
+               tz:koreaTz(y,mo,d), zone:'kr', dst:dstMinutes('kr',y,mo,d),
+               matched:cc, exact:false, korea:true };
+    }
+    var g=WORLD[cc];
+    return { lon:g[0], lat:g[1], tz:g[2], zone:g[3],
+             dst:dstMinutes(g[3],y,mo,d), matched:cc, exact:false, korea:false };
+  }
+
+  /* ── 기본 도구 ───────────────────────────────────────────── */
+  function jd(y,m,d,h,mi){
+    h=h||0; mi=mi||0;
+    if(m<=2){ y-=1; m+=12; }
+    var A=Math.floor(y/100), B=2-A+Math.floor(A/4);
+    return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))
+           +d+B-1524.5+(h+mi/60)/24;
+  }
+
+  function sunLon(j){          // 겉보기 황경(도)
+    var T=(j-2451545.0)/36525.0;
+    var L0=(280.46646+36000.76983*T+0.0003032*T*T)%360;
+    var M =(357.52911+35999.05029*T-0.0001537*T*T)%360;
+    var Mr=M*Math.PI/180;
+    var C =(1.914602-0.004817*T-0.000014*T*T)*Math.sin(Mr)
+          +(0.019993-0.000101*T)*Math.sin(2*Mr)+0.000289*Math.sin(3*Mr);
+    var om=125.04-1934.136*T;
+    return (L0+C-0.00569-0.00478*Math.sin(om*Math.PI/180)+720)%360;
+  }
+
+  /* 태양 황경이 deg 가 되는 순간(UT 기준 JD).
+     절기는 늘 그 달 4~9일 사이에 떨어지므로 창을 좁게 잡습니다. */
+  function findTerm(deg, year, month){
+    var lo=jd(year,month,1)-5, hi=jd(year,month,1)+15;
+    function f(t){ var d=(sunLon(t)-deg+360)%360; return d>180 ? d-360 : d; }
+    for(var i=0;i<60;i++){
+      var mid=(lo+hi)/2;
+      if(f(lo)*f(mid)<=0){ hi=mid; } else { lo=mid; }
+    }
+    return (lo+hi)/2;
+  }
+
+  /* 한 해의 열두 절기를 시각 순으로 */
+  var termCache={};
+  function termsOfYear(y){
+    if(termCache[y]) return termCache[y];
+    var list=TERMS.map(function(t){
+      return { jd:findTerm(t.deg, y, t.month), name:t.name, ji:t.ji, deg:t.deg };
+    }).sort(function(a,b){ return a.jd-b.jd; });
+    termCache[y]=list;
+    return list;
+  }
+  /* 앞뒤 해까지 이어 붙인 절기 목록 */
+  function termsAround(y){
+    return termsOfYear(y-1).concat(termsOfYear(y), termsOfYear(y+1));
+  }
+
+  /* 균시차(분) */
+  function eqOfTime(j){
+    var T=(j-2451545.0)/36525.0;
+    var L0=(280.46646+36000.76983*T)%360;
+    var M =(357.52911+35999.05029*T)%360;
+    var e =0.016708634-0.000042037*T;
+    var eps=23.439291-0.0130042*T;
+    var y=Math.pow(Math.tan(eps/2*Math.PI/180),2);
+    var Mr=M*Math.PI/180, L0r=L0*Math.PI/180;
+    var E=y*Math.sin(2*L0r)-2*e*Math.sin(Mr)+4*e*y*Math.sin(Mr)*Math.cos(2*L0r)
+         -0.5*y*y*Math.sin(4*L0r)-1.25*e*e*Math.sin(2*Mr);
+    return E*180/Math.PI*4;
+  }
+
+  function pad(n){ return (n<10?'0':'')+n; }
+
+  /* ── 본체 ────────────────────────────────────────────────── */
+  /* opts = {year, month, day, hour, minute, sex:'M'|'F',
+             lon, lat, tz}  (tz 는 표준시 오프셋, 한국은 9) */
+  function compute(opts){
+    var y=opts.year, mo=opts.month, d=opts.day;
+    /* 워드프레스가 script 안의 논리연산자 두 개짜리 기호를 망가뜨려서, if 를 겹쳐 씁니다 */
+    var hourKnown = true;
+    if(opts.hour===null){ hourKnown=false; }
+    if(opts.hour===undefined){ hourKnown=false; }
+    var h = hourKnown ? opts.hour : 12;
+    var mi= opts.minute || 0;
+    var lon=126.978; if(opts.lon!==undefined){ if(opts.lon!==null){ lon=opts.lon; } }
+    var lat=37.5665; if(opts.lat!==undefined){ if(opts.lat!==null){ lat=opts.lat; } }
+    var tz=9; if(opts.tz!==undefined){ if(opts.tz!==null){ tz=opts.tz; } }
+
+    /* 어느 시간대 규칙을 쓰는 곳인지 — 안 알려주면 경도로 되찾습니다 */
+    var zone=''; if(opts.zone){ zone=opts.zone; }
+    if(zone===''){ zone=zoneOfLon(lon, tz); }
+
+    /* 우리나라 표준시는 1954~1961 사이에 동경 127.5도였습니다 */
+    if(zone==='kr'){ tz=koreaTz(y,mo,d); }
+
+    /* 서머타임을 쓰던 날이면 시계가 한 시간 앞서 있었습니다 */
+    var dstMin=0;
+    if(opts.dst!==undefined){ if(opts.dst!==null){ dstMin=opts.dst; } }
+    else { dstMin=dstMinutes(zone, y, mo, d); }
+
+    var clockMin=h*60+mi;
+    var stdMin=clockMin-dstMin;        // 시계에서 서머타임을 벗긴 표준시
+
+    var jdUT = jd(y,mo,d) + stdMin/1440 - tz/24;
+
+    /* 1) 진태양시 */
+    var lonCorr=(lon-tz*15)*4;          // 표준자오선과의 경도차 (분)
+    var eot=eqOfTime(jdUT);
+    var trueMin=stdMin+lonCorr+eot;
+    var dayShift=0;
+    while(trueMin<0){ trueMin+=1440; dayShift-=1; }
+    while(trueMin>=1440){ trueMin-=1440; dayShift+=1; }
+    /* 보여줄 때 쓸 분 단위. 먼저 반올림해야 02:60 같은 표기가 안 나옵니다. */
+    var showMin=Math.round(trueMin);
+    if(showMin>=1440){ showMin-=1440; }
+
+    /* 2) 절기 — 태어난 순간이 어느 절 안에 있는지 */
+    var jdLocal=jdUT;
+    var around=termsAround(y);
+    var found=null;
+    for(var i=0;i<around.length;i++){
+      if(around[i].jd<=jdLocal){ found=around[i]; } else { break; }
+    }
+    var monthJi = found ? found.ji : 2;
+    var termName= found ? found.name : '입춘';
+
+    /* 3) 연주 — 입춘을 새해로 봅니다 */
+    var ipchun=findTerm(315, y, 2);
+    var sajuYear = (jdLocal < ipchun) ? y-1 : y;
+    var yg=((sajuYear-4)%10+10)%10;
+    var yz=((sajuYear-4)%12+12)%12;
+
+    /* 4) 월주 — 오호둔(五虎遁): 연간에 따라 인월의 천간이 정해집니다 */
+    var startGan=[2,4,6,8,0][yg%5];      // 갑기→丙, 을경→戊, 병신→庚, 정임→壬, 무계→甲
+    var fromTiger=((monthJi-2)%12+12)%12;      // 인월(寅)에서 몇 달째인지
+    var mg=((startGan+fromTiger)%10+10)%10;
+    var mz=monthJi;
+
+    /* 5) 일주 — 1900-01-01(KST) 을 갑술일로 잡습니다.
+          자시(23시)부터 다음 날로 넘기는 만세력 방식을 씁니다. */
+    var dayNo=Math.round(jd(y,mo,d)-jd(1900,1,1))+dayShift;
+    if(trueMin>=23*60){ dayNo+=1; }
+    var dg=((dayNo)%10+10)%10;
+    var dz=((dayNo+10)%12+12)%12;
+
+    /* 6) 시주 — 오자둔(五子遁) */
+    var hz=null, hg=null;
+    if(hourKnown){
+      hz=Math.floor(((trueMin+60)%1440)/120);   // 23~01 이 자시
+      hg=((dg%5)*2+hz)%10;
+    }
+
+    /* 7) 오행 — 최대잔여법으로 반올림해 합이 100 이 되게 맞춥니다 */
+    var gans=[yg,mg,dg], jis=[yz,mz,dz];
+    if(hourKnown){ gans.push(hg); jis.push(hz); }
+    var cnt={}; ELEMENTS.forEach(function(e){ cnt[e]=0; });
+    gans.forEach(function(g){ cnt[GAN_EL[g]]++; });
+    jis.forEach(function(z){ cnt[JI_EL[z]]++; });
+    var totalChars=gans.length+jis.length;
+    var raw=ELEMENTS.map(function(e){ return {el:e, n:cnt[e], exact:cnt[e]/totalChars*100}; });
+    var floors=raw.map(function(r){ return Math.floor(r.exact); });
+    var rest=100-floors.reduce(function(a,b){return a+b;},0);
+    var order=raw.map(function(r,i){ return {i:i, frac:r.exact-Math.floor(r.exact)}; })
+                 .sort(function(a,b){ return b.frac-a.frac; });
+    for(var k=0;k<rest;k++){ floors[order[k%5].i]+=1; }
+    var five=raw.map(function(r,i){ return {element:r.el, count:r.n, percent:floors[i]}; });
+
+    /* 8) 대운 — 양남음녀는 순행, 음남양녀는 역행 */
+    var yangYear=(yg%2===0);
+    var male=(opts.sex==='M');
+    var forward = (yangYear===male);
+    var luckJd, luckDays;
+    if(forward){
+      luckJd=nextTermJd(jdLocal, y);  luckDays=luckJd-jdLocal;
+    } else {
+      luckJd=prevTermJd(jdLocal, y);  luckDays=jdLocal-luckJd;
+    }
+    var startAge=luckDays/3;
+    var luck=[];
+    for(var n=1;n<=8;n++){
+      var lg=((mg+(forward?n:-n))%10+10)%10;
+      var lz=((mz+(forward?n:-n))%12+12)%12;
+      var a0=startAge+(n-1)*10;
+      luck.push({ from:Math.round(a0*10)/10, to:Math.round((a0+10)*10)/10,
+                  fromYear:y+Math.floor(a0), toYear:y+Math.floor(a0)+10,
+                  gan:lg, ji:lz, han:GAN_H[lg]+JI_H[lz], kor:GAN_L[lg]+JI_L[lz] });
+    }
+
+    /* 9) 별 — 태양 · 상승궁 · 천정 */
+    var sun=sunLon(jdUT);
+    var T=(jdUT-2451545.0)/36525.0;
+    var eps=(23.439291-0.0130042*T)*Math.PI/180;
+    var d0=jdUT-2451545.0;
+    var gmst=((280.46061837+360.98564736629*d0)%360+360)%360;
+    var lst=((gmst+lon)%360+360)%360;
+    var ramc=lst*Math.PI/180, phir=lat*Math.PI/180;
+    var mc=(Math.atan2(Math.sin(ramc), Math.cos(ramc)*Math.cos(eps))*180/Math.PI+360)%360;
+    var asc=(Math.atan2(Math.cos(ramc),
+             -(Math.sin(eps)*Math.tan(phir)+Math.cos(eps)*Math.sin(ramc)))*180/Math.PI+360)%360;
+
+    /* 경계에 걸린 분께는 알려드려야 합니다 */
+    var warnings=[];
+    if(found){
+      var minsFromTerm=(jdLocal-found.jd)*1440;
+      if(minsFromTerm<180){
+        warnings.push('태어나신 시각이 ' + found.name + ' 로 넘어온 지 ' +
+          Math.round(minsFromTerm) + '분밖에 안 됩니다. 절기 계산에 몇 분의 오차가 있을 수 있어 ' +
+          '월주가 앞 달로 바뀔 가능성이 있습니다.');
+      }
+      var nextJd=nextTermJd(jdLocal, y);
+      if(nextJd!==null){
+        var minsToTerm=(nextJd-jdLocal)*1440;
+        if(minsToTerm<180){
+          warnings.push('태어나신 시각이 다음 절기까지 ' + Math.round(minsToTerm) +
+            '분 남은 자리입니다. 월주가 다음 달로 바뀔 가능성이 있습니다.');
+        }
+      }
+    }
+    if(hourKnown){
+      var intoHour=((trueMin+60)%1440)%120;
+      if(intoHour<10 || intoHour>110){
+        warnings.push('진태양시가 시주 경계에 붙어 있습니다. 태어난 시각이 10분만 달라도 시주가 바뀝니다.');
+      }
+    }
+    if(dstMin>0){
+      warnings.push('태어나신 날은 서머타임(일광절약시간)을 쓰던 기간입니다. ' +
+        '그때 시계는 실제 해보다 한 시간 앞서 있었기 때문에, 한 시간을 빼고 세웠습니다.');
+    }
+    if(tz===8.5){
+      warnings.push('1954년 3월부터 1961년 8월까지 우리나라 표준시는 동경 127.5도 기준이었습니다. ' +
+        '지금 기준과 30분이 다르므로 그때 기준으로 세웠습니다.');
+    }
+    if(!hourKnown){
+      warnings.push('태어난 시간을 모르셔서 시주는 세우지 않았습니다. ' +
+        '시주가 빠지면 하루의 결이 흐려지고, 특히 자식·말년 자리를 읽기 어렵습니다.');
+    }
+
+    var out = {
+      warnings: warnings,
+      trueSolar:{
+        clock: pad(h)+':'+pad(mi),
+        tz: tz,
+        zone: zone,
+        dst: dstMin,
+        lonCorrection: Math.round(lonCorr*10)/10,
+        equationOfTime: Math.round(eot*10)/10,
+        time: pad(Math.floor(showMin/60))+':'+pad(showMin%60),
+        dayShift: dayShift
+      },
+      term:{ name:termName, monthJi:monthJi },
+      sajuYear: sajuYear,
+      pillars:{
+        year:{ gan:yg, ji:yz, han:GAN_H[yg]+JI_H[yz], kor:GAN_L[yg]+JI_L[yz] },
+        month:{ gan:mg, ji:mz, han:GAN_H[mg]+JI_H[mz], kor:GAN_L[mg]+JI_L[mz] },
+        day:{ gan:dg, ji:dz, han:GAN_H[dg]+JI_H[dz], kor:GAN_L[dg]+JI_L[dz] },
+        hour: hourKnown ? { gan:hg, ji:hz, han:GAN_H[hg]+JI_H[hz], kor:GAN_L[hg]+JI_L[hz] } : null
+      },
+      dayMaster:{ gan:dg, han:GAN_H[dg], kor:GAN_L[dg], element:GAN_EL[dg],
+                  yin: (dg%2===1) },
+      animal: JI_ANIMAL[yz],
+      five: five,
+      luck:{ forward:forward, startAge:Math.round(startAge*10)/10, list:luck },
+      stars:{
+        sun: signOf(sun), sunDeg: Math.round(sun*10)/10,
+        ascendant: signOf(asc), ascDeg: Math.round(asc*10)/10,
+        midheaven: signOf(mc), mcDeg: Math.round(mc*10)/10
+      }
+    };
+    LAST = out;
+    return out;
+  }
+
+  /* 마지막으로 세운 사주 — 화면이 문구를 고를 때 씁니다 */
+  var LAST = null;
+  function lastChart(){ return LAST; }
+
+  function signOf(x){
+    return { name:SIGNS[Math.floor(x/30)], degree:Math.round((x%30)*10)/10 };
+  }
+
+  /* 출생 시각 바로 다음 절기 */
+  function nextTermJd(jdLocal, y){
+    var list=termsAround(y);
+    for(var i=0;i<list.length;i++){ if(list[i].jd>jdLocal) return list[i].jd; }
+    return null;
+  }
+  /* 출생 시각 바로 앞 절기 */
+  function prevTermJd(jdLocal, y){
+    var list=termsAround(y), best=null;
+    for(var i=0;i<list.length;i++){ if(list[i].jd<=jdLocal){ best=list[i].jd; } else { break; } }
+    return best;
+  }
+
+  root.StellaSaju={ compute:compute, locate:locate, lastChart:lastChart,
+                    CITIES:CITIES, WORLD:WORLD,
+                    koreaTz:koreaTz, dstMinutes:dstMinutes, GAN_H:GAN_H, JI_H:JI_H,
+                    GAN_L:GAN_L, JI_L:JI_L, ELEMENTS:ELEMENTS,
+                    terms:termsOfYear, sunLon:sunLon, jd:jd };
+})(typeof window!=='undefined' ? window : globalThis);
+</script>
+<script>
+/* ═══ 풀이 엔진 — 전자책과 같은 코드입니다 ═══ */
+/* ═══ 풀이 엔진 ═══ */
+/* ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 풀이 엔진
+   ───────────────────────────────────────────────────────────────
+   stella-saju.js 가 계산한 원국을 받아 "글"로 바꿉니다.
+   지어낸 문장을 섞지 않습니다. 모든 문단은 아래 셋 중 하나에서 나옵니다.
+     · 일간이 무엇인가        (열 개 중 하나)
+     · 십성이 어떻게 놓였나   (여덟 글자에서 세어낸 값)
+     · 오행이 어디로 기울었나 (같은 여덟 글자)
+   그래서 생년월일시가 다르면 반드시 다른 글이 나옵니다.
+   ═══════════════════════════════════════════════════════════════ */
+(function(root){
+  'use strict';
+
+  var GAN_EL=['목','목','화','화','토','토','금','금','수','수'];
+  var JI_EL =['수','토','목','목','토','화','화','토','금','금','토','수'];
+  var GAN_YIN=[0,1,0,1,0,1,0,1,0,1];          // 0 양 · 1 음
+  var JI_YIN =[0,1,0,1,0,1,0,1,0,1,0,1];
+
+  var SAENG={'목':'화','화':'토','토':'금','금':'수','수':'목'};  // 상생
+  var GEUK ={'목':'토','토':'수','수':'화','화':'금','금':'목'};  // 상극
+
+
+  /* ── 조사 ───────────────────────────────────────────────
+     받침이 있으면 앞말, 없으면 뒷말을 붙입니다.
+     "토이 두텁습니다" 같은 문장이 나오지 않게 하는 장치입니다. */
+  function hasBatchim(word){
+    if(!word) return false;
+    var ch=word.charCodeAt(word.length-1);
+    if(ch<0xAC00) return false;
+    if(ch>0xD7A3) return false;
+    return ((ch-0xAC00)%28)!==0;
+  }
+  /* josa('토','이','가') → '토가' */
+  function josa(word, withB, withoutB){
+    return word + (hasBatchim(word) ? withB : withoutB);
+  }
+  /* 여러 낱말을 '와/과'로 잇습니다 */
+  function joinWa(list, wrapL, wrapR){
+    wrapL=wrapL||''; wrapR=wrapR||'';
+    if(!list.length) return '';
+    var out=wrapL+list[0]+wrapR;
+    for(var i=1;i<list.length;i++){
+      out += josa(list[i-1],'과','와') === (list[i-1]+'과') ? '과 ' : '와 ';
+      out += wrapL+list[i]+wrapR;
+    }
+    return out;
+  }
+
+  /* ── 십성 ─────────────────────────────────────────────────
+     일간을 기준으로 다른 글자가 어떤 관계에 서는지. */
+  function sipsung(dayEl, dayYin, el, yin){
+    var same=(dayYin===yin);
+    if(el===dayEl)          return same ? '비견' : '겁재';
+    if(SAENG[dayEl]===el)   return same ? '식신' : '상관';
+    if(GEUK[dayEl]===el)    return same ? '편재' : '정재';
+    if(GEUK[el]===dayEl)    return same ? '편관' : '정관';
+    if(SAENG[el]===dayEl)   return same ? '편인' : '정인';
+    return '';
+  }
+
+  var GROUP={
+    '비견':'비겁','겁재':'비겁',
+    '식신':'식상','상관':'식상',
+    '편재':'재성','정재':'재성',
+    '편관':'관성','정관':'관성',
+    '편인':'인성','정인':'인성'
+  };
+
+  /* ── 일간 열 개 ───────────────────────────────────────── */
+  var DAY={
+    '甲':{ kor:'갑목', image:'큰 나무',
+      what:'곧게 위로 뻗는 나무입니다. 굽히는 법을 잘 모르고, 한번 방향을 정하면 그쪽으로만 자랍니다.',
+      good:'앞장서는 일, 처음 여는 일, 이름을 걸고 하는 일에서 힘이 납니다. 사람들은 당신을 기준 삼아 줄을 섭니다.',
+      care:'꺾이면 다시 서기까지 오래 걸립니다. 굽힐 줄 아는 사람 하나를 곁에 두는 것이 평생의 보험입니다.' },
+    '乙':{ kor:'을목', image:'덩굴과 풀',
+      what:'낮게 자라며 감아 오르는 풀입니다. 부러지지 않고 휘어서 살아남습니다.',
+      good:'남의 판에 들어가 자기 자리를 만드는 데 능합니다. 버티는 힘이 세고, 끝까지 남아 있는 쪽입니다.',
+      care:'기댈 것이 없으면 방향을 잃습니다. 무엇에 감아 오를지를 고르는 것이 당신의 가장 큰 결정입니다.' },
+    '丙':{ kor:'병화', image:'한낮의 해',
+      what:'가리지 않고 비추는 빛입니다. 숨기지 못하고, 숨길 생각도 없습니다.',
+      good:'사람을 끌어모으고 분위기를 데웁니다. 앞에 나서는 자리에서 제일 자기다워집니다.',
+      care:'너무 밝아서 그늘을 못 봅니다. 조용한 사람이 무엇을 참고 있는지 놓치기 쉽습니다.' },
+    '丁':{ kor:'정화', image:'등불',
+      what:'작지만 꺼지지 않는 불입니다. 어두울수록 제 몫을 합니다.',
+      good:'한 사람 한 사람을 깊게 살핍니다. 세밀한 일, 오래 지켜야 하는 일에 맞습니다.',
+      care:'제 몸을 태워 밝힙니다. 다 주고 나서 텅 비는 일이 반복되면 몸이 먼저 신호를 보냅니다.' },
+    '戊':{ kor:'무토', image:'너른 땅',
+      what:'움직이지 않는 흙입니다. 무엇이 올라와도 받아냅니다.',
+      good:'믿음을 삽니다. 오래 걸리는 일, 사람을 담아야 하는 일에서 진가가 납니다.',
+      care:'너무 안 움직여서 때를 놓칩니다. 결심하고도 한 계절을 더 앉아 있는 버릇이 있습니다.' },
+    '己':{ kor:'기토', image:'밭흙',
+      what:'무언가를 길러내는 흙입니다. 자기가 나서기보다 남을 자라게 합니다.',
+      good:'조율과 살림에 능합니다. 여럿 사이에 서서 아귀를 맞추는 자리에서 없어서는 안 될 사람이 됩니다.',
+      care:'다 받아주다 보면 자기 밭이 헐거워집니다. 거절을 배우는 것이 당신의 숙제입니다.' },
+    '庚':{ kor:'경금', image:'다듬지 않은 쇠',
+      what:'단단하고 날이 선 쇠입니다. 옳고 그름이 분명합니다.',
+      good:'끊어내야 할 때 끊습니다. 판을 정리하고 규칙을 세우는 일에서 강합니다.',
+      care:'말이 칼이 됩니다. 맞는 말을 했는데 사람이 떠나는 일을 여러 번 겪습니다.' },
+    '辛':{ kor:'신금', image:'다듬은 보석',
+      what:'깎이고 닦인 금속입니다. 흠이 보이는 걸 견디지 못합니다.',
+      good:'감각과 완성도로 먹고삽니다. 마무리를 맡기면 다른 사람보다 한 단계 위로 올려놓습니다.',
+      care:'자기 흠에 가장 가혹합니다. 남이 이미 잊은 실수를 혼자 몇 년을 들고 갑니다.' },
+    '壬':{ kor:'임수', image:'큰 물',
+      what:'멀리 흐르는 물입니다. 한 자리에 고이지 않습니다.',
+      good:'넓게 보고 멀리 잡습니다. 여러 갈래를 한꺼번에 굴리는 데 능합니다.',
+      care:'깊이가 얕아질 수 있습니다. 벌여둔 것 중 무엇을 끝낼지 정하지 않으면 아무것도 안 남습니다.' },
+    '癸':{ kor:'계수', image:'이슬과 실개천',
+      what:'가늘고 스며드는 물입니다. 소리 없이 안으로 들어갑니다.',
+      good:'남이 못 본 결을 봅니다. 생각을 오래 품어 한 번에 내놓는 쪽입니다.',
+      care:'속으로만 흐릅니다. 말하지 않은 서운함이 쌓이면 어느 날 통째로 돌아섭니다.' }
+  };
+
+  /* ── 십성 열 개 ───────────────────────────────────────── */
+  var SIP={
+    '비견':{ t:'비견 · 나와 같은 자리',
+      d:'나와 같은 무게의 사람이 곁에 있는 자리입니다. 동료가 되기도 하고 경쟁자가 되기도 합니다. 남 밑에 오래 있기 어렵습니다.' },
+    '겁재':{ t:'겁재 · 나를 밀어내는 같은 편',
+      d:'같은 것을 두고 다투는 자리입니다. 추진력이 세지만, 손에 쥔 것이 남에게 새어나가기도 쉽습니다. 돈 문제는 반드시 문서로 남겨야 합니다.' },
+    '식신':{ t:'식신 · 내가 내놓는 것',
+      d:'가진 것을 밖으로 풀어내는 자리입니다. 먹고사는 재주가 여기서 나옵니다. 서두르지 않고 오래 하는 쪽에 복이 붙습니다.' },
+    '상관':{ t:'상관 · 판을 흔드는 재능',
+      d:'남이 안 하던 방식을 찾아내는 자리입니다. 재능이 크지만 규칙과 자주 부딪칩니다. 윗사람과의 마찰이 늘 과제로 남습니다.' },
+    '편재':{ t:'편재 · 크게 들어오고 크게 나가는 돈',
+      d:'움직이는 돈의 자리입니다. 기회를 알아보는 눈이 밝고, 씀씀이도 그만큼 큽니다. 목돈이 들어올 때 반을 묶어두는 습관이 평생을 가릅니다.' },
+    '정재':{ t:'정재 · 꼬박꼬박 쌓이는 돈',
+      d:'정해진 몫이 정해진 때에 들어오는 자리입니다. 크게 터지지는 않아도 새지 않습니다. 착실함이 당신의 재산입니다.' },
+    '편관':{ t:'편관 · 나를 몰아붙이는 힘',
+      d:'압박과 책임의 자리입니다. 궁지에 몰릴수록 오히려 일이 됩니다. 다만 몸이 먼저 상하기 쉬워 쉬는 시기를 스스로 정해야 합니다.' },
+    '정관':{ t:'정관 · 지켜야 할 자리',
+      d:'규범과 직책의 자리입니다. 맡기면 끝까지 합니다. 조직 안에서 신뢰를 얻지만, 틀을 벗어나야 할 때 한 박자 늦습니다.' },
+    '편인':{ t:'편인 · 한쪽으로 깊은 공부',
+      d:'남들이 안 파는 데를 파고드는 자리입니다. 독특한 전문성이 생기지만, 시작한 것을 끝맺지 않고 다음으로 넘어가기도 합니다.' },
+    '정인':{ t:'정인 · 받아들이고 배우는 힘',
+      d:'배우고 기대는 자리입니다. 귀인이 붙고 문서운이 좋습니다. 다만 받는 데 익숙해지면 스스로 벌어야 할 때를 미룹니다.' }
+  };
+
+  /* ── 오행이 넘칠 때와 없을 때 ───────────────────────────── */
+  var EL_MUCH={
+    '목':'뻗으려는 힘이 넘칩니다. 계획이 자꾸 커지고, 하던 일이 끝나기 전에 다음 것이 시작됩니다.',
+    '화':'드러내는 기운이 넘칩니다. 열이 빨리 오르고 빨리 식습니다. 말이 앞서 나가 수습할 일이 생깁니다.',
+    '토':'버티는 힘이 넘칩니다. 좀처럼 안 움직여서 안전하지만, 기회가 지나간 뒤에 결심하는 일이 잦습니다.',
+    '금':'끊는 힘이 넘칩니다. 기준이 분명해 흔들리지 않지만, 사람에게도 같은 잣대를 들이대 상처를 남깁니다.',
+    '수':'흐르는 기운이 넘칩니다. 생각이 많고 밤이 깁니다. 결정을 미루다 때를 놓치는 것이 유일한 약점입니다.'
+  };
+  var EL_NONE={
+    '목':'뻗어나가는 기운이 없습니다. 새로 시작하는 일 앞에서 유난히 오래 망설입니다. 시작을 대신 밀어줄 사람이 곁에 있어야 합니다.',
+    '화':'드러내는 기운이 없습니다. 속으로 다 하고도 밖으로 내보이지 못해 몫을 덜 가져갑니다. 표현은 재능이 아니라 습관으로 만들어야 합니다.',
+    '토':'중심을 잡아주는 기운이 없습니다. 흔들릴 때 붙잡아줄 자리가 안에 없어, 사람이나 장소에 기대게 됩니다.',
+    '금':'끊어내는 기운이 없습니다. 아니라는 걸 알면서도 정리하지 못해 오래 끌고 갑니다. 마감과 규칙을 밖에서 빌려와야 합니다.',
+    '수':'품어 두는 기운이 없습니다. 쉬는 법을 몰라 계속 태우다가 어느 날 한꺼번에 주저앉습니다. 쉬는 시간을 일정처럼 잡아야 합니다.'
+  };
+
+  /* ── 하늘 ─────────────────────────────────────────────── */
+  var SUN={
+    '양자리':'먼저 뛰어드는 사람','황소자리':'끝까지 쥐고 있는 사람','쌍둥이자리':'말과 정보로 사는 사람',
+    '게자리':'품고 지키는 사람','사자자리':'무대를 필요로 하는 사람','처녀자리':'다듬어야 직성이 풀리는 사람',
+    '천칭자리':'균형을 맞추는 사람','전갈자리':'끝까지 파고드는 사람','사수자리':'멀리 나가려는 사람',
+    '염소자리':'쌓아 올리는 사람','물병자리':'남과 다르게 보는 사람','물고기자리':'스며들어 함께 느끼는 사람'
+  };
+  var ASC={
+    '양자리':'첫인상이 빠르고 직선적입니다','황소자리':'첫인상이 느긋하고 단단합니다','쌍둥이자리':'첫인상이 가볍고 재빠릅니다',
+    '게자리':'첫인상이 조심스럽고 다정합니다','사자자리':'첫인상이 크고 환합니다','처녀자리':'첫인상이 단정하고 깐깐합니다',
+    '천칭자리':'첫인상이 부드럽고 예의 바릅니다','전갈자리':'첫인상이 조용하고 속을 알기 어렵습니다','사수자리':'첫인상이 활달하고 솔직합니다',
+    '염소자리':'첫인상이 어른스럽고 무겁습니다','물병자리':'첫인상이 독특하고 거리감이 있습니다','물고기자리':'첫인상이 흐릿하고 부드럽습니다'
+  };
+  var MC={
+    '양자리':'앞장서는 자리','황소자리':'값을 만드는 자리','쌍둥이자리':'전하고 잇는 자리',
+    '게자리':'돌보는 자리','사자자리':'보이는 자리','처녀자리':'고치고 다듬는 자리',
+    '천칭자리':'중재하는 자리','전갈자리':'파헤치는 자리','사수자리':'넓히는 자리',
+    '염소자리':'책임지는 자리','물병자리':'바꾸는 자리','물고기자리':'품는 자리'
+  };
+
+  /* ── 다섯 축 ───────────────────────────────────────────
+     질문의 답과 사주를 맞대보기 위한 저울입니다.
+     각 축은 십성 묶음으로만 계산합니다. */
+  var AXES={
+    risk:  { A:'안정', B:'변화',
+             a:['정관','정재','정인'], b:['상관','편재','편관','겁재'],
+             sayA:'정해진 틀 안에서 안전하게 가는 구조',
+             sayB:'판을 흔들며 나아가는 구조' },
+    make:  { A:'정답', B:'창조',
+             a:['정관','정인','편인'], b:['식신','상관'],
+             sayA:'있는 답을 정확히 지키는 구조',
+             sayB:'없던 답을 만들어내는 구조' },
+    solo:  { A:'혼자', B:'함께',
+             a:['정인','편인','식신'], b:['비견','겁재','정재','편재'],
+             sayA:'혼자 파고들 때 힘이 나는 구조',
+             sayB:'사람 사이에서 굴러갈 때 힘이 나는 구조' },
+    form:  { A:'실물', B:'무형',
+             a:['정재','편재','식신'], b:['정인','편인','상관'],
+             sayA:'손에 잡히는 것을 다룰 때 맞는 구조',
+             sayB:'보이지 않는 것을 다룰 때 맞는 구조' },
+    many:  { A:'하나', B:'여럿',
+             a:['정관','정재','정인','식신','비견'], b:['편관','편재','편인','상관','겁재'],
+             sayA:'하나를 깊게 파는 구조',
+             sayB:'여러 개를 동시에 굴리는 구조' }
+  };
+
+  /* ── 본체 ─────────────────────────────────────────────── */
+  function interpret(chart){
+    var p=chart.pillars;
+    var dayHan=p.day.han.charAt(0);
+    var dayEl=chart.dayMaster.element;
+    var dayYin=chart.dayMaster.yin ? 1 : 0;
+
+    /* 일간을 뺀 일곱 글자의 십성 */
+    var slots=[
+      {k:'연간', el:GAN_EL[p.year.gan],  yin:GAN_YIN[p.year.gan],  han:p.year.han.charAt(0)},
+      {k:'연지', el:JI_EL[p.year.ji],    yin:JI_YIN[p.year.ji],    han:p.year.han.charAt(1)},
+      {k:'월간', el:GAN_EL[p.month.gan], yin:GAN_YIN[p.month.gan], han:p.month.han.charAt(0)},
+      {k:'월지', el:JI_EL[p.month.ji],   yin:JI_YIN[p.month.ji],   han:p.month.han.charAt(1)},
+      {k:'일지', el:JI_EL[p.day.ji],     yin:JI_YIN[p.day.ji],     han:p.day.han.charAt(1)}
+    ];
+    if(p.hour){
+      slots.push({k:'시간', el:GAN_EL[p.hour.gan], yin:GAN_YIN[p.hour.gan], han:p.hour.han.charAt(0)});
+      slots.push({k:'시지', el:JI_EL[p.hour.ji],   yin:JI_YIN[p.hour.ji],   han:p.hour.han.charAt(1)});
+    }
+    slots.forEach(function(s){ s.sip=sipsung(dayEl, dayYin, s.el, s.yin); });
+
+    var count={}, gcount={};
+    slots.forEach(function(s){
+      count[s.sip]=(count[s.sip]||0)+1;
+      var g=GROUP[s.sip];
+      gcount[g]=(gcount[g]||0)+1;
+    });
+
+    /* 가장 강한 십성 두 개 */
+    var ranked=Object.keys(count).map(function(k){ return {sip:k, n:count[k]}; })
+      .sort(function(a,b){ return b.n-a.n; });
+
+    /* 축 계산 */
+    var axis={};
+    Object.keys(AXES).forEach(function(key){
+      var A=AXES[key], sa=0, sb=0;
+      A.a.forEach(function(s){ sa+=(count[s]||0); });
+      A.b.forEach(function(s){ sb+=(count[s]||0); });
+      var lean='';
+      if(sa>sb) lean='A';
+      if(sb>sa) lean='B';
+      axis[key]={ a:sa, b:sb, lean:lean,
+                  say: lean==='A' ? A.sayA : (lean==='B' ? A.sayB : '어느 쪽으로도 크게 기울지 않은 구조'),
+                  name: lean==='A' ? A.A : (lean==='B' ? A.B : '가운데') };
+    });
+
+    var most=chart.five.slice().sort(function(a,b){ return b.count-a.count; })[0];
+    var empty=chart.five.filter(function(f){ return f.count===0; });
+
+    return {
+      day: DAY[dayHan] || DAY['甲'],
+      dayHan: dayHan,
+      slots: slots,
+      count: count,
+      groups: gcount,
+      top: ranked.slice(0,2),
+      sipText: SIP,
+      axis: axis,
+      mostEl: most,
+      mostElText: EL_MUCH[most.element],
+      emptyEls: empty.map(function(e){ return e.element; }),
+      emptyElText: empty.map(function(e){ return EL_NONE[e.element]; }),
+      sun: SUN[chart.stars.sun.name] || '',
+      asc: ASC[chart.stars.ascendant.name] || '',
+      mc:  MC[chart.stars.midheaven.name] || ''
+    };
+  }
+
+  root.StellaRead={ interpret:interpret, SIP:SIP, DAY:DAY, AXES:AXES,
+                    josa:josa, joinWa:joinWa, hasBatchim:hasBatchim };
+})(typeof window!=='undefined' ? window : globalThis);
+</script>
+<script>
+(function(){
+  var STARS=[{"n":"유재석","c":"ㅇ","b":"1972-08-14","k":"","j":"방송인","a":"쥐","y":"壬子","m":"戊申","dd":"丁丑","g":"丁","gk":"정화","el":{"목":0,"화":1,"토":2,"금":1,"수":2},"hi":"토","no":["목"],"sip":["정관","상관"],"s":"사자자리"},{"n":"강호동","c":"ㄱ","b":"1970-07-14","k":"","j":"방송인","a":"개","y":"庚戌","m":"癸未","dd":"乙未","g":"乙","gk":"을목","el":{"목":1,"화":0,"토":3,"금":1,"수":1},"hi":"토","no":["화"],"sip":["편재","정관"],"s":"게자리"},{"n":"이경규","c":"ㅇ","b":"1960-09-21","k":"","j":"방송인","a":"쥐","y":"庚子","m":"乙酉","dd":"壬子","g":"壬","gk":"임수","el":{"목":1,"화":0,"토":0,"금":2,"수":3},"hi":"수","no":["화","토"],"sip":["비견","편인"],"s":"처녀자리"},{"n":"신동엽","c":"ㅅ","b":"1971-02-17","k":"","j":"방송인","a":"돼지","y":"辛亥","m":"庚寅","dd":"癸酉","g":"癸","gk":"계수","el":{"목":1,"화":0,"토":0,"금":3,"수":2},"hi":"금","no":["화","토"],"sip":["편인","비견"],"s":"물병자리"},{"n":"김구라","c":"ㄱ","b":"1970-10-03","k":"","j":"방송인","a":"개","y":"庚戌","m":"乙酉","dd":"丙辰","g":"丙","gk":"병화","el":{"목":1,"화":1,"토":2,"금":2,"수":0},"hi":"토","no":["수"],"sip":["식신","편재"],"s":"천칭자리"},{"n":"전현무","c":"ㅈ","b":"1977-11-07","k":"","j":"방송인","a":"뱀","y":"丁巳","m":"庚戌","dd":"戊辰","g":"戊","gk":"무토","el":{"목":0,"화":2,"토":3,"금":1,"수":0},"hi":"토","no":["목","수"],"sip":["정인","비견"],"s":"전갈자리"},{"n":"김종국","c":"ㄱ","b":"1976-04-25","k":"","j":"가수·방송인","a":"용","y":"丙辰","m":"壬辰","dd":"丁未","g":"丁","gk":"정화","el":{"목":0,"화":2,"토":3,"금":0,"수":1},"hi":"토","no":["목","금"],"sip":["상관","겁재"],"s":"황소자리"},{"n":"이승기","c":"ㅇ","b":"1987-01-13","k":"","j":"가수·배우","a":"호랑이","y":"丙寅","m":"辛丑","dd":"壬戌","g":"壬","gk":"임수","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["편재","식신"],"s":"염소자리"},{"n":"이효리","c":"ㅇ","b":"1979-02-19","k":"1979-05-10","j":"가수","a":"양","y":"己未","m":"丙寅","dd":"丁巳","g":"丁","gk":"정화","el":{"목":1,"화":3,"토":2,"금":0,"수":0},"hi":"화","no":["금","수"],"sip":["식신","겁재"],"s":"물병자리"},{"n":"비","c":"ㅂ","b":"1982-06-25","k":"","j":"가수·배우","a":"개","y":"壬戌","m":"丙午","dd":"己卯","g":"己","gk":"기토","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["정인","정재"],"s":"게자리"},{"n":"싸이","c":"ㅅ","b":"1977-12-31","k":"","j":"가수","a":"뱀","y":"丁巳","m":"壬子","dd":"壬戌","g":"壬","gk":"임수","el":{"목":0,"화":2,"토":1,"금":0,"수":3},"hi":"수","no":["목","금"],"sip":["정재","비견"],"s":"염소자리"},{"n":"조용필","c":"ㅈ","b":"1950-03-21","k":"","j":"가수","a":"호랑이","y":"庚寅","m":"己卯","dd":"乙卯","g":"乙","gk":"을목","el":{"목":4,"화":0,"토":1,"금":1,"수":0},"hi":"목","no":["화","수"],"sip":["비견","정관"],"s":"물고기자리"},{"n":"나훈아","c":"ㄴ","b":"1947-02-11","k":"","j":"가수","a":"돼지","y":"丁亥","m":"壬寅","dd":"辛酉","g":"辛","gk":"신금","el":{"목":1,"화":1,"토":0,"금":2,"수":2},"hi":"금","no":["토"],"sip":["편관","식신"],"s":"물병자리"},{"n":"이미자","c":"ㅇ","b":"1941-10-30","k":"","j":"가수","a":"뱀","y":"辛巳","m":"戊戌","dd":"辛亥","g":"辛","gk":"신금","el":{"목":0,"화":1,"토":2,"금":2,"수":1},"hi":"토","no":["목"],"sip":["정인","비견"],"s":"전갈자리"},{"n":"패티김","c":"ㅍ","b":"1938-02-28","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"甲寅","dd":"辛卯","g":"辛","gk":"신금","el":{"목":4,"화":0,"토":1,"금":1,"수":0},"hi":"목","no":["화","수"],"sip":["정재","정인"],"s":"물고기자리"},{"n":"태진아","c":"ㅌ","b":"1953-02-16","k":"","j":"가수","a":"뱀","y":"癸巳","m":"甲寅","dd":"戊戌","g":"戊","gk":"무토","el":{"목":2,"화":1,"토":2,"금":0,"수":1},"hi":"목","no":["금"],"sip":["편관","정재"],"s":"물병자리"},{"n":"설운도","c":"ㅅ","b":"1958-06-23","k":"","j":"가수","a":"개","y":"戊戌","m":"戊午","dd":"辛未","g":"辛","gk":"신금","el":{"목":0,"화":1,"토":4,"금":1,"수":0},"hi":"토","no":["목","수"],"sip":["정인","정관"],"s":"게자리"},{"n":"송대관","c":"ㅅ","b":"1946-06-02","k":"","j":"가수","a":"개","y":"丙戌","m":"癸巳","dd":"丁未","g":"丁","gk":"정화","el":{"목":0,"화":3,"토":2,"금":0,"수":1},"hi":"화","no":["목","금"],"sip":["겁재","상관"],"s":"쌍둥이자리"},{"n":"김연자","c":"ㄱ","b":"1959-01-25","k":"","j":"가수","a":"개","y":"戊戌","m":"乙丑","dd":"丁未","g":"丁","gk":"정화","el":{"목":1,"화":1,"토":4,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["상관","식신"],"s":"물병자리"},{"n":"장윤정","c":"ㅈ","b":"1980-02-16","k":"","j":"가수","a":"원숭이","y":"庚申","m":"戊寅","dd":"己未","g":"己","gk":"기토","el":{"목":1,"화":0,"토":3,"금":2,"수":0},"hi":"토","no":["화","수"],"sip":["상관","겁재"],"s":"물병자리"},{"n":"이문세","c":"ㅇ","b":"1959-02-24","k":"1959-01-17","j":"가수","a":"돼지","y":"己亥","m":"丙寅","dd":"丁丑","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["식신","편관"],"s":"물고기자리"},{"n":"윤종신","c":"ㅇ","b":"1969-10-15","k":"","j":"가수·방송인","a":"닭","y":"己酉","m":"甲戌","dd":"癸亥","g":"癸","gk":"계수","el":{"목":1,"화":0,"토":2,"금":1,"수":2},"hi":"토","no":["화"],"sip":["편관","편인"],"s":"천칭자리"},{"n":"김건모","c":"ㄱ","b":"1968-01-13","k":"","j":"가수","a":"양","y":"丁未","m":"癸丑","dd":"壬午","g":"壬","gk":"임수","el":{"목":0,"화":2,"토":2,"금":0,"수":2},"hi":"화","no":["목","금"],"sip":["정관","정재"],"s":"염소자리"},{"n":"신승훈","c":"ㅅ","b":"1966-04-11","k":"","j":"가수","a":"말","y":"丙午","m":"壬辰","dd":"庚子","g":"庚","gk":"경금","el":{"목":0,"화":2,"토":1,"금":1,"수":2},"hi":"화","no":["목"],"sip":["편관","식신"],"s":"양자리"},{"n":"이승환","c":"ㅇ","b":"1965-12-13","k":"","j":"가수","a":"뱀","y":"乙巳","m":"戊子","dd":"辛丑","g":"辛","gk":"신금","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["편재","편관"],"s":"사수자리"},{"n":"김장훈","c":"ㄱ","b":"1963-08-14","k":"","j":"가수","a":"토끼","y":"癸卯","m":"庚申","dd":"己丑","g":"己","gk":"기토","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["상관","편재"],"s":"사자자리"},{"n":"엄정화","c":"ㅇ","b":"1969-08-17","k":"","j":"가수·배우","a":"닭","y":"己酉","m":"壬申","dd":"甲子","g":"甲","gk":"갑목","el":{"목":1,"화":0,"토":1,"금":2,"수":2},"hi":"금","no":["화"],"sip":["편인","정재"],"s":"사자자리"},{"n":"김완선","c":"ㄱ","b":"1969-05-16","k":"","j":"가수","a":"닭","y":"己酉","m":"己巳","dd":"辛卯","g":"辛","gk":"신금","el":{"목":1,"화":1,"토":2,"금":2,"수":0},"hi":"토","no":["수"],"sip":["편인","비견"],"s":"황소자리"},{"n":"박진영","c":"ㅂ","b":"1971-12-13","k":"","j":"가수·프로듀서","a":"돼지","y":"辛亥","m":"庚子","dd":"壬申","g":"壬","gk":"임수","el":{"목":0,"화":0,"토":0,"금":3,"수":3},"hi":"금","no":["목","화","토"],"sip":["편인","정인"],"s":"사수자리"},{"n":"양현석","c":"ㅇ","b":"1970-01-09","k":"","j":"음악인·프로듀서","a":"닭","y":"己酉","m":"丁丑","dd":"己丑","g":"己","gk":"기토","el":{"목":0,"화":1,"토":4,"금":1,"수":0},"hi":"토","no":["목","수"],"sip":["비견","식신"],"s":"염소자리"},{"n":"이수만","c":"ㅇ","b":"1952-06-18","k":"","j":"프로듀서","a":"용","y":"壬辰","m":"丙午","dd":"乙未","g":"乙","gk":"을목","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["상관","정인"],"s":"쌍둥이자리"},{"n":"김창완","c":"ㄱ","b":"1954-02-22","k":"","j":"가수·배우","a":"말","y":"甲午","m":"丙寅","dd":"己酉","g":"己","gk":"기토","el":{"목":2,"화":2,"토":1,"금":1,"수":0},"hi":"목","no":["수"],"sip":["정관","정인"],"s":"물고기자리"},{"n":"최백호","c":"ㅊ","b":"1950-06-08","k":"","j":"가수","a":"호랑이","y":"庚寅","m":"壬午","dd":"甲戌","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["편관","비견"],"s":"쌍둥이자리"},{"n":"전인권","c":"ㅈ","b":"1954-09-30","k":"","j":"가수","a":"말","y":"甲午","m":"癸酉","dd":"己丑","g":"己","gk":"기토","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["정관","정인"],"s":"천칭자리"},{"n":"윤도현","c":"ㅇ","b":"1972-02-03","k":"","j":"가수","a":"돼지","y":"辛亥","m":"辛丑","dd":"甲子","g":"甲","gk":"갑목","el":{"목":1,"화":0,"토":1,"금":2,"수":2},"hi":"금","no":["화"],"sip":["정관","정인"],"s":"물병자리"},{"n":"이적","c":"ㅇ","b":"1974-02-28","k":"","j":"가수","a":"호랑이","y":"甲寅","m":"丙寅","dd":"庚子","g":"庚","gk":"경금","el":{"목":3,"화":1,"토":0,"금":1,"수":1},"hi":"목","no":["토"],"sip":["편재","편관"],"s":"물고기자리"},{"n":"김동률","c":"ㄱ","b":"1974-03-15","k":"","j":"가수","a":"호랑이","y":"甲寅","m":"丁卯","dd":"乙卯","g":"乙","gk":"을목","el":{"목":5,"화":1,"토":0,"금":0,"수":0},"hi":"목","no":["토","금","수"],"sip":["겁재","비견"],"s":"물고기자리"},{"n":"이소라","c":"ㅇ","b":"1969-12-29","k":"","j":"가수","a":"닭","y":"己酉","m":"丙子","dd":"戊寅","g":"戊","gk":"무토","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["겁재","상관"],"s":"염소자리"},{"n":"박미경","c":"ㅂ","b":"1965-11-22","k":"","j":"가수","a":"뱀","y":"乙巳","m":"丁亥","dd":"庚辰","g":"庚","gk":"경금","el":{"목":1,"화":2,"토":1,"금":1,"수":1},"hi":"화","no":[],"sip":["정관","정재"],"s":"전갈자리"},{"n":"양희은","c":"ㅇ","b":"1952-08-13","k":"","j":"가수","a":"용","y":"壬辰","m":"戊申","dd":"辛卯","g":"辛","gk":"신금","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["정인","상관"],"s":"사자자리"},{"n":"최진희","c":"ㅊ","b":"1957-01-03","k":"","j":"가수","a":"원숭이","y":"丙申","m":"庚子","dd":"乙亥","g":"乙","gk":"을목","el":{"목":1,"화":1,"토":0,"금":2,"수":2},"hi":"금","no":["토"],"sip":["정관","상관"],"s":"염소자리"},{"n":"주현미","c":"ㅈ","b":"1961-11-05","k":"","j":"가수","a":"소","y":"辛丑","m":"戊戌","dd":"壬寅","g":"壬","gk":"임수","el":{"목":1,"화":0,"토":3,"금":1,"수":1},"hi":"토","no":["화"],"sip":["편관","정인"],"s":"전갈자리"},{"n":"현숙","c":"ㅎ","b":"1959-06-22","k":"","j":"가수","a":"돼지","y":"己亥","m":"庚午","dd":"乙亥","g":"乙","gk":"을목","el":{"목":1,"화":1,"토":1,"금":1,"수":2},"hi":"수","no":[],"sip":["편인","편재"],"s":"쌍둥이자리"},{"n":"김연우","c":"ㄱ","b":"1971-07-22","k":"","j":"가수","a":"돼지","y":"辛亥","m":"乙未","dd":"戊申","g":"戊","gk":"무토","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["상관","정재"],"s":"게자리"},{"n":"성시경","c":"ㅅ","b":"1979-04-17","k":"","j":"가수","a":"양","y":"己未","m":"戊辰","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":2,"화":0,"토":4,"금":0,"수":0},"hi":"토","no":["화","금","수"],"sip":["정재","편재"],"s":"양자리"},{"n":"박효신","c":"ㅂ","b":"1981-12-01","k":"","j":"가수","a":"닭","y":"辛酉","m":"己亥","dd":"癸丑","g":"癸","gk":"계수","el":{"목":0,"화":0,"토":2,"금":2,"수":2},"hi":"토","no":["목","화"],"sip":["편인","편관"],"s":"사수자리"},{"n":"김범수","c":"ㄱ","b":"1979-01-26","k":"","j":"가수","a":"말","y":"戊午","m":"乙丑","dd":"癸巳","g":"癸","gk":"계수","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["정관","정재"],"s":"물병자리"},{"n":"임재범","c":"ㅇ","b":"1962-10-14","k":"","j":"가수","a":"호랑이","y":"壬寅","m":"庚戌","dd":"乙酉","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":1,"금":2,"수":1},"hi":"목","no":["화"],"sip":["정인","겁재"],"s":"천칭자리"},{"n":"이선희","c":"ㅇ","b":"1964-12-14","k":"","j":"가수","a":"용","y":"甲辰","m":"丙子","dd":"丁酉","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":1,"금":1,"수":1},"hi":"화","no":[],"sip":["정인","상관"],"s":"사수자리"},{"n":"송창식","c":"ㅅ","b":"1947-02-22","k":"","j":"가수","a":"돼지","y":"丁亥","m":"壬寅","dd":"壬申","g":"壬","gk":"임수","el":{"목":1,"화":1,"토":0,"금":1,"수":3},"hi":"수","no":["토"],"sip":["정재","겁재"],"s":"물고기자리"},{"n":"최성수","c":"ㅊ","b":"1960-03-25","k":"","j":"가수","a":"쥐","y":"庚子","m":"己卯","dd":"壬子","g":"壬","gk":"임수","el":{"목":1,"화":0,"토":1,"금":1,"수":3},"hi":"수","no":["화"],"sip":["비견","편인"],"s":"양자리"},{"n":"김광석","c":"ㄱ","b":"1964-01-22","k":"","j":"가수","a":"토끼","y":"癸卯","m":"乙丑","dd":"庚午","g":"庚","gk":"경금","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["정재","상관"],"s":"물병자리"},{"n":"배철수","c":"ㅂ","b":"1953-08-18","k":"","j":"방송인·음악인","a":"뱀","y":"癸巳","m":"庚申","dd":"辛丑","g":"辛","gk":"신금","el":{"목":0,"화":1,"토":1,"금":3,"수":1},"hi":"금","no":["목"],"sip":["겁재","식신"],"s":"사자자리"},{"n":"박중훈","c":"ㅂ","b":"1966-03-22","k":"","j":"배우","a":"말","y":"丙午","m":"辛卯","dd":"庚辰","g":"庚","gk":"경금","el":{"목":1,"화":2,"토":1,"금":2,"수":0},"hi":"화","no":["수"],"sip":["편관","겁재"],"s":"양자리"},{"n":"최민수","c":"ㅊ","b":"1962-05-01","k":"","j":"배우","a":"호랑이","y":"壬寅","m":"甲辰","dd":"己亥","g":"己","gk":"기토","el":{"목":2,"화":0,"토":2,"금":0,"수":2},"hi":"목","no":["화","금"],"sip":["정관","정재"],"s":"황소자리"},{"n":"안성기","c":"ㅇ","b":"1950-12-31","k":"1952-01-01","j":"배우","a":"호랑이","y":"庚寅","m":"戊子","dd":"庚子","g":"庚","gk":"경금","el":{"목":1,"화":0,"토":1,"금":2,"수":2},"hi":"금","no":["화"],"sip":["식신","비견"],"s":"염소자리"},{"n":"최불암","c":"ㅊ","b":"1940-06-15","k":"","j":"배우","a":"용","y":"庚辰","m":"壬午","dd":"己丑","g":"己","gk":"기토","el":{"목":0,"화":1,"토":3,"금":1,"수":1},"hi":"토","no":["목"],"sip":["상관","겁재"],"s":"쌍둥이자리"},{"n":"이순재","c":"ㅇ","b":"1934-11-16","k":"","j":"배우","a":"개","y":"甲戌","m":"乙亥","dd":"辛卯","g":"辛","gk":"신금","el":{"목":3,"화":0,"토":1,"금":1,"수":1},"hi":"목","no":["화"],"sip":["편재","정재"],"s":"전갈자리"},{"n":"신구","c":"ㅅ","b":"1936-08-13","k":"","j":"배우","a":"쥐","y":"丙子","m":"丙申","dd":"丁卯","g":"丁","gk":"정화","el":{"목":1,"화":3,"토":0,"금":1,"수":1},"hi":"화","no":["토"],"sip":["겁재","정관"],"s":"사자자리"},{"n":"박근형","c":"ㅂ","b":"1940-06-07","k":"","j":"배우","a":"용","y":"庚辰","m":"壬午","dd":"辛巳","g":"辛","gk":"신금","el":{"목":0,"화":2,"토":1,"금":2,"수":1},"hi":"화","no":["목"],"sip":["겁재","정인"],"s":"쌍둥이자리"},{"n":"김영옥","c":"ㄱ","b":"1938-01-06","k":"1937-12-05","j":"배우","a":"소","y":"丁丑","m":"癸丑","dd":"戊戌","g":"戊","gk":"무토","el":{"목":0,"화":1,"토":4,"금":0,"수":1},"hi":"토","no":["목","금"],"sip":["겁재","정인"],"s":"염소자리"},{"n":"나문희","c":"ㄴ","b":"1941-11-30","k":"","j":"배우","a":"뱀","y":"辛巳","m":"己亥","dd":"壬午","g":"壬","gk":"임수","el":{"목":0,"화":2,"토":1,"금":1,"수":2},"hi":"화","no":["목"],"sip":["정인","정재"],"s":"사수자리"},{"n":"김혜자","c":"ㄱ","b":"1941-09-15","k":"","j":"배우","a":"뱀","y":"辛巳","m":"丁酉","dd":"丙寅","g":"丙","gk":"병화","el":{"목":1,"화":3,"토":0,"금":2,"수":0},"hi":"화","no":["토","수"],"sip":["정재","겁재"],"s":"처녀자리"},{"n":"윤여정","c":"ㅇ","b":"1947-06-19","k":"","j":"배우","a":"돼지","y":"丁亥","m":"丙午","dd":"己巳","g":"己","gk":"기토","el":{"목":0,"화":4,"토":1,"금":0,"수":1},"hi":"화","no":["목","금"],"sip":["편인","정인"],"s":"쌍둥이자리"},{"n":"고두심","c":"ㄱ","b":"1951-05-22","k":"","j":"배우","a":"토끼","y":"辛卯","m":"癸巳","dd":"壬戌","g":"壬","gk":"임수","el":{"목":1,"화":1,"토":1,"금":1,"수":2},"hi":"수","no":[],"sip":["정인","상관"],"s":"쌍둥이자리"},{"n":"김해숙","c":"ㄱ","b":"1955-12-30","k":"","j":"배우","a":"양","y":"乙未","m":"戊子","dd":"乙丑","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":3,"금":0,"수":1},"hi":"토","no":["화","금"],"sip":["편재","비견"],"s":"염소자리"},{"n":"강부자","c":"ㄱ","b":"1941-02-08","k":"","j":"배우","a":"뱀","y":"辛巳","m":"庚寅","dd":"丁亥","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":0,"금":2,"수":1},"hi":"화","no":["토"],"sip":["편재","비견"],"s":"물병자리"},{"n":"김수미","c":"ㄱ","b":"1949-10-24","k":"1949-09-03","j":"배우","a":"소","y":"己丑","m":"甲戌","dd":"丁亥","g":"丁","gk":"정화","el":{"목":1,"화":1,"토":3,"금":0,"수":1},"hi":"토","no":["금"],"sip":["식신","정인"],"s":"전갈자리"},{"n":"김희애","c":"ㄱ","b":"1967-04-23","k":"","j":"배우","a":"양","y":"丁未","m":"甲辰","dd":"丁巳","g":"丁","gk":"정화","el":{"목":1,"화":3,"토":2,"금":0,"수":0},"hi":"화","no":["금","수"],"sip":["비견","식신"],"s":"황소자리"},{"n":"이미숙","c":"ㅇ","b":"1960-04-02","k":"","j":"배우","a":"쥐","y":"庚子","m":"己卯","dd":"庚申","g":"庚","gk":"경금","el":{"목":1,"화":0,"토":1,"금":3,"수":1},"hi":"금","no":["화"],"sip":["비견","식신"],"s":"양자리"},{"n":"이보희","c":"ㅇ","b":"1959-06-30","k":"","j":"배우","a":"돼지","y":"己亥","m":"庚午","dd":"癸未","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":2,"금":1,"수":2},"hi":"토","no":["목"],"sip":["편관","비견"],"s":"게자리"},{"n":"김미숙","c":"ㄱ","b":"1959-05-03","k":"","j":"배우","a":"돼지","y":"己亥","m":"戊辰","dd":"乙酉","g":"乙","gk":"을목","el":{"목":1,"화":0,"토":3,"금":1,"수":1},"hi":"토","no":["화"],"sip":["정재","편재"],"s":"황소자리"},{"n":"김혜수","c":"ㄱ","b":"1970-09-05","k":"","j":"배우","a":"개","y":"庚戌","m":"甲申","dd":"戊子","g":"戊","gk":"무토","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["식신","비견"],"s":"처녀자리"},{"n":"염정아","c":"ㅇ","b":"1972-07-28","k":"","j":"배우","a":"쥐","y":"壬子","m":"丁未","dd":"庚申","g":"庚","gk":"경금","el":{"목":0,"화":1,"토":1,"금":2,"수":2},"hi":"금","no":["목"],"sip":["식신","정관"],"s":"사자자리"},{"n":"김희선","c":"ㄱ","b":"1977-06-11","k":"","j":"배우","a":"뱀","y":"丁巳","m":"丙午","dd":"己亥","g":"己","gk":"기토","el":{"목":0,"화":4,"토":1,"금":0,"수":1},"hi":"화","no":["목","금"],"sip":["편인","정인"],"s":"쌍둥이자리"},{"n":"전도연","c":"ㅈ","b":"1973-02-11","k":"","j":"배우","a":"소","y":"癸丑","m":"甲寅","dd":"戊寅","g":"戊","gk":"무토","el":{"목":3,"화":0,"토":2,"금":0,"수":1},"hi":"목","no":["화","금"],"sip":["편관","정재"],"s":"물병자리"},{"n":"이영애","c":"ㅇ","b":"1971-01-31","k":"","j":"배우","a":"개","y":"庚戌","m":"己丑","dd":"丙辰","g":"丙","gk":"병화","el":{"목":0,"화":1,"토":4,"금":1,"수":0},"hi":"토","no":["목","수"],"sip":["식신","상관"],"s":"물병자리"},{"n":"최지우","c":"ㅊ","b":"1975-06-11","k":"","j":"배우","a":"토끼","y":"乙卯","m":"壬午","dd":"戊子","g":"戊","gk":"무토","el":{"목":2,"화":1,"토":1,"금":0,"수":2},"hi":"목","no":["금"],"sip":["정관","편재"],"s":"쌍둥이자리"},{"n":"고현정","c":"ㄱ","b":"1971-03-02","k":"","j":"배우","a":"돼지","y":"辛亥","m":"庚寅","dd":"丙戌","g":"丙","gk":"병화","el":{"목":1,"화":1,"토":1,"금":2,"수":1},"hi":"금","no":[],"sip":["정재","정관"],"s":"물고기자리"},{"n":"송혜교","c":"ㅅ","b":"1981-11-22","k":"","j":"배우","a":"닭","y":"辛酉","m":"己亥","dd":"甲辰","g":"甲","gk":"갑목","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["정관","정재"],"s":"전갈자리"},{"n":"전지현","c":"ㅈ","b":"1981-10-30","k":"","j":"배우","a":"닭","y":"辛酉","m":"戊戌","dd":"辛巳","g":"辛","gk":"신금","el":{"목":0,"화":1,"토":2,"금":3,"수":0},"hi":"금","no":["목","수"],"sip":["비견","정인"],"s":"전갈자리"},{"n":"손예진","c":"ㅅ","b":"1982-01-11","k":"","j":"배우","a":"닭","y":"辛酉","m":"辛丑","dd":"甲午","g":"甲","gk":"갑목","el":{"목":1,"화":1,"토":1,"금":3,"수":0},"hi":"금","no":["수"],"sip":["정관","정재"],"s":"염소자리"},{"n":"김태희","c":"ㄱ","b":"1980-03-29","k":"","j":"배우","a":"원숭이","y":"庚申","m":"己卯","dd":"辛丑","g":"辛","gk":"신금","el":{"목":1,"화":0,"토":2,"금":3,"수":0},"hi":"금","no":["화","수"],"sip":["겁재","편인"],"s":"양자리"},{"n":"공효진","c":"ㄱ","b":"1980-04-04","k":"","j":"배우","a":"원숭이","y":"庚申","m":"己卯","dd":"丁未","g":"丁","gk":"정화","el":{"목":1,"화":1,"토":2,"금":2,"수":0},"hi":"토","no":["수"],"sip":["정재","식신"],"s":"양자리"},{"n":"하지원","c":"ㅎ","b":"1978-06-28","k":"","j":"배우","a":"말","y":"戊午","m":"戊午","dd":"辛酉","g":"辛","gk":"신금","el":{"목":0,"화":2,"토":2,"금":2,"수":0},"hi":"화","no":["목","수"],"sip":["정인","정관"],"s":"게자리"},{"n":"김정은","c":"ㄱ","b":"1974-03-04","k":"","j":"배우","a":"호랑이","y":"甲寅","m":"丙寅","dd":"甲辰","g":"甲","gk":"갑목","el":{"목":4,"화":1,"토":1,"금":0,"수":0},"hi":"목","no":["금","수"],"sip":["비견","식신"],"s":"물고기자리"},{"n":"한채영","c":"ㅎ","b":"1980-09-13","k":"","j":"배우","a":"원숭이","y":"庚申","m":"乙酉","dd":"己丑","g":"己","gk":"기토","el":{"목":1,"화":0,"토":2,"금":3,"수":0},"hi":"금","no":["화","수"],"sip":["상관","편관"],"s":"처녀자리"},{"n":"오연수","c":"ㅇ","b":"1971-10-27","k":"","j":"배우","a":"돼지","y":"辛亥","m":"戊戌","dd":"乙酉","g":"乙","gk":"을목","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["편관","정재"],"s":"전갈자리"},{"n":"신애라","c":"ㅅ","b":"1969-03-07","k":"","j":"배우","a":"닭","y":"己酉","m":"丁卯","dd":"辛巳","g":"辛","gk":"신금","el":{"목":1,"화":2,"토":1,"금":2,"수":0},"hi":"화","no":["수"],"sip":["편관","편인"],"s":"물고기자리"},{"n":"차화연","c":"ㅊ","b":"1960-01-25","k":"","j":"배우","a":"돼지","y":"己亥","m":"丁丑","dd":"壬子","g":"壬","gk":"임수","el":{"목":0,"화":1,"토":2,"금":0,"수":3},"hi":"수","no":["목","금"],"sip":["정관","겁재"],"s":"물병자리"},{"n":"김남주","c":"ㄱ","b":"1971-05-10","k":"","j":"배우","a":"돼지","y":"辛亥","m":"癸巳","dd":"乙未","g":"乙","gk":"을목","el":{"목":1,"화":1,"토":1,"금":1,"수":2},"hi":"수","no":[],"sip":["편인","편관"],"s":"황소자리"},{"n":"이경영","c":"ㅇ","b":"1960-12-12","k":"","j":"배우","a":"쥐","y":"庚子","m":"戊子","dd":"甲戌","g":"甲","gk":"갑목","el":{"목":1,"화":0,"토":2,"금":1,"수":2},"hi":"토","no":["화"],"sip":["편인","편재"],"s":"사수자리"},{"n":"유동근","c":"ㅇ","b":"1956-06-18","k":"","j":"배우","a":"원숭이","y":"丙申","m":"甲午","dd":"丙辰","g":"丙","gk":"병화","el":{"목":1,"화":3,"토":1,"금":1,"수":0},"hi":"화","no":["수"],"sip":["비견","편재"],"s":"쌍둥이자리"},{"n":"정보석","c":"ㅈ","b":"1961-06-14","k":"","j":"배우","a":"소","y":"辛丑","m":"甲午","dd":"戊寅","g":"戊","gk":"무토","el":{"목":2,"화":1,"토":2,"금":1,"수":0},"hi":"목","no":["수"],"sip":["편관","상관"],"s":"쌍둥이자리"},{"n":"박상원","c":"ㅂ","b":"1959-04-05","k":"","j":"배우","a":"돼지","y":"己亥","m":"丁卯","dd":"丁巳","g":"丁","gk":"정화","el":{"목":1,"화":3,"토":1,"금":0,"수":1},"hi":"화","no":["금"],"sip":["비견","식신"],"s":"양자리"},{"n":"최수종","c":"ㅊ","b":"1962-12-28","k":"","j":"배우","a":"호랑이","y":"壬寅","m":"壬子","dd":"庚子","g":"庚","gk":"경금","el":{"목":1,"화":0,"토":0,"금":1,"수":4},"hi":"수","no":["화","토"],"sip":["식신","편재"],"s":"염소자리"},{"n":"이병헌","c":"ㅇ","b":"1970-07-12","k":"","j":"배우","a":"개","y":"庚戌","m":"癸未","dd":"癸巳","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":2,"금":1,"수":2},"hi":"토","no":["목"],"sip":["정인","정관"],"s":"게자리"},{"n":"장동건","c":"ㅈ","b":"1972-03-07","k":"","j":"배우","a":"쥐","y":"壬子","m":"癸卯","dd":"丁酉","g":"丁","gk":"정화","el":{"목":1,"화":1,"토":0,"금":1,"수":3},"hi":"수","no":["토"],"sip":["정관","편관"],"s":"물고기자리"},{"n":"정우성","c":"ㅈ","b":"1973-04-22","k":"1973-03-20","j":"배우","a":"소","y":"癸丑","m":"丙辰","dd":"戊子","g":"戊","gk":"무토","el":{"목":0,"화":1,"토":3,"금":0,"수":2},"hi":"토","no":["목","금"],"sip":["정재","겁재"],"s":"황소자리"},{"n":"이정재","c":"ㅇ","b":"1972-12-15","k":"","j":"배우","a":"쥐","y":"壬子","m":"壬子","dd":"庚辰","g":"庚","gk":"경금","el":{"목":0,"화":0,"토":1,"금":1,"수":4},"hi":"수","no":["목","화"],"sip":["식신","편인"],"s":"사수자리"},{"n":"황정민","c":"ㅎ","b":"1970-09-01","k":"","j":"배우","a":"개","y":"庚戌","m":"甲申","dd":"甲申","g":"甲","gk":"갑목","el":{"목":2,"화":0,"토":1,"금":3,"수":0},"hi":"금","no":["화","수"],"sip":["편관","편재"],"s":"처녀자리"},{"n":"송강호","c":"ㅅ","b":"1967-01-17","k":"","j":"배우","a":"말","y":"丙午","m":"辛丑","dd":"辛巳","g":"辛","gk":"신금","el":{"목":0,"화":3,"토":1,"금":2,"수":0},"hi":"화","no":["목","수"],"sip":["정관","비견"],"s":"염소자리"},{"n":"류승룡","c":"ㄹ","b":"1970-11-29","k":"","j":"배우","a":"개","y":"庚戌","m":"丁亥","dd":"癸丑","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":2,"금":1,"수":2},"hi":"토","no":["목"],"sip":["정인","정관"],"s":"사수자리"},{"n":"하정우","c":"ㅎ","b":"1978-03-11","k":"","j":"배우","a":"말","y":"戊午","m":"乙卯","dd":"壬申","g":"壬","gk":"임수","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["상관","편관"],"s":"물고기자리"},{"n":"차승원","c":"ㅊ","b":"1970-06-07","k":"","j":"배우","a":"개","y":"庚戌","m":"壬午","dd":"戊午","g":"戊","gk":"무토","el":{"목":0,"화":2,"토":2,"금":1,"수":1},"hi":"화","no":["목"],"sip":["편인","식신"],"s":"쌍둥이자리"},{"n":"김명민","c":"ㄱ","b":"1972-10-08","k":"","j":"배우","a":"쥐","y":"壬子","m":"己酉","dd":"壬申","g":"壬","gk":"임수","el":{"목":0,"화":0,"토":1,"금":2,"수":3},"hi":"수","no":["목","화"],"sip":["비견","정관"],"s":"천칭자리"},{"n":"조승우","c":"ㅈ","b":"1980-03-28","k":"","j":"배우","a":"원숭이","y":"庚申","m":"己卯","dd":"庚子","g":"庚","gk":"경금","el":{"목":1,"화":0,"토":1,"금":3,"수":1},"hi":"금","no":["화"],"sip":["비견","정인"],"s":"양자리"},{"n":"조인성","c":"ㅈ","b":"1981-07-28","k":"","j":"배우","a":"닭","y":"辛酉","m":"乙未","dd":"丁未","g":"丁","gk":"정화","el":{"목":1,"화":1,"토":2,"금":2,"수":0},"hi":"토","no":["수"],"sip":["편재","식신"],"s":"사자자리"},{"n":"공유","c":"ㄱ","b":"1979-07-10","k":"","j":"배우","a":"양","y":"己未","m":"辛未","dd":"戊寅","g":"戊","gk":"무토","el":{"목":1,"화":0,"토":4,"금":1,"수":0},"hi":"토","no":["화","수"],"sip":["겁재","상관"],"s":"게자리"},{"n":"현빈","c":"ㅎ","b":"1982-09-25","k":"","j":"배우","a":"개","y":"壬戌","m":"己酉","dd":"辛亥","g":"辛","gk":"신금","el":{"목":0,"화":0,"토":2,"금":2,"수":2},"hi":"토","no":["목","화"],"sip":["상관","정인"],"s":"천칭자리"},{"n":"소지섭","c":"ㅅ","b":"1977-11-04","k":"","j":"배우","a":"뱀","y":"丁巳","m":"庚戌","dd":"乙丑","g":"乙","gk":"을목","el":{"목":1,"화":2,"토":2,"금":1,"수":0},"hi":"화","no":["수"],"sip":["식신","정관"],"s":"전갈자리"},{"n":"원빈","c":"ㅇ","b":"1977-11-10","k":"","j":"배우","a":"뱀","y":"丁巳","m":"辛亥","dd":"辛未","g":"辛","gk":"신금","el":{"목":0,"화":2,"토":1,"금":2,"수":1},"hi":"화","no":["목"],"sip":["편관","비견"],"s":"전갈자리"},{"n":"이민호","c":"ㅇ","b":"1987-06-22","k":"","j":"배우","a":"토끼","y":"丁卯","m":"丙午","dd":"壬寅","g":"壬","gk":"임수","el":{"목":2,"화":3,"토":0,"금":0,"수":1},"hi":"화","no":["토","금"],"sip":["편재","정재"],"s":"게자리"},{"n":"김수현","c":"ㄱ","b":"1988-02-16","k":"","j":"배우","a":"용","y":"戊辰","m":"甲寅","dd":"辛丑","g":"辛","gk":"신금","el":{"목":2,"화":0,"토":3,"금":1,"수":0},"hi":"토","no":["화","수"],"sip":["정인","정재"],"s":"물병자리"},{"n":"박서준","c":"ㅂ","b":"1988-12-16","k":"","j":"배우","a":"용","y":"戊辰","m":"甲子","dd":"乙巳","g":"乙","gk":"을목","el":{"목":2,"화":1,"토":2,"금":0,"수":1},"hi":"목","no":["금"],"sip":["정재","겁재"],"s":"사수자리"},{"n":"정해인","c":"ㅈ","b":"1988-04-01","k":"","j":"배우","a":"용","y":"戊辰","m":"乙卯","dd":"丙戌","g":"丙","gk":"병화","el":{"목":2,"화":1,"토":3,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["식신","정인"],"s":"양자리"},{"n":"강동원","c":"ㄱ","b":"1981-01-18","k":"","j":"배우","a":"원숭이","y":"庚申","m":"己丑","dd":"丙申","g":"丙","gk":"병화","el":{"목":0,"화":1,"토":2,"금":3,"수":0},"hi":"금","no":["목","수"],"sip":["편재","상관"],"s":"염소자리"},{"n":"송중기","c":"ㅅ","b":"1985-09-19","k":"","j":"배우","a":"소","y":"乙丑","m":"乙酉","dd":"辛酉","g":"辛","gk":"신금","el":{"목":2,"화":0,"토":1,"금":3,"수":0},"hi":"금","no":["화","수"],"sip":["편재","비견"],"s":"처녀자리"},{"n":"김우빈","c":"ㄱ","b":"1989-07-16","k":"","j":"배우","a":"뱀","y":"己巳","m":"辛未","dd":"丁丑","g":"丁","gk":"정화","el":{"목":0,"화":2,"토":3,"금":1,"수":0},"hi":"토","no":["목","수"],"sip":["식신","비견"],"s":"게자리"},{"n":"주지훈","c":"ㅈ","b":"1982-05-16","k":"","j":"배우","a":"개","y":"壬戌","m":"乙巳","dd":"己亥","g":"己","gk":"기토","el":{"목":1,"화":1,"토":2,"금":0,"수":2},"hi":"토","no":["금"],"sip":["정재","겁재"],"s":"황소자리"},{"n":"이준기","c":"ㅇ","b":"1982-04-17","k":"","j":"배우","a":"개","y":"壬戌","m":"甲辰","dd":"庚午","g":"庚","gk":"경금","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["편인","식신"],"s":"양자리"},{"n":"지성","c":"ㅈ","b":"1977-02-27","k":"","j":"배우","a":"뱀","y":"丁巳","m":"壬寅","dd":"乙卯","g":"乙","gk":"을목","el":{"목":3,"화":2,"토":0,"금":0,"수":1},"hi":"목","no":["토","금"],"sip":["식신","정인"],"s":"물고기자리"},{"n":"박보검","c":"ㅂ","b":"1993-06-16","k":"","j":"배우","a":"닭","y":"癸酉","m":"戊午","dd":"戊辰","g":"戊","gk":"무토","el":{"목":0,"화":1,"토":3,"금":1,"수":1},"hi":"토","no":["목"],"sip":["비견","정재"],"s":"쌍둥이자리"},{"n":"유연석","c":"ㅇ","b":"1984-04-11","k":"","j":"배우","a":"쥐","y":"甲子","m":"戊辰","dd":"乙亥","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":2,"금":0,"수":2},"hi":"목","no":["화","금"],"sip":["정재","겁재"],"s":"양자리"},{"n":"조정석","c":"ㅈ","b":"1980-12-26","k":"","j":"배우","a":"원숭이","y":"庚申","m":"戊子","dd":"癸酉","g":"癸","gk":"계수","el":{"목":0,"화":0,"토":1,"금":3,"수":2},"hi":"금","no":["목","화"],"sip":["정인","정관"],"s":"염소자리"},{"n":"정경호","c":"ㅈ","b":"1983-08-31","k":"","j":"배우","a":"돼지","y":"癸亥","m":"庚申","dd":"辛卯","g":"辛","gk":"신금","el":{"목":1,"화":0,"토":0,"금":3,"수":2},"hi":"금","no":["화","토"],"sip":["식신","겁재"],"s":"처녀자리"},{"n":"김남길","c":"ㄱ","b":"1980-03-13","k":"","j":"배우","a":"원숭이","y":"庚申","m":"己卯","dd":"乙酉","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":1,"금":3,"수":0},"hi":"금","no":["화","수"],"sip":["정관","편재"],"s":"물고기자리"},{"n":"마동석","c":"ㅁ","b":"1971-03-01","k":"","j":"배우","a":"돼지","y":"辛亥","m":"庚寅","dd":"乙酉","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":0,"금":3,"수":1},"hi":"금","no":["화","토"],"sip":["편관","편인"],"s":"물고기자리"},{"n":"박해일","c":"ㅂ","b":"1977-01-26","k":"","j":"배우","a":"용","y":"丙辰","m":"辛丑","dd":"癸未","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":3,"금":1,"수":1},"hi":"토","no":["목"],"sip":["편관","정재"],"s":"물병자리"},{"n":"이서진","c":"ㅇ","b":"1971-01-30","k":"","j":"배우","a":"개","y":"庚戌","m":"己丑","dd":"乙卯","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":3,"금":1,"수":0},"hi":"토","no":["화","수"],"sip":["편재","정관"],"s":"물병자리"},{"n":"차태현","c":"ㅊ","b":"1976-03-25","k":"","j":"배우","a":"용","y":"丙辰","m":"辛卯","dd":"丙子","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":1,"금":1,"수":1},"hi":"화","no":[],"sip":["비견","식신"],"s":"양자리"},{"n":"류준열","c":"ㄹ","b":"1986-09-25","k":"","j":"배우","a":"호랑이","y":"丙寅","m":"丁酉","dd":"壬申","g":"壬","gk":"임수","el":{"목":1,"화":2,"토":0,"금":2,"수":1},"hi":"화","no":["토"],"sip":["편재","식신"],"s":"천칭자리"},{"n":"최민식","c":"ㅊ","b":"1962-05-30","k":"1962-04-27","j":"배우","a":"호랑이","y":"壬寅","m":"乙巳","dd":"戊辰","g":"戊","gk":"무토","el":{"목":2,"화":1,"토":2,"금":0,"수":1},"hi":"목","no":["금"],"sip":["편재","편관"],"s":"쌍둥이자리"},{"n":"유해진","c":"ㅇ","b":"1970-01-04","k":"","j":"배우","a":"닭","y":"己酉","m":"丙子","dd":"甲申","g":"甲","gk":"갑목","el":{"목":1,"화":1,"토":1,"금":2,"수":1},"hi":"금","no":[],"sip":["정재","정관"],"s":"염소자리"},{"n":"김윤석","c":"ㄱ","b":"1968-01-21","k":"","j":"배우","a":"양","y":"丁未","m":"癸丑","dd":"庚寅","g":"庚","gk":"경금","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["정인","정관"],"s":"물병자리"},{"n":"장혁","c":"ㅈ","b":"1976-12-20","k":"","j":"배우","a":"용","y":"丙辰","m":"庚子","dd":"丙午","g":"丙","gk":"병화","el":{"목":0,"화":3,"토":1,"금":1,"수":1},"hi":"화","no":["목"],"sip":["비견","식신"],"s":"사수자리"},{"n":"권상우","c":"ㄱ","b":"1976-08-05","k":"","j":"배우","a":"용","y":"丙辰","m":"乙未","dd":"己丑","g":"己","gk":"기토","el":{"목":1,"화":1,"토":4,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["비견","정인"],"s":"사자자리"},{"n":"송일국","c":"ㅅ","b":"1971-10-01","k":"","j":"배우","a":"돼지","y":"辛亥","m":"丁酉","dd":"己未","g":"己","gk":"기토","el":{"목":0,"화":1,"토":2,"금":2,"수":1},"hi":"토","no":["목"],"sip":["식신","편재"],"s":"천칭자리"},{"n":"김성령","c":"ㄱ","b":"1967-02-08","k":"","j":"배우","a":"양","y":"丁未","m":"壬寅","dd":"癸卯","g":"癸","gk":"계수","el":{"목":2,"화":1,"토":1,"금":0,"수":2},"hi":"목","no":["금"],"sip":["편재","편관"],"s":"물병자리"},{"n":"김성수","c":"ㄱ","b":"1973-05-23","k":"","j":"배우","a":"소","y":"癸丑","m":"丁巳","dd":"己未","g":"己","gk":"기토","el":{"목":0,"화":2,"토":3,"금":0,"수":1},"hi":"토","no":["목","금"],"sip":["비견","편인"],"s":"쌍둥이자리"},{"n":"라미란","c":"ㄹ","b":"1975-03-06","k":"","j":"배우","a":"토끼","y":"乙卯","m":"戊寅","dd":"辛亥","g":"辛","gk":"신금","el":{"목":3,"화":0,"토":1,"금":1,"수":1},"hi":"목","no":["화"],"sip":["편재","정인"],"s":"물고기자리"},{"n":"김숙","c":"ㄱ","b":"1975-07-06","k":"","j":"방송인","a":"토끼","y":"乙卯","m":"壬午","dd":"癸丑","g":"癸","gk":"계수","el":{"목":2,"화":1,"토":1,"금":0,"수":2},"hi":"목","no":["금"],"sip":["식신","겁재"],"s":"게자리"},{"n":"송은이","c":"ㅅ","b":"1973-02-06","k":"1973-01-04","j":"방송인","a":"소","y":"癸丑","m":"甲寅","dd":"癸酉","g":"癸","gk":"계수","el":{"목":2,"화":0,"토":1,"금":1,"수":2},"hi":"목","no":["화"],"sip":["상관","비견"],"s":"물병자리"},{"n":"이경실","c":"ㅇ","b":"1966-02-10","k":"","j":"방송인","a":"말","y":"丙午","m":"庚寅","dd":"庚子","g":"庚","gk":"경금","el":{"목":1,"화":2,"토":0,"금":2,"수":1},"hi":"화","no":["토"],"sip":["편관","비견"],"s":"물병자리"},{"n":"박미선","c":"ㅂ","b":"1967-03-10","k":"","j":"방송인","a":"양","y":"丁未","m":"癸卯","dd":"癸酉","g":"癸","gk":"계수","el":{"목":1,"화":1,"토":1,"금":1,"수":2},"hi":"수","no":[],"sip":["편재","편관"],"s":"물고기자리"},{"n":"김신영","c":"ㄱ","b":"1983-12-20","k":"","j":"방송인","a":"돼지","y":"癸亥","m":"甲子","dd":"壬午","g":"壬","gk":"임수","el":{"목":1,"화":1,"토":0,"금":0,"수":4},"hi":"수","no":["토","금"],"sip":["겁재","식신"],"s":"사수자리"},{"n":"장도연","c":"ㅈ","b":"1985-03-10","k":"","j":"방송인","a":"소","y":"乙丑","m":"己卯","dd":"戊申","g":"戊","gk":"무토","el":{"목":2,"화":0,"토":3,"금":1,"수":0},"hi":"토","no":["화","수"],"sip":["정관","겁재"],"s":"물고기자리"},{"n":"박나래","c":"ㅂ","b":"1985-10-25","k":"","j":"방송인","a":"소","y":"乙丑","m":"丙戌","dd":"丁酉","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":2,"금":1,"수":0},"hi":"화","no":["수"],"sip":["편인","식신"],"s":"전갈자리"},{"n":"이수근","c":"ㅇ","b":"1975-02-10","k":"","j":"방송인","a":"토끼","y":"乙卯","m":"戊寅","dd":"丁亥","g":"丁","gk":"정화","el":{"목":3,"화":1,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["편인","상관"],"s":"물병자리"},{"n":"김준호","c":"ㄱ","b":"1976-01-27","k":"1975-12-25","j":"방송인","a":"토끼","y":"乙卯","m":"己丑","dd":"戊寅","g":"戊","gk":"무토","el":{"목":3,"화":0,"토":3,"금":0,"수":0},"hi":"목","no":["화","금","수"],"sip":["정관","겁재"],"s":"물병자리"},{"n":"김대희","c":"ㄱ","b":"1974-06-24","k":"","j":"방송인","a":"호랑이","y":"甲寅","m":"庚午","dd":"丙申","g":"丙","gk":"병화","el":{"목":2,"화":2,"토":0,"금":2,"수":0},"hi":"목","no":["토","수"],"sip":["편인","편재"],"s":"게자리"},{"n":"정형돈","c":"ㅈ","b":"1978-03-15","k":"","j":"방송인","a":"말","y":"戊午","m":"乙卯","dd":"丙子","g":"丙","gk":"병화","el":{"목":2,"화":2,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["정인","식신"],"s":"물고기자리"},{"n":"하하","c":"ㅎ","b":"1979-08-20","k":"","j":"방송인","a":"양","y":"己未","m":"壬申","dd":"己未","g":"己","gk":"기토","el":{"목":0,"화":0,"토":4,"금":1,"수":1},"hi":"토","no":["목","화"],"sip":["비견","정재"],"s":"사자자리"},{"n":"양세형","c":"ㅇ","b":"1985-08-18","k":"","j":"방송인","a":"소","y":"乙丑","m":"甲申","dd":"己丑","g":"己","gk":"기토","el":{"목":2,"화":0,"토":3,"금":1,"수":0},"hi":"토","no":["화","수"],"sip":["비견","편관"],"s":"사자자리"},{"n":"양세찬","c":"ㅇ","b":"1986-12-08","k":"","j":"방송인","a":"호랑이","y":"丙寅","m":"庚子","dd":"丙戌","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":1,"금":1,"수":1},"hi":"화","no":[],"sip":["비견","편인"],"s":"사수자리"},{"n":"조세호","c":"ㅈ","b":"1982-08-09","k":"","j":"방송인","a":"개","y":"壬戌","m":"戊申","dd":"甲子","g":"甲","gk":"갑목","el":{"목":1,"화":0,"토":2,"금":1,"수":2},"hi":"토","no":["화"],"sip":["편인","편재"],"s":"사자자리"},{"n":"붐","c":"ㅂ","b":"1982-05-10","k":"","j":"방송인","a":"개","y":"壬戌","m":"乙巳","dd":"癸巳","g":"癸","gk":"계수","el":{"목":1,"화":2,"토":1,"금":0,"수":2},"hi":"화","no":["금"],"sip":["편재","겁재"],"s":"황소자리"},{"n":"김종민","c":"ㄱ","b":"1979-09-24","k":"","j":"방송인·가수","a":"양","y":"己未","m":"癸酉","dd":"甲午","g":"甲","gk":"갑목","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["정재","정인"],"s":"천칭자리"},{"n":"은지원","c":"ㅇ","b":"1978-06-08","k":"","j":"가수·방송인","a":"말","y":"戊午","m":"戊午","dd":"辛丑","g":"辛","gk":"신금","el":{"목":0,"화":2,"토":3,"금":1,"수":0},"hi":"토","no":["목","수"],"sip":["정인","정관"],"s":"쌍둥이자리"},{"n":"탁재훈","c":"ㅌ","b":"1968-07-24","k":"","j":"방송인·가수","a":"원숭이","y":"戊申","m":"己未","dd":"乙未","g":"乙","gk":"을목","el":{"목":1,"화":0,"토":4,"금":1,"수":0},"hi":"토","no":["화","수"],"sip":["편재","정재"],"s":"사자자리"},{"n":"이상민","c":"ㅇ","b":"1973-06-24","k":"","j":"방송인","a":"소","y":"癸丑","m":"戊午","dd":"辛卯","g":"辛","gk":"신금","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["식신","편인"],"s":"게자리"},{"n":"지석진","c":"ㅈ","b":"1966-02-10","k":"","j":"방송인","a":"말","y":"丙午","m":"庚寅","dd":"庚子","g":"庚","gk":"경금","el":{"목":1,"화":2,"토":0,"금":2,"수":1},"hi":"화","no":["토"],"sip":["편관","비견"],"s":"물병자리"},{"n":"이휘재","c":"ㅇ","b":"1972-12-29","k":"","j":"방송인","a":"쥐","y":"壬子","m":"壬子","dd":"甲午","g":"甲","gk":"갑목","el":{"목":1,"화":1,"토":0,"금":0,"수":4},"hi":"수","no":["토","금"],"sip":["편인","식신"],"s":"염소자리"},{"n":"홍진경","c":"ㅎ","b":"1977-12-23","k":"","j":"방송인·사업가","a":"뱀","y":"丁巳","m":"壬子","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":2,"화":2,"토":0,"금":0,"수":2},"hi":"목","no":["토","금"],"sip":["상관","편인"],"s":"염소자리"},{"n":"강수지","c":"ㄱ","b":"1967-05-20","k":"","j":"가수","a":"양","y":"丁未","m":"乙巳","dd":"甲申","g":"甲","gk":"갑목","el":{"목":2,"화":2,"토":1,"금":1,"수":0},"hi":"목","no":["수"],"sip":["상관","정재"],"s":"황소자리"},{"n":"김정민","c":"ㄱ","b":"1968-10-14","k":"","j":"가수","a":"원숭이","y":"戊申","m":"壬戌","dd":"丁巳","g":"丁","gk":"정화","el":{"목":0,"화":2,"토":2,"금":1,"수":1},"hi":"화","no":["목"],"sip":["상관","정재"],"s":"천칭자리"},{"n":"김현정","c":"ㄱ","b":"1976-04-04","k":"","j":"가수","a":"용","y":"丙辰","m":"辛卯","dd":"丙戌","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":2,"금":1,"수":0},"hi":"화","no":["수"],"sip":["식신","비견"],"s":"양자리"},{"n":"박정현","c":"ㅂ","b":"1976-03-23","k":"","j":"가수","a":"용","y":"丙辰","m":"辛卯","dd":"甲戌","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":2,"금":1,"수":0},"hi":"목","no":["수"],"sip":["편재","식신"],"s":"양자리"},{"n":"거미","c":"ㄱ","b":"1981-04-08","k":"","j":"가수","a":"닭","y":"辛酉","m":"壬辰","dd":"丙辰","g":"丙","gk":"병화","el":{"목":0,"화":1,"토":2,"금":2,"수":1},"hi":"토","no":["목"],"sip":["정재","식신"],"s":"양자리"},{"n":"린","c":"ㄹ","b":"1981-11-09","k":"","j":"가수","a":"닭","y":"辛酉","m":"己亥","dd":"辛卯","g":"辛","gk":"신금","el":{"목":1,"화":0,"토":1,"금":3,"수":1},"hi":"금","no":["화"],"sip":["비견","편인"],"s":"전갈자리"},{"n":"백지영","c":"ㅂ","b":"1976-03-25","k":"","j":"가수","a":"용","y":"丙辰","m":"辛卯","dd":"丙子","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":1,"금":1,"수":1},"hi":"화","no":[],"sip":["비견","식신"],"s":"양자리"},{"n":"이수","c":"ㅇ","b":"1981-04-22","k":"","j":"가수","a":"닭","y":"辛酉","m":"壬辰","dd":"庚午","g":"庚","gk":"경금","el":{"목":0,"화":1,"토":1,"금":3,"수":1},"hi":"금","no":["목"],"sip":["겁재","식신"],"s":"황소자리"},{"n":"김태연","c":"ㄱ","b":"1989-03-09","k":"","j":"가수","a":"뱀","y":"己巳","m":"丁卯","dd":"戊辰","g":"戊","gk":"무토","el":{"목":1,"화":2,"토":3,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["정인","겁재"],"s":"물고기자리"},{"n":"아이유","c":"ㅇ","b":"1993-05-16","k":"","j":"가수·배우","a":"닭","y":"癸酉","m":"丁巳","dd":"丁酉","g":"丁","gk":"정화","el":{"목":0,"화":3,"토":0,"금":2,"수":1},"hi":"화","no":["목","토"],"sip":["편재","비견"],"s":"황소자리"},{"n":"태연","c":"ㅌ","b":"1989-03-09","k":"","j":"가수","a":"뱀","y":"己巳","m":"丁卯","dd":"戊辰","g":"戊","gk":"무토","el":{"목":1,"화":2,"토":3,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["정인","겁재"],"s":"물고기자리"},{"n":"지드래곤","c":"ㅈ","b":"1988-08-18","k":"","j":"가수","a":"용","y":"戊辰","m":"庚申","dd":"乙巳","g":"乙","gk":"을목","el":{"목":1,"화":1,"토":2,"금":2,"수":0},"hi":"토","no":["수"],"sip":["정재","정관"],"s":"사자자리"},{"n":"보아","c":"ㅂ","b":"1986-11-05","k":"","j":"가수","a":"호랑이","y":"丙寅","m":"戊戌","dd":"癸丑","g":"癸","gk":"계수","el":{"목":1,"화":1,"토":3,"금":0,"수":1},"hi":"토","no":["금"],"sip":["정관","정재"],"s":"전갈자리"},{"n":"산다라박","c":"ㅅ","b":"1984-11-12","k":"","j":"가수","a":"쥐","y":"甲子","m":"乙亥","dd":"庚戌","g":"庚","gk":"경금","el":{"목":2,"화":0,"토":1,"금":1,"수":2},"hi":"목","no":["화"],"sip":["편재","식신"],"s":"전갈자리"},{"n":"박봄","c":"ㅂ","b":"1984-03-24","k":"","j":"가수","a":"쥐","y":"甲子","m":"丁卯","dd":"丁巳","g":"丁","gk":"정화","el":{"목":2,"화":3,"토":0,"금":0,"수":1},"hi":"화","no":["토","금"],"sip":["비견","정인"],"s":"양자리"},{"n":"수지","c":"ㅅ","b":"1994-10-10","k":"","j":"가수·배우","a":"개","y":"甲戌","m":"甲戌","dd":"己巳","g":"己","gk":"기토","el":{"목":2,"화":1,"토":3,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["정관","겁재"],"s":"천칭자리"},{"n":"김현아","c":"ㄱ","b":"1992-06-06","k":"","j":"가수","a":"원숭이","y":"壬申","m":"丙午","dd":"癸丑","g":"癸","gk":"계수","el":{"목":0,"화":2,"토":1,"금":1,"수":2},"hi":"화","no":["목"],"sip":["정재","겁재"],"s":"쌍둥이자리"},{"n":"선미","c":"ㅅ","b":"1992-05-02","k":"","j":"가수","a":"원숭이","y":"壬申","m":"甲辰","dd":"戊寅","g":"戊","gk":"무토","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["편관","편재"],"s":"황소자리"},{"n":"제니","c":"ㅈ","b":"1996-01-16","k":"","j":"가수","a":"돼지","y":"乙亥","m":"己丑","dd":"壬子","g":"壬","gk":"임수","el":{"목":1,"화":0,"토":2,"금":0,"수":3},"hi":"수","no":["화","금"],"sip":["정관","상관"],"s":"염소자리"},{"n":"로제","c":"ㄹ","b":"1997-02-11","k":"","j":"가수","a":"소","y":"丁丑","m":"壬寅","dd":"甲申","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["상관","정재"],"s":"물병자리"},{"n":"지민","c":"ㅈ","b":"1995-10-13","k":"","j":"가수","a":"돼지","y":"乙亥","m":"丙戌","dd":"丁丑","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["편인","편관"],"s":"천칭자리"},{"n":"정국","c":"ㅈ","b":"1997-09-01","k":"","j":"가수","a":"소","y":"丁丑","m":"戊申","dd":"丙午","g":"丙","gk":"병화","el":{"목":0,"화":3,"토":2,"금":1,"수":0},"hi":"화","no":["목","수"],"sip":["겁재","상관"],"s":"처녀자리"},{"n":"RM","c":"A~Z","b":"1994-09-12","k":"","j":"가수","a":"개","y":"甲戌","m":"癸酉","dd":"辛丑","g":"辛","gk":"신금","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["정재","정인"],"s":"처녀자리"},{"n":"진","c":"ㅈ","b":"1992-12-04","k":"","j":"가수","a":"원숭이","y":"壬申","m":"辛亥","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":2,"화":0,"토":0,"금":2,"수":2},"hi":"목","no":["화","토"],"sip":["편인","편관"],"s":"사수자리"},{"n":"슈가","c":"ㅅ","b":"1993-03-09","k":"","j":"가수","a":"닭","y":"癸酉","m":"乙卯","dd":"己丑","g":"己","gk":"기토","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["편관","편재"],"s":"물고기자리"},{"n":"제이홉","c":"ㅈ","b":"1994-02-18","k":"","j":"가수","a":"개","y":"甲戌","m":"丙寅","dd":"乙亥","g":"乙","gk":"을목","el":{"목":3,"화":1,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["겁재","정재"],"s":"물병자리"},{"n":"뷔","c":"ㅂ","b":"1995-12-30","k":"","j":"가수","a":"돼지","y":"乙亥","m":"戊子","dd":"乙未","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":2,"금":0,"수":2},"hi":"목","no":["화","금"],"sip":["비견","편인"],"s":"염소자리"},{"n":"민지","c":"ㅁ","b":"2004-05-07","k":"","j":"가수","a":"원숭이","y":"甲申","m":"己巳","dd":"丙戌","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":2,"금":1,"수":0},"hi":"화","no":["수"],"sip":["편인","편재"],"s":"황소자리"},{"n":"하니","c":"ㅎ","b":"2004-10-06","k":"","j":"가수","a":"원숭이","y":"甲申","m":"癸酉","dd":"戊午","g":"戊","gk":"무토","el":{"목":1,"화":1,"토":1,"금":2,"수":1},"hi":"금","no":[],"sip":["편관","식신"],"s":"천칭자리"},{"n":"다니엘","c":"ㄷ","b":"2005-04-11","k":"","j":"가수","a":"닭","y":"乙酉","m":"庚辰","dd":"乙丑","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":2,"금":2,"수":0},"hi":"목","no":["화","수"],"sip":["비견","편관"],"s":"양자리"},{"n":"해린","c":"ㅎ","b":"2006-05-15","k":"","j":"가수","a":"개","y":"丙戌","m":"癸巳","dd":"甲辰","g":"甲","gk":"갑목","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["편재","식신"],"s":"황소자리"},{"n":"혜인","c":"ㅎ","b":"2008-04-21","k":"","j":"가수","a":"쥐","y":"戊子","m":"丙辰","dd":"辛卯","g":"辛","gk":"신금","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["정인","상관"],"s":"황소자리"},{"n":"상연","c":"ㅅ","b":"1996-11-04","k":"","j":"가수","a":"쥐","y":"丙子","m":"戊戌","dd":"乙巳","g":"乙","gk":"을목","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["정재","상관"],"s":"전갈자리"},{"n":"제이콥","c":"ㅈ","b":"1997-05-30","k":"","j":"가수","a":"소","y":"丁丑","m":"乙巳","dd":"壬申","g":"壬","gk":"임수","el":{"목":1,"화":2,"토":1,"금":1,"수":1},"hi":"화","no":[],"sip":["정재","정관"],"s":"쌍둥이자리"},{"n":"영훈","c":"ㅇ","b":"1997-08-08","k":"","j":"가수","a":"소","y":"丁丑","m":"戊申","dd":"壬午","g":"壬","gk":"임수","el":{"목":0,"화":2,"토":2,"금":1,"수":1},"hi":"화","no":["목"],"sip":["정재","정관"],"s":"사자자리"},{"n":"현재","c":"ㅎ","b":"1997-09-13","k":"","j":"가수","a":"소","y":"丁丑","m":"己酉","dd":"戊午","g":"戊","gk":"무토","el":{"목":0,"화":2,"토":3,"금":1,"수":0},"hi":"토","no":["목","수"],"sip":["겁재","정인"],"s":"처녀자리"},{"n":"주연","c":"ㅈ","b":"1998-01-15","k":"","j":"가수","a":"소","y":"丁丑","m":"癸丑","dd":"壬戌","g":"壬","gk":"임수","el":{"목":0,"화":1,"토":3,"금":0,"수":2},"hi":"토","no":["목","금"],"sip":["정관","정재"],"s":"염소자리"},{"n":"케빈","c":"ㅋ","b":"1998-02-23","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"甲寅","dd":"辛丑","g":"辛","gk":"신금","el":{"목":3,"화":0,"토":2,"금":1,"수":0},"hi":"목","no":["화","수"],"sip":["정재","정인"],"s":"물고기자리"},{"n":"뉴","c":"ㄴ","b":"1998-04-26","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"丙辰","dd":"癸卯","g":"癸","gk":"계수","el":{"목":2,"화":1,"토":2,"금":0,"수":1},"hi":"목","no":["금"],"sip":["정관","상관"],"s":"황소자리"},{"n":"큐","c":"ㅋ","b":"1998-11-05","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"壬戌","dd":"丙辰","g":"丙","gk":"병화","el":{"목":1,"화":1,"토":3,"금":0,"수":1},"hi":"토","no":["금"],"sip":["식신","편인"],"s":"전갈자리"},{"n":"주학년","c":"ㅈ","b":"1999-03-09","k":"","j":"가수","a":"토끼","y":"己卯","m":"丁卯","dd":"庚申","g":"庚","gk":"경금","el":{"목":2,"화":1,"토":1,"금":2,"수":0},"hi":"목","no":["수"],"sip":["정재","정인"],"s":"물고기자리"},{"n":"선우","c":"ㅅ","b":"2000-04-12","k":"","j":"가수","a":"용","y":"庚辰","m":"庚辰","dd":"庚子","g":"庚","gk":"경금","el":{"목":0,"화":0,"토":2,"금":3,"수":1},"hi":"금","no":["목","화"],"sip":["비견","편인"],"s":"양자리"},{"n":"에릭","c":"ㅇ","b":"2000-12-22","k":"","j":"가수","a":"용","y":"庚辰","m":"戊子","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["편재","편관"],"s":"염소자리"},{"n":"쇼타로","c":"ㅅ","b":"2000-11-25","k":"","j":"가수","a":"용","y":"庚辰","m":"丁亥","dd":"丁亥","g":"丁","gk":"정화","el":{"목":0,"화":2,"토":1,"금":1,"수":2},"hi":"화","no":["목"],"sip":["편관","정재"],"s":"사수자리"},{"n":"은석","c":"ㅇ","b":"2001-03-19","k":"","j":"가수","a":"뱀","y":"辛巳","m":"辛卯","dd":"辛巳","g":"辛","gk":"신금","el":{"목":1,"화":2,"토":0,"금":3,"수":0},"hi":"금","no":["토","수"],"sip":["비견","편관"],"s":"물고기자리"},{"n":"성찬","c":"ㅅ","b":"2001-09-13","k":"","j":"가수","a":"뱀","y":"辛巳","m":"丁酉","dd":"己卯","g":"己","gk":"기토","el":{"목":1,"화":2,"토":1,"금":2,"수":0},"hi":"화","no":["수"],"sip":["식신","편인"],"s":"처녀자리"},{"n":"원빈(라이즈)","c":"ㅇ","b":"2002-03-02","k":"","j":"가수","a":"말","y":"壬午","m":"壬寅","dd":"己巳","g":"己","gk":"기토","el":{"목":1,"화":2,"토":1,"금":0,"수":2},"hi":"화","no":["금"],"sip":["정재","정인"],"s":"물고기자리"},{"n":"승한","c":"ㅅ","b":"2003-10-02","k":"","j":"가수","a":"양","y":"癸未","m":"辛酉","dd":"戊申","g":"戊","gk":"무토","el":{"목":0,"화":0,"토":2,"금":3,"수":1},"hi":"금","no":["목","화"],"sip":["상관","정재"],"s":"천칭자리"},{"n":"소희","c":"ㅅ","b":"2003-11-21","k":"","j":"가수","a":"양","y":"癸未","m":"癸亥","dd":"戊戌","g":"戊","gk":"무토","el":{"목":0,"화":0,"토":3,"금":0,"수":3},"hi":"토","no":["목","화","금"],"sip":["정재","겁재"],"s":"전갈자리"},{"n":"앤톤","c":"ㅇ","b":"2004-03-21","k":"","j":"가수","a":"원숭이","y":"甲申","m":"丁卯","dd":"己亥","g":"己","gk":"기토","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["정관","상관"],"s":"양자리"},{"n":"아이린","c":"ㅇ","b":"1991-03-29","k":"","j":"가수","a":"양","y":"辛未","m":"辛卯","dd":"戊戌","g":"戊","gk":"무토","el":{"목":1,"화":0,"토":3,"금":2,"수":0},"hi":"토","no":["화","수"],"sip":["상관","겁재"],"s":"양자리"},{"n":"슬기","c":"ㅅ","b":"1994-02-10","k":"","j":"가수","a":"개","y":"甲戌","m":"丙寅","dd":"丁卯","g":"丁","gk":"정화","el":{"목":3,"화":2,"토":1,"금":0,"수":0},"hi":"목","no":["금","수"],"sip":["정인","상관"],"s":"물병자리"},{"n":"웬디","c":"ㅇ","b":"1994-02-21","k":"","j":"가수","a":"개","y":"甲戌","m":"丙寅","dd":"戊寅","g":"戊","gk":"무토","el":{"목":3,"화":1,"토":2,"금":0,"수":0},"hi":"목","no":["금","수"],"sip":["편관","비견"],"s":"물고기자리"},{"n":"조이","c":"ㅈ","b":"1996-09-03","k":"","j":"가수","a":"쥐","y":"丙子","m":"丙申","dd":"癸卯","g":"癸","gk":"계수","el":{"목":1,"화":2,"토":0,"금":1,"수":2},"hi":"화","no":["토"],"sip":["정재","겁재"],"s":"처녀자리"},{"n":"예리","c":"ㅇ","b":"1999-03-05","k":"","j":"가수","a":"토끼","y":"己卯","m":"丙寅","dd":"丙辰","g":"丙","gk":"병화","el":{"목":2,"화":2,"토":2,"금":0,"수":0},"hi":"목","no":["금","수"],"sip":["상관","정인"],"s":"물고기자리"},{"n":"사쿠라","c":"ㅅ","b":"1998-03-19","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"乙卯","dd":"乙丑","g":"乙","gk":"을목","el":{"목":4,"화":0,"토":2,"금":0,"수":0},"hi":"목","no":["화","금","수"],"sip":["비견","정재"],"s":"물고기자리"},{"n":"김채원","c":"ㄱ","b":"2000-08-01","k":"","j":"가수","a":"용","y":"庚辰","m":"癸未","dd":"辛卯","g":"辛","gk":"신금","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["겁재","정인"],"s":"사자자리"},{"n":"허윤진","c":"ㅎ","b":"2001-10-08","k":"","j":"가수","a":"뱀","y":"辛巳","m":"丁酉","dd":"甲辰","g":"甲","gk":"갑목","el":{"목":1,"화":2,"토":1,"금":2,"수":0},"hi":"화","no":["수"],"sip":["정관","상관"],"s":"천칭자리"},{"n":"카즈하","c":"ㅋ","b":"2003-08-09","k":"","j":"가수","a":"양","y":"癸未","m":"庚申","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":2,"화":0,"토":1,"금":2,"수":1},"hi":"목","no":["화"],"sip":["편관","정인"],"s":"사자자리"},{"n":"홍은채","c":"ㅎ","b":"2006-11-10","k":"","j":"가수","a":"개","y":"丙戌","m":"己亥","dd":"癸卯","g":"癸","gk":"계수","el":{"목":1,"화":1,"토":2,"금":0,"수":2},"hi":"토","no":["금"],"sip":["정재","정관"],"s":"전갈자리"},{"n":"셔누","c":"ㅅ","b":"1992-06-18","k":"","j":"가수","a":"원숭이","y":"壬申","m":"丙午","dd":"乙丑","g":"乙","gk":"을목","el":{"목":1,"화":2,"토":1,"금":1,"수":1},"hi":"화","no":[],"sip":["상관","정인"],"s":"쌍둥이자리"},{"n":"민혁","c":"ㅁ","b":"1993-11-03","k":"","j":"가수","a":"닭","y":"癸酉","m":"壬戌","dd":"戊子","g":"戊","gk":"무토","el":{"목":0,"화":0,"토":2,"금":1,"수":3},"hi":"수","no":["목","화"],"sip":["편재","정재"],"s":"전갈자리"},{"n":"기현","c":"ㄱ","b":"1993-11-22","k":"","j":"가수","a":"닭","y":"癸酉","m":"癸亥","dd":"丁未","g":"丁","gk":"정화","el":{"목":0,"화":1,"토":1,"금":1,"수":3},"hi":"수","no":["목"],"sip":["편관","편재"],"s":"전갈자리"},{"n":"형원","c":"ㅎ","b":"1994-01-15","k":"","j":"가수","a":"닭","y":"癸酉","m":"乙丑","dd":"辛丑","g":"辛","gk":"신금","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["편인","식신"],"s":"염소자리"},{"n":"주헌","c":"ㅈ","b":"1994-10-06","k":"","j":"가수","a":"개","y":"甲戌","m":"癸酉","dd":"乙丑","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["겁재","정재"],"s":"천칭자리"},{"n":"아이엠","c":"ㅇ","b":"1996-01-26","k":"","j":"가수","a":"돼지","y":"乙亥","m":"己丑","dd":"壬戌","g":"壬","gk":"임수","el":{"목":1,"화":0,"토":3,"금":0,"수":2},"hi":"토","no":["화","금"],"sip":["정관","상관"],"s":"물병자리"},{"n":"진(방탄소년단)","c":"ㅈ","b":"1992-12-04","k":"","j":"가수","a":"원숭이","y":"壬申","m":"辛亥","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":2,"화":0,"토":0,"금":2,"수":2},"hi":"목","no":["화","토"],"sip":["편인","편관"],"s":"사수자리"},{"n":"슈가(방탄소년단)","c":"ㅅ","b":"1993-03-09","k":"","j":"가수","a":"닭","y":"癸酉","m":"乙卯","dd":"己丑","g":"己","gk":"기토","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["편관","편재"],"s":"물고기자리"},{"n":"제이홉(방탄소년단)","c":"ㅈ","b":"1994-02-18","k":"","j":"가수","a":"개","y":"甲戌","m":"丙寅","dd":"乙亥","g":"乙","gk":"을목","el":{"목":3,"화":1,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["겁재","정재"],"s":"물병자리"},{"n":"알엠","c":"ㅇ","b":"1994-09-12","k":"","j":"가수","a":"개","y":"甲戌","m":"癸酉","dd":"辛丑","g":"辛","gk":"신금","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["정재","정인"],"s":"처녀자리"},{"n":"지민(방탄소년단)","c":"ㅈ","b":"1995-10-13","k":"","j":"가수","a":"돼지","y":"乙亥","m":"丙戌","dd":"丁丑","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["편인","편관"],"s":"천칭자리"},{"n":"뷔(방탄소년단)","c":"ㅂ","b":"1995-12-30","k":"","j":"가수","a":"돼지","y":"乙亥","m":"戊子","dd":"乙未","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":2,"금":0,"수":2},"hi":"목","no":["화","금"],"sip":["비견","편인"],"s":"염소자리"},{"n":"정국(방탄소년단)","c":"ㅈ","b":"1997-09-01","k":"","j":"가수","a":"소","y":"丁丑","m":"戊申","dd":"丙午","g":"丙","gk":"병화","el":{"목":0,"화":3,"토":2,"금":1,"수":0},"hi":"화","no":["목","수"],"sip":["겁재","상관"],"s":"처녀자리"},{"n":"황정민(배우)","c":"ㅎ","b":"1970-09-01","k":"","j":"가수","a":"개","y":"庚戌","m":"甲申","dd":"甲申","g":"甲","gk":"갑목","el":{"목":2,"화":0,"토":1,"금":3,"수":0},"hi":"금","no":["화","수"],"sip":["편관","편재"],"s":"처녀자리"},{"n":"김혜수(배우)","c":"ㄱ","b":"1970-09-05","k":"","j":"가수","a":"개","y":"庚戌","m":"甲申","dd":"戊子","g":"戊","gk":"무토","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["식신","비견"],"s":"처녀자리"},{"n":"마동석(배우)","c":"ㅁ","b":"1971-03-01","k":"","j":"가수","a":"돼지","y":"辛亥","m":"庚寅","dd":"乙酉","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":0,"금":3,"수":1},"hi":"금","no":["화","토"],"sip":["편관","편인"],"s":"물고기자리"},{"n":"이정재(배우)","c":"ㅇ","b":"1972-12-15","k":"","j":"가수","a":"쥐","y":"壬子","m":"壬子","dd":"庚辰","g":"庚","gk":"경금","el":{"목":0,"화":0,"토":1,"금":1,"수":4},"hi":"수","no":["목","화"],"sip":["식신","편인"],"s":"사수자리"},{"n":"전도연(배우)","c":"ㅈ","b":"1973-02-11","k":"","j":"가수","a":"소","y":"癸丑","m":"甲寅","dd":"戊寅","g":"戊","gk":"무토","el":{"목":3,"화":0,"토":2,"금":0,"수":1},"hi":"목","no":["화","금"],"sip":["편관","정재"],"s":"물병자리"},{"n":"정우성(배우)","c":"ㅈ","b":"1973-04-22","k":"","j":"가수","a":"소","y":"癸丑","m":"丙辰","dd":"戊子","g":"戊","gk":"무토","el":{"목":0,"화":1,"토":3,"금":0,"수":2},"hi":"토","no":["목","금"],"sip":["정재","겁재"],"s":"황소자리"},{"n":"하정우(배우)","c":"ㅎ","b":"1978-03-11","k":"","j":"가수","a":"말","y":"戊午","m":"乙卯","dd":"壬申","g":"壬","gk":"임수","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["상관","편관"],"s":"물고기자리"},{"n":"공유(배우)","c":"ㄱ","b":"1979-07-10","k":"","j":"가수","a":"양","y":"己未","m":"辛未","dd":"戊寅","g":"戊","gk":"무토","el":{"목":1,"화":0,"토":4,"금":1,"수":0},"hi":"토","no":["화","수"],"sip":["겁재","상관"],"s":"게자리"},{"n":"김남길(배우)","c":"ㄱ","b":"1980-03-13","k":"","j":"가수","a":"원숭이","y":"庚申","m":"己卯","dd":"乙酉","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":1,"금":3,"수":0},"hi":"금","no":["화","수"],"sip":["정관","편재"],"s":"물고기자리"},{"n":"강동원(배우)","c":"ㄱ","b":"1981-01-18","k":"","j":"가수","a":"원숭이","y":"庚申","m":"己丑","dd":"丙申","g":"丙","gk":"병화","el":{"목":0,"화":1,"토":2,"금":3,"수":0},"hi":"금","no":["목","수"],"sip":["편재","상관"],"s":"염소자리"},{"n":"조인성(배우)","c":"ㅈ","b":"1981-07-28","k":"","j":"가수","a":"닭","y":"辛酉","m":"乙未","dd":"丁未","g":"丁","gk":"정화","el":{"목":1,"화":1,"토":2,"금":2,"수":0},"hi":"토","no":["수"],"sip":["편재","식신"],"s":"사자자리"},{"n":"전지현(배우)","c":"ㅈ","b":"1981-10-30","k":"","j":"가수","a":"닭","y":"辛酉","m":"戊戌","dd":"辛巳","g":"辛","gk":"신금","el":{"목":0,"화":1,"토":2,"금":3,"수":0},"hi":"금","no":["목","수"],"sip":["비견","정인"],"s":"전갈자리"},{"n":"박해수","c":"ㅂ","b":"1981-11-21","k":"","j":"가수","a":"닭","y":"辛酉","m":"己亥","dd":"癸卯","g":"癸","gk":"계수","el":{"목":1,"화":0,"토":1,"금":2,"수":2},"hi":"금","no":["화"],"sip":["편인","편관"],"s":"전갈자리"},{"n":"송혜교(배우)","c":"ㅅ","b":"1981-11-22","k":"","j":"가수","a":"닭","y":"辛酉","m":"己亥","dd":"甲辰","g":"甲","gk":"갑목","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["정관","정재"],"s":"전갈자리"},{"n":"손예진(배우)","c":"ㅅ","b":"1982-01-11","k":"","j":"가수","a":"닭","y":"辛酉","m":"辛丑","dd":"甲午","g":"甲","gk":"갑목","el":{"목":1,"화":1,"토":1,"금":3,"수":0},"hi":"금","no":["수"],"sip":["정관","정재"],"s":"염소자리"},{"n":"현빈(배우)","c":"ㅎ","b":"1982-09-25","k":"","j":"가수","a":"개","y":"壬戌","m":"己酉","dd":"辛亥","g":"辛","gk":"신금","el":{"목":0,"화":0,"토":2,"금":2,"수":2},"hi":"토","no":["목","화"],"sip":["상관","정인"],"s":"천칭자리"},{"n":"한지민","c":"ㅎ","b":"1982-11-05","k":"","j":"가수","a":"개","y":"壬戌","m":"庚戌","dd":"壬辰","g":"壬","gk":"임수","el":{"목":0,"화":0,"토":3,"금":1,"수":2},"hi":"토","no":["목","화"],"sip":["편관","비견"],"s":"전갈자리"},{"n":"손석구","c":"ㅅ","b":"1983-02-07","k":"","j":"가수","a":"돼지","y":"癸亥","m":"甲寅","dd":"丙寅","g":"丙","gk":"병화","el":{"목":3,"화":1,"토":0,"금":0,"수":2},"hi":"목","no":["토","금"],"sip":["편인","정관"],"s":"물병자리"},{"n":"이하늬","c":"ㅇ","b":"1983-03-02","k":"","j":"가수","a":"돼지","y":"癸亥","m":"甲寅","dd":"己丑","g":"己","gk":"기토","el":{"목":2,"화":0,"토":2,"금":0,"수":2},"hi":"목","no":["화","금"],"sip":["편재","정관"],"s":"물고기자리"},{"n":"신민아","c":"ㅅ","b":"1984-04-05","k":"","j":"가수","a":"쥐","y":"甲子","m":"戊辰","dd":"己巳","g":"己","gk":"기토","el":{"목":1,"화":1,"토":3,"금":0,"수":1},"hi":"토","no":["금"],"sip":["겁재","정관"],"s":"양자리"},{"n":"유연석(배우)","c":"ㅇ","b":"1984-04-11","k":"","j":"가수","a":"쥐","y":"甲子","m":"戊辰","dd":"乙亥","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":2,"금":0,"수":2},"hi":"목","no":["화","금"],"sip":["정재","겁재"],"s":"양자리"},{"n":"이제훈","c":"ㅇ","b":"1984-07-04","k":"","j":"가수","a":"쥐","y":"甲子","m":"庚午","dd":"己亥","g":"己","gk":"기토","el":{"목":1,"화":1,"토":1,"금":1,"수":2},"hi":"수","no":[],"sip":["정관","정재"],"s":"게자리"},{"n":"송중기(배우)","c":"ㅅ","b":"1985-09-19","k":"","j":"가수","a":"소","y":"乙丑","m":"乙酉","dd":"辛酉","g":"辛","gk":"신금","el":{"목":2,"화":0,"토":1,"금":3,"수":0},"hi":"금","no":["화","수"],"sip":["편재","비견"],"s":"처녀자리"},{"n":"박민영","c":"ㅂ","b":"1986-03-04","k":"","j":"가수","a":"호랑이","y":"丙寅","m":"庚寅","dd":"丁未","g":"丁","gk":"정화","el":{"목":2,"화":2,"토":1,"금":1,"수":0},"hi":"목","no":["수"],"sip":["정인","겁재"],"s":"물고기자리"},{"n":"김선호","c":"ㄱ","b":"1986-05-08","k":"","j":"가수","a":"호랑이","y":"丙寅","m":"癸巳","dd":"壬子","g":"壬","gk":"임수","el":{"목":1,"화":2,"토":0,"금":0,"수":3},"hi":"수","no":["토","금"],"sip":["편재","식신"],"s":"황소자리"},{"n":"류준열(배우)","c":"ㄹ","b":"1986-09-25","k":"","j":"가수","a":"호랑이","y":"丙寅","m":"丁酉","dd":"壬申","g":"壬","gk":"임수","el":{"목":1,"화":2,"토":0,"금":2,"수":1},"hi":"화","no":["토"],"sip":["편재","식신"],"s":"천칭자리"},{"n":"박정민","c":"ㅂ","b":"1987-03-24","k":"","j":"가수","a":"토끼","y":"丁卯","m":"癸卯","dd":"壬申","g":"壬","gk":"임수","el":{"목":2,"화":1,"토":0,"금":1,"수":2},"hi":"목","no":["토"],"sip":["상관","정재"],"s":"양자리"},{"n":"천우희","c":"ㅊ","b":"1987-04-20","k":"","j":"가수","a":"토끼","y":"丁卯","m":"甲辰","dd":"己亥","g":"己","gk":"기토","el":{"목":2,"화":1,"토":2,"금":0,"수":1},"hi":"목","no":["금"],"sip":["편인","편관"],"s":"양자리"},{"n":"이민호(배우)","c":"ㅇ","b":"1987-06-22","k":"","j":"가수","a":"토끼","y":"丁卯","m":"丙午","dd":"壬寅","g":"壬","gk":"임수","el":{"목":2,"화":3,"토":0,"금":0,"수":1},"hi":"화","no":["토","금"],"sip":["편재","정재"],"s":"게자리"},{"n":"지창욱","c":"ㅈ","b":"1987-07-05","k":"","j":"가수","a":"토끼","y":"丁卯","m":"丙午","dd":"乙卯","g":"乙","gk":"을목","el":{"목":3,"화":3,"토":0,"금":0,"수":0},"hi":"목","no":["토","금","수"],"sip":["비견","상관"],"s":"게자리"},{"n":"김수현(배우)","c":"ㄱ","b":"1988-02-16","k":"","j":"가수","a":"용","y":"戊辰","m":"甲寅","dd":"辛丑","g":"辛","gk":"신금","el":{"목":2,"화":0,"토":3,"금":1,"수":0},"hi":"토","no":["화","수"],"sip":["정인","정재"],"s":"물병자리"},{"n":"정해인(배우)","c":"ㅈ","b":"1988-04-01","k":"","j":"가수","a":"용","y":"戊辰","m":"乙卯","dd":"丙戌","g":"丙","gk":"병화","el":{"목":2,"화":1,"토":3,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["식신","정인"],"s":"양자리"},{"n":"박서준(배우)","c":"ㅂ","b":"1988-12-16","k":"","j":"가수","a":"용","y":"戊辰","m":"甲子","dd":"乙巳","g":"乙","gk":"을목","el":{"목":2,"화":1,"토":2,"금":0,"수":1},"hi":"목","no":["금"],"sip":["정재","겁재"],"s":"사수자리"},{"n":"정소민","c":"ㅈ","b":"1989-03-16","k":"","j":"가수","a":"뱀","y":"己巳","m":"丁卯","dd":"乙亥","g":"乙","gk":"을목","el":{"목":2,"화":2,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["식신","편재"],"s":"물고기자리"},{"n":"김우빈(배우)","c":"ㄱ","b":"1989-07-16","k":"","j":"가수","a":"뱀","y":"己巳","m":"辛未","dd":"丁丑","g":"丁","gk":"정화","el":{"목":0,"화":2,"토":3,"금":1,"수":0},"hi":"토","no":["목","수"],"sip":["식신","비견"],"s":"게자리"},{"n":"신혜선","c":"ㅅ","b":"1989-08-31","k":"","j":"가수","a":"뱀","y":"己巳","m":"壬申","dd":"癸亥","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":1,"금":1,"수":3},"hi":"수","no":["목"],"sip":["편관","편재"],"s":"처녀자리"},{"n":"이종석","c":"ㅇ","b":"1989-09-14","k":"","j":"가수","a":"뱀","y":"己巳","m":"癸酉","dd":"丁丑","g":"丁","gk":"정화","el":{"목":0,"화":2,"토":2,"금":1,"수":1},"hi":"화","no":["목"],"sip":["식신","비견"],"s":"처녀자리"},{"n":"이준호","c":"ㅇ","b":"1990-01-25","k":"","j":"가수","a":"뱀","y":"己巳","m":"丁丑","dd":"庚寅","g":"庚","gk":"경금","el":{"목":1,"화":2,"토":2,"금":1,"수":0},"hi":"화","no":["수"],"sip":["정인","정관"],"s":"물병자리"},{"n":"박보영","c":"ㅂ","b":"1990-02-12","k":"","j":"가수","a":"말","y":"庚午","m":"戊寅","dd":"戊申","g":"戊","gk":"무토","el":{"목":1,"화":1,"토":2,"금":2,"수":0},"hi":"토","no":["수"],"sip":["식신","편인"],"s":"물병자리"},{"n":"최우식","c":"ㅊ","b":"1990-03-26","k":"","j":"가수","a":"말","y":"庚午","m":"己卯","dd":"庚寅","g":"庚","gk":"경금","el":{"목":2,"화":1,"토":1,"금":2,"수":0},"hi":"목","no":["수"],"sip":["비견","편관"],"s":"양자리"},{"n":"김태리","c":"ㄱ","b":"1990-04-24","k":"","j":"가수","a":"말","y":"庚午","m":"庚辰","dd":"己未","g":"己","gk":"기토","el":{"목":0,"화":1,"토":3,"금":2,"수":0},"hi":"토","no":["목","수"],"sip":["상관","정인"],"s":"황소자리"},{"n":"이성경","c":"ㅇ","b":"1990-08-10","k":"","j":"가수","a":"말","y":"庚午","m":"甲申","dd":"丁未","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":1,"금":2,"수":0},"hi":"화","no":["수"],"sip":["정재","겁재"],"s":"사자자리"},{"n":"황인엽","c":"ㅎ","b":"1991-01-19","k":"","j":"가수","a":"말","y":"庚午","m":"己丑","dd":"己丑","g":"己","gk":"기토","el":{"목":0,"화":1,"토":4,"금":1,"수":0},"hi":"토","no":["목","수"],"sip":["비견","상관"],"s":"염소자리"},{"n":"안은진","c":"ㅇ","b":"1991-05-06","k":"","j":"가수","a":"양","y":"辛未","m":"癸巳","dd":"丙子","g":"丙","gk":"병화","el":{"목":0,"화":2,"토":1,"금":1,"수":2},"hi":"화","no":["목"],"sip":["정재","상관"],"s":"황소자리"},{"n":"김고은","c":"ㄱ","b":"1991-07-02","k":"","j":"가수","a":"양","y":"辛未","m":"甲午","dd":"癸酉","g":"癸","gk":"계수","el":{"목":1,"화":1,"토":1,"금":2,"수":1},"hi":"금","no":[],"sip":["편인","편관"],"s":"게자리"},{"n":"위하준","c":"ㅇ","b":"1991-08-05","k":"","j":"가수","a":"양","y":"辛未","m":"乙未","dd":"丁未","g":"丁","gk":"정화","el":{"목":1,"화":1,"토":3,"금":1,"수":0},"hi":"토","no":["수"],"sip":["식신","편재"],"s":"사자자리"},{"n":"변우석","c":"ㅂ","b":"1991-10-31","k":"","j":"가수","a":"양","y":"辛未","m":"戊戌","dd":"甲戌","g":"甲","gk":"갑목","el":{"목":1,"화":0,"토":4,"금":1,"수":0},"hi":"토","no":["화","수"],"sip":["편재","정관"],"s":"전갈자리"},{"n":"박은빈","c":"ㅂ","b":"1992-09-04","k":"","j":"가수","a":"원숭이","y":"壬申","m":"戊申","dd":"癸未","g":"癸","gk":"계수","el":{"목":0,"화":0,"토":2,"금":2,"수":2},"hi":"토","no":["목","화"],"sip":["정인","겁재"],"s":"처녀자리"},{"n":"김지원","c":"ㄱ","b":"1992-10-19","k":"","j":"가수","a":"원숭이","y":"壬申","m":"庚戌","dd":"戊辰","g":"戊","gk":"무토","el":{"목":0,"화":0,"토":3,"금":2,"수":1},"hi":"토","no":["목","화"],"sip":["식신","비견"],"s":"천칭자리"},{"n":"하윤경","c":"ㅎ","b":"1992-10-20","k":"","j":"가수","a":"원숭이","y":"壬申","m":"庚戌","dd":"己巳","g":"己","gk":"기토","el":{"목":0,"화":1,"토":2,"금":2,"수":1},"hi":"토","no":["목"],"sip":["상관","정재"],"s":"천칭자리"},{"n":"이세영","c":"ㅇ","b":"1992-12-20","k":"","j":"가수","a":"원숭이","y":"壬申","m":"壬子","dd":"庚午","g":"庚","gk":"경금","el":{"목":0,"화":1,"토":0,"금":2,"수":3},"hi":"수","no":["목","토"],"sip":["식신","비견"],"s":"사수자리"},{"n":"채종협","c":"ㅊ","b":"1993-05-19","k":"","j":"가수","a":"닭","y":"癸酉","m":"丁巳","dd":"庚子","g":"庚","gk":"경금","el":{"목":0,"화":2,"토":0,"금":2,"수":2},"hi":"화","no":["목","토"],"sip":["정관","상관"],"s":"황소자리"},{"n":"박보검(배우)","c":"ㅂ","b":"1993-06-16","k":"","j":"가수","a":"닭","y":"癸酉","m":"戊午","dd":"戊辰","g":"戊","gk":"무토","el":{"목":0,"화":1,"토":3,"금":1,"수":1},"hi":"토","no":["목"],"sip":["비견","정재"],"s":"쌍둥이자리"},{"n":"한소희","c":"ㅎ","b":"1993-11-18","k":"","j":"가수","a":"닭","y":"癸酉","m":"癸亥","dd":"癸卯","g":"癸","gk":"계수","el":{"목":1,"화":0,"토":0,"금":1,"수":4},"hi":"수","no":["화","토"],"sip":["비견","편인"],"s":"전갈자리"},{"n":"남주혁","c":"ㄴ","b":"1994-02-22","k":"","j":"가수","a":"개","y":"甲戌","m":"丙寅","dd":"己卯","g":"己","gk":"기토","el":{"목":3,"화":1,"토":2,"금":0,"수":0},"hi":"목","no":["금","수"],"sip":["정관","겁재"],"s":"물고기자리"},{"n":"송강","c":"ㅅ","b":"1994-04-23","k":"","j":"가수","a":"개","y":"甲戌","m":"戊辰","dd":"己卯","g":"己","gk":"기토","el":{"목":2,"화":0,"토":4,"금":0,"수":0},"hi":"토","no":["화","금","수"],"sip":["겁재","정관"],"s":"황소자리"},{"n":"전종서","c":"ㅈ","b":"1994-07-05","k":"","j":"가수","a":"개","y":"甲戌","m":"庚午","dd":"壬辰","g":"壬","gk":"임수","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["편관","식신"],"s":"게자리"},{"n":"이유미","c":"ㅇ","b":"1994-07-18","k":"","j":"가수","a":"개","y":"甲戌","m":"辛未","dd":"乙巳","g":"乙","gk":"을목","el":{"목":2,"화":1,"토":2,"금":1,"수":0},"hi":"목","no":["수"],"sip":["겁재","정재"],"s":"게자리"},{"n":"수지(배우)","c":"ㅅ","b":"1994-10-10","k":"","j":"가수","a":"개","y":"甲戌","m":"甲戌","dd":"己巳","g":"己","gk":"기토","el":{"목":2,"화":1,"토":3,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["정관","겁재"],"s":"천칭자리"},{"n":"김다미","c":"ㄱ","b":"1995-04-09","k":"","j":"가수","a":"돼지","y":"乙亥","m":"庚辰","dd":"庚午","g":"庚","gk":"경금","el":{"목":1,"화":1,"토":1,"금":2,"수":1},"hi":"금","no":[],"sip":["정재","상관"],"s":"양자리"},{"n":"이도현","c":"ㅇ","b":"1995-04-11","k":"","j":"가수","a":"돼지","y":"乙亥","m":"庚辰","dd":"壬申","g":"壬","gk":"임수","el":{"목":1,"화":0,"토":1,"금":2,"수":2},"hi":"금","no":["화"],"sip":["편인","상관"],"s":"양자리"},{"n":"안효섭","c":"ㅇ","b":"1995-04-17","k":"","j":"가수","a":"돼지","y":"乙亥","m":"庚辰","dd":"戊寅","g":"戊","gk":"무토","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["정관","정재"],"s":"양자리"},{"n":"김혜준","c":"ㄱ","b":"1995-05-08","k":"","j":"가수","a":"돼지","y":"乙亥","m":"辛巳","dd":"己亥","g":"己","gk":"기토","el":{"목":1,"화":1,"토":1,"금":1,"수":2},"hi":"수","no":[],"sip":["편재","편관"],"s":"황소자리"},{"n":"보나","c":"ㅂ","b":"1995-08-19","k":"","j":"가수","a":"돼지","y":"乙亥","m":"甲申","dd":"壬午","g":"壬","gk":"임수","el":{"목":2,"화":1,"토":0,"금":1,"수":2},"hi":"목","no":["토"],"sip":["상관","겁재"],"s":"사자자리"},{"n":"김민하","c":"ㄱ","b":"1995-09-01","k":"","j":"가수","a":"돼지","y":"乙亥","m":"甲申","dd":"乙未","g":"乙","gk":"을목","el":{"목":3,"화":0,"토":1,"금":1,"수":1},"hi":"목","no":["화"],"sip":["비견","편인"],"s":"처녀자리"},{"n":"고윤정","c":"ㄱ","b":"1996-04-22","k":"","j":"가수","a":"쥐","y":"丙子","m":"壬辰","dd":"己丑","g":"己","gk":"기토","el":{"목":0,"화":1,"토":3,"금":0,"수":2},"hi":"토","no":["목","금"],"sip":["정재","정인"],"s":"황소자리"},{"n":"문가영","c":"ㅁ","b":"1996-07-10","k":"","j":"가수","a":"쥐","y":"丙子","m":"乙未","dd":"戊申","g":"戊","gk":"무토","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["편인","편재"],"s":"게자리"},{"n":"김세정","c":"ㄱ","b":"1996-08-28","k":"","j":"가수","a":"쥐","y":"丙子","m":"丙申","dd":"丁酉","g":"丁","gk":"정화","el":{"목":0,"화":3,"토":0,"금":2,"수":1},"hi":"화","no":["목","토"],"sip":["겁재","정관"],"s":"처녀자리"},{"n":"김혜윤","c":"ㄱ","b":"1996-11-10","k":"","j":"가수","a":"쥐","y":"丙子","m":"己亥","dd":"辛亥","g":"辛","gk":"신금","el":{"목":0,"화":1,"토":1,"금":1,"수":3},"hi":"수","no":["목"],"sip":["식신","정관"],"s":"전갈자리"},{"n":"차은우","c":"ㅊ","b":"1997-03-30","k":"","j":"가수","a":"소","y":"丁丑","m":"癸卯","dd":"辛未","g":"辛","gk":"신금","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["편인","편관"],"s":"양자리"},{"n":"여진구","c":"ㅇ","b":"1997-08-13","k":"","j":"가수","a":"소","y":"丁丑","m":"戊申","dd":"丁亥","g":"丁","gk":"정화","el":{"목":0,"화":2,"토":2,"금":1,"수":1},"hi":"화","no":["목"],"sip":["비견","식신"],"s":"사자자리"},{"n":"이재욱","c":"ㅇ","b":"1998-05-10","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"丁巳","dd":"丁巳","g":"丁","gk":"정화","el":{"목":1,"화":4,"토":1,"금":0,"수":0},"hi":"화","no":["금","수"],"sip":["비견","상관"],"s":"황소자리"},{"n":"김유정","c":"ㄱ","b":"1999-09-22","k":"","j":"가수","a":"토끼","y":"己卯","m":"癸酉","dd":"丁丑","g":"丁","gk":"정화","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["식신","편인"],"s":"처녀자리"},{"n":"로몬","c":"ㄹ","b":"1999-11-11","k":"","j":"가수","a":"토끼","y":"己卯","m":"乙亥","dd":"丁卯","g":"丁","gk":"정화","el":{"목":3,"화":1,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["편인","식신"],"s":"전갈자리"},{"n":"노윤서","c":"ㄴ","b":"2000-01-25","k":"","j":"가수","a":"토끼","y":"己卯","m":"丁丑","dd":"壬午","g":"壬","gk":"임수","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["정관","상관"],"s":"물병자리"},{"n":"문상민","c":"ㅁ","b":"2000-04-14","k":"","j":"가수","a":"용","y":"庚辰","m":"庚辰","dd":"壬寅","g":"壬","gk":"임수","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["편인","편관"],"s":"양자리"},{"n":"김현수","c":"ㄱ","b":"2000-06-23","k":"","j":"가수","a":"용","y":"庚辰","m":"壬午","dd":"壬子","g":"壬","gk":"임수","el":{"목":0,"화":1,"토":1,"금":1,"수":3},"hi":"수","no":["목"],"sip":["비견","편인"],"s":"게자리"},{"n":"최현욱","c":"ㅊ","b":"2002-01-30","k":"","j":"가수","a":"뱀","y":"辛巳","m":"辛丑","dd":"戊戌","g":"戊","gk":"무토","el":{"목":0,"화":1,"토":3,"금":2,"수":0},"hi":"토","no":["목","수"],"sip":["상관","정인"],"s":"물병자리"},{"n":"루카","c":"ㄹ","b":"2002-03-20","k":"","j":"가수","a":"말","y":"壬午","m":"癸卯","dd":"丁亥","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":0,"금":0,"수":3},"hi":"수","no":["토","금"],"sip":["편관","정관"],"s":"물고기자리"},{"n":"파리타","c":"ㅍ","b":"2005-08-26","k":"","j":"가수","a":"닭","y":"乙酉","m":"甲申","dd":"壬午","g":"壬","gk":"임수","el":{"목":2,"화":1,"토":0,"금":2,"수":1},"hi":"목","no":["토"],"sip":["상관","정인"],"s":"처녀자리"},{"n":"아사","c":"ㅇ","b":"2006-04-17","k":"","j":"가수","a":"개","y":"丙戌","m":"壬辰","dd":"丙子","g":"丙","gk":"병화","el":{"목":0,"화":2,"토":2,"금":0,"수":2},"hi":"화","no":["목","금"],"sip":["식신","편관"],"s":"양자리"},{"n":"아현","c":"ㅇ","b":"2007-04-11","k":"","j":"가수","a":"돼지","y":"丁亥","m":"甲辰","dd":"乙亥","g":"乙","gk":"을목","el":{"목":2,"화":1,"토":1,"금":0,"수":2},"hi":"목","no":["금"],"sip":["편인","식신"],"s":"양자리"},{"n":"라미","c":"ㄹ","b":"2007-10-17","k":"","j":"가수","a":"돼지","y":"丁亥","m":"庚戌","dd":"甲申","g":"甲","gk":"갑목","el":{"목":1,"화":1,"토":1,"금":2,"수":1},"hi":"금","no":[],"sip":["편관","상관"],"s":"천칭자리"},{"n":"로라","c":"ㄹ","b":"2008-08-14","k":"","j":"가수","a":"쥐","y":"戊子","m":"庚申","dd":"丙戌","g":"丙","gk":"병화","el":{"목":0,"화":1,"토":2,"금":2,"수":1},"hi":"토","no":["목"],"sip":["식신","편재"],"s":"사자자리"},{"n":"치키타","c":"ㅊ","b":"2009-02-17","k":"","j":"가수","a":"소","y":"己丑","m":"丙寅","dd":"癸巳","g":"癸","gk":"계수","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["편관","정재"],"s":"물병자리"},{"n":"성호","c":"ㅅ","b":"2003-09-04","k":"","j":"가수","a":"양","y":"癸未","m":"庚申","dd":"庚辰","g":"庚","gk":"경금","el":{"목":0,"화":0,"토":2,"금":3,"수":1},"hi":"금","no":["목","화"],"sip":["비견","상관"],"s":"처녀자리"},{"n":"리우","c":"ㄹ","b":"2003-10-22","k":"","j":"가수","a":"양","y":"癸未","m":"壬戌","dd":"戊辰","g":"戊","gk":"무토","el":{"목":0,"화":0,"토":4,"금":0,"수":2},"hi":"토","no":["목","화","금"],"sip":["비견","정재"],"s":"천칭자리"},{"n":"재현","c":"ㅈ","b":"2003-12-04","k":"","j":"가수","a":"양","y":"癸未","m":"癸亥","dd":"辛亥","g":"辛","gk":"신금","el":{"목":0,"화":0,"토":1,"금":1,"수":4},"hi":"수","no":["목","화"],"sip":["식신","편인"],"s":"사수자리"},{"n":"태산","c":"ㅌ","b":"2004-08-10","k":"","j":"가수","a":"원숭이","y":"甲申","m":"壬申","dd":"辛酉","g":"辛","gk":"신금","el":{"목":1,"화":0,"토":0,"금":4,"수":1},"hi":"금","no":["화","토"],"sip":["겁재","정재"],"s":"사자자리"},{"n":"이한","c":"ㅇ","b":"2004-10-20","k":"","j":"가수","a":"원숭이","y":"甲申","m":"甲戌","dd":"壬申","g":"壬","gk":"임수","el":{"목":2,"화":0,"토":1,"금":2,"수":1},"hi":"목","no":["화"],"sip":["식신","편인"],"s":"천칭자리"},{"n":"운학","c":"ㅇ","b":"2006-11-29","k":"","j":"가수","a":"개","y":"丙戌","m":"己亥","dd":"壬戌","g":"壬","gk":"임수","el":{"목":0,"화":1,"토":3,"금":0,"수":2},"hi":"토","no":["목","금"],"sip":["편관","편재"],"s":"사수자리"},{"n":"지수","c":"ㅈ","b":"1995-01-03","k":"","j":"가수","a":"개","y":"甲戌","m":"丙子","dd":"甲午","g":"甲","gk":"갑목","el":{"목":2,"화":2,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["식신","비견"],"s":"염소자리"},{"n":"제니(블랙핑크)","c":"ㅈ","b":"1996-01-16","k":"","j":"가수","a":"돼지","y":"乙亥","m":"己丑","dd":"壬子","g":"壬","gk":"임수","el":{"목":1,"화":0,"토":2,"금":0,"수":3},"hi":"수","no":["화","금"],"sip":["정관","상관"],"s":"염소자리"},{"n":"로제(블랙핑크)","c":"ㄹ","b":"1997-02-11","k":"","j":"가수","a":"소","y":"丁丑","m":"壬寅","dd":"甲申","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["상관","정재"],"s":"물병자리"},{"n":"리사","c":"ㄹ","b":"1997-03-27","k":"","j":"가수","a":"소","y":"丁丑","m":"癸卯","dd":"戊辰","g":"戊","gk":"무토","el":{"목":1,"화":1,"토":3,"금":0,"수":1},"hi":"토","no":["금"],"sip":["정인","겁재"],"s":"양자리"},{"n":"온유","c":"ㅇ","b":"1989-12-14","k":"","j":"가수","a":"뱀","y":"己巳","m":"丙子","dd":"戊申","g":"戊","gk":"무토","el":{"목":0,"화":2,"토":2,"금":1,"수":1},"hi":"화","no":["목"],"sip":["겁재","정인"],"s":"사수자리"},{"n":"키","c":"ㅋ","b":"1991-09-23","k":"","j":"가수","a":"양","y":"辛未","m":"丁酉","dd":"丙申","g":"丙","gk":"병화","el":{"목":0,"화":2,"토":1,"금":3,"수":0},"hi":"금","no":["목","수"],"sip":["정재","상관"],"s":"처녀자리"},{"n":"민호","c":"ㅁ","b":"1991-12-09","k":"","j":"가수","a":"양","y":"辛未","m":"庚子","dd":"癸丑","g":"癸","gk":"계수","el":{"목":0,"화":0,"토":2,"금":2,"수":2},"hi":"토","no":["목","화"],"sip":["편관","편인"],"s":"사수자리"},{"n":"태민","c":"ㅌ","b":"1993-07-18","k":"","j":"가수","a":"닭","y":"癸酉","m":"己未","dd":"庚子","g":"庚","gk":"경금","el":{"목":0,"화":0,"토":2,"금":2,"수":2},"hi":"토","no":["목","화"],"sip":["정인","상관"],"s":"게자리"},{"n":"에스쿱스","c":"ㅇ","b":"1995-08-08","k":"","j":"가수","a":"돼지","y":"乙亥","m":"甲申","dd":"辛未","g":"辛","gk":"신금","el":{"목":2,"화":0,"토":1,"금":2,"수":1},"hi":"목","no":["화"],"sip":["편재","식신"],"s":"사자자리"},{"n":"정한","c":"ㅈ","b":"1995-10-04","k":"","j":"가수","a":"돼지","y":"乙亥","m":"乙酉","dd":"戊辰","g":"戊","gk":"무토","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["정관","정재"],"s":"천칭자리"},{"n":"조슈아","c":"ㅈ","b":"1995-12-30","k":"","j":"가수","a":"돼지","y":"乙亥","m":"戊子","dd":"乙未","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":2,"금":0,"수":2},"hi":"목","no":["화","금"],"sip":["비견","편인"],"s":"염소자리"},{"n":"준","c":"ㅈ","b":"1996-06-10","k":"","j":"가수","a":"쥐","y":"丙子","m":"甲午","dd":"戊寅","g":"戊","gk":"무토","el":{"목":2,"화":2,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["편인","편관"],"s":"쌍둥이자리"},{"n":"호시","c":"ㅎ","b":"1996-06-15","k":"","j":"가수","a":"쥐","y":"丙子","m":"甲午","dd":"癸未","g":"癸","gk":"계수","el":{"목":1,"화":2,"토":1,"금":0,"수":2},"hi":"화","no":["금"],"sip":["정재","겁재"],"s":"쌍둥이자리"},{"n":"원우","c":"ㅇ","b":"1996-07-17","k":"","j":"가수","a":"쥐","y":"丙子","m":"乙未","dd":"乙卯","g":"乙","gk":"을목","el":{"목":3,"화":1,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["비견","상관"],"s":"게자리"},{"n":"우지","c":"ㅇ","b":"1996-11-22","k":"","j":"가수","a":"쥐","y":"丙子","m":"己亥","dd":"癸亥","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":1,"금":0,"수":4},"hi":"수","no":["목","금"],"sip":["비견","정재"],"s":"사수자리"},{"n":"도겸","c":"ㄷ","b":"1997-02-18","k":"","j":"가수","a":"소","y":"丁丑","m":"壬寅","dd":"辛卯","g":"辛","gk":"신금","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["편관","편인"],"s":"물병자리"},{"n":"민규","c":"ㅁ","b":"1997-04-06","k":"","j":"가수","a":"소","y":"丁丑","m":"甲辰","dd":"戊寅","g":"戊","gk":"무토","el":{"목":2,"화":1,"토":3,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["편관","정인"],"s":"양자리"},{"n":"디에잇","c":"ㄷ","b":"1997-11-07","k":"","j":"가수","a":"소","y":"丁丑","m":"庚戌","dd":"癸丑","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":3,"금":1,"수":1},"hi":"토","no":["목"],"sip":["편관","편재"],"s":"전갈자리"},{"n":"승관","c":"ㅅ","b":"1998-01-16","k":"","j":"가수","a":"소","y":"丁丑","m":"癸丑","dd":"癸亥","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":2,"금":0,"수":3},"hi":"수","no":["목","금"],"sip":["편관","비견"],"s":"염소자리"},{"n":"버논","c":"ㅂ","b":"1998-02-18","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"甲寅","dd":"丙申","g":"丙","gk":"병화","el":{"목":3,"화":1,"토":1,"금":1,"수":0},"hi":"목","no":["수"],"sip":["편인","식신"],"s":"물병자리"},{"n":"디노","c":"ㄷ","b":"1999-02-11","k":"","j":"가수","a":"토끼","y":"己卯","m":"丙寅","dd":"甲午","g":"甲","gk":"갑목","el":{"목":3,"화":2,"토":1,"금":0,"수":0},"hi":"목","no":["금","수"],"sip":["식신","정재"],"s":"물병자리"},{"n":"태연(솔로)","c":"ㅌ","b":"1989-03-09","k":"","j":"가수","a":"뱀","y":"己巳","m":"丁卯","dd":"戊辰","g":"戊","gk":"무토","el":{"목":1,"화":2,"토":3,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["정인","겁재"],"s":"물고기자리"},{"n":"선미(솔로)","c":"ㅅ","b":"1992-05-02","k":"","j":"가수","a":"원숭이","y":"壬申","m":"甲辰","dd":"戊寅","g":"戊","gk":"무토","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["편관","편재"],"s":"황소자리"},{"n":"크러쉬","c":"ㅋ","b":"1992-05-03","k":"","j":"가수","a":"원숭이","y":"壬申","m":"甲辰","dd":"己卯","g":"己","gk":"기토","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["정재","상관"],"s":"황소자리"},{"n":"지코","c":"ㅈ","b":"1992-09-14","k":"","j":"가수","a":"원숭이","y":"壬申","m":"己酉","dd":"癸巳","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":1,"금":2,"수":2},"hi":"금","no":["목"],"sip":["겁재","정인"],"s":"처녀자리"},{"n":"아이유(솔로)","c":"ㅇ","b":"1993-05-16","k":"","j":"가수","a":"닭","y":"癸酉","m":"丁巳","dd":"丁酉","g":"丁","gk":"정화","el":{"목":0,"화":3,"토":0,"금":2,"수":1},"hi":"화","no":["목","토"],"sip":["편재","비견"],"s":"황소자리"},{"n":"화사","c":"ㅎ","b":"1995-07-23","k":"","j":"가수","a":"돼지","y":"乙亥","m":"癸未","dd":"乙卯","g":"乙","gk":"을목","el":{"목":3,"화":0,"토":1,"금":0,"수":2},"hi":"목","no":["화","금"],"sip":["비견","편인"],"s":"게자리"},{"n":"청하","c":"ㅊ","b":"1996-02-09","k":"","j":"가수","a":"쥐","y":"丙子","m":"庚寅","dd":"丙子","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":0,"금":1,"수":2},"hi":"화","no":["토"],"sip":["편관","비견"],"s":"물병자리"},{"n":"수민","c":"ㅅ","b":"2001-03-13","k":"","j":"가수","a":"뱀","y":"辛巳","m":"辛卯","dd":"乙亥","g":"乙","gk":"을목","el":{"목":2,"화":1,"토":0,"금":2,"수":1},"hi":"목","no":["토"],"sip":["편관","식신"],"s":"물고기자리"},{"n":"시은","c":"ㅅ","b":"2001-08-01","k":"","j":"가수","a":"뱀","y":"辛巳","m":"乙未","dd":"丙申","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":1,"금":2,"수":0},"hi":"화","no":["수"],"sip":["정재","겁재"],"s":"사자자리"},{"n":"아이사","c":"ㅇ","b":"2002-01-23","k":"","j":"가수","a":"뱀","y":"辛巳","m":"辛丑","dd":"辛卯","g":"辛","gk":"신금","el":{"목":1,"화":1,"토":1,"금":3,"수":0},"hi":"금","no":["수"],"sip":["비견","편관"],"s":"물병자리"},{"n":"세은","c":"ㅅ","b":"2003-06-14","k":"","j":"가수","a":"양","y":"癸未","m":"戊午","dd":"戊午","g":"戊","gk":"무토","el":{"목":0,"화":2,"토":3,"금":0,"수":1},"hi":"토","no":["목","금"],"sip":["편인","정재"],"s":"쌍둥이자리"},{"n":"윤","c":"ㅇ","b":"2004-04-14","k":"","j":"가수","a":"원숭이","y":"甲申","m":"戊辰","dd":"癸亥","g":"癸","gk":"계수","el":{"목":1,"화":0,"토":2,"금":1,"수":2},"hi":"토","no":["화"],"sip":["정관","상관"],"s":"양자리"},{"n":"재이","c":"ㅈ","b":"2004-12-09","k":"","j":"가수","a":"원숭이","y":"甲申","m":"丙子","dd":"壬戌","g":"壬","gk":"임수","el":{"목":1,"화":1,"토":1,"금":1,"수":2},"hi":"수","no":[],"sip":["식신","편인"],"s":"사수자리"},{"n":"방찬","c":"ㅂ","b":"1997-10-03","k":"","j":"가수","a":"소","y":"丁丑","m":"己酉","dd":"戊寅","g":"戊","gk":"무토","el":{"목":1,"화":1,"토":3,"금":1,"수":0},"hi":"토","no":["수"],"sip":["겁재","정인"],"s":"천칭자리"},{"n":"리노","c":"ㄹ","b":"1998-10-25","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"壬戌","dd":"乙巳","g":"乙","gk":"을목","el":{"목":2,"화":1,"토":2,"금":0,"수":1},"hi":"목","no":["금"],"sip":["정재","겁재"],"s":"전갈자리"},{"n":"창빈","c":"ㅊ","b":"1999-08-11","k":"","j":"가수","a":"토끼","y":"己卯","m":"壬申","dd":"乙未","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["편재","비견"],"s":"사자자리"},{"n":"현진","c":"ㅎ","b":"2000-03-20","k":"","j":"가수","a":"용","y":"庚辰","m":"己卯","dd":"丁丑","g":"丁","gk":"정화","el":{"목":1,"화":1,"토":3,"금":1,"수":0},"hi":"토","no":["수"],"sip":["식신","정재"],"s":"물고기자리"},{"n":"한","c":"ㅎ","b":"2000-09-14","k":"","j":"가수","a":"용","y":"庚辰","m":"乙酉","dd":"乙亥","g":"乙","gk":"을목","el":{"목":2,"화":0,"토":1,"금":2,"수":1},"hi":"목","no":["화"],"sip":["정관","정재"],"s":"처녀자리"},{"n":"필릭스","c":"ㅍ","b":"2000-09-15","k":"","j":"가수","a":"용","y":"庚辰","m":"乙酉","dd":"丙子","g":"丙","gk":"병화","el":{"목":1,"화":1,"토":1,"금":2,"수":1},"hi":"금","no":[],"sip":["편재","식신"],"s":"처녀자리"},{"n":"승민","c":"ㅅ","b":"2000-09-22","k":"","j":"가수","a":"용","y":"庚辰","m":"乙酉","dd":"癸未","g":"癸","gk":"계수","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["정인","정관"],"s":"처녀자리"},{"n":"아이엔","c":"ㅇ","b":"2001-02-08","k":"","j":"가수","a":"뱀","y":"辛巳","m":"庚寅","dd":"壬寅","g":"壬","gk":"임수","el":{"목":2,"화":1,"토":0,"금":2,"수":1},"hi":"목","no":["토"],"sip":["식신","정인"],"s":"물병자리"},{"n":"미연","c":"ㅁ","b":"1997-01-31","k":"","j":"가수","a":"쥐","y":"丙子","m":"辛丑","dd":"癸酉","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":1,"금":2,"수":2},"hi":"금","no":["목"],"sip":["편인","정재"],"s":"물병자리"},{"n":"민니","c":"ㅁ","b":"1997-10-23","k":"","j":"가수","a":"소","y":"丁丑","m":"庚戌","dd":"戊戌","g":"戊","gk":"무토","el":{"목":0,"화":1,"토":4,"금":1,"수":0},"hi":"토","no":["목","수"],"sip":["비견","정인"],"s":"천칭자리"},{"n":"소연","c":"ㅅ","b":"1998-08-26","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"庚申","dd":"乙巳","g":"乙","gk":"을목","el":{"목":2,"화":1,"토":1,"금":2,"수":0},"hi":"목","no":["수"],"sip":["정관","정재"],"s":"처녀자리"},{"n":"우기","c":"ㅇ","b":"1999-09-23","k":"","j":"가수","a":"토끼","y":"己卯","m":"癸酉","dd":"戊寅","g":"戊","gk":"무토","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["겁재","정관"],"s":"처녀자리"},{"n":"슈화","c":"ㅅ","b":"2000-01-06","k":"","j":"가수","a":"토끼","y":"己卯","m":"丁丑","dd":"癸亥","g":"癸","gk":"계수","el":{"목":1,"화":1,"토":2,"금":0,"수":2},"hi":"토","no":["금"],"sip":["편관","식신"],"s":"염소자리"},{"n":"가을","c":"ㄱ","b":"2002-09-24","k":"","j":"가수","a":"말","y":"壬午","m":"己酉","dd":"乙未","g":"乙","gk":"을목","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["편재","정인"],"s":"천칭자리"},{"n":"안유진","c":"ㅇ","b":"2003-09-01","k":"","j":"가수","a":"양","y":"癸未","m":"庚申","dd":"丁丑","g":"丁","gk":"정화","el":{"목":0,"화":1,"토":2,"금":2,"수":1},"hi":"토","no":["목"],"sip":["식신","정재"],"s":"처녀자리"},{"n":"레이","c":"ㄹ","b":"2004-02-03","k":"","j":"가수","a":"양","y":"癸未","m":"乙丑","dd":"壬子","g":"壬","gk":"임수","el":{"목":1,"화":0,"토":2,"금":0,"수":3},"hi":"수","no":["화","금"],"sip":["정관","겁재"],"s":"물병자리"},{"n":"장원영","c":"ㅈ","b":"2004-08-31","k":"","j":"가수","a":"원숭이","y":"甲申","m":"壬申","dd":"壬午","g":"壬","gk":"임수","el":{"목":1,"화":1,"토":0,"금":2,"수":2},"hi":"금","no":["토"],"sip":["편인","식신"],"s":"처녀자리"},{"n":"리즈","c":"ㄹ","b":"2004-11-21","k":"","j":"가수","a":"원숭이","y":"甲申","m":"乙亥","dd":"甲辰","g":"甲","gk":"갑목","el":{"목":3,"화":0,"토":1,"금":1,"수":1},"hi":"목","no":["화"],"sip":["비견","편관"],"s":"전갈자리"},{"n":"이서","c":"ㅇ","b":"2007-02-21","k":"","j":"가수","a":"돼지","y":"丁亥","m":"壬寅","dd":"丙戌","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":1,"금":0,"수":2},"hi":"화","no":["금"],"sip":["겁재","정관"],"s":"물고기자리"},{"n":"윤아","c":"ㅇ","b":"2004-01-15","k":"","j":"가수","a":"양","y":"癸未","m":"乙丑","dd":"癸巳","g":"癸","gk":"계수","el":{"목":1,"화":1,"토":2,"금":0,"수":2},"hi":"토","no":["금"],"sip":["편관","비견"],"s":"염소자리"},{"n":"민주","c":"ㅁ","b":"2004-05-11","k":"","j":"가수","a":"원숭이","y":"甲申","m":"己巳","dd":"庚寅","g":"庚","gk":"경금","el":{"목":2,"화":1,"토":1,"금":2,"수":0},"hi":"목","no":["수"],"sip":["편재","비견"],"s":"황소자리"},{"n":"모카","c":"ㅁ","b":"2004-10-08","k":"","j":"가수","a":"원숭이","y":"甲申","m":"甲戌","dd":"庚申","g":"庚","gk":"경금","el":{"목":2,"화":0,"토":1,"금":3,"수":0},"hi":"금","no":["화","수"],"sip":["편재","비견"],"s":"천칭자리"},{"n":"원희","c":"ㅇ","b":"2007-06-26","k":"","j":"가수","a":"돼지","y":"丁亥","m":"丙午","dd":"辛卯","g":"辛","gk":"신금","el":{"목":1,"화":3,"토":0,"금":1,"수":1},"hi":"화","no":["토"],"sip":["정관","편관"],"s":"게자리"},{"n":"이로하","c":"ㅇ","b":"2008-02-04","k":"","j":"가수","a":"돼지","y":"丁亥","m":"癸丑","dd":"甲戌","g":"甲","gk":"갑목","el":{"목":1,"화":1,"토":2,"금":0,"수":2},"hi":"토","no":["금"],"sip":["정인","상관"],"s":"물병자리"},{"n":"카리나","c":"ㅋ","b":"2000-04-11","k":"","j":"가수","a":"용","y":"庚辰","m":"庚辰","dd":"己亥","g":"己","gk":"기토","el":{"목":0,"화":0,"토":3,"금":2,"수":1},"hi":"토","no":["목","화"],"sip":["상관","겁재"],"s":"양자리"},{"n":"지젤","c":"ㅈ","b":"2000-10-30","k":"","j":"가수","a":"용","y":"庚辰","m":"丙戌","dd":"辛酉","g":"辛","gk":"신금","el":{"목":0,"화":1,"토":2,"금":3,"수":0},"hi":"금","no":["목","수"],"sip":["정인","겁재"],"s":"전갈자리"},{"n":"윈터","c":"ㅇ","b":"2001-01-01","k":"","j":"가수","a":"용","y":"庚辰","m":"戊子","dd":"甲子","g":"甲","gk":"갑목","el":{"목":1,"화":0,"토":2,"금":1,"수":2},"hi":"토","no":["화"],"sip":["편재","편인"],"s":"염소자리"},{"n":"닝닝","c":"ㄴ","b":"2002-10-23","k":"","j":"가수","a":"말","y":"壬午","m":"庚戌","dd":"甲子","g":"甲","gk":"갑목","el":{"목":1,"화":1,"토":1,"금":1,"수":2},"hi":"수","no":[],"sip":["편인","식신"],"s":"천칭자리"},{"n":"성화","c":"ㅅ","b":"1998-04-03","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"乙卯","dd":"庚辰","g":"庚","gk":"경금","el":{"목":3,"화":0,"토":2,"금":1,"수":0},"hi":"목","no":["화","수"],"sip":["편인","정재"],"s":"양자리"},{"n":"홍중","c":"ㅎ","b":"1998-11-07","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"壬戌","dd":"戊午","g":"戊","gk":"무토","el":{"목":1,"화":1,"토":3,"금":0,"수":1},"hi":"토","no":["금"],"sip":["비견","편관"],"s":"전갈자리"},{"n":"윤호","c":"ㅇ","b":"1999-03-23","k":"","j":"가수","a":"토끼","y":"己卯","m":"丁卯","dd":"甲戌","g":"甲","gk":"갑목","el":{"목":3,"화":1,"토":2,"금":0,"수":0},"hi":"목","no":["금","수"],"sip":["겁재","정재"],"s":"양자리"},{"n":"여상","c":"ㅇ","b":"1999-06-15","k":"","j":"가수","a":"토끼","y":"己卯","m":"庚午","dd":"戊戌","g":"戊","gk":"무토","el":{"목":1,"화":1,"토":3,"금":1,"수":0},"hi":"토","no":["수"],"sip":["겁재","정관"],"s":"쌍둥이자리"},{"n":"산","c":"ㅅ","b":"1999-07-10","k":"","j":"가수","a":"토끼","y":"己卯","m":"辛未","dd":"癸亥","g":"癸","gk":"계수","el":{"목":1,"화":0,"토":2,"금":1,"수":2},"hi":"토","no":["화"],"sip":["편관","식신"],"s":"게자리"},{"n":"민기","c":"ㅁ","b":"1999-08-09","k":"","j":"가수","a":"토끼","y":"己卯","m":"壬申","dd":"癸巳","g":"癸","gk":"계수","el":{"목":1,"화":1,"토":1,"금":1,"수":2},"hi":"수","no":[],"sip":["편관","식신"],"s":"사자자리"},{"n":"우영","c":"ㅇ","b":"1999-11-26","k":"","j":"가수","a":"토끼","y":"己卯","m":"乙亥","dd":"壬午","g":"壬","gk":"임수","el":{"목":2,"화":1,"토":1,"금":0,"수":2},"hi":"목","no":["금"],"sip":["상관","정관"],"s":"사수자리"},{"n":"종호","c":"ㅈ","b":"2000-10-12","k":"","j":"가수","a":"용","y":"庚辰","m":"丙戌","dd":"癸卯","g":"癸","gk":"계수","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["정관","정인"],"s":"천칭자리"},{"n":"박초롱","c":"ㅂ","b":"1991-03-03","k":"","j":"가수","a":"양","y":"辛未","m":"庚寅","dd":"壬申","g":"壬","gk":"임수","el":{"목":1,"화":0,"토":1,"금":3,"수":1},"hi":"금","no":["화"],"sip":["편인","정인"],"s":"물고기자리"},{"n":"윤보미","c":"ㅇ","b":"1993-08-13","k":"","j":"가수","a":"닭","y":"癸酉","m":"庚申","dd":"丙寅","g":"丙","gk":"병화","el":{"목":1,"화":1,"토":0,"금":3,"수":1},"hi":"금","no":["토"],"sip":["편재","정관"],"s":"사자자리"},{"n":"정은지","c":"ㅈ","b":"1993-08-18","k":"","j":"가수","a":"닭","y":"癸酉","m":"庚申","dd":"辛未","g":"辛","gk":"신금","el":{"목":0,"화":0,"토":1,"금":4,"수":1},"hi":"금","no":["목","화"],"sip":["겁재","식신"],"s":"사자자리"},{"n":"김남주(에이핑크)","c":"ㄱ","b":"1995-04-15","k":"","j":"가수","a":"돼지","y":"乙亥","m":"庚辰","dd":"丙子","g":"丙","gk":"병화","el":{"목":1,"화":1,"토":1,"금":1,"수":2},"hi":"수","no":[],"sip":["정인","정관"],"s":"양자리"},{"n":"오하영","c":"ㅇ","b":"1996-07-19","k":"","j":"가수","a":"쥐","y":"丙子","m":"乙未","dd":"丁巳","g":"丁","gk":"정화","el":{"목":1,"화":3,"토":1,"금":0,"수":1},"hi":"화","no":["금"],"sip":["겁재","정관"],"s":"게자리"},{"n":"시우민","c":"ㅅ","b":"1990-03-26","k":"","j":"가수","a":"말","y":"庚午","m":"己卯","dd":"庚寅","g":"庚","gk":"경금","el":{"목":2,"화":1,"토":1,"금":2,"수":0},"hi":"목","no":["수"],"sip":["비견","편관"],"s":"양자리"},{"n":"수호","c":"ㅅ","b":"1991-05-22","k":"","j":"가수","a":"양","y":"辛未","m":"癸巳","dd":"壬辰","g":"壬","gk":"임수","el":{"목":0,"화":1,"토":2,"금":1,"수":2},"hi":"토","no":["목"],"sip":["정인","정관"],"s":"쌍둥이자리"},{"n":"레이(엑소)","c":"ㄹ","b":"1991-10-07","k":"","j":"가수","a":"양","y":"辛未","m":"丁酉","dd":"庚戌","g":"庚","gk":"경금","el":{"목":0,"화":1,"토":2,"금":3,"수":0},"hi":"금","no":["목","수"],"sip":["겁재","정인"],"s":"천칭자리"},{"n":"백현","c":"ㅂ","b":"1992-05-06","k":"","j":"가수","a":"원숭이","y":"壬申","m":"乙巳","dd":"壬午","g":"壬","gk":"임수","el":{"목":1,"화":2,"토":0,"금":1,"수":2},"hi":"화","no":["토"],"sip":["비견","편인"],"s":"황소자리"},{"n":"첸","c":"ㅊ","b":"1992-09-21","k":"","j":"가수","a":"원숭이","y":"壬申","m":"己酉","dd":"庚子","g":"庚","gk":"경금","el":{"목":0,"화":0,"토":1,"금":3,"수":2},"hi":"금","no":["목","화"],"sip":["식신","비견"],"s":"처녀자리"},{"n":"찬열","c":"ㅊ","b":"1992-11-27","k":"","j":"가수","a":"원숭이","y":"壬申","m":"辛亥","dd":"丁未","g":"丁","gk":"정화","el":{"목":0,"화":1,"토":1,"금":2,"수":2},"hi":"금","no":["목"],"sip":["정관","정재"],"s":"사수자리"},{"n":"디오","c":"ㄷ","b":"1993-01-12","k":"","j":"가수","a":"원숭이","y":"壬申","m":"癸丑","dd":"癸巳","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":1,"금":1,"수":3},"hi":"수","no":["목"],"sip":["겁재","정인"],"s":"염소자리"},{"n":"카이","c":"ㅋ","b":"1994-01-14","k":"","j":"가수","a":"닭","y":"癸酉","m":"乙丑","dd":"庚子","g":"庚","gk":"경금","el":{"목":1,"화":0,"토":1,"금":2,"수":2},"hi":"금","no":["화"],"sip":["상관","겁재"],"s":"염소자리"},{"n":"세훈","c":"ㅅ","b":"1994-04-12","k":"","j":"가수","a":"개","y":"甲戌","m":"戊辰","dd":"戊辰","g":"戊","gk":"무토","el":{"목":1,"화":0,"토":5,"금":0,"수":0},"hi":"토","no":["화","금","수"],"sip":["비견","편관"],"s":"양자리"},{"n":"릴리","c":"ㄹ","b":"2002-10-17","k":"","j":"가수","a":"말","y":"壬午","m":"庚戌","dd":"戊午","g":"戊","gk":"무토","el":{"목":0,"화":2,"토":2,"금":1,"수":1},"hi":"화","no":["목"],"sip":["편인","편재"],"s":"천칭자리"},{"n":"해원","c":"ㅎ","b":"2003-02-25","k":"","j":"가수","a":"양","y":"癸未","m":"甲寅","dd":"己巳","g":"己","gk":"기토","el":{"목":2,"화":1,"토":2,"금":0,"수":1},"hi":"목","no":["금"],"sip":["정관","편재"],"s":"물고기자리"},{"n":"설윤","c":"ㅅ","b":"2004-01-26","k":"","j":"가수","a":"양","y":"癸未","m":"乙丑","dd":"甲辰","g":"甲","gk":"갑목","el":{"목":2,"화":0,"토":3,"금":0,"수":1},"hi":"토","no":["화","금"],"sip":["정재","정인"],"s":"물병자리"},{"n":"배이","c":"ㅂ","b":"2004-12-28","k":"","j":"가수","a":"원숭이","y":"甲申","m":"丙子","dd":"辛巳","g":"辛","gk":"신금","el":{"목":1,"화":2,"토":0,"금":2,"수":1},"hi":"화","no":["토"],"sip":["정재","겁재"],"s":"염소자리"},{"n":"지우","c":"ㅈ","b":"2005-04-13","k":"","j":"가수","a":"닭","y":"乙酉","m":"庚辰","dd":"丁卯","g":"丁","gk":"정화","el":{"목":2,"화":1,"토":1,"금":2,"수":0},"hi":"목","no":["수"],"sip":["편인","편재"],"s":"양자리"},{"n":"규진","c":"ㄱ","b":"2006-05-26","k":"","j":"가수","a":"개","y":"丙戌","m":"癸巳","dd":"乙卯","g":"乙","gk":"을목","el":{"목":2,"화":2,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["상관","정재"],"s":"쌍둥이자리"},{"n":"태일","c":"ㅌ","b":"1994-06-14","k":"","j":"가수","a":"개","y":"甲戌","m":"庚午","dd":"辛未","g":"辛","gk":"신금","el":{"목":1,"화":1,"토":2,"금":2,"수":0},"hi":"토","no":["수"],"sip":["정재","정인"],"s":"쌍둥이자리"},{"n":"쟈니","c":"ㅈ","b":"1995-02-09","k":"","j":"가수","a":"돼지","y":"乙亥","m":"戊寅","dd":"辛未","g":"辛","gk":"신금","el":{"목":2,"화":0,"토":2,"금":1,"수":1},"hi":"목","no":["화"],"sip":["편재","식신"],"s":"물병자리"},{"n":"태용","c":"ㅌ","b":"1995-07-01","k":"","j":"가수","a":"돼지","y":"乙亥","m":"壬午","dd":"癸巳","g":"癸","gk":"계수","el":{"목":1,"화":2,"토":0,"금":0,"수":3},"hi":"수","no":["토","금"],"sip":["식신","비견"],"s":"게자리"},{"n":"유타","c":"ㅇ","b":"1995-10-26","k":"","j":"가수","a":"돼지","y":"乙亥","m":"丙戌","dd":"庚寅","g":"庚","gk":"경금","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["정재","상관"],"s":"전갈자리"},{"n":"도영","c":"ㄷ","b":"1996-02-01","k":"","j":"가수","a":"돼지","y":"乙亥","m":"己丑","dd":"戊辰","g":"戊","gk":"무토","el":{"목":1,"화":0,"토":4,"금":0,"수":1},"hi":"토","no":["화","금"],"sip":["겁재","정관"],"s":"물병자리"},{"n":"재현(엔시티127)","c":"ㅈ","b":"1997-02-14","k":"","j":"가수","a":"소","y":"丁丑","m":"壬寅","dd":"丁亥","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":1,"금":0,"수":2},"hi":"화","no":["금"],"sip":["비견","식신"],"s":"물병자리"},{"n":"윈윈","c":"ㅇ","b":"1997-10-28","k":"","j":"가수","a":"소","y":"丁丑","m":"庚戌","dd":"癸卯","g":"癸","gk":"계수","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["편재","편관"],"s":"전갈자리"},{"n":"정우","c":"ㅈ","b":"1998-02-19","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"甲寅","dd":"丁酉","g":"丁","gk":"정화","el":{"목":3,"화":1,"토":1,"금":1,"수":0},"hi":"목","no":["수"],"sip":["정인","상관"],"s":"물고기자리"},{"n":"마크","c":"ㅁ","b":"1999-08-02","k":"","j":"가수","a":"토끼","y":"己卯","m":"辛未","dd":"丙戌","g":"丙","gk":"병화","el":{"목":1,"화":1,"토":3,"금":1,"수":0},"hi":"토","no":["수"],"sip":["상관","정인"],"s":"사자자리"},{"n":"런쥔","c":"ㄹ","b":"2000-03-23","k":"","j":"가수","a":"용","y":"庚辰","m":"己卯","dd":"庚辰","g":"庚","gk":"경금","el":{"목":1,"화":0,"토":3,"금":2,"수":0},"hi":"토","no":["화","수"],"sip":["편인","비견"],"s":"양자리"},{"n":"제노","c":"ㅈ","b":"2000-04-23","k":"","j":"가수","a":"용","y":"庚辰","m":"庚辰","dd":"辛亥","g":"辛","gk":"신금","el":{"목":0,"화":0,"토":2,"금":3,"수":1},"hi":"금","no":["목","화"],"sip":["겁재","정인"],"s":"황소자리"},{"n":"해찬","c":"ㅎ","b":"2000-06-06","k":"","j":"가수","a":"용","y":"庚辰","m":"壬午","dd":"乙未","g":"乙","gk":"을목","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["정관","정재"],"s":"쌍둥이자리"},{"n":"재민","c":"ㅈ","b":"2000-08-13","k":"","j":"가수","a":"용","y":"庚辰","m":"甲申","dd":"癸卯","g":"癸","gk":"계수","el":{"목":2,"화":0,"토":1,"금":2,"수":1},"hi":"목","no":["화"],"sip":["정인","정관"],"s":"사자자리"},{"n":"천러","c":"ㅊ","b":"2001-11-22","k":"","j":"가수","a":"뱀","y":"辛巳","m":"己亥","dd":"己丑","g":"己","gk":"기토","el":{"목":0,"화":1,"토":3,"금":1,"수":1},"hi":"토","no":["목"],"sip":["비견","식신"],"s":"전갈자리"},{"n":"지성(엔시티드림)","c":"ㅈ","b":"2002-02-05","k":"","j":"가수","a":"말","y":"壬午","m":"壬寅","dd":"甲辰","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":1,"금":0,"수":2},"hi":"목","no":["금"],"sip":["편인","식신"],"s":"물병자리"},{"n":"시온","c":"ㅅ","b":"2002-05-11","k":"","j":"가수","a":"말","y":"壬午","m":"乙巳","dd":"己卯","g":"己","gk":"기토","el":{"목":2,"화":2,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["편관","정재"],"s":"황소자리"},{"n":"리쿠","c":"ㄹ","b":"2003-06-28","k":"","j":"가수","a":"양","y":"癸未","m":"戊午","dd":"壬申","g":"壬","gk":"임수","el":{"목":0,"화":1,"토":2,"금":1,"수":2},"hi":"토","no":["목"],"sip":["겁재","정관"],"s":"게자리"},{"n":"유우시","c":"ㅇ","b":"2004-04-05","k":"","j":"가수","a":"원숭이","y":"甲申","m":"戊辰","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":3,"화":0,"토":2,"금":1,"수":0},"hi":"목","no":["화","수"],"sip":["비견","편재"],"s":"양자리"},{"n":"재희","c":"ㅈ","b":"2005-06-21","k":"","j":"가수","a":"닭","y":"乙酉","m":"壬午","dd":"丙子","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":0,"금":1,"수":2},"hi":"화","no":["토"],"sip":["편관","정인"],"s":"쌍둥이자리"},{"n":"료","c":"ㄹ","b":"2007-08-04","k":"","j":"가수","a":"돼지","y":"丁亥","m":"丁未","dd":"庚午","g":"庚","gk":"경금","el":{"목":0,"화":3,"토":1,"금":1,"수":1},"hi":"화","no":["목"],"sip":["정관","상관"],"s":"사자자리"},{"n":"사쿠야","c":"ㅅ","b":"2007-11-18","k":"","j":"가수","a":"돼지","y":"丁亥","m":"辛亥","dd":"丙辰","g":"丙","gk":"병화","el":{"목":0,"화":2,"토":1,"금":1,"수":2},"hi":"화","no":["목"],"sip":["정관","겁재"],"s":"전갈자리"},{"n":"희승","c":"ㅎ","b":"2001-10-15","k":"","j":"가수","a":"뱀","y":"辛巳","m":"戊戌","dd":"辛亥","g":"辛","gk":"신금","el":{"목":0,"화":1,"토":2,"금":2,"수":1},"hi":"토","no":["목"],"sip":["정인","비견"],"s":"천칭자리"},{"n":"제이","c":"ㅈ","b":"2002-04-20","k":"","j":"가수","a":"말","y":"壬午","m":"甲辰","dd":"戊午","g":"戊","gk":"무토","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["편인","편재"],"s":"양자리"},{"n":"제이크","c":"ㅈ","b":"2002-11-15","k":"","j":"가수","a":"말","y":"壬午","m":"辛亥","dd":"丁亥","g":"丁","gk":"정화","el":{"목":0,"화":2,"토":0,"금":1,"수":3},"hi":"수","no":["목","토"],"sip":["편관","정관"],"s":"전갈자리"},{"n":"성훈","c":"ㅅ","b":"2002-12-08","k":"","j":"가수","a":"말","y":"壬午","m":"壬子","dd":"庚戌","g":"庚","gk":"경금","el":{"목":0,"화":1,"토":1,"금":1,"수":3},"hi":"수","no":["목"],"sip":["식신","편관"],"s":"사수자리"},{"n":"선우(엔하이픈)","c":"ㅅ","b":"2003-06-24","k":"","j":"가수","a":"양","y":"癸未","m":"戊午","dd":"戊辰","g":"戊","gk":"무토","el":{"목":0,"화":1,"토":4,"금":0,"수":1},"hi":"토","no":["목","금"],"sip":["비견","정재"],"s":"게자리"},{"n":"정원","c":"ㅈ","b":"2004-02-09","k":"","j":"가수","a":"원숭이","y":"甲申","m":"丙寅","dd":"戊午","g":"戊","gk":"무토","el":{"목":2,"화":2,"토":1,"금":1,"수":0},"hi":"목","no":["수"],"sip":["편관","편인"],"s":"물병자리"},{"n":"니키","c":"ㄴ","b":"2005-12-09","k":"","j":"가수","a":"닭","y":"乙酉","m":"戊子","dd":"丁卯","g":"丁","gk":"정화","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["편인","편재"],"s":"사수자리"},{"n":"효정","c":"ㅎ","b":"1994-07-28","k":"","j":"가수","a":"개","y":"甲戌","m":"辛未","dd":"乙卯","g":"乙","gk":"을목","el":{"목":3,"화":0,"토":2,"금":1,"수":0},"hi":"목","no":["화","수"],"sip":["겁재","정재"],"s":"사자자리"},{"n":"미미","c":"ㅁ","b":"1995-05-01","k":"","j":"가수","a":"돼지","y":"乙亥","m":"庚辰","dd":"壬辰","g":"壬","gk":"임수","el":{"목":1,"화":0,"토":2,"금":1,"수":2},"hi":"토","no":["화"],"sip":["편관","상관"],"s":"황소자리"},{"n":"유아","c":"ㅇ","b":"1995-09-17","k":"","j":"가수","a":"돼지","y":"乙亥","m":"乙酉","dd":"辛亥","g":"辛","gk":"신금","el":{"목":2,"화":0,"토":0,"금":2,"수":2},"hi":"목","no":["화","토"],"sip":["편재","식신"],"s":"처녀자리"},{"n":"승희","c":"ㅅ","b":"1996-01-25","k":"","j":"가수","a":"돼지","y":"乙亥","m":"己丑","dd":"辛酉","g":"辛","gk":"신금","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["편인","편재"],"s":"물병자리"},{"n":"유빈","c":"ㅇ","b":"1997-09-09","k":"","j":"가수","a":"소","y":"丁丑","m":"己酉","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":2,"금":1,"수":0},"hi":"목","no":["수"],"sip":["정재","상관"],"s":"처녀자리"},{"n":"아린","c":"ㅇ","b":"1999-06-18","k":"","j":"가수","a":"토끼","y":"己卯","m":"庚午","dd":"辛丑","g":"辛","gk":"신금","el":{"목":1,"화":1,"토":2,"금":2,"수":0},"hi":"토","no":["수"],"sip":["편인","편재"],"s":"쌍둥이자리"},{"n":"예지","c":"ㅇ","b":"2000-05-26","k":"","j":"가수","a":"용","y":"庚辰","m":"辛巳","dd":"甲申","g":"甲","gk":"갑목","el":{"목":1,"화":1,"토":1,"금":3,"수":0},"hi":"금","no":["수"],"sip":["편관","편재"],"s":"쌍둥이자리"},{"n":"리아","c":"ㄹ","b":"2000-07-21","k":"","j":"가수","a":"용","y":"庚辰","m":"癸未","dd":"庚辰","g":"庚","gk":"경금","el":{"목":0,"화":0,"토":3,"금":2,"수":1},"hi":"토","no":["목","화"],"sip":["편인","비견"],"s":"게자리"},{"n":"류진","c":"ㄹ","b":"2001-04-17","k":"","j":"가수","a":"뱀","y":"辛巳","m":"壬辰","dd":"庚戌","g":"庚","gk":"경금","el":{"목":0,"화":1,"토":2,"금":2,"수":1},"hi":"토","no":["목"],"sip":["편인","겁재"],"s":"양자리"},{"n":"채령","c":"ㅊ","b":"2001-06-05","k":"","j":"가수","a":"뱀","y":"辛巳","m":"癸巳","dd":"己亥","g":"己","gk":"기토","el":{"목":0,"화":2,"토":1,"금":1,"수":2},"hi":"화","no":["목"],"sip":["편인","편재"],"s":"쌍둥이자리"},{"n":"유나","c":"ㅇ","b":"2003-12-09","k":"","j":"가수","a":"양","y":"癸未","m":"甲子","dd":"丙辰","g":"丙","gk":"병화","el":{"목":1,"화":1,"토":2,"금":0,"수":2},"hi":"토","no":["금"],"sip":["정관","상관"],"s":"사수자리"},{"n":"김지웅","c":"ㄱ","b":"1998-12-14","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"甲子","dd":"乙未","g":"乙","gk":"을목","el":{"목":3,"화":0,"토":2,"금":0,"수":1},"hi":"목","no":["화","금"],"sip":["겁재","정재"],"s":"사수자리"},{"n":"장하오","c":"ㅈ","b":"2000-07-25","k":"","j":"가수","a":"용","y":"庚辰","m":"癸未","dd":"甲申","g":"甲","gk":"갑목","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["편관","편재"],"s":"사자자리"},{"n":"성한빈","c":"ㅅ","b":"2001-06-13","k":"","j":"가수","a":"뱀","y":"辛巳","m":"甲午","dd":"丁未","g":"丁","gk":"정화","el":{"목":1,"화":3,"토":1,"금":1,"수":0},"hi":"화","no":["수"],"sip":["편재","비견"],"s":"쌍둥이자리"},{"n":"석매튜","c":"ㅅ","b":"2002-05-28","k":"","j":"가수","a":"말","y":"壬午","m":"乙巳","dd":"丙申","g":"丙","gk":"병화","el":{"목":1,"화":3,"토":0,"금":1,"수":1},"hi":"화","no":["토"],"sip":["편관","비견"],"s":"쌍둥이자리"},{"n":"김태래","c":"ㄱ","b":"2002-07-14","k":"","j":"가수","a":"말","y":"壬午","m":"丁未","dd":"癸未","g":"癸","gk":"계수","el":{"목":0,"화":2,"토":2,"금":0,"수":2},"hi":"화","no":["목","금"],"sip":["편관","겁재"],"s":"게자리"},{"n":"리키","c":"ㄹ","b":"2004-05-20","k":"","j":"가수","a":"원숭이","y":"甲申","m":"己巳","dd":"己亥","g":"己","gk":"기토","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["정관","상관"],"s":"황소자리"},{"n":"김규빈","c":"ㄱ","b":"2004-08-30","k":"","j":"가수","a":"원숭이","y":"甲申","m":"壬申","dd":"辛巳","g":"辛","gk":"신금","el":{"목":1,"화":1,"토":0,"금":3,"수":1},"hi":"금","no":["토"],"sip":["겁재","정재"],"s":"처녀자리"},{"n":"박건욱","c":"ㅂ","b":"2005-01-10","k":"","j":"가수","a":"원숭이","y":"甲申","m":"丁丑","dd":"甲午","g":"甲","gk":"갑목","el":{"목":2,"화":2,"토":1,"금":1,"수":0},"hi":"목","no":["수"],"sip":["비견","편관"],"s":"염소자리"},{"n":"샤오팅","c":"ㅅ","b":"1999-11-12","k":"","j":"가수","a":"토끼","y":"己卯","m":"乙亥","dd":"戊辰","g":"戊","gk":"무토","el":{"목":2,"화":0,"토":3,"금":0,"수":1},"hi":"토","no":["화","금"],"sip":["정관","겁재"],"s":"전갈자리"},{"n":"채현","c":"ㅊ","b":"2002-04-26","k":"","j":"가수","a":"말","y":"壬午","m":"甲辰","dd":"甲子","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":1,"금":0,"수":2},"hi":"목","no":["금"],"sip":["편인","식신"],"s":"황소자리"},{"n":"다연","c":"ㄷ","b":"2003-03-02","k":"","j":"가수","a":"양","y":"癸未","m":"甲寅","dd":"甲戌","g":"甲","gk":"갑목","el":{"목":3,"화":0,"토":2,"금":0,"수":1},"hi":"목","no":["화","금"],"sip":["비견","정인"],"s":"물고기자리"},{"n":"히카루","c":"ㅎ","b":"2004-03-12","k":"","j":"가수","a":"원숭이","y":"甲申","m":"丁卯","dd":"庚寅","g":"庚","gk":"경금","el":{"목":3,"화":1,"토":0,"금":2,"수":0},"hi":"목","no":["토","수"],"sip":["편재","비견"],"s":"물고기자리"},{"n":"휴닝바히에","c":"ㅎ","b":"2004-07-27","k":"","j":"가수","a":"원숭이","y":"甲申","m":"辛未","dd":"丁未","g":"丁","gk":"정화","el":{"목":1,"화":1,"토":2,"금":2,"수":0},"hi":"토","no":["수"],"sip":["식신","정인"],"s":"사자자리"},{"n":"영은","c":"ㅇ","b":"2004-12-27","k":"","j":"가수","a":"원숭이","y":"甲申","m":"丙子","dd":"庚辰","g":"庚","gk":"경금","el":{"목":1,"화":1,"토":1,"금":2,"수":1},"hi":"금","no":[],"sip":["편재","비견"],"s":"염소자리"},{"n":"예서","c":"ㅇ","b":"2005-08-22","k":"","j":"가수","a":"닭","y":"乙酉","m":"甲申","dd":"戊寅","g":"戊","gk":"무토","el":{"목":3,"화":0,"토":1,"금":2,"수":0},"hi":"목","no":["화","수"],"sip":["편관","정관"],"s":"사자자리"},{"n":"세림","c":"ㅅ","b":"1999-03-03","k":"","j":"가수","a":"토끼","y":"己卯","m":"丙寅","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":4,"화":1,"토":1,"금":0,"수":0},"hi":"목","no":["금","수"],"sip":["비견","정재"],"s":"물고기자리"},{"n":"앨런","c":"ㅇ","b":"1999-04-26","k":"","j":"가수","a":"토끼","y":"己卯","m":"戊辰","dd":"戊申","g":"戊","gk":"무토","el":{"목":1,"화":0,"토":4,"금":1,"수":0},"hi":"토","no":["화","수"],"sip":["비견","겁재"],"s":"황소자리"},{"n":"정모","c":"ㅈ","b":"2000-02-05","k":"","j":"가수","a":"용","y":"庚辰","m":"戊寅","dd":"癸巳","g":"癸","gk":"계수","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["정관","정인"],"s":"물병자리"},{"n":"우빈","c":"ㅇ","b":"2000-10-16","k":"","j":"가수","a":"용","y":"庚辰","m":"丙戌","dd":"丁未","g":"丁","gk":"정화","el":{"목":0,"화":2,"토":3,"금":1,"수":0},"hi":"토","no":["목","수"],"sip":["상관","정재"],"s":"천칭자리"},{"n":"원진","c":"ㅇ","b":"2001-03-22","k":"","j":"가수","a":"뱀","y":"辛巳","m":"辛卯","dd":"甲申","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":0,"금":3,"수":0},"hi":"금","no":["토","수"],"sip":["정관","상관"],"s":"양자리"},{"n":"민희","c":"ㅁ","b":"2002-09-17","k":"","j":"가수","a":"말","y":"壬午","m":"己酉","dd":"戊子","g":"戊","gk":"무토","el":{"목":0,"화":1,"토":2,"금":1,"수":2},"hi":"토","no":["목"],"sip":["편재","편인"],"s":"처녀자리"},{"n":"형준","c":"ㅎ","b":"2002-11-30","k":"","j":"가수","a":"말","y":"壬午","m":"辛亥","dd":"壬寅","g":"壬","gk":"임수","el":{"목":1,"화":1,"토":0,"금":1,"수":3},"hi":"수","no":["토"],"sip":["비견","편재"],"s":"사수자리"},{"n":"태영","c":"ㅌ","b":"2003-01-27","k":"","j":"가수","a":"말","y":"壬午","m":"癸丑","dd":"庚子","g":"庚","gk":"경금","el":{"목":0,"화":1,"토":1,"금":1,"수":3},"hi":"수","no":["목"],"sip":["식신","편관"],"s":"물병자리"},{"n":"성민","c":"ㅅ","b":"2003-08-01","k":"","j":"가수","a":"양","y":"癸未","m":"己未","dd":"丙午","g":"丙","gk":"병화","el":{"목":0,"화":2,"토":3,"금":0,"수":1},"hi":"토","no":["목","금"],"sip":["상관","정관"],"s":"사자자리"},{"n":"줄리","c":"ㅈ","b":"2000-03-29","k":"","j":"가수","a":"용","y":"庚辰","m":"己卯","dd":"丙戌","g":"丙","gk":"병화","el":{"목":1,"화":1,"토":3,"금":1,"수":0},"hi":"토","no":["수"],"sip":["식신","편재"],"s":"양자리"},{"n":"나띠","c":"ㄴ","b":"2002-05-30","k":"","j":"가수","a":"말","y":"壬午","m":"乙巳","dd":"戊戌","g":"戊","gk":"무토","el":{"목":1,"화":2,"토":2,"금":0,"수":1},"hi":"화","no":["금"],"sip":["편재","편인"],"s":"쌍둥이자리"},{"n":"벨","c":"ㅂ","b":"2004-03-20","k":"","j":"가수","a":"원숭이","y":"甲申","m":"丁卯","dd":"戊戌","g":"戊","gk":"무토","el":{"목":2,"화":1,"토":2,"금":1,"수":0},"hi":"목","no":["수"],"sip":["편관","식신"],"s":"물고기자리"},{"n":"하늘","c":"ㅎ","b":"2005-05-25","k":"","j":"가수","a":"닭","y":"乙酉","m":"辛巳","dd":"己酉","g":"己","gk":"기토","el":{"목":1,"화":1,"토":1,"금":3,"수":0},"hi":"금","no":["수"],"sip":["식신","편관"],"s":"쌍둥이자리"},{"n":"연준","c":"ㅇ","b":"1999-09-13","k":"","j":"가수","a":"토끼","y":"己卯","m":"癸酉","dd":"戊辰","g":"戊","gk":"무토","el":{"목":1,"화":0,"토":3,"금":1,"수":1},"hi":"토","no":["화"],"sip":["겁재","정관"],"s":"처녀자리"},{"n":"수빈","c":"ㅅ","b":"2000-12-05","k":"","j":"가수","a":"용","y":"庚辰","m":"丁亥","dd":"丁酉","g":"丁","gk":"정화","el":{"목":0,"화":2,"토":1,"금":2,"수":1},"hi":"화","no":["목"],"sip":["정재","상관"],"s":"사수자리"},{"n":"범규","c":"ㅂ","b":"2001-03-13","k":"","j":"가수","a":"뱀","y":"辛巳","m":"辛卯","dd":"乙亥","g":"乙","gk":"을목","el":{"목":2,"화":1,"토":0,"금":2,"수":1},"hi":"목","no":["토"],"sip":["편관","식신"],"s":"물고기자리"},{"n":"태현","c":"ㅌ","b":"2002-02-05","k":"","j":"가수","a":"말","y":"壬午","m":"壬寅","dd":"甲辰","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":1,"금":0,"수":2},"hi":"목","no":["금"],"sip":["편인","식신"],"s":"물병자리"},{"n":"휴닝카이","c":"ㅎ","b":"2002-08-14","k":"","j":"가수","a":"말","y":"壬午","m":"戊申","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["편인","식신"],"s":"사자자리"},{"n":"신유","c":"ㅅ","b":"2003-11-07","k":"","j":"가수","a":"양","y":"癸未","m":"壬戌","dd":"甲申","g":"甲","gk":"갑목","el":{"목":1,"화":0,"토":2,"금":1,"수":2},"hi":"토","no":["화"],"sip":["정인","정재"],"s":"전갈자리"},{"n":"도훈","c":"ㄷ","b":"2005-01-30","k":"","j":"가수","a":"원숭이","y":"甲申","m":"丁丑","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":3,"화":1,"토":1,"금":1,"수":0},"hi":"목","no":["수"],"sip":["비견","편관"],"s":"물병자리"},{"n":"영재","c":"ㅇ","b":"2005-05-31","k":"","j":"가수","a":"닭","y":"乙酉","m":"辛巳","dd":"乙卯","g":"乙","gk":"을목","el":{"목":3,"화":1,"토":0,"금":2,"수":0},"hi":"목","no":["토","수"],"sip":["비견","편관"],"s":"쌍둥이자리"},{"n":"한진","c":"ㅎ","b":"2006-01-05","k":"","j":"가수","a":"닭","y":"乙酉","m":"戊子","dd":"甲午","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["겁재","정관"],"s":"염소자리"},{"n":"지훈","c":"ㅈ","b":"2006-03-28","k":"","j":"가수","a":"개","y":"丙戌","m":"辛卯","dd":"丙辰","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":2,"금":1,"수":0},"hi":"화","no":["수"],"sip":["식신","비견"],"s":"양자리"},{"n":"경민","c":"ㄱ","b":"2007-10-02","k":"","j":"가수","a":"돼지","y":"丁亥","m":"己酉","dd":"己巳","g":"己","gk":"기토","el":{"목":0,"화":2,"토":2,"금":1,"수":1},"hi":"화","no":["목"],"sip":["편인","편재"],"s":"천칭자리"},{"n":"최현석","c":"ㅊ","b":"1999-04-21","k":"","j":"가수","a":"토끼","y":"己卯","m":"戊辰","dd":"癸卯","g":"癸","gk":"계수","el":{"목":2,"화":0,"토":3,"금":0,"수":1},"hi":"토","no":["화","금"],"sip":["식신","정관"],"s":"황소자리"},{"n":"지훈(트레저)","c":"ㅈ","b":"2000-03-14","k":"","j":"가수","a":"용","y":"庚辰","m":"己卯","dd":"辛未","g":"辛","gk":"신금","el":{"목":1,"화":0,"토":3,"금":2,"수":0},"hi":"토","no":["화","수"],"sip":["편인","겁재"],"s":"물고기자리"},{"n":"요시","c":"ㅇ","b":"2000-05-15","k":"","j":"가수","a":"용","y":"庚辰","m":"辛巳","dd":"癸酉","g":"癸","gk":"계수","el":{"목":0,"화":1,"토":1,"금":3,"수":1},"hi":"금","no":["목"],"sip":["편인","정인"],"s":"황소자리"},{"n":"준규","c":"ㅈ","b":"2000-09-09","k":"","j":"가수","a":"용","y":"庚辰","m":"乙酉","dd":"庚午","g":"庚","gk":"경금","el":{"목":1,"화":1,"토":1,"금":3,"수":0},"hi":"금","no":["수"],"sip":["비견","편인"],"s":"처녀자리"},{"n":"윤재혁","c":"ㅇ","b":"2001-07-23","k":"","j":"가수","a":"뱀","y":"辛巳","m":"乙未","dd":"丁亥","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":1,"금":1,"수":1},"hi":"화","no":[],"sip":["편재","비견"],"s":"사자자리"},{"n":"아사히","c":"ㅇ","b":"2001-08-20","k":"","j":"가수","a":"뱀","y":"辛巳","m":"丙申","dd":"乙卯","g":"乙","gk":"을목","el":{"목":2,"화":2,"토":0,"금":2,"수":0},"hi":"목","no":["토","수"],"sip":["편관","식신"],"s":"사자자리"},{"n":"도영(트레저)","c":"ㄷ","b":"2003-12-04","k":"","j":"가수","a":"양","y":"癸未","m":"癸亥","dd":"辛亥","g":"辛","gk":"신금","el":{"목":0,"화":0,"토":1,"금":1,"수":4},"hi":"수","no":["목","화"],"sip":["식신","편인"],"s":"사수자리"},{"n":"하루토","c":"ㅎ","b":"2004-04-05","k":"","j":"가수","a":"원숭이","y":"甲申","m":"戊辰","dd":"甲寅","g":"甲","gk":"갑목","el":{"목":3,"화":0,"토":2,"금":1,"수":0},"hi":"목","no":["화","수"],"sip":["비견","편재"],"s":"양자리"},{"n":"박정우","c":"ㅂ","b":"2004-09-28","k":"","j":"가수","a":"원숭이","y":"甲申","m":"癸酉","dd":"庚戌","g":"庚","gk":"경금","el":{"목":1,"화":0,"토":1,"금":3,"수":1},"hi":"금","no":["화"],"sip":["편재","비견"],"s":"천칭자리"},{"n":"소정환","c":"ㅅ","b":"2005-02-18","k":"","j":"가수","a":"닭","y":"乙酉","m":"戊寅","dd":"癸酉","g":"癸","gk":"계수","el":{"목":2,"화":0,"토":1,"금":2,"수":1},"hi":"목","no":["화"],"sip":["편인","식신"],"s":"물병자리"},{"n":"나연","c":"ㄴ","b":"1995-09-22","k":"","j":"가수","a":"돼지","y":"乙亥","m":"乙酉","dd":"丙辰","g":"丙","gk":"병화","el":{"목":2,"화":1,"토":1,"금":1,"수":1},"hi":"목","no":[],"sip":["정인","정관"],"s":"처녀자리"},{"n":"정연","c":"ㅈ","b":"1996-11-01","k":"","j":"가수","a":"쥐","y":"丙子","m":"戊戌","dd":"壬寅","g":"壬","gk":"임수","el":{"목":1,"화":1,"토":2,"금":0,"수":2},"hi":"토","no":["금"],"sip":["편관","편재"],"s":"전갈자리"},{"n":"모모","c":"ㅁ","b":"1996-11-09","k":"","j":"가수","a":"쥐","y":"丙子","m":"己亥","dd":"庚戌","g":"庚","gk":"경금","el":{"목":0,"화":1,"토":2,"금":1,"수":2},"hi":"토","no":["목"],"sip":["편관","식신"],"s":"전갈자리"},{"n":"사나","c":"ㅅ","b":"1996-12-29","k":"","j":"가수","a":"쥐","y":"丙子","m":"庚子","dd":"庚子","g":"庚","gk":"경금","el":{"목":0,"화":1,"토":0,"금":2,"수":3},"hi":"수","no":["목","토"],"sip":["식신","편관"],"s":"염소자리"},{"n":"지효","c":"ㅈ","b":"1997-02-01","k":"","j":"가수","a":"쥐","y":"丙子","m":"辛丑","dd":"甲戌","g":"甲","gk":"갑목","el":{"목":1,"화":1,"토":2,"금":1,"수":1},"hi":"토","no":[],"sip":["식신","편인"],"s":"물병자리"},{"n":"미나","c":"ㅁ","b":"1997-03-24","k":"","j":"가수","a":"소","y":"丁丑","m":"癸卯","dd":"乙丑","g":"乙","gk":"을목","el":{"목":2,"화":1,"토":2,"금":0,"수":1},"hi":"목","no":["금"],"sip":["편재","식신"],"s":"양자리"},{"n":"다현","c":"ㄷ","b":"1998-05-28","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"丁巳","dd":"乙亥","g":"乙","gk":"을목","el":{"목":2,"화":2,"토":1,"금":0,"수":1},"hi":"목","no":["금"],"sip":["식신","정재"],"s":"쌍둥이자리"},{"n":"채영","c":"ㅊ","b":"1999-04-23","k":"","j":"가수","a":"토끼","y":"己卯","m":"戊辰","dd":"乙巳","g":"乙","gk":"을목","el":{"목":2,"화":1,"토":3,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["정재","편재"],"s":"황소자리"},{"n":"쯔위","c":"ㅈ","b":"1999-06-14","k":"","j":"가수","a":"토끼","y":"己卯","m":"庚午","dd":"丁酉","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":1,"금":2,"수":0},"hi":"화","no":["수"],"sip":["식신","편인"],"s":"쌍둥이자리"},{"n":"이새롬","c":"ㅇ","b":"1997-01-07","k":"","j":"가수","a":"쥐","y":"丙子","m":"辛丑","dd":"己酉","g":"己","gk":"기토","el":{"목":0,"화":1,"토":2,"금":2,"수":1},"hi":"토","no":["목"],"sip":["식신","정인"],"s":"염소자리"},{"n":"송하영","c":"ㅅ","b":"1997-09-29","k":"","j":"가수","a":"소","y":"丁丑","m":"己酉","dd":"甲戌","g":"甲","gk":"갑목","el":{"목":1,"화":1,"토":3,"금":1,"수":0},"hi":"토","no":["수"],"sip":["정재","상관"],"s":"천칭자리"},{"n":"박지원","c":"ㅂ","b":"1998-03-20","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"乙卯","dd":"丙寅","g":"丙","gk":"병화","el":{"목":4,"화":1,"토":1,"금":0,"수":0},"hi":"목","no":["금","수"],"sip":["편인","정인"],"s":"물고기자리"},{"n":"노지선","c":"ㄴ","b":"1998-11-23","k":"","j":"가수","a":"호랑이","y":"戊寅","m":"癸亥","dd":"甲戌","g":"甲","gk":"갑목","el":{"목":2,"화":0,"토":2,"금":0,"수":2},"hi":"목","no":["화","금"],"sip":["편재","정인"],"s":"사수자리"},{"n":"이서연","c":"ㅇ","b":"2000-01-22","k":"","j":"가수","a":"토끼","y":"己卯","m":"丁丑","dd":"己卯","g":"己","gk":"기토","el":{"목":2,"화":1,"토":3,"금":0,"수":0},"hi":"토","no":["금","수"],"sip":["비견","편관"],"s":"물병자리"},{"n":"이채영","c":"ㅇ","b":"2000-05-14","k":"","j":"가수","a":"용","y":"庚辰","m":"辛巳","dd":"壬申","g":"壬","gk":"임수","el":{"목":0,"화":1,"토":1,"금":3,"수":1},"hi":"금","no":["목"],"sip":["편인","편관"],"s":"황소자리"},{"n":"이나경","c":"ㅇ","b":"2000-06-01","k":"","j":"가수","a":"용","y":"庚辰","m":"辛巳","dd":"庚寅","g":"庚","gk":"경금","el":{"목":1,"화":1,"토":1,"금":3,"수":0},"hi":"금","no":["수"],"sip":["비견","편인"],"s":"쌍둥이자리"},{"n":"백지헌","c":"ㅂ","b":"2003-04-17","k":"","j":"가수","a":"양","y":"癸未","m":"丙辰","dd":"庚申","g":"庚","gk":"경금","el":{"목":0,"화":1,"토":2,"금":2,"수":1},"hi":"토","no":["목"],"sip":["상관","정인"],"s":"양자리"},{"n":"테오","c":"ㅌ","b":"2001-07-01","k":"","j":"가수","a":"뱀","y":"辛巳","m":"甲午","dd":"乙丑","g":"乙","gk":"을목","el":{"목":2,"화":2,"토":1,"금":1,"수":0},"hi":"목","no":["수"],"sip":["편관","식신"],"s":"게자리"},{"n":"기호","c":"ㄱ","b":"2001-09-27","k":"","j":"가수","a":"뱀","y":"辛巳","m":"丁酉","dd":"癸巳","g":"癸","gk":"계수","el":{"목":0,"화":3,"토":0,"금":2,"수":1},"hi":"화","no":["목","토"],"sip":["편재","편인"],"s":"천칭자리"},{"n":"지웅","c":"ㅈ","b":"2001-10-07","k":"","j":"가수","a":"뱀","y":"辛巳","m":"丁酉","dd":"癸卯","g":"癸","gk":"계수","el":{"목":1,"화":2,"토":0,"금":2,"수":1},"hi":"화","no":["토"],"sip":["편인","편재"],"s":"천칭자리"},{"n":"인탁","c":"ㅇ","b":"2003-08-31","k":"","j":"가수","a":"양","y":"癸未","m":"庚申","dd":"丙子","g":"丙","gk":"병화","el":{"목":0,"화":1,"토":1,"금":2,"수":2},"hi":"금","no":["목"],"sip":["편재","정관"],"s":"처녀자리"},{"n":"소울","c":"ㅅ","b":"2005-02-01","k":"","j":"가수","a":"원숭이","y":"甲申","m":"丁丑","dd":"丙辰","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":2,"금":1,"수":0},"hi":"화","no":["수"],"sip":["편인","편재"],"s":"물병자리"},{"n":"종섭","c":"ㅈ","b":"2005-11-19","k":"","j":"가수","a":"닭","y":"乙酉","m":"丁亥","dd":"丁未","g":"丁","gk":"정화","el":{"목":1,"화":2,"토":1,"금":1,"수":1},"hi":"화","no":[],"sip":["편인","편재"],"s":"전갈자리"},{"n":"카르멘","c":"ㅋ","b":"2006-03-28","k":"","j":"가수","a":"개","y":"丙戌","m":"辛卯","dd":"丙辰","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":2,"금":1,"수":0},"hi":"화","no":["수"],"sip":["식신","비견"],"s":"양자리"},{"n":"지우(하츠투하츠)","c":"ㅈ","b":"2006-09-07","k":"","j":"가수","a":"개","y":"丙戌","m":"丙申","dd":"己亥","g":"己","gk":"기토","el":{"목":0,"화":2,"토":2,"금":1,"수":1},"hi":"화","no":["목"],"sip":["정인","겁재"],"s":"처녀자리"},{"n":"유하","c":"ㅇ","b":"2007-04-12","k":"","j":"가수","a":"돼지","y":"丁亥","m":"甲辰","dd":"丙子","g":"丙","gk":"병화","el":{"목":1,"화":2,"토":1,"금":0,"수":2},"hi":"화","no":["금"],"sip":["겁재","정관"],"s":"양자리"},{"n":"스텔라","c":"ㅅ","b":"2007-06-18","k":"","j":"가수","a":"돼지","y":"丁亥","m":"丙午","dd":"癸未","g":"癸","gk":"계수","el":{"목":0,"화":3,"토":1,"금":0,"수":2},"hi":"화","no":["목","금"],"sip":["정재","편재"],"s":"쌍둥이자리"},{"n":"준(하츠투하츠)","c":"ㅈ","b":"2008-12-03","k":"","j":"가수","a":"쥐","y":"戊子","m":"癸亥","dd":"丁丑","g":"丁","gk":"정화","el":{"목":0,"화":1,"토":2,"금":0,"수":3},"hi":"수","no":["목","금"],"sip":["편관","상관"],"s":"사수자리"},{"n":"에이나","c":"ㅇ","b":"2008-12-20","k":"","j":"가수","a":"쥐","y":"戊子","m":"甲子","dd":"甲午","g":"甲","gk":"갑목","el":{"목":2,"화":1,"토":1,"금":0,"수":2},"hi":"목","no":["금"],"sip":["편인","편재"],"s":"사수자리"},{"n":"이안","c":"ㅇ","b":"2009-10-09","k":"","j":"가수","a":"소","y":"己丑","m":"甲戌","dd":"丁亥","g":"丁","gk":"정화","el":{"목":1,"화":1,"토":3,"금":0,"수":1},"hi":"토","no":["금"],"sip":["식신","정인"],"s":"천칭자리"},{"n":"예온","c":"ㅇ","b":"2010-04-19","k":"","j":"가수","a":"호랑이","y":"庚寅","m":"庚辰","dd":"己亥","g":"己","gk":"기토","el":{"목":1,"화":0,"토":2,"금":2,"수":1},"hi":"토","no":["화"],"sip":["상관","정관"],"s":"양자리"}];
+  var DAY={
+    '甲':{ kor:'갑목', image:'큰 나무',
+      what:'곧게 위로 뻗는 나무입니다. 굽히는 법을 잘 모르고, 한번 방향을 정하면 그쪽으로만 자랍니다.',
+      good:'앞장서는 일, 처음 여는 일, 이름을 걸고 하는 일에서 힘이 납니다. 사람들은 당신을 기준 삼아 줄을 섭니다.',
+      care:'꺾이면 다시 서기까지 오래 걸립니다. 굽힐 줄 아는 사람 하나를 곁에 두는 것이 평생의 보험입니다.' },
+    '乙':{ kor:'을목', image:'덩굴과 풀',
+      what:'낮게 자라며 감아 오르는 풀입니다. 부러지지 않고 휘어서 살아남습니다.',
+      good:'남의 판에 들어가 자기 자리를 만드는 데 능합니다. 버티는 힘이 세고, 끝까지 남아 있는 쪽입니다.',
+      care:'기댈 것이 없으면 방향을 잃습니다. 무엇에 감아 오를지를 고르는 것이 당신의 가장 큰 결정입니다.' },
+    '丙':{ kor:'병화', image:'한낮의 해',
+      what:'가리지 않고 비추는 빛입니다. 숨기지 못하고, 숨길 생각도 없습니다.',
+      good:'사람을 끌어모으고 분위기를 데웁니다. 앞에 나서는 자리에서 제일 자기다워집니다.',
+      care:'너무 밝아서 그늘을 못 봅니다. 조용한 사람이 무엇을 참고 있는지 놓치기 쉽습니다.' },
+    '丁':{ kor:'정화', image:'등불',
+      what:'작지만 꺼지지 않는 불입니다. 어두울수록 제 몫을 합니다.',
+      good:'한 사람 한 사람을 깊게 살핍니다. 세밀한 일, 오래 지켜야 하는 일에 맞습니다.',
+      care:'제 몸을 태워 밝힙니다. 다 주고 나서 텅 비는 일이 반복되면 몸이 먼저 신호를 보냅니다.' },
+    '戊':{ kor:'무토', image:'너른 땅',
+      what:'움직이지 않는 흙입니다. 무엇이 올라와도 받아냅니다.',
+      good:'믿음을 삽니다. 오래 걸리는 일, 사람을 담아야 하는 일에서 진가가 납니다.',
+      care:'너무 안 움직여서 때를 놓칩니다. 결심하고도 한 계절을 더 앉아 있는 버릇이 있습니다.' },
+    '己':{ kor:'기토', image:'밭흙',
+      what:'무언가를 길러내는 흙입니다. 자기가 나서기보다 남을 자라게 합니다.',
+      good:'조율과 살림에 능합니다. 여럿 사이에 서서 아귀를 맞추는 자리에서 없어서는 안 될 사람이 됩니다.',
+      care:'다 받아주다 보면 자기 밭이 헐거워집니다. 거절을 배우는 것이 당신의 숙제입니다.' },
+    '庚':{ kor:'경금', image:'다듬지 않은 쇠',
+      what:'단단하고 날이 선 쇠입니다. 옳고 그름이 분명합니다.',
+      good:'끊어내야 할 때 끊습니다. 판을 정리하고 규칙을 세우는 일에서 강합니다.',
+      care:'말이 칼이 됩니다. 맞는 말을 했는데 사람이 떠나는 일을 여러 번 겪습니다.' },
+    '辛':{ kor:'신금', image:'다듬은 보석',
+      what:'깎이고 닦인 금속입니다. 흠이 보이는 걸 견디지 못합니다.',
+      good:'감각과 완성도로 먹고삽니다. 마무리를 맡기면 다른 사람보다 한 단계 위로 올려놓습니다.',
+      care:'자기 흠에 가장 가혹합니다. 남이 이미 잊은 실수를 혼자 몇 년을 들고 갑니다.' },
+    '壬':{ kor:'임수', image:'큰 물',
+      what:'멀리 흐르는 물입니다. 한 자리에 고이지 않습니다.',
+      good:'넓게 보고 멀리 잡습니다. 여러 갈래를 한꺼번에 굴리는 데 능합니다.',
+      care:'깊이가 얕아질 수 있습니다. 벌여둔 것 중 무엇을 끝낼지 정하지 않으면 아무것도 안 남습니다.' },
+    '癸':{ kor:'계수', image:'이슬과 실개천',
+      what:'가늘고 스며드는 물입니다. 소리 없이 안으로 들어갑니다.',
+      good:'남이 못 본 결을 봅니다. 생각을 오래 품어 한 번에 내놓는 쪽입니다.',
+      care:'속으로만 흐릅니다. 말하지 않은 서운함이 쌓이면 어느 날 통째로 돌아섭니다.' }
+  };
+  var SIP={
+    '비견':{ t:'비견 · 나와 같은 자리',
+      d:'나와 같은 무게의 사람이 곁에 있는 자리입니다. 동료가 되기도 하고 경쟁자가 되기도 합니다. 남 밑에 오래 있기 어렵습니다.' },
+    '겁재':{ t:'겁재 · 나를 밀어내는 같은 편',
+      d:'같은 것을 두고 다투는 자리입니다. 추진력이 세지만, 손에 쥔 것이 남에게 새어나가기도 쉽습니다. 돈 문제는 반드시 문서로 남겨야 합니다.' },
+    '식신':{ t:'식신 · 내가 내놓는 것',
+      d:'가진 것을 밖으로 풀어내는 자리입니다. 먹고사는 재주가 여기서 나옵니다. 서두르지 않고 오래 하는 쪽에 복이 붙습니다.' },
+    '상관':{ t:'상관 · 판을 흔드는 재능',
+      d:'남이 안 하던 방식을 찾아내는 자리입니다. 재능이 크지만 규칙과 자주 부딪칩니다. 윗사람과의 마찰이 늘 과제로 남습니다.' },
+    '편재':{ t:'편재 · 크게 들어오고 크게 나가는 돈',
+      d:'움직이는 돈의 자리입니다. 기회를 알아보는 눈이 밝고, 씀씀이도 그만큼 큽니다. 목돈이 들어올 때 반을 묶어두는 습관이 평생을 가릅니다.' },
+    '정재':{ t:'정재 · 꼬박꼬박 쌓이는 돈',
+      d:'정해진 몫이 정해진 때에 들어오는 자리입니다. 크게 터지지는 않아도 새지 않습니다. 착실함이 당신의 재산입니다.' },
+    '편관':{ t:'편관 · 나를 몰아붙이는 힘',
+      d:'압박과 책임의 자리입니다. 궁지에 몰릴수록 오히려 일이 됩니다. 다만 몸이 먼저 상하기 쉬워 쉬는 시기를 스스로 정해야 합니다.' },
+    '정관':{ t:'정관 · 지켜야 할 자리',
+      d:'규범과 직책의 자리입니다. 맡기면 끝까지 합니다. 조직 안에서 신뢰를 얻지만, 틀을 벗어나야 할 때 한 박자 늦습니다.' },
+    '편인':{ t:'편인 · 한쪽으로 깊은 공부',
+      d:'남들이 안 파는 데를 파고드는 자리입니다. 독특한 전문성이 생기지만, 시작한 것을 끝맺지 않고 다음으로 넘어가기도 합니다.' },
+    '정인':{ t:'정인 · 받아들이고 배우는 힘',
+      d:'배우고 기대는 자리입니다. 귀인이 붙고 문서운이 좋습니다. 다만 받는 데 익숙해지면 스스로 벌어야 할 때를 미룹니다.' }
+  };
+  var EL_MUCH={
+    '목':'뻗으려는 힘이 넘칩니다. 계획이 자꾸 커지고, 하던 일이 끝나기 전에 다음 것이 시작됩니다.',
+    '화':'드러내는 기운이 넘칩니다. 열이 빨리 오르고 빨리 식습니다. 말이 앞서 나가 수습할 일이 생깁니다.',
+    '토':'버티는 힘이 넘칩니다. 좀처럼 안 움직여서 안전하지만, 기회가 지나간 뒤에 결심하는 일이 잦습니다.',
+    '금':'끊는 힘이 넘칩니다. 기준이 분명해 흔들리지 않지만, 사람에게도 같은 잣대를 들이대 상처를 남깁니다.',
+    '수':'흐르는 기운이 넘칩니다. 생각이 많고 밤이 깁니다. 결정을 미루다 때를 놓치는 것이 유일한 약점입니다.'
+  };
+  var EL_NONE={
+    '목':'뻗어나가는 기운이 없습니다. 새로 시작하는 일 앞에서 유난히 오래 망설입니다. 시작을 대신 밀어줄 사람이 곁에 있어야 합니다.',
+    '화':'드러내는 기운이 없습니다. 속으로 다 하고도 밖으로 내보이지 못해 몫을 덜 가져갑니다. 표현은 재능이 아니라 습관으로 만들어야 합니다.',
+    '토':'중심을 잡아주는 기운이 없습니다. 흔들릴 때 붙잡아줄 자리가 안에 없어, 사람이나 장소에 기대게 됩니다.',
+    '금':'끊어내는 기운이 없습니다. 아니라는 걸 알면서도 정리하지 못해 오래 끌고 갑니다. 마감과 규칙을 밖에서 빌려와야 합니다.',
+    '수':'품어 두는 기운이 없습니다. 쉬는 법을 몰라 계속 태우다가 어느 날 한꺼번에 주저앉습니다. 쉬는 시간을 일정처럼 잡아야 합니다.'
+  };
+  var SUN={
+    '양자리':'먼저 뛰어드는 사람','황소자리':'끝까지 쥐고 있는 사람','쌍둥이자리':'말과 정보로 사는 사람',
+    '게자리':'품고 지키는 사람','사자자리':'무대를 필요로 하는 사람','처녀자리':'다듬어야 직성이 풀리는 사람',
+    '천칭자리':'균형을 맞추는 사람','전갈자리':'끝까지 파고드는 사람','사수자리':'멀리 나가려는 사람',
+    '염소자리':'쌓아 올리는 사람','물병자리':'남과 다르게 보는 사람','물고기자리':'스며들어 함께 느끼는 사람'
+  };
+
+  var CHO=['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','A~Z'];
+  var ELS=['목','화','토','금','수'];
+  var GEN=[
+    {k:'', t:'전체'},
+    {k:'legend', t:'레전드', lo:0, hi:1959},
+    {k:'nation', t:'국민스타', lo:1960, hi:1974},
+    {k:'now',    t:'지금',    lo:1975, hi:1986},
+    {k:'kpop',   t:'젊은 별', lo:1987, hi:2100}
+  ];
+
+  var $=function(id){ return document.getElementById(id); };
+  function esc(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function batchim(w){
+    if(!w){ return false; }
+    var c=w.charCodeAt(w.length-1);
+    if(c<0xAC00){ return false; }
+    if(c>0xD7A3){ return false; }
+    return ((c-0xAC00)%28)!==0;
+  }
+  function eun(w){ return w+(batchim(w)?'은':'는'); }
+  function ga(w){ return w+(batchim(w)?'이':'가'); }
+  function year(p){ return parseInt(p.b.slice(0,4),10); }
+
+  var pick={ cho:'', job:'', gen:'', ani:'', gan:'', sun:'' };
+
+  /* ── 거르개 ─────────────────────────────────── */
+  function chips(box, items, key){
+    items.forEach(function(it){
+      var b=document.createElement('button');
+      b.type='button'; b.className='chip'; b.textContent=it.t;
+      if(!it.k){ b.className='chip on'; }
+      b.addEventListener('click', function(){
+        pick[key]=it.k;
+        var all=box.getElementsByTagName('button'), i;
+        for(i=0;i<all.length;i++){ all[i].className='chip'; }
+        b.className='chip on';
+        draw();
+      });
+      box.appendChild(b);
+    });
+  }
+  var jobs=[{k:'',t:'전체'},{k:'배우',t:'배우'},{k:'가수',t:'가수'},{k:'방송인',t:'방송인'}];
+  var chos=[{k:'',t:'전체'}];
+  CHO.forEach(function(c){ chos.push({k:c,t:c}); });
+  chips($('svCho'), chos, 'cho');
+  chips($('svJob'), jobs, 'job');
+  chips($('svGen'), GEN.map(function(g){ return {k:g.k,t:g.t}; }), 'gen');
+
+  /* 아래 세 줄은 자료에서 바로 뽑습니다 — 손으로 붙이는 꼬리표가 아니라 계산으로 나온 값입니다 */
+  var ANI=['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
+  var GANS=['갑목','을목','병화','정화','무토','기토','경금','신금','임수','계수'];
+  var SUNS=['양자리','황소자리','쌍둥이자리','게자리','사자자리','처녀자리',
+            '천칭자리','전갈자리','사수자리','염소자리','물병자리','물고기자리'];
+  function only(list, key){
+    var out=[{k:'',t:'전체'}];
+    list.forEach(function(v){
+      var n=0;
+      STARS.forEach(function(p){ if(p[key]===v){ n+=1; } });
+      if(n){ out.push({k:v, t:v+' '+n}); }
+    });
+    return out;
+  }
+  chips($('svAni'), only(ANI,'a'),  'ani');
+  chips($('svGan'), only(GANS,'gk'),'gan');
+  chips($('svSun'), only(SUNS,'s'), 'sun');
+
+  function genOf(p){
+    var y=year(p), out='';
+    GEN.forEach(function(g){
+      if(!g.k){ return; }
+      if(y>=g.lo){ if(y<=g.hi){ out=g.k; } }
+    });
+    return out;
+  }
+  function fits(p){
+    if(pick.cho){ if(p.c!==pick.cho){ return false; } }
+    if(pick.job){ if(p.j.indexOf(pick.job)<0){ return false; } }
+    if(pick.gen){ if(genOf(p)!==pick.gen){ return false; } }
+    if(pick.ani){ if(p.a!==pick.ani){ return false; } }
+    if(pick.gan){ if(p.gk!==pick.gan){ return false; } }
+    if(pick.sun){ if(p.s!==pick.sun){ return false; } }
+    return true;
+  }
+
+  /* ── 격자 ───────────────────────────────────── */
+  function draw(){
+    var list=STARS.filter(fits);
+    list.sort(function(a,b){ return a.n.localeCompare(b.n,'ko'); });
+    $('svCount').textContent=list.length+'명';
+    $('svEmpty').style.display = list.length ? 'none' : 'block';
+    $('svGrid').innerHTML=list.map(function(p,i){
+      return '<button type="button" class="cell" data-n="'+esc(p.n)+'">'+
+             '<div class="nm">'+esc(p.n)+'</div>'+
+             '<div class="sub">'+p.b.slice(0,4)+' · '+esc(p.j)+'</div></button>';
+    }).join('');
+  }
+  $('svGrid').addEventListener('click', function(e){
+    var t=e.target;
+    while(t){
+      if(t.className){ if(String(t.className).indexOf('cell')>=0){ break; } }
+      t=t.parentNode;
+    }
+    if(!t){ return; }
+    open(t.getAttribute('data-n'));
+  });
+
+  /* ── 상세 ───────────────────────────────────── */
+  function find(name){
+    var i;
+    for(i=0;i<STARS.length;i++){ if(STARS[i].n===name){ return STARS[i]; } }
+    return null;
+  }
+
+  function open(name){
+    var p=find(name);
+    if(!p){ return; }
+    show(p, true);
+  }
+
+
+  /* ══ 나와 이 사람 · 얼마나 드문가 ─ 2026-09-09 ══════════════ */
+
+  var SR_HEAD = {
+    '갑목':'굽히는 법을 늦게 배운 사람',
+    '을목':'휘어도 부러지지 않는 사람',
+    '병화':'숨기지 못하는 사람',
+    '정화':'가까운 사람만 아는 사람',
+    '무토':'먼저 움직이지 않는 사람',
+    '기토':'남을 키우고 뒤에 서는 사람',
+    '경금':'말보다 결과로 말하는 사람',
+    '신금':'흠이 먼저 보이는 사람',
+    '임수':'속을 다 안 보여주는 사람',
+    '계수':'먼저 알아채는 사람'
+  };
+
+  var SR_GAN = {
+    '甲':{el:'목',yin:0,ko:'갑목'}, '乙':{el:'목',yin:1,ko:'을목'},
+    '丙':{el:'화',yin:0,ko:'병화'}, '丁':{el:'화',yin:1,ko:'정화'},
+    '戊':{el:'토',yin:0,ko:'무토'}, '己':{el:'토',yin:1,ko:'기토'},
+    '庚':{el:'금',yin:0,ko:'경금'}, '辛':{el:'금',yin:1,ko:'신금'},
+    '壬':{el:'수',yin:0,ko:'임수'}, '癸':{el:'수',yin:1,ko:'계수'}
+  };
+  var SR_GANS = '甲乙丙丁戊己庚辛壬癸';
+  var SR_GEN = { '목':'화','화':'토','토':'금','금':'수','수':'목' };
+  var SR_CTL = { '목':'토','화':'금','토':'수','금':'목','수':'화' };
+
+  var SR_REL = {
+    '비견':{ t:'나 같아서 좋습니다',
+      p:'말을 안 해도 압니다. 이 사람이 하는 선택이 내가 할 법한 선택입니다. 그래서 편하고, 그래서 부딪히면 크게 부딪힙니다. 닮은 사람끼리는 같은 자리를 원하니까요.' },
+    '겁재':{ t:'나 같은데 조금 다릅니다',
+      p:'같은 자리에 서 있는 사람입니다. 보고 있으면 마음이 조금 급해집니다. 좋아하는 마음과 지고 싶지 않은 마음이 같이 옵니다. 둘 다 진짜입니다.' },
+    '식신':{ t:'보고 있으면 내가 하고 싶어집니다',
+      p:'이 사람 앞에서는 말이 많아집니다. 내가 뭘 잘하는지 이 사람을 보면 떠오릅니다. 부담이 없어서 오래 봅니다. 편하게 좋아하는 쪽입니다.' },
+    '상관':{ t:'속이 시원해집니다',
+      p:'내가 못 하는 말을 이 사람이 대신 해 줍니다. 그래서 통쾌합니다. 가끔은 대신 혼나 줬으면 싶기도 합니다. 대리만족에 가까운 좋아함입니다.' },
+    '편재':{ t:'뭘 해 주고 싶어집니다',
+      p:'챙기게 됩니다. 잘 됐으면 좋겠고, 안 되면 내 일처럼 속상합니다. 좋아한다기보다 아끼는 마음입니다. 응원하는 자리에서 가장 오래 갑니다.' },
+    '정재':{ t:'곁에 두고 싶습니다',
+      p:'화려해서가 아니라 미덥습니다. 오래 봐도 안 질립니다. 이런 좋아함은 시끄럽지 않은 대신 잘 안 식습니다.' },
+    '편관':{ t:'편하지 않은데 눈이 갑니다',
+      p:'잘 보이고 싶은 마음이 먼저 듭니다. 조금 무섭고 조금 멋있습니다. 좋아한다는 말보다 닮고 싶다는 말이 더 맞습니다. 사람들이 스타를 좋아하는 가장 흔한 얼굴이 이것입니다.' },
+    '정관':{ t:'옳은 사람 같습니다',
+      p:'이 사람이 하는 말은 맞는 말 같습니다. 그래서 어렵고, 그래서 봅니다. 내 안에 지키고 싶은 기준이 있을 때 이런 사람이 눈에 들어옵니다.' },
+    '편인':{ t:'궁금해집니다',
+      p:'다 안 보여 줍니다. 그래서 자꾸 들여다보게 됩니다. 알 것 같다가 모르겠고, 그 사이에서 오래 머무는 좋아함입니다.' },
+    '정인':{ t:'이 사람 말은 듣게 됩니다',
+      p:'기대고 싶고 배우고 싶습니다. 마음이 놓입니다. 힘들 때 찾게 되는 쪽이라면, 지금 좀 쉬어야 한다는 뜻일 수도 있습니다.' }
+  };
+
+  var MY_GAN = '';
+  try { MY_GAN = localStorage.getItem('stella_me_gan') || ''; } catch(e){ MY_GAN = ''; }
+
+  function srJdn(y,m,d){
+    var a = Math.floor((14-m)/12), yy = y+4800-a, mm = m+12*a-3;
+    return d + Math.floor((153*mm+2)/5) + 365*yy +
+           Math.floor(yy/4) - Math.floor(yy/100) + Math.floor(yy/400) - 32045;
+  }
+  function srGanOf(y,m,d){ return SR_GANS.charAt((srJdn(y,m,d)+9)%10); }
+
+  function srSip(me, it){
+    if(!me){ return ''; }
+    if(!it){ return ''; }
+    var same = (me.yin === it.yin);
+    if(me.el === it.el){ return same ? '비견' : '겁재'; }
+    if(SR_GEN[me.el] === it.el){ return same ? '식신' : '상관'; }
+    if(SR_CTL[me.el] === it.el){ return same ? '편재' : '정재'; }
+    if(SR_CTL[it.el] === me.el){ return same ? '편관' : '정관'; }
+    if(SR_GEN[it.el] === me.el){ return same ? '편인' : '정인'; }
+    return '';
+  }
+
+  var SR_CSS = false;
+  function srStyle(){
+    if(SR_CSS){ return; }
+    SR_CSS = true;
+    var s = document.createElement('style');
+    s.textContent =
+      '#ssv .sr-tag{ font-size:20px; font-weight:800; line-height:1.4;' +
+      '  color:#221C33; margin:12px 0 2px; }' +
+      '#ssv .sr-sub{ font-size:14px; color:#6B6577; margin:0 0 4px; }' +
+      '#ssv .sr-hit{ font-size:18px; font-weight:800; color:#5E45A6;' +
+      '  margin:12px 0 4px; line-height:1.45; }' +
+      '#ssv .sr-in{ display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 4px; }' +
+      '#ssv .sr-in select{ font-size:15px; padding:8px 6px; border:1px solid #D8D2E4;' +
+      '  border-radius:8px; background:#fff; color:#221C33; }' +
+      '#ssv .sr-in button{ font-size:15px; padding:8px 18px; border:0; border-radius:8px;' +
+      '  background:#5E45A6; color:#fff; font-weight:700; cursor:pointer; }' +
+      '#ssv .sr-again{ font-size:13px; background:none; border:0; color:#6B6577;' +
+      '  text-decoration:underline; padding:4px 0; cursor:pointer; }';
+    document.head.appendChild(s);
+  }
+
+  /* ── 얼마나 드문가 ── */
+  function srRare(p){
+    var i, q, out = '<h3>이 사람은 얼마나 드문가</h3>';
+    var hi = p.hi;
+    var n  = p.el[hi] ? p.el[hi] : 0;
+
+    var c1 = 0;
+    for(i=0;i<STARS.length;i++){
+      q = STARS[i];
+      if((q.el[hi] ? q.el[hi] : 0) >= n){ c1++; }
+    }
+    out += '<p>여덟 글자 가운데 <b>' + hi + ' ' + n + '자</b>입니다. ' +
+           STARS.length + '명 가운데 ' + hi + ' ' + n + '자 이상인 사람은 <b>' +
+           c1 + '명</b>입니다.</p>';
+
+    if(p.no.length){
+      var e0 = p.no[0], c2 = 0;
+      for(i=0;i<STARS.length;i++){
+        if(STARS[i].no.indexOf(e0) >= 0){ c2++; }
+      }
+      out += '<p>' + ga(e0) + ' 한 자도 없는 사람은 ' + STARS.length +
+             '명 가운데 <b>' + c2 + '명</b>입니다.</p>';
+    }
+
+    var key = p.g + '/' + p.hi + '/' + p.no.join(',');
+    var tw = [];
+    for(i=0;i<STARS.length;i++){
+      q = STARS[i];
+      if(q.n === p.n){ continue; }
+      if(q.g + '/' + q.hi + '/' + q.no.join(',') === key){ tw.push(q); }
+    }
+    tw.sort(function(a,b){ return a.n.localeCompare(b.n,'ko'); });
+    if(tw.length){
+      out += '<p>일간도, 쏠린 것도, 없는 것도 <b>셋이 다 같은 사람</b>이 ' +
+             tw.length + '명 있습니다.</p><div class="same">' +
+             tw.map(function(z){
+               return '<button type="button" data-go="' + esc(z.n) + '">' + esc(z.n) + '</button>';
+             }).join('') + '</div>';
+    } else {
+      out += '<p>일간도, 쏠린 것도, 없는 것도 셋이 다 같은 사람은 ' +
+             STARS.length + '명 가운데 <b>한 명도 없습니다.</b></p>';
+    }
+    return out;
+  }
+
+  /* ── 나와 이 사람 ── */
+  function srMeBox(p){
+    var box = $('svMe');
+    if(!box){ return; }
+
+    if(MY_GAN){
+      var me = SR_GAN[MY_GAN], it = SR_GAN[p.g];
+      var rel = srSip(me, it);
+      var r = SR_REL[rel];
+      if(r){
+        box.innerHTML =
+          '<h3>나와 이 사람</h3>' +
+          '<p>당신은 <b>' + me.ko + '</b>입니다. ' +
+          esc(p.n) + ' 님은 당신에게 <b>' + rel + '</b>입니다.</p>' +
+          '<p class="sr-hit">' + r.t + '</p>' +
+          '<p>' + r.p + '</p>' +
+          '<button type="button" class="sr-again" id="srAgain">생일 다시 넣기</button>';
+        var ag = $('srAgain');
+        if(ag){
+          ag.addEventListener('click', function(){
+            MY_GAN = '';
+            try { localStorage.removeItem('stella_me_gan'); } catch(e){}
+            srMeBox(p);
+          });
+        }
+        return;
+      }
+    }
+
+    var ys = '', ms = '', ds = '', i;
+    var now = new Date().getFullYear();
+    for(i=now;i>=1930;i--){ ys += '<option value="' + i + '">' + i + '년</option>'; }
+    for(i=1;i<=12;i++){ ms += '<option value="' + i + '">' + i + '월</option>'; }
+    for(i=1;i<=31;i++){ ds += '<option value="' + i + '">' + i + '일</option>'; }
+
+    box.innerHTML =
+      '<h3>나와 이 사람</h3>' +
+      '<p class="mini">생년월일만 넣으시면 <em>내가 왜 이 사람에게 끌리는지</em>를 ' +
+      '읽어드립니다. 아무 데도 보내지 않고 이 기계 안에만 남습니다.</p>' +
+      '<div class="sr-in">' +
+        '<select id="srY">' + ys + '</select>' +
+        '<select id="srM">' + ms + '</select>' +
+        '<select id="srD">' + ds + '</select>' +
+        '<button type="button" id="srGo">보기</button>' +
+      '</div>' +
+      '<p class="mini">양력으로 넣어 주세요. 태어난 시각은 없어도 됩니다.</p>';
+
+    var y0 = $('srY');
+    if(y0){ y0.value = '1990'; }
+    var go = $('srGo');
+    if(go){
+      go.addEventListener('click', function(){
+        var yy = parseInt($('srY').value, 10);
+        var mm = parseInt($('srM').value, 10);
+        var dd = parseInt($('srD').value, 10);
+        var t = new Date(yy, mm-1, dd);
+        if(t.getMonth() !== mm-1){ box.innerHTML = '<h3>나와 이 사람</h3><p>없는 날짜입니다. 다시 골라 주세요.</p>'; srMeBox(p); return; }
+        MY_GAN = srGanOf(yy, mm, dd);
+        try { localStorage.setItem('stella_me_gan', MY_GAN); } catch(e){}
+        srMeBox(p);
+      });
+    }
+  }
+
+  function srFill(p){
+    srStyle();
+    var r = $('svRare');
+    if(r){ r.innerHTML = srRare(p); }
+    srMeBox(p);
+  }
+
+
+  /* ══ 여덟 글자를 색으로 · 태어난 계절 · 신강 신약 ─ 2026-09-09 ══ */
+
+  var SR_EL5 = {
+    '甲':'목','乙':'목','丙':'화','丁':'화','戊':'토','己':'토',
+    '庚':'금','辛':'금','壬':'수','癸':'수',
+    '子':'수','丑':'토','寅':'목','卯':'목','辰':'토','巳':'화',
+    '午':'화','未':'토','申':'금','酉':'금','戌':'토','亥':'수'
+  };
+  var SR_SOUND = {
+    '甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기',
+    '庚':'경','辛':'신','壬':'임','癸':'계',
+    '子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사',
+    '午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해'
+  };
+  /* 나를 낳아 주는 오행 */
+  var SR_BORN = { '목':'수','화':'목','토':'화','금':'토','수':'금' };
+
+  var SR_SEASON = {
+    '寅':'봄','卯':'봄','辰':'봄',
+    '巳':'여름','午':'여름','未':'여름',
+    '申':'가을','酉':'가을','戌':'가을',
+    '亥':'겨울','子':'겨울','丑':'겨울'
+  };
+  var SR_SEASON_EL = { '봄':'목','여름':'화','가을':'금','겨울':'수' };
+  var SR_SEASON_LINE = {
+    '봄':'나무가 올라오는 때에 태어났습니다.',
+    '여름':'불이 한창인 때에 태어났습니다.',
+    '가을':'거두어들이는 때에 태어났습니다.',
+    '겨울':'안으로 갈무리하는 때에 태어났습니다.'
+  };
+
+  /* 여덟 글자 — 색 네모 */
+  function srHan(two){
+    var i, ch, e, out = '<div class="han">';
+    for(i=0;i<two.length;i++){
+      ch = two.charAt(i);
+      e  = SR_EL5[ch] ? SR_EL5[ch] : '';
+      out += '<span data-el="' + e + '">' +
+             (e ? '<i>' + e + '</i>' : '') + ch +
+             (SR_SOUND[ch] ? '<b>' + SR_SOUND[ch] + '</b>' : '') +
+             '</span>';
+    }
+    return out + '</div>';
+  }
+
+  var SR_CSS2 = false;
+  function srStyle2(){
+    if(SR_CSS2){ return; }
+    SR_CSS2 = true;
+    var s = document.createElement('style');
+    s.textContent =
+      '#ssv .pill .han{ display:flex; justify-content:center; gap:5px;' +
+      '  letter-spacing:0; min-height:0; }' +
+      '#ssv .pill .han span{ display:flex; flex-direction:column;' +
+      '  align-items:center; justify-content:center;' +
+      '  width:48px; height:56px; border-radius:12px; background:#59636F;' +
+      '  color:#FFFFFF; font-weight:700; font-size:21px; line-height:1; }' +
+      '#ssv .pill .han span i{ font-style:normal; font-weight:500;' +
+      '  font-size:9px; opacity:.85; margin-bottom:4px; }' +
+      '#ssv .pill .han span b{ font-weight:500; font-size:10px;' +
+      '  opacity:.9; margin-top:4px; }' +
+      '#ssv .pill .han span[data-el="목"]{ background:#1E7A4A; }' +
+      '#ssv .pill .han span[data-el="화"]{ background:#C0392B; }' +
+      '#ssv .pill .han span[data-el="토"]{ background:#96700F; }' +
+      '#ssv .pill .han span[data-el="금"]{ background:#59636F; }' +
+      '#ssv .pill .han span[data-el="수"]{ background:#1D3E77; }' +
+      '#ssv .el[data-el="목"]{ color:#1E7A4A; }' +
+      '#ssv .el[data-el="화"]{ color:#C0392B; }' +
+      '#ssv .el[data-el="토"]{ color:#96700F; }' +
+      '#ssv .el[data-el="금"]{ color:#59636F; }' +
+      '#ssv .el[data-el="수"]{ color:#1D3E77; }' +
+      '#ssv .el[data-el] .el-n{ color:inherit; font-weight:700; }' +
+      '#ssv .el[data-el] .el-bar span{ background:currentColor; }' +
+      '#ssv .el[data-el] .el-v{ color:#6B6577; }' +
+      '#ssv .el.zero[data-el] .el-bar span{ background:rgba(34,28,51,.14); }' +
+      '#ssv .sr-scale{ display:flex; flex-wrap:wrap; gap:6px 14px;' +
+      '  margin:8px 0 0; font-size:13px; color:#6B6577; }' +
+      '#ssv .sr-scale b{ color:#221C33; }' +
+      '@media(max-width:420px){' +
+      '  #ssv .pill .han{ gap:3px; }' +
+      '  #ssv .pill .han span{ width:38px; height:46px; border-radius:9px; font-size:17px; }' +
+      '  #ssv .pill .han span i{ font-size:8px; margin-bottom:2px; }' +
+      '  #ssv .pill .han span b{ font-size:9px; margin-top:2px; } }';
+    document.head.appendChild(s);
+  }
+
+  /* 태어난 계절 · 자기 힘 */
+  function srMore(p){
+    var out = '';
+    var myEl = SR_GAN[p.g] ? SR_GAN[p.g].el : '';
+    if(!myEl){ return ''; }
+
+    /* ── 태어난 계절 ── */
+    var mj = p.m.charAt(1);
+    var se = SR_SEASON[mj];
+    if(se){
+      var sEl = SR_SEASON_EL[se];
+      var rel;
+      if(sEl === myEl){
+        rel = '<b>제 계절에 태어났습니다.</b> 힘이 넉넉합니다. ' +
+              '하고 싶은 대로 밀고 나갈 바탕이 있습니다.';
+      } else if(SR_GEN[sEl] === myEl){
+        rel = '<b>나를 밀어 주는 계절입니다.</b> 시작할 때 손이 잘 붙습니다. ' +
+              '도와주는 사람이 잘 나타납니다.';
+      } else if(SR_CTL[sEl] === myEl){
+        rel = '<b>나를 누르는 계절입니다.</b> 어릴 때부터 참는 법을 먼저 배웁니다. ' +
+              '그래서 일찍 단단해집니다.';
+      } else if(SR_GEN[myEl] === sEl){
+        rel = '<b>내 것을 내주는 계절입니다.</b> 주변에 쏟는 것이 많습니다. ' +
+              '쉬는 자리를 스스로 만들어야 합니다.';
+      } else {
+        rel = '<b>내가 다스리는 계절입니다.</b> 할 일이 눈에 먼저 보입니다. ' +
+              '대신 늘 바쁩니다.';
+      }
+      out += '<h3>태어난 계절 — ' + se + '</h3>' +
+             '<p>' + SR_SEASON_LINE[se] + ' ' +
+             ga(SR_GAN[p.g].ko) + ' ' + se + '을 만났습니다. ' + rel + '</p>';
+    }
+
+    /* ── 자기 힘이 센가 ── */
+    var mine = 0, other = 0, e;
+    for(e in p.el){
+      if(!p.el.hasOwnProperty(e)){ continue; }
+      if(e === myEl){ mine += p.el[e]; continue; }
+      if(e === SR_BORN[myEl]){ mine += p.el[e]; continue; }
+      other += p.el[e];
+    }
+    var head, body;
+    if(mine > other){
+      head = '자기 힘이 센 쪽입니다';
+      body = '남의 말보다 자기 판단을 믿습니다. 밀어붙이는 힘이 있어서 ' +
+             '혼자서도 일이 됩니다. 대신 꺾이는 법을 늦게 배웁니다. ' +
+             '<b>내보내는 쪽에서 풀립니다</b> — 만들어 내놓는 일, 돈 쓰는 일, ' +
+             '책임을 맡는 일. 더 받아들이려 하면 오히려 막힙니다.';
+    } else if(mine < other){
+      head = '기대는 힘이 있는 쪽입니다';
+      body = '혼자보다 사람 속에서 잘 됩니다. 눈치가 빠르고 잘 맞춰 줍니다. ' +
+             '대신 다 받아 주다가 제 것을 잃습니다. ' +
+             '<b>받아들이는 쪽에서 풀립니다</b> — 배우는 일, 기댈 사람, ' +
+             '같이 하는 일. 혼자 다 지려 하면 무너집니다.';
+    } else {
+      head = '한쪽으로 안 기운 쪽입니다';
+      body = '흔치 않습니다. 밀 때 밀고 물러설 때 물러섭니다. ' +
+             '대신 뚜렷한 색이 없어 보일 때가 있습니다. ' +
+             '<b>어느 쪽으로도 갈 수 있어서</b> 무엇을 고르느냐가 더 중요해집니다.';
+    }
+    out += '<h3>자기 힘 — ' + head + '</h3>' +
+           '<div class="sr-scale">' +
+             '<span>내 편 <b>' + mine + '자</b> (' + myEl + '·' + SR_BORN[myEl] + ')</span>' +
+             '<span>나머지 <b>' + other + '자</b></span>' +
+           '</div>' +
+           '<p>' + body + '</p>';
+
+    return out;
+  }
+
+  function srMoreFill(p){
+    srStyle2();
+    var b = $('svMore');
+    if(b){ b.innerHTML = srMore(p); }
+  }
+
+  function show(p, known){
+    var d=DAY[p.g];
+    var total=0;
+    ELS.forEach(function(e){ total+=(p.el[e]?p.el[e]:0); });
+
+    var bars=ELS.map(function(e){
+      var n=p.el[e]?p.el[e]:0;
+      var pc=Math.round(n/total*100);
+      return '<div class="el'+(n?'':' zero')+'" data-el="'+e+'"><div class="el-n">'+e+'</div>'+
+             '<div class="el-bar"><span style="width:'+pc+'%"></span></div>'+
+             '<div class="el-v">'+n+'자</div></div>';
+    }).join('');
+
+    var sipTxt=p.sip.map(function(s){
+      var t=SIP[s];
+      if(!t){ return ''; }
+      return '<h3>'+t.t+'</h3><p>'+t.d+'</p>';
+    }).join('');
+
+    var elTxt='';
+    if(p.hi){ elTxt+='<h3>'+ga(p.hi)+' 가장 강합니다</h3><p>'+EL_MUCH[p.hi]+'</p>'; }
+    if(p.no.length){
+      elTxt+='<h3>'+eun(p.no.join('·'))+' 한 글자도 없습니다</h3>'+
+        p.no.map(function(e){ return '<p>'+EL_NONE[e]+'</p>'; }).join('');
+    }
+
+    var same=STARS.filter(function(q){
+      if(q.n===p.n){ return false; }
+      return q.g===p.g;
+    });
+    same.sort(function(a,b){ return a.n.localeCompare(b.n,'ko'); });
+    var sameTxt='';
+    if(same.length){
+      sameTxt='<h3>일간이 같은 사람 '+same.length+'명</h3>'+
+        '<p class="mini">태어난 날이 달라도 <em>자기 자신을 가리키는 한 글자</em>가 같습니다. '+
+        '나머지 다섯 글자는 저마다 달라서, 같은 '+p.gk+'라도 사는 모양은 다릅니다.</p>'+
+        '<div class="same">'+same.map(function(q){
+          return '<button type="button" data-go="'+esc(q.n)+'">'+esc(q.n)+'</button>';
+        }).join('')+'</div>';
+    }
+
+    var bornTxt=p.b.slice(0,4)+'년 '+parseInt(p.b.slice(5,7),10)+'월 '+
+                parseInt(p.b.slice(8,10),10)+'일 · '+p.a+'띠';
+    var knownTxt='';
+    if(p.k){
+      knownTxt='<p class="mini">널리 알려진 날짜는 '+p.k.replace(/-/g,'.')+' 입니다. '+
+        '그 날짜가 음력이거나 호적상 날짜여서, 사주는 위의 양력으로 세웠습니다.</p>';
+    }
+
+    $('svCard').innerHTML=
+      '<button type="button" class="x" id="svX">닫기 ✕</button>'+
+      '<div class="who">'+esc(p.j)+'</div>'+
+      '<div class="nm2">'+esc(p.n)+'</div>'+
+      '<div class="born">'+bornTxt+'</div>'+
+      '<div class="sr-tag">'+(SR_HEAD[p.gk]?SR_HEAD[p.gk]:'')+'</div>'+
+      '<div class="sr-sub">'+p.hi+' '+(p.el[p.hi]?p.el[p.hi]:0)+'자'+(p.no.length?(' · '+p.no.join('·')+' 없음'):'')+'</div>'+
+      '<div class="pill">'+
+        '<div class="ph">연주</div><div class="ph">월주</div><div class="ph">일주</div><div class="ph">시주</div>'+
+        '<div>'+srHan(p.y)+'</div>'+
+        '<div>'+srHan(p.m)+'</div>'+
+        '<div>'+srHan(p.dd)+'</div>'+
+        '<div><div class="han none">—</div><div class="kor">시각 모름</div></div>'+
+      '</div>'+
+      knownTxt+
+      '<h3>일간 '+p.g+' — '+d.image+'</h3>'+
+      '<p>'+d.what+'</p><p>'+d.good+'</p><p>'+d.care+'</p>'+
+      '<div class="scale">'+bars+'</div>'+
+      elTxt+
+      sipTxt+
+      '<div id="svMore"></div>'+
+      '<h3>태어난 날의 해 — '+p.s+'</h3>'+
+      '<p>서양 별자리로는 <em>'+SUN[p.s]+'</em>입니다. 태양 별자리는 날짜만으로 정해져서, '+
+      '태어난 시각을 몰라도 세울 수 있는 유일한 자리예요.</p>'+
+      sameTxt+
+      '<div id="svRare"></div>'+
+      '<div id="svMe"></div>'+
+      '<a class="go" href="/door-career/">내 사주로 같은 것을 보기 →</a>'+
+      (known
+        ? '<p class="mini" style="text-align:center">생년월일은 서로 독립된 두 곳 이상에서 확인했습니다. '+
+          '태어난 시각은 공개 자료가 없어 넣지 않았습니다.</p>'
+        : '<p class="mini" style="text-align:center">직접 넣으신 날짜로 세운 것입니다. '+
+          '스텔라사주가 확인한 자료가 아닙니다.</p>');
+
+    $('svSheet').className='sheet open';
+    document.body.style.overflow='hidden';
+    $('svX').addEventListener('click', shut);
+    srMoreFill(p);
+    srFill(p);
+    var gos=$('svCard').querySelectorAll('[data-go]'), i;
+    for(i=0;i<gos.length;i++){
+      gos[i].addEventListener('click', function(){
+        open(this.getAttribute('data-go'));
+        $('svSheet').scrollTop=0;
+      });
+    }
+    $('svSheet').scrollTop=0;
+  }
+  function shut(){
+    $('svSheet').className='sheet';
+    document.body.style.overflow='';
+  }
+  $('svSheet').addEventListener('click', function(e){
+    if(e.target===$('svSheet')){ shut(); }
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape'){ shut(); }
+  });
+
+  /* ── 일간 분포 ───────────────────────────────── */
+  (function(){
+    var cnt={};
+    STARS.forEach(function(p){ cnt[p.gk]=(cnt[p.gk]?cnt[p.gk]:0)+1; });
+    var keys=Object.keys(cnt).sort(function(a,b){ return cnt[b]-cnt[a]; });
+    var even=Math.round(STARS.length/10);
+    $('svStat').innerHTML=keys.map(function(k){
+      return '<tr><td class="k">'+k+'</td><td>'+cnt[k]+'명</td><td>'+even+'명</td></tr>';
+    }).join('');
+  })();
+
+  /* ══ 목록에 없는 사람 직접 세워보기 ═══════════════════════
+     계산은 이 브라우저 안에서만 합니다. 넣으신 것은 서버로 가지 않습니다.
+     서버로 가는 것은 아래 「목록에 넣어달라고 보내기」를 누르셨을 때뿐이고,
+     그때도 이름과 생년월일 두 가지만 갑니다. ══════════════════ */
+  var S=window.StellaSaju, R=window.StellaRead;
+  var made=null;
+
+  function num(id){
+    var v=parseInt($(id).value, 10);
+    if(isNaN(v)){ return 0; }
+    return v;
+  }
+  function build(){
+    var name=String($('qName').value).replace(/^\s+/,'').replace(/\s+$/,'');
+    var y=num('qY'), m=num('qM'), dd=num('qD');
+    if(!name){ return { err:'이름을 넣어주세요.' }; }
+    if(y<1900){ return { err:'태어난 해를 1900년부터 넣어주세요.' }; }
+    if(y>2026){ return { err:'태어난 해를 다시 봐주세요.' }; }
+    if(m<1){ return { err:'달을 넣어주세요.' }; }
+    if(m>12){ return { err:'달을 다시 봐주세요.' }; }
+    if(dd<1){ return { err:'날을 넣어주세요.' }; }
+    if(dd>31){ return { err:'날을 다시 봐주세요.' }; }
+    if(!S){ return { err:'계산기를 아직 못 불러왔습니다. 새로고침해 주세요.' }; }
+
+    var loc=S.locate('서울','대한민국',y,m,dd);
+    var ch=S.compute({ year:y, month:m, day:dd, hour:null, minute:0, sex:'M',
+                       lon:loc.lon, lat:loc.lat, tz:loc.tz, zone:'kr' });
+    var it=R.interpret(ch);
+    var five={};
+    ch.five.forEach(function(f){ five[f.element]=f.count; });
+    var pad=function(x){ return (x<10?'0':'')+x; };
+    return { p:{
+      n:name, c:'', b:y+'-'+pad(m)+'-'+pad(dd), k:'', j:'직접 넣으신 분', a:ch.animal,
+      y:ch.pillars.year.han, m:ch.pillars.month.han, dd:ch.pillars.day.han,
+      g:it.dayHan, gk:it.day.kor, el:five,
+      hi:it.mostEl.element, no:it.emptyEls,
+      sip:it.top.map(function(t){ return t.sip; }), s:ch.stars.sun.name
+    }};
+  }
+
+  $('qGo').addEventListener('click', function(){
+    var r=build();
+    if(r.err){ $('qSay').textContent=r.err; made=null; $('qSend').disabled=true; return; }
+    $('qSay').textContent='';
+    made=r.p;
+    show(made, false);
+    if($('qOk').checked){ $('qSend').disabled=false; }
+  });
+
+  $('qOk').addEventListener('change', function(){
+    var on=false;
+    if($('qOk').checked){ if(made){ on=true; } }
+    $('qSend').disabled=!on;
+  });
+
+  $('qSend').addEventListener('click', function(){
+    if(!made){ return; }
+    if(!$('qOk').checked){ return; }
+    $('qSend').disabled=true;
+    $('qSent').textContent='보내는 중…';
+    fetch('/wp-json/stella/v1/star-suggest', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      credentials:'same-origin',
+      body:JSON.stringify({ name:made.n, date:made.b })
+    }).then(function(res){ return res.json(); })
+      .then(function(d){
+        if(d){ if(d.ok){
+          $('qSent').textContent='보냈습니다. 확인한 뒤 목록에 넣겠습니다. 고맙습니다.';
+          return;
+        } }
+        var msg='지금은 보낼 수 없습니다. 잠시 뒤에 다시 해주세요.';
+        if(d){ if(d.message){ msg=d.message; } }
+        $('qSent').textContent=msg;
+        $('qSend').disabled=false;
+      })
+      .catch(function(){
+        $('qSent').textContent='보내지 못했습니다. 잠시 뒤에 다시 해주세요.';
+        $('qSend').disabled=false;
+      });
+  });
+
+  draw();
+
+  /* 2026-08-31 · 홈의 「이번주 ○○○ 스타 운세」에서 넘어오시면
+     그 사람의 사주를 바로 펴 드립니다.  /star-saju/?star=이름
+     앰퍼샌드는 글자 코드로 만들어 씁니다 — 이 파일에 직접 쓰면
+     워드프레스가 엔티티로 바꿔 스크립트가 죽습니다. */
+  try{ (function(){
+    var q = String(location.search || '');
+    var at = q.indexOf('star=');
+    if(at < 0){ return; }
+    var v = q.slice(at + 5);
+    var amp = String.fromCharCode(38);
+    var cut = v.indexOf(amp);
+    if(cut >= 0){ v = v.slice(0, cut); }
+    var nm = '';
+    try{ nm = decodeURIComponent(v.replace(/\+/g, ' ')); }catch(e2){ nm = v; }
+    if(!nm){ return; }
+    if(!find(nm)){ return; }
+    open(nm);
+  }()); }catch(err){}
+})();
+</script>
+<!-- /wp:html -->
+<!-- stella-star-color-v1 -->
+<style>
+/* 2026-09-09 · 종이빛 바탕에서 안 보이던 글씨색
+   밤하늘 판에 맞춘 이름표 둘이 안 따라와서 흰 종이에 흰 글씨가
+   되어 있었습니다. 원래 색표는 그대로 두고 여기서 덮어씁니다. */
+#ssv{
+  --soft:#4E4763 !important;       /* 1.01 -> 7.47 : 1 */
+  --dim:#6B6577 !important;        /* 1.00 -> 4.79 : 1 */
+  --speak-lite:#5E45A6 !important; /* 3.41 -> 6.24 : 1 */
+  --gold:#7E5A18 !important;       /* 3.30 -> 5.34 : 1 */
+}
+/* 예시 글은 본문만큼 진하면 이미 적은 글로 보입니다 */
+#ssv ::placeholder{ color:#767084 !important; }
+/* 보라 단추 위의 검은 글씨 — 흰 글씨가 두 배 잘 읽힙니다 */
+#ssv button.doit{ color:#FFFDF9 !important; }
+</style>
+
+<!-- stella-star-type-v1 -->
+<style>
+/* 2026-09-09 · 글꼴을 고딕으로, 작은 글씨를 키웁니다
+   작은 글씨는 눈으로 고르지 않고 쪽 안의 모든 font-size 를
+   읽어서 14px 보다 작은 것만 골랐습니다. */
+#ssv, #ssv *{ font-family:'Pretendard','Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',system-ui,-apple-system,sans-serif !important; }
+#ssv h1, #ssv h2, #ssv h3{
+  font-weight:700 !important; letter-spacing:-.01em !important; }
+/* 등폭 글꼴에 넓혀둔 자간은 고딕에서는 읽기를 방해합니다 */
+#ssv .kicker, #ssv .tag, #ssv label,
+#ssv th, #ssv .st-k, #ssv .num{
+  letter-spacing:0 !important; }
+/* 작은 글씨 18군데 */
+#ssv .mark{ font-size:14px !important; }
+#ssv .mini{ font-size:15.5px !important; }
+#ssv .note .tag{ font-size:14px !important; }
+#ssv .bar .lb{ font-size:14px !important; }
+#ssv .count{ font-size:14px !important; }
+#ssv .cell .sub{ font-size:14px !important; }
+#ssv .x{ font-size:14.5px !important; }
+#ssv .card .who{ font-size:14px !important; }
+#ssv .card .born{ font-size:14px !important; }
+#ssv .pill .ph{ font-size:14px !important; }
+#ssv .pill .kor{ font-size:14px !important; }
+#ssv .el-v{ font-size:14px !important; }
+#ssv .same button{ font-size:16px !important; }
+#ssv .go{ font-size:14.5px !important; }
+#ssv th{ font-size:14px !important; }
+#ssv .fld label{ font-size:14px !important; }
+#ssv button.doit{ font-size:14px !important; }
+#ssv .send label.chk{ font-size:16px !important; }
+/* 어두운 바탕 14군데 — 종이빛으로 */
+#ssv .rule{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #7E5A18 */
+#ssv button.chip.on{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #7E5A18 */
+#ssv .cell{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #14102A */
+#ssv .cell:hover{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #1D1740 */
+#ssv .card{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #14102A */
+#ssv .card::before{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #7E5A18 */
+#ssv .pill div{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #1D1740 */
+#ssv .pill .ph{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #14102A */
+#ssv .el-bar span{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #7E5A18 */
+#ssv .go{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #7E5A18 */
+#ssv .go:hover{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #8A6520 */
+#ssv button.doit{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #6B4FB0 */
+#ssv button.doit:hover{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #5E45A6 */
+/* 단추 — 금빛 바탕에 어두운 글자였습니다. 남색 바탕에 흰 글자로. */ #ssv .btn, #ssv .go, #ssv .join a, #ssv .cta a{ background:#FFFFFF !important;
+  color:#221C33 !important;
+  border-color:#E2DACB !important; } /* was #3A2E77 */
+</style>
