@@ -168,7 +168,52 @@ BODY = '''
     if(g === 'h5'){ return 1; }
     return 0;
   }
+  /* ★★ 2026-09-16 · 소희 님 「스타운세님과 사주보기가 아니라
+     산님과 사주보기로 되야 하는데」
+     날짜 줄 앞의 제목을 이름으로 봤는데, 살아 있는 쪽에서는 쪽
+     제목(「스타 운세」)이 잡혔습니다. 제 사본에 그 모양이 없어
+     짐작으로 갔던 것이 또 틀렸습니다.
+
+     그래서 **화면에 실제로 있는 문장**에서 뽑습니다 —
+         당신은 기토입니다.  산 님은 당신에게 편재입니다.
+                             ↑ 이 앞이 이름
+     이 문장은 이름을 쓰려고 만든 자리라 다른 것이 끼어들 수
+     없습니다. 못 찾으면 그때 날짜 줄로 물러납니다. */
+  var NAMEMARK = '님은 당신에게';
+
+  function nameFromLine(){
+    try{
+      var all = document.querySelectorAll('p, div, span, li, td'), i, el, t, at, head, parts, j, w;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.children.length > 2){ continue; }
+        t = tidy(el.textContent);
+        if(!t){ continue; }
+        at = t.indexOf(NAMEMARK);
+        if(at < 0){ continue; }
+        head = t.slice(0, at);
+        /* 마침표·가운뎃점 뒤부터 봅니다 */
+        head = head.split('.').join(' ').split('·').join(' ');
+        parts = head.split(' ');
+        for(j = parts.length - 1; j >= 0; j--){
+          w = parts[j].trim();
+          if(!w){ continue; }
+          if(w.length > 18){ return ''; }
+          if(!looksName(w)){ return ''; }
+          return w;
+        }
+      }
+    }catch(e){}
+    return '';
+  }
+
   function findName(){
+    var v = nameFromLine();
+    if(v){ return v; }
+    return findNameByDate();
+  }
+
+  function findNameByDate(){
     try{
       var all = document.querySelectorAll('p, div, span, small, time, li'), i, el, t, n, p, tt;
       for(i = 0; i < all.length; i++){
@@ -361,17 +406,28 @@ BODY = '''
     try{
       var b = document.getElementById('ssx-band');
       if(!b){
-        var hs = document.querySelectorAll('h1, h2, h3, h4, h5');
-        if(!hs.length){ return; }
-        var last = hs[hs.length - 1];
+        /* ★ 전에는 제목 태그가 있어야만 띠를 그렸습니다. 쪽에
+           제목 태그가 하나도 없으면 **띠조차 안 뜨고**, 그러면
+           왜 안 되는지 알 길이 없었습니다. 이제 붙일 데가
+           없으면 쪽 맨 끝에라도 답니다. */
         b = document.createElement('p');
         b.id = 'ssx-band';
-        if(last.parentNode){ last.parentNode.appendChild(b); }
+        var host = null;
+        var hs = document.querySelectorAll('h1, h2, h3, h4, h5');
+        if(hs.length){ host = hs[hs.length - 1].parentNode; }
+        if(!host){ host = document.body; }
+        if(!host){ return; }
+        host.appendChild(b);
       }
       var msg = '관리자에게만 보입니다 · 스타 사주 글 판 ' + STAMP
               + ' · 갈아끼운 자리 ' + done + '개'
               + ' · 이름 ' + (lastName ? lastName : '못 찾음');
       if(why.length){ msg += ' · 못 바꾼 자리 : ' + why.join(' / '); }
+      if(!done){
+        msg += ' · 쪽에 제목태그 '
+             + document.querySelectorAll('h1,h2,h3,h4,h5').length + '개 · 문단 '
+             + document.querySelectorAll('p').length + '개';
+      }
       if(err){ msg += ' · 멈춘 까닭 ' + err; }
       b.textContent = msg;
     }catch(e){}

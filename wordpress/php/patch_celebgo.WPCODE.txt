@@ -173,7 +173,54 @@ add_action( 'wp_head', function () {
 
   var NAMEHEAD = null;   /* 이름 제목 — 위 여백을 줄 때도 씁니다 */
 
+  /* ★★ 2026-09-16 · 소희 님 「스타운세님과 사주보기가 아니라
+     산님과 사주보기로 되야 하는데」
+     날짜 줄 앞의 제목을 이름으로 봤더니 쪽 제목(「스타 운세」)이
+     잡혔습니다. 살아 있는 쪽의 짜임이 제 짐작과 달랐습니다.
+
+     그래서 **화면에 실제로 있는 문장**에서 뽑습니다 —
+         당신은 기토입니다.  산 님은 당신에게 편재입니다.
+                             ↑ 이 앞이 이름
+     이 문장은 이름을 쓰려고 만든 자리라 다른 것이 안 끼어듭니다.
+     못 찾으면 그때 날짜 줄로 물러납니다. */
+  var NAMEMARK = '님은 당신에게';
+
+  function nameFromLine(){
+    try{
+      var all = document.querySelectorAll('p, div, span, li, td'), i, el, t, at, head, parts, j, w;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.children.length > 2){ continue; }
+        t = tidy(el.textContent);
+        if(!t){ continue; }
+        at = t.indexOf(NAMEMARK);
+        if(at < 0){ continue; }
+        head = t.slice(0, at);
+        head = head.split('.').join(' ').split('·').join(' ');
+        parts = head.split(' ');
+        for(j = parts.length - 1; j >= 0; j--){
+          w = parts[j].trim();
+          if(!w){ continue; }
+          if(w.length > 18){ return ''; }
+          if(!looksName(w)){ return ''; }
+          return w;   /* ★ NAMEHEAD 는 안 건드립니다 — 이 문장은 쪽
+                         **아래쪽**에 있어서 위 여백 기준이 될 수 없습니다 */
+        }
+      }
+    }catch(e){}
+    return '';
+  }
+
   function starName(box){
+    var v = nameFromLine();
+    /* 이름을 문장에서 찾았더라도, **위 여백 기준**은 따로 잡아야
+       합니다. 날짜 줄 앞 제목이 쪽 맨 위에 있는 것이니까요. */
+    if(!NAMEHEAD){ starNameByDate(box); }
+    if(v){ return v; }
+    return starNameByDate(box);
+  }
+
+  function starNameByDate(box){
     try{
       var all = document.querySelectorAll('p, div, span, small, time, li'), i, el, t, h;
       for(i = 0; i < all.length; i++){
@@ -193,11 +240,14 @@ add_action( 'wp_head', function () {
   /* ★ 맨 위 여백 — 소희 님 「맨위에 여백이 너무 없어」
      이름 제목과 **윗변이 같은** 바깥 상자를 찾아 그것에 여백을 줍니다.
      그 상자가 흰 카드입니다. 못 찾으면 제목에만 줍니다. */
+  var GAPBOX = null;
+
   function topGap(){
-    if(!NAMEHEAD){ return; }
+    var anchor = NAMEHEAD ? NAMEHEAD : GAPBOX;
+    if(!anchor){ return; }
     try{
-      var r = NAMEHEAD.getBoundingClientRect();
-      var n = NAMEHEAD, best = null, i, rr;
+      var r = anchor.getBoundingClientRect();
+      var n = anchor, best = null, i, rr;
       for(i = 0; i < 4; i++){
         n = n.parentElement;
         if(!n){ break; }
@@ -207,7 +257,7 @@ add_action( 'wp_head', function () {
         if(rr.top > r.top + 2){ break; }
         best = n;
       }
-      if(!best){ best = NAMEHEAD; }
+      if(!best){ best = anchor; }
       if(best.getAttribute('data-sstop') === '1'){ return; }
       best.setAttribute('data-sstop', '1');
       best.style.paddingTop = '38px';
@@ -294,6 +344,7 @@ add_action( 'wp_head', function () {
         else if(pick.contains(el)){ pick = el; }
       }
       if(!pick){ return; }
+      if(!GAPBOX){ GAPBOX = pick; }
       var nm = starName(pick);
       if(!nm){ return; }
       addButton(pick, nm);
