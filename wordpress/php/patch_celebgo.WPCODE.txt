@@ -47,7 +47,7 @@ add_action( 'wp_head', function () {
 	   유앤미 쪽에 얹는 것을 최소로 줄입니다. */
 	if ( $star ) {
 	?>
-<!-- stella 스타 → 유앤미 · 판 2026-09-16 -->
+<!-- stella 스타 → 유앤미 · 판 2026-09-16 b -->
 <style id="stella-celebgo">
 .stella-go{
   display:block; width:100%; box-sizing:border-box;
@@ -103,16 +103,131 @@ add_action( 'wp_head', function () {
   /* ═══ 스타 사주 쪽 ═══════════════════════════════════
      결과가 뜨면 그 아래에 단추를 답니다.
      결과는 팝업으로 뜨므로, 팝업 안에서 이름을 찾습니다. */
+  /* ★★ 이름을 어떻게 찾나 — 2026-09-16 에 고쳤습니다
+     전에는 결과 상자의 **첫 제목**을 이름으로 썼습니다. 그랬더니
+     「일간 癸 — 이슬과 실개천」이 이름으로 잡혔습니다. 결과 상자가
+     사주표부터 시작해서, 정작 이름(「산」)은 그 위에 있었습니다.
+
+     이제는 **생년월일 줄을 먼저 찾습니다.**
+         산
+         1999년 7월 10일 · 토끼띠     ← 이 줄
+     이 줄 바로 앞의 제목이 그 사람 이름입니다. 쪽 구조가 어떻게
+     바뀌어도 「네 자리 숫자 + 년」 은 그대로라 안 놓칩니다. */
+
+  function isDateLine(t){
+    if(t.length < 8){ return 0; }
+    if(t.length > 44){ return 0; }
+    var i, d = '0123456789';
+    for(i = 0; i < 4; i++){ if(d.indexOf(t.charAt(i)) < 0){ return 0; } }
+    if(t.charAt(4) !== '년'){ return 0; }
+    return 1;
+  }
+
+  /* 갈래 제목은 이름이 아닙니다 */
+  var NOTNAME = ['일간', '가장 강', '없습니다', '한 글자', '십성', '오행',
+                 '나와 이 사람', '궁합', '사주', '생년월일'];
+  function looksName(t){
+    if(!t){ return 0; }
+    if(t.length > 18){ return 0; }
+    var i;
+    for(i = 0; i < NOTNAME.length; i++){
+      if(t.indexOf(NOTNAME[i]) >= 0){ return 0; }
+    }
+    return 1;
+  }
+
+  function headText(el){
+    var g = String(el.tagName === undefined ? '' : el.tagName).toLowerCase();
+    if(g === 'h1'){ return tidy(el.textContent); }
+    if(g === 'h2'){ return tidy(el.textContent); }
+    if(g === 'h3'){ return tidy(el.textContent); }
+    if(g === 'h4'){ return tidy(el.textContent); }
+    return '';
+  }
+
+  /* 날짜 줄에서 위로 거슬러 올라가며 가장 가까운 제목을 찾습니다 */
+  function prevHead(el){
+    var n = el, p, t, inner, lv = 0;
+    while(n){
+      p = n.previousElementSibling;
+      while(p){
+        t = headText(p);
+        if(looksName(t)){ return p; }
+        try{
+          inner = p.querySelector('h1, h2, h3, h4');
+          if(inner){
+            t = tidy(inner.textContent);
+            if(looksName(t)){ return inner; }
+          }
+        }catch(e){}
+        p = p.previousElementSibling;
+      }
+      n = n.parentElement;
+      lv++;
+      if(lv > 6){ break; }
+      if(!n){ break; }
+      if(n === document.body){ break; }
+    }
+    return null;
+  }
+
+  var NAMEHEAD = null;   /* 이름 제목 — 위 여백을 줄 때도 씁니다 */
+
   function starName(box){
-    /* 결과 맨 위의 큰 제목이 그 사람 이름입니다 */
     try{
-      var h = box.querySelector('h1, h2, h3');
-      if(!h){ return ''; }
-      var t = tidy(h.textContent);
-      if(!t){ return ''; }
-      if(t.length > 20){ return ''; }
-      return t;
-    }catch(e){ return ''; }
+      var all = document.querySelectorAll('p, div, span, small, time, li'), i, el, t, h;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.children.length > 0){ continue; }   /* 잎만 봅니다 */
+        t = tidy(el.textContent);
+        if(!isDateLine(t)){ continue; }
+        h = prevHead(el);
+        if(!h){ continue; }
+        NAMEHEAD = h;
+        return tidy(h.textContent);
+      }
+    }catch(e){}
+    return '';
+  }
+
+  /* ★ 맨 위 여백 — 소희 님 「맨위에 여백이 너무 없어」
+     이름 제목과 **윗변이 같은** 바깥 상자를 찾아 그것에 여백을 줍니다.
+     그 상자가 흰 카드입니다. 못 찾으면 제목에만 줍니다. */
+  function topGap(){
+    if(!NAMEHEAD){ return; }
+    try{
+      var r = NAMEHEAD.getBoundingClientRect();
+      var n = NAMEHEAD, best = null, i, rr;
+      for(i = 0; i < 4; i++){
+        n = n.parentElement;
+        if(!n){ break; }
+        if(n === document.body){ break; }
+        rr = n.getBoundingClientRect();
+        if(rr.width > 1100){ break; }
+        if(rr.top > r.top + 2){ break; }
+        best = n;
+      }
+      if(!best){ best = NAMEHEAD; }
+      if(best.getAttribute('data-sstop') === '1'){ return; }
+      best.setAttribute('data-sstop', '1');
+      best.style.paddingTop = '38px';
+    }catch(e){}
+  }
+
+  /* ★ 「내 사주로 같은 것을 보기」 단추는 뺍니다
+     소희 님 「스타 사주 보고 내 사주 보고 싶진 않을듯」 */
+  function hideMine(){
+    try{
+      var all = document.querySelectorAll('a, button'), i, el, t;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.getAttribute('data-sshide') === '1'){ continue; }
+        t = tidy(el.textContent);
+        if(t.indexOf('내 사주로') < 0){ continue; }
+        el.setAttribute('data-sshide', '1');
+        el.style.display = 'none';
+      }
+    }catch(e){}
   }
 
   function addButton(box, nm){
@@ -123,7 +238,7 @@ add_action( 'wp_head', function () {
     b.setAttribute('type', 'button');
     b.className = 'stella-go';
     b.innerHTML = '';
-    b.appendChild(document.createTextNode(nm + '님과 나의 궁합 보기'));
+    b.appendChild(document.createTextNode(nm + ' 님과 나의 궁합 보기'));
     var s = document.createElement('span');
     s.className = 's';
     s.appendChild(document.createTextNode('내 생일만 넣으면 됩니다 · 무료'));
@@ -227,7 +342,9 @@ add_action( 'wp_head', function () {
 
   /* ═══ 돌리기 ═══════════════════════════════════════ */
   function tick(){
+    if(ON_STAR){ hideMine(); }
     if(ON_STAR){ onStar(); }
+    if(ON_STAR){ topGap(); }
     if(ON_UM){ onUm(); }
   }
   function start(){
