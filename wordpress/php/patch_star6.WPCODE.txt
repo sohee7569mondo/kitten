@@ -1,6 +1,14 @@
 /* ════════════════════════════════════════════════════════════
    스타 사주 · 맨 위 여백을 **재지 말고 못 박습니다**
-   판 2026-09-16 · 6/6
+   판 2026-09-16 · 6/6 · **판b**
+
+   ★ 판a 는 504(시간 초과)가 났습니다. 제 잘못입니다.
+     쪽 안에 **한 줄이 105,126자**인 곳이 있습니다 (연예인 539명
+     명단이 한 줄입니다). 거기서 「줄 하나를 통째로 찾는 정규식」이
+     1억 번 넘게 되짚느라 서버가 멈췄습니다.
+     판b 는 **정규식을 하나도 안 씁니다.** 글자 찾기만 씁니다.
+     (504 로 멈춘 자리는 저장 앞이라 쪽은 안 바뀌었습니다.
+      이 조각을 열면 지금 값을 먼저 찍어 드립니다.)
 
    소희 님 : 「이것만 지금 몇시간인데 그냥 페이지로 만들면
               괜찮지 않아?」
@@ -87,19 +95,50 @@ add_action( 'init', function () {
 	echo '<h1 style="color:#ffd76a">맨 위 여백을 못 박습니다</h1>';
 	printf( '<p>쪽 406 · 지금 <b>%s자</b> · 역빗금 <b>%d개</b></p>',
 		number_format( strlen( $body ) ), $b4 );
-	printf( '<p>넓은 화면 <b>%dpx</b> · 좁은 화면 <b>%dpx</b></p>', $PX, $PS );
+	printf( '<p>넣을 값 — 넓은 화면 <b>%dpx</b> · 좁은 화면 <b>%dpx</b></p>', $PX, $PS );
+
+	/* ★ 지금 쪽이 어떤 상태인지 먼저 찍습니다.
+	   판a 가 504 로 멈췄으니 「저장이 됐나」를 눈으로 가릴 수 있어야 합니다. */
+	$now1 = '(못 읽음)';
+	$q1   = strpos( $body, 'px 16px 60px;}' );
+	if ( false !== $q1 ) {
+		$qp = substr( $body, max( 0, $q1 - 24 ), min( 24, $q1 ) );
+		$qs = strrpos( $qp, 'padding:' );
+		if ( false !== $qs ) {
+			$now1 = substr( $body, $q1 - ( strlen( $qp ) - $qs ) + 8,
+				( strlen( $qp ) - $qs ) - 8 ) . 'px';
+		}
+	}
+	printf( '<p style="color:#9fd">지금 쪽 상태 — 덮개 위 여백 <b>%s</b> · '
+		. '좁은 화면 규칙 <b>%s</b> · 재서 미는 줄 <b>%s</b></p>',
+		esc_html( $now1 ),
+		( false !== strpos( $body, '#ssv .sheet{padding-top:' ) ) ? '있음' : '없음',
+		( false !== strpos( $body, 'cd.style.paddingTop' ) ) ? '아직 있음' : '없음' );
 
 	$new  = $body;
 	$done = array();
 	$fail = array();
 
 	/* ── ① 덮개의 위 여백 ─────────────────────────────── */
-	$pat1 = '#padding:\s*([0-9]+)px\s+16px\s+60px;\}#u';
-	$n1   = preg_match_all( $pat1, $new, $m1 );
+	/* ★ 정규식을 안 씁니다 — 긴 줄에서 서버가 멈춥니다 (판a 의 504) */
+	$T1 = 'px 16px 60px;}';
+	$n1 = substr_count( $new, $T1 );
+	$a1 = strpos( $new, $T1 );
 	if ( 1 === $n1 ) {
-		$was  = (int) $m1[1][0];
-		$new  = preg_replace( $pat1, 'padding:' . $PX . 'px 16px 60px;}', $new, 1 );
-		$done[] = '① 덮개 위 여백  ' . $was . 'px → ' . $PX . 'px';
+		$pre = substr( $new, max( 0, $a1 - 24 ), min( 24, $a1 ) );
+		$ps  = strrpos( $pre, 'padding:' );
+		if ( false === $ps ) {
+			$fail[] = '① 덮개 위 여백 — padding: 을 앞에서 못 찾았습니다';
+		} else {
+			$cut = $a1 - ( strlen( $pre ) - $ps ) + 8;   /* 숫자가 시작하는 자리 */
+			$was = substr( $new, $cut, $a1 - $cut );
+			if ( '' === $was or ! ctype_digit( $was ) ) {
+				$fail[] = '① 덮개 위 여백 — 숫자가 아닙니다 (' . $was . ')';
+			} else {
+				$new    = substr( $new, 0, $cut ) . $PX . substr( $new, $a1 );
+				$done[] = '① 덮개 위 여백  ' . $was . 'px → ' . $PX . 'px';
+			}
+		}
 	} else {
 		$fail[] = '① 덮개 위 여백 — ' . $n1 . '군데 (하나여야 합니다)';
 	}
@@ -108,12 +147,19 @@ add_action( 'init', function () {
 	$A2 = '@media(max-width:600px){ #ssv .card{padding:30px 20px 36px;} }';
 	$B2 = $A2 . chr( 10 )
 		. '@media(max-width:600px){ #ssv .sheet{padding-top:' . $PS . 'px;} }';
-	$old2 = '#@media\(max-width:600px\)\{\s*\#ssv\s+\.sheet\{padding-top:[0-9]+px;\}\s*\}#u';
-	if ( preg_match( $old2, $new ) ) {
+	$M2 = '#ssv .sheet{padding-top:';
+	$a2 = strpos( $new, $M2 );
+	if ( false !== $a2 ) {
 		/* 이미 넣어둔 것이 있으면 값만 갈아끼웁니다 */
-		$new = preg_replace( $old2,
-			'@media(max-width:600px){ #ssv .sheet{padding-top:' . $PS . 'px;} }', $new, 1 );
-		$done[] = '② 좁은 화면  값만 갈아끼움 → ' . $PS . 'px';
+		$s2 = $a2 + strlen( $M2 );
+		$e2 = strpos( $new, 'px;}', $s2 );
+		if ( false === $e2 ) {
+			$fail[] = '② 좁은 화면 — 넣어둔 규칙이 이상합니다';
+		} else {
+			$was2   = substr( $new, $s2, $e2 - $s2 );
+			$new    = substr( $new, 0, $s2 ) . $PS . substr( $new, $e2 );
+			$done[] = '② 좁은 화면  ' . $was2 . 'px → ' . $PS . 'px';
+		}
 	} elseif ( 1 === substr_count( $new, $A2 ) ) {
 		$new    = str_replace( $A2, $B2, $new );
 		$done[] = '② 좁은 화면  새로 넣음 → ' . $PS . 'px';
@@ -122,11 +168,26 @@ add_action( 'init', function () {
 	}
 
 	/* ── ③ 머리글을 재서 미는 줄을 끕니다 ─────────────── */
-	$pat3 = '#[^' . chr( 10 ) . ']*cd\.style\.paddingTop[^' . chr( 10 ) . ']*#u';
-	$n3   = preg_match_all( $pat3, $new );
+	/* ★ 여기가 판a 에서 서버를 멈춘 자리입니다. 정규식 대신
+	   글자를 찾고 그 줄의 앞뒤 줄바꿈을 짚어 잘라냅니다 — 한 번에 끝납니다. */
+	$M3 = 'cd.style.paddingTop';
+	$NL = chr( 10 );
+	$n3 = 0;
+	$guard = 0;
+	while ( $guard < 5 ) {
+		$guard++;
+		$a3 = strpos( $new, $M3 );
+		if ( false === $a3 ) { break; }
+		$ls = strrpos( $new, $NL, $a3 - strlen( $new ) );   /* 그 앞의 줄바꿈 */
+		if ( false === $ls ) { $ls = -1; }
+		$le = strpos( $new, $NL, $a3 );                     /* 그 뒤의 줄바꿈 */
+		if ( false === $le ) { $le = strlen( $new ); }
+		$new = substr( $new, 0, $ls + 1 )
+			. '        /* 여백은 CSS 가 정합니다 - 재지 않습니다 */'
+			. substr( $new, $le );
+		$n3++;
+	}
 	if ( $n3 > 0 ) {
-		$new = preg_replace( $pat3,
-			'        /* 여백은 CSS 가 정합니다 — 재지 않습니다 */', $new );
 		$done[] = '③ 재서 미는 줄  ' . $n3 . '군데를 껐습니다';
 	} else {
 		if ( false !== strpos( $new, '여백은 CSS 가 정합니다' ) ) {
@@ -163,9 +224,6 @@ add_action( 'init', function () {
 	update_post_meta( $pid, $bak, $body );
 	/* ★ wp_slash — 안 감싸면 역빗금이 벗겨집니다 */
 	wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $new ) ) );
-	clean_post_cache( $pid );
-	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
-
 	clean_post_cache( $pid );
 	$chk = get_post( $pid );
 	$af  = substr_count( $chk->post_content, $BS );
