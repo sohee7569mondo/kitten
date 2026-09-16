@@ -75,7 +75,9 @@ def build():
     # ★★ 표가 **두 번** 선언돼 있습니다 (CLAUDE.md 의 되풀이 탈).
     #   앞엣것은 전자책과 함께 쓰는 **풀이 엔진**이고,
     #   뒤엣것이 **스타 사주 화면**입니다. 뒤엣것만 고칩니다.
-    MARK = '<script>\n(function(){\n  var STARS='
+    # ★ 조각과 **똑같은 표지말**을 써야 자르는 자리가 같아집니다.
+    #   줄바꿈이 든 표지말은 줄끝 표시가 바뀌면 못 찾습니다.
+    MARK = 'var STARS='
     if whole.count(MARK) != 1:
         print('★ 스타 사주 덩어리를 못 찾았습니다 : %d군데' % whole.count(MARK))
         sys.exit(1)
@@ -242,8 +244,22 @@ def build():
            '"y":"甲子","m":"丁卯","dd":"丙午","g":"丙","gk":"병화",'
            '"el":{"목":2,"화":3,"토":0,"금":0,"수":1},"hi":"화","no":["토","금"],'
            '"sip":["편인","편관"],"s":"물고기자리"}')
-    E('서강준 · 이준혁 넣기', '  var STARS=[{"n":"유재석"',
-      '  var STARS=[' + SEO + ',' + JUN + ',{"n":"유재석"')
+    E('서강준 · 이준혁 넣기', 'var STARS=[{"n":"유재석"',
+      'var STARS=[' + SEO + ',' + JUN + ',{"n":"유재석"')
+
+    # ── 보기 이름을 서강준으로 (소희 님 「유재석 생일도 서강준으로」) ──
+    #   생일 칸까지 같이 바꿉니다 — 이름만 바꾸면 1972.8.14 가 남아
+    #   딴 사람 생일이 됩니다.
+    E('보기 이름 서강준으로',
+      """    <div class="fld wide"><label>이름</label><input id="qName" type="text" maxlength="20" placeholder="예) 유재석"></div>
+    <div class="fld"><label>태어난 해</label><input id="qY" type="number" inputmode="numeric" placeholder="1972" min="1900" max="2026"></div>
+    <div class="fld"><label>달</label><input id="qM" type="number" inputmode="numeric" placeholder="8" min="1" max="12" style="width:80px"></div>
+    <div class="fld"><label>날</label><input id="qD" type="number" inputmode="numeric" placeholder="14" min="1" max="31" style="width:80px"></div>""",
+      """    <div class="fld wide"><label>이름</label><input id="qName" type="text" maxlength="20" placeholder="예) 서강준"></div>
+    <div class="fld"><label>태어난 해</label><input id="qY" type="number" inputmode="numeric" placeholder="1993" min="1900" max="2026"></div>
+    <div class="fld"><label>달</label><input id="qM" type="number" inputmode="numeric" placeholder="10" min="1" max="12" style="width:80px"></div>
+    <div class="fld"><label>날</label><input id="qD" type="number" inputmode="numeric" placeholder="12" min="1" max="31" style="width:80px"></div>""",
+      'h')
 
     # ── ⑨ 검색칸 + 「요즘 많이 보는 사람」 여덟 ────────────────
     E('검색칸과 여덟 장',
@@ -497,12 +513,24 @@ add_action( 'init', function () {
 
 	/* ★★ 표가 **두 번** 선언돼 있습니다 — 앞엣것은 전자책과 함께 쓰는
 	   풀이 엔진이고, 뒤엣것이 스타 사주 화면입니다. 뒤엣것만 고칩니다. */
-	$MARK = "<script>\n(function(){\n  var STARS=";
+	/* ★★ 2026-09-16 · 못 찾던 까닭
+	   전에는 줄바꿈이 든 글자("<script>\n(function(){\n  var STARS=")로
+	   찾았습니다. 조각이 WPCode 에 담기는 동안 줄끝 표시가 \r\n 으로
+	   바뀌면 그 한 글자 때문에 못 찾습니다.
+	   이제 **줄바꿈이 하나도 없는** 표지말로 찾습니다. */
+	$MARK = 'var STARS=';
 	$cut  = strpos( $body, $MARK );
 	if ( false === $cut ) {
 		echo '<h1 style="color:#ff7b7b">스타 사주 덩어리를 못 찾았습니다.</h1>';
 		echo '<p>쪽이 그 사이에 바뀐 것입니다. 저에게 알려주세요.</p>';
 		exit;
+	}
+
+	/* ★★ 찾을 글과 넣을 글의 줄끝도 가지런히 맞춥니다.
+	   같은 까닭입니다 — 조각 쪽 줄끝이 \r\n 이면 쪽(\n)과 안 맞습니다. */
+	foreach ( $EDITS as $ei => $ee ) {
+		$EDITS[ $ei ][2] = str_replace( array( "\r\n", "\r" ), "\n", $ee[2] );
+		$EDITS[ $ei ][3] = str_replace( array( "\r\n", "\r" ), "\n", $ee[3] );
 	}
 	$head = substr( $body, 0, $cut );
 	$tail = substr( $body, $cut );
@@ -557,6 +585,20 @@ FOOT = '''
 		echo '</ul>';
 		echo '<p style="color:#888">쪽이 그 사이에 바뀐 것입니다. 저에게 알려주세요 — '
 			. '지금 쪽을 다시 읽어 조각을 새로 뽑겠습니다.</p>';
+		/* 빈칸만 다른 것인지 한 번 더 봅니다 — 그러면 까닭이 바로 보입니다 */
+		echo '<h3 style="color:#ffd76a">빈칸을 다 떼고 보면</h3><ul style="font-size:13px">';
+		foreach ( $miss as $m ) {
+			$k = 0;
+			foreach ( $EDITS as $e ) {
+				if ( $e[0] !== $m[0] ) { continue; }
+				$a = preg_replace( '/\s+/u', '', $e[2] );
+				$t = preg_replace( '/\s+/u', '', 'h' === $e[1] ? $head : $tail );
+				$k = substr_count( $t, $a );
+			}
+			printf( '<li>%%s — 빈칸 떼고 보면 %%d군데</li>', esc_html( $m[0] ), $k );
+		}
+		echo '</ul><p style="color:#888">「빈칸 떼고 보면 1군데」로 나오면 '
+			. '줄끝이나 들여쓰기만 다른 것입니다.</p>';
 		exit;
 	}
 
