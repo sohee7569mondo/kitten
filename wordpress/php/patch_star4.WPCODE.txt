@@ -25,9 +25,10 @@
        「537명 전체에서 찾기」 단추를 뺍니다.
 
    ── 쓰는 법 ─────────────────────────────────────────
-   ① 미리보기  https://stellasaju.com/?stella_star4=1
-   ② 고치기    미리보기 화면의 「이대로 고치기」
-   ③ 되돌리기  https://stellasaju.com/?stella_star4=1&undo=1
+   ① 고치기    https://stellasaju.com/?stella_star4=1
+              ★ 미리보기 없이 **바로 고칩니다.** 열기만 하면 됩니다.
+              넣기 전 쪽을 통째로 백업합니다.
+   ② 되돌리기  https://stellasaju.com/?stella_star4=1&undo=1
 
    붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
    ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
@@ -100,9 +101,7 @@ add_action( 'init', function () {
 		else { $miss[] = array( $f[0], $n, substr_count( $body, $f[2] ) ); }
 	}
 
-	$go = isset( $_GET['go'] );
-	printf( '<h1 style="color:#ffd76a">벗겨진 역빗금 되살리기 — %s</h1>',
-		$go ? '고치기' : '<span style="color:#9fd">미리보기 · 아무것도 안 바뀝니다</span>' );
+	echo '<h1 style="color:#ffd76a">벗겨진 역빗금 되살리기</h1>';
 	printf( '<p>쪽 406 · 지금 <b>%s자</b> · 역빗금 <b style="color:%s">%d개</b> '
 		. '(다섯 개여야 합니다)</p>',
 		number_format( strlen( $body ) ),
@@ -146,12 +145,10 @@ add_action( 'init', function () {
 	}
 	echo '</table>';
 
-	if ( ! $go ) {
-		echo '<h2 style="color:#ffd76a;margin-top:22px">여기까지가 미리보기입니다.</h2>';
-		echo '<p style="font-size:18px"><a style="color:#ffd76a" '
-			. 'href="?stella_star4=1&amp;go=1">→ 이대로 고치기</a></p>';
-		exit;
-	}
+	/* ★★ 2026-09-16 · 미리보기 단계를 없앴습니다.
+	   소희 님이 미리보기에서 멈추시는 일이 여러 번 있었습니다.
+	   이것은 역빗금 다섯 개를 되살리는 작은 고침이고, 넣기 전 쪽을
+	   통째로 백업하며 되돌리기도 있으니 바로 고칩니다. */
 
 	update_post_meta( $pid, $bak, $body );
 	/* ★★ 여기가 핵심입니다 — wp_slash 로 감싸야 역빗금이 안 벗겨집니다 */
@@ -175,3 +172,64 @@ add_action( 'init', function () {
 		esc_url( get_permalink( $pid ) ) );
 	exit;
 }, 1 );
+
+/* ════════════════════════════════════════════════════════════
+   덤 · 스타 사주 쪽 맨 위의 「검정 띠」가 무엇인지 잽니다
+   소희 님 「이 페이지 위에 답메튜 사이에 검정색 띠가 있어」
+
+   쪽 내용을 통째로 그려 봤는데 어두운 상자가 하나도 없었습니다.
+   그러니 **테마 쪽**입니다. 짐작하지 않고 화면에서 직접 재서
+   무엇인지 이름을 찍어 드립니다. 관리자에게만 보입니다.
+   ════════════════════════════════════════════════════════════ */
+add_action( 'wp_footer', function () {
+
+	if ( ! is_page( 'star-saju' ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	?>
+<style>#ssband{margin:14px 22px;padding:9px 12px;font-size:12px;line-height:1.7;
+border-left:3px solid #C9A227;background:rgba(201,162,39,.09);color:#5a4a10}</style>
+<script>
+(function(){
+  if(window.StellaBand){ return; }
+  window.StellaBand = 1;
+  function run(){
+    try{
+      var out = [], all = document.querySelectorAll('*'), i, el, st, r, m, lum, nm;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        r = el.getBoundingClientRect();
+        if(r.top > 320){ continue; }
+        if(r.height < 18){ continue; }
+        if(r.width < 400){ continue; }
+        st = window.getComputedStyle(el);
+        if(!st){ continue; }
+        m = String(st.backgroundColor).match(/[0-9]+/g);
+        if(!m){ continue; }
+        if(m.length < 3){ continue; }
+        if(m.length > 3){ if(Number(m[3]) === 0){ continue; } }
+        lum = (Number(m[0]) * 299 + Number(m[1]) * 587 + Number(m[2]) * 114) / 1000;
+        if(lum > 80){ continue; }
+        nm = el.tagName;
+        if(el.id){ nm += ' #' + el.id; }
+        if(el.className){ nm += ' .' + String(el.className).split(' ').join('.').slice(0, 40); }
+        out.push(nm + ' — 위 ' + Math.round(r.top) + ' · 높이 ' + Math.round(r.height)
+          + ' · ' + st.backgroundColor);
+        if(out.length > 7){ break; }
+      }
+      var b = document.getElementById('ssband');
+      if(!b){
+        b = document.createElement('p');
+        b.id = 'ssband';
+        if(document.body){ document.body.appendChild(b); }
+      }
+      b.textContent = '관리자에게만 보입니다 · 쪽 맨 위의 어두운 상자 '
+        + out.length + '개  ///  ' + (out.length ? out.join('  ///  ') : '없음');
+    }catch(e){}
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(run, 400); });
+  } else { setTimeout(run, 400); }
+})();
+</script>
+	<?php
+}, 99 );
