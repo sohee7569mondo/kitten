@@ -57,7 +57,10 @@ add_action( 'init', function () {
 	}
 	echo '<link rel="canonical" href="' . esc_url( home_url( '/uandme/' . $screen . '/' ) ) . '">';
 	echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
-	echo '<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum' . '&' . 'display=swap" rel="stylesheet">';
+	/* ★ 2026-09-16 · 소희 님 「홈에 쓴 유앤미 로고를 다른페이지에도 똑같이」
+	   본 화면(⑥)의 머리글은 그림 로고 + Jua 22px 보라입니다.
+	   이 쪽만 글자로 「유앤미」가 나오고 있었습니다. 같게 맞춥니다. */
+	echo '<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum' . '&' . 'family=Jua' . '&' . 'display=swap" rel="stylesheet">';
 	echo '<style>'
 		. 'body{margin:0;background:#FFFDFA;color:#3E4451;'
 		. "font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;"
@@ -65,15 +68,27 @@ add_action( 'init', function () {
 		. '.top{max-width:430px;margin:0 auto;padding:16px 18px 0;display:flex;'
 		. 'align-items:center;justify-content:space-between}'
 		. '.top a{text-decoration:none}'
-		. '.top .nm{font-size:21px;color:#3F3A52}'
-		. '.top .up{font-size:10.5px;color:#A79BC4}'
+		. '.top .lg{display:flex;align-items:center;gap:7px}'
+		. '.top .lg img{height:34px;width:auto;display:block}'
+		. ".top .nm{font-family:Jua,'Noto Sans KR',sans-serif;font-size:22px;"
+		. "color:#6B5BA8;font-weight:400}"
+		. '.top .up{font-size:11.5px;font-weight:700;color:#A79BC4;'
+		. 'background:#EDE6F8;padding:8px 13px;border-radius:999px}'
 		. '.bot{max-width:430px;margin:34px auto 0;padding:18px 18px 60px;'
 		. 'border-top:1px solid #EDE5FA;font-size:12px;color:#A79BC4;line-height:1.9}'
 		. '.bot a{color:#8C82A6;text-decoration:none;margin-right:10px}'
 		. 'a:focus-visible,button:focus-visible,input:focus-visible{'
 		. 'outline:2px solid #6B5BA8;outline-offset:2px}'
 		. '</style>';
-	echo '<div class="top"><a href="/uandme/"><span class="nm">유앤미</span></a>';
+	/* 로고 그림 — 본 화면(②의 UM_PIC 로고그림)과 같은 것입니다.
+	   다른 그림으로 바꾸시려면 stella_um_logo 옵션에 주소만 넣으면 됩니다. */
+	$umlogo = get_option( 'stella_um_logo', '' );
+	if ( ! $umlogo ) {
+		$umlogo = 'https://stellasaju.com/wp-content/uploads/2026/09/uandme_logo-01.png';
+	}
+	echo '<div class="top"><a class="lg" href="/uandme/">'
+		. '<img src="' . esc_url( $umlogo ) . '" alt="" height="34">'
+		. '<span class="nm">유앤미</span></a>';
 	echo '<a class="up" href="/">스텔라사주</a></div>';
 	echo '<div id="um-ideal"></div>';
 	echo '<div class="bot">';

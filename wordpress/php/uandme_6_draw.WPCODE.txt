@@ -571,7 +571,13 @@ add_action( 'wp_head', function () {
     var wrap = el('<div id="um-celeb" style="position:fixed;left:0;top:0;right:0;bottom:0;' +
       'background:#F7F2FC;z-index:2147483644;display:flex;flex-direction:column"></div>');
 
-    var top = el('<div style="padding:16px 18px 12px;background:#F7F2FC;flex:0 0 auto"></div>');
+    /* ★ 2026-09-16 · 소희 님 「연예인리스트 페이지만 갑자기 폭 넓어진 것」
+       #um-celeb 은 화면을 꽉 채우는 덮개(left:0;right:0)인데 안쪽에 폭
+       울타리가 없어서, 넓은 화면에서는 이름 카드가 창 끝까지 퍼졌습니다.
+       본 화면(#um)은 430px 이므로 여기도 같게 맞춥니다. */
+    var UMW = 'width:100%;max-width:430px;margin-left:auto;margin-right:auto;box-sizing:border-box;';
+
+    var top = el('<div style="' + UMW + 'padding:16px 18px 12px;background:#F7F2FC;flex:0 0 auto"></div>');
     var row = el('<div style="display:flex;gap:9px;align-items:center"></div>');
     var inp = el('<input id="um-cq" placeholder="이름 · 그룹 · ㅈㅇㅇ" ' +
       'style="flex:1;min-width:0;border:1.6px solid #E4DAF6;background:#fff;border-radius:15px;' +
@@ -611,7 +617,7 @@ add_action( 'wp_head', function () {
     chip('F', '여자');
     top.appendChild(chips);
 
-    var body = el('<div style="flex:1 1 auto;overflow-y:auto;padding:4px 18px 30px;' +
+    var body = el('<div style="' + UMW + 'flex:1 1 auto;overflow-y:auto;padding:4px 18px 30px;' +
       'display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));' +
       'gap:7px;align-content:start"></div>');
     wrap.appendChild(top); wrap.appendChild(body);

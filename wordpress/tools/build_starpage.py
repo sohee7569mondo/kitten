@@ -522,7 +522,28 @@ add_action( 'init', function () {
 	$cut  = strpos( $body, $MARK );
 	if ( false === $cut ) {
 		echo '<h1 style="color:#ff7b7b">스타 사주 덩어리를 못 찾았습니다.</h1>';
-		echo '<p>쪽이 그 사이에 바뀐 것입니다. 저에게 알려주세요.</p>';
+		/* ★ 짐작하지 않게 **쪽이 어떻게 생겼는지** 그대로 찍습니다.
+		   이 표를 보여주시면 까닭이 한 번에 드러납니다. */
+		$rawlen = strlen( $page->post_content );
+		echo '<table cellpadding="6" style="border-collapse:collapse;font-size:13px">';
+		printf( '<tr><td>쪽 406 글자 수</td><td><b>%%s</b> (제가 읽은 것은 246,854)</td></tr>',
+			number_format( $rawlen ) );
+		printf( '<tr><td>고친 때</td><td>%%s</td></tr>', esc_html( $page->post_modified ) );
+		$look = array( 'var STARS=', 'STARS', '유재석', 'svCard', 'svGrid', 'EL_MUCH', '<script' );
+		foreach ( $look as $w ) {
+			printf( '<tr><td><code>%%s</code></td><td>%%d군데</td></tr>',
+				esc_html( $w ), substr_count( $body, $w ) );
+		}
+		printf( '<tr><td>줄끝</td><td>\\r\\n %%d군데 · 홑 \\n %%d군데</td></tr>',
+			substr_count( $page->post_content, "\r\n" ),
+			substr_count( $page->post_content, "\n" ) - substr_count( $page->post_content, "\r\n" ) );
+		printf( '<tr><td>역빗금</td><td>%%d개</td></tr>', substr_count( $body, chr( 92 ) ) );
+		echo '</table>';
+		echo '<h3 style="color:#ffd76a">쪽 맨 앞 200자</h3>';
+		echo '<pre style="white-space:pre-wrap;word-break:break-all;background:#0b0810;'
+			. 'padding:12px;border-radius:8px;font-size:12px;color:#c9c3d6">'
+			. esc_html( substr( $body, 0, 200 ) ) . '</pre>';
+		echo '<p>이 표를 그대로 보여주세요 — 까닭이 바로 보입니다.</p>';
 		exit;
 	}
 
