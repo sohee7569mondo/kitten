@@ -1,7 +1,7 @@
 <?php
 /* ════════════════════════════════════════════════════════════
    삼재 — 여섯 장짜리 별도 구조 책
-   ★ 만든 판 2026-09-16 00:24 · 그 해 2026 (병오 · 화)
+   ★ 만든 판 2026-09-16 01:51 · 그 해 2026 (병오 · 화)
 
    무엇을 하나 — door-fortune 에서 「삼재」를 고르면 우리 여섯 장이
    나옵니다. 책 그릇(#bkBook)의 내용을 통째로 갈아끼웁니다.
@@ -36,7 +36,7 @@ add_action( 'wp_footer', function () {
 	$mine = is_page( 'reading-book' ) ? '예 — 우리 쪽입니다' : '아니오 — 여기서는 조각이 안 돕니다';
 	echo '<div style="margin:12px;padding:10px 14px;border:2px solid #A9791F;'
 	   . 'background:#FFFDF6;border-radius:8px;font:13px/1.8 system-ui;color:#4a3a10">'
-	   . '관리자에게만 보입니다 · 삼재 조각이 켜져 있습니다 · 판 2026-09-16 00:24'
+	   . '관리자에게만 보입니다 · 삼재 조각이 켜져 있습니다 · 판 2026-09-16 01:51'
 	   . '<br>지금 쪽 「' . esc_html( $slug ) . '」 · 우리 쪽인가 : ' . $mine
 	   . '</div>';
 }, 99 );
@@ -87,7 +87,7 @@ add_action( 'wp_head', function () {
 	<?php
 	$stella_admin = current_user_can( 'manage_options' ) ? '1' : '';
 	?>
-<!-- stella 삼재 · 판 2026-09-16 00:24 -->
+<!-- stella 삼재 · 판 2026-09-16 01:51 -->
 <style>
 #ssb .sjkeep{ font-weight:600; }
 #ssb .mini{ font-size:.86rem; color:#6a6a78; }
@@ -322,7 +322,7 @@ add_action( 'wp_head', function () {
   var YEAR   = 2026;
   var YEAR_EL= '화';
   var GANJI  = '병오';
-  var STAMP  = '2026-09-16 00:24';
+  var STAMP  = '2026-09-16 01:51';
   var GUARDIAN = '미르';
   var TOPICS = ['삼재'];
 
@@ -952,7 +952,16 @@ add_action( 'wp_head', function () {
       var no=MARK[mark] ? MARK[mark] : '';
       mark++;
       pages.push('<section class="page divider">'+
-        '<div class="dvmark dvface"><img loading="lazy" decoding="async" '+
+        /* ★ loading="lazy" 를 뺍니다 — 2026-09-16
+           소희 님 「장표지의 그림은 안돼?」
+           표지 아치에는 사진이 들어가는데 장 속표지 동그라미만
+           비어 있었습니다. 진단 띠는 「받았습니다」라고 했는데
+           그것은 **표지** 칸을 본 것이었습니다.
+           우리는 책을 innerHTML 로 통째로 갈아끼웁니다. 그렇게
+           끼운 lazy 그림은 브라우저가 화면에 들어온 줄 모르고
+           끝까지 안 받는 일이 있습니다. 장 속표지는 열 장뿐이고
+           같은 그림 하나라 한 번만 받으면 됩니다. 미루지 않습니다. */
+        '<div class="dvmark dvface"><img decoding="async" '+
         'alt="'+DOORALT+'" src="'+DOORIMG+'"></div>'+
         '<p class="dvwho">'+GUARDIAN+'</p>'+
         '<p class="dvno dvch">'+no+'</p>'+
@@ -1054,6 +1063,17 @@ add_action( 'wp_head', function () {
   }
   function retryImg(im){
     if(!im){ return; }
+    /* ★ 미루지 말고 바로 받게 합니다 — 2026-09-16
+       innerHTML 로 끼운 lazy 그림은 브라우저가 화면에 들어온 줄
+       모르고 끝까지 안 받는 일이 있습니다. 옛 판으로 그려진
+       그림에도 걸리도록 여기서 한 번 더 벗겨 줍니다. */
+    try{
+      if(im.getAttribute('loading')){
+        im.removeAttribute('loading');
+        var cur0=im.getAttribute('src');
+        if(cur0){ im.setAttribute('src', cur0); }
+      }
+    }catch(e0){}
     if(im.getAttribute('data-retry')==='1'){ return; }
     var go=function(){
       if(im.getAttribute('data-retry')==='1'){ return; }

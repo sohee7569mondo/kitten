@@ -1,0 +1,389 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주 — 이름 쓰는 칸 하나만 남깁니다
+   ★ 2026-09-16 · 소희 님께
+
+   소희 님 : 「이름하고 연예인이름쓰는 란만 있으면 돼 아래 리스트는
+              필요없어 고르는게 더 힘들어」
+              「변화가 없음 그대로 있어 이름넣는 칸도 안보이고
+               밑에 무려 500여명의 리스트가 보임」
+
+   ── 앞 조각이 왜 안 먹었나 ──────────────────────────
+   제가 쪽의 이름(#cRoster · .find)에 기대어 찾았는데, **살아 있는
+   쪽은 제 사본과 다릅니다.** 「이름 넣는 칸도 안 보인다」는 말씀이
+   그 증거입니다 — 제 사본에는 그 칸이 있습니다.
+
+   그래서 이 조각은 **이름을 하나도 안 씁니다.** 화면을 보고 찾습니다 —
+
+       한 상자 안에 단추가 스무 개 넘게 모여 있으면, 그것이 목록입니다.
+
+   사람 이름 단추가 수백 개 모인 자리는 그 쪽에 하나뿐이니 틀릴 수
+   없습니다. 쪽이 어떻게 바뀌어도 따라갑니다.
+
+   ── 무엇을 하나 ─────────────────────────────────────
+   ① 그 목록을 감춥니다 (머리말이 함께 있는 상자면 상자째)
+   ② 그 자리에 **이름 쓰는 칸**을 놓습니다
+   ③ 적으실 때마다 맞는 이름을 여덟 개까지 보여드립니다.
+      고르시면 숨어 있던 그 단추를 대신 눌러 줍니다 —
+      그래서 결과는 예전과 똑같이 나옵니다.
+   ④ 엔터만 치셔도 첫 번째 것이 열립니다.
+
+   ★ 쪽 글은 한 글자도 안 바꿉니다. 스니펫을 끄면 그대로 돌아옵니다.
+
+   ── 켜졌는지 보기 ───────────────────────────────────
+   관리자로 보시면 칸 아래에 한 줄이 뜹니다 —
+       「관리자에게만 보입니다 · 이름 537개를 찾았습니다」
+   이 줄이 없으면 조각이 안 켜졌거나 옛 판이 도는 것입니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ★ 앞서 드린 patch_starfix 는 **꺼주세요** — 이 조각이 대신합니다.
+     (숫자 「191명」 고치는 일은 이 조각에도 들어 있습니다)
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 사람 수 세기 ───────────────────────────────────── */
+if ( ! function_exists( 'stella_star_count' ) ) {
+	function stella_star_count( $fresh = false ) {
+		$key = 'stella_star_n';
+		if ( ! $fresh ) {
+			$n = (int) get_transient( $key );
+			if ( $n > 0 ) { return $n; }
+		}
+		$p = get_page_by_path( 'star-saju' );
+		if ( ! $p ) { return 0; }
+		$c = (string) $p->post_content;
+		$n = substr_count( $c, '{"n":"' );
+		if ( $n < 1 ) { $n = substr_count( $c, 'name:' ); }
+		if ( $n > 0 ) { set_transient( $key, $n, DAY_IN_SECONDS ); }
+		return $n;
+	}
+}
+
+/* ── ① 발췌의 「191명」 ─────────────────────────────── */
+add_filter( 'get_the_excerpt', function ( $text, $post = null ) {
+	if ( ! $post ) { return $text; }
+	$id = is_object( $post ) ? (int) $post->ID : (int) $post;
+	$p  = get_page_by_path( 'star-saju' );
+	if ( ! $p ) { return $text; }
+	if ( $id !== (int) $p->ID ) { return $text; }
+	$n = stella_star_count();
+	if ( $n < 1 ) { return $text; }
+	return preg_replace( '/[0-9][0-9,]*\s*명/u', number_format( $n ) . '명', $text, 1 );
+}, 20, 2 );
+
+/* ── ② 스타 사주 쪽 ────────────────────────────────── */
+add_action( 'wp_head', function () {
+
+	if ( ! is_page( 'star-saju' ) ) { return; }
+
+	$n     = stella_star_count();
+	$admin = current_user_can( 'manage_options' ) ? 1 : 0;
+	?>
+<!-- stella 스타 사주 찾기 · 판 2026-09-16 -->
+<style id="stella-starfind">
+.stella-find{ margin:26px 0 6px; position:relative; }
+.stella-find .row{ display:flex; gap:8px; align-items:stretch; }
+.stella-find input{
+  flex:1 1 auto; min-width:0;
+  padding:14px 16px; font:inherit; font-size:1rem;
+  border:1px solid rgba(212,175,106,.45); border-radius:10px;
+  background:rgba(255,255,255,.55); color:inherit;
+  box-sizing:border-box;
+}
+.stella-find input:focus{ outline:none; border-color:rgba(212,175,106,.9); }
+.stella-find .go{
+  flex:0 0 auto; padding:14px 22px; font:inherit; font-size:.98rem;
+  border:0; border-radius:10px; cursor:pointer;
+  background:#2B2456; color:#F2ECE0; letter-spacing:.02em;
+}
+.stella-find .go:hover{ opacity:.92; }
+.stella-note{ margin:10px 2px 0; font-size:.88rem; opacity:.6; }
+.stella-hits{ margin:10px 0 0; display:flex; flex-wrap:wrap; gap:8px; }
+.stella-hits button{
+  padding:9px 15px; font:inherit; font-size:.94rem; cursor:pointer;
+  border:1px solid rgba(0,0,0,.14); border-radius:999px;
+  background:rgba(255,255,255,.6); color:inherit;
+}
+.stella-hits button:hover{ border-color:rgba(212,175,106,.85); }
+.stella-hits .none{ font-size:.9rem; opacity:.6; padding:6px 2px; }
+.stella-adm{
+  margin:10px 0 0; padding:7px 11px; font-size:.8rem;
+  border-left:3px solid #2F7D4A; background:rgba(47,125,74,.07);
+  color:#1d3a27;
+}
+@media(max-width:560px){
+  .stella-find .row{ flex-wrap:wrap; }
+  .stella-find .go{ width:100%; }
+}
+</style>
+<script>
+(function(){
+  if(window.StellaStarFind){ return; }
+  window.StellaStarFind = 1;
+
+  var ADMIN = <?php echo (int) $admin; ?>;
+  var HOWMANY = '<?php echo esc_js( $n > 0 ? number_format( $n ) : "" ); ?>';
+
+  /* 몇 개부터 「목록」으로 볼 것인가 */
+  var MANY = 20;
+  /* 한 번에 보여드릴 후보 수 */
+  var SHOW = 8;
+
+  var box = null;      /* 숨긴 목록 상자 */
+  var names = [];      /* [이름, 단추] */
+  var wrap = null;     /* 우리가 만든 찾기 칸 */
+
+  /* ★ 정규식을 안 씁니다 — 집 규칙대로 역빗금을 두지 않습니다.
+     워드프레스가 홑 역빗금을 한 겹 벗겨내면 정규식이 망가집니다. */
+  var SP = ' ' + String.fromCharCode(9) + String.fromCharCode(10) + String.fromCharCode(13);
+
+  function tidy(v){
+    var s = String(v === null ? '' : v), out = '', i, ch;
+    for(i = 0; i < s.length; i++){
+      ch = s.charAt(i);
+      if(SP.indexOf(ch) >= 0){ ch = ' '; }
+      out += ch;
+    }
+    while(out.indexOf('  ') >= 0){ out = out.split('  ').join(' '); }
+    return out.trim();
+  }
+
+  function squash(v){
+    var s = String(v === null ? '' : v), out = '', i, ch;
+    for(i = 0; i < s.length; i++){
+      ch = s.charAt(i);
+      if(SP.indexOf(ch) >= 0){ continue; }
+      out += ch;
+    }
+    return out;
+  }
+
+  function txt(el){
+    var b = el.querySelector ? el.querySelector('b') : null;
+    var t = b ? b.textContent : el.textContent;
+    return tidy(t);
+  }
+
+  /* ── 단추가 가장 많이 모인 상자를 찾습니다 ─────────
+     클래스 이름에 기대지 않습니다. 사람 이름 단추가 수백 개
+     모인 자리는 이 쪽에 하나뿐입니다. */
+  function findRoster(){
+    var btns = document.querySelectorAll('button');
+    var pars = [], cnt = [], i, p, j;
+    for(i = 0; i < btns.length; i++){
+      p = btns[i].parentNode;
+      if(!p){ continue; }
+      j = pars.indexOf(p);
+      if(j < 0){ pars.push(p); cnt.push(1); }
+      else { cnt[j]++; }
+    }
+    var best = -1, bestN = 0;
+    for(i = 0; i < cnt.length; i++){
+      if(cnt[i] > bestN){ bestN = cnt[i]; best = i; }
+    }
+    if(best < 0){ return null; }
+    if(bestN < MANY){ return null; }
+    return pars[best];
+  }
+
+  /* 감출 것 — 머리말이 같이 든 상자면 상자째 감춥니다 */
+  function hideTarget(inner){
+    var p = inner.parentNode;
+    if(!p){ return inner; }
+    if(p.querySelector('h2')){ return p; }
+    if(p.querySelector('h3')){ return p; }
+    var cls = String(p.className === undefined ? '' : p.className);
+    if(cls.indexOf('roster') >= 0){ return p; }
+    return inner;
+  }
+
+  function collect(inner){
+    var out = [], seen = {}, i, b, nm;
+    var bs = inner.querySelectorAll('button');
+    for(i = 0; i < bs.length; i++){
+      b = bs[i];
+      nm = b.getAttribute('data-n');
+      if(!nm){ nm = txt(b); }
+      nm = String(nm === null ? '' : nm).trim();
+      if(!nm){ continue; }
+      if(nm.length > 24){ continue; }
+      if(seen[nm]){ continue; }
+      seen[nm] = 1;
+      out.push([nm, b]);
+    }
+    return out;
+  }
+
+  /* ── 찾기 칸 ─────────────────────────────────────── */
+  function build(after){
+    var d = document.createElement('div');
+    d.className = 'stella-find';
+    var row = document.createElement('div');
+    row.className = 'row';
+
+    var inp = document.createElement('input');
+    inp.setAttribute('type', 'text');
+    inp.setAttribute('maxlength', '24');
+    inp.setAttribute('autocomplete', 'off');
+    inp.setAttribute('placeholder', '연예인 이름을 적어보세요 (예: 유재석)');
+
+    var go = document.createElement('button');
+    go.setAttribute('type', 'button');
+    go.className = 'go';
+    go.textContent = '찾기';
+
+    row.appendChild(inp);
+    row.appendChild(go);
+    d.appendChild(row);
+
+    if(HOWMANY){
+      var note = document.createElement('p');
+      note.className = 'stella-note';
+      note.textContent = '지금 ' + HOWMANY + '명이 들어 있습니다';
+      d.appendChild(note);
+    }
+
+    var hits = document.createElement('div');
+    hits.className = 'stella-hits';
+    d.appendChild(hits);
+
+    if(ADMIN){
+      var a = document.createElement('p');
+      a.className = 'stella-adm';
+      a.textContent = '관리자에게만 보입니다 · 이름 ' + names.length + '개를 찾았습니다';
+      d.appendChild(a);
+    }
+
+    if(after.parentNode){ after.parentNode.insertBefore(d, after); }
+
+    function clean(s){ return squash(s); }
+
+    function pick(b){
+      hits.innerHTML = '';
+      inp.value = '';
+      try{ b.click(); }catch(e){}
+      /* 결과가 그려질 틈을 두고 그 자리로 옮겨 갑니다 */
+      setTimeout(function(){
+        try{
+          var art = document.getElementById('cArt');
+          if(!art){ art = document.querySelector('.art'); }
+          if(art){ if(art.scrollIntoView){ art.scrollIntoView({ block:'start' }); } }
+        }catch(e){}
+      }, 120);
+    }
+
+    function draw(){
+      var q = clean(inp.value);
+      hits.innerHTML = '';
+      if(!q){ return; }
+      var head = [], mid = [], i, nm;
+      for(i = 0; i < names.length; i++){
+        nm = clean(names[i][0]);
+        if(nm === q){ head.unshift(names[i]); continue; }
+        if(nm.indexOf(q) === 0){ head.push(names[i]); continue; }
+        if(nm.indexOf(q) > 0){ mid.push(names[i]); }
+      }
+      var list = head.concat(mid).slice(0, SHOW);
+      if(!list.length){
+        var no = document.createElement('div');
+        no.className = 'none';
+        no.textContent = '그 이름은 아직 없습니다. 다른 이름을 적어보세요.';
+        hits.appendChild(no);
+        return;
+      }
+      for(i = 0; i < list.length; i++){
+        (function(one){
+          var b = document.createElement('button');
+          b.setAttribute('type', 'button');
+          b.textContent = one[0];
+          b.addEventListener('click', function(){ pick(one[1]); });
+          hits.appendChild(b);
+        })(list[i]);
+      }
+    }
+
+    function first(){
+      var b = hits.querySelector('button');
+      if(b){ b.click(); return; }
+      draw();
+      var b2 = hits.querySelector('button');
+      if(b2){ b2.click(); }
+    }
+
+    inp.addEventListener('input', draw);
+    inp.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); first(); }
+    });
+    go.addEventListener('click', first);
+
+    return d;
+  }
+
+  function run(){
+    if(wrap){ return 1; }
+    var inner = findRoster();
+    if(!inner){ return 0; }
+    names = collect(inner);
+    if(names.length < MANY){ return 0; }
+    box = hideTarget(inner);
+    box.style.display = 'none';
+    wrap = build(box);
+    return 1;
+  }
+
+  /* 목록은 쪽의 자바스크립트가 나중에 그리고, 다시 그리기도 합니다 */
+  function watch(){
+    run();
+    var k = 0;
+    var t = setInterval(function(){
+      k++;
+      if(box){ if(box.style.display !== 'none'){ box.style.display = 'none'; } }
+      if(!wrap){ run(); }
+      if(k > 120){ clearInterval(t); }
+    }, 500);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', watch);
+  } else { watch(); }
+})();
+</script>
+	<?php
+} );
+
+/* ── ③ 세어보기 (관리자만) ───────────────────────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_starn'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$p = get_page_by_path( 'star-saju' );
+	if ( ! $p ) { echo "★ /star-saju/ 쪽을 못 찾았습니다.\n"; exit; }
+	$c = (string) $p->post_content;
+	$n = stella_star_count( true );
+
+	echo "═══ 스타 사주 ═══\n";
+	echo '쪽 ' . (int) $p->ID . ' · /' . $p->post_name . "/\n";
+	echo '쪽 글자 수 ' . number_format( mb_strlen( $c ) ) . "\n\n";
+	echo '지금 사람 수 ' . number_format( $n ) . "명\n";
+	echo '  {"n":" 꼴  ' . number_format( substr_count( $c, '{"n":"' ) ) . "명\n";
+	echo '  name: 꼴   ' . number_format( substr_count( $c, 'name:' ) ) . "명\n\n";
+
+	$ex = (string) $p->post_excerpt;
+	echo "발췌 (차림표·카드에 나오는 글)\n";
+	echo '  지금   : ' . ( '' === $ex ? '(비어 있음)' : $ex ) . "\n";
+	if ( $n > 0 ) {
+		echo '  보여줄 것 : '
+			. preg_replace( '/[0-9][0-9,]*\s*명/u', number_format( $n ) . '명', $ex, 1 ) . "\n";
+	}
+	echo "\n";
+	echo "이름 목록\n";
+	echo "  쪽의 이름에 기대지 않습니다. 단추가 스무 개 넘게 모인 상자를\n";
+	echo "  찾아 감추고, 그 자리에 이름 쓰는 칸을 놓습니다.\n";
+	echo "  관리자로 스타 사주 쪽을 여시면 칸 아래에 초록 줄이 뜹니다 —\n";
+	echo "  「이름 N개를 찾았습니다」. 그 줄이 없으면 조각이 안 켜진 것입니다.\n\n";
+	echo "★ 쪽 글도 DB 도 한 글자 안 바꿉니다. 스니펫을 끄면 그대로 돌아옵니다.\n";
+	exit;
+} );

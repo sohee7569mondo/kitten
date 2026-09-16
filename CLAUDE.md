@@ -434,6 +434,13 @@ GCALC-2 · GTEXT-2 에서 그렇게 고쳤습니다.
 
     php -l              앞에 <?php 를 붙여 문법 검사
     grep -c '&'         앰퍼샌드 0 이어야 합니다
+    ★ 역빗금은 grep -c '\\\\' 로 세면 **거짓말을 합니다** (2026-09-16)
+      그것은 역빗금 **두 개**를 찾습니다. 홑 역빗금은 grep -o 로 셉니다.
+      그리고 PHP 문자열의 "\n" 은 괜찮습니다 — 위험한 것은
+      **<script> 안**의 홑 역빗금입니다. 그것만 따로 셉니다 :
+          python3 -c "import io,re; s=io.open(F,encoding='utf-8').read();
+            print(''.join(re.findall(r'<script>([\\s\\S]*?)</script>',s)).count(chr(92)))"
+      patch_starfind 의 replace(/\\s+/g,'') 두 군데가 이 검사에 걸렸습니다.
     사본에 실제로 적용   str_replace 를 흉내내 돌려봅니다
     node --check        결과에서 <script> 를 다 뽑아 문법 검사
     로직 시험           node 로 함수를 실제로 돌려봅니다 (pickedSide 처럼)

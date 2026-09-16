@@ -383,7 +383,16 @@ add_action( 'wp_head', function () {
       n++;
       var attr=part?' data-part="'+part+'"':'';
       pages.push('<div class="page divider"'+attr+'>'+
-        '<div class="dvmark dvface"><img loading="lazy" decoding="async" '+
+        /* ★ loading="lazy" 를 뺍니다 — 2026-09-16
+           소희 님 「장표지의 그림은 안돼?」
+           표지 아치에는 사진이 들어가는데 장 속표지 동그라미만
+           비어 있었습니다. 진단 띠는 「받았습니다」라고 했는데
+           그것은 **표지** 칸을 본 것이었습니다.
+           우리는 책을 innerHTML 로 통째로 갈아끼웁니다. 그렇게
+           끼운 lazy 그림은 브라우저가 화면에 들어온 줄 모르고
+           끝까지 안 받는 일이 있습니다. 장 속표지는 열 장뿐이고
+           같은 그림 하나라 한 번만 받으면 됩니다. 미루지 않습니다. */
+        '<div class="dvmark dvface"><img decoding="async" '+
         'alt="'+DOORALT+'" src="'+DOORIMG+'"></div>'+
         '<p class="dvwho">'+GUARDIAN+'</p>'+
         '<p class="dvno dvch">'+no+'</p>'+
@@ -485,6 +494,17 @@ add_action( 'wp_head', function () {
   }
   function retryImg(im){
     if(!im){ return; }
+    /* ★ 미루지 말고 바로 받게 합니다 — 2026-09-16
+       innerHTML 로 끼운 lazy 그림은 브라우저가 화면에 들어온 줄
+       모르고 끝까지 안 받는 일이 있습니다. 옛 판으로 그려진
+       그림에도 걸리도록 여기서 한 번 더 벗겨 줍니다. */
+    try{
+      if(im.getAttribute('loading')){
+        im.removeAttribute('loading');
+        var cur0=im.getAttribute('src');
+        if(cur0){ im.setAttribute('src', cur0); }
+      }
+    }catch(e0){}
     if(im.getAttribute('data-retry')==='1'){ return; }
     var go=function(){
       if(im.getAttribute('data-retry')==='1'){ return; }
