@@ -439,7 +439,8 @@ if __name__ == '__main__':
 # ══════════════════════════════════════════════════════════════
 
 HEAD = '''/* ════════════════════════════════════════════════════════════
-   스타 사주 · **쪽 원본을 고칩니다**          판 %(S)s
+   스타 사주 · 쪽 원본 고치기 %(P)d/3 — %(T)s
+   판 %(S)s
    (도구가 뽑았습니다 — build_starpage.py. 손으로 고치지 마세요)
 
    소희 님 : 「연애인 리스트도 떴다가 가려지는 형식이야
@@ -461,7 +462,7 @@ HEAD = '''/* ══════════════════════�
                                 이름을 골라주는 일은 남으므로
                                 **끄지 마시고** 그대로 두세요.
 
-   ── 무엇이 바뀌나 (%(N)d군데) ────────────────────────
+   ── 이 조각이 바꾸는 자리 %(N)d군데 ──────────────────
        · 일간 열 · 오행 열 · 십성 열의 글을 판2 원고로
        · 오행 막대 다섯 줄 → 사주표 아래 한 줄
        · 「일간이 같은 사람 N명」 이름 명단 접기
@@ -471,11 +472,14 @@ HEAD = '''/* ══════════════════════�
        · 결과가 사이트 머리글에 안 가리게 (머리글을 재서 내림)
 
    ── 쓰는 법 ─────────────────────────────────────────
-   ① 미리보기  https://stellasaju.com/?stella_starsrc=1
+   ★★ 셋으로 쪼갰습니다 — 한 덩어리 52KB 는 붙여넣다 끊깁니다.
+     셋 다 붙이셔야 다 바뀝니다. 순서는 안 가립니다.
+     두 번 눌러도 안전합니다 (이미 들어간 자리는 그냥 지나갑니다).
+
+   ① 미리보기  https://stellasaju.com/?%(K)s=1
               한 군데라도 못 찾으면 **아무것도 안 바꿉니다.**
    ② 넣기     미리보기 화면의 「이대로 넣기」
-   ③ 되돌리기  https://stellasaju.com/?stella_starsrc=1&undo=1
-              넣기 직전 쪽을 그대로 되살립니다.
+   ③ 되돌리기  https://stellasaju.com/?%(K)s=1&undo=1
 
    붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
    ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
@@ -486,7 +490,7 @@ HEAD = '''/* ══════════════════════�
 
 add_action( 'init', function () {
 
-	if ( ! isset( $_GET['stella_starsrc'] ) ) { return; }
+	if ( ! isset( $_GET['%(K)s'] ) ) { return; }
 
 	header( 'Content-Type: text/html; charset=utf-8' );
 	echo '<meta charset="utf-8"><body style="font:15px/1.8 system-ui;'
@@ -498,7 +502,7 @@ add_action( 'init', function () {
 	}
 
 	$pid = 406;
-	$bak = 'stella_bak_406_src';
+	$bak = 'stella_bak_406_p%(P)d';
 	$page = get_post( $pid );
 	if ( ! $page ) {
 		echo '<h1 style="color:#ff7b7b">쪽 406 을 못 찾았습니다.</h1>';
@@ -568,7 +572,7 @@ add_action( 'init', function () {
 			number_format( strlen( $body ) ), number_format( strlen( $old ) ) );
 		if ( ! isset( $_GET['go'] ) ) {
 			echo '<p style="font-size:18px"><a style="color:#ffd76a" '
-				. 'href="?stella_starsrc=1&amp;undo=1&amp;go=1">→ 이대로 되돌리기</a></p>';
+				. 'href="?%(K)s=1&amp;undo=1&amp;go=1">→ 이대로 되돌리기</a></p>';
 			exit;
 		}
 		wp_update_post( array( 'ID' => $pid, 'post_content' => $old ) );
@@ -590,12 +594,23 @@ FOOT = '''
 		else { $miss[] = array( $e[0], $n ); }
 	}
 
-	printf( '<h1 style="color:#ffd76a">스타 사주 쪽 고치기 — %%s</h1>',
+	printf( '<h1 style="color:#ffd76a">스타 사주 쪽 고치기 %(P)d/3 — %%s</h1>',
 		$go ? '넣기' : '<span style="color:#9fd">미리보기 · 아무것도 안 바뀝니다</span>' );
 	printf( '<p>쪽 406 · 지금 <b>%%s자</b> · 고칠 자리 <b>%%d</b>군데 가운데 '
 		. '<b style="color:%%s">%%d군데</b>를 찾았습니다.</p>',
 		number_format( strlen( $body ) ), count( $EDITS ),
 		count( $miss ) ? '#ff7b7b' : '#7bff9b', $hit );
+
+	/* 다 안 보이면 이미 들어간 것입니다 */
+	if ( 0 === $hit ) {
+		$zero = 0;
+		foreach ( $miss as $m ) { if ( 0 === $m[1] ) { $zero++; } }
+		if ( $zero === count( $EDITS ) ) {
+			echo '<h2 style="color:#7bff9b">이 조각은 이미 들어가 있습니다.</h2>';
+			echo '<p>바꿀 것이 없습니다. 다음 조각으로 가셔도 됩니다.</p>';
+			exit;
+		}
+	}
 
 	if ( count( $miss ) ) {
 		echo '<h2 style="color:#ff7b7b">★ 못 찾은 자리가 있어 아무것도 안 바꿉니다</h2>';
@@ -645,9 +660,9 @@ FOOT = '''
 	if ( ! $go ) {
 		echo '<h2 style="color:#ffd76a;margin-top:22px">여기까지가 미리보기입니다.</h2>';
 		echo '<p style="font-size:18px"><a style="color:#ffd76a" '
-			. 'href="?stella_starsrc=1&amp;go=1">→ 이대로 넣기</a></p>';
+			. 'href="?%(K)s=1&amp;go=1">→ 이대로 넣기</a></p>';
 		echo '<p style="color:#888">넣기 직전 쪽을 통째로 백업합니다. '
-			. '?stella_starsrc=1&amp;undo=1 로 언제든 되돌립니다.</p>';
+			. '?%(K)s=1&amp;undo=1 로 언제든 되돌립니다.</p>';
 		exit;
 	}
 
@@ -674,15 +689,39 @@ FOOT = '''
 
 
 def emit():
+    """★ 2026-09-16 · 한 덩어리 52KB 는 붙여넣다 끊깁니다.
+       소희 님이 주소를 열어도 「아무것도 안 나오고 그냥 스타 사주 쪽」
+       이라고 하셨습니다 — 조각이 아예 안 켜진 것입니다. 삼재 때와
+       같은 일입니다. 그래서 **셋으로 쪼갭니다.**
+
+       셋은 순서를 안 가리고, 두 번 눌러도 안전합니다 —
+       이미 들어간 자리는 찾을 글이 없으니 그냥 「이미 들어가 있습니다」."""
     build()
     stamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M')
 
-    rows = []
-    for name, a, b, where in EDITS:
-        rows.append("\t\tarray( '%s', '%s',\n\t\t\t<<<'STELLA_A'\n%s\nSTELLA_A\n\t\t\t,\n\t\t\t<<<'STELLA_B'\n%s\nSTELLA_B\n\t\t),"
-                    % (name.replace("'", ''), where, a, b))
-    php = "\t$EDITS = array(\n" + '\n'.join(rows) + "\n\t);\n"
+    sized = [(n, a, b, w, len(a.encode('utf-8')) + len(b.encode('utf-8')))
+             for n, a, b, w in EDITS]
+    total = sum(x[4] for x in sized)
+    parts, cur, acc = [], [], 0
+    for x in sized:
+        cur.append(x)
+        acc += x[4]
+        if acc >= total / 3.0 and len(parts) < 2:
+            parts.append(cur)
+            cur, acc = [], 0
+    parts.append(cur)
 
-    out = (HEAD % {'S': stamp, 'N': len(EDITS)}) + php + FOOT
-    io.open(OUT, 'w', encoding='utf-8').write(out)
-    print('조각 : %s · %d바이트' % (os.path.basename(OUT), len(out.encode('utf-8'))))
+    names = ['글 · 일간 열', '글 · 오행과 십성', '화면 · 검색칸과 두 사람']
+    for k, grp in enumerate(parts):
+        rows = []
+        for n, a, b, w, _ in grp:
+            rows.append("\t\tarray( '%s', '%s',\n\t\t\t<<<'STELLA_A'\n%s\nSTELLA_A\n\t\t\t,\n\t\t\t<<<'STELLA_B'\n%s\nSTELLA_B\n\t\t),"
+                        % (n.replace("'", ''), w, a, b))
+        php = "\t$EDITS = array(\n" + '\n'.join(rows) + "\n\t);\n"
+        key = 'stella_star%d' % (k + 1)
+        out = (HEAD % {'S': stamp, 'N': len(grp), 'K': key,
+                       'P': k + 1, 'T': names[k]}) + php + (FOOT % {'K': key, 'P': k + 1})
+        dst = os.path.join(HERE, '..', 'php', 'patch_star%d.WPCODE.txt' % (k + 1))
+        io.open(dst, 'w', encoding='utf-8').write(out)
+        print('%d. %-20s %2d군데 · %6d바이트 · ?%s=1'
+              % (k + 1, names[k], len(grp), len(out.encode('utf-8')), key))
