@@ -47,7 +47,7 @@ add_action( 'wp_head', function () {
 	   유앤미 쪽에 얹는 것을 최소로 줄입니다. */
 	if ( $star ) {
 	?>
-<!-- stella 스타 → 유앤미 · 판 2026-09-16 e -->
+<!-- stella 스타 → 유앤미 · 판 2026-09-16 f -->
 <style id="stella-celebgo">
 .stella-go{
   display:block; width:100%; box-sizing:border-box;
@@ -256,23 +256,151 @@ add_action( 'wp_head', function () {
   var GAPBOX = null;
   var GAPTRY = 0;
 
-  /* 맨 위에 붙박인 것들의 아랫변 — 가장 낮은 것 */
+  /* ★★ 2026-09-16 · 소희 님 「아무 반응이 없어」 — **제가 멈춘
+     것입니다.** 머리글을 재려고 쪽 안의 div 를 **모두** 훑으며
+     getComputedStyle 을 불렀습니다. 스타 사주 쪽에는 이름 단추가
+     537개라 한 번에 수천 번이 되고, 그것을 0.5초마다 두 번씩
+     돌렸습니다. getComputedStyle 은 배치를 다시 재게 하므로
+     브라우저가 그 자리에서 굳습니다.
+
+     이제 **화면 맨 위 한 점에 무엇이 쌓여 있는지**만 봅니다
+     (elementsFromPoint). 몇 개뿐이라 값이 거의 안 듭니다.
+     그리고 잰 값을 2초 동안 갖고 씁니다. */
+  var HB = -1, HBAT = 0;
+
   function headBottom(){
-    var all = document.querySelectorAll('header, nav, div, section');
-    var i, el, st, r, max = 0, pos;
-    for(i = 0; i < all.length; i++){
-      el = all[i];
-      st = window.getComputedStyle(el);
-      if(!st){ continue; }
-      pos = String(st.position);
-      if(pos !== 'fixed'){ if(pos !== 'sticky'){ continue; } }
-      r = el.getBoundingClientRect();
-      if(r.top > 4){ continue; }        /* 맨 위에 붙은 것만 */
-      if(r.height < 20){ continue; }
-      if(r.height > 220){ continue; }   /* 쪽 전체를 덮는 것은 머리글이 아닙니다 */
-      if(r.bottom > max){ max = r.bottom; }
-    }
+    var now = (new Date()).getTime();
+    if(HB >= 0){ if(now - HBAT < 2000){ return HB; } }
+    var max = 0;
+    try{
+      var x = Math.round(window.innerWidth / 2);
+      var stack = [];
+      if(document.elementsFromPoint){ stack = document.elementsFromPoint(x, 6); }
+      else if(document.elementFromPoint){ stack = [document.elementFromPoint(x, 6)]; }
+      var i, el, st, r, pos;
+      for(i = 0; i < stack.length; i++){
+        el = stack[i];
+        if(!el){ continue; }
+        if(el === document.body){ continue; }
+        if(el === document.documentElement){ continue; }
+        st = window.getComputedStyle(el);
+        if(!st){ continue; }
+        pos = String(st.position);
+        if(pos !== 'fixed'){ if(pos !== 'sticky'){ continue; } }
+        r = el.getBoundingClientRect();
+        if(r.top > 4){ continue; }
+        if(r.height < 20){ continue; }
+        if(r.height > 220){ continue; }
+        if(r.bottom > max){ max = r.bottom; }
+      }
+    }catch(e){}
+    HB = max;
+    HBAT = now;
     return max;
+  }
+
+  /* ★★ 여백 기준 — 날짜 줄이 든 **덩어리**를 씁니다 (2026-09-16)
+     관리자 줄이 「기준 H1 「스타 운세」 쪽 위에서 287」 이라고
+     찍어 주었습니다. 이름은 문장에서 제대로 뽑는데, 여백 기준은
+     아직 옛 방법(날짜 줄 앞 제목)을 써서 **쪽 제목**이 잡혔습니다.
+     287 은 넉넉하니 밀 까닭이 없다고 판단한 것입니다.
+
+     이제 제목을 찾지 않습니다. 날짜 줄에서 위로 올라가며
+     **이름과 날짜가 같이 든 가장 작은 덩어리**를 잡습니다.
+     그 덩어리의 윗변이 곧 이름의 윗변입니다. */
+  function dateLeaf(){
+    try{
+      var all = document.querySelectorAll('p, div, span, small, time, li'), i, el, t;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.children.length > 0){ continue; }
+        t = tidy(el.textContent);
+        if(isDateLine(t)){ return el; }
+      }
+    }catch(e){}
+    return null;
+  }
+
+  function gapAnchor(){
+    var leaf = dateLeaf();
+    if(!leaf){ return null; }
+    var n = leaf, best = leaf, p, t, i;
+    for(i = 0; i < 6; i++){
+      p = n.parentElement;
+      if(!p){ break; }
+      if(p === document.body){ break; }
+      t = tidy(p.textContent);
+      if(t.length > 160){ break; }   /* 너무 커지면 멈춥니다 */
+      best = p;
+      n = p;
+    }
+    return best;
+  }
+
+  /* 붙박이 상자 안인가 */
+  function inFixed(el){
+    var n = el, i, st;
+    for(i = 0; i < 8; i++){
+      if(!n){ return 0; }
+      if(n === document.body){ return 0; }
+      st = window.getComputedStyle(n);
+      if(st){ if(String(st.position) === 'fixed'){ return 1; } }
+      n = n.parentElement;
+    }
+    return 0;
+  }
+
+  /* ★★ 진짜 까닭 — **내려가 멈추는 자리** (2026-09-16)
+     관리자 줄이 「쪽 제목이 쪽 위에서 287」 이라고 찍어 주었습니다.
+     결과가 덮개가 아니라 **쪽 안에 이어서** 그려진다는 뜻입니다.
+     그러면 결과가 나올 때 화면이 그 자리로 저절로 내려가는데
+     (scrollIntoView), 붙박이 머리글은 그 위에 얹혀 있어서
+     **글 윗부분이 머리글에 딱 가립니다.**
+
+     크로미움으로 그대로 흉내 내어 재현했습니다 — 산 top 0.
+
+     여백으로는 못 고칩니다. 여백을 줘도 그만큼 더 내려갈 뿐입니다.
+     고칠 것은 **내려가 멈추는 자리**입니다.
+
+         html { scroll-padding-top: 머리글높이 + 16 }
+
+     그리고 이미 내려가 버린 뒤라면 그만큼 되올려 줍니다. 한 번만. */
+  var SPDONE = 0, NUDGED = 0;
+
+  function scrollPad(){
+    try{
+      var hb = headBottom();
+      if(hb < 1){ return; }
+      var want = Math.round(hb + 16);
+      if(SPDONE === want){ return; }
+      SPDONE = want;
+      var st = document.getElementById('stella-scrollpad');
+      if(!st){
+        st = document.createElement('style');
+        st.id = 'stella-scrollpad';
+        if(document.head){ document.head.appendChild(st); }
+      }
+      st.textContent = 'html{scroll-padding-top:' + want + 'px !important;}';
+    }catch(e){}
+  }
+
+  /* 이미 머리글에 가려 있으면 그만큼 되올립니다 (한 번만) */
+  function nudge(){
+    if(NUDGED){ return; }
+    try{
+      var a = gapAnchor();
+      if(!a){ return; }
+      if(inFixed(a)){ return; }          /* 덮개 안이면 내려간 것이 아닙니다 */
+      var sy = window.pageYOffset;
+      if(!sy){ return; }                 /* 맨 위면 가릴 일이 없습니다 */
+      var hb = headBottom();
+      var top = a.getBoundingClientRect().top;
+      var want = hb + 16;
+      if(top >= want - 2){ return; }     /* 안 가려 있습니다 */
+      if(top < -40){ return; }           /* 한참 지나쳐 읽는 중입니다 */
+      NUDGED = 1;
+      window.scrollBy(0, Math.round(top - want));
+    }catch(e){}
   }
 
   function topGap(){
@@ -280,8 +408,8 @@ add_action( 'wp_head', function () {
        기준(NAMEHEAD)을 onStar 안에서만 잡고 있었습니다. onStar 는
        결과 상자를 못 찾으면 그냥 돌아가므로, 단추를 못 다는 화면에서는
        여백도 못 줬습니다. 여기서 직접 한 번 찾습니다. */
-    if(!NAMEHEAD){ starNameByDate(null); }
-    var anchor = NAMEHEAD ? NAMEHEAD : GAPBOX;
+    var anchor = gapAnchor();
+    if(!anchor){ anchor = GAPBOX; }
     if(!anchor){ return; }
     if(GAPTRY > 6){ return; }
     try{
@@ -306,11 +434,12 @@ add_action( 'wp_head', function () {
       if(painted){ best = painted; }
       if(!best){ best = anchor; }
 
-      /* 쪽 맨 위에서 제목까지의 거리 */
+      /* 쪽 맨 위에서 제목까지의 거리.
+         ★ 기준이 **붙박이 상자 안**에 있으면 쪽을 내려도 안 움직이므로
+           화면 자리를 그대로 씁니다. 결과가 덮개로 뜨는 화면이 그렇습니다. */
       var sy = window.pageYOffset;
-      if(sy === undefined){ sy = 0; }
-      if(sy === null){ sy = 0; }
-      var docTop = r.top + sy;
+      if(!sy){ sy = 0; }
+      var docTop = r.top + (inFixed(anchor) ? 0 : sy);
       var need = headBottom() + 30;
       if(need < 54){ need = 54; }        /* 머리글을 못 재도 이만큼은 둡니다 */
       if(docTop >= need){ return; }      /* 이미 넉넉합니다 */
@@ -528,8 +657,19 @@ add_action( 'wp_head', function () {
       if(!p.parentNode){ return; }
 
       for(i = 0; i < els.length; i++){ els[i].setAttribute('data-ssoh', '1'); }
-      box.setAttribute('data-ssoh', '1');
-      box.style.display = 'none';
+
+      /* ★★ 2026-09-16 · 크로미움 시험에서 찾은 큰 탈
+         막대 다섯이 **결과 상자의 바로 자식**이면 「다섯을 품은
+         상자」가 결과 상자 자체가 됩니다. 그걸 숨기면 **결과가
+         통째로 사라집니다.** 시험에서 실제로 그랬습니다.
+         그래서 상자가 막대 말고 다른 글을 더 품고 있으면 상자는
+         그냥 두고 **막대 다섯만** 숨깁니다. */
+      if(tidy(box.textContent).length > 40){
+        for(i = 0; i < els.length; i++){ els[i].style.display = 'none'; }
+      } else {
+        box.setAttribute('data-ssoh', '1');
+        box.style.display = 'none';
+      }
       OHDONE = 1;
     }catch(e){}
   }
@@ -674,14 +814,16 @@ add_action( 'wp_head', function () {
       var a = document.getElementById('stella-goadm');
       if(!a){ return; }
       var hb = headBottom();
-      var anchor = NAMEHEAD ? NAMEHEAD : GAPBOX;
+      var anchor = gapAnchor();
+      if(!anchor){ anchor = GAPBOX; }
       var dt = -1, tag = '없음';
       if(anchor){
         var sy = window.pageYOffset;
         if(!sy){ sy = 0; }
-        dt = Math.round(anchor.getBoundingClientRect().top + sy);
+        dt = Math.round(anchor.getBoundingClientRect().top + (inFixed(anchor) ? 0 : sy));
         tag = String(anchor.tagName) + ' 「'
-            + tidy(anchor.textContent).slice(0, 10) + '」';
+            + tidy(anchor.textContent).slice(0, 12) + '」'
+            + (inFixed(anchor) ? ' (덮개 안)' : '');
       }
       var g = document.querySelector('[data-sstop="1"]');
       a.textContent =
@@ -692,8 +834,20 @@ add_action( 'wp_head', function () {
         + ' · 기준 ' + tag + ' 쪽 위에서 ' + dt
         + ' · 있어야 할 자리 ' + Math.round((hb > 24 ? hb : 24) + 30)
         + ' · 민 곳 ' + (g ? String(g.tagName) + ' ' + g.style.paddingTop : '안 밂')
-        + ' · 잰 횟수 ' + GAPTRY;
+        + ' · 잰 횟수 ' + GAPTRY
+        + ' · 멈출 자리 ' + SPDONE + ' · 되올림 ' + (NUDGED ? '함' : '안 함')
+        + ' · 내려온 만큼 ' + Math.round(window.pageYOffset ? window.pageYOffset : 0);
     }catch(e){}
+  }
+
+  function allDone(){
+    if(!document.querySelector('.stella-go')){ return 0; }
+    if(!OHDONE){ return 0; }
+    if(!RARE){ return 0; }
+    if(!JARGON){ return 0; }
+    if(GAPTRY < 1){ return 0; }
+    if(!SPDONE){ return 0; }
+    return 1;
   }
 
   function tick(){
@@ -701,9 +855,11 @@ add_action( 'wp_head', function () {
     if(ON_STAR){ hideJargon(); }
     if(ON_STAR){ hideRare(); }
     if(ON_STAR){ ohOneLine(); }
-    if(ON_STAR){ admReport(); }
-    if(ON_STAR){ onStar(); }
-    if(ON_STAR){ topGap(); }
+    if(ON_STAR){ onStar(); }       /* 단추 — 관리자 줄이 여기서 생깁니다 */
+    if(ON_STAR){ scrollPad(); }    /* 내려가 멈추는 자리 */
+    if(ON_STAR){ topGap(); }       /* 맨 위 여백 */
+    if(ON_STAR){ nudge(); }        /* 이미 가려 있으면 되올리기 */
+    if(ON_STAR){ admReport(); }    /* ★ 잰 값을 찍는 것이 맨 나중 */
     if(ON_UM){ onUm(); }
   }
   function start(){
@@ -719,10 +875,16 @@ add_action( 'wp_head', function () {
       if(!want){ return; }
     }
     tick();
-    var k = 0;
+    var k = 0, quiet = 0;
     var t = setInterval(function(){
       k++;
       tick();
+      /* ★ 다 마치면 훑기를 그만둡니다. 쪽이 크면 훑는 것만으로도
+         화면이 굼떠집니다 (이름 단추가 537개입니다). */
+      if(ON_STAR){
+        if(allDone()){ quiet++; } else { quiet = 0; }
+        if(quiet > 3){ clearInterval(t); return; }
+      }
       if(k > 240){ clearInterval(t); }   /* 2분쯤 보다가 멈춥니다 */
     }, 500);
   }
