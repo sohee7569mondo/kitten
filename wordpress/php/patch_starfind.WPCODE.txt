@@ -146,6 +146,11 @@ add_action( 'wp_head', function () {
   var ADMIN = <?php echo (int) $admin; ?>;
   var HOWMANY = '<?php echo esc_js( $n > 0 ? number_format( $n ) : "" ); ?>';
 
+  /* ★ 찾기 칸에 흐리게 보이는 보기 이름 — 2026-09-16
+     소희 님 「샘플로 이름 유재석 별로야 변우석이 서강준하자. 요샤 핫해」
+     여기 한 줄만 고치시면 바뀝니다. 유행이 지나면 또 바꾸세요. */
+  var SAMPLE = '변우석';
+
   /* 몇 개부터 「목록」으로 볼 것인가 */
   var MANY = 20;
   /* 한 번에 보여드릴 후보 수 */
@@ -345,7 +350,7 @@ add_action( 'wp_head', function () {
     inp.setAttribute('type', 'text');
     inp.setAttribute('maxlength', '24');
     inp.setAttribute('autocomplete', 'off');
-    inp.setAttribute('placeholder', '연예인 이름을 적어보세요 (예: 유재석)');
+    inp.setAttribute('placeholder', '연예인 이름을 적어보세요 (예: ' + SAMPLE + ')');
 
     var go = document.createElement('button');
     go.setAttribute('type', 'button');
