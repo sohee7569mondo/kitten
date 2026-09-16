@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════════════════════════
    스타 사주 · 쪽 원본 고치기 3/3 — 화면 · 검색칸과 두 사람
-   판 2026-09-16 09:32
+   판 2026-09-16 10:08
    (도구가 뽑았습니다 — build_starpage.py. 손으로 고치지 마세요)
 
    소희 님 : 「연애인 리스트도 떴다가 가려지는 형식이야
@@ -140,7 +140,8 @@ add_action( 'init', function () {
 				. 'href="?stella_star3=1&amp;undo=1&amp;go=1">→ 이대로 되돌리기</a></p>';
 			exit;
 		}
-		wp_update_post( array( 'ID' => $pid, 'post_content' => $old ) );
+		/* ★★ wp_slash 로 감싸야 합니다 — 아래 긴 메모를 보세요 */
+		wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $old ) ) );
 		clean_post_cache( $pid );
 		delete_post_meta( $pid, 'stella_done_p3' );   /* 자물쇠도 풉니다 */
 		echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2>';
@@ -565,11 +566,31 @@ STELLA_B
 
 	update_post_meta( $pid, $bak, $page->post_content );
 	update_post_meta( $pid, 'stella_done_p3', 1 );
-	wp_update_post( array( 'ID' => $pid, 'post_content' => $new ) );
+	/* ★★★ 2026-09-16 · 여기서 크게 물렸습니다.
+	   wp_update_post 는 글을 저장하며 역빗금을 **한 겹 벗겨냅니다**
+	   (안에서 wp_unslash 를 부릅니다). 그래서 넘길 때 wp_slash 로
+	   감싸야 본디 글자가 그대로 들어갑니다.
+
+	   안 감쌌더니 쪽 안의 역빗금 다섯 개가 통째로 사라졌고,
+	       v.replace(/\+/g, ' ')   →   v.replace(/+/g, ' ')
+	   /+/ 는 말이 안 되는 정규식이라 그 script 덩어리가 통째로
+	   안 돌았습니다. 검색칸도 여덟 장도 안 나왔습니다.
+	   CLAUDE.md 에 「편집기로 저장하면 벗겨진다」고 적어두고선
+	   제가 똑같은 짓을 했습니다. */
+	wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $new ) ) );
+
+	/* 정말 그대로 들어갔는지 다시 읽어 역빗금을 셉니다 */
+	clean_post_cache( $pid );
+	$chk  = get_post( $pid );
+	$bsIn = substr_count( $page->post_content, chr( 92 ) );
+	$bsOut = substr_count( $chk->post_content, chr( 92 ) );
 	clean_post_cache( $pid );
 	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
 
 	echo '<h2 style="color:#7bff9b">넣었습니다.</h2>';
+	printf( '<p>역빗금 넣기 전 <b>%d개</b> → 넣은 뒤 <b style="color:%s">%d개</b>%s</p>',
+		$bsIn, ( $bsIn === $bsOut ) ? '#7bff9b' : '#ff7b7b', $bsOut,
+		( $bsIn === $bsOut ) ? ' (그대로입니다)' : ' ★ 벗겨졌습니다 — 저에게 알려주세요' );
 	printf( '<p>백업 %s자 · 지금 %s자</p>',
 		number_format( strlen( $body ) ), number_format( strlen( $new ) ) );
 	printf( '<p style="font-size:18px"><a style="color:#ffd76a" href="%s">→ 스타 사주 열어보기</a></p>',
