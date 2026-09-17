@@ -196,22 +196,22 @@ add_action( 'init', function () {
 <script type="application/json" id="stq-data">
 {
  "images": {
-  "q1_E": "https://stellasaju.com/wp-content/uploads/2026/09/Q1_E_Friends_planning_Tokyo_trip.jpeg",
-  "q1_I": "https://stellasaju.com/wp-content/uploads/2026/09/Q1_i_Person_organizing_travel_list_on.jpeg",
-  "q2_S": "https://stellasaju.com/wp-content/uploads/2026/09/Q2_N_Traveler_planning_Tokyo_trip.jpeg",
-  "q2_N": "https://stellasaju.com/wp-content/uploads/2026/09/Q2_S_Traveler_imagining_trip_to_Tokyo.jpeg",
-  "q3_J": "https://stellasaju.com/wp-content/uploads/2026/09/q3_j_Traveler_organizing_itinerary_at.jpeg",
-  "q3_P": "https://stellasaju.com/wp-content/uploads/2026/09/q3_P_Traveler_packing_suitcase.jpeg",
-  "q4_E": "https://stellasaju.com/wp-content/uploads/2026/09/Q4_E_Traveler_toasting_in_Tokyo_izakaya.jpeg",
-  "q4_I": "https://stellasaju.com/wp-content/uploads/2026/09/Q4_I_Traveler_organizing_photos_on.jpeg",
-  "q5_S": "https://stellasaju.com/wp-content/uploads/2026/09/Q5_S-Traveler_pointing_at_Tokyo_skyline_.jpeg",
-  "q5_N": "https://stellasaju.com/wp-content/uploads/2026/09/Q5_N-Traveler_looking_at_city_lights.jpeg",
-  "q6_T": "https://stellasaju.com/wp-content/uploads/2026/09/Q6_t_Traveler_using_smartphone_outsid.jpeg",
-  "q6_F": "https://stellasaju.com/wp-content/uploads/2026/09/Q6_f_Travelers_comforting_each_other.jpeg",
-  "q7_T": "https://stellasaju.com/wp-content/uploads/2026/09/Q7_T-Traveler_pointing_at_subway_map.jpeg",
-  "q7_F": "https://stellasaju.com/wp-content/uploads/2026/09/Q7_F_Traveler_panicking_on_Tokyo_train.jpeg",
-  "q8_P": "https://stellasaju.com/wp-content/uploads/2026/09/Q8_F-Traveler_discovering_hidden_shop.jpeg",
-  "q8_J": "https://stellasaju.com/wp-content/uploads/2026/09/Q8_T-Traveler_looking_at_Tokyo_alleyway.jpeg"
+  "q1_E": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q1_E_Friends_planning_Tokyo_trip.jpeg?w=800",
+  "q1_I": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q1_i_Person_organizing_travel_list_on.jpeg?w=800",
+  "q2_S": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q2_N_Traveler_planning_Tokyo_trip.jpeg?w=800",
+  "q2_N": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q2_S_Traveler_imagining_trip_to_Tokyo.jpeg?w=800",
+  "q3_J": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/q3_j_Traveler_organizing_itinerary_at.jpeg?w=800",
+  "q3_P": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/q3_P_Traveler_packing_suitcase.jpeg?w=800",
+  "q4_E": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q4_E_Traveler_toasting_in_Tokyo_izakaya.jpeg?w=800",
+  "q4_I": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q4_I_Traveler_organizing_photos_on.jpeg?w=800",
+  "q5_S": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q5_S-Traveler_pointing_at_Tokyo_skyline_.jpeg?w=800",
+  "q5_N": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q5_N-Traveler_looking_at_city_lights.jpeg?w=800",
+  "q6_T": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q6_t_Traveler_using_smartphone_outsid.jpeg?w=800",
+  "q6_F": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q6_f_Travelers_comforting_each_other.jpeg?w=800",
+  "q7_T": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q7_T-Traveler_pointing_at_subway_map.jpeg?w=800",
+  "q7_F": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q7_F_Traveler_panicking_on_Tokyo_train.jpeg?w=800",
+  "q8_P": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q8_F-Traveler_discovering_hidden_shop.jpeg?w=800",
+  "q8_J": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Q8_T-Traveler_looking_at_Tokyo_alleyway.jpeg?w=800"
  },
  "questions": [
   {
@@ -363,82 +363,82 @@ add_action( 'init', function () {
   "INTJ": {
    "nick": "완벽한 지도 설계자",
    "desc": "지하철 노선도를 마치 체스판처럼 분석하는 타입. 이미 머릿속엔 최적 동선이 3개쯤 짜여 있고, 즉흥은 계획이 무너졌을 때만 쓰는 최후의 수단이에요. 여행이 끝나면 다음 여행 스프레드시트부터 켭니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_reading_Tokyo_map_INTJ.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_reading_Tokyo_map_INTJ.jpeg?w=1024"
   },
   "INTP": {
    "nick": "호기심 많은 산책자",
    "desc": "정해진 코스보다 “이 자판기는 왜 이렇게 종류가 많지?” 같은 질문에 더 오래 머무는 타입. 계획은 세우지만 흥미로운 게 나타나면 언제든 버릴 준비가 되어 있어요. 여행 후기도 은근히 잡학사전처럼 길어집니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_observing_Japanese_vend%E2%80%A6_INTP.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_observing_Japanese_vend%E2%80%A6_INTP.jpeg?w=1024"
   },
   "ENTJ": {
    "nick": "여행 인솔대장",
    "desc": "일행 중 자연스럽게 리더가 되는 타입. 지도, 예약, 이동시간까지 다 파악하고 있어서 다들 그냥 따라가면 됩니다. 효율적인 동선에서 오는 쾌감을 즐기는 타입이에요.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Travel_group_leader_directing_fr%E2%80%A6_ENTJ.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Travel_group_leader_directing_fr%E2%80%A6_ENTJ.jpeg?w=1024"
   },
   "ENTP": {
    "nick": "즉흥 토론가",
    "desc": "“진짜 맛집은 여기가 아니라 저기다” 하며 현지인과도 논쟁할 수 있는 타입. 계획이 있어도 더 재밌는 게 보이면 바로 갈아타요. 여행 내내 대화 상대가 끊이지 않습니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_debating_merchant_at_ra%E2%80%A6_ENTP.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_debating_merchant_at_ra%E2%80%A6_ENTP.jpeg?w=1024"
   },
   "INFJ": {
    "nick": "고요한 명상 여행자",
    "desc": "신사나 절 앞에서 유독 오래 머무는 타입. 사람 많은 관광지보다 조용한 골목, 작은 정원에서 그 도시의 결을 느끼는 걸 좋아해요. 여행에서 돌아오면 생각이 정리된 사람이 되어 있습니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_meditating_at_Japanese_%E2%80%A6_INFJ.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_meditating_at_Japanese_%E2%80%A6_INFJ.jpeg?w=1024"
   },
   "INFP": {
    "nick": "감성 사진작가",
    "desc": "떨어진 벚꽃잎 하나에도 셔터를 누르는 타입. 유명한 랜드마크보다 이름 없는 뒷골목, 우연히 마주친 장면에 더 마음이 가요. 여행 사진첩이 한 편의 감성 에세이 같습니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_photographing_cherry_bl%E2%80%A6_INFP.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_photographing_cherry_bl%E2%80%A6_INFP.jpeg?w=1024"
   },
   "ENFJ": {
    "nick": "다정한 무드메이커",
    "desc": "낯선 여행객들끼리도 어느새 단체사진을 찍게 만드는 타입. 다 같이 즐거운 게 제일 중요해서, 누가 소외되지 않는지 은근히 계속 살피고 있어요. 여행 마지막 날엔 다들 연락처를 교환하게 됩니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_leading_group_photo_ENFJ.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_leading_group_photo_ENFJ.jpeg?w=1024"
   },
   "ENFP": {
    "nick": "네온사인 댄서",
    "desc": "시부야 스크램블 교차로 한복판에서 세상을 다 가진 표정을 짓는 타입. 계획은 대략적으로만 있고, 그 순간의 흥이 이끄는 대로 움직여요. 에너지가 넘쳐서 옆에 있으면 덩달아 신이 납니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_twirling_at_Shibuya_Cro%E2%80%A6_ENFP.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_twirling_at_Shibuya_Cro%E2%80%A6_ENFP.jpeg?w=1024"
   },
   "ISTJ": {
    "nick": "시간표의 신",
    "desc": "JR 플랫폼에 1분도 늦지 않게 도착하는 타입. 프린트한 일정표를 펜으로 하나씩 체크하는 데서 안정감을 느껴요. 이 사람이랑 여행 가면 기차를 놓칠 일은 절대 없습니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_checking_itinerary_on_p%E2%80%A6_ISTJ.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_checking_itinerary_on_p%E2%80%A6_ISTJ.jpeg?w=1024"
   },
   "ISFJ": {
    "nick": "다정한 준비성 요정",
    "desc": "친구 선물용 오마모리를 정성스럽게 고르고 포장하는 타입. 본인 일정보다 동행이 편한지를 먼저 챙기는 세심함이 있어요. 이 사람 캐리어엔 항상 여분의 밴드와 우산이 들어 있습니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_wrapping_gift_in_shop_ISFJ.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_wrapping_gift_in_shop_ISFJ.jpeg?w=1024"
   },
   "ESTJ": {
    "nick": "일정 지휘관",
    "desc": "클립보드 없이도 클립보드를 든 것처럼 여행팀을 이끄는 타입. “다음은 여기, 그다음은 저기” 순서가 명확해서 다들 안심하고 따라가요. 츠키지 시장도 30분 만에 핵심만 훑을 수 있습니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_leading_group_at_market_ESTJ.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_leading_group_at_market_ESTJ.jpeg?w=1024"
   },
   "ESFJ": {
    "nick": "피크닉 분위기 메이커",
    "desc": "우에노 공원에 돗자리부터 펴는 타입. 다 같이 나눠 먹고, 다 같이 웃는 순간을 여행의 하이라이트로 여겨요. 이 사람 덕분에 여행 단톡방 사진첩이 꽉 찹니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Friends_having_picnic_under_cher%E2%80%A6_ESFJ.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Friends_having_picnic_under_cher%E2%80%A6_ESFJ.jpeg?w=1024"
   },
   "ISTP": {
    "nick": "만능 해결사",
    "desc": "자판기 작동 원리부터 지하철 환승까지, 뭐든 일단 스스로 파악해보는 타입. 말은 별로 없지만 문제가 생기면 제일 먼저 조용히 해결하고 있어요. 위기 상황에 의외로 제일 믿음직합니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_observing_Japanese_vend%E2%80%A6_ISTP.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_observing_Japanese_vend%E2%80%A6_ISTP.jpeg?w=1024"
   },
   "ISFP": {
    "nick": "카페 창가의 화가",
    "desc": "작은 카페 창가 자리에서 풍경을 스케치하며 시간을 보내는 타입. 화려한 코스보다 마음에 드는 공간에 오래 머무는 여행을 좋아해요. 여행 스타일 자체가 하나의 무드보드 같습니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_sketching_street_view_ISFP.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_sketching_street_view_ISFP.jpeg?w=1024"
   },
   "ESTP": {
    "nick": "에너지 폭발 모험가",
    "desc": "아키하바라 오락실 앞에서 이미 신발끈부터 조여 매는 타입. 고민보다 행동이 빨라서 여행 내내 리듬이 끊기지 않아요. 즉흥적으로 끼어든 일정이 항상 제일 재밌는 추억이 됩니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_tightening_shoelaces_ou%E2%80%A6_ESTP.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_tightening_shoelaces_ou%E2%80%A6_ESTP.jpeg?w=1024"
   },
   "ESFP": {
    "nick": "인생샷 헌터",
    "desc": "신주쿠 한복판 어디서든 완벽한 포즈가 나오는 타입. 그 순간을 가장 즐겁게, 가장 화려하게 남기는 데 진심이에요. 이 사람 여행 사진첩만 봐도 도쿄 전체가 축제처럼 보입니다.",
-   "img": "https://stellasaju.com/wp-content/uploads/2026/09/Traveler_posing_on_neon_street_ESFP.jpeg"
+   "img": "https://i0.wp.com/stellasaju.com/wp-content/uploads/2026/09/Traveler_posing_on_neon_street_ESFP.jpeg?w=1024"
   }
  },
  "introTitle": "도쿄 여행으로 알아보는 나의 MBTI",
@@ -575,7 +575,27 @@ add_action( 'init', function () {
       if(!initKakao()){ alert('카카오 공유는 등록된 도메인에서만 작동해요.'); return; }
       var _lnk = { mobileWebUrl: shareUrl, webUrl: shareUrl };
     var _btn = [{ title: '나도 해보기', link: _lnk }];
-    var _img = (r.img || OG_IMAGE || '');
+    /* ★ 2026-09-17 · 카톡에 글씨만 오고 그림이 안 오던 것.
+       까닭을 워드프레스 미디어에서 직접 읽어 찾았습니다 —
+           1376 x 768 · 1,020,549 바이트 (1MB)
+       카카오 크롤러가 이렇게 큰 그림은 가져가다 포기합니다.
+
+       워드프레스가 **이미 작은 판을 CDN 에 만들어 두었습니다.**
+       그 주소 모양을 그대로 씁니다 (media_details.sizes.large) —
+           https://i0.wp.com/<주소에서 http:// 뗀 것>?w=1024
+       1MB 가 십몇만 바이트로 줄고 비율도 카톡 카드에 맞습니다.
+
+       ★ 화면에 그리는 그림은 **원본 그대로** 둡니다.
+         카카오에 알려줄 때만 바꿉니다. */
+    function kimg(u){
+      if(!u){ return ''; }
+      var t = String(u);
+      if(t.indexOf('i0.wp.com') > -1){ return t; }
+      var at = t.indexOf('//');
+      if(at < 0){ return t; }
+      return 'https://i0.wp.com/' + t.slice(at + 2) + '?w=1024';
+    }
+    var _img = kimg(r.img || OG_IMAGE || '');
     if (_img) {
       window.Kakao.Share.sendDefault({
         objectType: 'feed',
