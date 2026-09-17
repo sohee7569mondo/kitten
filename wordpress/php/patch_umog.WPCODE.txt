@@ -184,6 +184,77 @@ add_action( 'init', function () {
 }, 1 );
 
 /* ════════════════════════════════════════════════════════════
+   ★★ 카톡 그림의 진짜 길 — 카카오에 **올려** 줍니다
+
+   소희 님 : /um-tall/ 은 그림이 보이는데 카톡에는 글씨만 오고,
+             저장된 .jpg 주소는 **404** 가 났습니다.
+
+   → WordPress.com 은 코드가 만든 파일을 웹으로 안 내보냅니다.
+     그러니 **카카오 크롤러가 우리 서버에서 가져갈 방법이 없습니다.**
+     ④번 주석이 이미 그렇게 적어 두었습니다 —
+       「카카오는 우리 서버 그림을 어떤 방법으로도 가져가지
+         않았습니다. 그래서 카드를 카카오 서버에 올려 두고
+         그 주소를 카톡에 알려줍니다. 카카오 자기 그림이 되므로
+         확실히 뜹니다.」
+
+   그 일은 ⑤번이 합니다. REST 키도 들어 있습니다. 그런데
+   **찾는 파일 이름이 어긋나** 늘 no-file 로 떨어졌습니다 —
+       ④ 저장  79-lover-30-12-21-v3f8a2c.png
+       ⑤ 찾기  79-lover-30-12-21.png
+
+   그래서 이 토막이 ⑤번보다 **먼저** 끼어들어, 그 이름으로
+   **폭 800 으로 줄인 카드**를 놓아 둡니다. 그러고 비켜서면
+   ⑤번이 이어받아 카카오에 올립니다.
+
+   ★ 소희 님 「그림사이즈 줄여서 제대로 한번에 하자」 — 800 폭입니다.
+   ★ 카드를 덧대거나 자르지 않습니다. 이름도 그대로 있습니다.
+   ════════════════════════════════════════════════════════════ */
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/um-kimg/' ) ) { return; }
+	if ( ! function_exists( 'stella_um_card_name' ) ) { return; }
+	if ( ! preg_match( '#/um-kimg/([A-Za-z0-9_-]{5,180})#', $uri, $m ) ) { return; }
+
+	/* ⑤번이 쓰는 것과 **같은 모양**만 받습니다 */
+	if ( ! preg_match( '/^([0-9]{1,2})-([a-z_]{2,14})-([0-9]{1,2})-([0-9]{1,2})-([0-9]{1,2})(?:-([A-Za-z0-9_-]{1,140}))?$/', $m[1], $q ) ) { return; }
+
+	$up   = wp_upload_dir();
+	$dir  = $up['basedir'] . '/uandme/card';
+	$want = $dir . '/' . $m[1] . '.png';       /* ⑤번이 찾는 바로 그 이름 */
+	if ( file_exists( $want ) ) { return; }    /* 이미 있으면 비켜섭니다 */
+	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
+
+	$nm  = isset( $q[6] ) ? $q[6] : '';
+	$src = $dir . '/' . stella_um_card_name( $q[1], $q[2], $q[3], $q[4], $q[5], $nm );
+
+	/* 원본이 없으면 ④번에게 그리게 합니다 */
+	if ( ! file_exists( $src ) ) {
+		$u = home_url( '/um-card/' . $q[1] . '-' . $q[2] . '-' . $q[3] . '-' . $q[4] . '-' . $q[5] );
+		if ( $nm ) { $u .= '-' . $nm; }
+		wp_remote_get( $u, array( 'timeout' => 40, 'sslverify' => false ) );
+	}
+	if ( ! file_exists( $src ) ) { return; }
+
+	$im = @imagecreatefrompng( $src );
+	if ( ! $im ) { return; }
+	$w0 = imagesx( $im );
+	$h0 = imagesy( $im );
+	$W  = 800;
+	if ( $w0 < $W ) { $W = $w0; }
+	$H  = (int) round( $W * $h0 / max( 1, $w0 ) );
+	$sm = imagecreatetruecolor( $W, $H );
+	imagefilledrectangle( $sm, 0, 0, $W, $H, imagecolorallocate( $sm, 255, 255, 255 ) );
+	imagecopyresampled( $sm, $im, 0, 0, 0, 0, $W, $H, $w0, $h0 );
+	imagedestroy( $im );
+	@imagepng( $sm, $want, 6 );
+	imagedestroy( $sm );
+
+	/* 비켜섭니다 — ⑤번이 이어받아 카카오에 올립니다 */
+
+}, 0 );
+
+/* ════════════════════════════════════════════════════════════
    정사각형 판 (1080 x 1080)
 
    소희 님 : 「자동으로 아래가 짤리게 하면안되나? 정사각형으로 해?」
