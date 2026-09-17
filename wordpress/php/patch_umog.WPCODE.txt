@@ -669,16 +669,20 @@ add_action( 'wp_head', function () {
     if (!b) {
       b = document.createElement('div');
       b.id = 'umkpic';
-      b.style.cssText = 'position:relative;z-index:2147483646;margin:10px;padding:9px 11px;'
-        + 'font:12px/1.7 system-ui;color:#5a4a10;background:rgba(255,214,106,.92);'
-        + 'border-left:3px solid #C9A227;border-radius:8px;word-break:break-all';
-      document.body.appendChild(b);
+      /* ★ ⑥번이 isolate() 로 **우리 화면 말고 다 감춥니다.**
+         그래서 이 줄이 감춰져 소희 님이 못 보셨을 수 있습니다.
+         띄워 놓고(fixed) z-index 를 가장 높게, html 에 바로 붙입니다. */
+      b.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:2147483647;'
+        + 'padding:10px 12px;font:12px/1.65 system-ui;color:#3a2e00;'
+        + 'background:#ffe08a;border-bottom:2px solid #C9A227;'
+        + 'word-break:break-all;max-height:42vh;overflow:auto;text-align:left';
+      document.documentElement.appendChild(b);
     }
-    b.textContent = t;
+    b.style.display = 'block';
+    b.textContent = t + '     [ 눌러서 닫기 ]';
+    b.onclick = function () { b.style.display = 'none'; };
   }
 
-  /* /um-card/79-lover-30-12-21-<이름>  →  뒤 전체를 그대로
-*/
   /* /um-card/91-lover-37-23-24-<두 사람 이름>  →  뒤 전체를 그대로 씁니다.
      ★ 이름 꼬리를 자르면 카드에서 「누구와 누구」가 사라집니다. */
   function bits(u) {
