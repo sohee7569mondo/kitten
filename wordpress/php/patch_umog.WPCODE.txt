@@ -643,6 +643,17 @@ add_action( 'wp_head', function () {
   var ADMIN = <?php echo current_user_can( 'manage_options' ) ? '1' : '0'; ?>;
   /* 가로 카드 파일 이름의 끝 — 서버가 알려줍니다 (지어내지 않습니다).
      점수와 무관한 값이라 하나면 됩니다. */
+  /* ④번이 저장한 **세로 카드** 파일 이름의 끝 (-v3f8a2c.png 꼴).
+     한 번 카톡에 그림이 떴을 때 쓴 것이 이 주소였습니다. */
+  var PNGTAIL = '<?php
+    $t = "";
+    if ( function_exists( "stella_um_card_name" ) ) {
+      $nm = stella_um_card_name( 0, "x", 0, 0, 0 );
+      $at = strrpos( $nm, "-" );
+      if ( false !== $at ) { $t = substr( $nm, $at ); }
+    }
+    echo esc_js( $t );
+  ?>';
   var WIDETAIL = '<?php
     $t = "";
     if ( function_exists( "stella_umw_name" ) ) {
@@ -680,18 +691,18 @@ add_action( 'wp_head', function () {
     if (cut > -1) { rest = rest.slice(0, cut); }
     return rest.split('/').join('-');
   }
-  /* ★ 카카오에 줄 주소 — 한 번 그림이 떴을 때와 **똑같은 모양**입니다.
-         i0.wp.com/<host>/wp-content/uploads/uandme/card/w<점수칸-이름><판표시>.jpg
-     · CDN 이 나릅니다 (살펴보기에서 상태 200 확인)
-     · **.jpg 확장자**가 있습니다 — 카카오는 확장자 없는 동적 주소를
-       안 받습니다 (/um-tall/ 로 한 번 확인했습니다)
-     · 가로 1200x630 이라 카톡이 안 자릅니다 */
+  /* ★ 카카오에 줄 주소 — **한 번 그림이 떴을 때 쓴 바로 그 주소**입니다.
+         i0.wp.com/<host>/wp-content/uploads/uandme/card/<점수칸-이름><PNGTAIL>?w=800
+     ④번이 저장한 세로 카드를 CDN 이 나르고 ?w=800 으로 줄입니다.
+     카톡에서 위아래가 잘리기는 하지만 **그림은 뜹니다.**
+     잘리는 것은 그림이 뜨는 것을 확실히 한 뒤에 고칩니다 —
+     그 순서를 거꾸로 하다가 되던 것까지 잃었습니다. */
   function small(u) {
     var n = bits(u);
     if (!n) { return u; }
-    if (!WIDETAIL) { return u; }
+    if (!PNGTAIL) { return u; }
     return 'https://i0.wp.com/' + location.host +
-      '/wp-content/uploads/uandme/card/w' + n + WIDETAIL;
+      '/wp-content/uploads/uandme/card/' + n + PNGTAIL + '?w=800';
   }
 
   function wrap() {
@@ -715,9 +726,8 @@ add_action( 'wp_head', function () {
           var now = small(was);
           if (now !== was) {
             o.content.imageUrl = now;
-            /* 가로 카드를 그려 파일로 남기게 깨웁니다 — CDN 이 그것을 나릅니다 */
-            try { var im = new Image();
-              im.src = location.origin + '/um-wide/' + bits(was); } catch (e0) {}
+            /* ④번이 세로 카드를 그려 파일로 남기게 깨웁니다 */
+            try { var im = new Image(); im.src = was; } catch (e0) {}
             note += '바꿨습니다 → ' + now;
             /* ★ 짐작을 없앱니다 — 그 주소에 그림이 진짜 있는지
                화면이 직접 불러보고 말해 줍니다. */
