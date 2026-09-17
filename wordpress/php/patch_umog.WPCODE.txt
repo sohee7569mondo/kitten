@@ -738,6 +738,11 @@ add_action( 'wp_head', function () {
     window.Kakao.Share.sendDefault = function (o) {
       var note = '카톡 보내기 — ';
       try {
+        /* 크기를 안 알려주면 카카오가 가운데만 키워 좌우를 자릅니다 */
+        if (o) { if (o.content) {
+          o.content.imageWidth = 1200;
+          o.content.imageHeight = 630;
+        } }
         if (!o) { note += '넘어온 것이 없습니다'; }
         else if (!o.content) {
           note += '모양 ' + (o.objectType || '?') + ' · 그림 자리(content)가 없습니다';
@@ -767,6 +772,7 @@ add_action( 'wp_head', function () {
             } catch (e9) {}
           } else {
             note += '안 바꿨습니다 (um-card 가 아닙니다) → ' + was;
+            note += '   ·   크기는 1200 x 630 으로 알려줍니다';
           }
         }
       } catch (e) { note += '멈춤 ' + (e.message || e); }
