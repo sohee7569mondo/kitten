@@ -549,6 +549,10 @@ add_action( 'init', function () {
         '<button class="share-item" id="stqL"><span class="ic link">🔗</span><span class="lb">링크 복사</span></button>' +
         '<button class="share-item" id="stqM" style="display:none"><span class="ic more">···</span><span class="lb">다른 앱</span></button>' +
       '</div>' +
+      '<button class="btn" id="stqPhoto" style="display:none">사진으로 보내기</button>' +
+      '<p id="stqWhy" style="display:none;font-size:12.5px;line-height:1.7;color:#8a6d00;' +
+        'background:rgba(255,214,106,.18);border-radius:10px;padding:9px 11px;' +
+        'margin:10px 0 0;word-break:break-all;text-align:left"></p>' +
       '<button class="btn ghost" id="stqRetry">다시 여행 떠나기</button></div>';
 
     card.querySelector('#stqRetry').onclick = function(){
@@ -557,6 +561,7 @@ add_action( 'init', function () {
     };
 
     var shareUrl  = location.origin + location.pathname + '?r=' + type;
+
   /* ── 공유 글 ─ 카카오는 「제목」만 큰 글씨로 보여줍니다.
      그래서 검사 이름을 제목 안에 넣습니다. ── */
   var shareTitle = '도쿄 여행 MBTI' + ' · ' + type + ' ' + r.nick;
@@ -566,44 +571,163 @@ add_action( 'init', function () {
   })();
   var shareDesc  = shareLine + '\n스텔라 랩 — 나는 어느 쪽일까';
   var shareText  = shareTitle + '\n' + shareLine;
-    card.querySelector('#stqK').onclick = function(){
-      if(!initKakao()){ alert('카카오 공유는 등록된 도메인에서만 작동해요.'); return; }
-      var _lnk = { mobileWebUrl: shareUrl, webUrl: shareUrl };
+
+  /* ★ 2026-09-17 · 눌러도 아무 일이 없던 것을 고칩니다.
+     네 단추가 저마다 다른 까닭으로 조용히 실패하고 있었습니다.
+     이제 멈추면 그 자리에서 까닭을 적고, 되는 길로 물러납니다. */
+  var whyBox = card.querySelector('#stqWhy');
+  function why(m){
+    if(!whyBox){ return; }
+    whyBox.style.display = 'block';
+    whyBox.textContent = m;
+  }
+  function flash(el, m){
+    var lb0 = el.querySelector('.lb');
+    if(!lb0){ return; }
+    var was = lb0.textContent;
+    lb0.textContent = m;
+    setTimeout(function(){ lb0.textContent = was; }, 1800);
+  }
+  function copyNow(txt, el){
+    function ok(){ if(el){ flash(el, '복사됨'); } }
+    function no(){
+      if(el){ flash(el, '복사 실패'); }
+      window.prompt('이 주소를 복사하세요', txt);
+    }
+    if(navigator.clipboard){
+      try{
+        navigator.clipboard.writeText(txt).then(ok, no);
+        return;
+      }catch(e){ no(); return; }
+    }
+    no();
+  }
+
+  /* ── 카카오톡 ── */
+  card.querySelector('#stqK').onclick = function(){
+    var me = this;
+    if(!window.Kakao){
+      why('카카오 SDK 가 안 실렸습니다 — 광고 차단 프로그램이 막았을 수 있어요. 링크를 복사해 드릴게요.');
+      copyNow(shareText + '\n' + shareUrl, me);
+      return;
+    }
+    try{
+      if(!window.Kakao.isInitialized()){ window.Kakao.init(KAKAO_JS_KEY); }
+    }catch(e){
+      why('카카오 시작이 안 됩니다 : ' + (e.message || e));
+      copyNow(shareText + '\n' + shareUrl, me);
+      return;
+    }
+    var _lnk = { mobileWebUrl: shareUrl, webUrl: shareUrl };
     var _btn = [{ title: '나도 해보기', link: _lnk }];
     var _img = (r.img || OG_IMAGE || '');
-    if (_img) {
-      window.Kakao.Share.sendDefault({
-        objectType: 'feed',
-        content: { title: shareTitle, description: shareDesc,
-                   imageUrl: _img, link: _lnk },
-        buttons: _btn
-      });
-    } else {
-      /* 그림이 없을 때는 글 본을 씁니다. 깨진 그림 자리가 안 생기고
-         글씨가 더 크게 나옵니다. */
-      window.Kakao.Share.sendDefault({
-        objectType: 'text',
-        text: shareTitle + '\n' + shareDesc,
-        link: _lnk,
-        buttonTitle: '나도 해보기'
-      });
+    try{
+      if(_img){
+        window.Kakao.Share.sendDefault({
+          objectType: 'feed',
+          content: { title: shareTitle, description: shareDesc,
+                     imageUrl: _img, link: _lnk },
+          buttons: _btn
+        });
+      } else {
+        window.Kakao.Share.sendDefault({
+          objectType: 'text',
+          text: shareTitle + '\n' + shareDesc,
+          link: _lnk,
+          buttonTitle: '나도 해보기'
+        });
+      }
+      flash(me, '보냈어요');
+    }catch(e2){
+      why('카톡 보내기가 멈췄습니다 : ' + (e2.message || e2) + ' — 링크를 복사해 드릴게요.');
+      copyNow(shareText + '\n' + shareUrl, me);
     }
+  };
+
+  /* ── X ── 팝업이 막히면 같은 창으로 갑니다 */
+  card.querySelector('#stqX').onclick = function(){
+    var u = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) +
+      String.fromCharCode(38) + 'url=' + encodeURIComponent(shareUrl);
+    var w = null;
+    try{ w = window.open(u, '_blank', 'noopener'); }catch(e){ w = null; }
+    if(!w){ location.href = u; }
+  };
+
+  /* ── 링크 복사 ── */
+  card.querySelector('#stqL').onclick = function(){
+    copyNow(shareText + '\n' + shareUrl, this);
+  };
+
+  /* ── 다른 앱 (글과 링크) ── */
+  if(navigator.share){
+    var more = card.querySelector('#stqM');
+    more.style.display = 'flex';
+    more.onclick = function(){
+      var me2 = this;
+      try{
+        navigator.share({ text: shareText, url: shareUrl }).then(function(){
+          flash(me2, '보냈어요');
+        }).catch(function(err){
+          var nm = (err ? (err.name || '') : '');
+          if(nm === 'AbortError'){ return; }
+          why('보내기가 멈췄습니다 : ' + nm + ' ' + (err ? (err.message || '') : ''));
+        });
+      }catch(e3){
+        why('보내기를 못 열었습니다 : ' + (e3.name || '') + ' ' + (e3.message || ''));
+      }
     };
-    card.querySelector('#stqX').onclick = function(){
-      window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) +
-        '&url=' + encodeURIComponent(shareUrl), '_blank', 'noopener,width=560,height=520');
+  } else {
+    why('이 브라우저는 「다른 앱으로 보내기」를 모릅니다. 카카오톡이나 링크 복사를 쓰세요.');
+  }
+
+  /* ── ★ 사진으로 보내기 ── 결과 그림을 그대로 보냅니다
+     폰에서만 보입니다 (컴퓨터는 대개 사진 보내기를 못 합니다). */
+  (function(){
+    var pb = card.querySelector('#stqPhoto');
+    if(!pb){ return; }
+    if(!r.img){ return; }
+    if(!navigator.share){ return; }
+    if(!navigator.canShare){ return; }
+    var probe = null;
+    try{
+      probe = new File([new Blob([new Uint8Array([1])], { type:'image/png' })],
+        'p.png', { type:'image/png' });
+    }catch(e){ return; }
+    var okFiles = false;
+    try{ okFiles = navigator.canShare({ files:[probe] }); }catch(e2){ okFiles = false; }
+    if(!okFiles){ return; }
+
+    pb.style.display = 'block';
+    var hold = { file:null };
+    /* 미리 만들어 둡니다 — 누르는 순간 바로 보내야 아이폰이 안 막습니다 */
+    fetch(r.img).then(function(res){ return res.blob(); }).then(function(bl){
+      try{ hold.file = new File([bl], 'tokyo-' + type + '.jpg', { type: bl.type || 'image/jpeg' }); }
+      catch(e3){ hold.file = null; }
+    }).catch(function(){ hold.file = null; });
+
+    pb.onclick = function(){
+      if(!hold.file){
+        why('사진을 아직 못 만들었습니다. 잠시 뒤 다시 눌러 주세요.');
+        return;
+      }
+      var data = { files:[hold.file] };
+      try{ if(navigator.canShare({ files:[hold.file], text: shareText })){
+        data = { files:[hold.file], text: shareText };
+      } }catch(e4){}
+      try{
+        navigator.share(data).then(function(){
+          pb.textContent = '보냈어요';
+          setTimeout(function(){ pb.textContent = '사진으로 보내기'; }, 2200);
+        }).catch(function(err){
+          var nm2 = (err ? (err.name || '') : '');
+          if(nm2 === 'AbortError'){ return; }
+          why('사진 보내기가 멈췄습니다 : ' + nm2 + ' ' + (err ? (err.message || '') : ''));
+        });
+      }catch(e5){
+        why('사진 보내기를 못 열었습니다 : ' + (e5.name || '') + ' ' + (e5.message || ''));
+      }
     };
-    var lb = card.querySelector('#stqL').querySelector('.lb');
-    card.querySelector('#stqL').onclick = function(){
-      function done(m){ lb.textContent = m; setTimeout(function(){ lb.textContent = '링크 복사'; }, 1600); }
-      if(navigator.clipboard) navigator.clipboard.writeText(shareText + '\n' + shareUrl).then(function(){done('복사됨');}).catch(function(){done('복사 실패');});
-      else done('복사 실패');
-    };
-    if(navigator.share){
-      var more = card.querySelector('#stqM');
-      more.style.display = 'flex';
-      more.onclick = function(){ navigator.share({ text: shareText, url: shareUrl }).catch(function(){}); };
-    }
+  })();
   }
 
   var shared = new URLSearchParams(location.search).get('r');
