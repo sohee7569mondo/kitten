@@ -711,7 +711,24 @@ add_action( 'wp_head', function () {
 <script>
 (function () {
   if (window.StellaUmKakaoPic) { return; }
-  window.StellaUmKakaoPic = '2026-09-17';
+  window.StellaUmKakaoPic = '2026-09-17b';
+
+  /* 관리자에게만 보이는 진단 줄 — 카톡으로 무엇이 나갔는지 그대로 찍습니다.
+     짐작하지 않고 눈으로 보려는 것입니다. 손님에게는 안 보입니다. */
+  var ADMIN = <?php echo current_user_can( 'manage_options' ) ? '1' : '0'; ?>;
+  function say(t) {
+    if (!ADMIN) { return; }
+    var b = document.getElementById('umkpic');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'umkpic';
+      b.style.cssText = 'position:relative;z-index:2147483646;margin:10px;padding:9px 11px;'
+        + 'font:12px/1.7 system-ui;color:#5a4a10;background:rgba(255,214,106,.92);'
+        + 'border-left:3px solid #C9A227;border-radius:8px;word-break:break-all';
+      document.body.appendChild(b);
+    }
+    b.textContent = t;
+  }
 
   /* /um-card/79-lover-30-12-21/소희/정호  →  /um-sq/79-lover-30-12-21
      (가로 카드를 쓰시려면 um-sq 를 um-wide 로 바꾸면 됩니다) */
@@ -736,17 +753,28 @@ add_action( 'wp_head', function () {
     var orig = window.Kakao.Share.sendDefault;
     if (typeof orig !== 'function') { return false; }
     window.Kakao.Share.sendDefault = function (o) {
+      var note = '카톡 보내기 — ';
       try {
-        if (o) { if (o.content) { if (o.content.imageUrl) {
-          var was = o.content.imageUrl;
+        if (!o) { note += '넘어온 것이 없습니다'; }
+        else if (!o.content) {
+          note += '모양 ' + (o.objectType || '?') + ' · 그림 자리(content)가 없습니다';
+        }
+        else if (!o.content.imageUrl) {
+          note += '모양 ' + (o.objectType || '?') + ' · imageUrl 이 비어 있습니다';
+        }
+        else {
+          var was = String(o.content.imageUrl);
           var now = small(was);
           if (now !== was) {
             o.content.imageUrl = now;
-            /* 서버가 아직 안 그렸을 수 있으니 한 번 깨워 둡니다 */
             try { var im = new Image(); im.src = now; } catch (e0) {}
+            note += '바꿨습니다 → ' + now;
+          } else {
+            note += '안 바꿨습니다 (um-card 가 아닙니다) → ' + was;
           }
-        } } }
-      } catch (e) {}
+        }
+      } catch (e) { note += '멈춤 ' + (e.message || e); }
+      say(note);
       return orig.apply(window.Kakao.Share, arguments);
     };
     window.Kakao.Share.__stellaSmall = 1;
