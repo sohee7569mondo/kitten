@@ -672,3 +672,96 @@ add_action( 'init', function () {
 	exit;
 
 }, 5 );
+
+/* ════════════════════════════════════════════════════════════
+   ★ 카톡에 갈 그림도 작은 것으로 (2026-09-17)
+
+   소희 님 「그럼 유앤미 안 나오는 것도 고칠 수 있겠네」 — 됩니다.
+
+   ── 왜 유앤미 카톡에 그림이 없었나 (코드에서 그대로) ──
+   ⑥번의 kakaoPic() 이 고르는 순서가 이렇습니다 —
+       ① cardKakao()  카카오에 올려 둔 그림
+          → ⑤번이 파일 이름을 못 찾아 **늘 실패**합니다
+             ④ 저장  79-lover-30-12-21-v<md5>.png
+             ⑤ 찾기  79-lover-30-12-21.png
+       ② cardUrl()    /um-card/… → **1.19MB PNG · 확장자 없음**
+          카카오 크롤러가 이렇게 큰 그림은 가져가다 포기합니다
+       ★ cardCdn() 이라는 함수가 만들어져 있는데 **아무도 안 부릅니다.**
+         그마저 이름에 -v<md5> 가 빠져 있어 그 파일이 없습니다.
+
+   ── 고침 ────────────────────────────────────────────
+   ⑥번(81KB)을 건드리지 않습니다. **통로에 체를 겁니다** —
+   Kakao.Share.sendDefault 를 감싸서, 카톡에 나갈 imageUrl 이
+   /um-card/… 이면  「um-sq」  쪽으로 바꿔 보냅니다.
+   그것은 이 조각이 그리는 **1080x1080 JPEG(오만~육만 바이트)** 입니다.
+
+   ★ 화면에 보이는 카드는 그대로입니다. 카톡에 알려줄 때만 바꿉니다.
+   ★ 이 조각을 끄면 원래대로 돌아갑니다.
+   ════════════════════════════════════════════════════════════ */
+add_action( 'wp_head', function () {
+
+	$here = false;
+	if ( is_page( 'uandme' ) ) { $here = true; }
+	if ( ! $here ) {
+		$u = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+		if ( false !== strpos( $u, '/uandme' ) ) { $here = true; }
+	}
+	if ( ! $here ) { return; }
+	?>
+<script>
+(function () {
+  if (window.StellaUmKakaoPic) { return; }
+  window.StellaUmKakaoPic = '2026-09-17';
+
+  /* /um-card/79-lover-30-12-21/소희/정호  →  /um-sq/79-lover-30-12-21
+     (가로 카드를 쓰시려면 um-sq 를 um-wide 로 바꾸면 됩니다) */
+  function small(u) {
+    if (!u) { return u; }
+    var t = String(u);
+    var at = t.indexOf('/um-card/');
+    if (at < 0) { return t; }
+    var rest = t.slice(at + 9);
+    var cut = rest.indexOf('/');
+    if (cut > -1) { rest = rest.slice(0, cut); }
+    cut = rest.indexOf('?');
+    if (cut > -1) { rest = rest.slice(0, cut); }
+    if (!rest) { return t; }
+    return location.origin + '/um-sq/' + rest;
+  }
+
+  function wrap() {
+    if (!window.Kakao) { return false; }
+    if (!window.Kakao.Share) { return false; }
+    if (window.Kakao.Share.__stellaSmall) { return true; }
+    var orig = window.Kakao.Share.sendDefault;
+    if (typeof orig !== 'function') { return false; }
+    window.Kakao.Share.sendDefault = function (o) {
+      try {
+        if (o) { if (o.content) { if (o.content.imageUrl) {
+          var was = o.content.imageUrl;
+          var now = small(was);
+          if (now !== was) {
+            o.content.imageUrl = now;
+            /* 서버가 아직 안 그렸을 수 있으니 한 번 깨워 둡니다 */
+            try { var im = new Image(); im.src = now; } catch (e0) {}
+          }
+        } } }
+      } catch (e) {}
+      return orig.apply(window.Kakao.Share, arguments);
+    };
+    window.Kakao.Share.__stellaSmall = 1;
+    return true;
+  }
+
+  /* 카카오 SDK 는 늦게 실립니다. 붙을 때까지 잠깐 지켜봅니다. */
+  if (wrap()) { return; }
+  var n = 0;
+  var t = setInterval(function () {
+    n++;
+    if (wrap()) { clearInterval(t); return; }
+    if (n > 60) { clearInterval(t); }
+  }, 400);
+})();
+</script>
+	<?php
+}, 30 );
