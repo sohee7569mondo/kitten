@@ -1,14 +1,27 @@
 /* ════════════════════════════════════════════════════════════
-   랩 여덟 장이 누구 손에 있나 — 보기만 하는 도구
-   ★ 2026-09-09 · 소희 님께
+   스텔라 랩 · 어느 카드가 어디로 가나 — 보기만 하는 도구
+   판 2026-09-17
 
-   「도쿄를 눌렀는데 옛날 쪽이 나온다」 같은 일이 왜 생기는지
-   봅니다. 아무것도 안 바꿉니다.
+   소희 님 : 「스텔라 랩에서 일본여행으로 테스트 하는 MBTI 는
+              누르면 옛날 스텔라랩홈으로 가」
 
-   보기   https://stellasaju.com/?stella_lab=1
+   랩의 카드 하나하나가 **따로 있는 조각**이 맡습니다.
+   그 조각이 꺼져 있으면 랩 본체(804)가 받아 **옛 홈**을 보여줍니다.
+   어느 카드가 그런지 눈으로 찾을 필요 없습니다.
 
-   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
-   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+       https://stellasaju.com/?stella_lab=1
+
+   하는 일 —
+       ① /lab/ 을 실제로 한 번 열어 카드 링크를 다 뽑습니다
+       ② 켜진 조각 가운데 그 주소를 맡는 것이 있는지 봅니다
+       ③ 없는 카드에 ★ 를 답니다 — 그것이 옛 홈으로 갑니다
+
+   ★ 보안 — 조각 **이름과 번호만** 찍습니다. 안에 든 글은 한 자도
+     안 찍습니다. 열쇠가 든 조각이 있어 그렇습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
    ════════════════════════════════════════════════════════════ */
 
 add_action( 'template_redirect', function () {
@@ -16,76 +29,138 @@ add_action( 'template_redirect', function () {
 	if ( ! isset( $_GET['stella_lab'] ) ) { return; }
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
 
-	header( 'Content-Type: text/plain; charset=utf-8' );
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+		. '<body style="font:15px/1.7 system-ui;background:#141018;color:#eee;'
+		. 'padding:22px;max-width:920px;margin:0 auto">';
 
-	$slugs = array( 'night-snack', 'cafe', 'camping', 'grocery',
-	                'money', 'breakup', 'tokyo', 'family' );
+	echo '<h1 style="color:#ffd76a;font-size:20px">스텔라 랩 · 카드가 어디로 가나</h1>';
 
-	echo "═══ 랩 여덟 장 ═══\n\n";
+	/* ── ① /lab/ 을 실제로 열어 카드 링크를 뽑습니다 ── */
+	$home = home_url( '/lab/' );
+	$r    = wp_remote_get( $home, array( 'timeout' => 25, 'sslverify' => false ) );
+	if ( is_wp_error( $r ) ) {
+		printf( '<p style="color:#ff7b7b">/lab/ 을 못 열었습니다 — %s</p>',
+			esc_html( $r->get_error_message() ) );
+		exit;
+	}
+	$html = wp_remote_retrieve_body( $r );
+	printf( '<p style="font-size:13px;color:#999">%s 을 열어 보았습니다 · %s자</p>',
+		esc_html( $home ), number_format( strlen( $html ) ) );
 
-	/* ── WPCode 스니펫을 모두 훑습니다 ─────────────── */
-	$snips = get_posts( array(
-		'post_type'      => 'wpcode',
-		'post_status'    => 'any',
-		'posts_per_page' => 200,
-	) );
+	/* 목록이 새 것인지 옛 것인지 */
+	$isNew = ( false !== strpos( $html, 'labFind' ) );
+	printf( '<p>목록 화면 : <b style="color:%s">%s</b></p>',
+		$isNew ? '#7bff9b' : '#ffb76a',
+		$isNew ? '새 목록 (찾기칸이 있습니다)' : '옛 목록 (랩 본체가 그립니다)' );
 
-	echo '── WPCode 스니펫 ' . count( $snips ) . "개 ──\n\n";
+	/* 카드 링크 뽑기 */
+	$cards = array();
+	if ( preg_match_all( '#href=[\'"]([^\'"]*?/lab/([a-z0-9-]+)/?)[\'"]#i', $html, $mm, PREG_SET_ORDER ) ) {
+		foreach ( $mm as $one ) {
+			$slug = strtolower( $one[2] );
+			if ( '' === $slug ) { continue; }
+			$cards[ $slug ] = $one[1];
+		}
+	}
+	/* 카드 딱지(이름)도 같이 — 링크 뒤에 오는 첫 제목을 씁니다 */
+	$names = array();
+	if ( preg_match_all( '#/lab/([a-z0-9-]+)/?[\'"][^>]*>(.{0,400}?)</a>#is', $html, $nn, PREG_SET_ORDER ) ) {
+		foreach ( $nn as $one ) {
+			$t = wp_strip_all_tags( $one[2] );
+			$t = trim( preg_replace( '/\s+/u', ' ', $t ) );
+			if ( '' === $t ) { continue; }
+			$names[ strtolower( $one[1] ) ] = mb_substr( $t, 0, 40 );
+		}
+	}
 
-	$owner = array();   /* 슬러그 => 스니펫 이름들 */
-	foreach ( $slugs as $s ) { $owner[ $s ] = array(); }
+	if ( ! $cards ) {
+		echo '<p style="color:#ff7b7b">카드 링크를 하나도 못 찾았습니다.</p>';
+		exit;
+	}
+	printf( '<p>카드 <b>%d</b>장을 찾았습니다.</p>', count( $cards ) );
 
-	foreach ( $snips as $sn ) {
+	/* ── ② 켜진 조각 가운데 그 주소를 맡는 것 ── */
+	global $wpdb;
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_status, post_content FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode'" );
+	if ( ! $rows ) { $rows = array(); }
+
+	$owner = array();   /* slug => array( 번호, 이름, 켜짐 ) */
+	foreach ( $rows as $sn ) {
 		$code = (string) $sn->post_content;
-		$hits = array();
-		foreach ( $slugs as $s ) {
-			if ( false !== strpos( $code, '/lab/' . $s ) ) { $hits[] = $s; }
-		}
-		if ( ! $hits ) { continue; }
-
-		/* 켜져 있는지 — WPCode 가 쓰는 이름이 판마다 달라서
-		   'active' 가 들어간 값을 모두 보여줍니다. */
-		$on = array();
-		foreach ( (array) get_post_meta( $sn->ID ) as $k => $v ) {
-			if ( false === strpos( $k, 'active' ) ) { if ( false === strpos( $k, 'location' ) ) { continue; } }
-			$val = is_array( $v ) ? reset( $v ) : $v;
-			if ( is_array( $val ) ) { $val = wp_json_encode( $val ); }
-			$on[] = $k . '=' . (string) $val;
-		}
-
-		echo '  · ' . $sn->post_title . "\n";
-		echo '      상태  ' . $sn->post_status . '   ' . implode( '  ', $on ) . "\n";
-		echo '      맡은 곳  ' . implode( ', ', $hits ) . "\n\n";
-
-		foreach ( $hits as $s ) { $owner[ $s ][] = $sn->post_title . ' (' . $sn->post_status . ')'; }
-	}
-
-	/* ── 장마다 누가 있나 ───────────────────────────── */
-	echo "── 장마다 ──\n";
-	foreach ( $slugs as $s ) {
-		$who = $owner[ $s ];
-		if ( ! $who ) {
-			echo sprintf( "  %-12s ★ 맡은 스니펫이 없습니다 — 옛날 쪽이 나옵니다\n", $s );
-		} else {
-			echo sprintf( "  %-12s %s\n", $s, implode( ' / ', $who ) );
+		if ( false === strpos( $code, '/lab/' ) ) { continue; }
+		foreach ( $cards as $slug => $href ) {
+			/* 그 주소를 **맡는** 조각인지 — 따옴표로 감싼 '/lab/xxx' 가 있어야 합니다.
+			   카드 링크로만 적힌 목록 조각은 걸리지 않게 합니다. */
+			$need = "'/lab/" . $slug . "'";
+			if ( false === strpos( $code, $need ) ) { continue; }
+			$on = ( 'publish' === $sn->post_status );
+			if ( isset( $owner[ $slug ] ) ) { if ( $owner[ $slug ][2] ) { continue; } }
+			$owner[ $slug ] = array( $sn->ID, $sn->post_title, $on );
 		}
 	}
-	echo "\n";
 
-	/* ── 옛 랩 본체가 아직 /lab/ 을 붙들고 있나 ─────── */
-	echo "── 옛 랩 쪽 ──\n";
-	foreach ( array( 'lab', 'lab/tokyo', 'lab/breakup' ) as $path ) {
-		$p = get_page_by_path( $path );
-		echo sprintf( "  /%s%s\n", $path,
-			$p ? '  → 쪽 ' . $p->ID . ' (' . $p->post_title . ', ' . $p->post_status . ')' : '  (쪽 없음)' );
+	/* ── ③ 표 ── */
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%;font-size:13.5px;margin-top:12px">';
+	echo '<tr style="color:#9fd;text-align:left">'
+		. '<th>카드</th><th>주소</th><th>맡는 조각</th><th></th></tr>';
+
+	$bad = 0;
+	$off = 0;
+	ksort( $cards );
+	foreach ( $cards as $slug => $href ) {
+		$nm  = isset( $names[ $slug ] ) ? $names[ $slug ] : $slug;
+		$has = isset( $owner[ $slug ] );
+		$on  = $has ? $owner[ $slug ][2] : false;
+
+		if ( ! $has ) { $bad++; }
+		elseif ( ! $on ) { $off++; }
+
+		$col = '#7bff9b';
+		if ( ! $has ) { $col = '#ff7b7b'; }
+		elseif ( ! $on ) { $col = '#ffb76a'; }
+
+		$who = '<span style="color:#ff7b7b">맡는 조각이 없습니다</span>';
+		if ( $has ) {
+			$who = sprintf( '<span style="color:%s">%d · %s · %s</span>',
+				$on ? '#7bff9b' : '#ffb76a',
+				$owner[ $slug ][0], esc_html( mb_substr( $owner[ $slug ][1], 0, 26 ) ),
+				$on ? '켜짐' : '꺼짐' );
+		}
+
+		$fix = '';
+		if ( ! $has ) { $fix = '<span style="color:#ff7b7b">→ 옛 홈으로 갑니다</span>'; }
+		elseif ( ! $on ) {
+			$fix = sprintf( '<a style="color:#ffd76a" href="%s">→ 켜러 가기</a>',
+				esc_url( admin_url( 'admin.php?page=wpcode-snippet-manager'
+					. chr( 38 ) . 'snippet_id=' . $owner[ $slug ][0] ) ) );
+		}
+
+		printf( '<tr style="border-top:1px solid #2a2438">'
+			. '<td style="color:%s"><b>%s</b></td>'
+			. '<td><a style="color:#8ab" href="%s">/lab/%s/</a></td>'
+			. '<td>%s</td><td>%s</td></tr>',
+			$col, esc_html( $nm ), esc_url( $href ), esc_html( $slug ), $who, $fix );
 	}
-	echo "\n";
+	echo '</table>';
 
-	echo "── 읽는 법 ──\n";
-	echo "  「맡은 스니펫이 없습니다」면 그 장은 아직 옛날 판입니다.\n";
-	echo "  스니펫이 있는데도 옛날 판이 나오면 ─ 상태가 draft 이거나\n";
-	echo "  위치(Location)가 「어디서나 실행」이 아닙니다.\n";
+	echo '<hr style="border:0;border-top:1px solid #333;margin:20px 0">';
+	printf( '<p>카드 <b>%d</b>장 가운데 — '
+		. '<b style="color:#7bff9b">%d</b>장은 제 조각이 맡고 있고, '
+		. '<b style="color:#ffb76a">%d</b>장은 조각이 <b>꺼져</b> 있고, '
+		. '<b style="color:#ff7b7b">%d</b>장은 <b>맡는 조각이 없습니다</b>.</p>',
+		count( $cards ), count( $cards ) - $bad - $off, $off, $bad );
 
-	echo "\n═══ 끝 ═══\n";
+	if ( $bad ) {
+		echo '<p style="color:#ffb76a;font-size:13.5px">★ 맡는 조각이 없는 카드는 랩 본체(804)가 '
+			. '받아 <b>옛 홈</b>을 보여줍니다. 그 검사를 아직 안 만들었거나, '
+			. '조각을 아직 안 붙이신 것입니다. 어느 쪽인지는 제가 저장소를 보고 '
+			. '알려드릴 수 있으니 이 화면을 저에게 보여주세요.</p>';
+	}
+	echo '<p style="font-size:12.5px;color:#777">★ 조각 이름과 번호만 찍었습니다. '
+		. '안에 든 글은 한 자도 안 찍습니다.</p>';
 	exit;
+
 }, 1 );
