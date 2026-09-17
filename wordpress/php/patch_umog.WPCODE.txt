@@ -50,8 +50,14 @@ if ( ! function_exists( 'stella_umw_name' ) ) {
 		$v = substr( md5( (string) get_option( 'stella_um_bg', '' )
 			. wp_json_encode( get_option( 'stella_um_bg_map', array() ) )
 			. 'wide-2026-09-17' ), 0, 6 );
-		return $shape . $p['sc'] . '-' . $p['rel'] . '-' . $p['a'] . '-' . $p['b'] . '-'
-			. $p['c'] . '-' . $v . '.jpg';
+		$base = $shape . $p['sc'] . '-' . $p['rel'] . '-' . $p['a'] . '-' . $p['b'] . '-' . $p['c'];
+		/* ★ 두 사람 이름도 파일 이름에 그대로 넣습니다.
+		   md5 로 줄이면 **자바스크립트가 그 주소를 못 만듭니다** —
+		   그래서 확장자 없는 동적 주소로 물러나고 카카오가 안 받았습니다. */
+		if ( ! empty( $p['n'] ) ) {
+			$base .= '-' . preg_replace( '/[^A-Za-z0-9_-]/', '', $p['n'] );
+		}
+		return $base . '-' . $v . '.jpg';
 	}
 }
 
@@ -374,9 +380,7 @@ add_action( 'init', function () {
 	$up   = wp_upload_dir();
 	$dir  = $up['basedir'] . '/uandme/card';
 	if ( ! is_dir( $dir ) ) { wp_mkdir_p( $dir ); }
-	$key = 'w';
-	if ( ! empty( $p['n'] ) ) { $key = 'w' . substr( md5( $p['n'] ), 0, 4 ); }
-	$file = $dir . '/' . stella_umw_name( $p, $key );
+	$file = $dir . '/' . stella_umw_name( $p, 'w' );
 
 	$fresh = current_user_can( 'manage_options' );
 	if ( isset( $_GET['new'] ) ) { $fresh = true; }
@@ -417,12 +421,9 @@ if ( ! function_exists( 'stella_umog_pic' ) ) {
 		if ( ! empty( $p['n'] ) ) { $tail .= '-' . $p['n']; }
 		$live = home_url( '/um-wide/' . $tail );
 
-		$key = 'w';
-		if ( ! empty( $p['n'] ) ) { $key = 'w' . substr( md5( $p['n'] ), 0, 4 ); }
-
 		$up   = wp_upload_dir();
 		$dir  = $up['basedir'] . '/uandme/card';
-		$name = stella_umw_name( $p, $key );
+		$name = stella_umw_name( $p, 'w' );
 		$file = $dir . '/' . $name;
 
 		if ( ! file_exists( $file ) ) {
@@ -646,7 +647,7 @@ add_action( 'wp_head', function () {
     $t = "";
     if ( function_exists( "stella_umw_name" ) ) {
       $nm = stella_umw_name( array( "sc" => 0, "rel" => "x", "a" => 0, "b" => 0, "c" => 0 ), "w" );
-      $at = strpos( $nm, "-v" );
+      $at = strrpos( $nm, "-" );
       if ( false !== $at ) { $t = substr( $nm, $at ); }
     }
     echo esc_js( $t );
@@ -679,21 +680,18 @@ add_action( 'wp_head', function () {
     if (cut > -1) { rest = rest.slice(0, cut); }
     return rest.split('/').join('-');
   }
-  /* ★ 카카오에 줄 주소 — **가로 카드**의 CDN 주소입니다.
-     세로 카드를 그대로 보내면 카톡이 위아래를 잘라내서
-     맨 위 딱지도, 아래 캐릭터도, 발치 링크도 사라집니다.
-     가로(1200x630)는 카톡 카드에 딱 맞아 **다 보입니다.**
-     CDN(i0.wp.com)은 살펴보기에서 상태 200 으로 확인했습니다. */
+  /* ★ 카카오에 줄 주소 — 한 번 그림이 떴을 때와 **똑같은 모양**입니다.
+         i0.wp.com/<host>/wp-content/uploads/uandme/card/w<점수칸-이름><판표시>.jpg
+     · CDN 이 나릅니다 (살펴보기에서 상태 200 확인)
+     · **.jpg 확장자**가 있습니다 — 카카오는 확장자 없는 동적 주소를
+       안 받습니다 (/um-tall/ 로 한 번 확인했습니다)
+     · 가로 1200x630 이라 카톡이 안 자릅니다 */
   function small(u) {
     var n = bits(u);
     if (!n) { return u; }
-    if (!WIDETAIL) { return location.origin + '/um-wide/' + n; }
-    /* 이름이 붙으면 파일 이름에 md5 넉 자가 들어갑니다 —
-       그 값은 서버만 아니, 서버가 만들어 둔 주소를 그대로 씁니다.
-       (og:image 로 이미 내보내고 있습니다) */
-    var og = document.querySelector('meta[property="og:image"]');
-    if (og) { if (og.content) { if (og.content.indexOf('um-') > -1) { return og.content; } } }
-    return location.origin + '/um-wide/' + n;
+    if (!WIDETAIL) { return u; }
+    return 'https://i0.wp.com/' + location.host +
+      '/wp-content/uploads/uandme/card/w' + n + WIDETAIL;
   }
 
   function wrap() {
@@ -718,9 +716,9 @@ add_action( 'wp_head', function () {
           if (now !== was) {
             o.content.imageUrl = now;
             /* 파일이 아직 없을 수 있으니 **그리는 주소**를 깨웁니다 */
-            /* ④번이 원본을 그려 파일로 남기게 깨웁니다 —
-               CDN 은 그 파일을 나릅니다 */
-            try { var im = new Image(); im.src = was; } catch (e0) {}
+            /* 가로 카드를 그려 파일로 남기게 깨웁니다 — CDN 이 그것을 나릅니다 */
+            try { var im = new Image();
+              im.src = location.origin + '/um-wide/' + bits(was); } catch (e0) {}
             note += '바꿨습니다 → ' + now;
           } else {
             note += '안 바꿨습니다 (um-card 가 아닙니다) → ' + was;
