@@ -689,7 +689,16 @@ add_action( 'wp_head', function () {
     var rest = t.slice(at + 9);
     var cut = rest.indexOf('?');
     if (cut > -1) { rest = rest.slice(0, cut); }
-    return rest.split('/').join('-');
+    /* ★★ 2026-09-17 · 노란 줄이 알려준 것 —
+       ⑥번은 이름을 **두 번** 붙입니다.
+         cardName()  …-_EC_9D_B4…-_EB_A6_AC…   (base64, 줄표로)
+         cardTail()  /이소희/리사                (한글, 빗금으로)
+       ④번이 파일 이름에 쓰는 것은 **앞엣것뿐**입니다.
+       그러니 **빗금부터 뒤는 버립니다.** 합쳐 붙였더니 없는 이름이
+       되어 CDN 이 404 였고, 카톡에 그림이 안 떴습니다. */
+    cut = rest.indexOf('/');
+    if (cut > -1) { rest = rest.slice(0, cut); }
+    return rest;
   }
   /* ★ 카카오에 줄 주소 — **한 번 그림이 떴을 때 쓴 바로 그 주소**입니다.
          i0.wp.com/<host>/wp-content/uploads/uandme/card/<점수칸-이름><PNGTAIL>?w=800
