@@ -1,0 +1,290 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 ⑦ · 링크를 붙였을 때 **그림이 뜨게**      판 2026-09-17
+
+   소희 님 : 「카톡으로 공유하면 글씨가 오고 쓰레드 인스타는…」
+
+   ── 왜 글씨만 오나 (짐작 아니라 코드에서) ──────────
+   ④번 조각에 이런 주석이 적혀 있습니다 —
+       「카카오가 우리 서버에서 그림을 못 가져오는 듯하여, 카드를
+        진짜 파일로 남기고 워드프레스닷컴 그림 CDN 주소를 알려줍니다」
+   그래서 ④번은 `stella_um_card_url()` 이라는 함수를 만들어 뒀습니다.
+
+   그런데 **옛 ⑦번이 그 함수를 안 씁니다.** 이렇게 내보냅니다 —
+       og:image  https://stellasaju.com/um-card/79-lover-30-12-21
+   확장자(.png)가 없고, 부를 때마다 그 자리에서 그리는 주소입니다.
+   카카오·스레드·X 의 크롤러는 이런 주소를 자주 버립니다.
+   게다가 크기를 늘 **800x400** 이라고 적는데, 소희 님 판은 세로
+   2:3 입니다. **크기가 어긋나면 스레드와 X 는 그림을 버립니다.**
+
+   ── 이 판이 하는 일 ─────────────────────────────────
+   ① og:image 를 **진짜 .png 파일의 CDN 주소**로 냅니다
+   ② 크기를 **실제로 재서** 적습니다 (거짓말 안 합니다)
+   ③ 파일이 아직 없으면 **뒤에서 조용히 그리게** 던집니다
+      (기다리지 않습니다 — 쪽이 느려지면 안 됩니다)
+   ④ ⑤번(카톡 올리기)이 **찾지 못하던 이름으로 복사본**을 둡니다
+      ④가 저장하는 이름 : 79-lover-30-12-21-v3f8a2c.png
+      ⑤가 찾는 이름     : 79-lover-30-12-21.png       ← 늘 못 찾았습니다
+      그래서 카톡에 그림이 한 번도 안 올라갔습니다.
+
+   ── 쓰는 법 ─────────────────────────────────────────
+   ★★ 이것은 **⑦번 조각을 갈아끼우는 것**입니다. 새로 붙이지 마시고
+      옛 ⑦번을 열어 **통째로 바꿔** 주세요. 둘 다 켜져 있으면
+      og 태그가 두 벌 나가서 어느 쪽이 뽑힐지 모릅니다.
+
+      ⑦번 번호 찾기 :  https://stellasaju.com/?stella_umon=1
+                      (⑦ 줄에 번호와 고치는 자리 주소가 나옵니다)
+
+   살펴보기   https://stellasaju.com/?stella_umog=1
+              무엇이 나가고 있는지 · 파일이 있는지 · 진짜 크기
+              (관리자만 · 아무것도 안 바꿉니다)
+
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 이 주소에서 점수 한 벌을 읽습니다 ─────────────────── */
+if ( ! function_exists( 'stella_umog_bits' ) ) {
+	function stella_umog_bits() {
+		if ( ! isset( $_GET['sc'] ) ) { return null; }
+		$rel = isset( $_GET['rel'] ) ? preg_replace( '/[^a-z_]/', '', (string) $_GET['rel'] ) : 'lover';
+		if ( ! $rel ) { $rel = 'lover'; }
+		return array(
+			'sc'  => max( 0, min( 99, intval( $_GET['sc'] ) ) ),
+			'rel' => $rel,
+			'a'   => isset( $_GET['a'] ) ? max( 0, min( 40, intval( $_GET['a'] ) ) ) : 0,
+			'b'   => isset( $_GET['b'] ) ? max( 0, min( 30, intval( $_GET['b'] ) ) ) : 0,
+			'c'   => isset( $_GET['c'] ) ? max( 0, min( 30, intval( $_GET['c'] ) ) ) : 0,
+		);
+	}
+}
+
+/* ── 그림 주소와 크기를 구합니다 ───────────────────────
+   돌려주는 것 : array( 주소, 가로, 세로, 어떻게 )
+   가로가 0 이면 크기를 모른다는 뜻 — 그때는 크기 태그를 안 냅니다. */
+if ( ! function_exists( 'stella_umog_pic' ) ) {
+	function stella_umog_pic( $p ) {
+
+		$plain = home_url( '/um-card/' . $p['sc'] . '-' . $p['rel'] . '-'
+			. $p['a'] . '-' . $p['b'] . '-' . $p['c'] );
+
+		if ( ! function_exists( 'stella_um_card_name' ) ) {
+			return array( $plain, 0, 0, '④번이 꺼져 있습니다' );
+		}
+
+		$up   = wp_upload_dir();
+		$dir  = $up['basedir'] . '/uandme/card';
+		$name = stella_um_card_name( $p['sc'], $p['rel'], $p['a'], $p['b'], $p['c'] );
+		$file = $dir . '/' . $name;
+
+		if ( ! file_exists( $file ) ) {
+			/* 뒤에서 조용히 그리게 던집니다 — 기다리지 않습니다 */
+			wp_remote_get( $plain, array(
+				'timeout'   => 1,
+				'blocking'  => false,
+				'sslverify' => false,
+			) );
+			return array( $plain, 0, 0, '아직 파일이 없어 그리라고 던졌습니다' );
+		}
+
+		/* ⑤번이 찾는 이름으로도 한 장 둡니다 — 카톡 올리기가 살아납니다 */
+		$look = $dir . '/' . $p['sc'] . '-' . $p['rel'] . '-'
+			. $p['a'] . '-' . $p['b'] . '-' . $p['c'] . '.png';
+		if ( $name !== basename( $look ) ) {
+			if ( ! file_exists( $look ) ) { @copy( $file, $look ); }
+		}
+
+		$sz = @getimagesize( $file );
+		$w  = $sz ? intval( $sz[0] ) : 0;
+		$h  = $sz ? intval( $sz[1] ) : 0;
+
+		$url = $plain;
+		if ( function_exists( 'stella_um_card_url' ) ) {
+			$url = stella_um_card_url( $p['sc'], $p['rel'], $p['a'], $p['b'], $p['c'] );
+		}
+		return array( $url, $w, $h, '파일 있음' );
+	}
+}
+
+/* ── 점수로 딱지 한 줄 ─────────────────────────────────── */
+if ( ! function_exists( 'stella_umog_tier' ) ) {
+	function stella_umog_tier( $s ) {
+		if ( $s >= 95 ) { return '천생연분'; }
+		if ( $s >= 90 ) { return '완전 찰떡궁합'; }
+		if ( $s >= 80 ) { return '환상의 케미'; }
+		if ( $s >= 70 ) { return '좋은 궁합'; }
+		if ( $s >= 60 ) { return '무난한 사이'; }
+		if ( $s >= 50 ) { return '노력형 궁합'; }
+		if ( $s >= 40 ) { return '위태위태'; }
+		if ( $s >= 30 ) { return '친구가 나을지도'; }
+		if ( $s >= 20 ) { return '재고요망'; }
+		return '이번 생은 예능감';
+	}
+}
+
+/* ════════════════════════════════════════════════════════════
+   머리말에 og 태그 넣기
+   ════════════════════════════════════════════════════════════ */
+add_action( 'wp_head', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/uandme' ) ) { return; }
+
+	$p = stella_umog_bits();
+	if ( ! $p ) { return; }
+
+	$pic  = stella_umog_pic( $p );
+	$tier = stella_umog_tier( $p['sc'] );
+
+	$title = '우리 ' . $p['sc'] . '점 · ' . $tier;
+	$desc  = '생일만 넣으면 바로 나와요. 전부 무료.';
+
+	$host = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : 'stellasaju.com';
+	$here = ( is_ssl() ? 'https://' : 'http://' ) . $host . $uri;
+
+	echo "\n";
+	echo '<meta property="og:type" content="website">' . "\n";
+	echo '<meta property="og:site_name" content="유앤미">' . "\n";
+	echo '<meta property="og:title" content="' . esc_attr( $title ) . '">' . "\n";
+	echo '<meta property="og:description" content="' . esc_attr( $desc ) . '">' . "\n";
+	echo '<meta property="og:image" content="' . esc_url( $pic[0] ) . '">' . "\n";
+	/* ★ 크기는 **잰 값이 있을 때만** 냅니다. 거짓 크기는 그림을 버리게 합니다. */
+	if ( $pic[1] ) {
+		echo '<meta property="og:image:width" content="' . intval( $pic[1] ) . '">' . "\n";
+		echo '<meta property="og:image:height" content="' . intval( $pic[2] ) . '">' . "\n";
+	}
+	echo '<meta property="og:image:alt" content="' . esc_attr( $title ) . '">' . "\n";
+	echo '<meta property="og:url" content="' . esc_url( $here ) . '">' . "\n";
+	echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+	echo '<meta name="twitter:title" content="' . esc_attr( $title ) . '">' . "\n";
+	echo '<meta name="twitter:description" content="' . esc_attr( $desc ) . '">' . "\n";
+	echo '<meta name="twitter:image" content="' . esc_url( $pic[0] ) . '">' . "\n";
+
+}, 1 );
+
+/* 젯팩이 스스로 내보내는 og 를 우리 것으로 바꿔 끼웁니다 */
+add_filter( 'jetpack_open_graph_tags', function ( $tags ) {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/uandme' ) ) { return $tags; }
+
+	$p = stella_umog_bits();
+	if ( ! $p ) { return $tags; }
+
+	$pic = stella_umog_pic( $p );
+
+	$tags['og:image']      = $pic[0];
+	$tags['twitter:card']  = 'summary_large_image';
+	$tags['twitter:image'] = $pic[0];
+	unset( $tags['og:image:width'] );
+	unset( $tags['og:image:height'] );
+	if ( $pic[1] ) {
+		$tags['og:image:width']  = $pic[1];
+		$tags['og:image:height'] = $pic[2];
+	}
+	return $tags;
+}, 20 );
+
+/* ════════════════════════════════════════════════════════════
+   살펴보기 — 지금 무엇이 나가나 (관리자만 · 안 바꿉니다)
+   ════════════════════════════════════════════════════════════ */
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_umog'] ) ) { return; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 system-ui;'
+		. 'background:#141018;color:#eee;padding:24px;max-width:900px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	echo '<h1 style="color:#ffd76a">유앤미 · 링크에 무엇이 딸려 가나</h1>';
+
+	$p = array( 'sc' => 79, 'rel' => 'lover', 'a' => 30, 'b' => 12, 'c' => 21 );
+	if ( isset( $_GET['sc'] ) ) {
+		$q = stella_umog_bits();
+		if ( $q ) { $p = $q; }
+	}
+
+	printf( '<p style="font-size:13px;color:#999">보기 : %d점 · %s · %d/%d/%d</p>',
+		$p['sc'], esc_html( $p['rel'] ), $p['a'], $p['b'], $p['c'] );
+
+	if ( ! function_exists( 'stella_um_card_name' ) ) {
+		echo '<h2 style="color:#ff7b7b">④번 조각(카드 그리기)이 꺼져 있습니다.</h2>';
+		echo '<p>그것부터 켜 주세요. ?stella_umon=1 로 찾을 수 있습니다.</p>';
+		exit;
+	}
+
+	$up   = wp_upload_dir();
+	$dir  = $up['basedir'] . '/uandme/card';
+	$name = stella_um_card_name( $p['sc'], $p['rel'], $p['a'], $p['b'], $p['c'] );
+	$file = $dir . '/' . $name;
+	$look = $p['sc'] . '-' . $p['rel'] . '-' . $p['a'] . '-' . $p['b'] . '-' . $p['c'] . '.png';
+
+	echo '<h2 style="color:#9fd;font-size:16px">① 카드 파일</h2>';
+	printf( '<p>④번이 저장하는 이름 &nbsp; <code style="color:#9fd">%s</code><br>'
+		. '&nbsp;&nbsp;&nbsp;&nbsp;있나 : <b style="color:%s">%s</b></p>',
+		esc_html( $name ),
+		file_exists( $file ) ? '#7bff9b' : '#ff7b7b',
+		file_exists( $file ) ? ( number_format( (int) @filesize( $file ) ) . '바이트' ) : '없습니다' );
+	printf( '<p>⑤번이 찾는 이름 &nbsp;&nbsp;&nbsp;&nbsp; <code style="color:#9fd">%s</code><br>'
+		. '&nbsp;&nbsp;&nbsp;&nbsp;있나 : <b style="color:%s">%s</b></p>',
+		esc_html( $look ),
+		file_exists( $dir . '/' . $look ) ? '#7bff9b' : '#ff7b7b',
+		file_exists( $dir . '/' . $look ) ? '네 (이 조각이 복사해 둡니다)' : '아직 없습니다' );
+
+	$pic = stella_umog_pic( $p );
+
+	echo '<h2 style="color:#9fd;font-size:16px">② 내보내는 og:image</h2>';
+	printf( '<p style="font-size:12.5px;word-break:break-all;color:#ffd76a">%s</p>',
+		esc_html( $pic[0] ) );
+	printf( '<p>크기 : <b style="color:%s">%s</b> &nbsp;·&nbsp; %s</p>',
+		$pic[1] ? '#7bff9b' : '#ffb76a',
+		$pic[1] ? ( $pic[1] . ' x ' . $pic[2] ) : '아직 모름 (크기 태그를 안 냅니다)',
+		esc_html( $pic[3] ) );
+
+	/* 그 주소를 진짜로 불러봅니다 */
+	$r = wp_remote_get( $pic[0], array( 'timeout' => 30, 'sslverify' => false ) );
+	if ( is_wp_error( $r ) ) {
+		printf( '<p style="color:#ff7b7b">못 불렀습니다 — %s</p>',
+			esc_html( $r->get_error_message() ) );
+	} else {
+		$code = wp_remote_retrieve_response_code( $r );
+		$ct   = wp_remote_retrieve_header( $r, 'content-type' );
+		$bd   = wp_remote_retrieve_body( $r );
+		$gz   = @getimagesizefromstring( $bd );
+		printf( '<p>실제로 불러보니 — 상태 <b style="color:%s">%d</b> · 형식 <b>%s</b> · '
+			. '<b>%s</b>바이트 · 그림 <b style="color:%s">%s</b></p>',
+			( 200 === intval( $code ) ) ? '#7bff9b' : '#ff7b7b', intval( $code ),
+			esc_html( $ct ? $ct : '(없음)' ), number_format( strlen( $bd ) ),
+			$gz ? '#7bff9b' : '#ff7b7b',
+			$gz ? ( $gz[0] . ' x ' . $gz[1] ) : '그림이 아닙니다' );
+		if ( $gz ) {
+			printf( '<img src="%s" style="max-width:200px;border-radius:12px;background:#fff">',
+				esc_url( $pic[0] ) );
+		}
+	}
+
+	/* ⑤번 카카오 키 — 들어있는지만 봅니다. 내용은 한 자도 안 찍습니다. */
+	echo '<h2 style="color:#9fd;font-size:16px">③ 카톡에 올리기</h2>';
+	if ( ! defined( 'STELLA_UM_KAKAO_REST' ) ) {
+		echo '<p style="color:#ff7b7b">⑤번 조각이 꺼져 있습니다.</p>';
+	} else {
+		$k  = (string) STELLA_UM_KAKAO_REST;
+		$ok = ( strlen( $k ) >= 20 );
+		if ( false !== strpos( $k, '여기에' ) ) { $ok = false; }
+		printf( '<p>REST 키 : <b style="color:%s">%s</b></p>',
+			$ok ? '#7bff9b' : '#ff7b7b',
+			$ok ? '들어 있습니다' : '아직 안 넣으셨습니다' );
+		echo '<p style="font-size:12px;color:#777">★ 키 내용은 한 자도 안 찍습니다.</p>';
+	}
+
+	echo '<hr style="border:0;border-top:1px solid #333;margin:22px 0">';
+	echo '<p style="font-size:13px;color:#999">보기만 했습니다.</p>';
+	echo '<p style="font-size:13px">다른 점수로 보시려면 뒤에 붙이세요 — '
+		. '<code>?stella_umog=1' . chr( 38 ) . 'sc=52' . chr( 38 ) . 'rel=friend</code></p>';
+	exit;
+
+}, 5 );

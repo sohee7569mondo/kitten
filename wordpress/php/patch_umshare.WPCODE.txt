@@ -1,5 +1,11 @@
 /* ════════════════════════════════════════════════════════════
-   유앤미 · 궁합 결과를 **사진으로** 보내기      판 2026-09-17
+   유앤미 · 궁합 결과를 **사진으로** 보내기   판 2026-09-17 · **판b**
+
+   ★ 판a 는 단추는 붙었는데 눌러도 안 됐습니다. 제 잘못입니다 —
+     catch 로 **까닭을 통째로 버리고** 있었습니다. CLAUDE.md 에
+     「catch 가 까닭을 삼킨다」고 적어두고 또 그랬습니다.
+     판b 는 멈춘 자리와 오류 이름을 **화면에 그대로 찍습니다.**
+     그리고 사진 만드는 길을 둘로 했습니다 (fetch · canvas).
 
    소희 님 : 「유앤미에서 궁합 공유할때 사진으로 공유되게 해줘
               짐작으로 하지 말고 꼭 그래야 이뻐서 유입이 도리거야」
@@ -24,6 +30,13 @@
    ★ 기기가 사진 보내기를 못 하면 **짐작 안 하고 물어봅니다**
      (navigator.canShare). 못 하면 단추 대신 까닭을 한 줄 적습니다.
      아이폰 사파리와 안드로이드 크롬은 됩니다. 컴퓨터는 대개 안 됩니다.
+   ★ **눌렀는데 안 되면 노란 글씨로 까닭이 나옵니다.** 그 줄을 그대로
+     저에게 보내주세요. 평소에는 안 보입니다.
+
+   ── 카톡 · 스레드 · X 는 다릅니다 ───────────────────
+   그 셋은 웹에서 **사진을 직접 못 보냅니다.** 링크를 보내면 그쪽이
+   링크를 열어보고 그림을 붙입니다(og). 그래서 카톡에 그림이 뜨게
+   하려면 og 를 고쳐야 합니다 — `patch_umog` 가 그것입니다.
 
    ── 쓰는 법 ─────────────────────────────────────────
    붙이고 켜기만 하면 됩니다. 주소를 열 것 없습니다.
@@ -54,42 +67,64 @@ add_action( 'wp_head', function () {
 <script>
 (function () {
   if (window.StellaUmShare) { return; }
-  window.StellaUmShare = '2026-09-17';
+  window.StellaUmShare = '2026-09-17b';
 
   var LABEL = '사진으로 보내기';
+  var diagLine = null;
+
+  function say(t) {
+    if (!diagLine) { return; }
+    diagLine.style.display = 'block';
+    diagLine.textContent = t;
+  }
 
   /* 이 기기가 사진 보내기를 할 줄 아나 — 짐작 안 하고 물어봅니다 */
-  function canPhoto() {
-    if (!navigator.share) { return '이 브라우저는 보내기를 모릅니다'; }
-    if (!navigator.canShare) { return '이 브라우저는 사진 보내기를 모릅니다'; }
+  function whyNot() {
+    if (!navigator.share) { return '이 브라우저는 보내기(share)를 모릅니다'; }
+    if (!navigator.canShare) { return '이 브라우저는 사진 보내기(canShare)를 모릅니다'; }
     try {
       var probe = new File([new Blob([new Uint8Array([1])], { type: 'image/png' })],
         'p.png', { type: 'image/png' });
       if (navigator.canShare({ files: [probe] })) { return ''; }
-      return '이 기기는 사진 보내기를 막아 두었습니다';
-    } catch (e) { return '사진을 만들 수 없습니다'; }
+      return '이 기기가 사진 보내기를 막아 두었습니다';
+    } catch (e) { return '사진을 만들 수 없습니다 (' + (e.name || e) + ')'; }
   }
 
-  function btnCss(main) {
-    var s = 'width:100%;border:0;border-radius:15px;padding:14px 0;margin-top:11px;'
-      + 'font-size:14.5px;font-weight:700;font-family:inherit;cursor:pointer;';
-    if (main) { s += 'background:#6B5BA8;color:#fff;'; }
-    else { s += 'background:rgba(255,255,255,.14);color:#fff;'; }
-    return s;
-  }
+  /* 사진 만들기 — 길 두 가지. 하나가 막히면 다른 하나로. */
+  function toFile(img, ok, bad) {
+    var src = img.getAttribute('src') || '';
 
-  /* 사진을 미리 만들어 둡니다 — 누르는 순간 바로 보내야 아이폰이 막지 않습니다 */
-  function prime(img, hold) {
-    var src = img.getAttribute('src');
-    if (!src) { return; }
-    fetch(src).then(function (r) { return r.blob(); }).then(function (bl) {
-      try { hold.file = new File([bl], 'uandme.png', { type: 'image/png' }); }
-      catch (e) { hold.file = null; }
-    }).catch(function () { hold.file = null; });
+    function viaCanvas() {
+      try {
+        var c = document.createElement('canvas');
+        c.width = img.naturalWidth || img.width || 800;
+        c.height = img.naturalHeight || img.height || 1200;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(function (bl) {
+          if (!bl) { bad('그림판에서 사진이 안 나옵니다'); return; }
+          wrap(bl, '그림판');
+        }, 'image/png');
+      } catch (e2) { bad('그림판 ' + (e2.name || e2)); }
+    }
+
+    function wrap(bl, how) {
+      try {
+        var f = new File([bl], 'uandme.png', { type: 'image/png' });
+        ok(f, how, bl.size || 0);
+      } catch (e3) { bad('사진 봉투 ' + (e3.name || e3)); }
+    }
+
+    if (!src) { bad('그림 주소가 비어 있습니다'); return; }
+
+    fetch(src).then(function (r) {
+      if (!r.ok) { throw new Error('HTTP ' + r.status); }
+      return r.blob();
+    }).then(function (bl) { wrap(bl, '가져오기'); })
+      .catch(function () { viaCanvas(); });
   }
 
   function words() {
-    var t = document.title || '유앤미';
+    var t = '유앤미 궁합';
     var b = document.querySelector('meta[property="og:title"]');
     if (b) { if (b.content) { t = b.content; } }
     return t + ' — 생일만 넣으면 바로 나와요';
@@ -102,52 +137,78 @@ add_action( 'wp_head', function () {
     var box = img.parentNode;
     if (!box) { return; }
 
-    var why = canPhoto();
-    if (why) {
+    /* 멈춘 자리를 적을 줄 — 탈이 났을 때만 보입니다 */
+    diagLine = document.createElement('div');
+    diagLine.setAttribute('data-umdiag', '1');
+    diagLine.style.cssText = 'display:none;color:#ffd76a;font-size:12px;line-height:1.7;'
+      + 'margin-top:9px;word-break:break-all;text-align:left;'
+      + 'background:rgba(0,0,0,.28);border-radius:10px;padding:8px 10px';
+
+    var no = whyNot();
+    if (no) {
       var note = document.createElement('div');
       note.setAttribute('data-umphoto', 'no');
-      note.style.cssText = 'color:#fff;opacity:.6;font-size:12.5px;margin-top:12px;line-height:1.7';
-      note.textContent = why + ' — 아래에서 그림을 저장해 올려주세요';
-      box.appendChild(note);
+      note.style.cssText = 'color:#fff;opacity:.62;font-size:12.5px;margin-top:12px;line-height:1.7';
+      note.textContent = no + ' — 아래 「그림 저장하기」로 저장해서 올려주세요';
+      if (img.nextSibling) { box.insertBefore(note, img.nextSibling); }
+      else { box.appendChild(note); }
       return;
     }
 
-    var hold = { file: null };
-    prime(img, hold);
+    var hold = { file: null, how: '', size: 0 };
+    /* 미리 만들어 둡니다 — 누르는 순간 바로 보내야 아이폰이 안 막습니다 */
+    toFile(img, function (f, how, sz) { hold.file = f; hold.how = how; hold.size = sz; },
+      function (w) { hold.file = null; hold.how = 'x'; hold.size = 0; say('미리 만들기 실패 : ' + w); });
 
     var b = document.createElement('button');
     b.setAttribute('data-umphoto', '1');
-    b.style.cssText = btnCss(true);
+    b.style.cssText = 'width:100%;border:0;border-radius:15px;padding:14px 0;margin-top:11px;'
+      + 'font-size:14.5px;font-weight:700;font-family:inherit;cursor:pointer;'
+      + 'background:#6B5BA8;color:#fff';
     b.textContent = LABEL;
 
     b.addEventListener('click', function () {
-      if (hold.file) { fire(hold.file, b); return; }
-      /* 아직 안 만들어졌으면 그 자리에서 만듭니다 */
-      b.textContent = '사진 준비 중…';
-      fetch(img.getAttribute('src')).then(function (r) { return r.blob(); })
-        .then(function (bl) {
-          var f = null;
-          try { f = new File([bl], 'uandme.png', { type: 'image/png' }); } catch (e) { f = null; }
-          if (!f) { b.textContent = '사진을 못 만들었어요'; return; }
-          hold.file = f;
-          b.textContent = LABEL;
-          fire(f, b);
-        }).catch(function () { b.textContent = '사진을 못 만들었어요'; });
+      if (hold.file) { fire(hold.file, b, hold.how, hold.size); return; }
+      b.textContent = '사진 만드는 중…';
+      toFile(img, function (f, how, sz) {
+        b.textContent = LABEL;
+        hold.file = f;
+        fire(f, b, how, sz);
+      }, function (w) {
+        b.textContent = LABEL;
+        say('사진을 못 만들었습니다 : ' + w
+          + '  ·  그림 주소 ' + String(img.getAttribute('src')).slice(0, 34));
+      });
     });
 
-    /* 사진 바로 밑, 다른 단추들보다 위에 놓습니다 */
     if (img.nextSibling) { box.insertBefore(b, img.nextSibling); }
     else { box.appendChild(b); }
+    box.insertBefore(diagLine, b.nextSibling);
   }
 
-  function fire(file, b) {
-    var data = { files: [file], text: words() };
+  function fire(file, b, how, size) {
+    var data = { files: [file] };
+    /* 글을 같이 넣으면 거절하는 기기가 있습니다 — 넣어보고 안 되면 뺍니다 */
+    var withText = { files: [file], text: words() };
+    var use = data;
+    try { if (navigator.canShare(withText)) { use = withText; } } catch (e0) { use = data; }
+
     try {
-      navigator.share(data).then(function () {
+      var p = navigator.share(use);
+      if (!p) { say('보내기가 아무 답이 없습니다'); return; }
+      p.then(function () {
         b.textContent = '보냈어요';
         setTimeout(function () { b.textContent = LABEL; }, 2500);
-      }).catch(function () { b.textContent = LABEL; });
-    } catch (e) { b.textContent = '보내기가 안 열렸어요'; }
+      }).catch(function (err) {
+        var nm = (err ? (err.name || '') : '');
+        if (nm === 'AbortError') { return; }          /* 사람이 닫은 것 */
+        say('보내기가 멈췄습니다 : ' + nm + ' ' + (err ? (err.message || '') : '')
+          + '  ·  사진 ' + how + ' ' + Math.round(size / 1024) + 'KB');
+      });
+    } catch (e) {
+      say('보내기를 못 열었습니다 : ' + (e.name || '') + ' ' + (e.message || '')
+        + '  ·  사진 ' + how + ' ' + Math.round(size / 1024) + 'KB');
+    }
   }
 
   function look() {
@@ -155,18 +216,16 @@ add_action( 'wp_head', function () {
     if (s) { add(s); }
   }
 
-  if (document.body) { watch(); }
-  else { document.addEventListener('DOMContentLoaded', watch); }
-
   function watch() {
     look();
     try {
       var mo = new MutationObserver(look);
       mo.observe(document.body, { childList: true, subtree: true });
-    } catch (e) {
-      setInterval(look, 700);
-    }
+    } catch (e) { setInterval(look, 700); }
   }
+
+  if (document.body) { watch(); }
+  else { document.addEventListener('DOMContentLoaded', watch); }
 })();
 </script>
 	<?php
