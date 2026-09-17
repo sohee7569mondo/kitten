@@ -115,11 +115,13 @@ if ( ! function_exists( 'stella_umw_tall' ) ) {
        ⑤ 찾기  79-lover-30-12-21.png
 
    그래서 이 토막이 ⑤번보다 **먼저** 끼어들어, 그 이름으로
-   **폭 800 으로 줄인 카드**를 놓아 둡니다. 그러고 비켜서면
-   ⑤번이 이어받아 카카오에 올립니다.
+   **가로 카드(1200 x 630)** 를 놓아 둡니다. 그러고 비켜서면
+   ⑤번이 이어받아 카카오에 올리고, 카톡에 그것이 나갑니다.
 
-   ★ 소희 님 「그림사이즈 줄여서 제대로 한번에 하자」 — 800 폭입니다.
-   ★ 카드를 덧대거나 자르지 않습니다. 이름도 그대로 있습니다.
+   ★ 세로 카드를 올리면 카톡이 위아래를 잘라 맨 위 딱지도
+     아래 캐릭터도 발치 링크도 안 보입니다. 가로는 안 잘립니다.
+   ★ 가로 카드 왼쪽에 **두 사람 이름**이 크게 들어가고,
+     오른쪽에 소희 님 카드가 **통째로** 얹힙니다.
    ════════════════════════════════════════════════════════════ */
 add_action( 'init', function () {
 
@@ -148,19 +150,28 @@ add_action( 'init', function () {
 	}
 	if ( ! file_exists( $src ) ) { return; }
 
-	$im = @imagecreatefrompng( $src );
+	/* ★ 카카오에 올릴 것은 **가로 카드**입니다 (1200 x 630).
+	   세로 카드를 올리면 카톡 채팅방에서 위아래가 잘려
+	   맨 위 딱지도 아래 캐릭터도 발치 링크도 안 보입니다.
+	   가로 카드는 왼쪽에 두 사람 이름·점수·별명을 크게 놓고
+	   오른쪽에 소희 님 카드를 **통째로** 얹습니다. */
+	$p = array(
+		'sc'  => intval( $q[1] ),
+		'rel' => $q[2],
+		'a'   => intval( $q[3] ),
+		'b'   => intval( $q[4] ),
+		'c'   => intval( $q[5] ),
+		'n'   => $nm,
+	);
+	$im = stella_umw_draw( $p );
 	if ( ! $im ) { return; }
-	$w0 = imagesx( $im );
-	$h0 = imagesy( $im );
-	$W  = 800;
-	if ( $w0 < $W ) { $W = $w0; }
-	$H  = (int) round( $W * $h0 / max( 1, $w0 ) );
-	$sm = imagecreatetruecolor( $W, $H );
-	imagefilledrectangle( $sm, 0, 0, $W, $H, imagecolorallocate( $sm, 255, 255, 255 ) );
-	imagecopyresampled( $sm, $im, 0, 0, 0, 0, $W, $H, $w0, $h0 );
+	@imagepng( $im, $want, 6 );
 	imagedestroy( $im );
-	@imagepng( $sm, $want, 6 );
-	imagedestroy( $sm );
+
+	/* ⑤번은 한 번 올린 그림 주소를 30일 물고 있습니다.
+	   그림을 바꿨으니 그 기억을 지웁니다 — 안 그러면 옛 세로 그림이
+	   계속 나갑니다. */
+	delete_transient( 'um_kimg_' . $m[1] );
 
 	/* 비켜섭니다 — ⑤번이 이어받아 카카오에 올립니다 */
 
