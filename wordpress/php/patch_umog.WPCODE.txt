@@ -715,11 +715,22 @@ add_action( 'wp_head', function () {
           var now = small(was);
           if (now !== was) {
             o.content.imageUrl = now;
-            /* 파일이 아직 없을 수 있으니 **그리는 주소**를 깨웁니다 */
             /* 가로 카드를 그려 파일로 남기게 깨웁니다 — CDN 이 그것을 나릅니다 */
             try { var im = new Image();
               im.src = location.origin + '/um-wide/' + bits(was); } catch (e0) {}
             note += '바꿨습니다 → ' + now;
+            /* ★ 짐작을 없앱니다 — 그 주소에 그림이 진짜 있는지
+               화면이 직접 불러보고 말해 줍니다. */
+            try {
+              var pv = new Image();
+              pv.onload = function () {
+                say(note + '   ·   그림 확인됨 ' + pv.naturalWidth + ' x ' + pv.naturalHeight);
+              };
+              pv.onerror = function () {
+                say(note + '   ·   ★ 그 주소에 그림이 아직 없습니다 (한 번 더 보내보세요)');
+              };
+              pv.src = now;
+            } catch (e9) {}
           } else {
             note += '안 바꿨습니다 (um-card 가 아닙니다) → ' + was;
           }
