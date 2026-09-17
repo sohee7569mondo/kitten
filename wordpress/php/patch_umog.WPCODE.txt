@@ -690,14 +690,18 @@ add_action( 'wp_head', function () {
   /* 관리자에게만 보이는 진단 줄 — 카톡으로 무엇이 나갔는지 그대로 찍습니다.
      짐작하지 않고 눈으로 보려는 것입니다. 손님에게는 안 보입니다. */
   var ADMIN = <?php echo current_user_can( 'manage_options' ) ? '1' : '0'; ?>;
-  /* 카드 파일 이름 끝의 판 표시 — 서버가 알려줍니다.
-     이것이 있어야 자바스크립트가 **진짜 파일 주소**를 만들 수 있습니다. */
-  var SQV = '<?php echo esc_js( stella_umw_name( array( 'sc' => 0, 'rel' => 'x', 'a' => 0, 'b' => 0, 'c' => 0 ), 'sq' ) ); ?>';
-  var SQTAIL = '';
-  (function () {
-    var a = SQV.lastIndexOf('-');
-    if (a > -1) { SQTAIL = SQV.slice(a); }   /* 「-abc123.jpg」 */
-  })();
+  /* ④번이 저장한 **세로 카드 파일**의 이름 끝 — 서버가 알려줍니다.
+     「-v3f8a2c.png」 같은 꼬리이고 점수와 무관하므로 하나면 됩니다.
+     이것이 있어야 자바스크립트가 진짜 파일 주소를 만들 수 있습니다. */
+  var PNGTAIL = '<?php
+    $t = "";
+    if ( function_exists( "stella_um_card_name" ) ) {
+      $nm = stella_um_card_name( 0, "x", 0, 0, 0 );
+      $at = strrpos( $nm, "-" );
+      if ( false !== $at ) { $t = substr( $nm, $at ); }
+    }
+    echo esc_js( $t );
+  ?>';
   function say(t) {
     if (!ADMIN) { return; }
     var b = document.getElementById('umkpic');
@@ -714,33 +718,32 @@ add_action( 'wp_head', function () {
 
   /* /um-card/79-lover-30-12-21/소희/정호  →  /um-sq/79-lover-30-12-21
      (가로 카드를 쓰시려면 um-sq 를 um-wide 로 바꾸면 됩니다) */
-  /* /um-card/91-lover-37-23-24-<두 사람 이름>  →  점수칸 다섯 토막만 */
+  /* /um-card/91-lover-37-23-24-<두 사람 이름>  →  뒤 전체를 그대로 씁니다.
+     ★ 이름 꼬리를 자르면 카드에서 「누구와 누구」가 사라집니다.
+       (한 번 잘랐다가 소희 님이 「이름이 빠져있네」 하셨습니다) */
   function bits(u) {
     if (!u) { return ''; }
     var t = String(u);
     var at = t.indexOf('/um-card/');
     if (at < 0) { return ''; }
     var rest = t.slice(at + 9);
-    var cut = rest.indexOf('/');
+    var cut = rest.indexOf('?');
     if (cut > -1) { rest = rest.slice(0, cut); }
-    cut = rest.indexOf('?');
-    if (cut > -1) { rest = rest.slice(0, cut); }
-    /* ★ 이름이 빗금이 아니라 **줄표**로 붙어 옵니다 — 다섯 토막만 남깁니다 */
-    var b = rest.split('-');
-    if (b.length > 5) { b = b.slice(0, 5); }
-    return b.join('-');
+    /* 옛 모양처럼 빗금으로 이름이 붙어 오면 줄표로 바꿔 붙입니다 */
+    rest = rest.split('/').join('-');
+    return rest;
   }
-  /* 서버가 그리는 주소 — 파일을 만들게 깨울 때만 씁니다 */
-  function drawUrl(n) { return location.origin + '/um-sq/' + n; }
-  /* ★ 카카오에 줄 주소는 **진짜 파일**이어야 합니다.
+
+  /* ★ 카카오에는 **저장된 진짜 파일**을 줍니다.
      확장자 없는 동적 주소는 카카오가 가져가지 않습니다.
-     (도쿄가 된 것도 .jpeg 가 붙은 CDN 주소였기 때문입니다) */
+     소희 님 카드 그대로이고 폭만 800 으로 줄입니다 —
+     배경을 덧대지 않으니 글씨가 크고 이름도 그대로 있습니다. */
   function small(u) {
     var n = bits(u);
     if (!n) { return u; }
-    if (!SQTAIL) { return drawUrl(n); }
+    if (!PNGTAIL) { return u; }
     return 'https://i0.wp.com/' + location.host +
-      '/wp-content/uploads/uandme/card/sq' + n + SQTAIL + '?w=1024';
+      '/wp-content/uploads/uandme/card/' + n + PNGTAIL + '?w=800';
   }
 
   function wrap() {
@@ -765,7 +768,7 @@ add_action( 'wp_head', function () {
           if (now !== was) {
             o.content.imageUrl = now;
             /* 파일이 아직 없을 수 있으니 **그리는 주소**를 깨웁니다 */
-            try { var im = new Image(); im.src = drawUrl(bits(was)); } catch (e0) {}
+            try { var im = new Image(); im.src = was; } catch (e0) {}   /* 원래 주소로 깨웁니다 */
             note += '바꿨습니다 → ' + now;
           } else {
             note += '안 바꿨습니다 (um-card 가 아닙니다) → ' + was;
