@@ -1,0 +1,350 @@
+/* ═══════════════════════════════════════════════════════════
+   홈에서 주제를 누르면 그 주제로 문이 열립니다   판 2026-09-19
+
+   소희 님 「스텔라 사주 홈에서 재물운 누르면 바로 재물운을 볼수
+   잇는 폼으로 갈수 있는 방법 찾아줘」
+
+   왜
+   홈의 물음 카드 열두 장은 딱지에 「재물운」이라 써 놓고
+   주소는 그냥 「/door-career/」 였습니다. 주제를 안 싣습니다.
+   그래서 어느 카드를 눌러도 문에 가면 첫 주제(직장운 · 연애운)가
+   골라져 있습니다. 손님이 고른 것이 가는 길에 버려집니다.
+
+   하는 일
+   ① 홈  a.ask-card 의 딱지를 읽어 주소에 「?topic=」 을 붙입니다.
+         쪽 원본은 안 고칩니다 — 스니펫을 끄면 그대로 돌아갑니다.
+   ② 문  주소에 topic 이 실려 오면 그 주제 단추를 골라 두고
+         폼 첫머리로 내려줍니다. 없는 주제면 아무것도 안 합니다.
+   ③ 살펴보기  https://stellasaju.com/?stella_gotopic=1
+         쪽 원본을 직접 읽어 홈 카드와 문 주제를 대조합니다.
+
+   ★ 딱지와 문의 주제 이름이 어긋나는 것이 셋 있습니다 —
+     「직업운」→ 직장운 · 「이직 · 퇴사」→ 이직운 · 「적성」→ 직장운
+     문 쪽은 글자가 똑같아야 알아봅니다.
+   ★ 주소에 이미 「?」 가 있는 카드는 건드리지 않습니다
+     (홈 아래 줄의 2026·2027 운세 카드가 그렇습니다).
+   ★ patch_doors1 이 켜져 있어도 부딪히지 않습니다 —
+     이미 골라져 있으면 우리는 물러납니다.
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── ① 홈 · 카드 주소에 주제를 싣습니다 ─────────────────── */
+add_action( 'wp_head', function () {
+
+	if ( ! is_front_page() ) { return; }
+	?>
+<script>
+(function(){
+  if(window.StellaGoTopic){ return; }
+  window.StellaGoTopic = 1;
+
+  /* 딱지 글이 문의 주제 이름과 다른 것만 적습니다.
+     빈칸과 가운뎃점을 떼고 견줍니다. */
+  var MAP = {};
+  MAP['직업운']   = '직장운';
+  MAP['이직퇴사'] = '이직운';
+  MAP['적성']     = '직장운';
+
+  function norm(s){
+    var t = String(s || '');
+    t = t.split(' ').join('');
+    t = t.split(String.fromCharCode(183)).join('');   /* 가운뎃점 */
+    t = t.split(String.fromCharCode(160)).join('');   /* 안 깨지는 빈칸 */
+    return t;
+  }
+
+  function dress(){
+    var n = 0;
+    var cards = document.querySelectorAll('a.ask-card');
+    for(var i = 0; i < cards.length; i++){
+      var a = cards[i];
+      var h = a.getAttribute('href') || '';
+      if(!h){ continue; }
+      if(h.indexOf('?') >= 0){ continue; }       /* 이미 실려 있음 */
+      var tag = a.querySelector('.tag');
+      if(!tag){ continue; }
+      var raw = norm(tag.textContent);
+      if(!raw){ continue; }
+      var want = MAP[raw] ? MAP[raw] : (tag.textContent || '').trim();
+      a.setAttribute('href', h + '?topic=' + encodeURIComponent(want));
+      n++;
+    }
+    return n;
+  }
+
+  /* 홈 아래 줄은 다른 조각이 나중에 그립니다. 몇 번 더 훑습니다. */
+  dress();
+  var k = 0;
+  var t = setInterval(function(){
+    k++;
+    dress();
+    if(k > 20){ clearInterval(t); }
+  }, 300);
+})();
+</script>
+	<?php
+} );
+
+/* ── ② 문 · 실려 온 주제를 골라 두고 폼으로 내려줍니다 ──── */
+add_action( 'wp_head', function () {
+
+	$doors = array( 'door-love', 'door-career', 'door-health',
+		'door-fortune', 'door-astro' );
+	if ( ! is_page( $doors ) ) { return; }
+	?>
+<script>
+(function(){
+  if(window.StellaTakeTopic){ return; }
+  window.StellaTakeTopic = 1;
+
+  function wanted(){
+    var t = '';
+    try { t = new URLSearchParams(location.search).get('topic') || ''; }
+    catch(e){ t = ''; }
+    return String(t).trim();
+  }
+
+  var want = wanted();
+  if(!want){ return; }
+
+  var done = 0;
+  var slid = 0;
+
+  function pick(){
+    if(done){ return true; }
+    var r = document.querySelectorAll('input[name="ssg-topic"]');
+    if(!r.length){ return false; }
+
+    /* 이미 그 주제가 골라져 있으면 물러납니다 (다른 조각이 했습니다) */
+    for(var j = 0; j < r.length; j++){
+      if(r[j].checked){ if(r[j].value === want){ done = 1; return true; } }
+    }
+
+    var hit = null;
+    for(var i = 0; i < r.length; i++){
+      if(r[i].value === want){ hit = r[i]; }
+    }
+    /* 없는 주제면 아무것도 안 합니다 — 첫 주제 그대로 둡니다 */
+    if(!hit){ done = 1; return true; }
+
+    for(var m = 0; m < r.length; m++){ r[m].checked = false; }
+    hit.checked = true;
+    try {
+      var ev = document.createEvent('HTMLEvents');
+      ev.initEvent('change', true, true);
+      hit.dispatchEvent(ev);
+    } catch(e2){}
+    done = 1;
+    if(!slid){ slid = 1; setTimeout(toForm, 400); }
+    return true;
+  }
+
+  /* 폼 첫머리로 부드럽게 내려줍니다 */
+  function toForm(){
+    var box = document.getElementById('gName');
+    var sec = null;
+    if(box){
+      sec = box;
+      var up = 0;
+      while(sec){
+        if(sec.className){
+          if(String(sec.className).indexOf('step') >= 0){ break; }
+        }
+        sec = sec.parentNode;
+        up++;
+        if(up > 8){ sec = null; break; }
+      }
+    }
+    if(!sec){ sec = box; }
+    if(!sec){ return; }
+    try { sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    catch(e3){ try { sec.scrollIntoView(); } catch(e4){} }
+  }
+
+  pick();
+  var n = 0;
+  var tick = setInterval(function(){
+    n++;
+    if(pick()){ clearInterval(tick); return; }
+    if(n > 40){ clearInterval(tick); }
+  }, 200);
+  /* 다른 조각(patch160_nydoor · patch_doors1)이 같은 일을 합니다.
+     그쪽이 단추를 갈아끼우면 우리가 골라둔 것이 지워집니다.
+     그래서 잠깐 뒤에 한 번 더 봅니다. 제대로 돼 있으면 물러납니다. */
+  setTimeout(function(){ done = 0; pick(); }, 900);
+})();
+</script>
+	<?php
+} );
+
+/* ── ③ 살펴보기 · 쪽 원본을 직접 읽어 대조합니다 ────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_gotopic'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!doctype html><meta charset="utf-8">';
+	echo '<title>주제 나르기 살펴보기</title>';
+	echo '<style>body{font:14px/1.7 monospace;padding:20px;max-width:1000px}';
+	echo 'table{border-collapse:collapse;margin:14px 0;width:100%}';
+	echo 'td,th{border:1px solid #ccc;padding:5px 8px;text-align:left}';
+	echo 'th{background:#f3f0fa}.no{color:#b00}.ok{color:#070}';
+	echo 'h2{margin:26px 0 6px;font-size:15px}</style>';
+	echo '<h1 style="font-size:17px">주제가 문까지 잘 가는지</h1>';
+
+	/* 정규식을 안 씁니다 — strpos 로만 훑습니다 */
+	$grab = function ( $s, $open, $close ) {
+		$out = array();
+		$at  = 0;
+		while ( true ) {
+			$a = strpos( $s, $open, $at );
+			if ( false === $a ) { break; }
+			$a = $a + strlen( $open );
+			$b = strpos( $s, $close, $a );
+			if ( false === $b ) { break; }
+			$out[] = substr( $s, $a, $b - $a );
+			$at = $b;
+		}
+		return $out;
+	};
+
+	/* 문 다섯의 진짜 주제 값 */
+	$doors = array( 'door-love', 'door-career', 'door-health',
+		'door-fortune', 'door-astro' );
+	$have = array();
+
+	echo '<h2>문마다 고를 수 있는 주제 (쪽에서 직접 읽었습니다)</h2>';
+	echo '<table><tr><th>문</th><th>주제 단추</th><th>topic 을 받나</th></tr>';
+	foreach ( $doors as $slug ) {
+		$p = get_page_by_path( $slug );
+		if ( ! $p ) {
+			echo '<tr><td>' . esc_html( $slug ) . '</td>';
+			echo '<td colspan="2" class="no">쪽이 없습니다</td></tr>';
+			continue;
+		}
+		$c  = (string) $p->post_content;
+		$vs = $grab( $c, 'name="ssg-topic" value="', '"' );
+		$have[ $slug ] = $vs;
+		$reads = ( false !== strpos( $c, 'URLSearchParams' ) );
+		echo '<tr><td><b>' . esc_html( $slug ) . '</b> (' . intval( $p->ID ) . ')</td>';
+		echo '<td>' . esc_html( implode( ' · ', $vs ) ) . '</td>';
+		if ( $reads ) {
+			echo '<td class="ok">쪽 안에서 받습니다</td>';
+		} else {
+			echo '<td>이 조각이 받아 줍니다</td>';
+		}
+		echo '</tr>';
+	}
+	echo '</table>';
+
+	/* 홈 카드 */
+	$home = get_post( (int) get_option( 'page_on_front' ) );
+	if ( ! $home ) { $home = get_page_by_path( 'home' ); }
+
+	echo '<h2>홈의 물음 카드</h2>';
+	if ( ! $home ) {
+		echo '<p class="no">홈 쪽을 못 찾았습니다.</p>';
+	} else {
+		$hc = (string) $home->post_content;
+		echo '<table><tr><th>딱지</th><th>지금 주소</th>';
+		echo '<th>붙을 주제</th><th>그 문에 있나</th></tr>';
+
+		$MAP = array( '직업운' => '직장운', '이직퇴사' => '이직운', '적성' => '직장운' );
+		$norm = function ( $s ) {
+			$t = str_replace( ' ', '', (string) $s );
+			$t = str_replace( chr(194) . chr(183), '', $t );
+			$t = str_replace( chr(194) . chr(160), '', $t );
+			return trim( $t );
+		};
+
+		$at = 0; $n = 0;
+		while ( true ) {
+			$a = strpos( $hc, 'class="ask-card" href="', $at );
+			if ( false === $a ) { break; }
+			$a = $a + strlen( 'class="ask-card" href="' );
+			$b = strpos( $hc, '"', $a );
+			if ( false === $b ) { break; }
+			$href = substr( $hc, $a, $b - $a );
+
+			$ta = strpos( $hc, '<span class="tag">', $b );
+			$tag = '';
+			if ( false !== $ta ) {
+				$ta = $ta + strlen( '<span class="tag">' );
+				$tb = strpos( $hc, '<', $ta );
+				if ( false !== $tb ) { $tag = substr( $hc, $ta, $tb - $ta ); }
+			}
+			$at = $b; $n++;
+
+			$key  = $norm( $tag );
+			$want = isset( $MAP[ $key ] ) ? $MAP[ $key ] : trim( $tag );
+			$said = $want;
+			if ( false !== strpos( $href, '?' ) ) { $said = '(이미 실려 있음)'; }
+
+			$door = trim( $href, '/' );
+			$okc  = '?';
+			if ( isset( $have[ $door ] ) ) {
+				$okc = in_array( $want, $have[ $door ], true )
+					? '<span class="ok">있습니다</span>'
+					: '<span class="no">그 이름이 없습니다</span>';
+			}
+			if ( false !== strpos( $href, '?' ) ) { $okc = '-'; }
+
+			echo '<tr><td>' . esc_html( $tag ) . '</td>';
+			echo '<td>' . esc_html( $href ) . '</td>';
+			echo '<td>' . esc_html( $said ) . '</td>';
+			echo '<td>' . $okc . '</td></tr>';
+		}
+		echo '</table>';
+		echo '<p>카드 ' . intval( $n ) . '장을 찾았습니다.</p>';
+	}
+
+	/* 같은 일을 하는 조각들이 켜져 있나
+	   ★ 이름과 켜짐/꺼짐만 찍습니다. 안에 든 글은 한 자도 안 찍습니다. */
+	global $wpdb;
+	$snips = $wpdb->get_results(
+		"SELECT ID, post_title, post_status, post_content FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode' ORDER BY post_title ASC" );
+
+	$want = array(
+		array( 'StellaNyDoor',  'patch160_nydoor',  '문에서 topic 을 받고 신년운세를 둘로 가릅니다' ),
+		array( 'stella_doors1', 'patch_doors1',     '문 다섯에 topic 받는 글을 쉬어 넣습니다' ),
+		array( 'stella_topic',  'patch141_topic',   'door-love 전용 옛 판' ),
+		array( 'StellaAskMore', 'patch160_askmore', '홈 아래 줄 카드 여섯' ),
+		array( 'StellaGoTopic', '이 조각',       '홈 카드 주소에 주제를 십니다' ),
+	);
+
+	echo '<h2>같은 일을 하는 조각들</h2>';
+	echo '<p style="color:#666">조각 이름과 켜짐만 찍습니다. 안에 든 글은 한 자도 안 찍습니다.</p>';
+	echo '<table><tr><th>조각</th><th>하는 일</th><th>형편</th></tr>';
+	foreach ( $want as $w ) {
+		$on = false; $any = false; $title = '';
+		foreach ( (array) $snips as $r ) {
+			if ( false === strpos( (string) $r->post_content, $w[0] ) ) { continue; }
+			$any = true;
+			$title = $r->post_title;
+			if ( 'publish' === $r->post_status ) { $on = true; }
+		}
+		$say = '<span class="no">WPCode 에 없습니다</span>';
+		if ( $any ) {
+			$say = $on ? '<span class="ok">켜져 있습니다</span>'
+				: '<span class="no">꺼져 있습니다</span>';
+			$say .= ' · ' . esc_html( $title );
+		}
+		echo '<tr><td><b>' . esc_html( $w[1] ) . '</b></td>';
+		echo '<td>' . esc_html( $w[2] ) . '</td>';
+		echo '<td>' . $say . '</td></tr>';
+	}
+	echo '</table>';
+
+	echo '<h2>눌러서 확인해 보세요</h2><ul>';
+	foreach ( $have as $slug => $vs ) {
+		foreach ( $vs as $v ) {
+			echo '<li><a href="' . esc_url( home_url( '/' . $slug . '/?topic=' . $v ) )
+				. '">' . esc_html( $slug . ' · ' . $v ) . '</a></li>';
+		}
+	}
+	echo '</ul>';
+	exit;
+} );
