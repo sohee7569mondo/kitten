@@ -1,0 +1,84 @@
+/* ════════════════════════════════════════════════════════════
+   랩 검사 하나만 떠오기 (읽기만)   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   검사 하나의 문항과 결과 글을 그대로 떠서 보여줍니다.
+   그걸 보고 오늘 스타일로 다시 만듭니다. 하루에 하나씩.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ── 만들 차례 ─────────────────────────────────────────
+     1  katok      내 카톡 대화 스타일
+     2  mouse      내 손톱을 먹은 들쥐는
+     3  love       연애할 때 나는 어떤 사람인가
+     4  stress     스트레스가 오면 나는 어디로 가는가
+     5  color      내 마음의 색
+     6  agegap     나에게 맞는 나이 차이는?
+     7  drama      내게 맞는 드라마 남자주인공
+     8  ohaeng     나는 어떤 기운의 사람인가
+     9  sipseong   내 안에서 제일 센 자리
+    10  mbti       MBTI 간이 검사
+
+   https://stellasaju.com/?stella_labone=katok
+
+   ★ 브라우저 번역을 끄고 여세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_labone'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	$key = sanitize_key( wp_unslash( $_GET['stella_labone'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:26px 16px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.25rem;margin:0 0 12px}'
+	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.85rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:11.5px/1.62 monospace;border-left:3px solid #D4AF6A}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 5px;border-radius:3px}'
+	   . '</style>';
+
+	if ( '' === $key ) {
+		echo '<h1 class="no">검사 이름을 넣어주세요.</h1>';
+		echo '<p><code>?stella_labone=katok</code> 처럼요.</p>';
+		exit;
+	}
+
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_content FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode' ORDER BY ID ASC LIMIT 400" );
+
+	$mark = 'TESTS.' . $key;
+	foreach ( $rows as $r ) {
+		$c  = (string) $r->post_content;
+		$at = strpos( $c, $mark );
+		if ( false === $at ) { continue; }
+
+		/* 다음 TESTS. 가 나오는 데까지가 이 검사입니다 */
+		$end = strpos( $c, 'TESTS.', $at + strlen( $mark ) );
+		if ( false === $end ) {
+			$end = strpos( $c, 'LABADD', $at );
+			if ( false === $end ) { $end = strlen( $c ); }
+		}
+		$cut = substr( $c, $at, $end - $at );
+
+		echo '<h1>' . esc_html( $key ) . ' · ' . (int) $r->ID . ' '
+		   . esc_html( $r->post_title ) . ' · ' . number_format( strlen( $cut ) ) . ' 바이트</h1>';
+		echo '<pre>' . esc_html( $cut ) . '</pre>';
+		exit;
+	}
+
+	echo '<h1 class="no">' . esc_html( $key ) . ' 를 못 찾았습니다.</h1>';
+	echo '<p class="dim">본체(804)가 담고 있는 mbti · ohaeng · sipseong 은 '
+	   . '담는 모양이 달라서 이 도구로는 안 나옵니다. 그때는 '
+	   . '<code>?stella_snips=804</code> 로 열어보겠습니다.</p>';
+	exit;
+}, 0 );

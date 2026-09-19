@@ -1,0 +1,287 @@
+/* ════════════════════════════════════════════════════════════
+   자료 쪽(156) 세 가지 고치기   ★ 2026-09-09 · 소희 님께
+
+   1) 계산 근거 다섯 칸(01~05)을 접습니다.
+      ★ 자바스크립트를 쓰지 않습니다. 브라우저가 원래 갖고 있는
+        접기(details/summary)만 씁니다. 단추가 안 보이는 사고가
+        다시 날 수 없습니다.
+      06 접수 내역은 접지 않고 그대로 둡니다.
+
+   2) 핑크 글씨를 읽히게 고칩니다.
+      color:#E9BFBF 는 밤하늘 판(어두운 바탕)에 맞춘 연분홍입니다.
+      9월 8일에 바탕을 흰색으로 바꾸면서 이 줄만 안 고쳐졌어요.
+      원래 줄은 그대로 두고 뒤에 덮어쓰는 규칙만 더합니다.
+      (나중에 밤하늘 판으로 돌아가시면 이 덩어리만 빼면 됩니다)
+
+   3) 「내 전자책 펼쳐보기」 — 이미 있습니다. 손대지 않습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   미리보기   https://stellasaju.com/?stella_r156=1
+   고치기     https://stellasaju.com/?stella_r156=apply
+   되돌리기   https://stellasaju.com/?stella_r156=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_r156'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_r156'] ) );
+	$META = '_stella_r156_bak_0909';
+	$SLUG = 'reading-ready';
+	$MARK = 'stella-r156-v1';
+
+	/* ★ 숫자는 <span class="num">01</span> 안에 따로 들어 있습니다.
+	   붙여 쓴 「01 태어난…」 으로 찾으면 한 군데도 안 잡힙니다. */
+	$H1 = '태어난 시각을 바로잡습니다';
+	$H6 = '접수 내역';
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.75;'
+	   . 'padding:28px 18px;max-width:960px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 10px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.7 monospace;border-left:3px solid #D4AF6A;'
+	   . 'word-break:break-all}'
+	   . '</style>';
+
+	$p = get_page_by_path( $SLUG );
+	if ( ! $p ) { echo '<p class="no">자료 쪽이 없습니다.</p>'; exit; }
+
+	/* ── 되돌리기 ─────────────────────────────────────── */
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌립니다</h1>';
+		$bak = get_post_meta( $p->ID, $META, true );
+		if ( '' === $bak ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ),
+			array( 'ID' => $p->ID ) );
+		clean_post_cache( $p->ID );
+		delete_post_meta( $p->ID, $META );
+		if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+		echo '<p class="ok">되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c  = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+	$go = ( 'apply' === $mode );
+
+	echo '<h1>자료 쪽 156 — '
+	   . ( $go ? '고칩니다' : '미리보기 (아직 안 고침)' ) . '</h1>';
+	echo '<p class="dim">크기 ' . number_format( strlen( $c ) ) . ' 바이트</p>';
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<p class="ok">이미 고쳐져 있습니다.</p>';
+		echo '<p class="dim">되돌리시려면 /?stella_r156=undo 를 여세요.</p>';
+		exit;
+	}
+
+	/* ── 접을 자리 찾기 ─────────────────────────────────
+	   짐작하지 않습니다. 감쌀 만한 태그를 차례로 넣어보고,
+	   접히는 구간 안에 02·03·04·05 가 전부 들어 있는 것만 씁니다.
+	   하나도 통과 못 하면 아무것도 안 고칩니다. */
+
+	$cut = function ( $s ) {
+		$s = preg_replace( '/\s+/', ' ', $s );
+		return trim( $s );
+	};
+
+	$MIDS = array(
+		'사주 원국 — 네 개의 기둥',
+		'타고난 기운의 비율',
+		'십 년마다 바뀌는 판',
+		'태어나던 밤의 하늘',
+	);
+
+	/* 그 말이 나오는 모든 자리 */
+	$spots = function ( $c, $needle ) {
+		$out = array();
+		$at  = 0;
+		while ( true ) {
+			$at = strpos( $c, $needle, $at );
+			if ( false === $at ) { break; }
+			$out[] = $at;
+			$at    = $at + 1;
+			if ( count( $out ) >= 12 ) { break; }
+		}
+		return $out;
+	};
+
+	/* 그 자리 앞에서 제일 가까운 여는 태그 */
+	$openBefore = function ( $c, $at, $tag ) {
+		$s = strrpos( substr( $c, 0, $at ), $tag );
+		if ( false === $s ) { return false; }
+		if ( $at - $s > 2000 ) { return false; }
+		return $s;
+	};
+
+	$TAGS = array( '<section', '<div class="card"', "<div class='card'", '<article', '<h2' );
+
+	$P1 = false; $P2 = false; $usedTag = ''; $tries = '';
+
+	$a1 = $spots( $c, $H1 );
+	$a6 = $spots( $c, $H6 );
+
+	$tries .= '「' . $H1 . '」 나오는 자리  ' . count( $a1 ) . "\n";
+	$tries .= '「' . $H6 . '」 나오는 자리  ' . count( $a6 ) . "\n\n";
+
+	foreach ( $TAGS as $tag ) {
+		foreach ( $a1 as $s1 ) {
+			$o1 = $openBefore( $c, $s1, $tag );
+			if ( false === $o1 ) { continue; }
+			foreach ( $a6 as $s6 ) {
+				$o6 = $openBefore( $c, $s6, $tag );
+				if ( false === $o6 ) { continue; }
+				if ( $o1 >= $o6 ) { continue; }
+				$mid  = substr( $c, $o1, $o6 - $o1 );
+				$okAll = true;
+				$miss  = array();
+				foreach ( $MIDS as $m ) {
+					if ( false === strpos( $mid, $m ) ) {
+						$okAll  = false;
+						$miss[] = $m;
+					}
+				}
+				$tries .= str_pad( $tag, 20 )
+					. str_pad( $o1 . ' ~ ' . $o6, 22 )
+					. number_format( strlen( $mid ) ) . ' 바이트  ';
+				if ( $okAll ) {
+					$tries .= "02~05 모두 들어 있음  ★ 이걸 씁니다\n";
+					$P1 = $o1; $P2 = $o6; $usedTag = $tag;
+					break 3;
+				}
+				$tries .= '빠진 것 ' . implode( ' · ', $miss ) . "\n";
+			}
+		}
+	}
+
+	echo '<h2>접을 자리를 이렇게 찾아봤습니다</h2><pre>'
+	   . esc_html( $tries ) . '</pre>';
+
+	$foldOK = true;
+	if ( false === $P1 ) { $foldOK = false; }
+	if ( false === $P2 ) { $foldOK = false; }
+
+	if ( ! $foldOK ) {
+		echo '<p class="no">감쌀 자리를 못 찾았습니다. 접기는 하지 않습니다.</p>';
+		echo '<h2>「' . esc_html( $H1 ) . '」 앞뒤 모습</h2>';
+		foreach ( $a1 as $s1 ) {
+			$from = max( 0, $s1 - 300 );
+			echo '<pre>' . (int) $s1 . ' 바이트 자리' . "\n\n"
+			   . esc_html( $cut( substr( $c, $from, 300 + 160 ) ) ) . '</pre>';
+		}
+		echo '<h2>「' . esc_html( $H6 ) . '」 앞뒤 모습</h2>';
+		foreach ( $a6 as $s6 ) {
+			$from = max( 0, $s6 - 300 );
+			echo '<pre>' . (int) $s6 . ' 바이트 자리' . "\n\n"
+			   . esc_html( $cut( substr( $c, $from, 300 + 160 ) ) ) . '</pre>';
+		}
+	} else {
+		echo '<h2>여는 자리 (' . esc_html( $usedTag ) . ')</h2><pre>'
+		   . esc_html( $cut( substr( $c, $P1, 240 ) ) ) . '</pre>';
+		echo '<h2>닫는 자리 (여기 앞에서 접기가 끝납니다)</h2><pre>'
+		   . esc_html( $cut( substr( $c, $P2, 240 ) ) ) . '</pre>';
+		$mid = substr( $c, $P1, $P2 - $P1 );
+		if ( false !== strpos( $mid, '<!-- wp:' ) ) {
+			echo '<p class="dim">참고 — 그 사이에 워드프레스 블록 경계가 '
+			   . (int) substr_count( $mid, '<!-- wp:' )
+			   . ' 개 있습니다. 화면에는 문제 없지만 편집기에서 열면 '
+			   . '「블록 오류」라고 뜰 수 있습니다.</p>';
+		}
+	}
+
+	/* ── 핑크 글씨 자리 찾기 ──────────────────────────── */
+	$PINK = '#E9BFBF';
+	$sel  = '';
+	$pat  = strpos( $c, $PINK );
+	echo '<h2>핑크 글씨</h2>';
+	if ( false === $pat ) {
+		echo '<p class="no">' . esc_html( $PINK ) . ' 를 못 찾았습니다.</p>';
+	} else {
+		$b0 = strrpos( substr( $c, 0, $pat ), '}' );
+		if ( false === $b0 ) { $b0 = strrpos( substr( $c, 0, $pat ), '>' ); }
+		if ( false === $b0 ) { $b0 = 0; }
+		$rule = substr( $c, $b0 + 1, $pat - $b0 - 1 );
+		$br   = strpos( $rule, '{' );
+		if ( false !== $br ) { $sel = trim( substr( $rule, 0, $br ) ); }
+		echo '<pre>' . esc_html( $cut( $rule . $PINK ) ) . "\n\n"
+		   . '고른 이름표  ' . esc_html( $sel ) . "\n"
+		   . '바꿀 색      ' . esc_html( $PINK ) . '  ->  #B04A52  '
+		   . '(크림 바탕에서 또렷하게 읽힙니다)</pre>';
+	}
+
+	/* ── 넣을 덩어리 ─────────────────────────────────── */
+	$sum = '계산 근거 다섯 가지 펼쳐보기';
+
+	$open = '<!-- ' . $MARK . ' --><details class="stella-fold156">'
+		. '<summary>' . $sum . '</summary><div class="stella-fold156-in">';
+	$close = '</div></details>';
+
+	$css  = "\n<!-- " . $MARK . " -->\n<style>\n";
+	$css .= "/* 2026-09-09 · 계산 근거를 접습니다 (자바스크립트 없이) */\n";
+	$css .= "#ssr details.stella-fold156{ margin:22px 0 0;\n";
+	$css .= "  border:1px solid rgba(23,20,32,.14); border-radius:14px; }\n";
+	$css .= "#ssr details.stella-fold156 > summary{\n";
+	$css .= "  cursor:pointer; list-style:none; padding:16px 18px;\n";
+	$css .= "  font-weight:700; font-size:1rem; }\n";
+	$css .= "#ssr details.stella-fold156 > summary::-webkit-details-marker{\n";
+	$css .= "  display:none; }\n";
+	$css .= "#ssr details.stella-fold156 > summary::after{ content:'  \\25BE'; }\n";
+	$css .= "#ssr details.stella-fold156[open] > summary::after{ content:'  \\25B4'; }\n";
+	$css .= "#ssr details.stella-fold156 > summary:hover{ text-decoration:underline; }\n";
+	$css .= "#ssr .stella-fold156-in{ padding:0 14px 14px; }\n";
+	if ( '' !== $sel ) {
+		$css .= "/* 밤하늘 판에 맞춰 둔 연분홍이 크림 바탕에서 안 읽혔습니다 */\n";
+		$css .= $sel . "{ color:#B04A52 !important;\n";
+		$css .= "  border-color:rgba(176,74,82,.42) !important;\n";
+		$css .= "  background:rgba(176,74,82,.07) !important; }\n";
+	}
+	$css .= "</style>\n";
+
+	echo '<h2>더할 스타일</h2><pre>' . esc_html( $css ) . '</pre>';
+
+	if ( false !== strpos( $css . $open . $close, '&' ) ) {
+		echo '<p class="no">앰퍼샌드가 들어 있습니다. 고치지 않았습니다.</p>';
+		exit;
+	}
+
+	if ( ! $go ) {
+		echo '<h2>끝</h2><p class="dim">이대로 괜찮으시면 '
+		   . '/?stella_r156=apply 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! $foldOK ) {
+		echo '<p class="no">접을 자리가 분명하지 않아 고치지 않았습니다.</p>';
+		exit;
+	}
+
+	/* 뒤부터 끼웁니다 — 앞을 먼저 끼우면 뒤 자리가 밀립니다 */
+	$new = substr( $c, 0, $P2 ) . $close . substr( $c, $P2 );
+	$new = substr( $new, 0, $P1 ) . $open . substr( $new, $P1 );
+	$new = $new . $css;
+
+	if ( '' === get_post_meta( $p->ID, $META, true ) ) {
+		update_post_meta( $p->ID, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ),
+		array( 'ID' => $p->ID ) );
+	clean_post_cache( $p->ID );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<h2>끝</h2><p class="ok">고쳤습니다. '
+	   . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p class="dim">되돌리시려면 /?stella_r156=undo 를 여세요.</p>';
+	exit;
+} );

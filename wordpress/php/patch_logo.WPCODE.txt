@@ -1,0 +1,137 @@
+/* ════════════════════════════════════════════════════════════
+   새 로고로 갈아 끼우기 — 머리말 · 바닥글   (2판)
+   ★ 2026-09-10 · 소희 님께
+
+   1판은 render_block 으로 바꿔치기했는데 머리말이 그 길을 안
+   지나가는 모양입니다. 그래서 2판은 화면에 다 그려진 뒤에
+   그림 주소를 바꿉니다 — 어떻게 그려지든 상관없습니다.
+
+   옛 것  2026/08/ed8380...jpg   339 × 156  (jpg · 흰 네모)
+   새 것  2026/09/스텔라-사주-로고-02.png   193 × 50  (png · 바탕 없음)
+
+   머리말(#0D0A1A)도 바닥글(#0D0A1A)도 밤하늘이라 둘 다 흰색 판입니다.
+
+   ★ 테마 파일을 안 고칩니다. 스위치를 끄면 그 즉시 옛것으로.
+
+   살펴보기 https://stellasaju.com/?stella_logo=1
+            (새 그림 주소가 정말 열리는지도 여기서 눌러보실 수 있습니다)
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+function stella_logo_url() {
+	return 'https://stellasaju.com/wp-content/uploads/2026/09/'
+	     . '%EC%8A%A4%ED%85%94%EB%9D%BC-%EC%82%AC%EC%A3%BC-%EB%A1%9C%EA%B3%A0-02.png';
+}
+
+add_action( 'wp_head', function () {
+
+	$u = stella_logo_url();
+
+	/* 먼저 그림이 뜨자마자 바뀌도록 CSS 로 한 번.
+	   content:url 은 img 태그의 그림을 통째로 갈아 끼웁니다. */
+	echo '<style id="stella-logo-css">'
+	   . '#ss-nav .ssnav-logo img{ content:url("' . $u . '") !important;'
+	   . '  height:48px !important; width:auto !important;'
+	   . '  max-width:none !important; border-radius:0 !important; }'
+	   . '@media(max-width:900px){ #ss-nav .ssnav-logo img{ height:38px !important; } }'
+	   . '#ss-footer .ssf-logo{ content:url("' . $u . '") !important;'
+	   . '  width:193px !important; max-width:70% !important; height:auto !important;'
+	   . '  border-radius:0 !important; }'
+	   . '</style>' . "\n";
+}, 99 );
+
+add_action( 'wp_footer', function () {
+
+	$u = esc_js( stella_logo_url() );
+
+	/* CSS 로 안 되는 브라우저를 위해 주소 자체도 바꿔둡니다.
+	   옛 그림은 339 × 156 이라 크기 표시도 같이 떼어냅니다. */
+	echo "<script>\n";
+	echo "(function(){\n";
+	echo "  var U = '" . $u . "';\n";
+	echo "  function fix(el){\n";
+	echo "    if(!el){ return; }\n";
+	echo "    if(el.getAttribute('src') === U){ return; }\n";
+	echo "    el.setAttribute('src', U);\n";
+	echo "    el.removeAttribute('srcset');\n";
+	echo "    el.removeAttribute('width');\n";
+	echo "    el.removeAttribute('height');\n";
+	echo "    el.style.borderRadius = '0';\n";
+	echo "  }\n";
+	echo "  function go(){\n";
+	echo "    fix(document.querySelector('#ss-nav .ssnav-logo img'));\n";
+	echo "    fix(document.querySelector('#ss-footer .ssf-logo'));\n";
+	echo "  }\n";
+	echo "  go();\n";
+	echo "  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', go); }\n";
+	echo "  setTimeout(go, 400);\n";
+	echo "  setTimeout(go, 1500);\n";
+	echo "})();\n";
+	echo "</script>\n";
+}, 99 );
+
+
+/* ── 살펴보기 ── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_logo'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+
+	$u = stella_logo_url();
+
+	echo '<meta charset="utf-8"><style>'
+	   . 'body{background:#0D0A1A;color:#F2ECE0;font-family:-apple-system,sans-serif;'
+	   . 'line-height:1.9;padding:26px;max-width:760px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.25rem} h2{color:#D4AF6A;font-size:1rem;margin:26px 0 8px}'
+	   . 'code{background:rgba(212,175,106,.14);padding:2px 6px;border-radius:3px;word-break:break-all}'
+	   . '.box{background:#1C1533;border:1px solid rgba(212,175,106,.3);border-radius:10px;padding:20px;margin:10px 0}'
+	   . '.pale{background:#FBF8F2;color:#221C33}'
+	   . 'table{width:100%;border-collapse:collapse;margin-top:8px}'
+	   . 'td{padding:6px 8px;border-bottom:1px solid rgba(212,175,106,.15);font-size:.92rem}'
+	   . '</style>';
+
+	echo '<h1>로고 살펴보기</h1>';
+
+	echo '<h2>새 그림이 정말 열리나</h2>';
+	echo '<div class="box">밤하늘 바탕 — 머리말·바닥글에서 이렇게 보입니다<br><br>';
+	echo '<img src="' . esc_url( $u ) . '" alt="새 로고" style="height:48px">';
+	echo '</div>';
+	echo '<div class="box pale">종이 바탕 — 여기서 안 보이면 흰색 판이 맞습니다<br><br>';
+	echo '<img src="' . esc_url( $u ) . '" alt="새 로고" style="height:48px">';
+	echo '</div>';
+	echo '<p>위 네모 안에 별과 글자가 안 보이면 <b>주소가 틀린 것</b>입니다.<br><code>'
+	   . esc_html( $u ) . '</code></p>';
+
+	echo '<h2>미디어에 올라온 로고</h2><table>';
+	$q = new WP_Query( array(
+		'post_type' => 'attachment', 'post_status' => 'inherit',
+		'posts_per_page' => 20, 's' => 'stellasaju',
+	) );
+	foreach ( $q->posts as $a ) {
+		$m = wp_get_attachment_metadata( $a->ID );
+		echo '<tr><td>' . (int) $a->ID . '</td><td>' . esc_html( $a->post_title ) . '</td><td>'
+		   . ( isset( $m['width'] ) ? (int) $m['width'] : '?' ) . ' × '
+		   . ( isset( $m['height'] ) ? (int) $m['height'] : '?' ) . '</td>'
+		   . '<td style="background:#0D0A1A"><img src="' . esc_url( wp_get_attachment_url( $a->ID ) )
+		   . '" style="height:34px"></td>'
+		   . '<td style="background:#FBF8F2"><img src="' . esc_url( wp_get_attachment_url( $a->ID ) )
+		   . '" style="height:34px"></td></tr>';
+	}
+	echo '</table>';
+
+	echo '<h2>바꾸는 방법</h2>';
+	echo '<p>화면에 다 그려진 뒤에 <code>src</code> 를 갈아 끼웁니다. 테마가 머리말을 '
+	   . '어떤 방식으로 찍든 상관없습니다.<br>'
+	   . '되돌리려면 이 스니펫 스위치를 끄시면 됩니다.</p>';
+
+	echo '<h2>아직 남은 것</h2>';
+	echo '<p>새 파일이 <b>193 × 50</b> 이라 머리말(48px)에서 거의 1대1 입니다. '
+	   . '요즘 휴대폰은 점이 두세 배 촘촘해서 이대로는 뿌옇습니다.<br>'
+	   . '<b>580 × 150</b> 으로 다시 뽑아 <b>같은 이름으로 덮어씌우시면</b> '
+	   . '코드는 그대로 두고 또렷해집니다.</p>';
+	exit;
+}, 1 );

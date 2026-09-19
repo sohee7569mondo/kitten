@@ -1,0 +1,290 @@
+/* ════════════════════════════════════════════════════════════
+   안 읽히는 글씨색을 전부 찾아냅니다 (읽기만)
+   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   왜 만들었나
+     밤하늘 판(어두운 바탕)에 맞춰 만든 색을, 바탕만 종이빛으로
+     바꾸면서 몇 개를 못 따라오게 두었습니다. 자료 쪽의 핑크 글씨가
+     그랬고(#E9BFBF · 대비 1.55:1), 스타 사주도 같은 사고로 보입니다.
+     한 쪽씩 눈으로 찾지 않고 한 번에 셉니다.
+
+   ★ 2판에서 고친 것
+     · color:var(--star) 처럼 이름표로 적힌 색을 풀어서 잽니다.
+       1판은 이걸 못 읽어 아홉 개밖에 못 셌습니다.
+     · 그 규칙이 자기 바탕색을 따로 갖고 있으면 그 바탕과 견줍니다.
+       금빛 딱지 위의 흰 글씨를 「안 읽힌다」고 잘못 잡던 자리입니다.
+
+   무엇을 재나
+     스타일표 안의 모든 글씨색을 바탕색과 견주어 「대비」를 잽니다.
+       4.5 : 1 이상  본문으로 읽힙니다 (국제 기준 AA)
+       3.0 : 1 이상  큰 글씨라면 읽힙니다
+       그 아래        안 읽힙니다 — 고쳐야 합니다
+
+   쓰는 법
+     https://stellasaju.com/?stella_contrast=star-saju
+     https://stellasaju.com/?stella_contrast=reading-ready
+     바탕색을 따로 주시려면  ...&bg=F1EDE3
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_contrast'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$slug = sanitize_title( wp_unslash( $_GET['stella_contrast'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:28px 18px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 6px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:24px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:12px}'
+	   . '.no{color:#E5A0A0}.ok{color:#9AD1A5}.mid{color:#E8CD96}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'table{border-collapse:collapse;width:100%;font-size:.86rem}'
+	   . 'td,th{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.1);'
+	   . 'text-align:left;vertical-align:top}'
+	   . 'th{color:#8B849C;font-weight:400;font-size:.78rem}'
+	   . 'code{font:12px monospace;color:#F2ECE0}'
+	   . '.sw{display:inline-block;width:52px;height:20px;border-radius:4px;'
+	   . 'border:1px solid rgba(255,255,255,.25);text-align:center;'
+	   . 'font:11px monospace;line-height:20px}'
+	   . '</style>';
+
+	$p = get_page_by_path( $slug );
+	if ( ! $p ) { echo '<p class="no">「' . esc_html( $slug ) . '」 쪽이 없습니다.</p>'; exit; }
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+
+	/* ── 색 다루기 ─────────────────────────────────── */
+	$hex2rgb = function ( $h ) {
+		$h = ltrim( trim( $h ), '#' );
+		if ( 3 === strlen( $h ) ) {
+			$h = $h[0] . $h[0] . $h[1] . $h[1] . $h[2] . $h[2];
+		}
+		if ( 6 !== strlen( $h ) ) { return false; }
+		if ( ! ctype_xdigit( $h ) ) { return false; }
+		return array( hexdec( substr( $h, 0, 2 ) ),
+		              hexdec( substr( $h, 2, 2 ) ),
+		              hexdec( substr( $h, 4, 2 ) ) );
+	};
+
+	$lum = function ( $rgb ) {
+		$o = array();
+		foreach ( $rgb as $v ) {
+			$v = $v / 255;
+			$o[] = ( $v <= 0.03928 ) ? ( $v / 12.92 )
+			                         : pow( ( $v + 0.055 ) / 1.055, 2.4 );
+		}
+		return 0.2126 * $o[0] + 0.7152 * $o[1] + 0.0722 * $o[2];
+	};
+
+	$ratio = function ( $a, $b ) use ( $lum ) {
+		$la = $lum( $a ); $lb = $lum( $b );
+		$hi = max( $la, $lb ); $lo = min( $la, $lb );
+		return ( $hi + 0.05 ) / ( $lo + 0.05 );
+	};
+
+	/* 반투명한 색은 바탕과 섞어서 실제로 보이는 색을 냅니다 */
+	$mix = function ( $fg, $a, $bg ) {
+		return array(
+			(int) round( $fg[0] * $a + $bg[0] * ( 1 - $a ) ),
+			(int) round( $fg[1] * $a + $bg[1] * ( 1 - $a ) ),
+			(int) round( $fg[2] * $a + $bg[2] * ( 1 - $a ) ) );
+	};
+
+	/* ── 색 이름표 표 ────────────────────────────────
+	   --star:#F2ECE0 처럼 적어두고 color:var(--star) 로 쓰는 것들입니다.
+	   같은 이름이 여러 번 나오면 뒤에 적힌 것이 이깁니다 (CSS 규칙 그대로). */
+	$VARS = array();
+	$vf   = 0;
+	while ( true ) {
+		$at = strpos( $c, '--', $vf );
+		if ( false === $at ) { break; }
+		$vf = $at + 2;
+		$co = strpos( $c, ':', $at );
+		if ( false === $co ) { break; }
+		if ( $co - $at > 40 ) { continue; }
+		$name = substr( $c, $at, $co - $at );
+		if ( '' === $name ) { continue; }
+		if ( preg_match( '/[^A-Za-z0-9_-]/', $name ) ) { continue; }
+		$len = strcspn( substr( $c, $co + 1, 90 ), ';}' );
+		$val = trim( substr( $c, $co + 1, $len ) );
+		if ( '' === $val ) { continue; }
+		$VARS[ $name ] = $val;
+	}
+
+	/* var(--x) 를 풀어 실제 값으로 바꿉니다. 이름표가 이름표를 가리켜도 따라갑니다. */
+	$unvar = function ( $v ) use ( &$VARS ) {
+		$hop = 0;
+		while ( $hop < 6 ) {
+			$hop++;
+			$at = stripos( $v, 'var(' );
+			if ( false === $at ) { return $v; }
+			$en = strpos( $v, ')', $at );
+			if ( false === $en ) { return $v; }
+			$in = substr( $v, $at + 4, $en - $at - 4 );
+			$cm = strpos( $in, ',' );
+			$nm = trim( ( false === $cm ) ? $in : substr( $in, 0, $cm ) );
+			$fb = ( false === $cm ) ? '' : trim( substr( $in, $cm + 1 ) );
+			$rp = isset( $VARS[ $nm ] ) ? $VARS[ $nm ] : $fb;
+			if ( '' === $rp ) { return $v; }
+			$v = substr( $v, 0, $at ) . $rp . substr( $v, $en + 1 );
+		}
+		return $v;
+	};
+
+	/* ── 바탕색 ────────────────────────────────────── */
+	$bgHex = 'F1EDE3';
+	if ( isset( $_GET['bg'] ) ) {
+		$bgHex = preg_replace( '/[^0-9A-Fa-f]/', '', wp_unslash( $_GET['bg'] ) );
+	} else {
+		/* 쪽 안에서 종이빛 바탕을 찾아봅니다 */
+		$at = strpos( $c, 'background:#' );
+		while ( false !== $at ) {
+			$try = substr( $c, $at + 12, 6 );
+			$rgb = $hex2rgb( $try );
+			if ( $rgb ) {
+				if ( $lum( $rgb ) > 0.6 ) { $bgHex = $try; break; }
+			}
+			$at = strpos( $c, 'background:#', $at + 1 );
+		}
+	}
+	$bg = $hex2rgb( $bgHex );
+	if ( ! $bg ) { $bg = array( 241, 237, 227 ); $bgHex = 'F1EDE3'; }
+
+	echo '<h1>안 읽히는 글씨색 찾기 — ' . esc_html( $slug ) . '</h1>';
+	echo '<p class="dim">쪽 번호 ' . (int) $p->ID
+	   . ' &middot; 바탕색으로 잡은 것 <span class="sw" style="background:#'
+	   . esc_attr( $bgHex ) . ';color:#222">#' . esc_html( $bgHex ) . '</span>'
+	   . ' &middot; 다르면 주소 뒤에 &amp;bg=FBF8F2 처럼 붙이세요</p>';
+
+	/* ── 스타일표 안의 글씨색을 모읍니다 ─────────────── */
+	$found = array();
+	$from  = 0;
+	while ( true ) {
+		$at = stripos( $c, 'color:', $from );
+		if ( false === $at ) { break; }
+		$from = $at + 1;
+
+		/* background-color 는 글씨색이 아닙니다 */
+		$pre = strtolower( substr( $c, max( 0, $at - 11 ), 11 ) );
+		if ( false !== strpos( $pre, 'background-' ) ) { continue; }
+		if ( false !== strpos( $pre, 'border-' ) ) { continue; }
+		if ( false !== strpos( $pre, 'outline-' ) ) { continue; }
+
+		$end = strcspn( substr( $c, $at + 6, 60 ), ';}\n' );
+		$raw = trim( substr( $c, $at + 6, $end ) );
+		if ( '' === $raw ) { continue; }
+		$val = trim( str_ireplace( '!important', '', $unvar( $raw ) ) );
+		if ( '' === $val ) { continue; }
+
+		$rgb = false; $alpha = 1.0;
+		if ( '#' === substr( $val, 0, 1 ) ) {
+			$rgb = $hex2rgb( substr( $val, 0, 7 ) );
+		} elseif ( 0 === stripos( $val, 'rgba(' ) ) {
+			$in = substr( $val, 5, strpos( $val, ')' ) - 5 );
+			$pt = array_map( 'trim', explode( ',', $in ) );
+			if ( count( $pt ) >= 4 ) {
+				$rgb   = array( (int) $pt[0], (int) $pt[1], (int) $pt[2] );
+				$alpha = (float) $pt[3];
+			}
+		} elseif ( 0 === stripos( $val, 'rgb(' ) ) {
+			$in = substr( $val, 4, strpos( $val, ')' ) - 4 );
+			$pt = array_map( 'trim', explode( ',', $in ) );
+			if ( count( $pt ) >= 3 ) {
+				$rgb = array( (int) $pt[0], (int) $pt[1], (int) $pt[2] );
+			}
+		}
+		if ( ! $rgb ) { continue; }
+
+		/* 이름표(선택자) 찾기 — 앞의 } 다음부터 { 까지 */
+		$b0 = strrpos( substr( $c, 0, $at ), '}' );
+		if ( false === $b0 ) { $b0 = 0; }
+		$seg = substr( $c, $b0 + 1, $at - $b0 - 1 );
+		$br  = strpos( $seg, '{' );
+		$sel = ( false !== $br ) ? trim( substr( $seg, 0, $br ) ) : '(어디인지 모름)';
+		$sel = trim( preg_replace( '/\s+/', ' ', $sel ) );
+		if ( strlen( $sel ) > 90 ) { $sel = substr( $sel, 0, 90 ) . ' …'; }
+		if ( '' === $sel ) { $sel = '(어디인지 모름)'; }
+
+		/* 이 규칙이 자기 바탕색을 갖고 있나 — 있으면 그것과 견줍니다.
+		   금빛 딱지 위의 흰 글씨를 잘못 잡지 않으려는 것입니다. */
+		$ruleEnd = strpos( $c, '}', $at );
+		if ( false === $ruleEnd ) { $ruleEnd = $at; }
+		$rule    = substr( $c, $b0 + 1, $ruleEnd - $b0 - 1 );
+		$own     = $bg;
+		$ownHex  = '';
+		$bp      = stripos( $rule, 'background' );
+		while ( false !== $bp ) {
+			$bl  = strcspn( substr( $rule, $bp, 200 ), ';}' );
+			$bv  = $unvar( substr( $rule, $bp, $bl ) );
+			$hx  = strpos( $bv, '#' );
+			if ( false !== $hx ) {
+				$try = $hex2rgb( substr( $bv, $hx, 7 ) );
+				if ( $try ) { $own = $try; $ownHex = strtoupper( substr( $bv, $hx, 7 ) ); break; }
+			}
+			$bp = stripos( $rule, 'background', $bp + 1 );
+		}
+
+		$seen = $mix( $rgb, $alpha, $own );
+		$r    = $ratio( $seen, $own );
+
+		$found[] = array( 'sel' => $sel, 'val' => $raw, 'r' => $r,
+			'seen' => $seen, 'alpha' => $alpha, 'own' => $ownHex );
+	}
+
+	if ( ! count( $found ) ) {
+		echo '<p class="dim">스타일표에서 글씨색을 못 찾았습니다.</p>'; exit;
+	}
+
+	usort( $found, function ( $a, $b ) {
+		if ( $a['r'] === $b['r'] ) { return 0; }
+		return ( $a['r'] < $b['r'] ) ? -1 : 1;
+	} );
+
+	$bad = 0; $mid = 0;
+	foreach ( $found as $f ) {
+		if ( $f['r'] < 3.0 ) { $bad++; }
+		elseif ( $f['r'] < 4.5 ) { $mid++; }
+	}
+
+	echo '<h2>' . count( $found ) . '개 가운데 — '
+	   . '<span class="no">' . $bad . '개 안 읽힘</span> · '
+	   . '<span class="mid">' . $mid . '개 큰 글씨만 가능</span></h2>';
+
+	echo '<table><tr><th>대비</th><th>적힌 색</th><th>실제로 보이는 색</th>'
+	   . '<th>무슨 바탕 위</th><th>어디</th></tr>';
+	foreach ( $found as $f ) {
+		if ( $f['r'] >= 4.5 ) { continue; }
+		$cls = ( $f['r'] < 3.0 ) ? 'no' : 'mid';
+		$hx  = sprintf( '#%02X%02X%02X', $f['seen'][0], $f['seen'][1], $f['seen'][2] );
+		$ob = ( '' !== $f['own'] ) ? $f['own'] : ( '#' . strtoupper( $bgHex ) );
+		echo '<tr><td class="' . $cls . '">' . number_format( $f['r'], 2 ) . ' : 1</td>'
+		   . '<td><code>' . esc_html( $f['val'] ) . '</code></td>'
+		   . '<td><span class="sw" style="background:' . esc_attr( $ob )
+		   . ';color:' . esc_attr( $hx ) . '">가나다</span> ' . esc_html( $hx ) . '</td>'
+		   . '<td><code>' . esc_html( $ob )
+		   . ( '' !== $f['own'] ? ' (제 바탕)' : ' (쪽 바탕)' ) . '</code></td>'
+		   . '<td><code>' . esc_html( $f['sel'] ) . '</code></td></tr>';
+	}
+	echo '</table>';
+
+	echo '<h2>잘 읽히는 것들</h2><p class="dim">';
+	$okn = 0;
+	foreach ( $found as $f ) { if ( $f['r'] >= 4.5 ) { $okn++; } }
+	echo (int) $okn . '개는 4.5 : 1 을 넘습니다. 손 안 대도 됩니다.</p>';
+
+	echo '<p class="dim">이 자는 읽기만 합니다.</p>';
+	exit;
+} );

@@ -1,0 +1,207 @@
+/* ════════════════════════════════════════════════════════════
+   책 중간중간에 벼리 얼굴   ★ 2026-09-08
+
+   소희 님 :「중간중간 벼리 사진도 넣어줘」
+
+   지금은 맨 마지막 배웅 장에 한 번 나오고 끝입니다.
+   책이 스무 쪽이 넘는데 얼굴이 한 번뿐이라 「누가 나에게
+   말하고 있는지」가 중간에 흐려집니다.
+
+   ── 두 자리에 넣습니다 ─────────────────────────
+
+   ① 장 속표지의 동그라미 — 여덟 곳
+      지금은 동그라미 안에 이름 글자만 들어 있습니다.
+      거기에 얼굴을 넣고, 이름은 동그라미 바로 아래로 내립니다.
+
+        (  벼리  )        →      ( 얼굴 )
+                                   벼리
+        제 1 장                   제 1 장
+        사주가 보는 …             사주가 보는 …
+
+      장이 바뀔 때마다 얼굴이 한 번씩 나옵니다. 여덟 번.
+
+   ② 육성 상자 — 열여섯 곳
+      벼리가 직접 말하는 상자입니다. 이름 앞에 작은 동그란
+      얼굴(34px)을 붙입니다.
+
+        벼리                →     (·) 벼리
+        사랑은 마음의 …            사랑은 마음의 …
+
+   두 자리를 합치면 책 한 권에 스물네 번쯤 나옵니다.
+   문마다 얼굴이 다르니 마루 · 아람 · 미르 · 아라도 같이 됩니다.
+
+   ── 사진은 이미 있습니다 ───────────────────────
+   문마다 얼굴 그림이 책 안에 이미 적혀 있습니다 (g.face).
+   새로 올리실 것 없습니다. 배웅 장이 쓰던 그 그림입니다.
+
+   ★ 뒤에서 불러오는 그림이라 loading="lazy" 를 붙였습니다.
+     책을 열 때 스물네 장을 한꺼번에 받지 않고, 그 쪽에
+     닿았을 때만 받습니다. 책이 느려지지 않습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_face=1
+   ② 정말 넣기   https://stellasaju.com/?stella_face=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_face=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_face'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_face_backup';
+	$MARK = '2026-09-08 · 중간중간 얼굴';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_face'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:880px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<h1 class="no">이미 들어가 있습니다.</h1>';
+		echo '<p><code>/?stella_face=undo</code> 로 걷어낸 뒤 다시 넣으세요.</p>';
+		exit;
+	}
+
+	$UP = 'https://stellasaju.com/wp-content/uploads/2026/08/';
+
+	/* ── ① 장 속표지 동그라미 ── */
+	$A1 = "'<div class=\"dvmark\"><span>'+esc(g.name)+'</span></div>'+";
+	$A2 = "'<div class=\"dvmark dvface\"><img loading=\"lazy\" decoding=\"async\" '+\n"
+	    . "               'src=\"" . $UP . "'+g.face+'\" alt=\"'+esc(g.name)+'\" '+\n"
+	    . "               'width=\"1408\" height=\"1408\"></div>'+\n"
+	    . "             '<p class=\"dvwho\">'+esc(g.name)+'</p>'+";
+
+	/* ── ② 육성 상자 ── */
+	$B1 = "'<div class=\"voice\"><div class=\"who\">'+g.name+'</div>'+";
+	$B2 = "'<div class=\"voice\"><div class=\"who\"><img class=\"vface\" loading=\"lazy\" '+\n"
+	    . "      'decoding=\"async\" src=\"" . $UP . "'+g.face+'\" alt=\"\" '+\n"
+	    . "      'width=\"1408\" height=\"1408\">'+g.name+'</div>'+";
+
+	$na = substr_count( $c, $A1 );
+	$nb = substr_count( $c, $B1 );
+
+	echo '<h1>' . ( 'apply' === $mode ? '넣었습니다' : '넣으면 이렇게 됩니다 (아직 안 넣었습니다)' ) . '</h1>';
+
+	echo '<h2>① 장 속표지의 동그라미</h2>';
+	if ( 1 === $na ) {
+		echo '<p class="ok">찾았습니다 — 한 군데. 이 한 군데가 장 여덟 개를 다 그립니다.</p>';
+	} else {
+		echo '<p class="no">' . intval( $na ) . '군데입니다. 한 군데여야 합니다.</p>';
+	}
+
+	echo '<h2>② 육성 상자</h2>';
+	if ( $nb > 0 ) {
+		echo '<p class="ok">' . intval( $nb ) . '군데 찾았습니다. 모두 바꿉니다.</p>';
+	} else {
+		echo '<p class="no">한 군데도 못 찾았습니다.</p>';
+	}
+
+	if ( 1 !== $na ) {
+		echo '<p class="no">속표지 자리가 한 군데가 아니라 아무것도 안 바꿉니다.</p>';
+		exit;
+	}
+
+	$new = str_replace( $A1, $A2, $c );
+	$new = str_replace( $B1, $B2, $new );
+
+	$CSS = <<<'CSSX'
+
+<style>
+/* ══ 2026-09-08 · 중간중간 얼굴 ════════════════════════════
+   소희 님 —「중간중간 벼리 사진도 넣어줘」
+   장 속표지 여덟 곳과 육성 상자 열여섯 곳에 얼굴을 넣습니다. */
+
+/* ① 장 속표지 — 이름이 들어 있던 동그라미에 얼굴을 담습니다 */
+#ssb .divider .dvmark.dvface{
+  padding:0; overflow:hidden; margin-bottom:16px;
+  border-color:var(--rule);
+}
+#ssb .divider .dvmark.dvface img{
+  width:100%; height:100%; display:block;
+  object-fit:cover; object-position:center 16%;
+}
+#ssb .divider .dvwho{
+  margin:0 0 34px;
+  font-family:var(--serif); font-weight:700;
+  font-size:1.02rem; color:var(--gold);
+}
+
+/* ② 육성 상자 — 이름 앞에 작은 얼굴 */
+#ssb .voice .who{
+  display:flex; align-items:center; gap:10px;
+}
+#ssb .voice .who .vface{
+  width:34px; height:34px; flex:0 0 auto;
+  border-radius:50%; display:block;
+  object-fit:cover; object-position:center 16%;
+  border:1px solid var(--rule);
+}
+
+@media(max-width:640px){
+  #ssb .divider .dvmark.dvface{ margin-bottom:14px; }
+  #ssb .divider .dvwho{ margin-bottom:26px; font-size:.96rem; }
+  #ssb .voice .who .vface{ width:30px; height:30px; }
+}
+
+/* 종이에 뽑을 때도 얼굴이 같이 나가야 합니다 */
+@media print{
+  #ssb .divider .dvmark.dvface img,
+  #ssb .voice .who .vface{
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+}
+</style>
+CSSX;
+
+	$new = $new . $CSS;
+
+	echo '<h2>정리</h2>';
+	echo '<p class="dim">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 바이트 &middot; '
+	   . '책 한 권에 얼굴이 스물네 번쯤 나옵니다</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 넣으시려면 <code>/?stella_face=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+
+	echo '<p class="ok">넣었습니다.</p>';
+	echo '<p><a href="/reading-book/?demo=door-love">샘플 책으로 확인해보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_face=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

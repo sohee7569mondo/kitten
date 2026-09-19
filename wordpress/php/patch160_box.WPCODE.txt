@@ -1,0 +1,142 @@
+/* ════════════════════════════════════════════════════════════
+   여덟 글자를 색 네모로 — 조선사주처럼
+
+   지금은 글자에만 색을 입혔습니다. 밤하늘 판에서는 보였는데
+   연한 종이로 바꾸고 나니 색이 잘 안 보입니다.
+
+     지금   흰 바탕에 색 글자
+     고침   색 네모에 흰 글자
+
+   네모 여덟 개의 색만 보고도 무엇이 많고 무엇이 없는지 한눈에
+   들어옵니다. 바로 다음 쪽 오행 저울이 같은 색을 쓰니까
+   「내 화가 어느 글자였지」를 되짚기도 쉽습니다.
+
+   흰 글자가 다섯 색 위에서 다 읽히는지 봤습니다 —
+   목 #1E7A4A · 화 #C0392B · 토 #96700F · 금 #59636F · 수 #1D3E77
+   다섯 다 충분히 어두워서 흰 글자가 또렷합니다.
+
+   시간을 모르는 분의 「—」 칸은 옅은 회색 네모로 나갑니다.
+   색깔 안내줄의 동그라미도 네모로 맞췄습니다.
+
+   ★ 종이책(patch160_paper)이 이미 들어가 있어야 합니다.
+     색 이름(--e-mok 등)을 거기서 정하기 때문입니다.
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로 바꾸세요.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_box=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_box=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_box=undo
+
+   바꾸고 나서 볼 곳
+     https://stellasaju.com/reading-book/?demo=door-love-2
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_box'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_box_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_box'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		echo '<p><a href="/reading-book/?demo=door-love-2">책 보기</a></p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	$jobs = array();
+
+	$jobs[] = array(
+		'name' => '① 네모 안에 오행·한자·음 세 줄',
+		'find' => '/function\\s+elSpan\\(ch\\)\\{\\s+var\\s+e=EL5\\[ch\\]\\s+\\|\\|\\s+\'\';\\s+return\\s+\'<span\\s+data\\-el="\'\\+e\\+\'">\'\\+ch\\+\'<\/span>\';\\s+\\}/u',
+		'to'   => "  /* 2026-09-07 · 한 글자마다 오행 이름과 한글 음을 같이 답니다.\n     색만으로는 「내 화가 어느 글자였지」를 되짚기 어려워서,\n     네모 안에 위는 오행(화), 가운데는 한자(丁), 아래는 음(정)을\n     넣습니다. 색을 못 가리는 분도 글자로 읽을 수 있습니다. */\n  function elSpan(ch, kr){\n    var e=EL5[ch] || '';\n    return '<span data-el=\"'+e+'\">'+\n           (e ? '<i>'+e+'</i>' : '')+ch+\n           (kr ? '<b>'+kr+'</b>' : '')+\n           '</span>';\n  }",
+	);
+
+	$jobs[] = array(
+		'name' => '② 한글 음도 같이 넘기기',
+		'find' => '/elSpan\\(c\\.han\\.charAt\\(0\\)\\)\\+elSpan\\(c\\.han\\.charAt\\(1\\)\\)/u',
+		'to'   => "elSpan(c.han.charAt(0), c.kor.charAt(0))+elSpan(c.han.charAt(1), c.kor.charAt(1))",
+	);
+
+	$jobs[] = array(
+		'name' => '③ 색 네모 모양 (CSS)',
+		'find' => '/<\/style>\\s+<div\\s+id="ssb">/u',
+		'to'   => "\n/* ══ 2026-09-07 · 여덟 글자를 색 네모로 ═══════════════════════\n   글자에만 색을 입히니 연한 종이에서 색이 묻힙니다. 네모를 색으로\n   채우고 글자를 희게 뺍니다. 네모 여덟 개만 보고도 무엇이 많고\n   무엇이 없는지 한눈에 들어옵니다.\n   네모 안은 세 줄입니다 — 위에 오행, 가운데 한자, 아래 한글 음.\n   색을 못 가리는 분도 글자로 읽을 수 있어야 하니까요. */\n#ssb .chart .han{\n  display:flex; justify-content:center; align-items:center; gap:7px;\n  letter-spacing:0; line-height:1;\n  font-family:var(--han); font-size:1.72rem; min-height:74px;\n}\n#ssb .chart .han span{\n  display:flex; flex-direction:column; align-items:center; justify-content:center;\n  width:74px; height:74px; border-radius:17px;\n  font-family:var(--han); font-size:1.72rem; font-weight:700;\n  color:#FFFFFF; background:rgba(23,20,32,.30);\n}\n#ssb .chart .han span i{\n  font-style:normal; font-family:var(--serif); font-weight:500;\n  font-size:.6rem; letter-spacing:.06em; opacity:.8; margin-bottom:4px;\n}\n#ssb .chart .han span b{\n  font-family:var(--serif); font-weight:500;\n  font-size:.64rem; letter-spacing:.02em; opacity:.86; margin-top:5px;\n}\n#ssb .chart .han span[data-el=\"목\"]{ background:var(--e-mok); }\n#ssb .chart .han span[data-el=\"화\"]{ background:var(--e-hwa); }\n#ssb .chart .han span[data-el=\"토\"]{ background:var(--e-to); }\n#ssb .chart .han span[data-el=\"금\"]{ background:var(--e-geum); }\n#ssb .chart .han span[data-el=\"수\"]{ background:var(--e-su); }\n#ssb .chart > div{ padding:20px 4px 18px; }\n#ssb .chart .kor{ display:none; }\n@media(max-width:640px){\n  #ssb .chart .han{ gap:4px; }\n  #ssb .chart .han span{ width:58px; height:58px; border-radius:13px; font-size:1.3rem; }\n  #ssb .chart .han span i{ font-size:.52rem; margin-bottom:3px; }\n  #ssb .chart .han span b{ font-size:.55rem; margin-top:3px; }\n  #ssb .chart > div{ padding:13px 2px 12px; }\n}\n\n/* 안내줄도 같은 네모로 */\n#ssb .ellegend span::before{ border-radius:3px; }\n</style>\n<div id=\"ssb\">\n",
+	);
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], str_replace( '\\', '\\\\', $j['to'] ), $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_box=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_box=undo</code></p>';
+	echo '<p><a href="/reading-book/?demo=door-love-2">책 보기</a></p>';
+	exit;
+} );

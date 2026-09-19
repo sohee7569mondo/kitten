@@ -1,0 +1,500 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 2 · 화면 밑감 (그림 · 설정 · 연예인 · 옷)
+
+   유앤미(/uandme/) 화면에서만 실립니다. 다른 페이지에는 영향이
+   없습니다. 페이지 내용이 아니라 머리말로 실어주므로, 워드프레스가
+   스크립트를 건드릴 일이 없습니다(앰퍼샌드 문제가 원천적으로 안 납니다).
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   확인 : https://stellasaju.com/?stella_um2=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+
+	if ( ! stella_um_here() ) {
+		return;
+	}
+
+	echo "<script>\n";
+	echo <<<'STELLA_UM'
+/* ───── um-chars.js ───── */
+/* 캐릭터 — 사이트 주인이 보내준 그림체로 그린 것입니다.
+   나중에 워드프레스에 올려둔 원본으로 바꾸려면 이 파일만 갈면 됩니다. */
+window.UM_CHARS = {
+  bunny_white: '<svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><ellipse cx="45" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(-9 45 31)"/><ellipse cx="75" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(9 75 31)"/><ellipse cx="60" cy="88" rx="31" ry="26" fill="#FFFFFF"/><circle cx="60" cy="63" r="27" fill="#FFFFFF"/></g><ellipse cx="45" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(-9 45 30)"/><ellipse cx="75" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(9 75 30)"/><ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/><circle cx="50" cy="61" r="3.6" fill="#5A4038"/><circle cx="70" cy="61" r="3.6" fill="#5A4038"/><ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg>',
+  bunny_happy: '<svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><ellipse cx="45" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(-9 45 31)"/><ellipse cx="75" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(9 75 31)"/><ellipse cx="60" cy="88" rx="31" ry="26" fill="#FFFFFF"/><circle cx="60" cy="63" r="27" fill="#FFFFFF"/></g><ellipse cx="45" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(-9 45 30)"/><ellipse cx="75" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(9 75 30)"/><ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/><path d="M44 60q6 6 12 0" fill="none" stroke="#5A4038" stroke-width="4" stroke-linecap="round"/><path d="M64 60q6 6 12 0" fill="none" stroke="#5A4038" stroke-width="4" stroke-linecap="round"/><ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg>',
+  bunny_pink: '<svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><ellipse cx="45" cy="31" rx="9" ry="25" fill="#F7C6D3" transform="rotate(-9 45 31)"/><ellipse cx="75" cy="31" rx="9" ry="25" fill="#F7C6D3" transform="rotate(9 75 31)"/><ellipse cx="60" cy="88" rx="31" ry="26" fill="#F7C6D3"/><circle cx="60" cy="63" r="27" fill="#F7C6D3"/></g><ellipse cx="45" cy="30" rx="4" ry="15" fill="#EDA0B6" transform="rotate(-9 45 30)"/><ellipse cx="75" cy="30" rx="4" ry="15" fill="#EDA0B6" transform="rotate(9 75 30)"/><ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/><circle cx="50" cy="61" r="3.6" fill="#5A4038"/><circle cx="70" cy="61" r="3.6" fill="#5A4038"/><ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg>',
+  cat_cream: '<svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><path d="M38 46 L34 22 L56 34 Z" fill="#F5DFAF"/><path d="M82 46 L86 22 L64 34 Z" fill="#F5DFAF"/><path d="M92 96q10 4 8 12" fill="none" stroke-linecap="round"/><ellipse cx="60" cy="88" rx="30" ry="25" fill="#F5DFAF"/><circle cx="60" cy="58" r="28" fill="#F5DFAF"/></g><path d="M76 34a13 13 0 0 1 11 12a28 28 0 0 0-13-9z" fill="#B98A5A"/><ellipse cx="60" cy="94" rx="14" ry="12" fill="#FBF0DC"/><circle cx="50" cy="56" r="3.6" fill="#5A4038"/><circle cx="70" cy="56" r="3.6" fill="#5A4038"/><ellipse cx="40" cy="66" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="66" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="65" rx="3.5" ry="2.6" fill="#5A4038"/><g stroke="#5A4038" stroke-width="2.4" stroke-linecap="round"><path d="M30 62h-9M30 68l-9 3M90 62h9M90 68l9 3"/></g></svg>',
+  cow: '<svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><path d="M40 32q-7-11 1-15q7-3 8 9z" fill="#D9C9A8"/><path d="M80 32q7-11-1-15q-7-3-8 9z" fill="#D9C9A8"/><ellipse cx="33" cy="50" rx="11" ry="8" fill="#8E8E96" transform="rotate(-14 33 50)"/><ellipse cx="87" cy="50" rx="11" ry="8" fill="#FFFFFF" transform="rotate(14 87 50)"/><ellipse cx="60" cy="92" rx="29" ry="23" fill="#FFFFFF"/><circle cx="60" cy="56" r="27" fill="#FFFFFF"/></g><path d="M41 38a28 28 0 0 1 14-7a16 16 0 0 0-9 13z" fill="#8E8E96"/><ellipse cx="60" cy="97" rx="13" ry="10" fill="#F1F1F3"/><circle cx="49" cy="53" r="3.6" fill="#5A4038"/><path d="M65 53q6 5 12 0" fill="none" stroke="#5A4038" stroke-width="4" stroke-linecap="round"/><ellipse cx="60" cy="66" rx="13" ry="9" fill="#F5B8C6" stroke="#5A4038" stroke-width="3"/><ellipse cx="55" cy="64" rx="1.8" ry="2.6" fill="#5A4038"/><ellipse cx="65" cy="64" rx="1.8" ry="2.6" fill="#5A4038"/><ellipse cx="36" cy="64" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="84" cy="64" rx="6.5" ry="4.5" fill="#F7A8BC"/><path d="M46 82q14 7 28 0" fill="none" stroke="#D9566E" stroke-width="5" stroke-linecap="round"/><circle cx="60" cy="88" r="5.5" fill="#E8B23C" stroke="#5A4038" stroke-width="3"/></svg>',
+  bunny_peek: '<svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><ellipse cx="44" cy="30" rx="8.5" ry="23" fill="#FFFFFF" transform="rotate(-12 44 30)"/><ellipse cx="72" cy="28" rx="8.5" ry="23" fill="#FFFFFF" transform="rotate(9 72 28)"/><circle cx="58" cy="62" r="27" fill="#FFFFFF"/><ellipse cx="34" cy="88" rx="9" ry="7" fill="#FFFFFF"/><ellipse cx="82" cy="88" rx="9" ry="7" fill="#FFFFFF"/></g><ellipse cx="44" cy="29" rx="3.8" ry="14" fill="#F7C6D3" transform="rotate(-12 44 29)"/><ellipse cx="72" cy="27" rx="3.8" ry="14" fill="#F7C6D3" transform="rotate(9 72 27)"/><circle cx="49" cy="61" r="3.6" fill="#5A4038"/><circle cx="68" cy="61" r="3.6" fill="#5A4038"/><ellipse cx="39" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="78" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="58" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg>'
+};
+
+
+/* ───── um-pics.js ───── */
+/* 유앤미 캐릭터 그림 — 워드프레스 미디어에 올려두신 것들입니다.
+   가 1~6 · 나 1~11 · 다 1~12 · 모두 29장.
+   자리를 바꾸시려면 아래 UM_SET.그림 에서 이름만 갈아끼우면 됩니다. */
+window.UM_PIC = {
+  '로고그림': 'https://stellasaju.com/wp-content/uploads/2026/09/uandme_logo-01.png',
+  '히어로그림': 'https://stellasaju.com/wp-content/uploads/2026/09/uandme_cha-02-300px.png',
+  '가1': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-01-300px.png',
+  '가2': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-02-300px.png',
+  '가3': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-03-300px.png',
+  '가4': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-04-300px.png',
+  '가5': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-05-300px.png',
+  '가6': 'https://stellasaju.com/wp-content/uploads/2026/08/animal-06-300px.png',
+  '나1': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-01-300px.png',
+  '나2': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-02-300px.png',
+  '나3': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-03-300px.png',
+  '나4': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-04-300px.png',
+  '나5': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-05-300px.png',
+  '나6': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-06-300px.png',
+  '나7': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-07-300px.png',
+  '나8': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-08-300px.png',
+  '나9': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-09-300px.png',
+  '나10': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-10-300px.png',
+  '나11': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140636-11-300px.png',
+  '다1': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-01-300px.png',
+  '다2': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-02-300px.png',
+  '다3': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-03-300px.png',
+  '다4': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-04-300px.png',
+  '다5': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-05-300px.png',
+  '다6': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-06-300px.png',
+  '다7': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-07-300px.png',
+  '다8': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-08-300px.png',
+  '다9': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-09-300px.png',
+  '다10': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-10-300px.png',
+  '다11': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-11-300px.png',
+  '다12': 'https://stellasaju.com/wp-content/uploads/2026/08/animal_2785140635-12-300px.png'
+};
+
+
+/* ───── um-settings.js ───── */
+/* ══════════════════════════════════════════════════════════════
+   ┌────────────────────────────────────────────────────────────┐
+   │                                                            │
+   │   여기만 고치시면 됩니다                                    │
+   │                                                            │
+   │   · 그림을 바꾸려면 : 따옴표 안에 그림 주소를 넣으세요       │
+   │     워드프레스 → 미디어 → 그림 클릭 → 「파일 URL」 복사      │
+   │     비워두면 지금처럼 그려진 동물이 나옵니다                 │
+   │                                                            │
+   │   · 글자를 바꾸려면 : 따옴표 안의 글자만 고치세요            │
+   │     따옴표와 쉼표는 지우지 마세요                           │
+   │                                                            │
+   └────────────────────────────────────────────────────────────┘
+   ══════════════════════════════════════════════════════════════ */
+
+window.UM_SET = {
+
+  /* ── 그림 ────────────────────────────────────────────────
+     주소 보기 : https://stellasaju.com/wp-content/uploads/2026/08/younme-char-01.webp
+     이렇게 넣으시면 됩니다 —
+       로고: 'https://stellasaju.com/wp-content/uploads/2026/08/younme-char-01.webp',   */
+  그림: {
+    로고:      '로고그림',
+
+    히어로큰:  '히어로그림',   /* 첫 화면 오른쪽 · 큰 아이 */
+    히어로작은: '없음',      /* 「없음」이라고 쓰면 아무것도 안 나옵니다 */   /* 첫 화면 오른쪽 · 작은 아이 */
+
+    카드왼쪽:  '없음',   /* 점수 카드 위 — 없는 편이 깔끔합니다 */
+    카드오른쪽: '없음',
+
+    초대그림:  '가1',   /* 「그 사람 생일 몰라도 괜찮아요」 옆 · 통째로 보입니다 */
+    초대위:    '없음',
+    초대아래:  '없음',
+    공짜카드:  '나7',   /* 「전부 공짜입니다」 위 */
+
+    /* 관계 고르는 여덟 칸 — 여기는 얼굴이 다 보입니다 */
+    연인:      '다1',
+    부부:      '다2',
+    친구:      '다3',
+    형제자매:  '다4',
+    부모자녀:  '다5',
+    상사부하:  '다6',
+    동업자:    '다7',
+
+    /* 관계 칸 여덟째 — 연예인이랑 보기 */
+    연예인:    '다8'
+  },
+
+  /* ── 카카오톡으로 보내기 ────────────────────────────────
+     여기가 비어 있으면 카톡 단추가 「링크 복사」처럼 움직입니다.
+     채우면 카카오가 만든 예쁜 창이 뜨고, 휴대폰에서는 카톡 앱으로
+     바로 넘어갑니다.
+
+     키 받는 곳 : developers.kakao.com
+       ① 로그인 → 「내 애플리케이션」 → 애플리케이션 추가하기
+       ② 앱 이름 「유앤미」, 사업자명 넣고 저장
+       ③ 「앱 키」 화면에서 <JavaScript 키>를 복사 (REST API 키 아닙니다)
+       ④ 왼쪽 「플랫폼」 → Web → 사이트 도메인에 아래 둘을 등록
+            https://stellasaju.com
+            http://stellasaju.com
+       ⑤ 복사한 JavaScript 키를 아래 따옴표 안에 붙여넣기
+
+     ※ JavaScript 키는 공개되어도 되는 키입니다. 등록한 도메인에서만
+        움직이므로 남이 가져다 쓸 수 없습니다. (REST API 키는 절대
+        여기에 넣으면 안 됩니다) */
+  설정: {
+    카카오키:  '7806d048aad9905e98fb7dd4217236d2',
+
+    /* 카톡에 뜨는 그림 — 200px 이상이어야 합니다 */
+    카톡그림:  'https://stellasaju.com/wp-content/uploads/2026/09/uandme_cha-02-300px.png'
+  },
+
+  /* ── 글자 ──────────────────────────────────────────────── */
+  글: {
+    제목위:    '생년월일 두 개면 끝',
+    제목:      '우리 둘,<br>몇 점일까?',
+    제목설명:  '사주 · 별자리 · 띠 셋을 함께 봅니다.<br>가입도 앱 설치도 없어요.',
+
+    관계제목:  '누구랑 볼까요?',
+    관계설명:  '같은 92점도 관계마다 말이 달라져요',
+
+    시작버튼:  '시작하기',
+
+    초대제목:  '그 사람 생일,<br>몰라도 괜찮아요',
+    초대1:     '내 생일만 넣고 링크 만들기',
+    초대2:     '카톡으로 툭 보내기',
+    초대3:     '둘 다 결과 보기',
+
+    공짜제목:  '전부 공짜입니다',
+    공짜설명:  '점수도, 왜 그 점수인지도 다 보여드려요. 가입도 결제도 없습니다. ' +
+               '생년월일은 서버로 보내지 않고, 링크를 지우면 함께 사라집니다.',
+
+    스텔라띠:  '내 사주 제대로 읽어보기',
+
+    꼬리말:    '재미로 보는 궁합입니다. 생년월일은 결과를 만드는 동안에만 쓰이고 ' +
+               '서버로 보내지 않습니다. 링크를 지우면 함께 사라집니다.'
+  }
+};
+
+
+/* ───── um-celebs.js ───── */
+/* 연예인 궁합에 쓰는 사람들 — 335명.
+   생년월일은 위키피디아·kprofiles·dbkpop·famousbirthdays 등 여러 곳이
+   맞아떨어지는 것만 넣었습니다. 만 19세 미만은 넣지 않았습니다.
+   태어난 시각은 공개된 것이 없어 「모름」으로 봅니다. */
+window.UM_CELEB = {
+  g: ["아이브|IVE", "뉴진스|NewJeans", "에스파|aespa", "르세라핌|LE SSERAFIM", "블랙핑크|BLACKPINK", "트와이스|TWICE", "아이들|i-dle", "레드벨벳|Red Velvet", "있지|ITZY", "엔믹스|NMIXX", "라이즈|RIIZE", "투어스|TWS", "제로베이스원|ZEROBASEONE", "아일릿|ILLIT", "베이비몬스터|BABYMONSTER", "키스오브라이프|KISS OF LIFE", "보이넥스트도어|BOYNEXTDOOR", "엔시티위시|NCT WISH", "하츠투하츠|Hearts2Hearts", "방탄소년단|BTS", "세븐틴|SEVENTEEN", "스트레이키즈|Stray Kids", "엔하이픈|ENHYPEN", "투모로우바이투게더|TXT", "엑소|EXO", "샤이니|SHINee", "에이티즈|ATEEZ", "트레저|TREASURE", "엔시티드림|NCT DREAM", "엔시티127|NCT 127", "더보이즈|THE BOYZ", "몬스타엑스|MONSTA X", "크래비티|CRAVITY", "피원하모니|P1Harmony", "케플러|Kep1er", "스테이씨|STAYC", "프로미스나인|fromis_9", "오마이걸|OH MY GIRL", "에이핑크|Apink", "솔로|Solo", "배우|Actor"],
+  p: "가을|Gaeul|20020924|0|F;안유진|An Yujin|20030901|0|F;레이|Rei|20040203|0|F;장원영|Jang Wonyoung|20040831|0|F;리즈|Liz|20041121|0|F;이서|Leeseo|20070221|0|F;민지|Minji|20040507|1|F;하니|Hanni|20041006|1|F;다니엘|Danielle|20050411|1|F;해린|Haerin|20060515|1|F;카리나|Karina|20000411|2|F;지젤|Giselle|20001030|2|F;윈터|Winter|20010101|2|F;닝닝|Ningning|20021023|2|F;사쿠라|Sakura|19980319|3|F;김채원|Kim Chaewon|20000801|3|F;허윤진|Huh Yunjin|20011008|3|F;카즈하|Kazuha|20030809|3|F;홍은채|Hong Eunchae|20061110|3|F;지수|Jisoo|19950103|4|F;제니|Jennie|19960116|4|F;로제|Rose|19970211|4|F;리사|Lisa|19970327|4|F;나연|Nayeon|19950922|5|F;정연|Jeongyeon|19961101|5|F;모모|Momo|19961109|5|F;사나|Sana|19961229|5|F;지효|Jihyo|19970201|5|F;미나|Mina|19970324|5|F;다현|Dahyun|19980528|5|F;채영|Chaeyoung|19990423|5|F;쯔위|Tzuyu|19990614|5|F;미연|Miyeon|19970131|6|F;민니|Minnie|19971023|6|F;소연|Soyeon|19980826|6|F;우기|Yuqi|19990923|6|F;슈화|Shuhua|20000106|6|F;아이린|Irene|19910329|7|F;슬기|Seulgi|19940210|7|F;웬디|Wendy|19940221|7|F;조이|Joy|19960903|7|F;예리|Yeri|19990305|7|F;예지|Yeji|20000526|8|F;리아|Lia|20000721|8|F;류진|Ryujin|20010417|8|F;채령|Chaeryeong|20010605|8|F;유나|Yuna|20031209|8|F;릴리|Lily|20021017|9|F;해원|Haewon|20030225|9|F;설윤|Sullyoon|20040126|9|F;배이|Bae|20041228|9|F;지우|Jiwoo|20050413|9|F;규진|Kyujin|20060526|9|F;쇼타로|Shotaro|20001125|10|M;은석|Eunseok|20010319|10|M;성찬|Sungchan|20010913|10|M;원빈|Wonbin|20020302|10|M;승한|Seunghan|20031002|10|M;소희|Sohee|20031121|10|M;앤톤|Anton|20040321|10|M;신유|Shinyu|20031107|11|M;도훈|Dohoon|20050130|11|M;영재|Youngjae|20050531|11|M;한진|Hanjin|20060105|11|M;지훈|Jihoon|20060328|11|M;김지웅|Kim Jiwoong|19981214|12|M;장하오|Zhang Hao|20000725|12|M;성한빈|Sung Hanbin|20010613|12|M;석매튜|Seok Matthew|20020528|12|M;김태래|Kim Taerae|20020714|12|M;리키|Ricky|20040520|12|M;김규빈|Kim Gyuvin|20040830|12|M;박건욱|Park Gunwook|20050110|12|M;윤아|Yunah|20040115|13|F;민주|Minju|20040511|13|F;모카|Moka|20041008|13|F;원희|Wonhee|20070626|13|F;루카|Ruka|20020320|14|F;파리타|Pharita|20050826|14|F;아사|Asa|20060417|14|F;아현|Ahyeon|20070411|14|F;줄리|Julie|20000329|15|F;나띠|Natty|20020530|15|F;벨|Belle|20040320|15|F;하늘|Haneul|20050525|15|F;성호|Sungho|20030904|16|M;리우|Riwoo|20031022|16|M;재현|Jaehyun|20031204|16|M;태산|Taesan|20040810|16|M;이한|Leehan|20041020|16|M;운학|Woonhak|20061129|16|M;시온|Sion|20020511|17|M;리쿠|Riku|20030628|17|M;유우시|Yushi|20040405|17|M;재희|Jaehee|20050621|17|M;료|Ryo|20070804|17|M;카르멘|Carmen|20060328|18|F;지우|Jiwoo|20060907|18|F;유하|Yuha|20070412|18|F;스텔라|Stella|20070618|18|F;진|Jin|19921204|19|M;슈가|Suga|19930309|19|M;제이홉|J-Hope|19940218|19|M;알엠|RM|19940912|19|M;지민|Jimin|19951013|19|M;뷔|V|19951230|19|M;정국|Jungkook|19970901|19|M;에스쿱스|S.Coups|19950808|20|M;정한|Jeonghan|19951004|20|M;조슈아|Joshua|19951230|20|M;준|Jun|19960610|20|M;호시|Hoshi|19960615|20|M;원우|Wonwoo|19960717|20|M;우지|Woozi|19961122|20|M;도겸|DK|19970218|20|M;민규|Mingyu|19970406|20|M;디에잇|The8|19971107|20|M;승관|Seungkwan|19980116|20|M;버논|Vernon|19980218|20|M;디노|Dino|19990211|20|M;방찬|Bang Chan|19971003|21|M;리노|Lee Know|19981025|21|M;창빈|Changbin|19990811|21|M;현진|Hyunjin|20000320|21|M;한|Han|20000914|21|M;필릭스|Felix|20000915|21|M;승민|Seungmin|20000922|21|M;아이엔|I.N|20010208|21|M;희승|Heeseung|20011015|22|M;제이|Jay|20020420|22|M;제이크|Jake|20021115|22|M;성훈|Sunghoon|20021208|22|M;선우|Sunoo|20030624|22|M;정원|Jungwon|20040209|22|M;니키|Ni-ki|20051209|22|M;연준|Yeonjun|19990913|23|M;수빈|Soobin|20001205|23|M;범규|Beomgyu|20010313|23|M;태현|Taehyun|20020205|23|M;휴닝카이|Huening Kai|20020814|23|M;시우민|Xiumin|19900326|24|M;수호|Suho|19910522|24|M;레이|Lay|19911007|24|M;백현|Baekhyun|19920506|24|M;첸|Chen|19920921|24|M;찬열|Chanyeol|19921127|24|M;디오|D.O|19930112|24|M;카이|Kai|19940114|24|M;세훈|Sehun|19940412|24|M;온유|Onew|19891214|25|M;키|Key|19910923|25|M;민호|Minho|19911209|25|M;태민|Taemin|19930718|25|M;성화|Seonghwa|19980403|26|M;홍중|Hongjoong|19981107|26|M;윤호|Yunho|19990323|26|M;여상|Yeosang|19990615|26|M;산|San|19990710|26|M;민기|Mingi|19990809|26|M;우영|Wooyoung|19991126|26|M;종호|Jongho|20001012|26|M;최현석|Choi Hyunsuk|19990421|27|M;지훈|Jihoon|20000314|27|M;요시|Yoshi|20000515|27|M;준규|Junkyu|20000909|27|M;윤재혁|Yoon Jaehyuk|20010723|27|M;아사히|Asahi|20010820|27|M;도영|Doyoung|20031204|27|M;하루토|Haruto|20040405|27|M;박정우|Park Jeongwoo|20040928|27|M;소정환|So Junghwan|20050218|27|M;마크|Mark|19990802|28|M;런쥔|Renjun|20000323|28|M;제노|Jeno|20000423|28|M;해찬|Haechan|20000606|28|M;재민|Jaemin|20000813|28|M;천러|Chenle|20011122|28|M;지성|Jisung|20020205|28|M;태일|Taeil|19940614|29|M;쟈니|Johnny|19950209|29|M;태용|Taeyong|19950701|29|M;유타|Yuta|19951026|29|M;도영|Doyoung|19960201|29|M;재현|Jaehyun|19970214|29|M;윈윈|Winwin|19971028|29|M;정우|Jungwoo|19980219|29|M;상연|Sangyeon|19961104|30|M;제이콥|Jacob|19970530|30|M;영훈|Younghoon|19970808|30|M;현재|Hyunjae|19970913|30|M;주연|Juyeon|19980115|30|M;케빈|Kevin|19980223|30|M;뉴|New|19980426|30|M;큐|Q|19981105|30|M;주학년|Ju Haknyeon|19990309|30|M;선우|Sunwoo|20000412|30|M;에릭|Eric|20001222|30|M;셔누|Shownu|19920618|31|M;민혁|Minhyuk|19931103|31|M;기현|Kihyun|19931122|31|M;형원|Hyungwon|19940115|31|M;주헌|Joohoney|19941006|31|M;아이엠|I.M|19960126|31|M;세림|Serim|19990303|32|M;앨런|Allen|19990426|32|M;정모|Jungmo|20000205|32|M;우빈|Woobin|20001016|32|M;원진|Wonjin|20010322|32|M;민희|Minhee|20020917|32|M;형준|Hyeongjun|20021130|32|M;태영|Taeyoung|20030127|32|M;성민|Seongmin|20030801|32|M;테오|Theo|20010701|33|M;기호|Keeho|20010927|33|M;지웅|Jiung|20011007|33|M;인탁|Intak|20030831|33|M;소울|Soul|20050201|33|M;종섭|Jongseob|20051119|33|M;샤오팅|Xiaoting|19991112|34|F;채현|Chaehyun|20020426|34|F;다연|Dayeon|20030302|34|F;히카루|Hikaru|20040312|34|F;휴닝바히에|Huening Bahiyyih|20040727|34|F;영은|Youngeun|20041227|34|F;예서|Yeseo|20050822|34|F;수민|Sumin|20010313|35|F;시은|Sieun|20010801|35|F;아이사|Isa|20020123|35|F;세은|Seeun|20030614|35|F;윤|Yoon|20040414|35|F;재이|J|20041209|35|F;이새롬|Saerom|19970107|36|F;송하영|Hayoung|19970929|36|F;박지원|Jiwon|19980320|36|F;노지선|Jisun|19981123|36|F;이서연|Seoyeon|20000122|36|F;이채영|Chaeyoung|20000514|36|F;이나경|Nagyung|20000601|36|F;백지헌|Jiheon|20030417|36|F;효정|Hyojung|19940728|37|F;미미|Mimi|19950501|37|F;유아|YooA|19950917|37|F;승희|Seunghee|19960125|37|F;유빈|Yubin|19970909|37|F;아린|Arin|19990618|37|F;박초롱|Chorong|19910303|38|F;윤보미|Bomi|19930813|38|F;정은지|Eunji|19930818|38|F;김남주|Namjoo|19950415|38|F;오하영|Hayoung|19960719|38|F;태연|Taeyeon|19890309|39|F;선미|Sunmi|19920502|39|F;크러쉬|Crush|19920503|39|M;지코|Zico|19920914|39|M;아이유|IU|19930516|39|F;화사|Hwasa|19950723|39|F;청하|Chungha|19960209|39|F;황정민|Hwang Jung-min|19700901|40|M;김혜수|Kim Hye-soo|19700905|40|F;마동석|Ma Dong-seok|19710301|40|M;이정재|Lee Jung-jae|19721215|40|M;전도연|Jeon Do-yeon|19730211|40|F;정우성|Jung Woo-sung|19730422|40|M;하정우|Ha Jung-woo|19780311|40|M;공유|Gong Yoo|19790710|40|M;김남길|Kim Nam-gil|19800313|40|M;강동원|Gang Dong-won|19810118|40|M;조인성|Jo In-sung|19810728|40|M;전지현|Jun Ji-hyun|19811030|40|F;박해수|Park Hae-soo|19811121|40|M;송혜교|Song Hye-kyo|19811122|40|F;손예진|Son Ye-jin|19820111|40|F;현빈|Hyun Bin|19820925|40|M;한지민|Han Ji-min|19821105|40|F;손석구|Son Suk-ku|19830207|40|M;이하늬|Lee Ha-nee|19830302|40|F;신민아|Shin Min-a|19840405|40|F;유연석|Yoo Yeon-seok|19840411|40|M;이제훈|Lee Je-hoon|19840704|40|M;송중기|Song Joong-ki|19850919|40|M;박민영|Park Min-young|19860304|40|F;김선호|Kim Seon-ho|19860508|40|M;류준열|Ryu Jun-yeol|19860925|40|M;박정민|Park Jung-min|19870324|40|M;천우희|Chun Woo-hee|19870420|40|F;이민호|Lee Min-ho|19870622|40|M;지창욱|Ji Chang-wook|19870705|40|M;김수현|Kim Soo-hyun|19880216|40|M;정해인|Jung Hae-in|19880401|40|M;박서준|Park Seo-joon|19881216|40|M;정소민|Jung So-min|19890316|40|F;김우빈|Kim Woo-bin|19890716|40|M;신혜선|Shin Hye-sun|19890831|40|F;이종석|Lee Jong-suk|19890914|40|M;이준호|Lee Jun-ho|19900125|40|M;박보영|Park Bo-young|19900212|40|F;최우식|Choi Woo-shik|19900326|40|M;김태리|Kim Tae-ri|19900424|40|F;이성경|Lee Sung-kyung|19900810|40|F;황인엽|Hwang In-youp|19910119|40|M;안은진|Ahn Eun-jin|19910506|40|F;김고은|Kim Go-eun|19910702|40|F;위하준|Wi Ha-joon|19910805|40|M;변우석|Byeon Woo-seok|19911031|40|M;박은빈|Park Eun-bin|19920904|40|F;김지원|Kim Ji-won|19921019|40|F;하윤경|Ha Yoon-kyung|19921020|40|F;이세영|Lee Se-young|19921220|40|F;채종협|Chae Jong-hyeop|19930519|40|M;박보검|Park Bo-gum|19930616|40|M;한소희|Han So-hee|19931118|40|F;남주혁|Nam Joo-hyuk|19940222|40|M;송강|Song Kang|19940423|40|M;전종서|Jeon Jong-seo|19940705|40|F;이유미|Lee Yoo-mi|19940718|40|F;수지|Suzy|19941010|40|F;김다미|Kim Da-mi|19950409|40|F;이도현|Lee Do-hyun|19950411|40|M;안효섭|Ahn Hyo-seop|19950417|40|M;김혜준|Kim Hye-jun|19950508|40|F;보나|Bona|19950819|40|F;김민하|Kim Min-ha|19950901|40|F;고윤정|Go Youn-jung|19960422|40|F;문가영|Moon Ga-young|19960710|40|F;김세정|Kim Se-jeong|19960828|40|F;김혜윤|Kim Hye-yoon|19961110|40|F;차은우|Cha Eun-woo|19970330|40|M;여진구|Yeo Jin-goo|19970813|40|M;이재욱|Lee Jae-wook|19980510|40|M;김유정|Kim Yoo-jung|19990922|40|F;로몬|Lomon|19991111|40|M;노윤서|Roh Yoon-seo|20000125|40|F;문상민|Moon Sang-min|20000414|40|M;김현수|Kim Hyun-soo|20000623|40|F;최현욱|Choi Hyun-wook|20020130|40|M"
+};
+
+
+/* ───── uandme-app.js ───── */
+/* ══════════════════════════════════════════════════════════════
+   유앤미 — 두 사람 궁합 (stellasaju.com/uandme/)
+
+   서버에 아무것도 저장하지 않습니다. 두 사람의 생년월일은 링크 안에만
+   담겨 돌고, 링크를 지우면 함께 사라집니다.
+
+   화면 다섯
+     home    첫 화면 — 관계 고르고 시작
+     mine    내 생년월일 넣기
+     invite  링크 만들어 보내기
+     joined  상대가 링크를 열었을 때
+     result  결과 · 돌려보내기 · 자랑하기
+
+   주소
+     /uandme/            처음부터
+     /uandme/?i=…        초대 링크 (한 사람 정보)
+     /uandme/?r=…        결과 링크 (두 사람 정보)
+
+   주의 · 이 파일 안에서 앰퍼샌드 두 개 연산자를 쓰지 않습니다.
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var ROOT = null;
+  var S = null, M = null;
+
+  /* ── 링크에 담고 푸는 법 ─────────────────────────────── */
+  function b64enc(s) {
+    return btoa(unescape(encodeURIComponent(s)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function b64dec(s) {
+    s = String(s).replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) { s += '='; }
+    try { return decodeURIComponent(escape(atob(s))); } catch (e) { return ''; }
+  }
+  /* 한 사람 = 성별.생년월일.시각.시각앎.이름 */
+  function packOne(p) {
+    return [p.sex, p.y + pad2(p.m) + pad2(p.d),
+            p.known ? pad2(p.h) + pad2(p.mi) : '',
+            p.known ? '1' : '0', p.name || ''].join('~');
+  }
+  function unpackOne(s) {
+    var a = String(s).split('~');
+    if (a.length < 5) { return null; }
+    var ymd = a[1];
+    if (ymd.length !== 8) { return null; }
+    var known = a[3] === '1';
+    return {
+      sex: a[0] === 'M' ? 'M' : 'F',
+      y: +ymd.slice(0, 4), m: +ymd.slice(4, 6), d: +ymd.slice(6, 8),
+      h: known ? +a[2].slice(0, 2) : 12,
+      mi: known ? +a[2].slice(2, 4) : 0,
+      known: known,
+      name: a[4] || ''
+    };
+  }
+  function packLink(rel, a, b) {
+    var parts = ['1', rel, packOne(a)];
+    if (b) { parts.push(packOne(b)); }
+    return b64enc(parts.join('|'));
+  }
+  function unpackLink(t) {
+    var raw = b64dec(t);
+    if (!raw) { return null; }
+    var a = raw.split('|');
+    if (a[0] !== '1') { return null; }
+    var one = unpackOne(a[2]);
+    if (!one) { return null; }
+    return { rel: a[1] || 'lover', a: one, b: a[3] ? unpackOne(a[3]) : null };
+  }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  /* ── 관계 이름표 ─────────────────────────────────────── */
+  var RELS = [
+    { key: 'lover',        ko: '연인' },
+    { key: 'married',      ko: '부부' },
+    { key: 'friend',       ko: '친구' },
+    { key: 'sibling',      ko: '형제자매' },
+    { key: 'parent_child', ko: '부모와 자녀' },
+    { key: 'boss_sub',     ko: '상사와 부하' },
+    { key: 'partner',      ko: '동업자' }
+  ];
+  function relKo(k) {
+    var i;
+    for (i = 0; i < RELS.length; i++) { if (RELS[i].key === k) { return RELS[i].ko; } }
+    return '연인';
+  }
+
+  /* ── 사주 세우기 ─────────────────────────────────────── */
+  function chartOf(p) {
+    return S.compute({
+      year: p.y, month: p.m, day: p.d,
+      hour: p.known ? p.h : 12, minute: p.known ? p.mi : 0,
+      sex: p.sex, lat: 37.5665, lon: 126.9780, hourKnown: p.known
+    });
+  }
+
+  /* ── 상태 ────────────────────────────────────────────── */
+  var st = {
+    view: 'home',
+    rel: 'lover',
+    me: null,
+    you: null,
+    result: null
+  };
+
+  function saveMe() {
+    try { localStorage.setItem('uandme_me', JSON.stringify(st.me)); } catch (e) {}
+  }
+  function loadMe() {
+    try {
+      var v = localStorage.getItem('uandme_me');
+      return v ? JSON.parse(v) : null;
+    } catch (e) { return null; }
+  }
+
+  /* ── 화면 그리기는 render.js 쪽에서 이어집니다 ────────── */
+  window.UandMe = {
+    packLink: packLink, unpackLink: unpackLink,
+    packOne: packOne, unpackOne: unpackOne,
+    chartOf: chartOf, relKo: relKo, RELS: RELS,
+    state: st, saveMe: saveMe, loadMe: loadMe,
+    setEngines: function (saju, match) { S = saju; M = match; },
+    compute: function () {
+      var A = chartOf(st.me), B = chartOf(st.you);
+      st.result = M.match(A, B, st.rel);
+      st.result.chartA = A;
+      st.result.chartB = B;
+      return st.result;
+    },
+    b64enc: b64enc, b64dec: b64dec
+  };
+})();
+
+
+/* ───── uandme-ui.js ───── */
+/* ══════════════════════════════════════════════════════════════
+   유앤미 — 화면
+   uandme-app.js · uandme-tiers.js · stella-saju.js · stella-match.js
+   가 먼저 실려 있어야 합니다.
+   주의 · 이 파일 안에서 앰퍼샌드 두 개 연산자를 쓰지 않습니다.
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var U = window.UandMe, st = U.state, root = null;
+  var BASE = location.origin + location.pathname;
+
+  /* ── 옷 ──────────────────────────────────────────────── */
+  var CSS = [
+    '#um{--p:#B8A6E8;--pd:#6B5BA8;--bg:#F7F2FC;--ink:#3F3A52;--sub:#7C7392;--soft:#A79BC4;',
+    'font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif;background:var(--bg);',
+    'color:#4A4358;max-width:420px;margin:0 auto;padding:0 0 56px;overflow:hidden;-webkit-text-size-adjust:100%}',
+    '#um *{box-sizing:border-box}',
+    /* 워드프레스 테마가 button 에 입히는 테두리·배경·그림자를 걷어냅니다.
+       「누구랑 볼까요」 칸에 검정 테두리가 나오던 원인입니다. */
+    '#um button{border:0;background:none;box-shadow:none;padding:0;margin:0;',
+    'font-family:inherit;color:inherit;text-transform:none;letter-spacing:normal;',
+    'border-radius:0;-webkit-appearance:none;appearance:none;cursor:pointer}',
+    '#um button:hover,#um button:focus{border:0;box-shadow:none;outline:none}',
+    '#um img{max-width:100%;height:auto;border:0;border-radius:0;box-shadow:none}',
+    '#um .jua{font-family:Jua,"Noto Sans KR",sans-serif}',
+    '#um .pad{padding-left:20px;padding-right:20px}',
+    '#um .h1{font-family:Jua,"Noto Sans KR",sans-serif;font-size:34px;line-height:1.26;',
+    'letter-spacing:-.02em;color:var(--ink)}',
+    '#um .sub{font-size:14.5px;line-height:1.8;color:var(--sub);margin-top:12px}',
+    '#um .lbl{font-size:12.5px;font-weight:700;color:#8C82A6;margin-bottom:8px}',
+    '#um .card{background:#fff;border-radius:28px;padding:26px 22px;',
+    'box-shadow:0 18px 34px -20px rgba(107,91,168,.4)}',
+    '#um .btnP{display:flex;align-items:center;justify-content:center;height:56px;background:var(--p);',
+    'color:#fff;border-radius:20px;font-family:Jua,"Noto Sans KR",sans-serif;font-size:16.5px;',
+    'border:0;width:100%;cursor:pointer;box-shadow:0 10px 20px -12px rgba(107,91,168,.8)}',
+    '#um .btnG{display:flex;align-items:center;justify-content:center;height:52px;background:#fff;',
+    'color:var(--sub);border-radius:20px;font-size:14.5px;font-weight:500;border:0;width:100%;cursor:pointer}',
+    '#um .chip{background:#fff;border:0;border-radius:999px;padding:12px 17px;font-size:13.5px;',
+    'color:#57506E;cursor:pointer;font-family:inherit}',
+    '#um .chip.on{background:var(--p);color:#fff;font-weight:700}',
+    '#um .fld{height:54px;background:#fff;border:0;border-radius:18px;padding:0 16px;font-size:15px;',
+    'color:var(--ink);width:100%;font-family:inherit;text-align:center}',
+    '#um .fld::placeholder{color:#C3BAD6}',
+    /* 칸을 누를 때 브라우저 기본 검은 테두리 대신 연보라 테두리 */
+    '#um input:focus{outline:none;box-shadow:0 0 0 3px #DCD0F5}',
+    '#um button:focus-visible{outline:none;box-shadow:0 0 0 3px #DCD0F5}',
+    '#um .row{display:flex;gap:7px}',
+    /* 한 줄에 놓인 칸은 폭을 0에서 시작해 고르게 나눠 갖습니다.
+       이게 없으면 width:100% 때문에 뒷칸이 폭을 다 먹고 연도 칸이 찌그러집니다. */
+    '#um .row>.fld{flex:1 1 0;min-width:0}',
+    '#um .seg{flex:1;height:50px;background:#fff;border:0;border-radius:16px;font-size:14px;',
+    'color:#57506E;cursor:pointer;font-family:inherit}',
+    '#um .seg.on{background:var(--p);color:#fff;font-weight:700}',
+    '#um .bar{height:9px;background:#EDE6F8;border-radius:99px;overflow:hidden}',
+    '#um .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#C3B2F0,#F4B9D4)}',
+    '#um .sh{display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;cursor:pointer;',
+    'background:none;border:0;font-family:inherit;padding:0}',
+    '#um .sh i{width:56px;height:56px;border-radius:20px;display:flex;align-items:center;justify-content:center}',
+    '#um .sh span{font-size:11.5px;font-weight:700;color:#57506E}',
+    /* 어두운 덮개 위에 뜨는 시트 안에서는 글씨가 하얘야 보입니다 */
+    '#um #um-sheet .sh span{color:#F2EDFA}',
+    '#um .stp{cursor:pointer;transition:transform .12s}',
+    '#um .stp:active{transform:scale(.98)}',
+    '#um .note{font-size:12px;line-height:1.85;color:var(--soft)}',
+    '#um .mini{font-size:11.5px;line-height:1.9;color:#B3A9C9}',
+    '@media(max-width:400px){#um .h1{font-size:31px}}',
+
+    /* ── 이 페이지에서만 스텔라사주의 머리띠와 꼬리말을 감춥니다 ──
+       body 에 um-page 가 붙은 화면에서만 먹으므로 다른 페이지는 그대로입니다. */
+    'body.um-page header.wp-block-template-part,',
+    'body.um-page footer.wp-block-template-part,',
+    'body.um-page .wp-site-blocks>header,',
+    'body.um-page .wp-site-blocks>footer,',
+    'body.um-page .site-header,body.um-page .site-footer,',
+    'body.um-page #masthead,body.um-page #colophon{display:none!important}',
+    'body.um-page{background:#F7F2FC!important}',
+    'body.um-page .wp-site-blocks{padding:0!important}',
+    'body.um-page .entry-content,body.um-page .wp-block-post-content{',
+    'margin:0!important;padding:0!important;max-width:none!important}',
+    'body.um-page .wp-block-post-title{display:none!important}',
+
+    /* ── 유앤미 머리말 ── */
+    '#um-top{position:sticky;top:0;z-index:50;background:rgba(247,242,252,.92);',
+    'backdrop-filter:saturate(160%) blur(10px);-webkit-backdrop-filter:saturate(160%) blur(10px)}',
+    '#um-top .in{max-width:420px;margin:0 auto;padding:12px 20px;display:flex;',
+    'align-items:center;justify-content:space-between}',
+    '#um-top .lg{display:flex;align-items:center;gap:7px;text-decoration:none}',
+    '#um-top .lg b{font-family:Jua,"Noto Sans KR",sans-serif;font-size:22px;color:#6B5BA8;font-weight:400}',
+    '#um-top .lgi{display:block;height:34px;flex:0 0 auto}',
+    /* 그림은 칸을 꽉 채우되 비율은 지킵니다. #um 밖(머리말)에서도 먹어야 해서
+       #um 을 앞에 안 붙였습니다. */
+    '.um-img{width:100%;height:100%;object-fit:contain;display:block}',
+    '#um-top .lgi .um-img{height:34px;width:auto}',
+    '#um-top .lgi svg{height:34px;width:34px;display:block}',
+    '#um-top a.st{font-size:11.5px;font-weight:700;color:#A79BC4;text-decoration:none;',
+    'background:#EDE6F8;padding:8px 13px;border-radius:999px}',
+
+    /* ── 유앤미 꼬리말 ── */
+    '#um-foot{max-width:420px;margin:0 auto;padding:38px 20px 46px}',
+    '#um-foot .lk{display:flex;gap:8px;flex-wrap:wrap}',
+    '#um-foot .lk a{flex:1;min-width:90px;text-align:center;background:#fff;border-radius:16px;',
+    'padding:14px 10px;font-size:13px;font-weight:700;color:#57506E;text-decoration:none}',
+    '#um-foot p{font-size:11.5px;line-height:1.9;color:#B3A9C9;margin:18px 0 0}'
+  ].join('');
+
+  function css() {
+    if (document.getElementById('um-css')) { return; }
+    var s = document.createElement('style');
+    s.id = 'um-css'; s.textContent = CSS;
+    document.head.appendChild(s);
+    var f = document.createElement('link');
+    f.rel = 'stylesheet';
+    f.href = 'https://fonts.googleapis.com/css2?family=Jua' + '&' + 'display=swap';
+    document.head.appendChild(f);
+  }
+
+  function el(html) {
+    var d = document.createElement('div');
+    d.innerHTML = html;
+    return d.firstElementChild;
+  }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[<>"']/g, function (c) {
+      return { '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function on(sel, ev, fn) {
+    var n = root.querySelectorAll(sel), i;
+    for (i = 0; i < n.length; i++) { n[i].addEventListener(ev, fn); }
+  }
+
+  /* ── 아이콘 ──────────────────────────────────────────── */
+  var IC = {
+    talk: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3F2A08" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4a9.7 9.7 0 0 1-2.7-.4L3 21l1.6-4.1A8.2 8.2 0 0 1 3 11.5a8.4 8.4 0 0 1 9-8.4a8.4 8.4 0 0 1 9 8.4z"/></svg>',
+    at:   '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>',
+    cam:  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>',
+    link: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6B5BA8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
+    ex:   '<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"><path d="M4.5 4.5l15 15M19.5 4.5l-15 15"/></svg>',
+    save: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4F937A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+  };
+
+  window.UandMeUI = { css: css, el: el, esc: esc, on: on, IC: IC, CSS: CSS,
+                      base: function () { return BASE; },
+                      setRoot: function (r) { root = r; },
+                      getRoot: function () { return root; } };
+})();
+
+STELLA_UM;
+	echo "\n</script>\n";
+
+}, 20 );
+
+/* 유앤미 화면인지 — 세 스니펫이 같은 판단을 씁니다 */
+if ( ! function_exists( 'stella_um_here' ) ) {
+	function stella_um_here() {
+		if ( is_page( 'uandme' ) ) {
+			return true;
+		}
+		$u = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+		return strpos( $u, '/uandme' ) !== false;
+	}
+}
+
+/* 잘 실렸는지 보는 곳 */
+add_action( 'init', function () {
+	if ( ! isset( $_GET['stella_um2'] ) ) { return; }
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 system-ui;background:#111;color:#eee;padding:24px">';
+	if ( ! current_user_can( 'manage_options' ) ) { echo '관리자만 볼 수 있습니다.'; exit; }
+	echo '<h1 style="color:#ffd76a">유앤미 2 · 화면 밑감 (그림 · 설정 · 연예인 · 옷)</h1>';
+	echo '<p>이 스니펫은 살아 있습니다.</p>';
+	echo '<p>실어주는 글 : <b>41KB</b></p>';
+	echo '<table style="font-size:13px;margin:14px 0"><tr><td style="padding:4px 12px 4px 0">연예인 목록</td><td style="color:#9f9">있음</td></tr><tr><td style="padding:4px 12px 4px 0">연예인 단추</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">카톡 점수 카드</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">공유 아이콘 시트</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">그림 여백 잘라내기</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">들어올 때 장막</td><td style="color:#f88">없음</td></tr><tr><td style="padding:4px 12px 4px 0">카카오 키</td><td style="color:#9f9">있음</td></tr><tr><td style="padding:4px 12px 4px 0">오전 오후</td><td style="color:#f88">없음</td></tr></table>';
+	echo '<p>유앤미 화면 : <a style="color:#9fd" href="/uandme/">stellasaju.com/uandme/</a></p>';
+	exit;
+} );

@@ -1,0 +1,369 @@
+/* ══════════════════════════════════════════════════════════
+   궁합 셈 · StellaGunghapCalc   ★ 2026-09-13 · 소희 님께
+                                  판 GCALC-3
+
+   책은 이미 궁합 갈래를 갖고 있고 상대 생년월일도 받습니다.
+   없던 것이 이 둘이었습니다 —
+
+       window.StellaGunghapCalc   ← 이 조각 (점수와 키)
+       window.StellaGunghapText   ← 다음 조각 (열 줄 본문)
+
+   둘이 다 있어야 궁합 책이 나옵니다. 이 조각만 넣으면 아직
+   일반 책이 나옵니다 — 탈나지는 않습니다.
+
+   ── 저울 ──────────────────────────────────────────────
+   소희 님이 「2026년 9월에 정함 · 손대지 않습니다」로 적어두신
+   배점을 그대로 씁니다.
+
+           항목    일간  일지  오행  십성
+           성격     50    -    20    30
+           연애     25    35    -     40
+           결혼     25    45   30     -
+           재물      -    25   40    35
+
+   재료마다 0~1 비율을 내고 배점을 곱해 더합니다.
+   덕선 × 정환 값으로 맞춰 네 항목 모두 원고와 같았습니다
+   (성격 79 · 연애 79 · 결혼 77 · 재물 69).
+
+   ── 재료 저울 넷 ──────────────────────────────────────
+       일간 11점   천간합 10 · 생 10 · 같음 8 · 극 6
+                   음양 다름 +1 · 같음 +0.1
+                   ★ 천간합 다섯 쌍은 오행으로는 극인데 명리에서
+                     가장 좋게 봅니다. 그래서 따로 세웠습니다.
+                     다섯 쌍 다 음양이 달라 11점 만점이 됩니다.
+       일지 30점   삼합 30 · 육합 27 · 방합 24 · 같은 자리 20
+                   얽히지 않음 18 · 해 15 · 형 13 · 원진 10 · 충 8
+                   ★ 띠와 같은 저울입니다. 재료(날의 지지 vs 해의
+                     지지)가 다르니 두 점수는 따로 움직입니다.
+       십성 10점   재성 9 · 인성 8 · 식상 8 · 관성 7 · 비겁 6
+                   두 방향을 따로 셉니다 — 같은 관계를 두 사람이
+                   다르게 기억하는 까닭이 여기 있습니다.
+       오행        두 사람을 합쳐 얼마나 고른가 (한쪽에 다 몰리면 0)
+                   ★ 「채운 가지 수」로 재면 열 짝에 아홉이 다섯을
+                     다 채워 저울이 안 움직였습니다. 고름으로 바꿨습니다.
+
+   ── 총점 이름의 경계를 고쳤습니다 ─────────────────────
+   소희 님 경계(80 / 65 / 50 / 35)로 네 만 짝을 돌려보니
+   「결이 맞는 궁합」에 61%가 몰리고 아래 둘이 안 나왔습니다.
+
+       뒤   80 / 70 / 62 / 54
+            편안한 18% · 결이 맞는 40% · 노력형 29%
+            다른 결의 12% · 배우는 1%
+
+   「80점 이상」은 그대로 두었고 「배우는 궁합」은 백에 하나입니다.
+   이름과 뜻풀이는 소희 님 글 그대로입니다. 고치고 싶으시면
+   아래 GRADE 표의 숫자만 바꾸면 됩니다.
+
+   ── 붙이는 법 ─────────────────────────────────────────
+   WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+
+   넣으신 뒤 확인 : https://stellasaju.com/?stella_gcalc=1
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+	?>
+<script>
+/* ══════════════════════════════════════════════════════════
+   궁합 셈 · StellaGunghapCalc
+   저울은 wordpress/notes/궁합-재료저울-제안.md 판 3 그대로입니다.
+   이 안에서 두 글자짜리 논리기호를 쓰지 않습니다. */
+(function(){
+  'use strict';
+
+  /* ── 표 ─────────────────────────────────────────────── */
+  var GEL=['목','목','화','화','토','토','금','금','수','수'];   /* 천간 → 오행 */
+  var JEL=['수','토','목','목','토','화','화','토','금','금','토','수']; /* 지지 → 오행 */
+  var SAENG={'목':'화','화':'토','토':'금','금':'수','수':'목'};
+  var GEUK ={'목':'토','토':'수','수':'화','화':'금','금':'목'};
+  var TTI=['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
+  var GANHAN=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  var JIHAN =['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+
+  var SAMHAP=[[0,4,8],[1,5,9],[2,6,10],[3,7,11]];
+  var YUKHAP=[[0,1],[2,11],[3,10],[4,9],[5,8],[6,7]];
+  var BANGHAP=[[2,3,4],[5,6,7],[8,9,10],[11,0,1]];
+  var HAE  =[[0,7],[1,6],[2,5],[3,4],[8,11],[9,10]];
+  var WONJIN=[[0,7],[1,6],[2,9],[3,8],[4,11],[5,10]];
+  var HYEONG=[[2,5,8],[1,10,7],[0,3]];
+
+  function inSet(list,a,b){
+    var i,s;
+    for(i=0;i<list.length;i++){
+      s=list[i];
+      if(s.indexOf(a)>=0){ if(s.indexOf(b)>=0){ return true; } }
+    }
+    return false;
+  }
+  function pairIs(list,a,b){
+    var i,s;
+    for(i=0;i<list.length;i++){
+      s=list[i];
+      if(s.length!==2){ continue; }
+      if(s[0]===a){ if(s[1]===b){ return true; } }
+      if(s[0]===b){ if(s[1]===a){ return true; } }
+    }
+    return false;
+  }
+
+  /* ── 지지 얽힘 · 30점 저울 ───────────────────────────
+     합은 센 것부터, 부딪힘은 무거운 것부터 봅니다. */
+  function jiRel(a,b){
+    if(a!==b){ if(inSet(SAMHAP,a,b)){ return {name:'삼합', pt:30}; } }
+    if(pairIs(YUKHAP,a,b)){ return {name:'육합', pt:27}; }
+    if(a!==b){ if(inSet(BANGHAP,a,b)){ return {name:'방합', pt:24}; } }
+    if(a===b){ return {name:'같은 자리', pt:20}; }
+    if((a-b+12)%12===6){ return {name:'충', pt:8}; }
+    if(pairIs(WONJIN,a,b)){ return {name:'원진', pt:10}; }
+    if(a!==b){ if(inSet(HYEONG,a,b)){ return {name:'형', pt:13}; } }
+    if(pairIs(HAE,a,b)){ return {name:'해', pt:15}; }
+    return {name:'얽히지 않음', pt:18};
+  }
+
+  /* ── 일간 얽힘 · 11점 저울 ─────────────────────────── */
+  function ganRel(ga,gb){
+    var ea=GEL[ga], eb=GEL[gb];
+    var yinA=(ga%2===1), yinB=(gb%2===1);
+    var pt, name, dir='';
+    if(Math.abs(ga-gb)===5){
+      pt=10; name='천간합'; dir='bind';
+    } else if(ea===eb){
+      pt=8; name='바탕이 같음'; dir='same';
+    } else if(SAENG[ea]===eb){
+      pt=10; name='내가 상대를 살림'; dir='mine_feeds';
+    } else if(SAENG[eb]===ea){
+      pt=10; name='상대가 나를 살림'; dir='yours_feeds';
+    } else if(GEUK[ea]===eb){
+      pt=6; name='내가 상대를 누름'; dir='mine_bends';
+    } else {
+      pt=6; name='상대가 나를 누름'; dir='yours_bends';
+    }
+    var yy = (yinA!==yinB) ? 1 : 0.1;
+    return { name:name, dir:dir, pt:pt+yy, ratio:(pt+yy)/11,
+             yinyang:(yinA!==yinB)?'다름':'같음',
+             myEl:ea, yourEl:eb };
+  }
+
+  /* ── 십성 · 10점 저울, 두 방향 ─────────────────────── */
+  var SIPPT={'재성':9,'인성':8,'식상':8,'관성':7,'비겁':6};
+  function sipOf(mineEl, otherEl){
+    if(mineEl===otherEl){ return '비겁'; }
+    if(SAENG[mineEl]===otherEl){ return '식상'; }
+    if(GEUK[mineEl]===otherEl){ return '재성'; }
+    if(GEUK[otherEl]===mineEl){ return '관성'; }
+    return '인성';
+  }
+
+  /* ── 오행 · 두 사람을 합쳤을 때 얼마나 고른가 ─────────
+     「채운 가지 수」로 재면 열 짝 가운데 아홉이 다섯 가지를 다 채워
+     저울이 움직이지 않습니다. 그래서 **고름**을 봅니다.
+     원고의 뜻도 그쪽입니다 — 「두 사람이 어떤 기운의 균형을 이루는가」.
+         한쪽으로 다 몰리면 0 · 다섯이 똑같으면 1
+     그러면 내게 없던 기운을 상대가 가져올 때 값이 올라가니
+     「보완」이 따로 셈을 만들지 않아도 저절로 잡힙니다. */
+  function fiveRatio(fa, fb){
+    var m={'목':0,'화':0,'토':0,'금':0,'수':0};
+    function add(list){
+      var i;
+      if(!list){ return; }
+      for(i=0;i<list.length;i++){
+        if(m[list[i].element]===undefined){ continue; }
+        m[list[i].element]+=(list[i].count||0);
+      }
+    }
+    add(fa); add(fb);
+    var els=['목','화','토','금','수'];
+    var total=0, top=0, topEl='', filled=0, i, n;
+    for(i=0;i<els.length;i++){
+      n=m[els[i]];
+      total+=n;
+      if(n>0){ filled++; }
+      if(n>top){ top=n; topEl=els[i]; }
+    }
+    if(total===0){ return { ratio:0.5, filled:0, empty:els.slice(0), lean:false, map:m, total:0 }; }
+    var ideal=total/5, diff=0;
+    for(i=0;i<els.length;i++){ diff+=Math.abs(m[els[i]]-ideal); }
+    var r=1-(diff/(1.6*total));
+    if(r<0){ r=0; }
+    if(r>1){ r=1; }
+    var empty=[];
+    for(i=0;i<els.length;i++){ if(m[els[i]]===0){ empty.push(els[i]); } }
+    return { ratio:r, filled:filled, empty:empty,
+             lean:(top>total/2), topEl:topEl, top:top,
+             map:m, total:total };
+  }
+
+  /* ── 등급 ───────────────────────────────────────────── */
+  /* ★ 경계를 실제 분포에 맞췄습니다 (2026-09-13)
+     소희 님이 정하신 80 / 65 / 50 / 35 로 네 만 짝을 돌려보니
+     「결이 맞는 궁합」에 61%가 몰리고 아래 둘이 거의 안 나왔습니다.
+     80 / 70 / 62 / 54 로 하면 이렇게 퍼집니다 —
+         편안한 18% · 결이 맞는 40% · 노력형 29% · 다른 결의 12% · 배우는 1%
+     「80점 이상」은 그대로 두었고, 「배우는 궁합」은 백에 하나로 드뭅니다.
+     이름과 뜻풀이는 소희 님 글 그대로입니다. */
+  var GRADE=[
+    {from:80, name:'편안한 궁합',   say:'애쓰지 않아도 맞는 자리가 많습니다. 맞는 것을 당연하게 여기지 않는 것이 이 사이의 숙제입니다.'},
+    {from:70, name:'결이 맞는 궁합', say:'크게 부딪히는 곳이 적습니다. 대신 저절로 가까워지지는 않는 사이일 수도 있습니다.'},
+    {from:62, name:'노력형 궁합',   say:'맞는 자리와 어긋나는 자리가 함께 있습니다. 어디가 어디인지 아는 것이 이 책의 몫입니다.'},
+    {from:54, name:'다른 결의 궁합', say:'서로 다른 쪽을 보고 있는 자리가 많습니다. 다르다는 것을 알고 만나면 덜 다칩니다.'},
+    {from:0,  name:'배우는 궁합',   say:'닮은 데가 적습니다. 그래서 이 사이에서 배우는 것이 많습니다.'}
+  ];
+  function gradeOf(n){
+    var i;
+    for(i=0;i<GRADE.length;i++){ if(n>=GRADE[i].from){ return GRADE[i]; } }
+    return GRADE[GRADE.length-1];
+  }
+
+  /* ── 나이 차이로 정해지는 띠 얽힘 ───────────────────── */
+  var GAPFIX={0:'같은 띠',4:'삼합',6:'충',8:'삼합'};
+
+  /* ══ 밖으로 내놓는 것 ════════════════════════════════ */
+  var MINE = {
+    keys: function(mine, yours, opt){
+      opt = opt || {};
+      var mg=mine.pillars.day.gan,  yg=yours.pillars.day.gan;
+      var mj=mine.pillars.day.ji,   yj=yours.pillars.day.ji;
+      var mty=mine.pillars.year.ji, yty=yours.pillars.year.ji;
+
+      var gan = ganRel(mg, yg);
+      var ji  = jiRel(mj, yj);
+      var jiR = ji.pt/30;
+
+      var mineEl=GEL[mg], yourEl=GEL[yg];
+      var sipMine  = sipOf(mineEl, yourEl);   /* 상대가 내 무엇으로 오나 */
+      var sipYours = sipOf(yourEl, mineEl);   /* 내가 상대의 무엇으로 가나 */
+      var sipR = (SIPPT[sipMine]+SIPPT[sipYours])/20;
+
+      var five = fiveRatio(mine.five, yours.five);
+
+      function box(g,j,f,s){
+        var n=0;
+        if(g){ n+=gan.ratio*g; }
+        if(j){ n+=jiR*j; }
+        if(f){ n+=five.ratio*f; }
+        if(s){ n+=sipR*s; }
+        return Math.round(n);
+      }
+      var score={
+        char : box(50, 0, 20, 30),
+        love : box(25, 35, 0, 40),
+        marry: box(25, 45, 30, 0),
+        money: box(0,  25, 40, 35)
+      };
+      var total=Math.round((score.char+score.love+score.marry+score.money)/4);
+
+      /* 띠 */
+      var tti = jiRel(mty, yty);
+      var gap = Math.abs(mty-yty)%12;
+      if(gap>6){ gap=12-gap; }
+      var gapRaw=(yty-mty+12)%12;
+      var ttiPt = tti.pt;
+      if(tti.name==='같은 자리'){ ttiPt=20; }
+
+      return {
+        score: score,
+        total: total,
+        grade: gradeOf(total),
+        parts: {
+          gan:  gan,
+          ji:   { name:ji.name, pt:ji.pt, ratio:jiR,
+                  mineHan:JIHAN[mj], yourHan:JIHAN[yj] },
+          sip:  { mine:sipMine, yours:sipYours, ratio:sipR,
+                  ptMine:SIPPT[sipMine], ptYours:SIPPT[sipYours] },
+          five: five
+        },
+        tti: {
+          mine:TTI[mty], yours:TTI[yty],
+          name:(tti.name==='같은 자리')?'같은 띠':tti.name,
+          pt:ttiPt, ratio:ttiPt/30,
+          gap:gapRaw, gapFixed:(GAPFIX[gapRaw]!==undefined)
+        },
+        han: {
+          mineGan:GANHAN[mg], yourGan:GANHAN[yg],
+          mineJi:JIHAN[mj],   yourJi:JIHAN[yj]
+        },
+        year: opt.year || (new Date()).getFullYear()
+      };
+    }
+  };
+
+  /* ★ 자물쇠 — 쪽 안에 있는 옛 StellaGunghapCalc 가 우리 것을 덮어씁니다.
+     책 본문이 통째로 읽히는 동안 그 줄이 나중에 돌기 때문입니다.
+     그래서 이름을 「읽기만 되는 자리」로 바꿔 답니다.
+       읽으면  우리 것이 나오고
+       덮어쓰려 하면  조용히 무시합니다 (탈은 안 납니다)
+     덮어쓰기를 막지 않고 「받아서 버리는」 꼴이라, 엄격 모드에서도
+     그 줄이 멈추지 않습니다. */
+  try{
+    Object.defineProperty(window, 'StellaGunghapCalc', {
+      get: function(){ return MINE; },
+      set: function(){},
+      configurable: true
+    });
+  }catch(e){
+    window.StellaGunghapCalc = MINE;
+  }
+
+})();
+</script>
+	<?php
+}, 1 );
+
+/* ─── 잘 들어갔나 보는 자리 ─────────────────────────────── */
+add_action( 'template_redirect', function () {
+	if ( ! isset( $_GET['stella_gcalc'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	header( 'Content-Type: text/html; charset=utf-8' );
+	/* ★ 판 2 에서 고쳤습니다.
+	   이 화면은 워드프레스 쪽을 안 그리고 직접 뿌리는 화면입니다. 그래서
+	   wp_head 가 안 불리고, 두 조각(Calc · Text)도 로드되지 않았습니다.
+	   「★ StellaGunghapCalc 이 없습니다」가 그 탓이었습니다 — 조각은 멀쩡했습니다.
+	   여기서 wp_head 를 손으로 불러 줍니다. */
+	echo '<!DOCTYPE html><html lang="ko" translate="no"><head><meta charset="utf-8">'
+	   . '<meta name="google" content="notranslate">'
+	   . '<style>body{font:14px/1.7 ui-monospace,monospace;padding:24px;max-width:760px}'
+	   . 'b{color:#1a7f37}i{color:#9E2B50;font-style:normal}</style>';
+	do_action( 'wp_head' );
+	echo '</head><body>';
+	echo '<h3>궁합 셈이 살아 있나 — 판 GCALC-3</h3><pre id="out">보는 중…</pre>';
+	?>
+<script>
+(function(){
+  var o=document.getElementById('out'), L=[];
+  function say(s){ L.push(s); o.textContent=L.join('\n'); }
+  if(!window.StellaGunghapCalc){
+    say('★ StellaGunghapCalc 이 없습니다.');
+    say('  조각이 Active 인지, 위치가 「어디서나 실행」인지 보세요.');
+    return;
+  }
+  say('StellaGunghapCalc  살아 있습니다');
+  say('');
+  function F(a){ var e=['목','화','토','금','수'],r=[],i;
+    for(i=0;i<5;i++){ r.push({element:e[i],count:a[i]}); } return r; }
+  function mk(dg,dj,yj,a){ return {pillars:{day:{gan:dg,ji:dj},year:{ji:yj}},five:F(a)}; }
+  var T=[
+    ['천간합 甲×己 · 삼합', mk(0,0,0,[2,2,2,1,1]), mk(5,4,4,[1,2,2,2,1])],
+    ['생 乙×丁 · 방합',     mk(1,4,4,[4,1,2,1,0]), mk(3,3,3,[3,2,1,1,1])],
+    ['극 甲×戊 · 충',       mk(0,0,0,[5,0,2,1,0]), mk(4,6,6,[0,1,6,1,0])]
+  ];
+  T.forEach(function(t){
+    var k=window.StellaGunghapCalc.keys(t[1],t[2],{year:2026}), p=k.parts;
+    say(t[0]);
+    say('  일간 '+p.gan.pt.toFixed(1)+'/11 ('+p.gan.name+' · 음양 '+p.gan.yinyang+')');
+    say('  일지 '+p.ji.pt+'/30 ('+p.ji.name+')');
+    say('  십성 내게 '+p.sip.mine+' · 상대에게 '+p.sip.yours);
+    say('  오행 고름 '+p.five.ratio.toFixed(2)+(p.five.empty.length?' · 빈 것 '+p.five.empty.join(''):''));
+    say('  점수 성격 '+k.score.char+' 연애 '+k.score.love+' 결혼 '+k.score.marry+' 재물 '+k.score.money);
+    say('  총점 '+k.total+' 「'+k.grade.name+'」');
+    say('  띠   '+k.tti.mine+'×'+k.tti.yours+' '+k.tti.name+' '+k.tti.pt+'점 · 나이차 '+k.tti.gap+'년');
+    say('');
+  });
+  say('셋 다 숫자가 나왔으면 셈이 제자리에 있습니다.');
+  say('다음은 StellaGunghapText — 열 줄 본문입니다.');
+})();
+</script>
+	<?php
+	echo '</body></html>';
+	exit;
+}, 1 );

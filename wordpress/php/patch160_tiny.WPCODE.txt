@@ -1,0 +1,132 @@
+/* ════════════════════════════════════════════════════════════
+   사랑 문에서 겹치는 문단 하나를 뺍니다
+
+   손님이 한 줄다리기에서 「이렇게 말해보세요」를 세 번 읽고 있습니다.
+
+     [1] 「지금은 좀 정리할 시간이 필요해, 너 때문이 아니야」
+     [2] 「지금은 생각이 정리가 안 돼서, 내일 이야기해도 될까」
+     [3] 「화난 게 아니라 생각 중이야. 정리되면 말할게.」
+
+   셋 다 같은 말입니다 — 정리할 시간이 필요하다고 미리 알려라.
+
+   [2] 가 들어 있는 문단(tiny)을 뺍니다. tiny 는 gap · match 가 없던
+   시절에 쓴 「다독임 한 줄 + 대사 한 줄」인데, 어제 넣은 gap · match 가
+   정확히 같은 일을 합니다. 구조까지 같아요 —
+   다독임 → 대사 → 「그러면 상대가 기다릴 수 있다」.
+
+   다섯 주제(결혼·연애·재회·이별·짝사랑)가 이 문단을 같이 쓰고 있어서
+   한 군데만 고치면 다섯 군데에서 다 사라집니다.
+
+   일 문(취업·직장·이직·퇴사·사업·재물)의 tiny 는 겹치지 않습니다.
+   「하루에 두 시간만 아무에게도 안 불리는 시간을 만들어 두세요」 같은
+   글이라 그대로 둡니다.
+
+   바뀌는 것
+     · 대사가 겹치는 칸  스무 경우 중 열다섯 → 열
+     · 손님이 읽는 글자  2,312자 → 1,932자
+     · 「당신」          네 곳 → 두 곳 (둘이 이 문단 안에 있었습니다)
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   ① 먼저 보기   https://stellasaju.com/?stella_tiny=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_tiny=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_tiny=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_tiny'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_tiny_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_tiny'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		echo '<p><a href="/reading-book/">책 보기</a></p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	$jobs = array();
+	$jobs[] = array(
+		'name' => '사랑 문에서 겹치는 문단을 뺍니다',
+		'find' => '/\\s+if\\(Object\\.prototype\\.hasOwnProperty\\.call\\(B\\[k\\]\\[sd\\],f\\)\\)\\{\\s+T\\[k\\]\\[sd\\]\\[f\\]=B\\[k\\]\\[sd\\]\\[f\\];\\s+\\}\\s+\\}\\s+\\}\\s+\\}\\s+\\}\\)\\(\\);/u',
+		'to'   => "          if(Object.prototype.hasOwnProperty.call(B[k][sd],f)){ T[k][sd][f]=B[k][sd][f]; }\n        }\n      }\n    }\n  })();\n\n  /* 2026-09-07 · 사랑 문에서 tiny 를 뺍니다.\n     tiny 는 gap · match 가 없던 시절에 쓴 「다독임 한 줄 + 대사 한 줄」인데,\n     오늘 넣은 gap · match 가 같은 일을 합니다. 둘 다 두면 손님이 한 칸에서\n     「이렇게 말해보세요」를 두세 번 읽게 됩니다.\n     일 문(door-career)의 tiny 는 겹치지 않으므로 그대로 둡니다. */\n  (function(){\n    var T=AXIS_WARM[\"door-love\"], k, sd;\n    if(!T){ return; }\n    for(k in T){\n      if(!Object.prototype.hasOwnProperty.call(T,k)){ continue; }\n      for(sd in T[k]){\n        if(!Object.prototype.hasOwnProperty.call(T[k],sd)){ continue; }\n        if(T[k][sd]){ if(T[k][sd].tiny){ delete T[k][sd].tiny; } }\n      }\n    }\n  })();",
+	);
+
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], $j['to'], $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_tiny=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_tiny=undo</code></p>';
+	echo '<p><a href="/reading-book/">책 보기</a></p>';
+	exit;
+} );

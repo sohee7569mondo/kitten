@@ -1,0 +1,282 @@
+/* ════════════════════════════════════════════════════════════
+   책 안에 목차 — 누르면 그 자리로   ★ 2026-09-08
+
+   지금 책은 서른다섯 쪽을 쭉 내려야만 합니다. 그런데 배웅 장에서
+   이렇게 말하고 있습니다 —
+
+     「마음에 걸리는 일이 생겼을 때 다시 열어 그 자리를
+      찾아보시면 됩니다」
+
+   찾으라고 해놓고 찾을 방법을 안 드렸습니다.
+   그리고 소희 님이 「오늘 한 번, 내일 저녁에 한 번 더」라고
+   하신 책입니다. 두 번째 읽는 사람에게는 목차가 있어야 합니다.
+
+   ── 하는 일 ────────────────────────────────────
+   맨 위 띠에 「목차」 단추를 놓습니다. 누르면 이 책의 모든 쪽이
+   나옵니다. 제목을 누르면 그 자리로 미끄러져 갑니다.
+
+   · 목록은 책이 다 그려진 뒤에 **그 책을 읽어서** 만듭니다.
+     문마다 쪽이 달라도 저절로 맞습니다. 적어둘 것이 없습니다.
+   · 장 속표지는 굵게, 그 아래 쪽들은 들여씁니다.
+   · 쪽번호도 같이 보여줍니다.
+   · 지금 보고 있는 쪽에 표시가 붙습니다.
+
+   ── 닫는 법 ────────────────────────────────────
+   X · 바깥 누르기 · Esc · 제목 누르기. 넷 다 됩니다.
+
+   ── 안 건드리는 것 ─────────────────────────────
+   글을 만드는 코드는 한 줄도 안 건드립니다. 쪽 맨 뒤에 색표와
+   움직임만 붙입니다. PDF 로 저장할 때는 안 나갑니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_booktoc=1
+   ② 정말 넣기   https://stellasaju.com/?stella_booktoc=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_booktoc=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_booktoc'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_booktoc_backup';
+	$MARK = '2026-09-08 · 책 안 목차';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_booktoc'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:880px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<h1 class="no">이미 들어가 있습니다.</h1>';
+		echo '<p><code>/?stella_booktoc=undo</code> 로 걷어낸 뒤 다시 넣으세요.</p>';
+		exit;
+	}
+
+	$TAIL = <<<'TAILX'
+
+<style>
+/* ══ 2026-09-08 · 책 안 목차 ═══════════════════════════════ */
+#ssb .bk-toc{
+  flex:0 0 auto; padding:9px 15px; border-radius:7px; cursor:pointer;
+  border:1px solid var(--rule); background:transparent;
+  font:inherit; font-size:.82rem; color:var(--soft); line-height:1;
+  margin-right:8px;
+}
+#ssb .bk-toc:hover{ border-color:var(--gold); color:var(--star); }
+
+#ssb .tocback{
+  position:fixed; inset:0; z-index:60; display:none;
+  background:rgba(23,20,32,.42);
+}
+#ssb .tocback.on{ display:block; }
+#ssb .tocpane{
+  position:absolute; top:0; right:0; bottom:0; width:min(420px,88vw);
+  background:var(--page); border-left:1px solid var(--rule);
+  box-shadow:-24px 0 60px -30px rgba(23,20,32,.5);
+  display:flex; flex-direction:column;
+}
+#ssb .tochead{
+  padding:22px 22px 14px; border-bottom:1px solid var(--rule);
+  display:flex; align-items:baseline; gap:10px;
+}
+#ssb .tochead b{ font-family:var(--serif); font-size:1.1rem; color:var(--star); }
+#ssb .tochead span{ font-size:.8rem; color:var(--dim); }
+#ssb .tocx{
+  margin-left:auto; border:0; background:none; cursor:pointer;
+  font:inherit; font-size:1.2rem; line-height:1; color:var(--dim); padding:2px 4px;
+}
+#ssb .tocx:hover{ color:var(--star); }
+#ssb .toclist{ overflow-y:auto; padding:8px 0 26px; }
+#ssb .toclist button{
+  display:flex; width:100%; gap:12px; align-items:baseline; text-align:left;
+  padding:11px 22px; border:0; background:none; cursor:pointer; font:inherit;
+  color:var(--soft); font-size:.94rem; line-height:1.6;
+}
+#ssb .toclist button:hover{ background:rgba(138,106,36,.07); color:var(--star); }
+#ssb .toclist button .no{
+  flex:0 0 2.2rem; font-family:var(--mono); font-size:.68rem; color:var(--dim);
+}
+#ssb .toclist button.ch{
+  font-family:var(--serif); font-weight:700; color:var(--star);
+  margin-top:10px; border-top:1px solid var(--rule); padding-top:16px;
+}
+#ssb .toclist button.sub{ padding-left:34px; }
+#ssb .toclist button.here{ color:var(--gold); }
+#ssb .toclist button.here .no{ color:var(--gold); }
+@media print{ #ssb .bk-toc, #ssb .tocback{ display:none !important; } }
+</style>
+<script>
+/* ══ 2026-09-08 · 책 안 목차 ══
+   책이 다 그려진 뒤에 그 책을 읽어서 목록을 만듭니다.
+   문마다 쪽이 달라도 저절로 맞습니다.
+   ★ 이 안에서 홑 앰퍼샌드를 쓰지 않습니다 (사이트 규칙). */
+(function(){
+  var tries = 0;
+  var pane = null;
+  var back = null;
+
+  function label(pg){
+    var dv = pg.querySelector('.dvno');
+    var h  = pg.querySelector('h2');
+    var h1 = pg.querySelector('h1');
+    if(dv){
+      var t = h ? h.textContent.trim() : '';
+      return { txt: dv.textContent.trim() + ' · ' + t, ch: true };
+    }
+    if(h1){ return { txt: '표지', ch: true }; }
+    if(h){ return { txt: h.textContent.trim(), ch: false }; }
+    var ey = pg.querySelector('.eyebrow');
+    if(ey){ return { txt: ey.textContent.trim(), ch: false }; }
+    return null;
+  }
+
+  function folio(pg){
+    var f = pg.querySelector('.folio');
+    if(!f){ return ''; }
+    return f.textContent.trim();
+  }
+
+  function open(){ back.classList.add('on'); mark(); }
+  function close(){ back.classList.remove('on'); }
+
+  function mark(){
+    var pages = document.querySelectorAll('#ssb .page');
+    var btns  = pane.querySelectorAll('.toclist button');
+    var top = window.scrollY + 140;
+    var cur = 0;
+    var i;
+    for(i = 0; i < pages.length; i++){
+      if(pages[i].offsetTop <= top){ cur = i; }
+    }
+    for(i = 0; i < btns.length; i++){
+      if(Number(btns[i].getAttribute('data-i')) === cur){ btns[i].classList.add('here'); }
+      else { btns[i].classList.remove('here'); }
+    }
+    var on = pane.querySelector('.here');
+    if(on){ on.scrollIntoView({ block:'center' }); }
+  }
+
+  function build(){
+    var bar = document.querySelector('#ssb .bk-bar');
+    var pages = document.querySelectorAll('#ssb .page');
+    if(!bar){ return false; }
+    if(pages.length < 3){ return false; }
+    if(document.getElementById('bkTocBtn')){ return true; }
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'bkTocBtn';
+    btn.className = 'bk-toc';
+    btn.textContent = '목차';
+
+    var pr = document.getElementById('bkPrint');
+    if(pr){ bar.insertBefore(btn, pr); }
+    else { bar.appendChild(btn); }
+
+    back = document.createElement('div');
+    back.className = 'tocback';
+    back.innerHTML =
+      '<div class="tocpane">'+
+        '<div class="tochead"><b>목차</b><span>' + pages.length + '쪽</span>'+
+          '<button type="button" class="tocx">&#215;</button></div>'+
+        '<div class="toclist"></div>'+
+      '</div>';
+    document.getElementById('ssb').appendChild(back);
+    pane = back.querySelector('.tocpane');
+
+    var list = back.querySelector('.toclist');
+    var i;
+    for(i = 0; i < pages.length; i++){
+      var L = label(pages[i]);
+      if(!L){ continue; }
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = L.ch ? 'ch' : 'sub';
+      b.setAttribute('data-i', i);
+      b.innerHTML = '<span class="no">' + folio(pages[i]) + '</span><span>' + L.txt + '</span>';
+      (function(target){
+        b.addEventListener('click', function(){
+          close();
+          target.scrollIntoView({ behavior:'smooth', block:'start' });
+        });
+      })(pages[i]);
+      list.appendChild(b);
+    }
+
+    btn.addEventListener('click', open);
+    back.querySelector('.tocx').addEventListener('click', close);
+    back.addEventListener('click', function(e){
+      if(e.target === back){ close(); }
+    });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape'){ close(); }
+    });
+    return true;
+  }
+
+  var timer = setInterval(function(){
+    tries = tries + 1;
+    if(build()){ clearInterval(timer); return; }
+    if(tries > 90){ clearInterval(timer); }
+  }, 300);
+})();
+</script>
+TAILX;
+
+	$new = $c . $TAIL;
+
+	echo '<h1>' . ( 'apply' === $mode ? '넣었습니다' : '넣으면 이렇게 됩니다 (아직 안 넣었습니다)' ) . '</h1>';
+	echo '<h2>맨 위 띠에 「목차」 단추</h2>';
+	echo '<p class="ok">누르면 오른쪽에서 목록이 나옵니다. 제목을 누르면 그 자리로 미끄러져 갑니다.</p>';
+	echo '<p class="dim">목록은 책이 다 그려진 뒤에 <b>그 책을 읽어서</b> 만듭니다. '
+	   . '문마다 쪽이 달라도 저절로 맞고, 나중에 장을 더하셔도 따로 적을 것이 없습니다.</p>';
+	echo '<p class="dim">장 속표지는 굵게 · 그 아래 쪽은 들여쓰기 · 쪽번호 표시 · '
+	   . '지금 보고 있는 쪽에 금빛 표시</p>';
+	echo '<p class="dim">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 넣으시려면 <code>/?stella_booktoc=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+
+	echo '<p class="ok">넣었습니다.</p>';
+	echo '<p><a href="/reading-book/?demo=door-love">샘플 책에서 눌러보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_booktoc=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

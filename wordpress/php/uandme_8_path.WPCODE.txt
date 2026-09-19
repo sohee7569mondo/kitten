@@ -1,0 +1,55 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 ⑧ · 물음표 없는 주소 열어주기
+
+   유앤미 링크에서 물음표를 없앴습니다.
+     초대 : /uandme/i/<싼글>
+     결과 : /uandme/r/<싼글>/<점수-관계-사주-별자리-띠>
+
+   워드프레스는 이런 주소를 모르므로, 들어오면 조용히 /uandme/ 로
+   돌려놓고 값만 넘겨줍니다. 그러면 유앤미 화면이 그대로 열리고
+   ⑦번이 그 값으로 SNS 카드를 내겁니다.
+
+   페이지 찾기에는 손대지 않습니다 — 주소만 바꿔 놓고 비켜섭니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   확인 : 유앤미에서 결과를 낸 뒤 그 주소를 새 창에 붙여 열어보기
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/uandme/' ) ) { return; }
+
+	$hit = false;
+
+	/* 결과 : /uandme/r/<싼글>/<점수-관계-사주-별자리-띠> */
+	if ( preg_match( '#/uandme/r/([A-Za-z0-9_-]{6,400})(?:/([0-9]{1,2})-([a-z_]{2,14})-([0-9]{1,2})-([0-9]{1,2})-([0-9]{1,2}))?#', $uri, $m ) ) {
+		$_GET['r'] = $m[1];
+		if ( isset( $m[2] ) ) {
+			$_GET['sc']  = $m[2];
+			$_GET['rel'] = $m[3];
+			$_GET['a']   = $m[4];
+			$_GET['b']   = $m[5];
+			$_GET['c']   = $m[6];
+		}
+		$hit = true;
+	}
+
+	/* 초대 : /uandme/i/<싼글> */
+	if ( ! $hit ) {
+		if ( preg_match( '#/uandme/i/([A-Za-z0-9_-]{6,400})#', $uri, $m2 ) ) {
+			$_GET['i'] = $m2[1];
+			$hit = true;
+		}
+	}
+
+	if ( ! $hit ) { return; }
+
+	/* 워드프레스에게는 그냥 /uandme/ 로 보이게 합니다 */
+	$_SERVER['REQUEST_URI'] = '/uandme/';
+	if ( isset( $_SERVER['QUERY_STRING'] ) ) { $_SERVER['QUERY_STRING'] = ''; }
+	$_SERVER['PATH_INFO'] = '/uandme/';
+
+}, 1 );

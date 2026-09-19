@@ -1,0 +1,115 @@
+/* ════════════════════════════════════════════════════════════
+   타로 문이 지금 어떻게 생겼나 보기 · 소희 님께
+
+   아르카나를 구조적으로 바꾸기 전에, 지금 무엇이 어떻게
+   되어 있는지 먼저 봐야 합니다.
+
+   보여주는 것
+     · door-tarot 쪽의 주제 여섯이 지금 무슨 이름인지
+     · 질문을 받는 칸이 몇 개이고 어떻게 생겼는지
+     · 카드를 뽑는 자리가 어디인지
+     · 137 「가디언이 묻습니다」 쪽의 카드 고르는 대목
+
+   ★ 아무것도 고치지 않습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 → 저장 → 활성
+
+        https://stellasaju.com/?stella_tlook=1
+
+   나온 화면을 통째로 보내주세요.
+   ★ 브라우저 번역을 꺼주세요. 코드가 한글로 바뀌면 제가 못 읽습니다.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_tlook'] ) ) { return; }
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	$safe = function ( $s ) {
+		if ( function_exists( 'mb_convert_encoding' ) ) {
+			$s = mb_convert_encoding( $s, 'UTF-8', 'UTF-8' );
+		}
+		return esc_html( $s );
+	};
+	$box = function ( $t, $c ) use ( $safe ) {
+		printf(
+			'<p style="margin:16px 0 4px;color:#ffd76a">%s</p>'
+			. '<pre style="white-space:pre-wrap;background:#000;padding:10px;'
+			. 'border-left:3px solid #ffd76a;font:12px/1.55 monospace">%s</pre>',
+			esc_html( $t ), $safe( $c )
+		);
+	};
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.8 -apple-system,system-ui,sans-serif;'
+		. 'background:#111;color:#eee;padding:24px;max-width:1100px">';
+	echo '<h1 style="color:#ffd76a">타로 문 뜯어보기</h1>';
+	echo '<p style="color:#ff9b9b">브라우저 번역을 꺼주세요.</p>';
+
+	$pages = array();
+	$t = get_page_by_path( 'door-tarot' );
+	if ( $t ) { $pages[ $t->ID ] = 'door-tarot'; }
+	$pages[137] = '가디언이 묻습니다';
+
+	$anchors = array(
+		'TOPICS',
+		'예 아니오',
+		'오늘의 선택',
+		'textarea',
+		'placeholder',
+		'card',
+		'deck',
+		'뽑',
+		'세 장',
+	);
+
+	foreach ( $pages as $pid => $name ) {
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+		if ( ! $row ) {
+			printf( '<p style="color:#ff7b7b">%d 못 읽었습니다</p>', $pid );
+			continue;
+		}
+		$c = $row->post_content;
+		printf(
+			'<h2 style="color:#9fd">%d · %s <span style="color:#888">(%s 글자)</span></h2>',
+			$pid, esc_html( $row->post_title ), number_format( strlen( $c ) )
+		);
+
+		printf(
+			'<p>질문 칸 <b style="color:#9fd">%d</b>개 · '
+			. 'placeholder <b style="color:#9fd">%d</b>개</p>',
+			substr_count( $c, '<textarea' ), substr_count( $c, 'placeholder=' )
+		);
+
+		foreach ( $anchors as $a ) {
+			$p = strpos( $c, $a );
+			if ( false === $p ) {
+				printf( '<p style="color:#888">「%s」 없음</p>', esc_html( $a ) );
+				continue;
+			}
+			$box( '「' . $a . '」 자리', substr( $c, max( 0, $p - 420 ), 1000 ) );
+		}
+	}
+
+	echo '<h2 style="color:#9fd">타로 주제 패치가 들어갔나</h2>';
+	$has = $wpdb->get_col(
+		"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_stella_tarot_backup'"
+	);
+	if ( $has ) {
+		printf( '<p style="color:#7bff9b">들어가 있습니다 — %s 쪽</p>', esc_html( implode( ', ', $has ) ) );
+	} else {
+		echo '<p style="color:#ff7b7b">아직 안 들어갔습니다.</p>';
+	}
+
+	echo '<h2 style="color:#7bff9b">끝났습니다. 아무것도 바뀌지 않았습니다.</h2></body>';
+	exit;
+}, 0 );

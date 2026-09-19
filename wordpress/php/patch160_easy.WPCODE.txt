@@ -1,0 +1,181 @@
+/* ══════════════════════════════════════════════════════════
+   책에서 어려운 말 걷어내기 — 열여섯 자리
+   ★ 2026-09-10 · 소희 님께
+
+   「신년운세 역시 말이 어렵더라」 하셔서, 미르 다섯 권에 나오는
+   낯선 말을 전부 세어봤습니다.
+
+       합 85 · 대운 65 · 지지 50 · 식신 30 · 천간 25 · 정인 25
+       형 21 · 삼재 16 · 절기 15 · 일간 15 · 일주 15 · 충 15 …
+
+   이 가운데 본문에 나오는 것부터 걷어냅니다. 부록(사주풀이의
+   근간)은 근거를 적는 자리라 그대로 두었습니다.
+
+   ── 무엇이 어떻게 바뀌나 ──────────────────────────────
+
+   1. 일곱 글자를 일간과의 관계로 세어보니
+      → 태어난 날을 나타내는 글자 하나가 사주에서 나 자신입니다.
+        그 글자를 기준으로 나머지 일곱 글자를 세어보니
+
+   2. 절기 기준입니다. 달력의 1일이 아니라 절기가 드는 날에 …
+      → 여기서 말하는 한 달은 달력의 한 달이 아닙니다. 입춘 ·
+        경칩처럼 계절이 바뀌는 날을 기준으로 나눈 한 달이라,
+        대개 매달 4일에서 8일 사이에 넘어갑니다. 위 표의 날짜가
+        어중간해 보이는 것은 그래서예요.                (다섯 곳)
+
+   3. 표 머리   기간 | 달 | 기운 | 당신에게는
+      →         기간 | 사주 이름 | 기운 | 당신에게는      (네 곳)
+      기운 칸도 목 화 토 금 수 대신 나무 불 흙 쇠 물로.
+
+   4. 올해는 병오년입니다. 한자로는 丙午, 기운으로는 화(불 화)
+      → 올해는 불의 기운이 도는 해입니다. 사주에서는 병오년이라고
+        부릅니다.                                       (네 곳)
+
+   5. 당신의 일간 을에 대보는 자리입니다
+      → 태어난 날의 글자에 대보는 자리입니다
+
+   6. 같은 갑진 대운도 일간이 을목인 사람에게는
+      → 태어난 날의 글자가 다르면
+
+   7. 맺음말 앞 상자 (여기가 제일 어려웠습니다)
+
+      전  「지금 판은 己亥(기 · 해) 대운입니다」
+          사주에서는 약 십 년 단위로 바뀌는 큰 흐름을 대운이라고
+          부릅니다. 지금 당신은 己亥(기 · 해) 대운의 흐름을
+          지나고 있고, 앞으로 8년쯤 이 흐름이 이어집니다.
+          이 이름은 천간(위 글자)과 지지(아래 글자) 두 옛 글자를
+          이어 붙여 지은 것입니다. 갑을병정무기경신임계 열 개의
+          천간과, 자축인묘진사오미신유술해 열두 개의 지지가 …
+
+      후  「지금 계신 십 년은 이런 때입니다」
+          사람의 삶은 십 년쯤을 단위로 결이 한 번씩 바뀝니다.
+          지금 계신 십 년은 앞으로 8년쯤 더 이어집니다. 사주로는
+          이 십 년을 기 · 해 대운이라고 부릅니다.
+          이 십 년에는 두 가지 기운이 겹쳐 있습니다. 겉으로
+          드러나는 쪽은 흙처럼 다지고 쌓는 기운이고, 실제로
+          굴러가는 쪽은 물처럼 흐르고 스며드는 기운이에요.
+
+   ★ 이 자리들은 미르만이 아니라 여섯 문이 함께 쓰는 장입니다.
+     그래서 벼리 · 마루 · 아람 · 아라 책도 같이 쉬워집니다.
+   ★ 이미 사신 책도 같이 바뀝니다.
+   ★ 대운 장을 통째로 다시 쓴 patch160_daeun 과는 자리가
+     겹치지 않습니다. 둘 다 붙이셔도 됩니다.
+
+   해보기   https://stellasaju.com/?stella_easy=preview
+   붙이기   https://stellasaju.com/?stella_easy=apply
+   되돌리기 https://stellasaju.com/?stella_easy=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_easy'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_easy'] ) );
+	$META = '_stella_easy_bak';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $id, $META, true );
+		if ( '' === $old ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다.';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	$PAIRS = array(
+		array( 'najasin', 1, '\'<p>일곱 글자를 일간과의 관계로 세어보니, \'', '\'<p>태어난 날을 나타내는 글자 하나가 사주에서 나 자신입니다. 그 글자를 기준으로 나머지 일곱 글자를 세어보니, \'' ),
+		array( 'jeolgi4', 4, '\'<p class="mini">절기 기준입니다. 달력의 1일이 아니라 절기가 드는 날에 달이 바뀝니다.</p>\'', '\'<p class="mini">여기서 말하는 한 달은 달력의 한 달이 아닙니다. 입춘 · 경칩처럼 계절이 바뀌는 날을 기준으로 나눈 한 달이라, 대개 매달 4일에서 8일 사이에 넘어갑니다. 위 표의 날짜가 어중간해 보이는 것은 그래서예요.</p>\'' ),
+		array( 'jeolgi1', 1, '절기 기준이라 달력의 1일이 아니라 절기가 드는 날에 바뀝니다.</p>\'', '여기서 한 달은 달력의 한 달이 아니라, 계절이 바뀌는 날을 기준으로 나눈 한 달입니다. 대개 매달 4일에서 8일 사이에 넘어갑니다.</p>\'' ),
+		array( 'pyoMeori', 4, '<th>기간</th><th>달</th><th>기운</th><th>당신에게는</th>', '<th>기간</th><th>사주 이름</th><th>기운</th><th>당신에게는</th>' ),
+		array( 'olhaeHead', 1, '\'당신의 일간 \'+it.day.kor+\'에 대보는 자리입니다. 내년에 다시 오시면 이 장만 통째로 바뀝니다.</p>\'+', '\'태어난 날의 글자에 대보는 자리입니다. 내년에 다시 오시면 이 장만 통째로 바뀝니다.</p>\'+' ),
+		array( 'olhaeA', 1, '\'<p>올해는 <em>\'+syKor+\'</em>년입니다. 한자로는 \'+syHan+\', 기운으로는 \'+stellaEl(syEl)+\'입니다. \'+SYSAY[syKind]+\'</p>\'+', '\'<p>올해는 <em>\'+({\'목\':\'나무\',\'화\':\'불\',\'토\':\'흙\',\'금\':\'쇠\',\'수\':\'물\'}[syEl]||syEl)+\'의 기운</em>이 도는 해입니다. 사주에서는 \'+syKor+\'년이라고 부릅니다. \'+SYSAY[syKind]+\'</p>\'+' ),
+		array( 'olhaeB', 3, '\'<p>올해는 <em>\'+T.syKor+\'</em>년입니다. 한자로는 \'+T.syHan+\', 기운으로는 \'+stellaEl(T.syEl)+\'입니다. \'+SYSAY[T.syKind]+\'</p>\'+', '\'<p>올해는 <em>\'+({\'목\':\'나무\',\'화\':\'불\',\'토\':\'흙\',\'금\':\'쇠\',\'수\':\'물\'}[T.syEl]||T.syEl)+\'의 기운</em>이 도는 해입니다. 사주에서는 \'+T.syKor+\'년이라고 부릅니다. \'+SYSAY[T.syKind]+\'</p>\'+' ),
+		array( 'daeunHead', 1, '\'일간이 \'+it.day.kor+\'인 사람에게는 전혀 다른 십 년이 됩니다.</p>\'+', '\'태어난 날의 글자가 다르면 전혀 다른 십 년이 됩니다.</p>\'+' ),
+		array( 'sangjaTitle', 1, '\'지금 판은 \'+lk.list[nowIdx].han+\'(\'+dotKor(lk.list[nowIdx].kor)+\') 대운입니다\'', '\'지금 계신 십 년은 이런 때입니다\'' ),
+		array( 'sangjaJeon', 1, '\'대운의 판은 아직 시작 전입니다\'', '\'아직 첫 십 년이 시작되기 전입니다\'' ),
+		array( 'sangja1', 1, '\'사주에서는 약 십 년 단위로 바뀌는 큰 흐름을 <em>대운</em>이라고 부릅니다. \'+', '\'사람의 삶은 십 년쯤을 단위로 결이 한 번씩 바뀝니다. \'+' ),
+		array( 'sangja2', 1, '\'지금 당신은 \'+lk.list[nowIdx].han+\'(\'+dotKor(lk.list[nowIdx].kor)+\') 대운의 흐름을 지나고 있고, \'+
+            \'앞으로 \'+Math.max(0, Math.round(lk.list[nowIdx].to-age))+\'년쯤 이 흐름이 이어집니다.</p>\'', '\'지금 계신 십 년은 앞으로 \'+Math.max(0, Math.round(lk.list[nowIdx].to-age))+\'년쯤 더 이어집니다. \'+
+            \'사주로는 이 십 년을 \'+dotKor(lk.list[nowIdx].kor)+\' 대운이라고 부릅니다.</p>\'' ),
+		array( 'yetGeulja', 1, '    luckExplain=\'<p>이 이름은 천간(위 글자)과 지지(아래 글자) 두 옛 글자를 이어 붙여 지은 것입니다. \'+
+      \'갑을병정무기경신임계 열 개의 천간과, 자축인묘진사오미신유술해 열두 개의 지지가 번갈아 짝을 지어 \'+
+      \'예순 가지 이름을 만드는데, 이번 판의 이름이 그 가운데 하나예요.</p>\'+
+      \'<p>위 글자는 <em>\'+nowGanEl+\'</em>의 기운, 아래 글자는 <em>\'+nowJiEl+\'</em>의 기운입니다. \'+
+      (nowGanEl===nowJiEl
+        ? ELMEAN[nowGanEl]+\'이 위아래에 겹쳐 있는 십 년이라는 뜻이에요.\'
+        : ELMEAN[nowGanEl]+\'과 \'+ELMEAN[nowJiEl]+\'이 함께 있는 십 년이라는 뜻이에요.\')+\'</p>\';', '    luckExplain=\'<p>이 십 년에는 두 가지 기운이 겹쳐 있습니다. \'+
+      (nowGanEl===nowJiEl
+        ? ELMEAN[nowGanEl]+\'이 위아래로 겹쳐 있어요. 한 가지 기운만 진하게 도는 십 년이라, 그 성격이 유난히 또렷하게 나옵니다.\'
+        : \'겉으로 드러나는 쪽은 \'+ELMEAN[nowGanEl]+\'이고, 실제로 굴러가는 쪽은 \'+ELMEAN[nowJiEl]+\'이에요.\')+\'</p>\';' ),
+		array( 'sangja3', 1, '\'<p>대운은 미래의 사건을 정해놓는 표가 아니라, <em>지금 내가 어떤 흐름 속에서 선택하고 있는지</em>를 \'+', '\'<p>이 십 년이 무슨 일이 일어날지를 정해놓는 것은 아닙니다. <em>지금 내가 어떤 흐름 속에서 고르고 있는지</em>를 \'+' ),
+		array( 'sangja4', 1, '\'<p>판이 바뀌는 시점을 안다고 해서 그때까지 결정을 미뤄야 한다는 뜻은 아니에요. \'+', '\'<p>십 년이 바뀌는 때를 안다고 해서 그때까지 결정을 미루셔야 한다는 뜻은 아니에요. \'+' ),
+		array( 'giunYeol', 1, '\'<td>\'+mo.kor+\'</td><td>\'+mo.el+\'</td>\'+', '\'<td>\'+mo.kor+\'</td><td>\'+({\'목\':\'나무\',\'화\':\'불\',\'토\':\'흙\',\'금\':\'쇠\',\'수\':\'물\'}[mo.el]||mo.el)+\'</td>\'+' ),
+	);
+
+	echo "═══ 어려운 말 걷어내기 ═══\n";
+	echo '쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	$todo = array();
+	$done = 0;
+	$miss = 0;
+	foreach ( $PAIRS as $r ) {
+		list( $nm, $want, $old, $new ) = $r;
+		$got = substr_count( $c, $old );
+		if ( $got === $want ) {
+			echo sprintf( "  %-16s 찾음 %d군데\n", $nm, $got );
+			$todo[] = $r;
+			continue;
+		}
+		if ( 0 === $got ) {
+			if ( substr_count( $c, $new ) > 0 ) {
+				echo sprintf( "  %-16s 이미 고쳐져 있습니다\n", $nm );
+				$done++;
+				continue;
+			}
+		}
+		echo sprintf( "  %-16s ★ %d군데 (%d군데여야 합니다) — 이 자리는 건너뜁니다\n", $nm, $got, $want );
+		$miss++;
+	}
+
+	if ( ! count( $todo ) ) {
+		if ( $done ) { echo "\n이미 다 고쳐져 있습니다."; }
+		else { echo "\n고칠 자리를 하나도 못 찾았습니다. 아무것도 안 바꿨습니다."; }
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $todo as $r ) { $new = str_replace( $r[2], $r[3], $new ); }
+
+	if ( 'preview' === $mode ) {
+		echo "\n" . count( $todo ) . "자리를 고칩니다";
+		if ( $miss ) { echo " (못 찾은 " . $miss . "자리는 건너뜁니다)"; }
+		echo ".\n" . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
+		echo "\n붙이시려면 ?stella_easy=apply\n";
+		exit;
+	}
+
+	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
+		update_post_meta( $id, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n고쳤습니다. 신년운세를 열어 맨 뒤 맺음말 앞 상자를 보세요.\n";
+	echo "되돌리려면 ?stella_easy=undo\n";
+	exit;
+}, 1 );

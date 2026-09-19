@@ -1,0 +1,140 @@
+/* ════════════════════════════════════════════════════════════
+   대사가 표에는 있는데 책에는 안 나오고 있었습니다
+
+   지난번 patch160_tail 로 주제별 대사 아홉 개를 넣었습니다.
+   표에는 제대로 들어갔습니다. 그런데 그 표를 읽는 쪽이 없습니다.
+
+     표에 있는 칸   mean · what · cost · tiny · gap · match
+                    gapTail · matchTail   ← 넣었지만 아무도 안 읽음
+     책이 읽는 칸   mean · what · cost · tiny · gap · match
+
+   gapTail 과 matchTail 이 페이지 전체에 다섯 번씩만 나오는데,
+   전부 표 안이고 읽는 쪽이 한 군데도 없습니다. 그래서 소희 님이
+   써 두신 대사가 지금까지 한 줄도 손님에게 안 보였습니다.
+
+   확인한 방법 — 견본 책을 그려서 「이렇게요」를 세어봤습니다.
+   고치기 전 0개, 고친 뒤 연애운 견본에서 1개.
+
+   고치는 것은 두 줄입니다. 맞는 자리 뒤에 matchTail 을,
+   어긋나는 자리 뒤에 gapTail 을 붙입니다.
+
+     if(ww){ if(ww.matchTail){ out+='<p>'+ww.matchTail+'</p>'; } }
+     if(ww){ if(ww.gapTail){  out+='<p>'+ww.gapTail+'</p>'; } }
+
+   대사 안에 「이렇게요.」가 이미 들어 있어서, 꼬리가 없는 갈래는
+   몸통만으로도 말이 끝납니다. 그래서 붙이는 쪽만 더하면 됩니다.
+
+   지금 대사가 들어 있는 자리는 열입니다 —
+   다섯 주제의 solo·혼자(맞을 때), 다섯 주제의 risk·안정(어긋날 때).
+   짝사랑 solo·혼자는 몸통까지 갈아 끼운 것이 이미 표에 있습니다.
+
+   ★ 앞의 패치들(paper · today · box · voice · ask · gap)이
+     들어가 있어야 합니다.
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로 바꾸세요.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_say=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_say=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_say=undo
+
+   바꾸고 나서 볼 곳
+     https://stellasaju.com/reading-book/?demo=door-love
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_say'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_say_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_say'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		echo '<p><a href="/reading-book/?demo=door-love">책 보기</a></p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	$jobs = array();
+
+	$jobs[] = array(
+		'name' => '① 대사(꼬리)를 읽어서 붙이기',
+		'find' => '/var\\s+side=pickedSide\\(key\\);\\s+if\\(side\\)\\{\\s+if\\(A\\.lean\\)\\{\\s+if\\(side===A\\.lean\\)\\{\\s+var\\s+hasMatch=false;\\s+if\\(ww\\)\\{\\s+if\\(ww\\.match\\)\\{\\s+hasMatch=true;\\s+out\\+=para\\(ww\\.match\\);\\s+\\}\\s+\\}\\s+if\\(!hasMatch\\)\\{\\s+out\\+=\'<p>그리고\\s+답변해주신\\s+내용도\\s+이\\s+흐름과\\s+잘\\s+맞습니다\\.<\/p>\'\\+\\s+\'<p>이\\s+부분은\\s+사주와\\s+실제\\s+성향이\\s+크게\\s+어긋나지\\s+않으니,\\s+\'\\+\\s+\'<em>자신의\\s+방식에\\s+대해\\s+너무\\s+의심하지\\s+않으셔도\\s+됩니다\\.<\/em><\/p>\';\\s+\\}\\s+\\}\\s+else\\s+\\{\\s+var\\s+hasGap=false;\\s+if\\(ww\\)\\{\\s+if\\(ww\\.gap\\)\\{\\s+hasGap=true;\\s+out\\+=para\\(ww\\.gap\\);\\s+\\}\\s+\\}\\s+if\\(!hasGap\\)\\{\\s+out\\+=\'<p>그런데\\s+답변에서는\\s+<em>\'\\+otherName\\(key,\\s+side\\)\\+\'<\/em>\\s+쪽을\\s+고르셨습니다\\.\\s+\'\\+\\s+\'<em>이\\s+부분이\\s+사주와\\s+실제\\s+생활이\\s+어긋나는\\s+자리입니다\\.<\/em><\/p>\'\\+\\s+\'<p>타고난\\s+결은\\s+\'\\+sideWord\\(key,A\\.name\\)\\+\'\\s+쪽인데\\s+지금은\\s+\'\\+otherName\\(key,\\s+side\\)\\+\'\\s+쪽으로\\s+살고\\s+계시다면,\\s+\'\\+\\s+\'요즘\\s+유난히\\s+지치거나\\s+답답하셨던\\s+것을\\s+<em>단순히\\s+능력이나\\s+의지가\\s+모자란\\s+탓으로\\s+보실\\s+필요는\\s+없습니다\\.<\/em>\\s+\'\\+\\s+\'내\\s+결에\\s+맞지\\s+않는\\s+방식으로\\s+오래\\s+버티고\\s+계셨을\\s+가능성이\\s+있기\\s+때문입니다\\.<\/p>\';\\s+\\}\\s+\\}\\s+\\}\\s+else\\s+\\{\\s+var\\s+hasFlatGap=false;\\s+if\\(W\\)\\{\\s+if\\(W\\.flatGap\\)\\{\\s+hasFlatGap=true;\\s+out\\+=\'<p>답해주신\\s+것은\\s+<em>\'\\+otherName\\(key,\\s+side\\)\\+\'<\/em>\\s+쪽이었습니다\\.<\/p>\'\\+para\\(W\\.flatGap\\);\\s+\\}\\s+\\}\\s+if\\(!hasFlatGap\\)\\{\\s+out\\+=\'<p>답해주신\\s+것은\\s+<em>\'\\+otherName\\(key,\\s+side\\)\\+\'<\/em>\\s+쪽이었습니다\\.\\s+\'\\+\\s+\'이\\s+저울은\\s+정답을\\s+찾기보다,\\s+그때그때\\s+맞는\\s+방식을\\s+찾아가시면\\s+됩니다\\.<\/p>\';\\s+\\}\\s+\\}\\s+\\}/u',
+		'to'   => "    var side=pickedSide(key);\n    if(side){\n      if(A.lean){\n        if(side===A.lean){\n          var hasMatch=false;\n          if(ww){ if(ww.match){ hasMatch=true; out+=para(ww.match); } }\n          if(!hasMatch){\n            out+='<p>그리고 답변해주신 내용도 이 흐름과 잘 맞습니다.</p>'+\n                 '<p>이 부분은 사주와 실제 성향이 크게 어긋나지 않으니, '+\n                 '<em>자신의 방식에 대해 너무 의심하지 않으셔도 됩니다.</em></p>';\n          }\n          /* 2026-09-07 · 주제별 대사(꼬리)를 붙입니다.\n             표에는 들어가 있는데 읽는 쪽이 없어서, 소희 님이 써 두신\n             대사가 한 줄도 손님에게 안 보이고 있었습니다.\n             대사 안에 「이렇게요.」가 들어 있어서, 꼬리가 없는 갈래는\n             몸통만으로도 말이 끝납니다. */\n          if(ww){ if(ww.matchTail){ out+='<p>'+ww.matchTail+'</p>'; } }\n        } else {\n          var hasGap=false;\n          if(ww){ if(ww.gap){ hasGap=true; out+=para(ww.gap); } }\n          if(!hasGap){\n            out+='<p>그런데 답변에서는 <em>'+otherName(key, side)+'</em> 쪽을 고르셨습니다. '+\n                 '<em>이 부분이 사주와 실제 생활이 어긋나는 자리입니다.</em></p>'+\n                 '<p>타고난 결은 '+sideWord(key,A.name)+' 쪽인데 지금은 '+otherName(key, side)+' 쪽으로 살고 계시다면, '+\n                 '요즘 유난히 지치거나 답답하셨던 것을 <em>단순히 능력이나 의지가 모자란 탓으로 보실 필요는 없습니다.</em> '+\n                 '내 결에 맞지 않는 방식으로 오래 버티고 계셨을 가능성이 있기 때문입니다.</p>';\n          }\n          if(ww){ if(ww.gapTail){ out+='<p>'+ww.gapTail+'</p>'; } }\n        }\n      } else {\n        var hasFlatGap=false;\n        if(W){ if(W.flatGap){ hasFlatGap=true;\n          out+='<p>답해주신 것은 <em>'+otherName(key, side)+'</em> 쪽이었습니다.</p>'+para(W.flatGap);\n        } }\n        if(!hasFlatGap){\n          out+='<p>답해주신 것은 <em>'+otherName(key, side)+'</em> 쪽이었습니다. '+\n               '이 저울은 정답을 찾기보다, 그때그때 맞는 방식을 찾아가시면 됩니다.</p>';\n        }\n      }\n    }",
+	);
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], str_replace( '\\', '\\\\', $j['to'] ), $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_say=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_say=undo</code></p>';
+	echo '<p><a href="/reading-book/?demo=door-love-2">책 보기</a></p>';
+	exit;
+} );

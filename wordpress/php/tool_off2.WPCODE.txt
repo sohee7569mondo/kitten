@@ -1,0 +1,105 @@
+/* ══════════════════════════════════════════════════════════
+   오늘 쓴 도구 끄기 · 소희 님께                  2026-09-11
+   ── 판 : OFF-2 (2026-09-11) ──
+
+   책이 다시 나오고 폭도 잡혔으니, 오늘 쓴 것들도 이제 끕니다.
+   1194 ~ 1212 열여덟 개입니다.
+
+   ★ 지우지 않습니다. 「끄기」만 합니다.
+   ★ 되돌리기 기록은 그대로 남아 있습니다.
+     나중에 어떤 패치를 되돌리고 싶어지면
+     그 스니펫 하나만 다시 켜면 ?…=undo 가 그대로 삽니다.
+     그래서 마음 놓고 끄셔도 됩니다.
+
+   주소
+     해보기   https://stellasaju.com/?stella_off2c=preview
+     끄기     https://stellasaju.com/?stella_off2c=apply
+     되돌리기 https://stellasaju.com/?stella_off2c=undo
+
+   ★ 스니펫 이름 「STELLA - 오늘 도구 끄기」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_off2c'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_off2c'] ) );
+	$SAVE = '_stella_off2c_prev';
+
+	$IDS = array(
+		1194, 1195, 1197, 1198, 1199, 1200, 1201, 1202, 1203, 1204,
+		1205, 1206, 1207, 1208, 1209, 1210, 1211, 1212,
+	);
+
+	/* 절대로 안 건드리는 것 — 실수로 목록에 들어가도 막습니다 */
+	$NEVER = array( 203, 265, 266, 761, 762, 770, 771, 772, 773, 810, 811, 824,
+	                1019, 1048, 1085, 1086, 1087, 1088, 1089, 1090, 1092, 1102,
+	                1122, 1130, 1155, 1170, 1192 );
+
+	echo "═══ 오늘 도구 끄기 · 판 OFF-2 (2026-09-11) ═══\n\n";
+
+	if ( 'undo' === $mode ) {
+		$prev = get_option( $SAVE );
+		if ( ! is_array( $prev ) || ! count( $prev ) ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$n = 0;
+		foreach ( $prev as $pid => $st ) {
+			$p = get_post( (int) $pid );
+			if ( ! $p || 'wpcode' !== $p->post_type ) { continue; }
+			wp_update_post( array( 'ID' => (int) $pid, 'post_status' => $st ) );
+			$n++;
+		}
+		delete_option( $SAVE );
+		echo $n . "개를 도로 켰습니다.\n";
+		exit;
+	}
+
+	$todo = array();
+	$skip = array();
+	foreach ( $IDS as $pid ) {
+		if ( in_array( $pid, $NEVER, true ) ) { $skip[] = $pid . ' (안 건드림 목록)'; continue; }
+		$p = get_post( $pid );
+		if ( ! $p ) { $skip[] = $pid . ' (없음)'; continue; }
+		if ( 'wpcode' !== $p->post_type ) { $skip[] = $pid . ' (스니펫이 아님)'; continue; }
+		if ( 'publish' !== $p->post_status ) { $skip[] = $pid . ' (이미 꺼짐)'; continue; }
+		$todo[ $pid ] = $p->post_title;
+	}
+
+	echo '끌 것 ' . count( $todo ) . "개\n";
+	echo '건너뛸 것 ' . count( $skip ) . "개\n\n";
+
+	if ( 'preview' === $mode ) {
+		echo "─── 끌 목록 ───\n";
+		foreach ( $todo as $pid => $t ) {
+			echo '  ' . $pid . '  ' . mb_substr( (string) $t, 0, 40, 'UTF-8' ) . "\n";
+		}
+		echo "\n─── 건너뛴 것 ───\n";
+		foreach ( $skip as $s ) { echo '  ' . $s . "\n"; }
+		echo "\n괜찮으시면 ?stella_off2c=apply\n";
+		echo "끄고 나서 사이트를 한 바퀴 둘러봐 주세요.\n";
+		echo "이상하면 ?stella_off2c=undo 한 번이면 전부 돌아옵니다.\n";
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) { echo 'preview - apply - undo 중에 골라주세요.'; exit; }
+
+	if ( ! count( $todo ) ) { echo '끌 것이 없습니다.'; exit; }
+
+	$prev = array();
+	$n    = 0;
+	foreach ( $todo as $pid => $t ) {
+		$prev[ $pid ] = 'publish';
+		wp_update_post( array( 'ID' => (int) $pid, 'post_status' => 'draft' ) );
+		$n++;
+	}
+	update_option( $SAVE, $prev, false );
+
+	echo $n . "개를 껐습니다.\n\n";
+	echo "이제 사이트를 한 바퀴 둘러봐 주세요.\n";
+	echo "  홈 · 로그인 · 마이페이지 · 결제 · 문 여섯 · 책\n\n";
+	echo "하나라도 이상하면 ?stella_off2c=undo — 한 번에 전부 돌아옵니다.\n";
+	exit;
+}, 1 );

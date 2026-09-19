@@ -1,0 +1,1013 @@
+/* ════════════════════════════════════════════════════════════
+   스텔라 랩 · 편의점 야식 유형   ★ 2026-09-09 · 소희 님께
+
+   주소   https://stellasaju.com/lab/night-snack/
+
+   랩 본체(804)를 건드리지 않습니다. 이 주소만 따로 맡습니다.
+   본체보다 먼저(우선순위 5) 돌아서 서로 부딪히지 않습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 이 스니펫 하나가 검사 하나입니다. 여섯 개를 다 넣으셔야
+     목록의 여섯 장이 모두 열립니다.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/lab/night-snack' ) ) { return; }
+
+	$path = parse_url( $uri, PHP_URL_PATH );
+	$path = rtrim( (string) $path, '/' );
+	if ( '/lab/night-snack' !== $path ) { return; }
+
+	status_header( 200 );
+	nocache_headers();
+	header( 'Content-Type: text/html; charset=utf-8' );
+
+	echo <<<'STELLA_LAB_HTML'
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>편의점 야식 유형 — 스텔라 랩</title>
+<meta name="description" content="밤 11시 42분, 계산대까지 다섯 걸음">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="스텔라 랩">
+<meta property="og:title" content="편의점 야식 유형 — 스텔라 랩">
+<meta property="og:description" content="밤 11시 42분, 계산대까지 다섯 걸음">
+<meta property="og:url" content="https://stellasaju.com/lab/night-snack/">
+<link rel="canonical" href="https://stellasaju.com/lab/night-snack/">
+</head>
+<body style="margin:0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+.stq-lab{
+    --cream:#FBF3EA;
+    --cream-deep:#F3E6D6;
+    --paper:#FFFDF9;
+    --ink:#4A4038;
+    --ink-soft:#8A7F72;
+    --rose:#D9808A;
+    --rose-deep:#C15F6C;
+    --sky:#7FA6C4;
+    --sky-deep:#5C86A6;
+    --gold:#EFC46B;
+    --line:#E7D9C7;
+  }
+.stq-lab *{box-sizing:border-box;}
+.stq-lab, .stq-lab{margin:0;padding:0;}
+.stq-lab{
+    background:
+      radial-gradient(circle at 15% 10%, rgba(127,166,196,0.10), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(217,128,138,0.10), transparent 40%),
+      var(--cream);
+    font-family:'Noto Sans KR', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:28px 14px 60px;
+  }
+.stq-lab .app{ width:100%; max-width:460px; }
+.stq-lab .brand{ text-align:center; margin-bottom:18px; }
+.stq-lab .brand .mark{ font-size:22px; display:inline-block; }
+.stq-lab .brand h1{
+    font-family:'Gaegu', sans-serif;
+    font-size:15px;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+    margin:6px 0 0;
+    font-weight:700;
+  }
+.stq-lab /* 매대 진행바 */
+  .route{ position:relative; height:34px; margin:6px 0 22px; }
+.stq-lab .route-line{
+    position:absolute; top:16px; left:6px; right:6px; height:2px;
+    background-image:linear-gradient(to right, var(--line) 60%, rgba(0,0,0,0) 0%);
+    background-size:10px 2px;
+    background-repeat:repeat-x;
+  }
+.stq-lab .route-fill{
+    position:absolute; top:16px; left:6px; height:2px;
+    background:var(--rose);
+    transition:width .5s ease;
+  }
+.stq-lab .route-cart{
+    position:absolute; top:2px;
+    transform:translateX(-50%);
+    font-size:18px;
+    transition:left .5s ease;
+  }
+.stq-lab .route-dots{
+    position:absolute; top:12px; left:6px; right:6px;
+    display:flex; justify-content:space-between;
+  }
+.stq-lab .route-dots span{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--paper);
+    border:2px solid var(--line);
+    transition:all .3s ease;
+  }
+.stq-lab .route-dots span.done{ background:var(--rose); border-color:var(--rose); }
+.stq-lab .route-dots span.now{ border-color:var(--rose); transform:scale(1.3); }
+.stq-lab .card{
+    background:var(--paper);
+    border-radius:22px;
+    padding:22px 20px 26px;
+    box-shadow:0 10px 30px rgba(120,90,70,0.10);
+    position:relative;
+    overflow:hidden;
+  }
+.stq-lab .stamp{
+    display:inline-flex;
+    align-items:baseline;
+    gap:8px;
+    background:var(--cream-deep);
+    border:1.5px dashed var(--rose);
+    border-radius:100px;
+    padding:5px 14px;
+  }
+.stq-lab .stamp .day{
+    font-family:'Gaegu', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    color:var(--rose-deep);
+  }
+.stq-lab .stamp .phase{ font-size:12px; color:var(--ink-soft); }
+.stq-lab .qtext{
+    font-size:18px;
+    line-height:1.5;
+    font-weight:700;
+    margin:2px 4px 18px;
+  }
+.stq-lab .qhead{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:14px;
+  }
+.stq-lab .backbtn{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-family:'Noto Sans KR', sans-serif;
+    font-size:13px;
+    cursor:pointer;
+    padding:5px 8px 5px 0;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    transition:color .15s ease;
+    flex-shrink:0;
+  }
+.stq-lab .backbtn:hover{ color:var(--rose-deep); }
+.stq-lab .options{ display:flex; flex-direction:column; gap:12px; }
+.stq-lab .opt{
+    text-align:left;
+    background:var(--cream);
+    border:2px solid transparent;
+    border-radius:16px;
+    padding:12px 14px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    transition:transform .15s ease, border-color .15s ease, background .15s ease;
+    font-family:inherit;
+  }
+.stq-lab .opt:hover{ border-color:var(--sky); transform:translateY(-2px); }
+.stq-lab .opt:active{ transform:translateY(0); }
+.stq-lab .opt.picked{ border-color:var(--rose); background:#FBEAEA; }
+/* 2026-09-08 · 이모지 타일을 크고 말랑하게.
+     사진 없이 이모지만으로도 눈이 가게 합니다. */
+  .stq-lab .opt .tile{
+    flex-shrink:0;
+    width:56px;height:56px;
+    border-radius:16px;
+    background:linear-gradient(155deg, #FFFFFF 0%, var(--cream-deep) 100%);
+    border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px; line-height:1;
+    box-shadow:0 4px 10px -6px rgba(120,90,70,0.4);
+    transition:transform .18s ease;
+  }
+  .stq-lab .opt:hover .tile{ transform:translateY(-2px) rotate(-3deg); }
+  .stq-lab .opt.picked .tile{
+    background:linear-gradient(155deg, #FFFFFF 0%, #FBEAEA 100%);
+    border-color:var(--rose);
+  }
+.stq-lab .opt p{
+    margin:0;
+    font-size:14.5px;
+    line-height:1.55;
+    color:var(--ink);
+  }
+.stq-lab /* 인트로 */
+  .intro{ text-align:center; padding:10px 6px 4px; }
+.stq-lab .intro .hero{ font-size:42px; margin-bottom:10px; }
+.stq-lab .intro .clock{
+    font-family:'Gaegu', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    color:var(--rose-deep);
+    background:var(--cream-deep);
+    border-radius:100px;
+    padding:4px 14px;
+    display:inline-block;
+    margin-bottom:12px;
+  }
+.stq-lab .intro h2{
+    font-family:'Gaegu', sans-serif;
+    font-size:24px;
+    margin:0 0 10px;
+    line-height:1.4;
+  }
+.stq-lab .intro p{
+    font-size:14px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    margin:0 0 24px;
+  }
+.stq-lab .btn{
+    display:inline-block;
+    background:var(--rose);
+    color:#fff;
+    border:none;
+    border-radius:100px;
+    padding:14px 30px;
+    font-size:15px;
+    font-weight:700;
+    font-family:'Noto Sans KR', sans-serif;
+    cursor:pointer;
+    box-shadow:0 6px 16px rgba(193,95,108,0.30);
+    transition:transform .15s ease;
+  }
+.stq-lab .btn:hover{ transform:translateY(-2px); }
+.stq-lab .btn.ghost{
+    background:transparent;
+    color:var(--rose-deep);
+    border:2px solid var(--rose);
+    box-shadow:none;
+  }
+.stq-lab /* 결과 */
+  .result{ text-align:center; padding:6px 4px 2px; }
+.stq-lab .result .ticket{
+    background:var(--cream-deep);
+    border-radius:18px;
+    padding:22px 18px 24px;
+    margin-bottom:20px;
+    position:relative;
+  }
+.stq-lab .result .ticket:before, .stq-lab .result .ticket:after{
+    content:'';
+    position:absolute;
+    width:20px;height:20px;
+    background:var(--paper);
+    border-radius:50%;
+    top:50%; transform:translateY(-50%);
+  }
+.stq-lab .result .ticket:before{ left:-10px; }
+.stq-lab .result .ticket:after{ right:-10px; }
+.stq-lab .result .remoji{ font-size:46px; line-height:1; margin-bottom:8px; }
+.stq-lab .result .type{
+    font-family:'Gaegu', sans-serif;
+    font-size:34px;
+    font-weight:700;
+    color:var(--rose-deep);
+    letter-spacing:0.02em;
+    margin:0;
+    line-height:1.25;
+  }
+.stq-lab .result .nick{
+    font-size:14px;
+    font-weight:500;
+    margin:6px 0 0;
+    color:var(--ink-soft);
+  }
+.stq-lab .cart{
+    margin:18px 8px 0;
+    padding-top:14px;
+    border-top:1.5px dashed rgba(193,95,108,.35);
+    font-family:'Gaegu', sans-serif;
+    font-size:16px;
+  }
+.stq-lab .cart .row{
+    display:flex; justify-content:space-between; gap:12px;
+    color:var(--ink);
+    padding:2px 0;
+  }
+.stq-lab .cart .row span:last-child{ color:var(--ink-soft); white-space:nowrap; }
+.stq-lab .cart .sum{
+    display:flex; justify-content:space-between;
+    margin-top:8px; padding-top:8px;
+    border-top:1.5px solid rgba(193,95,108,.25);
+    font-weight:700; color:var(--rose-deep);
+  }
+.stq-lab .result .punch{
+    font-family:'Gaegu', sans-serif; font-size:19px; font-weight:700;
+    color:var(--rose-deep); margin:0 0 12px; line-height:1.4;
+  }
+.stq-lab .result .desc{
+    font-size:14px;
+    line-height:1.7;
+    color:var(--ink-soft);
+    text-align:left;
+    margin:0 0 20px;
+  }
+.stq-lab .opposite{
+    background:var(--cream);
+    border-radius:16px;
+    padding:16px 16px 18px;
+    margin-bottom:22px;
+  }
+.stq-lab .opposite .label{
+    font-size:12px; color:var(--ink-soft); letter-spacing:.04em;
+  }
+.stq-lab .opposite .name{
+    font-family:'Gaegu', sans-serif;
+    font-size:22px; font-weight:700;
+    color:var(--sky-deep);
+    margin:4px 0 6px;
+  }
+.stq-lab .opposite .note{
+    font-size:13px; line-height:1.65; color:var(--ink-soft);
+  }
+.stq-lab .share-row{
+    display:flex; justify-content:center; gap:16px;
+    margin:0 0 18px;
+  }
+.stq-lab .share-item{
+    background:none; border:none; padding:0; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    font-family:inherit;
+  }
+.stq-lab .share-item .ic{
+    width:48px;height:48px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;font-weight:700;
+    box-shadow:0 4px 12px rgba(120,90,70,0.14);
+    transition:transform .15s ease;
+  }
+.stq-lab .share-item:hover .ic{ transform:translateY(-2px); }
+.stq-lab .share-item .lb{ font-size:11px; color:var(--ink-soft); }
+.stq-lab .ic.kakao{ background:#FEE500; color:#3C1E1E; }
+.stq-lab .ic.x{ background:#141414; color:#fff; font-size:17px; }
+.stq-lab .ic.link{ background:var(--cream-deep); color:var(--ink-soft); }
+.stq-lab .ic.more{ background:var(--cream-deep); color:var(--ink-soft); letter-spacing:1px; }
+.stq-lab .share-title{
+    font-family:'Gaegu', sans-serif;
+    font-size:16px; color:var(--ink-soft);
+    margin:0 0 12px;
+  }
+.stq-lab .actions{ display:flex; flex-direction:column; gap:10px; align-items:center; }
+.stq-lab .uplink{ display:inline-block; margin-bottom:10px; font-size:13px; color:var(--ink-soft); text-decoration:none; }
+.stq-lab .footer-note a{ color:inherit; text-decoration:none; }
+.stq-lab .footer-note a:hover{ text-decoration:underline; }
+.stq-lab .footer-note .disclaimer{ margin-top:6px; opacity:0.75; }
+.stq-lab .footer-note{
+    text-align:center;
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:18px;
+    opacity:0.7;
+  }
+
+  @media (max-width:360px){.stq-lab .qtext{ font-size:16.5px; }
+.stq-lab .result .type{ font-size:29px; }}
+</style>
+
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
+
+<div class="stq-lab">
+<div class="app">
+  <a class="uplink" href="https://stellasaju.com/lab/">← 스텔라 랩</a>
+  <div class="brand">
+    <span class="mark">🏪</span>
+    <h1 id="brandTitle"></h1>
+  </div>
+  <div class="route" id="routeBar" style="display:none;">
+    <div class="route-line"></div>
+    <div class="route-fill" id="routeFill"></div>
+    <div class="route-dots" id="routeDots"></div>
+    <div class="route-cart" id="routeCart">🛒</div>
+  </div>
+  <div class="card" id="card"></div>
+  <div class="footer-note">
+    <a href="https://stellasaju.com/lab/">스텔라 랩</a> ·
+    <a href="https://stellasaju.com/">스텔라사주</a> ·
+    <a href="https://stellasaju.com/uandme/">유앤미</a> ·
+    <a href="https://stellasaju.com/privacy/">개인정보처리방침</a> ·
+    <a href="https://stellasaju.com/terms/">이용약관</a>
+    <div class="disclaimer">스텔라사주에서 만든 서비스입니다. 검사 결과는 재미로 봐주세요.</div>
+  </div>
+</div>
+
+<script type="application/json" id="quiz-data">
+{
+ "brand": "편의점 야식 유형",
+ "introClock": "PM 11:42",
+ "introTitle": "야식은 편의점에서 결정된다",
+ "introSub": "문 열고 들어가는 순간부터 계산대까지.<br>5개만 고르면 내 야식 유형이 나와요.",
+ "startLabel": "편의점 들어가기",
+ "questions": [
+  {
+   "day": "STEP 1",
+   "phase": "입장",
+   "q": "문을 열고 들어간 순간, 발이 먼저 향하는 곳은?",
+   "options": [
+    {
+     "icon": "🍜",
+     "text": "곧장 라면 코너로",
+     "s": {
+      "ramen": 2,
+      "samgak": 1
+     }
+    },
+    {
+     "icon": "✨",
+     "text": "신상 매대부터 훑는다",
+     "s": {
+      "shinsang": 2,
+      "danjjan": 1
+     }
+    },
+    {
+     "icon": "🍱",
+     "text": "도시락 냉장고 직행",
+     "s": {
+      "dosirak": 2,
+      "ramen": 1
+     }
+    },
+    {
+     "icon": "👀",
+     "text": "일단 한 바퀴 돌면서 구경",
+     "s": {
+      "danjjan": 1,
+      "beer": 1,
+      "shinsang": 1
+     }
+    }
+   ]
+  },
+  {
+   "day": "STEP 2",
+   "phase": "허기",
+   "q": "지금 내 배고픔 상태를 고르자면?",
+   "options": [
+    {
+     "icon": "🍿",
+     "text": "배는 안 고픈데 입이 심심하다",
+     "s": {
+      "danjjan": 2,
+      "shinsang": 1
+     }
+    },
+    {
+     "icon": "😵",
+     "text": "저녁을 걸러서 진짜 배고프다",
+     "s": {
+      "dosirak": 2,
+      "ramen": 1
+     }
+    },
+    {
+     "icon": "🍺",
+     "text": "배보다 술 생각이 먼저 난다",
+     "s": {
+      "beer": 3
+     }
+    },
+    {
+     "icon": "1️⃣",
+     "text": "딱 하나만 가볍게",
+     "s": {
+      "samgak": 2
+     }
+    }
+   ]
+  },
+  {
+   "day": "STEP 3",
+   "phase": "예산",
+   "q": "오늘 야식에 쓸 수 있는 돈은?",
+   "options": [
+    {
+     "svg": "<svg viewBox='0 0 40 40' width='29' height='29' aria-hidden='true'><g stroke='#5C86A6' stroke-width='1.5' stroke-linejoin='round'><rect x='6' y='13' width='23' height='14' rx='2.5' fill='#DCEBF4' transform='rotate(-16 17.5 20)'/><rect x='8' y='15' width='23' height='14' rx='2.5' fill='#BFDAE9' transform='rotate(-7 19.5 22)'/><rect x='10' y='17' width='23' height='14' rx='2.5' fill='#9CC4DA'/></g><circle cx='21.5' cy='24' r='4.2' fill='none' stroke='#4C7899' stroke-width='1.1'/><text x='21.5' y='26.6' font-size='6' font-weight='700' fill='#3F6A8A' text-anchor='middle' font-family='sans-serif'>₩</text></svg>",
+     "text": "3천원 안에서 끝낸다",
+     "s": {
+      "samgak": 2,
+      "ramen": 1
+     }
+    },
+    {
+     "icon": "🏷️",
+     "text": "1+1 붙은 걸로 고른다",
+     "s": {
+      "dosirak": 2,
+      "danjjan": 1
+     }
+    },
+    {
+     "icon": "💵",
+     "text": "만원까진 괜찮다",
+     "s": {
+      "beer": 2,
+      "shinsang": 1
+     }
+    },
+    {
+     "icon": "🙈",
+     "text": "가격표는 안 본다",
+     "s": {
+      "shinsang": 2,
+      "beer": 1
+     }
+    }
+   ]
+  },
+  {
+   "day": "STEP 4",
+   "phase": "계산대",
+   "q": "계산대 앞, 마지막 갈등의 순간",
+   "options": [
+    {
+     "icon": "✅",
+     "text": "정한 것만 딱 올린다",
+     "s": {
+      "samgak": 2,
+      "dosirak": 1
+     }
+    },
+    {
+     "icon": "🍦",
+     "text": "아이스크림은 못 참지",
+     "s": {
+      "danjjan": 3
+     }
+    },
+    {
+     "icon": "🍻",
+     "text": "맥주 한 캔 추가",
+     "s": {
+      "beer": 3
+     }
+    },
+    {
+     "icon": "🥤",
+     "text": "처음 보는 음료 하나 더",
+     "s": {
+      "shinsang": 2
+     }
+    }
+   ]
+  },
+  {
+   "day": "STEP 5",
+   "phase": "귀가",
+   "q": "집에 와서 먹는 방식은?",
+   "options": [
+    {
+     "icon": "📺",
+     "text": "영상 하나 틀고 각 잡고 먹는다",
+     "s": {
+      "ramen": 2,
+      "danjjan": 1
+     }
+    },
+    {
+     "icon": "🛏️",
+     "text": "침대에 누워 폰 보면서",
+     "s": {
+      "danjjan": 2,
+      "samgak": 1
+     }
+    },
+    {
+     "icon": "🍽️",
+     "text": "식탁에 제대로 세팅한다",
+     "s": {
+      "dosirak": 2,
+      "beer": 1
+     }
+    },
+    {
+     "icon": "🏃",
+     "text": "서서 후딱 해치운다",
+     "s": {
+      "samgak": 2
+     }
+    }
+   ]
+  }
+ ],
+ "order": [
+  "ramen",
+  "dosirak",
+  "shinsang",
+  "danjjan",
+  "beer",
+  "samgak"
+ ],
+ "results": {
+  "ramen": {
+   "emoji": "🍜",
+   "name": "라면 근본주의자",
+   "nick": "결국 돌아오는 자리가 있다",
+   "cart": [
+    [
+     "신라면 큰컵",
+     "1,500"
+    ],
+    [
+     "삼각김밥 (참치마요)",
+     "1,300"
+    ],
+    [
+     "단무지",
+     "800"
+    ]
+   ],
+   "desc": "새로운 걸 안 먹어본 게 아니라, 먹어보고 돌아온 쪽입니다. 실패 확률이 0에 가까운 선택을 하고 그 선택에 후회가 없어요. 대신 남이 골라준 새 메뉴 앞에서는 표정이 미묘해집니다.",
+   "opp": "shinsang",
+   "oppNote": "같이 가면 메뉴 고르는 데만 10분이 걸려요. 결국 각자 먹던 걸 집게 됩니다.",
+   "punch": "20년 뒤에도 같은 거 드시고 계실 듯"
+  },
+  "dosirak": {
+   "emoji": "🍱",
+   "name": "도시락 실속파",
+   "nick": "한 끼는 한 끼답게",
+   "cart": [
+    [
+     "제육볶음 도시락",
+     "4,900"
+    ],
+    [
+     "컵국물",
+     "900"
+    ],
+    [
+     "아메리카노",
+     "1,500"
+    ]
+   ],
+   "desc": "야식도 식사로 취급하는 타입. 가격과 양을 머릿속으로 계산해서 제일 합리적인 걸 집습니다. 계획대로 사고 계획대로 먹지만, 가끔은 그 계획이 스스로를 조금 피곤하게 만들기도 해요.",
+   "opp": "danjjan",
+   "oppNote": "같이 가면 장바구니가 조용히 두 배가 돼요. 계산대에서 한 번 놀라게 됩니다.",
+   "punch": "야식까지 계획대로 드시는 분은 처음 봅니다"
+  },
+  "shinsang": {
+   "emoji": "✨",
+   "name": "신상 헌터",
+   "nick": "안 먹어봤으면 사야지",
+   "cart": [
+    [
+     "이번 주 신상 컵라면",
+     "2,200"
+    ],
+    [
+     "처음 보는 탄산",
+     "2,000"
+    ],
+    [
+     "한정판 과자",
+     "1,800"
+    ]
+   ],
+   "desc": "매대가 바뀌는 걸 제일 먼저 알아채는 사람. 맛없을 확률을 알면서도 일단 집습니다. 실패해도 그걸 이야깃거리로 쓰는 타입이라 결과적으로 손해 보는 법이 없어요.",
+   "opp": "ramen",
+   "oppNote": "같이 가면 신상을 아무리 권해도 조용히 라면을 집어 듭니다. 설득은 포기하세요.",
+   "punch": "맛없는 거 사고도 후기 쓰실 분"
+  },
+  "danjjan": {
+   "emoji": "🍫",
+   "name": "단짠 무한루프",
+   "nick": "짠 거 다음엔 단 거",
+   "cart": [
+    [
+     "감자칩",
+     "2,000"
+    ],
+    [
+     "초코 아이스크림",
+     "2,500"
+    ],
+    [
+     "젤리",
+     "1,700"
+    ]
+   ],
+   "desc": "배가 고파서 온 게 아니라 입이 심심해서 온 쪽. 짠 걸 먹으면 단 게 당기고 단 걸 먹으면 다시 짠 게 당깁니다. 하나만 사러 왔다가 봉투를 들고 나오는 일이 잦아요.",
+   "opp": "dosirak",
+   "oppNote": "같이 가면 담은 걸 하나씩 빼자는 소리를 듣게 돼요. 대체로 그 말이 맞아서 더 얄밉습니다.",
+   "punch": "하나만 사러 간다는 말, 아무도 안 믿어요"
+  },
+  "beer": {
+   "emoji": "🍺",
+   "name": "맥주 한 캔 감성러",
+   "nick": "야식보다 분위기",
+   "cart": [
+    [
+     "수입맥주 1캔",
+     "3,500"
+    ],
+    [
+     "마른안주",
+     "3,000"
+    ],
+    [
+     "얼음컵",
+     "1,000"
+    ]
+   ],
+   "desc": "허기보다 하루를 마무리하는 의식이 필요해서 온 사람. 뭘 먹느냐보다 어떻게 먹느냐가 중요해서, 자리를 만들고 조명을 낮추고 나서야 첫 입을 뜹니다. 시간은 좀 걸려요.",
+   "opp": "samgak",
+   "oppNote": "같이 가면 자리 세팅이 끝나기도 전에 상대는 이미 다 먹고 정리까지 마쳤어요.",
+   "punch": "그거 야식 아니라 술자리 아니에요?"
+  },
+  "samgak": {
+   "emoji": "🍙",
+   "name": "삼각김밥 미니멀리스트",
+   "nick": "배만 채우면 됐다",
+   "cart": [
+    [
+     "삼각김밥 (전주비빔)",
+     "1,300"
+    ],
+    [
+     "생수",
+     "900"
+    ]
+   ],
+   "desc": "고민하는 시간이 아까운 타입. 들어가서 나오기까지 2분이면 충분하고, 사온 걸 서서 먹고 바로 정리합니다. 효율적이지만 가끔 주변에서 '그게 야식이냐' 소리를 듣습니다.",
+   "opp": "beer",
+   "oppNote": "같이 가면 잔 채우고 안주 놓는 동안 계속 기다리게 됩니다. 먼저 드셔도 괜찮아요.",
+   "punch": "그게 야식이라고 우기시면 할 말은 없습니다"
+  }
+ }
+}
+</script>
+
+<script>
+const DATA = JSON.parse(document.getElementById('quiz-data').textContent);
+const Q = DATA.questions;
+const RESULTS = DATA.results;
+
+/* ⚠️ 카카오 개발자(developers.kakao.com)에서 앱 생성 후
+   [앱 키 > JavaScript 키]를 넣고, [플랫폼 > Web]에 도메인을 등록해야 작동합니다.
+   비워두면 카카오 버튼이 안내 문구만 띄웁니다. */
+const KAKAO_JS_KEY = '0051c873b18481cd74c1707105e059c1';
+const OG_IMAGE = '';   /* 1200x630 그림을 올리면 그 주소를 여기 넣으세요 */
+
+function initKakao(){
+  if(!KAKAO_JS_KEY || !window.Kakao) return false;
+  if(!window.Kakao.isInitialized()) window.Kakao.init(KAKAO_JS_KEY);
+  return true;
+}
+
+let state = { step: -1, answers: [] }; // step -1 = intro
+
+const brandTitle = document.getElementById('brandTitle');
+const card = document.getElementById('card');
+const routeBar = document.getElementById('routeBar');
+const routeFill = document.getElementById('routeFill');
+const routeDots = document.getElementById('routeDots');
+const routeCart = document.getElementById('routeCart');
+
+function buildRouteDots(){
+  routeDots.innerHTML = '';
+  for(let i=0;i<Q.length;i++){
+    routeDots.appendChild(document.createElement('span'));
+  }
+}
+buildRouteDots();
+
+function updateRoute(step){
+  const total = Q.length;
+  const pct = total <= 1 ? 0 : (step/(total-1))*100;
+  routeFill.style.width = 'calc(' + pct + '% )';
+  routeCart.style.left = pct + '%';
+  const dots = routeDots.children;
+  for(let i=0;i<dots.length;i++){
+    dots[i].classList.remove('done','now');
+    if(i < step) dots[i].classList.add('done');
+    else if(i === step) dots[i].classList.add('now');
+  }
+}
+
+function renderIntro(){
+  brandTitle.textContent = '';
+  routeBar.style.display = 'none';
+  card.innerHTML = `
+    <div class="intro">
+      <div class="hero">🌙</div>
+      <div class="clock">${DATA.introClock}</div>
+      <h2>${DATA.introTitle}</h2>
+      <p>${DATA.introSub}</p>
+      <button class="btn" id="startBtn">${DATA.startLabel}</button>
+    </div>
+  `;
+  document.getElementById('startBtn').onclick = () => {
+    state = { step: 0, answers: [] };
+    renderQuestion();
+  };
+}
+
+function renderQuestion(){
+  const q = Q[state.step];
+  brandTitle.textContent = DATA.brand;
+  routeBar.style.display = 'block';
+  updateRoute(state.step);
+
+  const optsHtml = q.options.map((opt, i) => `
+    <button class="opt" data-idx="${i}">
+      <span class="tile">${opt.svg || opt.icon}</span>
+      <p>${opt.text}</p>
+    </button>
+  `).join('');
+
+  card.innerHTML = `
+    <div class="qhead">
+      <button class="backbtn" id="backBtn">← 이전</button>
+      <div class="stamp">
+        <span class="day">${q.day}</span>
+        <span class="phase">${q.phase}</span>
+      </div>
+    </div>
+    <div class="qtext">${q.q}</div>
+    <div class="options">${optsHtml}</div>
+  `;
+
+  document.getElementById('backBtn').onclick = () => {
+    if(card.dataset.locked === '1') return;
+    if(state.step === 0){
+      state = { step: -1, answers: [] };
+      renderIntro();
+    } else {
+      state.answers.pop();
+      state.step -= 1;
+      renderQuestion();
+    }
+  };
+
+  Array.from(card.querySelectorAll('.opt')).forEach(btn => {
+    btn.onclick = () => {
+      if(card.dataset.locked === '1') return;
+      card.dataset.locked = '1';
+      btn.classList.add('picked');
+      state.answers.push(+btn.dataset.idx);
+      setTimeout(() => {
+        card.dataset.locked = '0';
+        if(state.step < Q.length - 1){
+          state.step += 1;
+          renderQuestion();
+        } else {
+          renderResult();
+        }
+      }, 320);
+    };
+  });
+}
+
+function computeType(){
+  const total = {};
+  DATA.order.forEach(k => total[k] = 0);
+  state.answers.forEach((pick, i) => {
+    const s = Q[i].options[pick].s;
+    for(const k in s) total[k] += s[k];
+  });
+  return DATA.order.reduce((best, k) => total[k] > total[best] ? k : best, DATA.order[0]);
+}
+
+function renderResult(forcedKey){
+  routeBar.style.display = 'none';
+  brandTitle.textContent = '나의 편의점 야식 유형';
+  const key = forcedKey || computeType();
+  const r = RESULTS[key];
+  const opp = RESULTS[r.opp];
+  const sum = r.cart.reduce((n, item) => n + parseInt(item[1].replace(/,/g,''),10), 0);
+
+  card.innerHTML = `
+    <div class="result">
+      <div class="ticket">
+        <div class="remoji">${r.emoji}</div>
+        <p class="type">${r.name}</p>
+        <p class="nick">${r.nick}</p>
+        <div class="cart">
+          ${r.cart.map(item => `<div class="row"><span>${item[0]}</span><span>${item[1]}</span></div>`).join('')}
+          <div class="sum"><span>합계</span><span>${sum.toLocaleString()}원</span></div>
+        </div>
+      </div>
+      <p class="punch">${r.punch}</p>
+      <p class="desc">${r.desc}</p>
+      <div class="opposite">
+        <div class="label">나와 정반대 유형</div>
+        <div class="name">${opp.emoji} ${opp.name}</div>
+        <div class="note">${r.oppNote}</div>
+      </div>
+      <p class="share-title">친구는 무슨 유형일까?</p>
+      <div class="share-row">
+        <button class="share-item" id="shKakao"><span class="ic kakao">톡</span><span class="lb">카카오톡</span></button>
+        <button class="share-item" id="shX"><span class="ic x">𝕏</span><span class="lb">X</span></button>
+        <button class="share-item" id="shLink"><span class="ic link">🔗</span><span class="lb" id="lbLink">링크 복사</span></button>
+        <button class="share-item" id="shMore" style="display:none;"><span class="ic more">···</span><span class="lb">다른 앱</span></button>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" id="retryBtn">다시 편의점 가기</button>
+        <button class="backbtn" id="backFromResult" style="margin:2px auto 0;">← 마지막 질문 다시 보기</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('retryBtn').onclick = () => {
+    state = { step: -1, answers: [] };
+    renderIntro();
+  };
+  const backRes = document.getElementById('backFromResult');
+  if(state.answers.length === Q.length){
+    backRes.onclick = () => {
+      state.answers.pop();
+      state.step = Q.length - 1;
+      renderQuestion();
+    };
+  } else {
+    backRes.style.display = 'none';   /* 공유 링크로 바로 들어온 경우 */
+  }
+  /* ── 공유 ─────────────────────────────── */
+  const shareUrl  = location.origin + location.pathname + '?r=' + key;
+  /* ── 공유 글 ─ 카카오는 「제목」만 큰 글씨로 보여줍니다.
+     그래서 검사 이름을 제목 안에 넣습니다. ── */
+  const shareTitle = '편의점 야식 유형' + ' · ' + (r.name || r.nick);
+  const shareLine  = (r.name ? r.nick : (r.tag || r.punch || ''));
+  const shareDesc  = shareLine + '\n스텔라 랩 — 나는 어느 쪽일까';
+  const shareText  = shareTitle + '\n' + shareLine;
+  document.getElementById('shKakao').onclick = () => {
+    if(!initKakao()){
+      alert('카카오 공유는 JavaScript 키를 넣어야 작동해요.\n(카카오 개발자 > 내 애플리케이션 > 앱 키)');
+      return;
+    }
+    const _lnk = { mobileWebUrl: shareUrl, webUrl: shareUrl };
+    const _btn = [{ title: '나도 해보기', link: _lnk }];
+    const _img = (r.img || OG_IMAGE || '');
+    if (_img) {
+      window.Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: { title: shareTitle, description: shareDesc,
+                   imageUrl: _img, link: _lnk },
+        buttons: _btn
+      });
+    } else {
+      /* 그림이 없을 때는 글 본을 씁니다. 깨진 그림 자리가 안 생기고
+         글씨가 더 크게 나옵니다. */
+      window.Kakao.Share.sendDefault({
+        objectType: 'text',
+        text: shareTitle + '\n' + shareDesc,
+        link: _lnk,
+        buttonTitle: '나도 해보기'
+      });
+    }
+  };
+
+  document.getElementById('shX').onclick = () => {
+    window.open(
+      'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) +
+      '&url=' + encodeURIComponent(shareUrl),
+      '_blank', 'noopener,width=560,height=520'
+    );
+  };
+
+  const lbLink = document.getElementById('lbLink');
+  document.getElementById('shLink').onclick = () => {
+    const done = (msg) => { lbLink.textContent = msg; setTimeout(()=>lbLink.textContent='링크 복사', 1600); };
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(shareText + '\n' + shareUrl).then(()=>done('복사됨')).catch(()=>done('복사 실패'));
+    } else { done('복사 실패'); }
+  };
+
+  /* 인스타그램은 외부 웹에서 바로 올리는 방법이 없어서,
+     모바일 기본 공유 시트를 띄워 사용자가 직접 앱을 고르게 합니다. */
+  if(navigator.share){
+    const more = document.getElementById('shMore');
+    more.style.display = 'flex';
+    more.onclick = () => {
+      navigator.share({ title: DATA.brand, text: shareText, url: shareUrl }).catch(()=>{});
+    };
+  }
+}
+
+/* 공유 링크(?r=유형)로 들어오면 해당 결과를 먼저 보여줍니다 */
+const shared = new URLSearchParams(location.search).get('r');
+if(shared){ if(RESULTS[shared]){ renderResult(shared); } else { renderIntro(); } }
+else renderIntro();
+</script>
+</div>
+
+</body>
+</html>
+STELLA_LAB_HTML;
+
+	exit;
+}, 5 );

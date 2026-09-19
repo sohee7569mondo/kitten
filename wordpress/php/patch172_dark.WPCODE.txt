@@ -1,0 +1,123 @@
+/* ════════════════════════════════════════════════════════════
+   아르카나만 다시 어두운 밤하늘로 · 소희 님께
+
+   왜
+     9월 8일에 문 여섯을 전부 흰 바탕으로 바꿨습니다. 사주 문
+     다섯은 「읽는 곳」이라 종이빛이 맞습니다. 그런데 아르카나는
+     「뽑는 곳」입니다. 어두워야 카드가 삽니다.
+     서로 달라야 손님이 다른 데 왔다는 것을 압니다.
+
+   무엇을 하나
+     172 쪽에 덧붙었던 「문을 흰 바탕으로」 겉모습 덩어리 하나만
+     걷어냅니다. 그 아래 있던 원래 밤하늘 색표가 다시 살아납니다.
+
+   ★ 다른 다섯 문은 흰 바탕 그대로입니다. 172 만 건드립니다.
+   ★ 글은 한 글자도 안 건드립니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_dark172=1
+   ② 정말 넣기   https://stellasaju.com/?stella_dark172=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_dark172=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_dark172'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_dark172_backup';
+	$MARK = '2026-09-08 · 문을 흰 바탕으로';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_dark172'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:900px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}'
+	   . 'h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.86rem}a{color:#D4AF6A}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.55 monospace;border-left:3px solid #D4AF6A;max-height:340px;overflow:auto}</style>';
+
+	$page = get_page_by_path( 'door-tarot' );
+	if ( ! $page ) { echo '<h1 class="no">door-tarot 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	$m = strpos( $c, $MARK );
+	if ( false === $m ) {
+		echo '<h1 class="no">흰 바탕 덩어리를 못 찾았습니다.</h1>';
+		echo '<p>이미 걷어냈거나, 애초에 안 들어간 것입니다. 아무것도 바꾸지 않았습니다.</p>';
+		exit;
+	}
+
+	/* 그 표가 들어 있는 <style> 덩어리 하나만 통째로 걷어냅니다 */
+	$s = strrpos( substr( $c, 0, $m ), '<style' );
+	if ( false === $s ) {
+		echo '<h1 class="no">덩어리의 시작을 못 찾았습니다. 아무것도 바꾸지 않았습니다.</h1>';
+		exit;
+	}
+	$e = strpos( $c, '</style>', $m );
+	if ( false === $e ) {
+		echo '<h1 class="no">덩어리의 끝을 못 찾았습니다. 아무것도 바꾸지 않았습니다.</h1>';
+		exit;
+	}
+	$e = $e + strlen( '</style>' );
+
+	$cut = substr( $c, $s, $e - $s );
+
+	/* 앞뒤 빈 줄까지 같이 */
+	$b = $s;
+	while ( $b > 0 && ( ' ' === $c[ $b - 1 ] || "\t" === $c[ $b - 1 ] ) ) { $b--; }
+	$a = $e;
+	while ( $a < strlen( $c ) && ( "\n" === $c[ $a ] || "\r" === $c[ $a ] ) ) { $a++; }
+
+	$new = substr( $c, 0, $b ) . substr( $c, $a );
+
+	echo '<h1>' . ( 'apply' === $mode ? '걷어냈습니다' : '걷어내면 이렇게 됩니다 (아직 안 걷어냈습니다)' ) . '</h1>';
+	printf( '<p>172 쪽에서 <b>%s 글자</b>짜리 겉모습 덩어리 하나를 걷어냅니다.</p>',
+		number_format( strlen( $cut ) ) );
+	echo '<h2>걷어낼 것</h2><pre>' . esc_html( $cut ) . '</pre>';
+	echo '<p class="dim">이 덩어리 아래 원래 있던 밤하늘 색표가 다시 살아납니다. '
+	   . '글은 한 글자도 안 건드립니다. 다른 다섯 문은 흰 바탕 그대로입니다.</p>';
+	echo '<p class="dim">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 걷어내시려면 <code>/?stella_dark172=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<p class="ok">걷어냈습니다.</p>';
+	echo '<p><a href="/door-tarot/">아르카나 열어보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_dark172=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

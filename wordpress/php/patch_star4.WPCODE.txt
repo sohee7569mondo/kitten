@@ -1,0 +1,235 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주 · 벗겨진 역빗금 되살리기 + 리스트 단추 빼기
+   판 2026-09-16 · 4/4
+
+   ★★ 제 잘못입니다. 워드프레스의 wp_update_post 는 글을 저장하며
+     역빗금을 한 겹 **벗겨냅니다**. 저장할 때는 wp_slash() 로 감싸야
+     하는데 제가 안 감쌌습니다. 그래서 쪽 안의 역빗금 다섯 개가
+     통째로 사라졌습니다.
+
+     CLAUDE.md 에 「편집기로 저장하면 역빗금이 벗겨진다」고 두 번이나
+     적어두고선 제가 똑같은 짓을 했습니다.
+
+   무엇이 깨졌나 —
+       v.replace(/\+/g, ' ')   →   v.replace(/+/g, ' ')
+   /+/ 는 말이 안 되는 정규식이라 **그 script 덩어리가 통째로
+   안 돕니다.** 그래서 검색칸도 여덟 장도 안 나왔습니다.
+
+   되살릴 자리 넷 (역빗금 다섯) —
+       (city||'').replace(/\s/g,'').toUpper
+       (city||'').replace(/\s/g,'')
+       replace(/^\s+/,'').replace(/\s+$/,'')
+       decodeURIComponent(v.replace(/\+/g, ' '))
+
+   그리고 소희 님 「이거 리스트 보는거 필요없어」 —
+       「537명 전체에서 찾기」 단추를 뺍니다.
+
+   ── 쓰는 법 ─────────────────────────────────────────
+   ① 고치기    https://stellasaju.com/?stella_star4=1
+              ★ 미리보기 없이 **바로 고칩니다.** 열기만 하면 됩니다.
+              넣기 전 쪽을 통째로 백업합니다.
+   ② 되돌리기  https://stellasaju.com/?stella_star4=1&undo=1
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_star4'] ) ) { return; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 system-ui;'
+		. 'background:#141018;color:#eee;padding:24px;max-width:900px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	$pid  = 406;
+	$bak  = 'stella_bak_406_p4';
+	$page = get_post( $pid );
+	if ( ! $page ) { echo '<h1 style="color:#ff7b7b">쪽 406 을 못 찾았습니다.</h1>'; exit; }
+	$body = $page->post_content;
+
+	/* ── 되돌리기 ─────────────────────────────────────── */
+	if ( isset( $_GET['undo'] ) ) {
+		$old = get_post_meta( $pid, $bak, true );
+		if ( ! $old ) { echo '<h1 style="color:#ff7b7b">되돌릴 것이 없습니다.</h1>'; exit; }
+		if ( ! isset( $_GET['go'] ) ) {
+			printf( '<h1 style="color:#ffd76a">되돌리기</h1><p>지금 %s자 → %s자</p>',
+				number_format( strlen( $body ) ), number_format( strlen( $old ) ) );
+			echo '<p style="font-size:18px"><a style="color:#ffd76a" '
+				. 'href="?stella_star4=1&amp;undo=1&amp;go=1">→ 이대로 되돌리기</a></p>';
+			exit;
+		}
+		/* ★ 되돌릴 때도 wp_slash 로 감쌉니다 — 안 그러면 또 벗겨집니다 */
+		wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $old ) ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $bak );
+		echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2>';
+		exit;
+	}
+
+	$BS = chr( 92 );   /* 역빗금 한 개 */
+
+	$FIX = array(
+		array( '들어간 도시 이름 (첫째)',
+			"(city||'').replace(/s/g,'').toUpper",
+			"(city||'').replace(/" . $BS . "s/g,'').toUpper" ),
+		array( '들어간 도시 이름 (둘째)',
+			"(city||'').replace(/s/g,'');",
+			"(city||'').replace(/" . $BS . "s/g,'');" ),
+		array( '이름 앞뒤 빈칸 떼기',
+			"replace(/^s+/,'').replace(/s+$/,'')",
+			"replace(/^" . $BS . "s+/,'').replace(/" . $BS . "s+$/,'')" ),
+		array( '★ 주소에서 이름 읽기 (이것 때문에 다 멈췄습니다)',
+			"decodeURIComponent(v.replace(/+/g, ' '))",
+			"decodeURIComponent(v.replace(/" . $BS . "+/g, ' '))" ),
+		array( '「537명 전체에서 찾기」 단추 빼기',
+			'<button type="button" class="moreall" id="svMoreAll">537명 전체에서 찾기</button>',
+			'' ),
+	);
+
+	$miss = array();
+	$hit  = 0;
+	foreach ( $FIX as $f ) {
+		$n = substr_count( $body, $f[1] );
+		if ( 1 === $n ) { $hit++; }
+		else { $miss[] = array( $f[0], $n, substr_count( $body, $f[2] ) ); }
+	}
+
+	echo '<h1 style="color:#ffd76a">벗겨진 역빗금 되살리기</h1>';
+	printf( '<p>쪽 406 · 지금 <b>%s자</b> · 역빗금 <b style="color:%s">%d개</b> '
+		. '(다섯 개여야 합니다)</p>',
+		number_format( strlen( $body ) ),
+		( 5 === substr_count( $body, $BS ) ) ? '#7bff9b' : '#ff7b7b',
+		substr_count( $body, $BS ) );
+	printf( '<p>고칠 자리 <b>%d</b>군데 가운데 <b style="color:%s">%d</b>군데를 찾았습니다.</p>',
+		count( $FIX ), count( $miss ) ? '#ff7b7b' : '#7bff9b', $hit );
+
+	if ( count( $miss ) ) {
+		echo '<ul style="font-size:13px">';
+		foreach ( $miss as $m ) {
+			printf( '<li>%s — 깨진 채 %d군데 · 이미 고쳐진 채 %d군데</li>',
+				esc_html( $m[0] ), $m[1], $m[2] );
+		}
+		echo '</ul>';
+		$allfixed = 1;
+		foreach ( $miss as $m ) { if ( ! $m[2] ) { $allfixed = 0; } }
+		if ( $allfixed ) {
+			if ( ! $hit ) {
+				echo '<h2 style="color:#7bff9b">이미 다 고쳐져 있습니다.</h2>';
+				exit;
+			}
+		}
+	}
+
+	$new = $body;
+	foreach ( $FIX as $f ) {
+		if ( 1 === substr_count( $new, $f[1] ) ) {
+			$new = str_replace( $f[1], $f[2], $new );
+		}
+	}
+
+	printf( '<p>고친 뒤 <b>%s자</b> · 역빗금 <b>%d개</b></p>',
+		number_format( strlen( $new ) ), substr_count( $new, $BS ) );
+
+	echo '<table cellpadding="6" style="border-collapse:collapse;font-size:13px">';
+	foreach ( $FIX as $f ) {
+		printf( '<tr><td style="color:#9fd">%s</td><td style="color:#888">%s</td></tr>',
+			esc_html( $f[0] ),
+			( 1 === substr_count( $body, $f[1] ) ) ? '고칩니다' : '못 찾음 · 그냥 둡니다' );
+	}
+	echo '</table>';
+
+	/* ★★ 2026-09-16 · 미리보기 단계를 없앴습니다.
+	   소희 님이 미리보기에서 멈추시는 일이 여러 번 있었습니다.
+	   이것은 역빗금 다섯 개를 되살리는 작은 고침이고, 넣기 전 쪽을
+	   통째로 백업하며 되돌리기도 있으니 바로 고칩니다. */
+
+	update_post_meta( $pid, $bak, $body );
+	/* ★★ 여기가 핵심입니다 — wp_slash 로 감싸야 역빗금이 안 벗겨집니다 */
+	wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $new ) ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	/* 정말 들어갔는지 다시 읽어 셉니다 */
+	clean_post_cache( $pid );
+	$chk = get_post( $pid );
+	$cnt = substr_count( $chk->post_content, $BS );
+
+	echo '<h2 style="color:#7bff9b">고쳤습니다.</h2>';
+	printf( '<p>다시 읽어 세어보니 역빗금 <b style="color:%s">%d개</b> '
+		. '(다섯 개여야 합니다)</p>',
+		( 5 === $cnt ) ? '#7bff9b' : '#ff7b7b', $cnt );
+	if ( 5 !== $cnt ) {
+		echo '<p style="color:#ff7b7b">아직 다섯이 아닙니다. 저에게 이 숫자를 알려주세요.</p>';
+	}
+	printf( '<p style="font-size:18px"><a style="color:#ffd76a" href="%s">→ 스타 사주 열어보기</a></p>',
+		esc_url( get_permalink( $pid ) ) );
+	exit;
+}, 1 );
+
+/* ════════════════════════════════════════════════════════════
+   덤 · 스타 사주 쪽 맨 위의 「검정 띠」가 무엇인지 잽니다
+   소희 님 「이 페이지 위에 답메튜 사이에 검정색 띠가 있어」
+
+   쪽 내용을 통째로 그려 봤는데 어두운 상자가 하나도 없었습니다.
+   그러니 **테마 쪽**입니다. 짐작하지 않고 화면에서 직접 재서
+   무엇인지 이름을 찍어 드립니다. 관리자에게만 보입니다.
+   ════════════════════════════════════════════════════════════ */
+add_action( 'wp_footer', function () {
+
+	if ( ! is_page( 'star-saju' ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	?>
+<style>#ssband{margin:14px 22px;padding:9px 12px;font-size:12px;line-height:1.7;
+border-left:3px solid #C9A227;background:rgba(201,162,39,.09);color:#5a4a10}</style>
+<script>
+(function(){
+  if(window.StellaBand){ return; }
+  window.StellaBand = 1;
+  function run(){
+    try{
+      var out = [], all = document.querySelectorAll('*'), i, el, st, r, m, lum, nm;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        r = el.getBoundingClientRect();
+        if(r.top > 320){ continue; }
+        if(r.height < 18){ continue; }
+        if(r.width < 400){ continue; }
+        st = window.getComputedStyle(el);
+        if(!st){ continue; }
+        m = String(st.backgroundColor).match(/[0-9]+/g);
+        if(!m){ continue; }
+        if(m.length < 3){ continue; }
+        if(m.length > 3){ if(Number(m[3]) === 0){ continue; } }
+        lum = (Number(m[0]) * 299 + Number(m[1]) * 587 + Number(m[2]) * 114) / 1000;
+        if(lum > 80){ continue; }
+        nm = el.tagName;
+        if(el.id){ nm += ' #' + el.id; }
+        if(el.className){ nm += ' .' + String(el.className).split(' ').join('.').slice(0, 40); }
+        out.push(nm + ' — 위 ' + Math.round(r.top) + ' · 높이 ' + Math.round(r.height)
+          + ' · ' + st.backgroundColor);
+        if(out.length > 7){ break; }
+      }
+      var b = document.getElementById('ssband');
+      if(!b){
+        b = document.createElement('p');
+        b.id = 'ssband';
+        if(document.body){ document.body.appendChild(b); }
+      }
+      b.textContent = '관리자에게만 보입니다 · 쪽 맨 위의 어두운 상자 '
+        + out.length + '개  ///  ' + (out.length ? out.join('  ///  ') : '없음');
+    }catch(e){}
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(run, 400); });
+  } else { setTimeout(run, 400); }
+})();
+</script>
+	<?php
+}, 99 );

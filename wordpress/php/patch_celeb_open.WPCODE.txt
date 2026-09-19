@@ -1,0 +1,517 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주 — 사람 표를 밖으로 내놓는 한 줄
+   ★ 2026-09-15 · 소희 님께
+
+   왜 필요한가
+     사람 표(PEOPLE)가 쪽 안쪽 울타리에 갇혀 있어 조각이 손을 못 댑니다.
+     한 줄만 내놓으면 그 뒤로는 조각이 다 합니다 —
+       · 같은 사람이 두 줄 들어간 것 합치기 (가수 + 배우)
+       · 동명이인이면 생년월일을 보여주고 고르게 하기
+       · 관리자에게 표 상태를 세어 보여주기
+
+   넣는 것은 딱 이 한 줄입니다
+       window.StellaCeleb=PEOPLE;
+
+   어디에 넣나
+     findPerson 함수 바로 앞. 그때 PEOPLE 은 이미 만들어져 있습니다.
+
+   ── 쓰는 법 ──
+   읽기만 (아무것도 안 바꿉니다)
+     ?stella_celeb=hunt      낱말이 어느 글에 있는지 훑습니다
+     ?stella_celeb=peek      쪽 하나를 뜯어봅니다 (?id= · 기본 193)
+     ?stella_celeb=stars     쪽에 든 사람을 셉니다 (?id=406)
+     ?stella_celeb=look      사람 이름이 어디 있는지 찾습니다 (?who=)
+     ?stella_celeb=dump      쪽 글을 토막내어 봅니다 (?at= ?n=)
+
+   정리
+     ?stella_celeb=clean       겹쳐 들어간 사람 목록만 봅니다 (기본 406)
+     ?stella_celeb=clean&go=1  실제로 지웁니다 (지우기 전 쪽 전체 백업)
+     ?stella_celeb=cleanundo   되돌립니다
+
+   ★ 관리자로 로그인하신 뒤에 여세요.
+   ★ 편집기로 저장하지 마세요 — 워드프레스가 역빗금을 벗겨냅니다.
+     고칠 것은 늘 조각으로.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_celeb'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_celeb'] ) );
+	$mark = 'window.StellaCeleb=PEOPLE;';
+	$re   = '#(function\s+findPerson\s*\()#u';
+
+	echo "═══ 스타 사주 · 사람 표 내놓기 ═══\n\n";
+
+	/* ── 어디에 있든 찾습니다 ──────────────────────────────
+	   2026-09-15 · 첫 판은 page 와 post 만 뒤져서 못 찾았습니다.
+	   500명짜리 표는 쪽이 아니라 WPCode 스니펫에 들어 있을 수
+	   있습니다. 그래서 글종류를 가리지 않고 훑습니다. */
+	global $wpdb;
+	$types = $wpdb->get_col(
+		"SELECT DISTINCT post_type FROM {$wpdb->posts}" );
+
+	$WORDS = array( 'function findPerson', 'var PEOPLE', 'cRoster',
+	                'StellaCeleb', 'PEOPLE', 'findPerson' );
+
+	if ( 'hunt' === $mode ) {
+		echo "── 어떤 글종류가 있나 ──\n";
+		foreach ( $types as $t ) {
+			$n = (int) $wpdb->get_var( $wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = %s", $t ) );
+			printf( "  %-22s %d개\n", $t, $n );
+		}
+		echo "\n── 낱말이 어디에 있나 ──\n";
+		foreach ( $WORDS as $w ) {
+			$rows = $wpdb->get_results( $wpdb->prepare(
+				"SELECT ID, post_type, post_title, post_name,
+				        CHAR_LENGTH(post_content) AS n
+				   FROM {$wpdb->posts}
+				  WHERE post_content LIKE %s
+			   ORDER BY n DESC LIMIT 12",
+				'%' . $wpdb->esc_like( $w ) . '%' ) );
+			printf( "\n  「%s」 — %d곳\n", $w, count( $rows ) );
+			foreach ( $rows as $r ) {
+				printf( "     %-9s %5d  %-26s %s  %d자\n",
+					$r->post_type, $r->ID,
+					mb_substr( (string) $r->post_title, 0, 24 ),
+					$r->post_name, $r->n );
+			}
+		}
+		echo "\n찾으신 자리를 알려주시면 그 자리에 맞춰 넣겠습니다.\n";
+		exit;
+	}
+
+	/* ── 쪽 하나를 뜯어봅니다 ──────────────────────────────
+	   2026-09-15 · hunt 로 알아낸 것 —
+	     살아 있는 스타 사주는 page 193 「인물 사주」(celeb) 25,472자.
+	     제 사본(68,741자)과 딴 물건이고, findPerson 도 PEOPLE 도
+	     없습니다. 500명은 그 쪽에 안 들어갑니다.
+	   그래서 쪽이 표를 어디서 가져오는지 찾습니다. */
+	if ( 'peek' === $mode ) {
+		$pid = isset( $_GET['id'] ) ? (int) $_GET['id'] : 193;
+		$post = get_post( $pid );
+		if ( ! $post ) { echo "★ 쪽 {$pid} 이 없습니다\n"; exit; }
+		$c = $post->post_content;
+		printf( "쪽 %d 「%s」 · 슬러그 %s · %d자\n\n",
+			$pid, $post->post_title, $post->post_name, strlen( $c ) );
+
+		echo "── 큰 표 같은 변수 선언 ──\n";
+		if ( preg_match_all( '#(var|const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*[\[{]#u',
+		                     $c, $mm, PREG_SET_ORDER ) ) {
+			foreach ( $mm as $m ) { printf( "   %s %s\n", $m[1], $m[2] ); }
+		} else { echo "   없습니다\n"; }
+
+		echo "\n── 밖에서 가져오는 자리 ──\n";
+		$hit = 0;
+		foreach ( array( 'fetch(', 'wp-json', '.json', 'XMLHttpRequest',
+		                 'ajax', 'admin-ajax', 'window.Stella', 'apply_filters',
+		                 'shortcode', 'wp_localize' ) as $w ) {
+			$n = substr_count( $c, $w );
+			if ( ! $n ) { continue; }
+			$hit++;
+			printf( "   %-16s %d번\n", $w, $n );
+			$at = strpos( $c, $w );
+			echo "      " . str_replace( "\n", " ",
+				substr( $c, max( 0, $at - 60 ), 170 ) ) . "\n";
+		}
+		if ( ! $hit ) { echo "   없습니다 — 표가 쪽 안에 통째로 있을 수 있습니다\n"; }
+
+		echo "\n── window 에 내놓는 이름 ──\n";
+		if ( preg_match_all( '#window\.([A-Za-z_$][\w$]*)#u', $c, $mm ) ) {
+			$u = array_unique( $mm[1] );
+			foreach ( $u as $w ) { echo "   window.$w\n"; }
+		} else { echo "   없습니다\n"; }
+
+		echo "\n── 이름이 celeb · star · 스타 · 인물 인 스니펫 ──\n";
+		global $wpdb;
+		$rows = $wpdb->get_results(
+			"SELECT ID, post_title, post_name, CHAR_LENGTH(post_content) AS n
+			   FROM {$wpdb->posts}
+			  WHERE post_type = 'wpcode'
+			    AND ( post_title LIKE '%celeb%' OR post_title LIKE '%star%'
+			       OR post_title LIKE '%스타%' OR post_title LIKE '%인물%'
+			       OR post_name  LIKE '%celeb%' OR post_name  LIKE '%star%' )
+		   ORDER BY n DESC LIMIT 20" );
+		if ( $rows ) {
+			foreach ( $rows as $r ) {
+				printf( "   %5d  %-30s %s  %d자\n", $r->ID,
+					mb_substr( (string) $r->post_title, 0, 28 ), $r->post_name, $r->n );
+			}
+		} else { echo "   없습니다\n"; }
+
+		echo "\n── 큰 스니펫 열 개 (표가 든 것을 찾습니다) ──\n";
+		$rows = $wpdb->get_results(
+			"SELECT ID, post_title, CHAR_LENGTH(post_content) AS n
+			   FROM {$wpdb->posts} WHERE post_type = 'wpcode'
+		   ORDER BY n DESC LIMIT 10" );
+		foreach ( $rows as $r ) {
+			printf( "   %5d  %-34s %d자\n", $r->ID,
+				mb_substr( (string) $r->post_title, 0, 32 ), $r->n );
+		}
+		exit;
+	}
+
+	/* ── 쪽에 든 사람 자료를 세어 봅니다 ───────────────────
+	   2026-09-15 · peek 으로 알아낸 것 —
+	     사람 자료는 쪽 193 안에 {"n":"이름", …} 꼴 JSON 으로 들어
+	     있습니다. patch_star1/2 가 필터로 모아 쪽 글에 직접 합칩니다.
+	     ?stella_starmerge=1 이 홈으로 튕기면 그 조각이 꺼진 것이므로,
+	     여기서 직접 세어 봅니다. */
+	if ( 'stars' === $mode ) {
+		$pid  = isset( $_GET['id'] ) ? (int) $_GET['id'] : 193;
+		$post = get_post( $pid );
+		if ( ! $post ) { echo "★ 쪽 {$pid} 이 없습니다\n"; exit; }
+		$c = $post->post_content;
+		printf( "쪽 %d 「%s」 · %d자\n\n", $pid, $post->post_title, strlen( $c ) );
+
+		/* JSON 을 하나씩 떠냅니다 (patch_star2 와 같은 방식) */
+		$rows = array(); $from = 0;
+		while ( true ) {
+			$at = strpos( $c, '{"n":"', $from );
+			if ( false === $at ) { break; }
+			$depth = 0; $end = 0; $len = strlen( $c ); $inStr = false;
+			for ( $i = $at; $i < $len; $i++ ) {
+				$ch = $c[ $i ];
+				if ( '"' === $ch ) {
+					if ( $i > 0 ) { if ( '\\' !== $c[ $i - 1 ] ) { $inStr = ! $inStr; } }
+					continue;
+				}
+				if ( $inStr ) { continue; }
+				if ( '{' === $ch ) { $depth++; }
+				if ( '}' === $ch ) { $depth--; if ( 0 === $depth ) { $end = $i; break; } }
+			}
+			if ( $end <= $at ) { break; }
+			$one = json_decode( substr( $c, $at, $end - $at + 1 ), true );
+			if ( is_array( $one ) ) { $rows[] = $one; }
+			$from = $end + 1;
+		}
+
+		printf( "모두 %d명\n\n", count( $rows ) );
+		if ( ! $rows ) {
+			echo "★ 사람 자료를 못 찾았습니다. 자료 모양이 바뀌었을 수 있습니다.\n";
+			exit;
+		}
+
+		/* 직업 분포 */
+		$job = array();
+		foreach ( $rows as $r ) {
+			$j = isset( $r['j'] ) ? $r['j'] : '(없음)';
+			$job[ $j ] = isset( $job[ $j ] ) ? $job[ $j ] + 1 : 1;
+		}
+		arsort( $job );
+		echo "── 직업 ──\n";
+		foreach ( $job as $k => $v ) { printf( "   %-12s %d명\n", $k, $v ); }
+
+		/* 이름이 겹치는 것 — 괄호를 뗀 기본 이름으로 묶습니다 */
+		$byName = array();
+		foreach ( $rows as $r ) {
+			$n = isset( $r['n'] ) ? $r['n'] : '';
+			$base = $n;
+			$br = strpos( $base, '(' );
+			if ( false !== $br ) { $base = substr( $base, 0, $br ); }
+			$base = trim( $base );
+			if ( '' === $base ) { continue; }
+			if ( ! isset( $byName[ $base ] ) ) { $byName[ $base ] = array(); }
+			$byName[ $base ][] = $r;
+		}
+
+		$same = array(); $diff = array();
+		foreach ( $byName as $base => $list ) {
+			if ( count( $list ) < 2 ) { continue; }
+			$births = array();
+			foreach ( $list as $r ) {
+				$b = isset( $r['b'] ) ? $r['b'] : '';
+				$births[ $b ] = 1;
+			}
+			if ( count( $births ) === 1 ) { $same[ $base ] = $list; }
+			else { $diff[ $base ] = $list; }
+		}
+
+		printf( "\n── 같은 이름이 여럿 ── (%d 쌍)\n", count( $byName ) ? count( $same ) + count( $diff ) : 0 );
+
+		printf( "\n★ 같은 사람이 두 줄 (생일이 같음) — %d명\n", count( $same ) );
+		foreach ( $same as $base => $list ) {
+			printf( "   %s · %s\n", $base, isset( $list[0]['b'] ) ? $list[0]['b'] : '?' );
+			foreach ( $list as $r ) {
+				printf( "      %-18s %s\n",
+					isset( $r['n'] ) ? $r['n'] : '?',
+					isset( $r['j'] ) ? $r['j'] : '?' );
+			}
+		}
+		if ( ! $same ) { echo "   없습니다 — 중복 등록은 없습니다\n"; }
+
+		printf( "\n★ 진짜 동명이인 (생일이 다름) — %d명\n", count( $diff ) );
+		foreach ( $diff as $base => $list ) {
+			printf( "   %s\n", $base );
+			foreach ( $list as $r ) {
+				printf( "      %-18s %-8s %s\n",
+					isset( $r['n'] ) ? $r['n'] : '?',
+					isset( $r['j'] ) ? $r['j'] : '?',
+					isset( $r['b'] ) ? $r['b'] : '?' );
+			}
+		}
+		if ( ! $diff ) { echo "   없습니다\n"; }
+
+		/* 괄호가 붙은 이름 */
+		$par = array();
+		foreach ( $rows as $r ) {
+			$n = isset( $r['n'] ) ? $r['n'] : '';
+			if ( strpos( $n, '(' ) !== false ) { $par[] = $n; }
+		}
+		printf( "\n── 괄호가 붙은 이름 %d명 ──\n", count( $par ) );
+		$k = 0;
+		foreach ( $par as $n ) {
+			$k++;
+			printf( "   %s%s", $n, ( $k % 4 === 0 ) ? "\n" : "  " );
+		}
+		if ( $k % 4 !== 0 ) { echo "\n"; }
+		exit;
+	}
+
+	/* ── 사람 이름이 어디 있는지 온 사이트에서 찾습니다 ──────
+	   2026-09-15 · stars 가 쪽 193 에서 0명을 셌습니다.
+	   그 쪽에는 사주 계산기만 있고 사람 자료가 없습니다.
+	   그러니 500명은 다른 데 있습니다. 이름으로 찾습니다. */
+	if ( 'look' === $mode ) {
+		global $wpdb;
+		$who = isset( $_GET['who'] ) ? sanitize_text_field( wp_unslash( $_GET['who'] ) ) : '';
+		$names = $who ? array( $who ) : array( '유재석', '아이유', '차은우', '전지현' );
+
+		foreach ( $names as $n ) {
+			$rows = $wpdb->get_results( $wpdb->prepare(
+				"SELECT ID, post_type, post_title, post_name,
+				        CHAR_LENGTH(post_content) AS len
+				   FROM {$wpdb->posts}
+				  WHERE post_type <> 'revision'
+				    AND post_content LIKE %s
+			   ORDER BY len DESC LIMIT 10",
+				'%' . $wpdb->esc_like( $n ) . '%' ) );
+			printf( "\n「%s」 — %d곳\n", $n, count( $rows ) );
+			foreach ( $rows as $r ) {
+				printf( "   %-10s %5d  %-26s %d자\n", $r->post_type, $r->ID,
+					mb_substr( (string) $r->post_title, 0, 24 ), $r->len );
+				/* 그 이름 둘레를 그대로 보여줍니다 — 자료 모양을 봅니다 */
+				$c  = get_post_field( 'post_content', $r->ID );
+				$at = strpos( $c, $n );
+				if ( false !== $at ) {
+					echo "      " . str_replace( array( "\n", "\r" ), ' ',
+						substr( $c, max( 0, $at - 90 ), 220 ) ) . "\n";
+				}
+			}
+		}
+		echo "\n?stella_celeb=look&who=이름  으로 다른 이름도 찾습니다.\n";
+		exit;
+	}
+
+	/* ── 쪽 글을 토막내어 그대로 봅니다 ────────────────── */
+	if ( 'dump' === $mode ) {
+		$pid = isset( $_GET['id'] ) ? (int) $_GET['id'] : 193;
+		$at  = isset( $_GET['at'] ) ? (int) $_GET['at'] : 0;
+		$n   = isset( $_GET['n'] )  ? (int) $_GET['n']  : 2500;
+		if ( $n > 8000 ) { $n = 8000; }
+		$c = get_post_field( 'post_content', $pid );
+		printf( "쪽 %d · 모두 %d자 · %d 부터 %d자\n", $pid, strlen( $c ), $at, $n );
+		echo str_repeat( '─', 50 ) . "\n";
+		echo substr( $c, $at, $n );
+		echo "\n" . str_repeat( '─', 50 ) . "\n";
+		printf( "다음 : ?stella_celeb=dump&id=%d&at=%d&n=%d\n", $pid, $at + $n, $n );
+		exit;
+	}
+
+	/* ── 겹쳐 들어간 사람을 지웁니다 ──────────────────────
+	   2026-09-15 · stars 로 알아낸 것 (쪽 406 · 537명)
+	     36명이 같은 사람인데 두 줄로 들어가 있습니다.
+	     자료를 보탤 때 칸이 어긋난 탓입니다 —
+	       차은우|ㅊ|1997-03-30|가수|…|배우
+	                           ↑직업        ↑그룹
+	     배우인데 직업 칸에 「가수」가, 그룹 칸에 「배우」가 들어가서
+	     이미 있던 「차은우·배우」와 이름이 겹쳐 「차은우(배우)」로
+	     갈라졌습니다. 직업도 「가수」로 틀리게 붙었습니다.
+
+	   지울 것 — 괄호가 붙었고, 괄호를 뗀 이름으로 **생일이 같은**
+	            짝이 있는 줄. (원래 줄이 직업 정보가 더 정확합니다)
+	   그대로 둘 것 — 생일이 다른 진짜 동명이인 열 명.
+
+	   ?stella_celeb=clean         지울 목록만 봅니다 (안 바꿈)
+	   ?stella_celeb=clean&go=1    실제로 지웁니다 (백업 뒤)
+	   ?stella_celeb=cleanundo     되돌립니다 */
+	if ( 'clean' === $mode || 'cleanundo' === $mode ) {
+		$pid  = isset( $_GET['id'] ) ? (int) $_GET['id'] : 406;
+		$post = get_post( $pid );
+		if ( ! $post ) { echo "★ 쪽 {$pid} 이 없습니다\n"; exit; }
+		$c = $post->post_content;
+
+		if ( 'cleanundo' === $mode ) {
+			$bak = get_post_meta( $pid, '_stella_celeb_clean_backup', true );
+			if ( ! $bak ) { echo "★ 백업이 없습니다\n"; exit; }
+			printf( "지금 %d자 → 백업 %d자\n", strlen( $c ), strlen( $bak ) );
+			wp_update_post( array( 'ID' => $pid, 'post_content' => $bak ) );
+			echo "→ 되돌렸습니다\n";
+			exit;
+		}
+
+		$go = ( isset( $_GET['go'] ) ? (int) $_GET['go'] : 0 ) === 1;
+		printf( "쪽 %d 「%s」 · %d자 · %s\n\n", $pid, $post->post_title,
+			strlen( $c ), $go ? '지웁니다' : '미리보기 (아직 안 지움)' );
+
+		/* JSON 을 자리와 함께 떠냅니다 */
+		$rows = array(); $from = 0;
+		while ( true ) {
+			$at = strpos( $c, '{"n":"', $from );
+			if ( false === $at ) { break; }
+			$depth = 0; $end = 0; $len = strlen( $c ); $inStr = false;
+			for ( $i = $at; $i < $len; $i++ ) {
+				$ch = $c[ $i ];
+				if ( '"' === $ch ) {
+					if ( $i > 0 ) { if ( '\\' !== $c[ $i - 1 ] ) { $inStr = ! $inStr; } }
+					continue;
+				}
+				if ( $inStr ) { continue; }
+				if ( '{' === $ch ) { $depth++; }
+				if ( '}' === $ch ) { $depth--; if ( 0 === $depth ) { $end = $i; break; } }
+			}
+			if ( $end <= $at ) { break; }
+			$one = json_decode( substr( $c, $at, $end - $at + 1 ), true );
+			if ( is_array( $one ) ) {
+				$rows[] = array( 'at' => $at, 'end' => $end, 'r' => $one );
+			}
+			$from = $end + 1;
+		}
+		printf( "모두 %d명\n", count( $rows ) );
+
+		/* 괄호를 뗀 이름으로 묶습니다 */
+		$byName = array();
+		foreach ( $rows as $k => $v ) {
+			$n = isset( $v['r']['n'] ) ? $v['r']['n'] : '';
+			$base = $n; $br = strpos( $base, '(' );
+			if ( false !== $br ) { $base = substr( $base, 0, $br ); }
+			$base = trim( $base );
+			if ( '' === $base ) { continue; }
+			if ( ! isset( $byName[ $base ] ) ) { $byName[ $base ] = array(); }
+			$byName[ $base ][] = $k;
+		}
+
+		/* ── 지울 자리와 이름을 살릴 자리를 고릅니다 ───────────
+		   2026-09-15 · 소희 님 「진 (방탄소년단)을 남기면안돼?」
+		   맞는 말씀입니다. 괄호 안이 무엇이냐에 따라 갈라야 합니다.
+
+		     괄호 안이 직업 이름(배우 · 솔로 …)  → 그룹이 아닙니다.
+		         원래 줄이 낫습니다 (아이유는 「가수·배우」).
+		         → 괄호 줄만 지웁니다.
+		     괄호 안이 진짜 그룹(방탄소년단 · 블랙핑크 …)
+		         → 그룹 이름이 있는 편이 손님에게 쓸모 있습니다.
+		         → 원래 줄의 이름을 「진(방탄소년단)」으로 바꾸고
+		           괄호 줄을 지웁니다. 한 줄만 남고 그룹도 살아납니다. */
+		$NOTGROUP = array( '배우', '솔로', '가수', '방송인', '프로듀서',
+		                   '음악인', '사업가', '모델', '개그맨' );
+		$kill = array(); $rename = array();
+		foreach ( $byName as $base => $ks ) {
+			if ( count( $ks ) < 2 ) { continue; }
+			$births = array();
+			foreach ( $ks as $k ) {
+				$b = isset( $rows[ $k ]['r']['b'] ) ? $rows[ $k ]['r']['b'] : '';
+				$births[ $b ] = 1;
+			}
+			if ( count( $births ) > 1 ) { continue; }   /* 진짜 동명이인 — 둡니다 */
+
+			$plain = -1; $par = -1; $grp = '';
+			foreach ( $ks as $k ) {
+				$n = $rows[ $k ]['r']['n'];
+				$br = strpos( $n, '(' );
+				if ( false === $br ) { $plain = $k; continue; }
+				$par = $k;
+				$grp = trim( substr( $n, $br + 1, strlen( $n ) - $br - 2 ) );
+			}
+			if ( $par < 0 ) { continue; }
+			$kill[] = $par;
+			if ( $plain < 0 ) { continue; }
+			if ( in_array( $grp, $NOTGROUP, true ) ) { continue; }
+			$rename[ $plain ] = $rows[ $plain ]['r']['n'] . '(' . $grp . ')';
+		}
+
+		printf( "\n지울 줄 %d개 · 이름을 살릴 줄 %d개 (남는 사람 %d명)\n",
+			count( $kill ), count( $rename ), count( $rows ) - count( $kill ) );
+
+		if ( $rename ) {
+			echo "\n★ 그룹 이름을 살립니다 (한 줄만 남고 그룹도 남습니다)\n";
+			foreach ( $rename as $k => $nn ) {
+				printf( "   %-10s → %s\n", $rows[ $k ]['r']['n'], $nn );
+			}
+		}
+		echo "\n★ 지울 줄\n";
+		foreach ( $kill as $k ) {
+			$r = $rows[ $k ]['r'];
+			printf( "   %-22s %-10s %s\n", $r['n'],
+				isset( $r['j'] ) ? $r['j'] : '?', isset( $r['b'] ) ? $r['b'] : '?' );
+		}
+
+		if ( ! $go ) {
+			echo "\n?stella_celeb=clean&go=1 로 실제로 지웁니다.\n";
+			echo "되돌리기 : ?stella_celeb=cleanundo\n";
+			exit;
+		}
+		if ( ! $kill ) { echo "\n할 일이 없습니다.\n"; exit; }
+
+		/* 뒤에서부터 지웁니다 — 앞을 지우면 자리가 밀립니다.
+		   앞의 쉼표 하나까지 같이 떼어 목록이 안 깨지게 합니다. */
+		update_post_meta( $pid, '_stella_celeb_clean_backup', $c );
+
+		/* 지우기와 이름 바꾸기를 한 목록에 모아 **뒤에서부터** 합니다.
+		   앞을 먼저 손대면 뒤의 자리가 밀립니다. */
+		$jobs = array();
+		foreach ( $kill as $k )            { $jobs[] = array( 'k' => $k, 'do' => 'kill' ); }
+		foreach ( $rename as $k => $nn )   { $jobs[] = array( 'k' => $k, 'do' => 'name', 'v' => $nn ); }
+		usort( $jobs, function ( $a, $b ) use ( $rows ) {
+			return $rows[ $b['k'] ]['at'] - $rows[ $a['k'] ]['at'];
+		} );
+
+		$new = $c;
+		foreach ( $jobs as $j ) {
+			$k = $j['k'];
+			$a = $rows[ $k ]['at']; $e = $rows[ $k ]['end'];
+			if ( 'name' === $j['do'] ) {
+				$one = json_decode( substr( $new, $a, $e - $a + 1 ), true );
+				if ( ! is_array( $one ) ) { continue; }
+				$one['n'] = $j['v'];
+				$enc = wp_json_encode( $one, JSON_UNESCAPED_UNICODE );
+				if ( ! $enc ) { continue; }
+				$new = substr( $new, 0, $a ) . $enc . substr( $new, $e + 1 );
+				continue;
+			}
+			$cut = $a;
+			while ( $cut > 0 ) {
+				$ch = $new[ $cut - 1 ];
+				if ( ' ' === $ch || "\n" === $ch || "\r" === $ch || "\t" === $ch ) { $cut--; continue; }
+				if ( ',' === $ch ) { $cut--; }
+				break;
+			}
+			$new = substr( $new, 0, $cut ) . substr( $new, $e + 1 );
+		}
+		wp_update_post( array( 'ID' => $pid, 'post_content' => $new ) );
+		printf( "\n→ 지웠습니다 (%d자 → %d자)\n", strlen( $c ), strlen( $new ) );
+		echo "되돌리기 : ?stella_celeb=cleanundo\n";
+		exit;
+	}
+
+	/* ★ find · preview · apply · undo 는 걷어냈습니다 (2026-09-15)
+	   까닭 —
+	     ① 쪽 글에 window.StellaCeleb=PEOPLE; 를 넣을 이유가 없어졌습니다.
+	        살아 있는 스타 사주(쪽 406)는 자료가 쪽 안 JSON 이고
+	        findPerson 이라는 함수도 없습니다. 제 짐작이 틀렸습니다.
+	     ② 더 위험한 것 — 이 조각 머리말에 'function findPerson(' 이라는
+	        글자가 있어서, 찾기가 **제 조각 자신**을 집었습니다.
+	        apply 를 누르면 조각이 저를 고칩니다. 그래서 아예 뺍니다.
+
+	   지금 쓰는 것은 읽는 도구 다섯과 정리 하나뿐입니다. */
+	echo "이 주소는 이제 안 씁니다.\n\n";
+	echo "\n쓸 수 있는 주소\n  읽기만 : hunt · peek · stars · look · dump\n  정리   : clean (go=1 로 실행) · cleanundo\n";
+	exit;
+} );

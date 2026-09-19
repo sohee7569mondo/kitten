@@ -1,0 +1,78 @@
+/* ══════════════════════════════════════════════════════════
+   폭 바로잡기 · 소희 님께                        2026-09-11
+   ── 판 : FIT-2 (2026-09-11) ──
+
+   앞 판(FIT-1)은 CSS로 덮어썼는데 안 먹었습니다.
+   상대가 CSS가 아니라 「인라인 스타일」이면 CSS로는 못 이깁니다.
+   그래서 이번엔 자바스크립트로 직접 밀어넣습니다. 이건 무조건 이깁니다.
+
+   ① 벼리 입력칸  .g-cols 의 max-width 를 풉니다 (마루와 같아집니다)
+   ② 책 #ssb 의 음수 여백을 없애 가운데로 되돌립니다
+
+   ★ 관리자로 보실 때는 왼쪽 아래에 작은 초록 딱지가 뜹니다.
+     「FIT-2 · g-cols 고침 · ssb 고침」 처럼요.
+     딱지가 아예 안 뜨면 스니펫이 안 켜진 것이고,
+     딱지는 뜨는데 「못 찾음」이면 이름이 다른 것입니다.
+     손님에게는 안 보입니다.
+
+   ★ 스니펫 이름 「STELLA - 폭 바로잡기」 (앞 판을 이 글로 덮어쓰세요)
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 원래 글은 한 글자도 안 건드립니다. 끄면 그대로 돌아옵니다.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_footer', function () {
+
+	$admin = current_user_can( 'manage_options' ) ? '1' : '';
+
+	echo '<style id="stella-fit2">'
+	   . 'html body #ssg .g-cols{max-width:none !important;}'
+	   . 'html body div#ssb{margin-left:auto !important;margin-right:auto !important;}'
+	   . '</style>';
+	?>
+<script>
+(function(){
+  var ADMIN = '<?php echo esc_js( $admin ); ?>';
+  var seen = { cols: '못 찾음', book: '못 찾음' };
+
+  function fix(){
+    var g = document.querySelector('#ssg .g-cols');
+    if(g){
+      g.style.setProperty('max-width', 'none', 'important');
+      seen.cols = Math.round(g.getBoundingClientRect().width) + 'px';
+    }
+    var b = document.getElementById('ssb');
+    if(b){
+      b.style.setProperty('margin-left', 'auto', 'important');
+      b.style.setProperty('margin-right', 'auto', 'important');
+      var r = b.getBoundingClientRect();
+      seen.book = Math.round(r.width) + 'px · 왼쪽끝 ' + Math.round(r.left) + 'px';
+    }
+  }
+
+  function badge(){
+    if(!ADMIN){ return; }
+    var d = document.getElementById('stella-fit-badge');
+    if(!d){
+      d = document.createElement('div');
+      d.id = 'stella-fit-badge';
+      d.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:2147483647;'
+        + 'background:#0f5132;color:#d1f7e0;padding:6px 10px;border-radius:6px;'
+        + 'font:11px/1.5 ui-monospace,monospace;white-space:pre;opacity:.92';
+      document.body.appendChild(d);
+    }
+    d.textContent = 'FIT-2 켜짐\n.g-cols : ' + seen.cols + '\n#ssb : ' + seen.book;
+  }
+
+  function tick(){ fix(); badge(); }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', tick);
+  } else { tick(); }
+  window.addEventListener('load', tick);
+  setTimeout(tick, 1200);
+  setTimeout(tick, 3000);
+  window.addEventListener('resize', fix);
+})();
+</script>
+	<?php
+}, 999 );

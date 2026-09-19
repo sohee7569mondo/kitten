@@ -1,0 +1,165 @@
+/* ════════════════════════════════════════════════════════════
+   제목 하나 고치고, 낱장 그림자를 뺍니다
+
+   그 쪽에 같은 말이 세 번 나옵니다.
+
+     속표지  제 1 장 · 사주가 말하는 하은님 모습
+     눈썹    1부 · 묻기 전에 읽은 것
+     제목    하은님이 아무 말도 하기 전에      ← 이것
+     부제    여기까지는 태어난 시각 하나만 보고 쓴 것입니다
+
+   부제가 이미 같은 말을 더 정확하게 합니다. 그리고 제목은 손님을
+   주어로 만들어서 「내가 뭘 안 했다는 거지」로 읽힙니다. 손님은
+   질문 일곱 개에 답을 하고 오신 분인데요.
+
+   그 쪽에 실제로 있는 것은 십성 풀이입니다 —
+   「상관 · 못 참고 말하는 마음 · 2개」 「편관 · 흔들려야 뜨거워지는
+   마음 · 1개」. 만든 방법이 아니라 여덟 글자에서 제일 센 게
+   무엇인지를 보여주는 쪽이라, 제목이 그것을 말하게 합니다.
+
+   ── 같이 풀리는 것 ──────────────────────────────────
+   이 제목은 접기 기능에서 열쇠로도 쓰입니다.
+
+     var SIP='당신이 아무 말도 하기 전에';
+     if(h===SIP){ ... }
+
+   그런데 이름 패치가 「당신」을 손님 이름으로 바꾸면서, 화면에는
+   「하은님이 아무 말도 하기 전에」가 뜨고 코드는 「당신이…」를
+   찾습니다. 둘이 영영 안 맞습니다. 그래서 같은 손님이 다른 문으로
+   두 번째 책을 열 때, 문마다 글이 달라서 접으면 안 되는 이 쪽이
+   접혀 들어가고 있었습니다.
+
+   새 제목에는 「당신」이 없어서 다시 맞습니다. 제목 하나를 고치면
+   셋이 한꺼번에 풀립니다.
+
+   ── 낱장 그림자 ────────────────────────────────────
+   밤하늘 판에서는 종이가 떠 보이라고 그림자를 줬습니다. 연한
+   종이에서는 그게 때가 탄 것처럼 보입니다. 낱장은 테두리 한 줄과
+   쪽 사이 여백으로도 충분히 갈립니다.
+
+     #ssb .page{ box-shadow:none; }
+
+   ★ 어느 순서에 넣으셔도 됩니다. 다른 패치가 안 건드리는 자리라
+     paper 만 들어가 있어도 걸리고, 일곱 개 다 들어간 뒤에도 걸립니다.
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로 바꾸세요.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_head=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_head=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_head=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_head'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_head_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_head'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	$jobs = array();
+
+	$jobs[] = array(
+		'name' => '① 제목을 내용으로',
+		'find' => '/\'<h2>당신이\\s+아무\\s+말도\\s+하기\\s+전에<\/h2>\'\\+/u',
+		'to'   => "'<h2>여덟 글자에서 제일 센 것</h2>'+",
+	);
+
+	$jobs[] = array(
+		'name' => '② 접기 열쇠도 같이',
+		'find' => '/var\\s+SIP=\'당신이\\s+아무\\s+말도\\s+하기\\s+전에\';/u',
+		'to'   => "/* 2026-09-07 · 제목을 「여덟 글자에서 제일 센 것」으로 바꿨습니다.\n     여기 적힌 글자와 화면의 제목이 같아야 접기가 돌아갑니다.\n     예전 제목에는 「당신」이 들어 있었는데, 이름 패치가 그걸 손님\n     이름으로 바꾸면서 둘이 영영 안 맞게 됐습니다. 그래서 같은 손님이\n     다른 문으로 두 번째 책을 열 때, 문마다 달라야 할 이 쪽이 접혀\n     들어가고 있었습니다. 새 제목에는 「당신」이 없어서 다시 맞습니다. */\n  var SIP='여덟 글자에서 제일 센 것';",
+	);
+
+	$jobs[] = array(
+		'name' => '③ 코드 주석',
+		'find' => '/08\\s+장\\(당신이\\s+아무\\s+말도\\s+하기\\s+전에\\)은\\s+문마다\\s+글이\\s+다릅니다\\./u',
+		'to'   => "08 장(여덟 글자에서 제일 센 것)은 문마다 글이 다릅니다.",
+	);
+
+	$jobs[] = array(
+		'name' => '④ 낱장 그림자 빼기 (CSS)',
+		'find' => '/<\/style>\\s+<div\\s+id="ssb">/u',
+		'to'   => "\n/* ══ 2026-09-07 · 낱장 그림자를 뺍니다 ═════════════════════════\n   밤하늘 판에서는 종이가 떠 보이라고 그림자를 줬습니다. 연한\n   종이에서는 그게 때가 탄 것처럼 보입니다. 낱장은 테두리 한 줄과\n   쪽 사이 여백으로도 충분히 갈립니다. */\n#ssb .page{ box-shadow:none; }\n</style>\n<div id=\"ssb\">\n",
+	);
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], str_replace( '\\', '\\\\', $j['to'] ), $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_head=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_head=undo</code></p>';
+	echo '<p><a href="/reading-book/?demo=door-love-2">책 보기</a></p>';
+	exit;
+} );

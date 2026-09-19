@@ -1,0 +1,170 @@
+/* ════════════════════════════════════════════════════════════
+   홈 끝자락과 책 속을 글자로 보기 · 소희 님께
+
+   화면 캡처 없이도 두 가지를 알아냅니다.
+
+   ① 홈 맨 아래 흰 공간
+        페이지 62 의 끝부분을 그대로 보여줍니다.
+        제가 넣은 겉모습 덩어리가 빈 문단을 만들었는지,
+        아니면 원래 여백이 큰 것인지 여기서 갈립니다.
+
+   ② 미리보기 책의 표지와 목차
+        페이지 160 안에 표지를 그리는 조각과 목차 조각이
+        들어 있는지 글자로 찾아봅니다.
+        어떤 패치가 들어갔는지도 사본 이름으로 셉니다 —
+        손으로 적은 것이 아니라 틀릴 수가 없습니다.
+
+   ★ 아무것도 고치지 않습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 → 저장 → 활성
+
+        https://stellasaju.com/?stella_tail=1
+
+   나온 화면을 통째로 복사해 보내주세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_tail'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다. 관리자로 로그인한 창에서 열어주세요.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	$safe = function ( $s ) {
+		if ( function_exists( 'mb_convert_encoding' ) ) {
+			$s = mb_convert_encoding( $s, 'UTF-8', 'UTF-8' );
+		}
+		return esc_html( $s );
+	};
+	$box = function ( $t, $c ) use ( $safe ) {
+		printf(
+			'<p style="margin:16px 0 4px;color:#ffd76a">%s</p>'
+			. '<pre style="white-space:pre-wrap;background:#000;padding:10px;'
+			. 'border-left:3px solid #ffd76a;font:12px/1.55 monospace">%s</pre>',
+			esc_html( $t ), $safe( $c )
+		);
+	};
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.8 -apple-system,system-ui,sans-serif;'
+		. 'background:#111;color:#eee;padding:24px;max-width:1100px">';
+	echo '<h1 style="color:#ffd76a">홈 끝자락과 책 속</h1>';
+
+	/* ── 1. 홈 62 의 끝 ── */
+	$h = $wpdb->get_row( "SELECT post_content FROM {$wpdb->posts} WHERE ID = 62" );
+	if ( ! $h ) {
+		echo '<p style="color:#ff7b7b">62번을 못 읽었습니다.</p>';
+	} else {
+		$c = $h->post_content;
+		printf( '<h2 style="color:#9fd">1. 홈(62) — %s 글자</h2>', number_format( strlen( $c ) ) );
+		printf(
+			'<p>wp:html 덩어리 <b style="color:#9fd">%d</b>개 · '
+			. '&lt;style&gt; <b style="color:#9fd">%d</b>개 · '
+			. '빈 문단 <b style="color:%s">%d</b>개</p>',
+			substr_count( $c, '<!-- wp:html -->' ),
+			substr_count( $c, '<style' ),
+			substr_count( $c, '<p></p>' ) ? '#ff7b7b' : '#888',
+			substr_count( $c, '<p></p>' )
+		);
+		$box( '끝에서 1,400글자', substr( $c, -1400 ) );
+
+		/* 마지막 칸의 여백 규칙 */
+		foreach ( array( '.final', '.build-stamp', '.sh-section' ) as $sel ) {
+			$p = strpos( $c, '#stellar-home ' . $sel );
+			if ( false === $p ) {
+				printf( '<p style="color:#888">%s 규칙 없음</p>', esc_html( $sel ) );
+				continue;
+			}
+			$box( $sel . ' 규칙', substr( $c, $p, 340 ) );
+		}
+
+		/* 마지막 칸이 무엇으로 끝나는지 */
+		$last = strrpos( $c, '</section>' );
+		if ( false !== $last ) {
+			$box( '마지막 </section> 뒤에 남은 것', substr( $c, $last ) );
+		}
+	}
+
+	/* ── 2. 책 160 ── */
+	$b = $wpdb->get_row( "SELECT post_content FROM {$wpdb->posts} WHERE ID = 160" );
+	if ( ! $b ) {
+		echo '<p style="color:#ff7b7b">160번을 못 읽었습니다.</p>';
+	} else {
+		$c = $b->post_content;
+		printf( '<h2 style="color:#9fd">2. 책(160) — %s 글자</h2>', number_format( strlen( $c ) ) );
+
+		$marks = array(
+			'표지 딱지'      => 'STELLA SAJU',
+			'표지 조각'      => "'cover', 'cover'",
+			'표지 조각(따옴표 다름)' => '"cover", "cover"',
+			'표지 그림'      => 'class="mark"',
+			'책 안 목차'     => 'booktoc',
+			'목차 패널'      => 'tocpanel',
+			'차례라는 말'    => '차례',
+			'장 속표지'      => 'dvmark',
+			'가디언 얼굴'    => 'dvface',
+			'여덟 글자 두 줄' => 'chart8',
+			'후기 상자'      => 'stella_review',
+			'복사하기'       => 'stella-copy',
+			'견본 장치'      => '__stellaDemo',
+			'자물쇠'         => 'stellaLock',
+		);
+		echo '<table cellpadding="7" style="border-collapse:collapse">';
+		echo '<tr style="color:#ffd76a"><td>무엇</td><td>찾는 글자</td><td>몇 번</td></tr>';
+		foreach ( $marks as $what => $needle ) {
+			$n = substr_count( $c, $needle );
+			printf(
+				'<tr style="border-top:1px solid #333"><td>%s</td><td><code>%s</code></td>'
+				. '<td style="color:%s"><b>%d</b></td></tr>',
+				esc_html( $what ), esc_html( $needle ),
+				$n ? '#7bff9b' : '#ff7b7b', $n
+			);
+		}
+		echo '</table>';
+
+		/* 책이 시작하는 자리 — 표지를 그리는 대목 */
+		$p = strpos( $c, 'STELLA SAJU' );
+		if ( false !== $p ) {
+			$box( '표지를 그리는 대목', substr( $c, max( 0, $p - 260 ), 700 ) );
+		}
+	}
+
+	/* ── 3. 들어간 패치 (사본 이름으로) ── */
+	echo '<h2 style="color:#9fd">3. 어느 쪽에 무엇이 들어갔나</h2>';
+	$rows = $wpdb->get_results(
+		"SELECT post_id, meta_key FROM {$wpdb->postmeta}
+		  WHERE meta_key LIKE '\\_stella%'
+		  ORDER BY post_id, meta_key"
+	);
+	if ( ! $rows ) {
+		echo '<p style="color:#888">없습니다.</p>';
+	} else {
+		$by = array();
+		foreach ( $rows as $r ) {
+			$by[ $r->post_id ][] = $r->meta_key;
+		}
+		echo '<table cellpadding="7" style="border-collapse:collapse;width:100%">';
+		echo '<tr style="color:#ffd76a"><td>쪽</td><td>제목</td><td>들어간 것</td></tr>';
+		foreach ( $by as $pid => $ks ) {
+			$t = $wpdb->get_var( $wpdb->prepare( "SELECT post_title FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+			printf(
+				'<tr style="border-top:1px solid #333"><td><b>%d</b></td><td>%s</td>'
+				. '<td style="color:#9fd">%s</td></tr>',
+				$pid, esc_html( (string) $t ),
+				esc_html( str_replace( array( '_stella_', '_backup' ), array( '', '' ), implode( ' · ', $ks ) ) )
+			);
+		}
+		echo '</table>';
+	}
+
+	echo '<h2 style="color:#7bff9b">끝났습니다. 아무것도 바뀌지 않았습니다.</h2></body>';
+	exit;
+} );

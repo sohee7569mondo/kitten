@@ -1,0 +1,79 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주(406) 사람 자료 표본 뽑기 (읽기만)
+   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   왜 뽑나
+     유앤미 목록 346명을 스타 사주에 합치려면, 새로 넣을 사람들의
+     사주(연주·월주·일주·오행·십성·별자리)를 지금 있는 191명과
+     똑같은 규칙으로 계산해야 합니다.
+     그 규칙을 짐작으로 맞추면 틀린 값이 들어갑니다. 그래서 이미
+     들어 있는 사람 몇 명을 그대로 뽑아, 규칙을 되짚어 맞춥니다.
+
+   ★ 규칙을 맞춘 뒤에는 191명 전부로 검산하고 나서 붙입니다.
+     하나라도 안 맞으면 아무것도 안 붙입니다.
+
+   보기   https://stellasaju.com/?stella_starlist=1
+   더 뽑기 ...&n=60      전부  ...&n=999
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_starlist'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$want = 30;
+	if ( isset( $_GET['n'] ) ) { $want = max( 1, min( 999, (int) $_GET['n'] ) ); }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$p = get_page_by_path( 'star-saju' );
+	if ( ! $p ) { echo '스타 사주 쪽이 없습니다.'; exit; }
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+
+	/* {"n":"..." 로 시작하는 덩어리를 하나씩 떼어냅니다.
+	   중괄호 짝을 세면서 가므로 안에 el:{...} 이 있어도 안 헷갈립니다. */
+	$rows  = array();
+	$from  = 0;
+	$total = 0;
+	while ( true ) {
+		$at = strpos( $c, '{"n":"', $from );
+		if ( false === $at ) { break; }
+		$depth = 0;
+		$end   = $at;
+		$len   = strlen( $c );
+		$inStr = false;
+		for ( $i = $at; $i < $len; $i++ ) {
+			$ch = $c[ $i ];
+			if ( '"' === $ch ) {
+				if ( $i > 0 ) { if ( '\\' !== $c[ $i - 1 ] ) { $inStr = ! $inStr; } }
+				continue;
+			}
+			if ( $inStr ) { continue; }
+			if ( '{' === $ch ) { $depth++; }
+			if ( '}' === $ch ) {
+				$depth--;
+				if ( 0 === $depth ) { $end = $i; break; }
+			}
+		}
+		if ( $end <= $at ) { break; }
+		$from = $end + 1;
+		$total++;
+		if ( count( $rows ) < $want ) {
+			$rows[] = substr( $c, $at, $end - $at + 1 );
+		}
+	}
+
+	echo "스타 사주 406 · 사람 " . $total . "명 가운데 " . count( $rows ) . "명\n";
+	echo "쪽 크기 " . number_format( strlen( $c ) ) . " 바이트\n";
+	echo str_repeat( '-', 60 ) . "\n";
+	foreach ( $rows as $r ) { echo $r . "\n"; }
+	echo str_repeat( '-', 60 ) . "\n";
+	echo "이 자는 읽기만 합니다.\n";
+	exit;
+} );

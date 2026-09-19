@@ -1,0 +1,267 @@
+/* ══════════════════════════════════════════════════════════
+   이혼운은 사전질문부터 따로 묻습니다  ★ 2026-09-13 · 소희 님께
+                                        판 QDIVORCE-1
+
+   소희 님 : 「사전질문 문장과 저울의 a/b 값을 한 쌍으로
+             관리해야 합니다.」
+
+   맞습니다. 그래서 이 조각은 **두 쪽을 같이** 고칩니다.
+   한쪽만 고치면 저울 다섯이 전부 「모름」으로 떨어집니다.
+
+       /reading-start/   질문 여덟 개를 이혼운 것으로 갈아끼움
+       /reading-book/    PICKS 에 이혼운 갈래를 넣고 그걸 먼저 보게
+
+   ── 왜 한 쌍이어야 하나 ───────────────────────────────
+   책의 pickedSide() 는 손님 답을 **글자 그대로** 견줍니다.
+
+       if(v===m.a){ return 'A'; }
+       if(v===m.b){ return 'B'; }
+       return '';          ← 둘 다 아니면 모름
+
+   질문만 바꾸면 어느 답도 a·b 에 안 맞아 다섯 축이 다 모름이
+   됩니다. 그래서 질문과 PICKS 를 같은 조각에 담았습니다.
+
+   ── 여덟 문항 ─────────────────────────────────────────
+       1 부부싸움이 나면?                    축 solo  키 fight
+       2 결혼생활에서 가장 중요한 것은?      축 form  키 say
+       3 문제가 생기면 누구와 풀고 싶으세요? 축 many  키 together
+       4 마음이 움직이는 방식은?             축 risk  키 spark
+       5 이혼을 정리해야 한다면?             축 make  키 type
+       6 지금 가장 궁금한 것은?              (목록)   키 mind
+       7 1년 안에 가장 바라는 것은?          (목록)   키 want1y
+       8 아이가 있다면 마음에 걸리는 것은?   (목록)   키 kid
+
+   ★ a 는 A 쪽(안정·정답·혼자·실물·하나), b 는 B 쪽입니다.
+     1번만 뒤집혀 있습니다 — 화면의 ㄴ(혼자)이 A 쪽이라서요.
+     책의 주석에 적힌 규칙 그대로 맞췄습니다.
+
+   ★ 여덟째는 조건을 걸지 않습니다. 아이가 있는지 앞의 일곱에서
+     알 방법이 없어서요. 아이가 없는 분은 「특별히 없음」을 고르면
+     됩니다. 그 답으로 아이 유무를 거꾸로 알 수 있습니다.
+
+   ── 붙이는 순서 ───────────────────────────────────────
+   patch160_divorce 를 **먼저** 붙이세요. 이 조각은 그 뒤입니다.
+   patch160_wed 와는 서로 안 부딪힙니다 — WED 는 결혼운만 보고,
+   이 조각은 이혼운만 봅니다.
+
+   ── 하는 법 ───────────────────────────────────────────
+   ① 먼저 보기   https://stellasaju.com/?stella_qdivorce=preview
+   ② 정말 넣기   https://stellasaju.com/?stella_qdivorce=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_qdivorce=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_qdivorce'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_qdivorce'] ) );
+	$MARK = 'QDIVORCE_1';
+
+	$pages = array(
+		array( 'reading-start', '_stella_qdivorce_bak_q', '질문 쪽' ),
+		array( 'reading-book',  '_stella_qdivorce_bak_b', '책 쪽' ),
+	);
+
+	/* ── 되돌리기 : 두 쪽을 같이 ─────────────────────────── */
+	if ( 'undo' === $mode ) {
+		$did = 0;
+		foreach ( $pages as $p ) {
+			$pg = get_page_by_path( $p[0] );
+			if ( ! $pg ) { continue; }
+			$back = get_post_meta( (int) $pg->ID, $p[1], true );
+			if ( '' === $back ) { echo $p[2] . " — 되돌릴 것이 없습니다.\n"; continue; }
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $back ), array( 'ID' => (int) $pg->ID ) );
+			clean_post_cache( (int) $pg->ID );
+			delete_post_meta( (int) $pg->ID, $p[1] );
+			echo $p[2] . ' — 되돌렸습니다. ' . number_format( strlen( $back ) ) . "바이트\n";
+			$did++;
+		}
+		if ( 0 === $did ) { echo "\n아무것도 되돌리지 않았습니다.\n"; }
+		exit;
+	}
+
+	echo "이혼운 사전질문과 저울을 한 쌍으로 고칩니다   판 QDIVORCE-1\n\n";
+
+	/* ── 두 쪽의 지금 내용을 읽습니다 ───────────────────── */
+	$now = array();
+	foreach ( $pages as $p ) {
+		$pg = get_page_by_path( $p[0] );
+		if ( ! $pg ) { echo '★ ' . $p[2] . "(" . $p[0] . ")을 못 찾았습니다. 그만둡니다.\n"; exit; }
+		$id = (int) $pg->ID;
+		$c  = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		if ( '' === $c ) { echo '★ ' . $p[2] . "의 내용을 못 읽었습니다. 그만둡니다.\n"; exit; }
+		if ( false !== strpos( $c, $MARK ) ) {
+			echo "★ 이미 넣으셨습니다. 다시 넣지 않습니다.\n";
+			echo "   고치고 싶으시면 먼저 ?stella_qdivorce=undo 를 하세요.\n";
+			exit;
+		}
+		$now[ $p[0] ] = array( 'id' => $id, 'c' => $c, 'meta' => $p[1], 'label' => $p[2] );
+		echo $p[2] . ' ' . $id . ' · ' . number_format( strlen( $c ) ) . "바이트\n";
+	}
+	echo "\n";
+
+	/* ── 세 자리를 고칩니다 ─────────────────────────────── */
+	$jobs = array(
+		array( 'page' => 'reading-start', 'name' => '① 질문 여덟 개',
+		       'anchor' => 'var QS=QSETS[SLUG];', 'piece' => 'Q',    'how' => 'after' ),
+		array( 'page' => 'reading-book',  'name' => '② 주제별 문항표',
+		       'anchor' => 'var PICKS={',          'piece' => 'PICKS', 'how' => 'before' ),
+		array( 'page' => 'reading-book',  'name' => '③ 그 표를 먼저 보게',
+		       'anchor' => 'var set=PICKS[slug];', 'piece' => 'HOOK',  'how' => 'replace' ),
+	);
+
+	$found = 0;
+	foreach ( $jobs as $j ) {
+		$pk = $j['page'];
+		$n  = substr_count( $now[ $pk ]['c'], $j['anchor'] );
+		if ( 1 !== $n ) {
+			echo '★ ' . $j['name'] . ' — 붙일 자리가 ' . $n . "군데입니다. 한 군데여야 합니다.\n";
+			echo '   찾는 것 : ' . $j['anchor'] . "\n";
+			echo "\n한 자리라도 틀리면 반쪽만 고쳐져 저울이 어긋납니다. 그만둡니다.\n";
+			exit;
+		}
+		$piece = stella_qdivorce_piece( $j['piece'] );
+		if ( 'after' === $j['how'] )       { $new = $j['anchor'] . $piece; }
+		elseif ( 'before' === $j['how'] )  { $new = $piece . $j['anchor']; }
+		else                               { $new = $piece; }
+
+		echo $j['name'] . " — 찾았습니다 · " . number_format( strlen( $piece ) ) . "바이트\n";
+		if ( 'preview' !== $mode ) {
+			$now[ $pk ]['c'] = str_replace( $j['anchor'], $new, $now[ $pk ]['c'] );
+		}
+		$found++;
+	}
+
+	echo "\n세 자리 모두 찾았습니다.\n";
+
+	if ( 'preview' === $mode ) {
+		echo "\n아직 아무것도 안 바꿨습니다.\n";
+		echo "정말 넣으시려면 ?stella_qdivorce=apply 로 오세요.\n";
+		exit;
+	}
+
+	/* ── 두 쪽을 같이 저장합니다 ────────────────────────── */
+	foreach ( $pages as $p ) {
+		$slot = $now[ $p[0] ];
+		$was  = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $slot['id'] ) );
+		$out  = $slot['c'] . "\n<!-- " . $MARK . " -->\n";
+		update_post_meta( $slot['id'], $slot['meta'], $was );
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $out ), array( 'ID' => $slot['id'] ) );
+		clean_post_cache( $slot['id'] );
+		echo $slot['label'] . ' : ' . number_format( strlen( $was ) ) . ' → '
+			. number_format( strlen( $out ) ) . '바이트 (+'
+			. number_format( strlen( $out ) - strlen( $was ) ) . ")\n";
+	}
+
+	echo "\n넣었습니다. 두 쪽이 한 쌍으로 맞았습니다.\n";
+	echo "되돌리기 : ?stella_qdivorce=undo (두 쪽을 같이 되돌립니다)\n";
+	exit;
+}, 1 );
+
+/* 넣을 글 세 벌. 홑따옴표가 많아 nowdoc 으로 담습니다 */
+function stella_qdivorce_piece( $which ) {
+
+	if ( 'Q' === $which ) {
+		return <<<'STELLA_Q'
+
+
+  /* ══ 2026-09-13 · 이혼운은 따로 묻습니다 (QDIVORCE-1) ══════
+     같은 연성의 신이라도 이혼운은 물을 것이 아예 다릅니다.
+     「마음이 생기는 건 어느 쪽인가요?」를 이혼을 앞둔 분께 물을 수
+     없습니다. 이혼운을 고르신 분께만 여덟 문항을 갈아 보입니다.
+     저울 다섯 축에 하나씩 물려 두었고, 짝이 되는 a·b 는 책의
+     PICKS_TOPIC 에 있습니다. 둘은 한 쌍이라 같이 고쳐야 합니다. */
+  (function(){
+    var t='';
+    if(ORDER){ if(ORDER.topic){ t=String(ORDER.topic).replace(/^\s+/,'').replace(/\s+$/,''); } }
+    if(t!=='이혼운'){ return; }
+    QS=[
+      {t:'부부싸움이 나면?', s:'취향 1 / 5', k:'fight',
+       a:'그날 이야기하고 풀어야 마음이 편해요',
+       b:'혼자 생각할 시간이 있어야 이야기할 수 있어요'},
+      {t:'결혼생활에서 가장 중요한 것은?', s:'취향 2 / 5', k:'say',
+       a:'실제 생활이 잘 굴러가는 것',
+       b:'서로 마음을 확인하는 것'},
+      {t:'문제가 생기면 누구와 풀고 싶으세요?', s:'취향 3 / 5', k:'together',
+       a:'우리 둘이 해결하고 싶어요',
+       b:'가족이나 다른 사람의 도움도 받고 싶어요'},
+      {t:'이혼을 생각할 때 마음이 움직이는 방식은 어느 쪽인가요?', s:'취향 4 / 5', k:'spark',
+       a:'오래 생각하고 나서야 마음이 정해지는 편이에요',
+       b:'어느 순간 마음이 정해지면 빠르게 움직이는 편이에요'},
+      {t:'이혼을 정리해야 한다면 어느 쪽이 마음에 가까우세요?', s:'취향 5 / 5', k:'type',
+       a:'정해진 절차대로 하나씩 처리하는 게 마음이 놓여요',
+       b:'우리 상황에 맞는 방법을 직접 정하고 싶어요'},
+      {t:'지금 가장 궁금한 것은?', s:'지금의 마음 1 / 3', k:'mind', list:[
+        '이 결혼을 계속 이어갈 수 있을지','부부 사이가 다시 좋아질 수 있을지',
+        '이혼을 생각해도 되는 시기인지','이혼하게 되면 앞으로 혼자 어떻게 살지',
+        '집이나 돈 같은 현실을 어떻게 정리할지','내가 왜 이렇게 힘든지']},
+      {t:'앞으로 1년 안에 가장 바라는 것은?', s:'지금의 마음 2 / 3', k:'want1y', list:[
+        '부부 사이가 다시 좋아지기','지금 문제를 해결하고 계속 살기',
+        '이혼을 준비하거나 정리하기','이혼 후 새로운 생활 시작하기',
+        '아직 결정하지 못하겠음']},
+      {t:'아이가 있다면, 지금 가장 마음에 걸리는 것은?', s:'지금의 마음 3 / 3', k:'kid', list:[
+        '아이가 받을 충격','아이와 앞으로 어떻게 지낼지','양육과 생활 문제',
+        '아이 때문에 결정하기 어려운 것','특별히 없음']}
+    ];
+  })();
+STELLA_Q;
+	}
+
+	if ( 'PICKS' === $which ) {
+		return <<<'STELLA_PICKS'
+
+  /* ══ 2026-09-13 · 주제마다 다른 문항표 (QDIVORCE-1) ════════
+     PICKS 는 문(slug) 하나에 표 하나였습니다. 그런데 이혼운은
+     질문 자체가 다릅니다 — 「마음이 생기는 건 어느 쪽인가요?」를
+     이혼을 앞둔 분께 물을 수 없으니까요.
+     주제 전용 표가 있으면 그것을 먼저 씁니다. 없으면 문 표로
+     물러나니, 다른 주제는 아무것도 달라지지 않습니다.
+     a 는 A 쪽(안정·정답·혼자·실물·하나), b 는 B 쪽입니다.
+     solo 만 뒤집혀 있습니다 — 화면의 둘째 답이 「혼자」라서요. */
+  var PICKS_TOPIC={
+    '이혼운':{
+      risk:{q:'spark',    a:'오래 생각하고 나서야 마음이 정해지는 편이에요',
+                          b:'어느 순간 마음이 정해지면 빠르게 움직이는 편이에요'},
+      make:{q:'type',     a:'정해진 절차대로 하나씩 처리하는 게 마음이 놓여요',
+                          b:'우리 상황에 맞는 방법을 직접 정하고 싶어요'},
+      solo:{q:'fight',    a:'혼자 생각할 시간이 있어야 이야기할 수 있어요',
+                          b:'그날 이야기하고 풀어야 마음이 편해요'},
+      form:{q:'say',      a:'실제 생활이 잘 굴러가는 것',
+                          b:'서로 마음을 확인하는 것'},
+      many:{q:'together', a:'우리 둘이 해결하고 싶어요',
+                          b:'가족이나 다른 사람의 도움도 받고 싶어요'}
+    }
+  };
+  /* 지금 손님이 고른 주제를 그 자리에서 직접 읽습니다.
+     다른 조각이 만든 변수에 기대지 않으려고요. */
+  function stellaPickTopic(){
+    try{
+      var raw=localStorage.getItem('stella_demo');
+      if(!raw){ return ''; }
+      var o=JSON.parse(raw);
+      if(!o){ return ''; }
+      if(!o.topic){ return ''; }
+      return String(o.topic).replace(/^\s+/,'').replace(/\s+$/,'');
+    }catch(e){ return ''; }
+  }
+STELLA_PICKS;
+	}
+
+	if ( 'HOOK' === $which ) {
+		return <<<'STELLA_HOOK'
+var set=PICKS[slug]; var __pt=stellaPickTopic(); if(PICKS_TOPIC[__pt]){ set=PICKS_TOPIC[__pt]; }
+STELLA_HOOK;
+	}
+
+	return "";
+}

@@ -1,0 +1,359 @@
+/* ════════════════════════════════════════════════════════════
+   풀이 한 편 1,000원 → 3,000원 · 소희 님께
+
+   무엇을 하나
+     ① 풀이 한 편 값을 1구슬 → 3구슬 로 올립니다 (문 다섯 · 소개 ·
+        로그인 · 가이드 · 가격 안내)
+     ② 「여는 기념 값이고, 여는 기간이 끝나면 9구슬 · 9,000원」 이라는
+        말을 같이 넣습니다
+     ③ 사실과 다른 안내 두 개를 고칩니다
+          「가입 축하 1개 + 오픈 기념 1개 = 모두 2개」  → 축하 2 + 여는 기념 1 = 3개
+          「친구 추천 최대 10개까지」                    → 최대 5개
+        구슬 3개는 풀이 한 편입니다. 첫 한 편이 값 없이 열립니다.
+
+   왜 정가에 줄을 긋지 않나
+     표시광고법에서 「정가」는 최근 20일 이상 그 값에 판 적이 있어야
+     씁니다. 9,000원에 판 적이 한 번도 없으니 취소선은 부당 할인
+     표시가 됩니다. 대신 앞날 값을 알려주는 말은 문제가 없습니다.
+     ★ 여는 기간이 끝나면 진짜로 9,000원으로 올리셔야 합니다.
+
+   구슬 값은 손대지 않습니다
+     구슬 한 개는 1,000원 그대로입니다. 「구슬 한 개가 1,000원」이라고
+     적힌 자리는 건드리지 않습니다.
+
+   ★ 이 패치만으로는 끝이 아닙니다 — 엔진의 숫자도 고쳐야 합니다
+     WPCode → 「스텔라사주 — 회원가입 + 구슬」(203번) → 네 줄을 고칩니다
+
+        34행  define( 'STELLA_WELCOME_ORBS',  0  );  →  2
+        40행  define( 'STELLA_EVENT_ORBS',    0  );  →  1
+        43행  define( 'STELLA_PRICE_BASE',    1  );  →  3
+        54행  define( 'STELLA_REF_MAX_ORBS',  2  );  →  5
+
+     화면과 실제 받는 값이 어긋나면 심사에서 바로 걸립니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 →
+              첫 줄 PHP 태그 아래에 붙여넣기 → 저장 → 활성
+
+   ★ 저장 직후 먼저 확인
+        https://stellasaju.com/wp-json/stella/v1/me
+     답이 오면 정상, rest_no_route 면 즉시 꺼주세요.
+
+   ① 미리보기 — 아무것도 바뀌지 않습니다
+        https://stellasaju.com/?stella_p3go=1
+   ② 적용
+        https://stellasaju.com/?stella_p3go=1&go=1
+   되돌리기
+        https://stellasaju.com/?stella_p3go=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_p3go'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다. 관리자로 로그인한 창에서 열어주세요.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	$META = '_stella_price3_backup';
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	$safe = function ( $s ) {
+		if ( function_exists( 'mb_convert_encoding' ) ) {
+			$s = mb_convert_encoding( $s, 'UTF-8', 'UTF-8' );
+		}
+		return esc_html( $s );
+	};
+
+	/* 여는 태그와 닫는 태그 사이를 통째로 갈아끼웁니다.
+	   가운데에 무엇이 들어 있든 상관없어 안전합니다. */
+	$between = function ( $c, $open, $close, $new, &$hit ) {
+		$p = strpos( $c, $open );
+		if ( false === $p ) {
+			return $c;
+		}
+		$q = strpos( $c, $close, $p + strlen( $open ) );
+		if ( false === $q ) {
+			return $c;
+		}
+		$hit = true;
+		return substr( $c, 0, $p ) . $open . $new . substr( $c, $q );
+	};
+
+	/* 어떤 자리 뒤 몇 글자 안에서만 바꿉니다. */
+	$after = function ( $c, $anchor, $span, $from, $to, &$hit ) {
+		$p = strpos( $c, $anchor );
+		if ( false === $p ) {
+			return $c;
+		}
+		$s = $p + strlen( $anchor );
+		$win = substr( $c, $s, $span );
+		if ( false === strpos( $win, $from ) ) {
+			return $c;
+		}
+		$hit = true;
+		$pos = strpos( $win, $from );
+		$win = substr( $win, 0, $pos ) . $to . substr( $win, $pos + strlen( $from ) );
+		return substr( $c, 0, $s ) . $win . substr( $c, $s + $span );
+	};
+
+	$str = function ( $c, $from, $to, &$hit ) {
+		if ( false === strpos( $c, $from ) ) {
+			return $c;
+		}
+		$hit = true;
+		return str_replace( $from, $to, $c );
+	};
+
+	$DOT = "\xC2\xB7";  /* 가운뎃점 · */
+
+	$NOTE_NEW = '구슬 1개는 <b>1,000원</b>이에요. 이 풀이 한 편은 <b>3구슬 ' . $DOT . ' 3,000원</b>입니다. '
+		. '<b>여는 기념 값</b>이고, 여는 기간이 끝나면 9구슬 ' . $DOT . ' 9,000원이 됩니다.'
+		. '<br>결제가 끝나면 <b>바로 이 화면에서 펼쳐지고</b>, '
+		. "\xE3\x80\x8C" . '내 자리' . "\xE3\x80\x8D" . '에 <b>1년간 보관</b>됩니다.';
+
+	$FREE_NEW = "\n" . '        <p><b>가입하시면 구슬 3개를 드립니다.</b> 가입 축하 2개 + 여는 기념 1개예요.<br>' . "\n"
+		. '          풀이 한 편이 3구슬이니, <b>첫 한 편은 값을 치르지 않으셔도 됩니다.</b>' . "\n"
+		. '          가입은 따로 없고, 문을 골라 생년월일시를 적으시면 그 자리에서 함께 끝납니다.</p>' . "\n"
+		. '        <p style="margin-top:10px">두 번째 편부터는 여는 기념 값 3,000원입니다. ' . "\n"
+		. '          정가는 9구슬 ' . $DOT . ' 9,000원이고, 여는 기간이 끝나면 그 값이 됩니다.</p>' . "\n"
+		. '        <p style="margin-top:10px">친구를 데려오시면 한 분당 구슬 1개를 더 드려요. 최대 5개까지요.</p>' . "\n"
+		. '      ';
+
+	$doors = array(
+		130 => '마루 · 일과 돈',
+		141 => '벼리 · 연애와 결혼',
+		169 => '아람 · 건강과 가족',
+		170 => '미르 · 흐름과 시기',
+		171 => '아라 · 점성술',
+	);
+
+	$ids = array_merge( array_keys( $doors ), array( 1, 189, 227, 249 ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 -apple-system,system-ui,sans-serif;'
+		. 'background:#111;color:#eee;padding:24px;max-width:960px">';
+	printf(
+		'<h1 style="color:#ffd76a">풀이 한 편 1,000원 → 3,000원 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	/* ── 되돌리기 ── */
+	if ( $undo ) {
+		echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+		foreach ( $ids as $pid ) {
+			$bak = get_post_meta( $pid, $META, true );
+			if ( $bak ) {
+				$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+				delete_post_meta( $pid, $META );
+				clean_post_cache( $pid );
+				printf( '<tr><td>%d</td><td style="color:#7bff9b">되돌렸습니다</td></tr>', $pid );
+			} else {
+				printf( '<tr><td>%d</td><td style="color:#888">사본 없음</td></tr>', $pid );
+			}
+		}
+		echo '</table>';
+		if ( function_exists( 'wp_cache_flush' ) ) {
+			wp_cache_flush();
+		}
+		echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2>';
+		echo '<p style="color:#ffd76a">스니펫 203 의 STELLA_PRICE_BASE 도 1 로 되돌려주세요.</p></body>';
+		exit;
+	}
+
+	/* ── 고칠 내용을 셈합니다 ── */
+	$plan = array();
+	$fail = array();
+
+	foreach ( $ids as $pid ) {
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+		if ( ! $row ) {
+			$fail[] = $pid . ' — 못 읽었습니다';
+			continue;
+		}
+		$c    = $row->post_content;
+		$done = array();
+		$miss = array();
+
+		if ( isset( $doors[ $pid ] ) ) {
+			$h = false;
+			$c = $between( $c, '<span id="pBase">', '</span>', '3구슬 ' . $DOT . ' 3,000원', $h );
+			$h ? $done[] = '값 줄' : $miss[] = 'pBase';
+
+			$h = false;
+			$c = $between( $c, '<span id="total">', '</span>', '3', $h );
+			$h ? $done[] = '합계' : $miss[] = 'total';
+
+			$h = false;
+			$c = $between( $c, '<div class="pay-note">', '</div>', $NOTE_NEW, $h );
+			$h ? $done[] = '안내글' : $miss[] = 'pay-note';
+
+			$h = false;
+			$c = $str( $c, '{base:1}', '{base:3}', $h );
+			$h ? $done[] = '화면 셈' : $miss[] = 'base:1';
+		}
+
+		if ( 1 === $pid ) {
+			$h = false;
+			$c = $str(
+				$c,
+				'풀이 한 편은 <b>1,000원</b>이고 부가세가 포함된 금액입니다.',
+				'풀이 한 편은 <b>3,000원</b>이고 부가세가 포함된 금액입니다. '
+					. '여는 기념 값이라, 여는 기간이 끝나면 9,000원이 됩니다.',
+				$h
+			);
+			$h ? $done[] = '소개글' : $miss[] = '소개글';
+		}
+
+		if ( 189 === $pid ) {
+			$h = false;
+			$c = $str( $c, '<div class="big">1,000원</div>', '<div class="big">3,000원</div>', $h );
+			$h ? $done[] = '큰 값' : $miss[] = '큰 값';
+
+			$h = false;
+			$c = $after( $c, '<div class="big">3,000원</div>', 300, '구슬 1개', '구슬 3개', $h );
+			$h ? $done[] = '구슬 수' : $miss[] = '구슬 수';
+		}
+
+		if ( 227 === $pid ) {
+			$h = false;
+			$c = $str(
+				$c,
+				'풀이 한 편은 구슬 1개, 1,000원입니다.',
+				'풀이 한 편은 구슬 3개, 3,000원입니다. 여는 기념 값이에요.',
+				$h
+			);
+			$h ? $done[] = '로그인 안내' : $miss[] = '로그인 안내';
+		}
+
+		if ( 249 === $pid ) {
+			$h = false;
+			$c = $str(
+				$c,
+				'<div class="p">1,000원<small>구슬 1개</small></div>',
+				'<div class="p">3,000원<small>구슬 3개</small></div>',
+				$h
+			);
+			$h ? $done[] = '값표' : $miss[] = '값표';
+
+			$h = false;
+			$c = $between( $c, '<div class="free">', '</div>', $FREE_NEW, $h );
+			$h ? $done[] = '가입 구슬 안내 (사실과 다른 것)' : $miss[] = 'free 상자';
+		}
+
+		$plan[ $pid ] = array(
+			'title' => $row->post_title,
+			'old'   => $row->post_content,
+			'new'   => $c,
+			'done'  => $done,
+			'miss'  => $miss,
+		);
+		if ( $miss ) {
+			$fail[] = $pid . ' ' . $row->post_title . ' — 못 찾음: ' . implode( ', ', $miss );
+		}
+	}
+
+	/* ── 표로 보여줍니다 ── */
+	echo '<table cellpadding="8" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>ID</td><td>제목</td><td>바꿀 것</td><td>못 찾은 것</td></tr>';
+	foreach ( $plan as $pid => $p ) {
+		printf(
+			'<tr style="border-top:1px solid #333"><td><b>%d</b></td><td>%s</td>'
+			. '<td style="color:#7bff9b">%s</td><td style="color:%s">%s</td></tr>',
+			$pid,
+			esc_html( $p['title'] ),
+			esc_html( implode( ' · ', $p['done'] ) ),
+			$p['miss'] ? '#ff7b7b' : '#888',
+			$p['miss'] ? esc_html( implode( ', ', $p['miss'] ) ) : '없음'
+		);
+	}
+	echo '</table>';
+
+	/* ── 아직 손대지 않은 값들 — 무엇인지 보여만 줍니다 ── */
+	echo '<h2 style="color:#9fd">아직 손대지 않은 자리 (5,000원 · 25,000원)</h2>';
+	echo '<p style="color:#888">이것들이 무엇인지 보고 다음에 정하겠습니다.</p>';
+	$look2 = $wpdb->get_results(
+		"SELECT ID, post_title, post_content FROM {$wpdb->posts}
+		  WHERE ID IN (117,249) AND post_status IN ('publish','draft','private')"
+	);
+	foreach ( $look2 as $r ) {
+		foreach ( array( '5,000원', '25,000원' ) as $w ) {
+			$pos = 0;
+			while ( ( $pos = strpos( $r->post_content, $w, $pos ) ) !== false ) {
+				/* 25,000원 안의 5,000원 을 또 세지 않도록 */
+				if ( $pos > 0 && ctype_digit( $r->post_content[ $pos - 1 ] ) ) {
+					$pos += strlen( $w );
+					continue;
+				}
+				$ctx = substr( $r->post_content, max( 0, $pos - 130 ), 300 );
+				printf(
+					'<p style="margin:14px 0 4px;color:#ffd76a">%d %s — <b>%s</b></p>'
+					. '<pre style="white-space:pre-wrap;background:#000;padding:10px;'
+					. 'border-left:3px solid #ffd76a;font:12.5px/1.6 monospace">%s</pre>',
+					$r->ID,
+					esc_html( $r->post_title ),
+					esc_html( $w ),
+					$safe( $ctx )
+				);
+				$pos += strlen( $w );
+			}
+		}
+	}
+
+	/* ── 하나라도 못 찾으면 아무것도 안 바꿉니다 ── */
+	if ( $fail ) {
+		echo '<div style="background:#2a1010;border-left:4px solid #ff7b7b;padding:16px;margin-top:18px">';
+		echo '<h2 style="color:#ff7b7b;margin:0 0 10px">멈췄습니다 — 아무것도 바꾸지 않았습니다</h2>';
+		echo '<p style="margin:0">아래를 못 찾았습니다. 이 화면을 저에게 보내주세요.</p><ul>';
+		foreach ( $fail as $f ) {
+			printf( '<li>%s</li>', esc_html( $f ) );
+		}
+		echo '</ul></div></body>';
+		exit;
+	}
+
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다. 아무것도 바뀌지 않았습니다.</h2>';
+		echo '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_p3go=1&go=1">'
+			. '→ 이대로 바꾸기</a></p></body>';
+		exit;
+	}
+
+	/* ── 적용 ── */
+	foreach ( $plan as $pid => $p ) {
+		if ( ! get_post_meta( $pid, $META, true ) ) {
+			update_post_meta( $pid, $META, $p['old'] );
+		}
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $p['new'] ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+	}
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	echo '<h2 style="color:#7bff9b">바꿨습니다</h2>';
+	echo '<div style="background:#1a1408;border-left:4px solid #ffd76a;padding:16px 18px;margin-top:16px">'
+		. '<p style="margin:0 0 10px"><b style="color:#ffd76a">아직 한 가지가 남았습니다 — 엔진의 숫자</b></p>'
+		. '<p style="margin:0 0 8px">지금은 화면에만 3,000원이라 적혀 있고, 서버가 받는 값은 아직 1,000원입니다.</p>'
+		. '<p style="margin:0 0 8px">WPCode → <b>「스텔라사주 — 회원가입 + 구슬」(203번)</b> → <b>네 줄</b></p>'
+		. '<pre style="background:#000;padding:12px;margin:8px 0">'
+		. '34행  STELLA_WELCOME_ORBS    0  →  2' . "\n"
+		. '40행  STELLA_EVENT_ORBS      0  →  1' . "\n"
+		. '43행  STELLA_PRICE_BASE      1  →  3' . "\n"
+		. '54행  STELLA_REF_MAX_ORBS    2  →  5</pre>'
+		. '<p style="margin:8px 0 0">저장하시면 풀이 한 편이 3,000원이 되고, '
+		. '가입하신 분은 구슬 3개로 첫 한 편을 값 없이 보십니다.</p></div>';
+
+	echo '<p style="margin-top:18px;font-size:17px">바꾸신 뒤 '
+		. '<a style="color:#ffd76a" href="/price/">가격 안내</a> · '
+		. '<a style="color:#ffd76a" href="/door-love/">벼리의 문</a> 을 열어 3,000원으로 보이는지 확인해주세요.</p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_p3go=1&undo=1</p></body>';
+	exit;
+} );

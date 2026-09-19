@@ -1,0 +1,101 @@
+<!--
+  패밀리 통로 — 스텔라사주 · 유앤미 · 스텔라 랩
+  ------------------------------------------------------------------
+  · 세 사이트 아무 쪽에나 「사용자 정의 HTML」 블록으로 넣으세요.
+    맨 위가 좋습니다.
+  · 지금 어느 쪽에 있는지는 주소를 보고 스스로 압니다.
+    같은 블록을 세 곳에 그대로 붙이시면 됩니다.
+  · 닫는 법 — 다시 누르기 · 바깥 누르기 · Esc
+-->
+
+<style>
+.stq-fam{
+  --paper:#FFFDF9; --ink:#3F3830; --dim:#8B7F70; --line:#E4DACA;
+  --hi:#7B4B6E;
+  position:relative; max-width:540px; margin:0 auto 14px;
+  font-family:'Noto Sans KR', system-ui, sans-serif;
+  font-size:13px; z-index:40;
+}
+.stq-fam .tab{
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--paper); border:1px solid var(--line);
+  border-radius:30px; padding:8px 15px; cursor:pointer;
+  color:var(--ink); font:inherit; font-weight:700;
+}
+.stq-fam .tab:hover{ border-color:var(--hi); color:var(--hi); }
+.stq-fam .tab .car{ font-size:10px; color:var(--dim); transition:transform .18s ease; }
+.stq-fam.open .tab .car{ transform:rotate(180deg); }
+.stq-fam .list{
+  display:none; position:absolute; top:calc(100% + 6px); left:0;
+  min-width:224px; background:var(--paper);
+  border:1px solid var(--line); border-radius:16px; padding:7px;
+  box-shadow:0 16px 34px -20px rgba(63,56,48,.5);
+}
+.stq-fam.open .list{ display:block; }
+.stq-fam .list a{
+  display:block; padding:10px 13px; border-radius:11px;
+  text-decoration:none; color:var(--ink); line-height:1.45;
+}
+.stq-fam .list a:hover{ background:#F4EFE6; }
+.stq-fam .list a b{ display:block; font-size:13.5px; }
+.stq-fam .list a span{ display:block; font-size:11.5px; color:var(--dim); margin-top:2px; }
+.stq-fam .list a.here{ background:#F4EFE6; cursor:default; }
+.stq-fam .list a.here b:after{ content:' · 지금 여기'; font-weight:400; color:var(--dim); font-size:11.5px; }
+</style>
+
+<div class="stq-fam" id="stqFam">
+  <button type="button" class="tab" id="stqFamTab">
+    <span id="stqFamNow">스텔라사주</span><span class="car">▼</span>
+  </button>
+  <div class="list" id="stqFamList">
+    <a href="https://stellasaju.com/" data-key="saju">
+      <b>스텔라사주</b><span>궁금한 것 하나를 책 한 권으로</span></a>
+    <a href="https://stellasaju.com/uandme/" data-key="uandme">
+      <b>유앤미</b><span>둘의 생년월일로 보는 궁합</span></a>
+    <a href="https://stellasaju.com/lab/" data-key="lab">
+      <b>스텔라 랩</b><span>1분이면 끝나는 가벼운 테스트</span></a>
+  </div>
+</div>
+
+<script>
+/* 주소를 보고 지금 어느 쪽인지 스스로 압니다.
+   ★ 이 안에 두 겹 앰퍼샌드를 쓰지 않습니다 (사이트 규칙). */
+(function(){
+  var wrap = document.getElementById('stqFam');
+  if(!wrap){ return; }
+  var tab  = document.getElementById('stqFamTab');
+  var list = document.getElementById('stqFamList');
+  var now  = document.getElementById('stqFamNow');
+
+  var path = location.pathname;
+  var key  = 'saju';
+  if(path.indexOf('/lab') === 0){ key = 'lab'; }
+  if(path.indexOf('/uandme') === 0){ key = 'uandme'; }
+
+  var name = { saju:'스텔라사주', uandme:'유앤미', lab:'스텔라 랩' };
+  now.textContent = name[key];
+
+  var links = list.querySelectorAll('a');
+  var i;
+  for(i = 0; i < links.length; i++){
+    if(links[i].getAttribute('data-key') === key){
+      links[i].classList.add('here');
+      links[i].removeAttribute('href');
+    }
+  }
+
+  function shut(){ wrap.classList.remove('open'); }
+
+  tab.addEventListener('click', function(e){
+    e.stopPropagation();
+    wrap.classList.toggle('open');
+  });
+  document.addEventListener('click', function(e){
+    if(wrap.contains(e.target)){ return; }
+    shut();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ shut(); }
+  });
+})();
+</script>
