@@ -1,0 +1,152 @@
+/* ═══════════════════════════════════════════════════════════
+   홈에 값 띠 · 정가 9,000원 → 3,000원          판 2026-09-20
+
+   소희 님 「메인화면에 원래 9900원짜리 사주 3000원에 볼수 있다고
+   베너가 있어야 하지 않을까?」
+
+   맞는 말씀입니다. 홈에는 값 얘기가 한 자도 없습니다 —
+   「무료」라는 낱말만 열 군데입니다. 손님은 얼마인지 모른 채
+   카드를 누르고, 문에 가서야 값을 봅니다.
+
+   ★ 값은 9,900원이 아니라 9,000원입니다
+     patch160_listprice 가 결제창과 문 쪽에 이미 이렇게 긋고
+     있습니다 — 정가 9,000원 · 여는 기념 -6,000원 · 내실 값 3,000원.
+     구슬로는 9구슬 -> 3구슬입니다. 홈만 이 말을 안 하고 있었습니다.
+     두 자리가 다른 값을 말하면 손님이 안 믿습니다.
+
+   ★ 정가는 지어낸 값이 아닙니다
+     가격 안내 쪽에 「정가는 9구슬 · 9,000원이고, 여는 기간이
+     끝나면 그 값이 됩니다」라고 이미 적혀 있습니다.
+     실제로 그 값에 파실 예정이라야 표시광고법에 걸리지 않습니다.
+     여는 기간을 접으실 때 이 조각도 같이 꺼 주세요.
+
+   놓는 자리
+   「스텔라사주보기」 제목 바로 아래 — 물음 카드 열두 장 앞입니다.
+   값을 알고 카드를 누르게 됩니다.
+
+   앵커를 안 잡습니다
+   id 가 saju 인 자리를 찾아 그 머리말 뒤에 띠 하나를 끼웁니다.
+   쪽 원본은 한 글자도 안 고칩니다 — 끄면 그대로 돌아갑니다.
+
+   값을 바꾸시려면 아래 네 줄만 고치면 됩니다 (WAS · NOW · ORB · FREE).
+
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ═══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+
+	if ( ! is_front_page() ) { return; }
+
+	/* ── 고치실 곳은 여기뿐입니다 ───────────────────────── */
+	$WAS  = '9,000원';          /* 정가 */
+	$NOW  = '3,000원';          /* 지금 내실 값 */
+	$ORB  = '9구슬 → 3구슬';    /* 구슬로는 */
+	$FREE = '2026년 운세';      /* 오픈기념 무료인 것 */
+	?>
+<style id="stella-homeprice-css">
+#hp-band{ margin:0 0 26px; padding:18px 22px; border-radius:14px;
+  background:var(--plum-soft,#F0EBFB); border:1px solid #DED3F4;
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; }
+#hp-band .hp-kick{ font-size:.82rem; letter-spacing:.04em; font-weight:700;
+  color:var(--plum,#6B4FB0); background:#fff; border-radius:999px;
+  padding:5px 12px; border:1px solid #DED3F4; }
+#hp-band .hp-price{ display:flex; align-items:baseline; gap:9px; }
+#hp-band .hp-was{ color:var(--ink-dim,#8B849C); text-decoration:line-through;
+  font-size:1rem; }
+#hp-band .hp-now{ color:#C4453A; font-weight:800; font-size:1.42rem;
+  letter-spacing:-.01em; }
+#hp-band .hp-orb{ color:var(--ink-dim,#8B849C); font-size:.82rem; }
+#hp-band .hp-say{ color:var(--ink-soft,#4E4763); font-size:.92rem;
+  line-height:1.7; flex:1 1 260px; min-width:200px; }
+#hp-band .hp-say b{ color:var(--ink,#221C33); font-weight:700; }
+#hp-band .hp-go{ display:inline-block; text-decoration:none; font-weight:700;
+  font-size:.92rem; color:#fff; background:var(--plum,#6B4FB0);
+  border-radius:999px; padding:11px 20px; white-space:nowrap; }
+#hp-band .hp-go:hover{ background:#5A3F9C; }
+@media(max-width:640px){
+  #hp-band{ padding:16px; gap:9px 14px; }
+  #hp-band .hp-now{ font-size:1.26rem; }
+  #hp-band .hp-go{ width:100%; text-align:center; }
+}
+</style>
+<script>
+(function(){
+  if(window.StellaHomePrice){ return; }
+  window.StellaHomePrice = 1;
+
+  var WAS  = <?php echo wp_json_encode( $WAS ); ?>;
+  var NOW  = <?php echo wp_json_encode( $NOW ); ?>;
+  var ORB  = <?php echo wp_json_encode( $ORB ); ?>;
+  var FREE = <?php echo wp_json_encode( $FREE ); ?>;
+
+  function band(){
+    var d = document.createElement('div');
+    d.id = 'hp-band';
+
+    var kick = document.createElement('span');
+    kick.className = 'hp-kick';
+    kick.textContent = '여는 기념';
+    d.appendChild(kick);
+
+    var p = document.createElement('div');
+    p.className = 'hp-price';
+    var w = document.createElement('span');
+    w.className = 'hp-was';
+    w.textContent = WAS;
+    var n = document.createElement('span');
+    n.className = 'hp-now';
+    n.textContent = NOW;
+    var o = document.createElement('span');
+    o.className = 'hp-orb';
+    o.textContent = ORB;
+    p.appendChild(w); p.appendChild(n); p.appendChild(o);
+    d.appendChild(p);
+
+    var s = document.createElement('div');
+    s.className = 'hp-say';
+    var b = document.createElement('b');
+    b.textContent = '풀이 한 편이 책 한 권입니다. ';
+    s.appendChild(b);
+    s.appendChild(document.createTextNode(
+      '여는 기간이 끝나면 제 값으로 돌아갑니다. '
+      + FREE + '는 오픈기념으로 무료입니다.'));
+    d.appendChild(s);
+
+    var a = document.createElement('a');
+    a.className = 'hp-go';
+    a.setAttribute('href', '/door-fortune/?topic=' + encodeURIComponent(FREE));
+    a.textContent = FREE + ' 무료로 받기 ' + String.fromCharCode(8250);
+    d.appendChild(a);
+
+    return d;
+  }
+
+  function put(){
+    if(document.getElementById('hp-band')){ return true; }
+    var sec = document.getElementById('saju');
+    if(!sec){ return false; }
+    var head = sec.querySelector('.secthead');
+    if(head){
+      if(head.parentNode){
+        head.parentNode.insertBefore(band(), head.nextSibling);
+        return true;
+      }
+    }
+    var wrap = sec.querySelector('.wrap');
+    if(!wrap){ return false; }
+    wrap.insertBefore(band(), wrap.firstChild);
+    return true;
+  }
+
+  if(put()){ return; }
+  var n = 0;
+  var t = setInterval(function(){
+    n++;
+    if(put()){ clearInterval(t); return; }
+    if(n > 40){ clearInterval(t); }
+  }, 200);
+})();
+</script>
+	<?php
+} );
