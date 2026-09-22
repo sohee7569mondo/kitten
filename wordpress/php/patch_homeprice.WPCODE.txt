@@ -37,6 +37,7 @@ add_action( 'wp_head', function () {
 	$SAY  = '오픈 기간에는 여섯 문을 마음껏 여셔도 값을 안 받습니다. '
 		. '글은 줄이지 않았습니다 — 풀이 한 편이 책 한 권 그대로입니다.';
 	$GO   = '2026년 운세';   /* 단추가 데려가는 주제 */
+	$GAP  = 52;            /* 띄 아래 여백(px) — 더 띄우시려면 이 숫자만 */
 	?>
 <style id="stella-homeprice-css">
 #hp-band{ margin:18px 0 52px; padding:18px 22px; border-radius:14px;
@@ -74,6 +75,8 @@ add_action( 'wp_head', function () {
   var ORB = <?php echo wp_json_encode( $ORB ); ?>;
   var SAY = <?php echo wp_json_encode( $SAY ); ?>;
   var GO  = <?php echo wp_json_encode( $GO ); ?>;
+  var ADMIN = <?php echo current_user_can( 'manage_options' ) ? '1' : '0'; ?>;
+  var GAP   = <?php echo (int) $GAP; ?>;
 
   function band(){
     var d = document.createElement('div');
@@ -109,23 +112,83 @@ add_action( 'wp_head', function () {
     a.textContent = GO + '부터 보기 ' + String.fromCharCode(8250);
     d.appendChild(a);
 
+    /* ★ 여백을 인라인으로 못 박습니다.
+       살아 있는 홈에는 제 사본에 없는 CSS 가 있을 수 있어
+       시험에서는 먹던 margin 이 살아서는 질 수 있습니다.
+       인라인 + important 는 스타일표가 이길 수 없습니다. */
+    d.style.setProperty('margin-top', '18px', 'important');
+    d.style.setProperty('margin-bottom', GAP + 'px', 'important');
+
     return d;
+  }
+
+  /* ★ 관리자에게만 — 띄가 어디 들어갔고 여백이 얼마인지
+     짐작하지 말고 재서 찍습니다. 손님에게는 안 보입니다. */
+  function ruler(d){
+    if(!ADMIN){ return; }
+    if(document.getElementById('hp-ruler')){ return; }
+    var box = document.createElement('div');
+    box.id = 'hp-ruler';
+    box.style.cssText = 'margin:6px 0 0;padding:7px 11px;border-radius:7px;'
+      + 'background:#FFF6D8;border:1px solid #E2CE8A;color:#5B4A12;'
+      + 'font-size:12px;line-height:1.7;word-break:break-all';
+
+    function say(){
+      var prev = d.previousElementSibling;
+      var next = d.nextElementSibling;
+      var r  = d.getBoundingClientRect();
+      var cs = window.getComputedStyle(d);
+      var t = '띄 자리 — 앞: ' + (prev ? (prev.className || prev.tagName) : '(없음)');
+      t += '  ·  뒤: ' + (next ? (next.className || next.tagName) : '(없음)');
+      if(prev){
+        t += '  ·  위 여백 ' + Math.round(r.top - prev.getBoundingClientRect().bottom) + 'px';
+      }
+      if(next){
+        t += '  ·  아래 여백 ' + Math.round(next.getBoundingClientRect().top - r.bottom) + 'px';
+      }
+      t += '  ·  재서 놓은 margin ' + cs.marginTop + ' / ' + cs.marginBottom;
+      box.textContent = t;
+    }
+
+    /* ★ 띄 밖에 두면 자 자신이 여백을 밀어내 재는 것을
+       망칩니다. 띄 안에 넣어 바깥 여백을 안 건드리게 합니다. */
+    box.style.flex = '1 1 100%';
+    d.appendChild(box);
+    say();
+    setTimeout(say, 900);
+    window.addEventListener('resize', say);
   }
 
   function put(){
     if(document.getElementById('hp-band')){ return true; }
     var sec = document.getElementById('saju');
     if(!sec){ return false; }
+
+    var d = band();
+
+    /* ① 머리말(.secthead) 뒤가 제자리입니다 */
     var head = sec.querySelector('.secthead');
     if(head){
       if(head.parentNode){
-        head.parentNode.insertBefore(band(), head.nextSibling);
+        head.parentNode.insertBefore(d, head.nextSibling);
+        ruler(d);
         return true;
       }
     }
+    /* ② 머리말을 못 찾으면 첫 줄머리(.rowhead) 앞에 */
+    var row = sec.querySelector('.rowhead');
+    if(row){
+      if(row.parentNode){
+        row.parentNode.insertBefore(d, row);
+        ruler(d);
+        return true;
+      }
+    }
+    /* ③ 그리도 안 되면 상자 맨 앞 */
     var wrap = sec.querySelector('.wrap');
     if(!wrap){ return false; }
-    wrap.insertBefore(band(), wrap.firstChild);
+    wrap.insertBefore(d, wrap.firstChild);
+    ruler(d);
     return true;
   }
 
