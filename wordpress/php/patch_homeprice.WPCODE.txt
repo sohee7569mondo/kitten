@@ -34,12 +34,12 @@ add_action( 'wp_head', function () {
 	$WAS  = '9,000원';   /* 정가 — 가운데 줄을 그어 보입니다 */
 	$NOW  = '무료';      /* 지금 내실 값 */
 	$ORB  = '가입하지 않으셔도 됩니다';
-	$SAY  = '여는 동안은 여섯 문을 마음껏 여셔도 값을 안 받습니다. '
+	$SAY  = '오픈 기간에는 여섯 문을 마음껏 여셔도 값을 안 받습니다. '
 		. '글은 줄이지 않았습니다 — 풀이 한 편이 책 한 권 그대로입니다.';
 	$GO   = '2026년 운세';   /* 단추가 데려가는 주제 */
 	?>
 <style id="stella-homeprice-css">
-#hp-band{ margin:0 0 26px; padding:18px 22px; border-radius:14px;
+#hp-band{ margin:18px 0 52px; padding:18px 22px; border-radius:14px;
   background:var(--plum-soft,#F0EBFB); border:1px solid #DED3F4;
   display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; }
 #hp-band .hp-kick{ font-size:.82rem; letter-spacing:.04em; font-weight:700;
@@ -81,7 +81,7 @@ add_action( 'wp_head', function () {
 
     var kick = document.createElement('span');
     kick.className = 'hp-kick';
-    kick.textContent = '여는 기념';
+    kick.textContent = '오픈기념';
     d.appendChild(kick);
 
     var p = document.createElement('div');
