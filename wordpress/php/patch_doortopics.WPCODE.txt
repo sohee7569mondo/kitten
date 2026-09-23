@@ -37,184 +37,184 @@ add_action( 'wp_head', function () {
 	$doors = array( 'door-love', 'door-career', 'door-health',
 		'door-fortune', 'door-astro', 'door-tarot' );
 	if ( ! is_page( $doors ) ) { return; }
-	echo <<<'STELLA_DT'
-<script>
-(function(){
-  if(window.StellaDoorTopics){ return; }
-  window.StellaDoorTopics = 1;
-
-  // 감출 주제 — 문마다
-  var HIDE = {};
-  HIDE['door-fortune'] = ['대운'];
-  HIDE['door-health']  = ['부모운', '형제운', '자녀운'];
-
-  // 둘로 가를 주제 — [ 문, 본디 값, 새 값 둘 ]
-  var SPLIT = ['door-fortune', '신년운세', ['2026년 운세', '2027년 운세']];
-
-  // 넣을 주제 — [ 문, 새 값, 이 주제 뒤에 ]
-  var ADD = [
-    ['door-love',   '이혼운', '이별운'],
-    ['door-career', '퇴사운', '이직운']
-  ];
-
-  function slug(){
-    var p = String(location.pathname).split('/');
-    var i;
-    for(i = p.length - 1; i >= 0; i--){
-      if(p[i]){ return p[i]; }
-    }
-    return '';
-  }
-
-  function inputs(){
-    return document.querySelectorAll('input[name="ssg-topic"]');
-  }
-
-  function labelOf(inp){
-    var el = inp.parentNode;
-    var up = 0;
-    while(el){
-      if(String(el.tagName).toLowerCase() === 'label'){ return el; }
-      el = el.parentNode;
-      up++;
-      if(up > 4){ return null; }
-    }
-    return null;
-  }
-
-  function find(v){
-    var r = inputs(), i;
-    for(i = 0; i < r.length; i++){
-      if(r[i].value === v){ return r[i]; }
-    }
-    return null;
-  }
-
-  var here = slug();
-  var did = 0;
-
-  // ① 감추기
-  function hide(){
-    var list = HIDE[here];
-    if(!list){ return 0; }
-    var n = 0, i, inp, lab;
-    for(i = 0; i < list.length; i++){
-      inp = find(list[i]);
-      if(!inp){ continue; }
-      lab = labelOf(inp);
-      if(!lab){ continue; }
-      if(lab.getAttribute('data-dt-hide') === '1'){ continue; }
-      lab.setAttribute('data-dt-hide', '1');
-      lab.style.display = 'none';
-      inp.disabled = true;
-      n++;
-    }
-    return n;
-  }
-
-  // ② 가르기 — 이미 갈라져 있으면 물러납니다
-  function split(){
-    if(here !== SPLIT[0]){ return 0; }
-    if(find(SPLIT[2][0])){ return 0; }   // nydoor 가 이미 했습니다
-    var old = find(SPLIT[1]);
-    if(!old){ return 0; }
-    var lab = labelOf(old);
-    if(!lab){ return 0; }
-    if(!lab.parentNode){ return 0; }
-
-    var made = [], j, clone, node, span;
-    for(j = 0; j < SPLIT[2].length; j++){
-      clone = lab.cloneNode(true);
-      node  = clone.querySelector('input[name="ssg-topic"]');
-      span  = clone.querySelector('span');
-      if(!node){ continue; }
-      node.value = SPLIT[2][j];
-      node.checked = false;
-      node.disabled = false;
-      if(span){ span.textContent = SPLIT[2][j]; }
-      clone.style.display = '';
-      clone.setAttribute('data-dt-new', '1');
-      made.push(clone);
-    }
-    if(!made.length){ return 0; }
-    for(j = 0; j < made.length; j++){
-      lab.parentNode.insertBefore(made[j], lab);
-    }
-    lab.parentNode.removeChild(lab);
-    return made.length;
-  }
-
-  // ③ 넣기
-  function add(){
-    var n = 0, i;
-    for(i = 0; i < ADD.length; i++){
-      if(ADD[i][0] !== here){ continue; }
-      if(find(ADD[i][1])){ continue; }      // 이미 있습니다
-      var after = find(ADD[i][2]);
-      if(!after){ continue; }
-      var lab = labelOf(after);
-      if(!lab){ continue; }
-      if(!lab.parentNode){ continue; }
-
-      var clone = lab.cloneNode(true);
-      var node  = clone.querySelector('input[name="ssg-topic"]');
-      var span  = clone.querySelector('span');
-      if(!node){ continue; }
-      node.value = ADD[i][1];
-      node.checked = false;
-      node.disabled = false;
-      if(span){ span.textContent = ADD[i][1]; }
-      clone.style.display = '';
-      clone.setAttribute('data-dt-new', '1');
-      if(lab.nextSibling){ lab.parentNode.insertBefore(clone, lab.nextSibling); }
-      else { lab.parentNode.appendChild(clone); }
-      n++;
-    }
-    return n;
-  }
-
-  // ④ 골라진 것이 감춰졌으면 첫 보이는 것으로 옮깁니다
-  //    안 그러면 손님 눈에는 아무것도 안 골라진 것처럼 보입니다.
-  function refix(){
-    var r = inputs(), i, first = null, ok = false;
-    for(i = 0; i < r.length; i++){
-      var lab = labelOf(r[i]);
-      var shown = true;
-      if(lab){ if(lab.style.display === 'none'){ shown = false; } }
-      if(!shown){ continue; }
-      if(!first){ first = r[i]; }
-      if(r[i].checked){ ok = true; }
-    }
-    if(ok){ return; }
-    if(!first){ return; }
-    first.checked = true;
-    try {
-      var ev = document.createEvent('HTMLEvents');
-      ev.initEvent('change', true, true);
-      first.dispatchEvent(ev);
-    } catch(e){}
-  }
-
-  function run(){
-    if(!inputs().length){ return false; }
-    hide();
-    split();
-    add();
-    refix();
-    did = 1;
-    return true;
-  }
-
-  run();
-  var n = 0;
-  var t = setInterval(function(){
-    n++;
-    run();
-    if(n > 25){ clearInterval(t); }
-  }, 300);
-})();
-</script>
-STELLA_DT;
+	$b  = '';
+	$b .= "<script>\n";
+	$b .= "(function(){\n";
+	$b .= "  if(window.StellaDoorTopics){ return; }\n";
+	$b .= "  window.StellaDoorTopics = 1;\n";
+	$b .= "\n";
+	$b .= "  // 감출 주제 — 문마다\n";
+	$b .= "  var HIDE = {};\n";
+	$b .= "  HIDE['door-fortune'] = ['대운'];\n";
+	$b .= "  HIDE['door-health']  = ['부모운', '형제운', '자녀운'];\n";
+	$b .= "\n";
+	$b .= "  // 둘로 가를 주제 — [ 문, 본디 값, 새 값 둘 ]\n";
+	$b .= "  var SPLIT = ['door-fortune', '신년운세', ['2026년 운세', '2027년 운세']];\n";
+	$b .= "\n";
+	$b .= "  // 넣을 주제 — [ 문, 새 값, 이 주제 뒤에 ]\n";
+	$b .= "  var ADD = [\n";
+	$b .= "    ['door-love',   '이혼운', '이별운'],\n";
+	$b .= "    ['door-career', '퇴사운', '이직운']\n";
+	$b .= "  ];\n";
+	$b .= "\n";
+	$b .= "  function slug(){\n";
+	$b .= "    var p = String(location.pathname).split('/');\n";
+	$b .= "    var i;\n";
+	$b .= "    for(i = p.length - 1; i >= 0; i--){\n";
+	$b .= "      if(p[i]){ return p[i]; }\n";
+	$b .= "    }\n";
+	$b .= "    return '';\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function inputs(){\n";
+	$b .= "    return document.querySelectorAll('input[name=ssg-topic]');\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function labelOf(inp){\n";
+	$b .= "    var el = inp.parentNode;\n";
+	$b .= "    var up = 0;\n";
+	$b .= "    while(el){\n";
+	$b .= "      if(String(el.tagName).toLowerCase() === 'label'){ return el; }\n";
+	$b .= "      el = el.parentNode;\n";
+	$b .= "      up++;\n";
+	$b .= "      if(up > 4){ return null; }\n";
+	$b .= "    }\n";
+	$b .= "    return null;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function find(v){\n";
+	$b .= "    var r = inputs(), i;\n";
+	$b .= "    for(i = 0; i < r.length; i++){\n";
+	$b .= "      if(r[i].value === v){ return r[i]; }\n";
+	$b .= "    }\n";
+	$b .= "    return null;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  var here = slug();\n";
+	$b .= "  var did = 0;\n";
+	$b .= "\n";
+	$b .= "  // ① 감추기\n";
+	$b .= "  function hide(){\n";
+	$b .= "    var list = HIDE[here];\n";
+	$b .= "    if(!list){ return 0; }\n";
+	$b .= "    var n = 0, i, inp, lab;\n";
+	$b .= "    for(i = 0; i < list.length; i++){\n";
+	$b .= "      inp = find(list[i]);\n";
+	$b .= "      if(!inp){ continue; }\n";
+	$b .= "      lab = labelOf(inp);\n";
+	$b .= "      if(!lab){ continue; }\n";
+	$b .= "      if(lab.getAttribute('data-dt-hide') === '1'){ continue; }\n";
+	$b .= "      lab.setAttribute('data-dt-hide', '1');\n";
+	$b .= "      lab.style.display = 'none';\n";
+	$b .= "      inp.disabled = true;\n";
+	$b .= "      n++;\n";
+	$b .= "    }\n";
+	$b .= "    return n;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  // ② 가르기 — 이미 갈라져 있으면 물러납니다\n";
+	$b .= "  function split(){\n";
+	$b .= "    if(here !== SPLIT[0]){ return 0; }\n";
+	$b .= "    if(find(SPLIT[2][0])){ return 0; }   // nydoor 가 이미 했습니다\n";
+	$b .= "    var old = find(SPLIT[1]);\n";
+	$b .= "    if(!old){ return 0; }\n";
+	$b .= "    var lab = labelOf(old);\n";
+	$b .= "    if(!lab){ return 0; }\n";
+	$b .= "    if(!lab.parentNode){ return 0; }\n";
+	$b .= "\n";
+	$b .= "    var made = [], j, clone, node, span;\n";
+	$b .= "    for(j = 0; j < SPLIT[2].length; j++){\n";
+	$b .= "      clone = lab.cloneNode(true);\n";
+	$b .= "      node  = clone.querySelector('input[name=ssg-topic]');\n";
+	$b .= "      span  = clone.querySelector('span');\n";
+	$b .= "      if(!node){ continue; }\n";
+	$b .= "      node.value = SPLIT[2][j];\n";
+	$b .= "      node.checked = false;\n";
+	$b .= "      node.disabled = false;\n";
+	$b .= "      if(span){ span.textContent = SPLIT[2][j]; }\n";
+	$b .= "      clone.style.display = '';\n";
+	$b .= "      clone.setAttribute('data-dt-new', '1');\n";
+	$b .= "      made.push(clone);\n";
+	$b .= "    }\n";
+	$b .= "    if(!made.length){ return 0; }\n";
+	$b .= "    for(j = 0; j < made.length; j++){\n";
+	$b .= "      lab.parentNode.insertBefore(made[j], lab);\n";
+	$b .= "    }\n";
+	$b .= "    lab.parentNode.removeChild(lab);\n";
+	$b .= "    return made.length;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  // ③ 넣기\n";
+	$b .= "  function add(){\n";
+	$b .= "    var n = 0, i;\n";
+	$b .= "    for(i = 0; i < ADD.length; i++){\n";
+	$b .= "      if(ADD[i][0] !== here){ continue; }\n";
+	$b .= "      if(find(ADD[i][1])){ continue; }      // 이미 있습니다\n";
+	$b .= "      var after = find(ADD[i][2]);\n";
+	$b .= "      if(!after){ continue; }\n";
+	$b .= "      var lab = labelOf(after);\n";
+	$b .= "      if(!lab){ continue; }\n";
+	$b .= "      if(!lab.parentNode){ continue; }\n";
+	$b .= "\n";
+	$b .= "      var clone = lab.cloneNode(true);\n";
+	$b .= "      var node  = clone.querySelector('input[name=ssg-topic]');\n";
+	$b .= "      var span  = clone.querySelector('span');\n";
+	$b .= "      if(!node){ continue; }\n";
+	$b .= "      node.value = ADD[i][1];\n";
+	$b .= "      node.checked = false;\n";
+	$b .= "      node.disabled = false;\n";
+	$b .= "      if(span){ span.textContent = ADD[i][1]; }\n";
+	$b .= "      clone.style.display = '';\n";
+	$b .= "      clone.setAttribute('data-dt-new', '1');\n";
+	$b .= "      if(lab.nextSibling){ lab.parentNode.insertBefore(clone, lab.nextSibling); }\n";
+	$b .= "      else { lab.parentNode.appendChild(clone); }\n";
+	$b .= "      n++;\n";
+	$b .= "    }\n";
+	$b .= "    return n;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  // ④ 골라진 것이 감춰졌으면 첫 보이는 것으로 옮깁니다\n";
+	$b .= "  //    안 그러면 손님 눈에는 아무것도 안 골라진 것처럼 보입니다.\n";
+	$b .= "  function refix(){\n";
+	$b .= "    var r = inputs(), i, first = null, ok = false;\n";
+	$b .= "    for(i = 0; i < r.length; i++){\n";
+	$b .= "      var lab = labelOf(r[i]);\n";
+	$b .= "      var shown = true;\n";
+	$b .= "      if(lab){ if(lab.style.display === 'none'){ shown = false; } }\n";
+	$b .= "      if(!shown){ continue; }\n";
+	$b .= "      if(!first){ first = r[i]; }\n";
+	$b .= "      if(r[i].checked){ ok = true; }\n";
+	$b .= "    }\n";
+	$b .= "    if(ok){ return; }\n";
+	$b .= "    if(!first){ return; }\n";
+	$b .= "    first.checked = true;\n";
+	$b .= "    try {\n";
+	$b .= "      var ev = document.createEvent('HTMLEvents');\n";
+	$b .= "      ev.initEvent('change', true, true);\n";
+	$b .= "      first.dispatchEvent(ev);\n";
+	$b .= "    } catch(e){}\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function run(){\n";
+	$b .= "    if(!inputs().length){ return false; }\n";
+	$b .= "    hide();\n";
+	$b .= "    split();\n";
+	$b .= "    add();\n";
+	$b .= "    refix();\n";
+	$b .= "    did = 1;\n";
+	$b .= "    return true;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  run();\n";
+	$b .= "  var n = 0;\n";
+	$b .= "  var t = setInterval(function(){\n";
+	$b .= "    n++;\n";
+	$b .= "    run();\n";
+	$b .= "    if(n > 25){ clearInterval(t); }\n";
+	$b .= "  }, 300);\n";
+	$b .= "})();\n";
+	$b .= "</script>\n";
+	echo $b;
 } );
 
 // ── 살펴보기 ──────────────────────────────────────────
