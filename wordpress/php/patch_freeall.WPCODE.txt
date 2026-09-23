@@ -1,47 +1,45 @@
-/* ═══════════════════════════════════════════════════════════
-   전부 공짜로 — 여는 동안 값을 받지 않습니다      판 2026-09-21
+// 전부 공짜로 — 여는 동안 값을 받지 않습니다      판 2026-09-21
+//
+// 소희 님 「지금 오픈해서 유입수를 늘려야 할거 같아 전부 공짜로 풀자」
+//
+// 값은 낱말 하나가 정합니다
+// 사이트에는 TRIAL 이라는 스위치가 두 군데 있고, 둘이 짝입니다.
+//
+// ① 서버   STELLA_TRIAL      (조각 「스텔라 가입·구슬」 안)
+// ② 화면   var TRIAL         (문 여섯 쪽 안에 한 줄씩)
+//
+// 둘 다 true 면 이렇게 됩니다 —
+// · 값이 0 구슬
+// · 가입하지 않아도 바로 받습니다 (비회원도 막히지 않습니다)
+// · 단추가 「체험판으로 풀이 받기 · 무료」로 바뀝니다
+// · 「구슬이 모자라요」로 막히는 일이 없습니다
+//
+// 한쪽만 true 면 어긋납니다 — 서버는 공짜로 주는데 화면이
+// 「구슬이 모자라요」로 막아 손님이 못 들어옵니다. 그래서 둘을
+// 함께 봅니다.
+//
+// ① 서버는 이 조각이 먼저 잡아 보고, 안 되면 알려드립니다
+// PHP 상수는 먼저 정한 쪽이 이깁니다. 이 조각이 「스텔라 가입」
+// 조각보다 먼저 돌면 그것만으로 끝납니다. 늦게 돌면 못 이기고,
+// 그때는 살펴보기 화면이 「졌습니다」라고 말해 줍니다.
+// 그러면 그 조각에서 한 글자만 고치시면 됩니다 (자리를 찍어드립니다).
+//
+// ② 화면은 이 조각이 쪽을 고칩니다
+// ?stella_freeall=1        지금 어떤가 (먼저 이것부터)
+// ?stella_freeall=preview  무엇이 바뀌는지 그대로 보여드립니다
+// ?stella_freeall=free     전부 무료로
+// ?stella_freeall=paid     도로 유료로 (여는 기간을 접으실 때)
+//
+// ★ 저장할 때 wp_slash 로 감싸고, 저장한 뒤 역빗금을 다시 세어
+// 어긋나면 되돌립니다. 2026-09-16 에 역빗금 다섯 개가 사라져
+// 쪽이 통째로 안 돈 적이 있습니다.
+// ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+// ★ 크롬 번역을 끄고 붙여넣으세요.
 
-   소희 님 「지금 오픈해서 유입수를 늘려야 할거 같아 전부 공짜로 풀자」
-
-   값은 낱말 하나가 정합니다
-   사이트에는 TRIAL 이라는 스위치가 두 군데 있고, 둘이 짝입니다.
-
-       ① 서버   STELLA_TRIAL      (조각 「스텔라 가입·구슬」 안)
-       ② 화면   var TRIAL         (문 여섯 쪽 안에 한 줄씩)
-
-   둘 다 true 면 이렇게 됩니다 —
-       · 값이 0 구슬
-       · 가입하지 않아도 바로 받습니다 (비회원도 막히지 않습니다)
-       · 단추가 「체험판으로 풀이 받기 · 무료」로 바뀝니다
-       · 「구슬이 모자라요」로 막히는 일이 없습니다
-
-   한쪽만 true 면 어긋납니다 — 서버는 공짜로 주는데 화면이
-   「구슬이 모자라요」로 막아 손님이 못 들어옵니다. 그래서 둘을
-   함께 봅니다.
-
-   ① 서버는 이 조각이 먼저 잡아 보고, 안 되면 알려드립니다
-     PHP 상수는 먼저 정한 쪽이 이깁니다. 이 조각이 「스텔라 가입」
-     조각보다 먼저 돌면 그것만으로 끝납니다. 늦게 돌면 못 이기고,
-     그때는 살펴보기 화면이 「졌습니다」라고 말해 줍니다.
-     그러면 그 조각에서 한 글자만 고치시면 됩니다 (자리를 찍어드립니다).
-
-   ② 화면은 이 조각이 쪽을 고칩니다
-       ?stella_freeall=1        지금 어떤가 (먼저 이것부터)
-       ?stella_freeall=preview  무엇이 바뀌는지 그대로 보여드립니다
-       ?stella_freeall=free     전부 무료로
-       ?stella_freeall=paid     도로 유료로 (여는 기간을 접으실 때)
-
-   ★ 저장할 때 wp_slash 로 감싸고, 저장한 뒤 역빗금을 다시 세어
-     어긋나면 되돌립니다. 2026-09-16 에 역빗금 다섯 개가 사라져
-     쪽이 통째로 안 돈 적이 있습니다.
-   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
-   ★ 크롬 번역을 끄고 붙여넣으세요.
-   ═══════════════════════════════════════════════════════════ */
-
-/* ── ① 서버 · 먼저 잡아 봅니다 ─────────────────────────── */
+// ── ① 서버 · 먼저 잡아 봅니다 ───────────────────────────
 if ( ! defined( 'STELLA_TRIAL' ) ) { define( 'STELLA_TRIAL', true ); }
 
-/* ── ② 화면 · 문 여섯 쪽의 var TRIAL ──────────────────── */
+// ── ② 화면 · 문 여섯 쪽의 var TRIAL ────────────────────
 add_action( 'template_redirect', function () {
 
 	if ( ! isset( $_GET['stella_freeall'] ) ) { return; }
@@ -55,7 +53,7 @@ add_action( 'template_redirect', function () {
 	echo "전부 공짜로 — 살펴보기\n";
 	echo "═══════════════════════════════════════════\n\n";
 
-	/* 서버 쪽이 이겼나 */
+	// 서버 쪽이 이겼나
 	echo "① 서버 STELLA_TRIAL\n";
 	if ( defined( 'STELLA_TRIAL' ) ) {
 		$on = (bool) constant( 'STELLA_TRIAL' );
@@ -81,7 +79,7 @@ add_action( 'template_redirect', function () {
 	}
 	echo "\n";
 
-	/* 화면 쪽 */
+	// 화면 쪽
 	echo "② 화면 var TRIAL — 문 여섯\n";
 	$plan = array();
 	$wantTrue = ( 'paid' !== $mode );
@@ -134,7 +132,7 @@ add_action( 'template_redirect', function () {
 		if ( 'paid' !== $mode ) { echo "모르는 말입니다.\n"; exit; }
 	}
 
-	/* ── 고칩니다 ── */
+	// ── 고칩니다 ──
 	echo "고칩니다 (→ TRIAL=" . $to . ")\n";
 	echo "───────────────────────────────────────────\n";
 	$done = 0;
@@ -142,7 +140,7 @@ add_action( 'template_redirect', function () {
 		$p   = $row[0];
 		$old = $row[1];
 
-		/* ★ 역빗금을 먼저 셉니다 */
+		// ★ 역빗금을 먼저 셉니다
 		$before = substr_count( $old, chr( 92 ) );
 
 		$new = preg_replace( '/var\s+TRIAL\s*=\s*(true|false)\s*;/',
@@ -157,7 +155,7 @@ add_action( 'template_redirect', function () {
 			continue;
 		}
 
-		/* ★ wp_slash 로 감싸야 역빗금이 안 벗겨집니다 */
+		// ★ wp_slash 로 감싸야 역빗금이 안 벗겨집니다
 		wp_update_post( array( 'ID' => $p->ID, 'post_content' => wp_slash( $new ) ) );
 		clean_post_cache( $p->ID );
 
@@ -165,7 +163,7 @@ add_action( 'template_redirect', function () {
 		$after = substr_count( $saved, chr( 92 ) );
 
 		if ( $before !== $after ) {
-			/* 되돌립니다 — 역빗금이 벗겨지면 쪽이 통째로 안 돕니다 */
+			// 되돌립니다 — 역빗금이 벗겨지면 쪽이 통째로 안 돕니다
 			wp_update_post( array( 'ID' => $p->ID, 'post_content' => wp_slash( $old ) ) );
 			clean_post_cache( $p->ID );
 			echo '   ' . $p->post_name . '  ★ 역빗금이 ' . $before . ' → ' . $after
