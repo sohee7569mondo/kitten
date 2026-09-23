@@ -37,126 +37,126 @@
 add_action( 'wp_head', function () {
 
 	if ( ! is_front_page() ) { return; }
-	?>
-<style id="stella-homeviral-css">
-#stellar-home a.free-card[data-viral="1"] .free-kicker{ opacity:.9; }
-</style>
-<script>
-(function(){
-  if(window.StellaHomeViral){ return; }
-  window.StellaHomeViral = 1;
-
-  /* [ 주소, 바탕색, 윗줄, 아랫줄 첫 줄, 아랫줄 둘째 줄 ] */
-  var ADD = [
-    ['/uandme/', '#D94F70', '둘이서',   '유앤미',   '궁합 보기'],
-    ['/lab/',    '#2E6F9E', '심심풀이', '스텔라 랩', '성향 검사']
-  ];
-
-  function card(c){
-    var a = document.createElement('a');
-    a.className = 'free-card';
-    a.setAttribute('href', c[0]);
-    a.setAttribute('data-viral', '1');
-    a.style.setProperty('--bg', c[1]);
-
-    var tag = document.createElement('span');
-    tag.className = 'free-tag';
-    tag.textContent = 'Free';
-    a.appendChild(tag);
-
-    var k = document.createElement('span');
-    k.className = 'free-kicker';
-    k.textContent = c[2];
-    a.appendChild(k);
-
-    var s = document.createElement('span');
-    s.className = 'free-sub';
-    s.appendChild(document.createTextNode(c[3]));
-    s.appendChild(document.createElement('br'));
-    s.appendChild(document.createTextNode(c[4]));
-    a.appendChild(s);
-
-    return a;
-  }
-
-  /* 보이는 카드만 세어 점을 다시 그립니다 */
-  function redots(rail){
-    var bar = rail.nextElementSibling;
-    if(!bar){ return; }
-    if(String(bar.className).indexOf('railbar') < 0){ return; }
-    var dots = bar.querySelector('[data-dots]');
-    if(!dots){ return; }
-
-    function seen(){
-      var out = [], kids = rail.children, i;
-      for(i = 0; i < kids.length; i++){
-        if(kids[i].offsetParent === null){ continue; }
-        out.push(kids[i]);
-      }
-      return out;
-    }
-
-    function draw(){
-      var list = seen(), i;
-      if(dots.children.length !== list.length){
-        dots.innerHTML = '';
-        for(i = 0; i < list.length; i++){
-          dots.appendChild(document.createElement('i'));
-        }
-      }
-      var mid = rail.scrollLeft + rail.clientWidth / 2;
-      var best = 0, bestD = 1e9, c, cc, d;
-      for(i = 0; i < list.length; i++){
-        c  = list[i];
-        cc = c.offsetLeft + c.offsetWidth / 2;
-        d  = Math.abs(cc - mid);
-        if(d < bestD){ bestD = d; best = i; }
-      }
-      for(i = 0; i < dots.children.length; i++){
-        dots.children[i].className = (i === best) ? 'on' : '';
-      }
-    }
-
-    rail.addEventListener('scroll', draw);
-    window.addEventListener('resize', draw);
-    draw();
-    /* 로또를 숨기는 조각이 늦게 돌 수 있어 잠깐 더 봅니다 */
-    var n = 0;
-    var t = setInterval(function(){
-      n++;
-      draw();
-      if(n > 12){ clearInterval(t); }
-    }, 400);
-  }
-
-  function put(){
-    var rail = document.querySelector('.rail.w-free');
-    if(!rail){ return false; }
-    if(rail.querySelector('a.free-card[data-viral="1"]')){ return true; }
-
-    /* 「오늘의 운세」 바로 뒤에 놓습니다 */
-    var at = rail.children.length ? rail.children[0].nextSibling : null;
-    var i;
-    for(i = 0; i < ADD.length; i++){
-      var el = card(ADD[i]);
-      if(at){ rail.insertBefore(el, at); }
-      else { rail.appendChild(el); }
-      at = el.nextSibling;
-    }
-    redots(rail);
-    return true;
-  }
-
-  if(put()){ return; }
-  var k = 0;
-  var tk = setInterval(function(){
-    k++;
-    if(put()){ clearInterval(tk); return; }
-    if(k > 40){ clearInterval(tk); }
-  }, 200);
-})();
-</script>
-	<?php
+	$b  = '';
+	$b .= "<style id='stella-homeviral-css'>\n";
+	$b .= "#stellar-home a.free-card[data-viral=on] .free-kicker{ opacity:.9; }\n";
+	$b .= "</style>\n";
+	$b .= "<script>\n";
+	$b .= "(function(){\n";
+	$b .= "  if(window.StellaHomeViral){ return; }\n";
+	$b .= "  window.StellaHomeViral = 1;\n";
+	$b .= "\n";
+	$b .= "      // [ 주소, 바탕색, 윗줄, 아랫줄 첫 줄, 아랫줄 둘째 줄 ]\n";
+	$b .= "  var ADD = [\n";
+	$b .= "    ['/uandme/', '#D94F70', '둘이서',   '유앤미',   '궁합 보기'],\n";
+	$b .= "    ['/lab/',    '#2E6F9E', '심심풀이', '스텔라 랩', '성향 검사']\n";
+	$b .= "  ];\n";
+	$b .= "\n";
+	$b .= "  function card(c){\n";
+	$b .= "    var a = document.createElement('a');\n";
+	$b .= "    a.className = 'free-card';\n";
+	$b .= "    a.setAttribute('href', c[0]);\n";
+	$b .= "    a.setAttribute('data-viral', 'on');\n";
+	$b .= "    a.style.setProperty('--bg', c[1]);\n";
+	$b .= "\n";
+	$b .= "    var tag = document.createElement('span');\n";
+	$b .= "    tag.className = 'free-tag';\n";
+	$b .= "    tag.textContent = 'Free';\n";
+	$b .= "    a.appendChild(tag);\n";
+	$b .= "\n";
+	$b .= "    var k = document.createElement('span');\n";
+	$b .= "    k.className = 'free-kicker';\n";
+	$b .= "    k.textContent = c[2];\n";
+	$b .= "    a.appendChild(k);\n";
+	$b .= "\n";
+	$b .= "    var s = document.createElement('span');\n";
+	$b .= "    s.className = 'free-sub';\n";
+	$b .= "    s.appendChild(document.createTextNode(c[3]));\n";
+	$b .= "    s.appendChild(document.createElement('br'));\n";
+	$b .= "    s.appendChild(document.createTextNode(c[4]));\n";
+	$b .= "    a.appendChild(s);\n";
+	$b .= "\n";
+	$b .= "    return a;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "      // 보이는 카드만 세어 점을 다시 그립니다\n";
+	$b .= "  function redots(rail){\n";
+	$b .= "    var bar = rail.nextElementSibling;\n";
+	$b .= "    if(!bar){ return; }\n";
+	$b .= "    if(String(bar.className).indexOf('railbar') < 0){ return; }\n";
+	$b .= "    var dots = bar.querySelector('[data-dots]');\n";
+	$b .= "    if(!dots){ return; }\n";
+	$b .= "\n";
+	$b .= "    function seen(){\n";
+	$b .= "      var out = [], kids = rail.children, i;\n";
+	$b .= "      for(i = 0; i < kids.length; i++){\n";
+	$b .= "        if(kids[i].offsetParent === null){ continue; }\n";
+	$b .= "        out.push(kids[i]);\n";
+	$b .= "      }\n";
+	$b .= "      return out;\n";
+	$b .= "    }\n";
+	$b .= "\n";
+	$b .= "    function draw(){\n";
+	$b .= "      var list = seen(), i;\n";
+	$b .= "      if(dots.children.length !== list.length){\n";
+	$b .= "        dots.innerHTML = '';\n";
+	$b .= "        for(i = 0; i < list.length; i++){\n";
+	$b .= "          dots.appendChild(document.createElement('i'));\n";
+	$b .= "        }\n";
+	$b .= "      }\n";
+	$b .= "      var mid = rail.scrollLeft + rail.clientWidth / 2;\n";
+	$b .= "      var best = 0, bestD = 1e9, c, cc, d;\n";
+	$b .= "      for(i = 0; i < list.length; i++){\n";
+	$b .= "        c  = list[i];\n";
+	$b .= "        cc = c.offsetLeft + c.offsetWidth / 2;\n";
+	$b .= "        d  = Math.abs(cc - mid);\n";
+	$b .= "        if(d < bestD){ bestD = d; best = i; }\n";
+	$b .= "      }\n";
+	$b .= "      for(i = 0; i < dots.children.length; i++){\n";
+	$b .= "        dots.children[i].className = (i === best) ? 'on' : '';\n";
+	$b .= "      }\n";
+	$b .= "    }\n";
+	$b .= "\n";
+	$b .= "    rail.addEventListener('scroll', draw);\n";
+	$b .= "    window.addEventListener('resize', draw);\n";
+	$b .= "    draw();\n";
+	$b .= "        // 로또를 숨기는 조각이 늦게 돌 수 있어 잠깐 더 봅니다\n";
+	$b .= "    var n = 0;\n";
+	$b .= "    var t = setInterval(function(){\n";
+	$b .= "      n++;\n";
+	$b .= "      draw();\n";
+	$b .= "      if(n > 12){ clearInterval(t); }\n";
+	$b .= "    }, 400);\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function put(){\n";
+	$b .= "    var rail = document.querySelector('.rail.w-free');\n";
+	$b .= "    if(!rail){ return false; }\n";
+	$b .= "    if(rail.querySelector('a.free-card[data-viral=on]')){ return true; }\n";
+	$b .= "\n";
+	$b .= "        // 「오늘의 운세」 바로 뒤에 놓습니다\n";
+	$b .= "    var at = rail.children.length ? rail.children[0].nextSibling : null;\n";
+	$b .= "    var i;\n";
+	$b .= "    for(i = 0; i < ADD.length; i++){\n";
+	$b .= "      var el = card(ADD[i]);\n";
+	$b .= "      if(at){ rail.insertBefore(el, at); }\n";
+	$b .= "      else { rail.appendChild(el); }\n";
+	$b .= "      at = el.nextSibling;\n";
+	$b .= "    }\n";
+	$b .= "    redots(rail);\n";
+	$b .= "    return true;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  if(put()){ return; }\n";
+	$b .= "  var k = 0;\n";
+	$b .= "  var tk = setInterval(function(){\n";
+	$b .= "    k++;\n";
+	$b .= "    if(put()){ clearInterval(tk); return; }\n";
+	$b .= "    if(k > 40){ clearInterval(tk); }\n";
+	$b .= "  }, 200);\n";
+	$b .= "})();\n";
+	$b .= "</script>\n";
+	echo $b;
 } );
 
 // ── 살펴보기 ───────────────────────────────────────────
