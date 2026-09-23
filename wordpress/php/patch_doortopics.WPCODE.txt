@@ -37,7 +37,7 @@ add_action( 'wp_head', function () {
 	$doors = array( 'door-love', 'door-career', 'door-health',
 		'door-fortune', 'door-astro', 'door-tarot' );
 	if ( ! is_page( $doors ) ) { return; }
-	?>
+	echo <<<'STELLA_DT'
 <script>
 (function(){
   if(window.StellaDoorTopics){ return; }
@@ -214,7 +214,7 @@ add_action( 'wp_head', function () {
   }, 300);
 })();
 </script>
-	<?php
+STELLA_DT;
 } );
 
 // ── 살펴보기 ──────────────────────────────────────────
