@@ -1,0 +1,317 @@
+/* ════════════════════════════════════════════════════════════
+   결혼운 ⑨ 「세 가지만 기억하세요」를 결혼 이야기로
+   ★ 2026-09-11 · 소희 님께
+
+   ── 무엇이 문제였나 ───────────────────────────────────
+   책에 「○○님, 세 가지만 기억하세요」 장이 이미 있습니다 (맺음말).
+   그런데 그 세 가지가 주제와 상관없는 일반론이었습니다.
+
+       하나  가장 기운 저울    (혼자냐 함께냐 …)
+       둘    어긋난 자리       (사주와 답변의 차이)
+       셋    지금 계신 십 년    (대운)
+
+   결혼운으로 물어도 연애운으로 물어도 같은 셋이 나갑니다.
+
+   ── 무엇이 바뀌나 ─────────────────────────────────────
+   결혼운일 때만 소희 님이 쓰신 세 가지로 바꿉니다.
+
+       하나  같이 살면 어떤 모양인가   일지 십성 열
+       둘    결혼이 당신을 어떻게 쓰는가 가장 많은 갈래 다섯
+       셋    지금은 어떤 판을 지나는가  대운 오행 다섯
+
+   소희 님 규칙대로 **세 자리마다 물음을 먼저** 놓았습니다.
+   다른 주제(연애운 등)는 지금 그대로입니다.
+
+   ── 어떻게 ────────────────────────────────────────────
+   keep 이 변수라서 통째로 갈아끼우면 됩니다.
+   page( 를 부르기 직전에 한 줄을 넣습니다.
+       if(__mkTopic()){ keep = __mkKeep9(); }
+
+   ★ 이 안에서 두 글자짜리 논리기호(앰퍼샌드 둘)를 쓰지 않습니다.
+     페이지 본문에 들어가는 글이라 워드프레스가 고쳐버립니다.
+
+   해보기   https://stellasaju.com/?stella_m9=preview
+   붙이기   https://stellasaju.com/?stella_m9=apply
+   되돌리기 https://stellasaju.com/?stella_m9=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_m9'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_m9'] ) );
+	$META = '_stella_m9_bak_0911';
+	$ID   = 160;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!DOCTYPE html><html lang="ko" translate="no"><head><meta charset="utf-8">'
+	   . '<meta name="google" content="notranslate">'
+	   . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+	   . '<title>M9</title><style>body{background:#12101B;color:#F2ECE0;margin:0;'
+	   . 'padding:18px;font:13px/1.7 ui-monospace,Menlo,monospace;max-width:900px}'
+	   . 'h1{color:#D4AF6A;font-size:15px;margin:0 0 14px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C}'
+	   . 'pre{white-space:pre-wrap;word-break:break-all;background:#000;padding:10px;'
+	   . 'border-left:3px solid #D4AF6A}</style></head>'
+	   . '<body class="notranslate" translate="no">';
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $ID, $META, true );
+		if ( '' === $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $ID ) );
+		clean_post_cache( $ID );
+		delete_post_meta( $ID, $META );
+		echo '<p class="ok">되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $ID ) );
+	if ( '' === $c ) { echo '<p class="no">책을 못 읽었습니다.</p>'; exit; }
+
+	/* ── 넣을 글 (nowdoc — PHP 가 홑따옴표를 건드리지 않습니다) ── */
+
+	$FUNC = <<<'JSTAG'
+
+    /* ═══ 결혼운 ⑨ 세 가지 — 2026-09-11 · 소희 님 원고 ═══════════
+       책에 이미 있는 「세 가지만 기억하세요」가 주제와 상관없는
+       일반론을 내보내고 있어서, 결혼운일 때만 갈아끼웁니다.
+       셋 다 앞 장에서 이미 세는 값이라 새로 계산할 것이 없습니다.
+       주의 · 이 안에서 두 글자짜리 논리기호를 쓰지 않습니다. */
+    function __mkTopic(){
+      var t='';
+      try{ t=topic; }catch(e){ t=''; }
+      if(t==='결혼운'){ return true; }
+      return false;
+    }
+    function __mkKeep9(){
+      var i, dj='';
+      var sl=[];
+      try{ sl=it.slots||[]; }catch(e){ sl=[]; }
+      for(i=0;i<sl.length;i++){ if(sl[i].k==='일지'){ dj=sl[i].sip; } }
+
+      var G={};
+      try{ G=it.groups||{}; }catch(e){ G={}; }
+      var ORD=['비겁','식상','재성','관성','인성'];
+      var gk='', gn=-1;
+      for(i=0;i<ORD.length;i++){
+        var n=G[ORD[i]];
+        if(!n){ n=0; }
+        if(n>gn){ gn=n; gk=ORD[i]; }
+      }
+
+      var DAY={
+        '비견':'<strong>나란히 서는 사람.</strong> 앞서거나 뒤따르기보다 같은 자리에 서고 싶어 합니다',
+        '겁재':'<strong>나를 흔드는 사람.</strong> 편안함만 있는 관계보다 살아 있는 느낌을 주는 사람과 오래 갑니다',
+        '식신':'<strong>편안하게 해주는 사람.</strong> 애쓰지 않아도 되는 자리가 당신에게는 가장 큽니다',
+        '상관':'<strong>답답하지 않게 해주는 사람.</strong> 내 생각과 생활에 숨통이 트여야 오래 갑니다',
+        '정재':'<strong>생활을 함께 꾸리는 사람.</strong> 하루하루가 맞아야 마음도 맞습니다',
+        '편재':'<strong>삶을 넓혀주는 사람.</strong> 같이 있으면 내가 보던 세상이 넓어집니다',
+        '정관':'<strong>믿을 수 있는 사람.</strong> 말과 행동이 같은 것이 당신에게는 사랑입니다',
+        '편관':'<strong>나를 움직이게 하는 사람.</strong> 잔잔하기만 한 관계보다 나를 살아 있게 하는 관계에 끌립니다',
+        '정인':'<strong>기댈 수 있는 사람.</strong> 어디서든 돌아올 자리가 있어야 합니다',
+        '편인':'<strong>내 세계를 존중하는 사람.</strong> 가까워도 혼자만의 자리를 지켜주는 사람이어야 합니다'
+      };
+      var GRP={
+        '비겁':'<strong>둘이면서도 각자인 삶.</strong> 서로의 자리를 인정할 때 가장 편합니다',
+        '식상':'<strong>표현하며 사는 삶.</strong> 말이 오가야 하고, 말이 막히면 멀어집니다',
+        '재성':'<strong>생활이 단단해지는 삶.</strong> 현실이 맞아야 마음도 놓입니다',
+        '관성':'<strong>책임을 나누며 사는 삶.</strong> 약속이 지켜지는 동안 관계가 자랍니다',
+        '인성':'<strong>품어주며 사는 삶.</strong> 받아주는 힘이 크지만, 쌓아두면 한꺼번에 힘들어집니다'
+      };
+      var PAN={
+        '목':'<strong>넓히는 판.</strong> 새로운 사람과 새로운 생활을 받아들이기 좋습니다. 결혼도 새로운 문을 여는 쪽으로 움직입니다',
+        '화':'<strong>드러나는 판.</strong> 감정과 관계가 크게 움직입니다. 좋아도 크게 좋고, 부딪혀도 크게 부딪힐 수 있습니다',
+        '토':'<strong>자리 잡는 판.</strong> 정하고 지키는 데 힘이 실립니다. 결혼 이야기가 생활의 문제로 넘어가기 쉽습니다',
+        '금':'<strong>정리하는 판.</strong> 애매한 관계가 오래 남기 어렵습니다. 이어갈 것과 끝낼 것이 분명해집니다',
+        '수':'<strong>흐르는 판.</strong> 이동과 변화가 많습니다. 마음만으로 두면 관계도 함께 흘러갈 수 있습니다'
+      };
+
+      var out='<div class="keep">';
+
+      out+='<div class="k"><div class="kt">하나 · 같이 살면 어떤 모양인가</div>'+
+           '<p>먼저 이것부터 기억하세요.</p>'+
+           '<p><em>당신은 어떤 사람과 함께 살 때 편안한가.</em></p>'+
+           '<p>결혼은 결국 매일 얼굴을 보는 일이니까요.</p>'+
+           '<p>'+(DAY[dj] ? DAY[dj] : '배우자 자리를 읽을 수 있는 글자가 뚜렷하지 않습니다. 그만큼 상대에 따라 모양이 크게 달라지는 분이에요.')+'</p></div>';
+
+      out+='<div class="k"><div class="kt">둘 · 결혼이 당신을 어떻게 쓰는가</div>'+
+           '<p>결혼은 당신을 완전히 다른 사람으로 만들지 않습니다.</p>'+
+           '<p><em>원래 가지고 있던 힘을 더 크게 씁니다.</em></p>'+
+           '<p>그래서 결혼하고 나서 내가 무엇을 더 많이 하게 되는지도 중요합니다.</p>'+
+           '<p>'+(GRP[gk] ? GRP[gk] : '다섯 갈래가 고르게 나왔습니다. 어느 쪽으로도 갈 수 있다는 뜻이라, 상대와 만드는 생활이 그만큼 크게 작용합니다.')+'</p></div>';
+
+      var pan='', han='', kor='', left=0, has=false;
+      try{
+        if(nowIdx>=0){
+          has=true;
+          pan=TIME.JEL[lk.list[nowIdx].ji];
+          han=lk.list[nowIdx].han;
+          kor=lk.list[nowIdx].kor;
+          left=Math.max(0, Math.round(lk.list[nowIdx].to-age));
+        }
+      }catch(e){ has=false; }
+
+      out+='<div class="k"><div class="kt">셋 · 지금은 어떤 판을 지나고 있는가</div>'+
+           '<p>마지막으로 하나만 더 봅니다.</p>'+
+           '<p><em>지금의 결혼은 어떤 흐름 위에 올라와 있는가.</em></p>';
+      if(has){
+        out+='<p>당신은 지금 '+han+' 판을 지나고 있습니다. 앞으로 '+left+'년쯤 이 흐름이 이어집니다.</p>'+
+             '<p>같은 사람을 만나도 어떤 판에 있느냐에 따라 결혼이 들어오는 모양이 달라집니다.</p>'+
+             '<p>'+(PAN[pan] ? PAN[pan] : '')+'</p>';
+      } else {
+        out+='<p>아직 첫 십 년에 들어서기 전입니다. 지금은 판보다 타고난 결이 훨씬 크게 작용하는 시기예요.</p>';
+      }
+      out+='</div>';
+
+      out+='<div class="k"><div class="kt">이 셋을 다 기억하지 않으셔도 됩니다</div>'+
+           '<p>셋 중에 읽으면서 마음에 걸린 것이 하나는 있으셨을 거예요. 올해는 그 하나만 보셔도 충분합니다.</p>'+
+           '<p>결혼은 한 번에 정하는 일 같지만, 실은 <em>매일 조금씩 다시 정하는 일</em>입니다. '+
+           '오늘 모든 답을 정하지 않으셔도 됩니다. <em>오늘 하나만 알아도 충분합니다.</em></p></div>';
+
+      out+='</div>';
+      return out;
+    }
+
+JSTAG;
+
+	/* ── 바꿀 자리 ─────────────────────────────────────
+	   ★ 2026-09-11 두 번째 판 — 들여쓰기와 줄바꿈에 기대지 않습니다.
+	     첫 판은 앞 공백 네 칸까지 맞추려다 0군데로 나왔습니다.
+	     이번에는 공백 없는 토막을 쓰고, 후보를 여러 개 두고
+	     그중 딱 한 번 나오는 것을 고릅니다. ── */
+
+	$A_CAND = array(
+		"var keep='<div class=\"keep\">';",
+		"var keep = '<div class=\"keep\">';",
+		"var keep='<div class=\"keep\">'",
+	);
+	$B_CAND = array(
+		"keep+='</div>';",
+		"keep += '</div>';",
+		"keep+='</div>'",
+	);
+
+	$pick = function ( $c, $cands ) {
+		$rows = array();
+		foreach ( $cands as $x ) {
+			$n = substr_count( $c, $x );
+			$rows[] = array( $x, $n );
+		}
+		foreach ( $rows as $r ) {
+			if ( 1 === $r[1] ) { return array( $r[0], $rows ); }
+		}
+		return array( '', $rows );
+	};
+
+	list( $A_OLD, $A_ROWS ) = $pick( $c, $A_CAND );
+	list( $B_OLD, $B_ROWS ) = $pick( $c, $B_CAND );
+
+	$A_NEW = $FUNC . $A_OLD;
+	$B_NEW = $B_OLD . " if(__mkTopic()){ keep = __mkKeep9(); }";
+
+	$PAIRS = array();
+	if ( '' !== $A_OLD ) { $PAIRS[] = array( '함수 넣기',   1, $A_OLD, $A_NEW ); }
+	if ( '' !== $B_OLD ) { $PAIRS[] = array( '갈아끼우기', 1, $B_OLD, $B_NEW ); }
+
+	echo '<h1>결혼운 ⑨ 세 가지 — '
+	   . ( 'apply' === $mode ? '바꿉니다' : '미리보기 (아직 안 바꿈)' ) . '</h1>';
+	echo '<p class="dim">쪽 ' . (int) $ID . ' · '
+	   . number_format( strlen( $c ) ) . '글자</p>';
+
+	/* 어떤 토막이 몇 번 나오는지 먼저 보여줍니다 */
+	$d = "찾아본 토막\n";
+	foreach ( array( array( '함수 넣을 자리', $A_ROWS ), array( '갈아끼울 자리', $B_ROWS ) ) as $g ) {
+		$d .= "\n  [" . $g[0] . "]\n";
+		foreach ( $g[1] as $r ) {
+			$d .= sprintf( "    %-3d번  %s\n", $r[1], $r[0] );
+		}
+	}
+	echo '<pre>' . esc_html( $d ) . '</pre>';
+
+	if ( count( $PAIRS ) < 2 ) {
+		if ( false !== strpos( $c, '__mkKeep9' ) ) {
+			echo '<p class="ok">이미 들어가 있습니다.</p>';
+			exit;
+		}
+		echo '<p class="no">딱 한 번 나오는 토막을 못 찾아 아무것도 안 바꿨습니다.</p>';
+		echo '<p class="dim">위 표를 보내주시면 다음 판을 만들겠습니다.</p>';
+		exit;
+	}
+
+	$todo = array(); $miss = 0; $done = 0;
+	$out  = '';
+	foreach ( $PAIRS as $r ) {
+		list( $nm, $want, $old, $new ) = $r;
+		$got = substr_count( $c, $old );
+		if ( $got === $want ) {
+			if ( false !== strpos( $c, '__mkKeep9' ) ) {
+				$out .= $nm . " — 이미 들어가 있습니다\n";
+				$done++;
+				continue;
+			}
+			$out .= $nm . ' — 찾음 ' . $got . "군데\n";
+			$todo[] = $r;
+			continue;
+		}
+		if ( 0 === $got ) {
+			if ( false !== strpos( $c, '__mkKeep9' ) ) {
+				$out .= $nm . " — 이미 들어가 있습니다\n";
+				$done++;
+				continue;
+			}
+		}
+		$out .= $nm . ' — ★ ' . $got . '군데 (' . $want . "군데여야 합니다)\n";
+		$miss++;
+	}
+	echo '<pre>' . esc_html( $out ) . '</pre>';
+
+	if ( $miss ) {
+		echo '<p class="no">수가 안 맞는 자리가 있어 아무것도 안 바꿨습니다.</p>';
+		exit;
+	}
+	if ( ! count( $todo ) ) {
+		echo '<p class="ok">이미 다 되어 있습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $todo as $r ) { $new = str_replace( $r[2], $r[3], $new ); }
+
+	/* 앰퍼샌드 검사 — 페이지 본문이라 두 글자짜리 논리기호가 깨집니다 */
+	$added = substr_count( $FUNC, '&' );
+	echo '<p class="dim">넣는 글 안의 앰퍼샌드 : ' . (int) $added
+	   . ' 개 ' . ( $added ? '<span class="no">(0 이어야 합니다)</span>' : '<span class="ok">(좋습니다)</span>' )
+	   . '</p>';
+	if ( $added ) {
+		echo '<p class="no">앰퍼샌드가 들어 있어 멈췄습니다.</p>';
+		exit;
+	}
+
+	echo '<p class="dim">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 글자</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p class="ok">두 자리 모두 준비됐습니다.</p>';
+		echo '<p class="dim">이대로 괜찮으시면 /?stella_m9=apply 를 여세요.</p>';
+		echo '<p class="dim">결혼운으로 책을 여시면 맺음말의 세 가지가 바뀝니다. '
+		   . '다른 주제는 지금 그대로입니다.</p>';
+		exit;
+	}
+
+	if ( '' === (string) get_post_meta( $ID, $META, true ) ) {
+		update_post_meta( $ID, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $ID ) );
+	clean_post_cache( $ID );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<p class="ok">바꿨습니다. 결혼운으로 책을 열어 맺음말을 보세요.</p>';
+	echo '<p class="dim">되돌리려면 /?stella_m9=undo</p>';
+	exit;
+} );

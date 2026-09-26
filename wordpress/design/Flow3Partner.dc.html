@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; background: #F7F2FC; }
+    a { color: #6B5BA8; text-decoration: none; }
+    a:hover { color: #52447F; }
+    * { box-sizing: border-box; }
+    .peek { position: absolute; z-index: 0; filter: drop-shadow(0 5px 8px rgba(107,91,168,0.22)); }
+    .front { position: relative; z-index: 1; }
+    .lbl { font-size: 12.5px; font-weight: 700; color: #8C82A6; margin-bottom: 8px; }
+    .fld { height: 54px; background: #FFFFFF; border-radius: 18px; display: flex; align-items: center;
+            padding: 0 16px; font-size: 15px; color: #3F3A52; }
+    .ph { color: #C3BAD6; }
+    .btnP { display: flex; align-items: center; justify-content: center; height: 56px; background: #B8A6E8;
+             color: #FFFFFF; border-radius: 20px; font-family: 'Jua', sans-serif; font-size: 16.5px;
+             box-shadow: 0 10px 20px -12px rgba(107,91,168,0.8); }
+    .btnG { display: flex; align-items: center; justify-content: center; height: 52px; background: #FFFFFF;
+             color: #7C7392; border-radius: 20px; font-size: 14.5px; font-weight: 500; }
+    .top { display: flex; align-items: center; gap: 8px; padding: 16px 20px 0; }
+    .h1 { font-family: 'Jua', sans-serif; font-size: 30px; line-height: 1.28; letter-spacing: -0.02em; color: #3F3A52; }
+    .sub { font-size: 14px; line-height: 1.75; color: #7C7392; margin-top: 10px; }
+    .wrap { width: 390px; background: #F7F2FC; font-family: 'Noto Sans KR','Apple SD Gothic Neo',sans-serif;
+             color: #4A4358; padding-bottom: 48px; overflow: hidden; }
+  </style>
+</helmet>
+
+<div class="wrap">
+  <div class="top"><div style="width:30px;height:30px"><svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><ellipse cx="45" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(-9 45 31)"/><ellipse cx="75" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(9 75 31)"/><ellipse cx="60" cy="88" rx="31" ry="26" fill="#FFFFFF"/><circle cx="60" cy="63" r="27" fill="#FFFFFF"/></g><ellipse cx="45" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(-9 45 30)"/><ellipse cx="75" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(9 75 30)"/><ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/><circle cx="50" cy="61" r="3.6" fill="#5A4038"/><circle cx="70" cy="61" r="3.6" fill="#5A4038"/><ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg></div><div style="font-family:'Jua',sans-serif;font-size:21px;color:#6B5BA8">유앤미</div></div>
+  <div style="padding:30px 20px 0;position:relative;text-align:center">
+    <div style="display:flex;align-items:flex-end;justify-content:center;gap:0">
+      <div style="width:96px;height:96px;transform:rotate(-8deg)"><svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><ellipse cx="45" cy="31" rx="9" ry="25" fill="#F7C6D3" transform="rotate(-9 45 31)"/><ellipse cx="75" cy="31" rx="9" ry="25" fill="#F7C6D3" transform="rotate(9 75 31)"/><ellipse cx="60" cy="88" rx="31" ry="26" fill="#F7C6D3"/><circle cx="60" cy="63" r="27" fill="#F7C6D3"/></g><ellipse cx="45" cy="30" rx="4" ry="15" fill="#EDA0B6" transform="rotate(-9 45 30)"/><ellipse cx="75" cy="30" rx="4" ry="15" fill="#EDA0B6" transform="rotate(9 75 30)"/><ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/><circle cx="50" cy="61" r="3.6" fill="#5A4038"/><circle cx="70" cy="61" r="3.6" fill="#5A4038"/><ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg></div>
+      <div style="width:82px;height:82px;margin-left:-14px;transform:rotate(9deg);opacity:.45"><svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><ellipse cx="45" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(-9 45 31)"/><ellipse cx="75" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(9 75 31)"/><ellipse cx="60" cy="88" rx="31" ry="26" fill="#FFFFFF"/><circle cx="60" cy="63" r="27" fill="#FFFFFF"/></g><ellipse cx="45" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(-9 45 30)"/><ellipse cx="75" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(9 75 30)"/><ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/><circle cx="50" cy="61" r="3.6" fill="#5A4038"/><circle cx="70" cy="61" r="3.6" fill="#5A4038"/><ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg></div>
+    </div>
+    <div class="h1" style="margin-top:14px">지은님이<br>궁합 보자고 했어요</div>
+    <div class="sub">생일만 넣으면 둘 다 점수를 봅니다. 가입도 앱도 없어요.</div>
+  </div>
+
+  <div style="margin:26px 20px 0;background:#FFFFFF;border-radius:24px;padding:18px 18px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;flex:0 0 44px"><svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><ellipse cx="45" cy="31" rx="9" ry="25" fill="#F7C6D3" transform="rotate(-9 45 31)"/><ellipse cx="75" cy="31" rx="9" ry="25" fill="#F7C6D3" transform="rotate(9 75 31)"/><ellipse cx="60" cy="88" rx="31" ry="26" fill="#F7C6D3"/><circle cx="60" cy="63" r="27" fill="#F7C6D3"/></g><ellipse cx="45" cy="30" rx="4" ry="15" fill="#EDA0B6" transform="rotate(-9 45 30)"/><ellipse cx="75" cy="30" rx="4" ry="15" fill="#EDA0B6" transform="rotate(9 75 30)"/><ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/><circle cx="50" cy="61" r="3.6" fill="#5A4038"/><circle cx="70" cy="61" r="3.6" fill="#5A4038"/><ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg></div>
+      <div>
+        <div style="font-size:11.5px;color:#A79BC4;font-weight:700">지은 · 1994년생 여성</div>
+        <div style="font-size:14px;color:#3F3A52;margin-top:3px;font-weight:500">연인 궁합으로 물어봤어요</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:26px 20px 0">
+    <div class="lbl">그럼 이제 당신 차례</div>
+    <div style="display:flex;gap:7px">
+      <div class="fld" style="flex:1.2"><span class="ph">1992</span></div>
+      <div class="fld" style="flex:1"><span class="ph">11</span></div>
+      <div class="fld" style="flex:1"><span class="ph">07</span></div>
+    </div>
+    <div style="display:flex;gap:7px;margin-top:8px">
+      <div class="fld" style="flex:1"><span class="ph">태어난 시각</span></div>
+      <div style="flex:0 0 108px;height:54px;background:#E7DEFA;color:#6B5BA8;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:13.5px;font-weight:700">모름</div>
+    </div>
+    <div style="display:flex;gap:7px;margin-top:8px">
+      <div style="flex:1;height:50px;background:#FFF;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:14px">여성</div>
+      <div style="flex:1;height:50px;background:#B8A6E8;color:#FFF;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">남성</div>
+    </div>
+  </div>
+
+  <div style="padding:26px 20px 0">
+    <div class="btnP">우리 점수 보기</div>
+  </div>
+
+  <div style="padding:20px 20px 0;font-size:11.5px;line-height:1.9;color:#B3A9C9">
+    넣으신 것은 이 기기에만 남습니다. 서버로 보내지 않습니다.
+  </div>
+</div>
+
+</x-dc>
+</body>
+</html>

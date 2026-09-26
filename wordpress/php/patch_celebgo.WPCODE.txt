@@ -1,0 +1,897 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주 → 유앤미 「○○과 나의 궁합 보기」
+   ★ 2026-09-16 · 소희 님께
+
+   소희 님 : 「그럼 아래 부분에 00과 나와의 궁합보기 해서 유앤미로
+              보낼까?」 「프로필사진을 만들어 주세요 해서 머무는
+              시간을 늘리는거지」
+
+   ── 새로 지을 것이 거의 없습니다 ────────────────────
+   유앤미에 **연예인 궁합이 이미 있습니다** — 「연예인이랑 볼래요」
+   단추가 그것입니다. 그러니 두 쪽을 이어주기만 하면 됩니다.
+
+       스타 사주에서 변우석을 봄
+         → 「변우석과 나의 궁합 보기」 단추
+         → 유앤미로 감 (변우석을 기억한 채)
+         → 손님은 **자기 생일만** 넣으면 됩니다
+         → 유앤미가 연예인 목록을 띄우는 순간 우리가 변우석을 눌러 줍니다
+
+   손님이 이름을 두 번 찾을 일이 없습니다.
+
+   ── 사진을 안 쓰는 까닭 ─────────────────────────────
+   팬이 올린 연예인 사진으로 갤러리를 만들면 사진 저작권(소속사·
+   언론사)과 초상권(본인)이 걸립니다. 스타 사주가 지금 안전한 것은
+   **공개된 생년월일만 쓰고 사진은 안 쓰기** 때문입니다.
+   머무는 시간은 이 길로 늘립니다 — 자기 생일을 넣어야 하니
+   사진을 구경하는 것보다 오래 머뭅니다. 그리고 퍼집니다.
+
+   ── 켜졌는지 보기 ───────────────────────────────────
+   스타 사주 결과 아래에 보라색 단추가 생깁니다.
+   관리자로 보시면 그 아래 한 줄이 더 뜹니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+
+	$star = is_page( 'star-saju' );
+	$um   = is_page( 'uandme' );
+	if ( ! $star ) { if ( ! $um ) { return; } }
+
+	$admin = current_user_can( 'manage_options' ) ? 1 : 0;
+
+	/* ★ 유앤미 쪽에는 **자바스크립트만** 내보냅니다.
+	   단추 모양(CSS)은 스타 사주에서만 쓰므로 거기서만 내보냅니다.
+	   유앤미 쪽에 얹는 것을 최소로 줄입니다. */
+	if ( $star ) {
+	?>
+<!-- stella 스타 → 유앤미 · 판 2026-09-16 f -->
+<style id="stella-celebgo">
+.stella-go{
+  display:block; width:100%; box-sizing:border-box;
+  margin:22px 0 4px; padding:16px 20px;
+  border:0; border-radius:14px; cursor:pointer;
+  font:inherit; font-size:1rem; font-weight:700; letter-spacing:.01em;
+  background:linear-gradient(135deg,#6B5BA8,#8E7BD0); color:#fff;
+  box-shadow:0 6px 18px rgba(107,91,168,.28);
+}
+.stella-go:hover{ filter:brightness(1.06); }
+.stella-go .s{ display:block; margin-top:5px; font-size:.82rem; font-weight:400; opacity:.88; }
+.stella-gonote{ margin:8px 2px 0; font-size:.8rem; opacity:.55; }
+.stella-oh{
+  margin:10px 0 18px; padding:9px 14px; border-radius:10px;
+  background:rgba(107,91,168,.06); color:#5B4A96;
+  font-size:.92rem; font-weight:700; letter-spacing:.02em; text-align:center;
+}
+.stella-goadm{
+  margin:8px 0 0; padding:7px 11px; font-size:.8rem;
+  border-left:3px solid #2F7D4A; background:rgba(47,125,74,.07); color:#1d3a27;
+}
+</style>
+	<?php
+	}
+	?>
+<script>
+(function(){
+  if(window.StellaCelebGo){ return; }
+  window.StellaCelebGo = 1;
+
+  var ON_STAR = <?php echo $star ? 1 : 0; ?>;
+  var ON_UM   = <?php echo $um ? 1 : 0; ?>;
+  var ADMIN   = <?php echo (int) $admin; ?>;
+
+  var KEY = 'stella_celeb_go';   /* 고를 연예인 이름을 여기 담아 둡니다 */
+  var UM  = '/uandme/';
+
+  function tidy(v){
+    var s = String(v === null ? '' : v), out = '', i, ch;
+    var SP = ' ' + String.fromCharCode(9) + String.fromCharCode(10) + String.fromCharCode(13);
+    for(i = 0; i < s.length; i++){
+      ch = s.charAt(i);
+      if(SP.indexOf(ch) >= 0){ ch = ' '; }
+      out += ch;
+    }
+    while(out.indexOf('  ') >= 0){ out = out.split('  ').join(' '); }
+    return out.trim();
+  }
+  function squash(v){
+    var s = tidy(v), out = '', i;
+    for(i = 0; i < s.length; i++){ if(s.charAt(i) !== ' '){ out += s.charAt(i); } }
+    return out;
+  }
+  function put(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+  function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function drop(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+  /* ═══ 스타 사주 쪽 ═══════════════════════════════════
+     결과가 뜨면 그 아래에 단추를 답니다.
+     결과는 팝업으로 뜨므로, 팝업 안에서 이름을 찾습니다. */
+  /* ★★ 이름을 어떻게 찾나 — 2026-09-16 에 고쳤습니다
+     전에는 결과 상자의 **첫 제목**을 이름으로 썼습니다. 그랬더니
+     「일간 癸 — 이슬과 실개천」이 이름으로 잡혔습니다. 결과 상자가
+     사주표부터 시작해서, 정작 이름(「산」)은 그 위에 있었습니다.
+
+     이제는 **생년월일 줄을 먼저 찾습니다.**
+         산
+         1999년 7월 10일 · 토끼띠     ← 이 줄
+     이 줄 바로 앞의 제목이 그 사람 이름입니다. 쪽 구조가 어떻게
+     바뀌어도 「네 자리 숫자 + 년」 은 그대로라 안 놓칩니다. */
+
+  function isDateLine(t){
+    if(t.length < 8){ return 0; }
+    if(t.length > 44){ return 0; }
+    var i, d = '0123456789';
+    for(i = 0; i < 4; i++){ if(d.indexOf(t.charAt(i)) < 0){ return 0; } }
+    if(t.charAt(4) !== '년'){ return 0; }
+    return 1;
+  }
+
+  /* 갈래 제목은 이름이 아닙니다 */
+  var NOTNAME = ['일간', '가장 강', '없습니다', '한 글자', '십성', '오행',
+                 '나와 이 사람', '궁합', '사주', '생년월일'];
+  function looksName(t){
+    if(!t){ return 0; }
+    if(t.length > 18){ return 0; }
+    var i;
+    for(i = 0; i < NOTNAME.length; i++){
+      if(t.indexOf(NOTNAME[i]) >= 0){ return 0; }
+    }
+    return 1;
+  }
+
+  function headText(el){
+    var g = String(el.tagName === undefined ? '' : el.tagName).toLowerCase();
+    if(g === 'h1'){ return tidy(el.textContent); }
+    if(g === 'h2'){ return tidy(el.textContent); }
+    if(g === 'h3'){ return tidy(el.textContent); }
+    if(g === 'h4'){ return tidy(el.textContent); }
+    return '';
+  }
+
+  /* 날짜 줄에서 위로 거슬러 올라가며 가장 가까운 제목을 찾습니다 */
+  function prevHead(el){
+    var n = el, p, t, inner, lv = 0;
+    while(n){
+      p = n.previousElementSibling;
+      while(p){
+        t = headText(p);
+        if(looksName(t)){ return p; }
+        try{
+          inner = p.querySelector('h1, h2, h3, h4');
+          if(inner){
+            t = tidy(inner.textContent);
+            if(looksName(t)){ return inner; }
+          }
+        }catch(e){}
+        p = p.previousElementSibling;
+      }
+      n = n.parentElement;
+      lv++;
+      if(lv > 6){ break; }
+      if(!n){ break; }
+      if(n === document.body){ break; }
+    }
+    return null;
+  }
+
+  var NAMEHEAD = null;   /* 이름 제목 — 위 여백을 줄 때도 씁니다 */
+
+  /* ★★ 2026-09-16 · 소희 님 「스타운세님과 사주보기가 아니라
+     산님과 사주보기로 되야 하는데」
+     날짜 줄 앞의 제목을 이름으로 봤더니 쪽 제목(「스타 운세」)이
+     잡혔습니다. 살아 있는 쪽의 짜임이 제 짐작과 달랐습니다.
+
+     그래서 **화면에 실제로 있는 문장**에서 뽑습니다 —
+         당신은 기토입니다.  산 님은 당신에게 편재입니다.
+                             ↑ 이 앞이 이름
+     이 문장은 이름을 쓰려고 만든 자리라 다른 것이 안 끼어듭니다.
+     못 찾으면 그때 날짜 줄로 물러납니다. */
+  var NAMEMARK = '님은 당신에게';
+
+  function nameFromLine(){
+    try{
+      var all = document.querySelectorAll('p, div, span, li, td'), i, el, t, at, head, parts, j, w;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.children.length > 2){ continue; }
+        t = tidy(el.textContent);
+        if(!t){ continue; }
+        at = t.indexOf(NAMEMARK);
+        if(at < 0){ continue; }
+        head = t.slice(0, at);
+        head = head.split('.').join(' ').split('·').join(' ');
+        parts = head.split(' ');
+        for(j = parts.length - 1; j >= 0; j--){
+          w = parts[j].trim();
+          if(!w){ continue; }
+          if(w.length > 18){ return ''; }
+          if(!looksName(w)){ return ''; }
+          return w;   /* ★ NAMEHEAD 는 안 건드립니다 — 이 문장은 쪽
+                         **아래쪽**에 있어서 위 여백 기준이 될 수 없습니다 */
+        }
+      }
+    }catch(e){}
+    return '';
+  }
+
+  function starName(box){
+    var v = nameFromLine();
+    /* 이름을 문장에서 찾았더라도, **위 여백 기준**은 따로 잡아야
+       합니다. 날짜 줄 앞 제목이 쪽 맨 위에 있는 것이니까요. */
+    if(!NAMEHEAD){ starNameByDate(box); }
+    if(v){ return v; }
+    return starNameByDate(box);
+  }
+
+  function starNameByDate(box){
+    try{
+      var all = document.querySelectorAll('p, div, span, small, time, li'), i, el, t, h;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.children.length > 0){ continue; }   /* 잎만 봅니다 */
+        t = tidy(el.textContent);
+        if(!isDateLine(t)){ continue; }
+        h = prevHead(el);
+        if(!h){ continue; }
+        NAMEHEAD = h;
+        return tidy(h.textContent);
+      }
+    }catch(e){}
+    return '';
+  }
+
+  /* ★★ 맨 위 여백 — 2026-09-16
+     소희 님 「맨위에 여백이 너무 없어」 → 「윗부분이 잘린거 같은것만」
+
+     까닭은 **사이트 머리글이 제목을 덮는 것**입니다. 머리글이
+     붙박이(fixed·sticky)라 쪽 글 위에 얹혀 있습니다.
+
+     처음에는 38px 을 고정으로 줬는데 모자랐습니다. 머리글 높이는
+     화면 폭에 따라 달라지므로 **짐작하면 안 됩니다.**
+     그래서 머리글을 실제로 재서 그만큼 밉니다.
+
+     ★ 모자라면 다시 잽니다. 한 번 주고 끝내면 못 고칩니다. */
+  var GAPBOX = null;
+  var GAPTRY = 0;
+
+  /* ★★ 2026-09-16 · 소희 님 「아무 반응이 없어」 — **제가 멈춘
+     것입니다.** 머리글을 재려고 쪽 안의 div 를 **모두** 훑으며
+     getComputedStyle 을 불렀습니다. 스타 사주 쪽에는 이름 단추가
+     537개라 한 번에 수천 번이 되고, 그것을 0.5초마다 두 번씩
+     돌렸습니다. getComputedStyle 은 배치를 다시 재게 하므로
+     브라우저가 그 자리에서 굳습니다.
+
+     이제 **화면 맨 위 한 점에 무엇이 쌓여 있는지**만 봅니다
+     (elementsFromPoint). 몇 개뿐이라 값이 거의 안 듭니다.
+     그리고 잰 값을 2초 동안 갖고 씁니다. */
+  var HB = -1, HBAT = 0;
+
+  function headBottom(){
+    var now = (new Date()).getTime();
+    if(HB >= 0){ if(now - HBAT < 2000){ return HB; } }
+    var max = 0;
+    try{
+      var x = Math.round(window.innerWidth / 2);
+      var stack = [];
+      if(document.elementsFromPoint){ stack = document.elementsFromPoint(x, 6); }
+      else if(document.elementFromPoint){ stack = [document.elementFromPoint(x, 6)]; }
+      var i, el, st, r, pos;
+      for(i = 0; i < stack.length; i++){
+        el = stack[i];
+        if(!el){ continue; }
+        if(el === document.body){ continue; }
+        if(el === document.documentElement){ continue; }
+        st = window.getComputedStyle(el);
+        if(!st){ continue; }
+        pos = String(st.position);
+        if(pos !== 'fixed'){ if(pos !== 'sticky'){ continue; } }
+        r = el.getBoundingClientRect();
+        if(r.top > 4){ continue; }
+        if(r.height < 20){ continue; }
+        if(r.height > 220){ continue; }
+        if(r.bottom > max){ max = r.bottom; }
+      }
+    }catch(e){}
+    HB = max;
+    HBAT = now;
+    return max;
+  }
+
+  /* ★★ 여백 기준 — 날짜 줄이 든 **덩어리**를 씁니다 (2026-09-16)
+     관리자 줄이 「기준 H1 「스타 운세」 쪽 위에서 287」 이라고
+     찍어 주었습니다. 이름은 문장에서 제대로 뽑는데, 여백 기준은
+     아직 옛 방법(날짜 줄 앞 제목)을 써서 **쪽 제목**이 잡혔습니다.
+     287 은 넉넉하니 밀 까닭이 없다고 판단한 것입니다.
+
+     이제 제목을 찾지 않습니다. 날짜 줄에서 위로 올라가며
+     **이름과 날짜가 같이 든 가장 작은 덩어리**를 잡습니다.
+     그 덩어리의 윗변이 곧 이름의 윗변입니다. */
+  function dateLeaf(){
+    try{
+      var all = document.querySelectorAll('p, div, span, small, time, li'), i, el, t;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.children.length > 0){ continue; }
+        t = tidy(el.textContent);
+        if(isDateLine(t)){ return el; }
+      }
+    }catch(e){}
+    return null;
+  }
+
+  function gapAnchor(){
+    var leaf = dateLeaf();
+    if(!leaf){ return null; }
+    var n = leaf, best = leaf, p, t, i;
+    for(i = 0; i < 6; i++){
+      p = n.parentElement;
+      if(!p){ break; }
+      if(p === document.body){ break; }
+      t = tidy(p.textContent);
+      if(t.length > 160){ break; }   /* 너무 커지면 멈춥니다 */
+      best = p;
+      n = p;
+    }
+    return best;
+  }
+
+  /* 붙박이 상자 안인가 */
+  function inFixed(el){
+    var n = el, i, st;
+    for(i = 0; i < 8; i++){
+      if(!n){ return 0; }
+      if(n === document.body){ return 0; }
+      st = window.getComputedStyle(n);
+      if(st){ if(String(st.position) === 'fixed'){ return 1; } }
+      n = n.parentElement;
+    }
+    return 0;
+  }
+
+  /* ★★ 진짜 까닭 — **내려가 멈추는 자리** (2026-09-16)
+     관리자 줄이 「쪽 제목이 쪽 위에서 287」 이라고 찍어 주었습니다.
+     결과가 덮개가 아니라 **쪽 안에 이어서** 그려진다는 뜻입니다.
+     그러면 결과가 나올 때 화면이 그 자리로 저절로 내려가는데
+     (scrollIntoView), 붙박이 머리글은 그 위에 얹혀 있어서
+     **글 윗부분이 머리글에 딱 가립니다.**
+
+     크로미움으로 그대로 흉내 내어 재현했습니다 — 산 top 0.
+
+     여백으로는 못 고칩니다. 여백을 줘도 그만큼 더 내려갈 뿐입니다.
+     고칠 것은 **내려가 멈추는 자리**입니다.
+
+         html { scroll-padding-top: 머리글높이 + 16 }
+
+     그리고 이미 내려가 버린 뒤라면 그만큼 되올려 줍니다. 한 번만. */
+  var SPDONE = 0, NUDGED = 0;
+
+  function scrollPad(){
+    try{
+      var hb = headBottom();
+      if(hb < 1){ return; }
+      var want = Math.round(hb + 16);
+      if(SPDONE === want){ return; }
+      SPDONE = want;
+      var st = document.getElementById('stella-scrollpad');
+      if(!st){
+        st = document.createElement('style');
+        st.id = 'stella-scrollpad';
+        if(document.head){ document.head.appendChild(st); }
+      }
+      st.textContent = 'html{scroll-padding-top:' + want + 'px !important;}';
+    }catch(e){}
+  }
+
+  /* 이미 머리글에 가려 있으면 그만큼 되올립니다 (한 번만) */
+  function nudge(){
+    if(NUDGED){ return; }
+    try{
+      var a = gapAnchor();
+      if(!a){ return; }
+      if(inFixed(a)){ return; }          /* 덮개 안이면 내려간 것이 아닙니다 */
+      var sy = window.pageYOffset;
+      if(!sy){ return; }                 /* 맨 위면 가릴 일이 없습니다 */
+      var hb = headBottom();
+      var top = a.getBoundingClientRect().top;
+      var want = hb + 16;
+      if(top >= want - 2){ return; }     /* 안 가려 있습니다 */
+      if(top < -40){ return; }           /* 한참 지나쳐 읽는 중입니다 */
+      NUDGED = 1;
+      window.scrollBy(0, Math.round(top - want));
+    }catch(e){}
+  }
+
+  function topGap(){
+    /* ★ 2026-09-16 · 여백이 아예 안 들어가던 까닭 —
+       기준(NAMEHEAD)을 onStar 안에서만 잡고 있었습니다. onStar 는
+       결과 상자를 못 찾으면 그냥 돌아가므로, 단추를 못 다는 화면에서는
+       여백도 못 줬습니다. 여기서 직접 한 번 찾습니다. */
+    var anchor = gapAnchor();
+    if(!anchor){ anchor = GAPBOX; }
+    if(!anchor){ return; }
+    if(GAPTRY > 6){ return; }
+    try{
+      var r = anchor.getBoundingClientRect();
+      var n = anchor, best = null, painted = null, i, rr, bg;
+      for(i = 0; i < 4; i++){
+        n = n.parentElement;
+        if(!n){ break; }
+        if(n === document.body){ break; }
+        rr = n.getBoundingClientRect();
+        if(rr.width > 1100){ break; }
+        if(rr.top > r.top + 2){ break; }
+        best = n;
+        /* ★ 바탕색이 칠해진 상자(= 흰 카드)를 더 좋아합니다.
+           그래야 카드는 머리글에 붙어 있고 글만 내려갑니다.
+           바깥 빈 상자에 여백을 주면 카드 위에 회색 틈이 생깁니다. */
+        if(!painted){
+          bg = String(window.getComputedStyle(n).backgroundColor);
+          if(bg){ if(bg.indexOf('rgba(0, 0, 0, 0)') < 0){ if(bg !== 'transparent'){ painted = n; } } }
+        }
+      }
+      if(painted){ best = painted; }
+      if(!best){ best = anchor; }
+
+      /* 쪽 맨 위에서 제목까지의 거리.
+         ★ 기준이 **붙박이 상자 안**에 있으면 쪽을 내려도 안 움직이므로
+           화면 자리를 그대로 씁니다. 결과가 덮개로 뜨는 화면이 그렇습니다. */
+      var sy = window.pageYOffset;
+      if(!sy){ sy = 0; }
+      var docTop = r.top + (inFixed(anchor) ? 0 : sy);
+      var need = headBottom() + 30;
+      if(need < 54){ need = 54; }        /* 머리글을 못 재도 이만큼은 둡니다 */
+      if(docTop >= need){ return; }      /* 이미 넉넉합니다 */
+
+      var now = parseFloat(window.getComputedStyle(best).paddingTop);
+      if(!now){ now = 0; }
+      GAPTRY++;
+      best.setAttribute('data-sstop', '1');
+      best.style.paddingTop = Math.round(now + (need - docTop)) + 'px';
+    }catch(e){}
+  }
+
+  /* ★★ 어려운 말 한 줄을 숨깁니다 — 2026-09-16
+     소희 님 「나와 이 사람에게 뭘 해 주고 싶어집니다 라고만
+              쓸까? 편재 기토 어려운말이야」
+
+         당신은 기토입니다. 산 님은 당신에게 편재입니다.   ← 숨김
+         뭘 해 주고 싶어집니다                              ← 남김
+         챙기게 됩니다. 잘 됐으면 좋겠고 …                  ← 남김
+
+     아래 두 줄이 같은 것을 이미 쉬운 말로 말해 줍니다.
+
+     ★★ **지우지 않고 숨깁니다.** 이름을 바로 이 문장에서
+       찾기 때문입니다 (「○○ 님은 당신에게」). 지워 버리면
+       단추가 다시 「스타 운세 님과」로 돌아갑니다.
+       display:none 은 글을 그대로 두므로 이름은 계속 찾힙니다. */
+  function hideJargon(){
+    try{
+      var all = document.querySelectorAll('p, div, li'), i, el, t, k, kid, inner;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.getAttribute('data-ssjar') === '1'){ continue; }
+        t = tidy(el.textContent);
+        if(t.indexOf(NAMEMARK) < 0){ continue; }
+        if(t.length > 70){ continue; }
+        /* 안쪽에 같은 문장을 품은 아이가 있으면 그 아이가 진짜입니다 */
+        inner = 0;
+        for(k = 0; k < el.children.length; k++){
+          kid = el.children[k];
+          if(String(kid.textContent === null ? '' : kid.textContent).indexOf(NAMEMARK) >= 0){ inner = 1; }
+        }
+        if(inner){ continue; }
+        el.setAttribute('data-ssjar', '1');
+        el.style.display = 'none';
+        JARGON++;
+      }
+    }catch(e){}
+  }
+  var JARGON = 0;
+
+  /* ★★ 팬이 안 볼 갈래를 통째로 접습니다 — 2026-09-16
+     소희 님 「이 사람은 얼마나 드문가 … 이내용은 관심없는 내용일듯」
+              「일간(계수(癸水))이 같은 사람 50명」
+
+     접는 것 둘 —
+         일간(계수(癸水))이 같은 사람 50명   이름 쉰 개가 줄줄이
+         이 사람은 얼마나 드문가             537명 가운데 몇 명 …
+
+     ★ 살리고 싶으시면 아래 FOLD 표에서 그 줄 하나만 지우면 됩니다.
+     ★ 지우지 않고 **숨깁니다.** 조각을 끄면 그대로 돌아옵니다.
+     ★ 제목 **그 자체**만 찾습니다 (스물넉 자 아래). 갈래를 통째로
+       싼 상자는 글이 길어서 안 걸립니다 — 그래야 이웃 갈래까지
+       접히지 않습니다.
+     ★ 아래 STOP 가운데 하나를 만나면 멈춥니다. */
+  var FOLD = [
+    ['일간(', '같은 사람'],          /* 둘 다 든 제목만 — 「일간 癸 — 이슬과 실개천」은 안 걸립니다 */
+    ['이 사람은 얼마나 드문가', '']
+  ];
+  var STOP = ['나와 이 사람', '이 사람은 얼마나 드문가', '뭘 해 주고'];
+  var RARE = 0;
+
+  function isStop(t){
+    var i;
+    for(i = 0; i < STOP.length; i++){
+      if(t.indexOf(STOP[i]) >= 0){ return 1; }
+    }
+    return 0;
+  }
+
+  function foldOne(a, b){
+    try{
+      var all = document.querySelectorAll('p, div, li, section, h1, h2, h3, h4, h5');
+      var i, el, t, n, k;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.getAttribute('data-ssrare') === '1'){ continue; }
+        t = tidy(el.textContent);
+        if(!t){ continue; }
+        if(t.length > 24){ continue; }      /* 갈래를 싼 상자는 거릅니다 */
+        if(t.indexOf(a) < 0){ continue; }
+        if(b){ if(t.indexOf(b) < 0){ continue; } }
+        el.setAttribute('data-ssrare', '1');
+        el.style.display = 'none';
+        RARE++;
+        n = el.nextElementSibling;
+        k = 0;
+        while(n){
+          if(k > 60){ break; }
+          if(isStop(tidy(n.textContent))){ break; }
+          n.setAttribute('data-ssrare', '1');
+          n.style.display = 'none';
+          RARE++;
+          n = n.nextElementSibling;
+          k++;
+        }
+        return;
+      }
+    }catch(e){}
+  }
+
+  function hideRare(){
+    var i;
+    for(i = 0; i < FOLD.length; i++){ foldOne(FOLD[i][0], FOLD[i][1]); }
+  }
+
+  /* ★★ 오행 막대 다섯 줄을 한 줄로 — 2026-09-16
+     소희 님 「밑에 토 금 수 화 이거 분량이 너무 많아 위에 6개 표에
+              있는 박스 아래에 금0개 화0개 이런식으로 한줄로 쓰면」
+
+         목 ────────────── 1자
+         화 ────────────── 0자      ← 다섯 줄이 자리를 많이 먹습니다
+         토 ────────────── 2자
+         금 ────────────── 1자
+         수 ────────────── 2자
+
+              ↓
+
+         목 1 · 화 0 · 토 2 · 금 1 · 수 2      ← 사주표 바로 아래 한 줄
+
+     ★ 값은 화면에서 그대로 읽습니다. 다시 셈하지 않습니다 —
+       셈을 두 군데서 하면 언젠가 어긋납니다.
+     ★ 막대는 지우지 않고 숨깁니다. 조각을 끄면 돌아옵니다. */
+  var OHS = ['목', '화', '토', '금', '수'];
+
+  /* 「목 1자」 처럼 오행 하나와 글자 수만 든 줄을 찾습니다 */
+  function ohRow(o){
+    var all = document.querySelectorAll('div, li, p, tr, span, td'), i, el, t, num;
+    for(i = 0; i < all.length; i++){
+      el = all[i];
+      if(el.getAttribute('data-ssoh') === '1'){ continue; }
+      t = squash(el.textContent);
+      if(t.length < 3){ continue; }
+      if(t.length > 6){ continue; }          /* 다섯을 싼 상자는 거릅니다 */
+      if(t.indexOf(o) !== 0){ continue; }
+      if(t.charAt(t.length - 1) !== '자'){ continue; }
+      num = t.slice(o.length, t.length - 1);
+      if(!num){ continue; }
+      if(num !== String(parseInt(num, 10))){ continue; }
+      return { el: el, n: num };
+    }
+    return null;
+  }
+
+  /* 다섯을 다 품는 가장 가까운 상자 */
+  function commonBox(els){
+    var n = els[0], i, ok, lv = 0;
+    while(n){
+      ok = 1;
+      for(i = 0; i < els.length; i++){
+        if(!n.contains(els[i])){ ok = 0; }
+      }
+      if(ok){ if(n !== els[0]){ return n; } }
+      n = n.parentElement;
+      lv++;
+      if(lv > 8){ break; }
+      if(!n){ break; }
+      if(n === document.body){ break; }
+    }
+    return null;
+  }
+
+  /* 사주표 — 「연주」와 「일주」가 둘 다 든 가장 안쪽 상자 */
+  function pillarBox(){
+    var all = document.querySelectorAll('table, div, section'), i, el, t, best = null;
+    for(i = 0; i < all.length; i++){
+      el = all[i];
+      t = String(el.textContent === null ? '' : el.textContent);
+      if(t.indexOf('연주') < 0){ continue; }
+      if(t.indexOf('일주') < 0){ continue; }
+      if(t.length > 400){ continue; }
+      if(!best){ best = el; }
+      else if(best.contains(el)){ best = el; }
+    }
+    return best;
+  }
+
+  var OHDONE = 0;
+
+  function ohOneLine(){
+    if(OHDONE){ return; }
+    try{
+      var rows = [], i, r;
+      for(i = 0; i < OHS.length; i++){
+        r = ohRow(OHS[i]);
+        if(!r){ return; }                 /* 다섯이 다 있어야 손댑니다 */
+        rows.push(r);
+      }
+      var els = [];
+      for(i = 0; i < rows.length; i++){ els.push(rows[i].el); }
+      var box = commonBox(els);
+      if(!box){ return; }
+
+      var p = document.createElement('p');
+      p.className = 'stella-oh';
+      var txt = '';
+      for(i = 0; i < rows.length; i++){
+        if(i){ txt += '   ·   '; }
+        txt += OHS[i] + ' ' + rows[i].n;
+      }
+      p.appendChild(document.createTextNode(txt));
+
+      var tb = pillarBox();
+      if(tb){ if(tb.parentNode){ tb.parentNode.insertBefore(p, tb.nextSibling); } }
+      if(!p.parentNode){ if(box.parentNode){ box.parentNode.insertBefore(p, box); } }
+      if(!p.parentNode){ return; }
+
+      for(i = 0; i < els.length; i++){ els[i].setAttribute('data-ssoh', '1'); }
+
+      /* ★★ 2026-09-16 · 크로미움 시험에서 찾은 큰 탈
+         막대 다섯이 **결과 상자의 바로 자식**이면 「다섯을 품은
+         상자」가 결과 상자 자체가 됩니다. 그걸 숨기면 **결과가
+         통째로 사라집니다.** 시험에서 실제로 그랬습니다.
+         그래서 상자가 막대 말고 다른 글을 더 품고 있으면 상자는
+         그냥 두고 **막대 다섯만** 숨깁니다. */
+      if(tidy(box.textContent).length > 40){
+        for(i = 0; i < els.length; i++){ els[i].style.display = 'none'; }
+      } else {
+        box.setAttribute('data-ssoh', '1');
+        box.style.display = 'none';
+      }
+      OHDONE = 1;
+    }catch(e){}
+  }
+
+  /* ★ 「내 사주로 같은 것을 보기」 단추는 뺍니다
+     소희 님 「스타 사주 보고 내 사주 보고 싶진 않을듯」 */
+  function hideMine(){
+    try{
+      var all = document.querySelectorAll('a, button'), i, el, t;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.getAttribute('data-sshide') === '1'){ continue; }
+        t = tidy(el.textContent);
+        if(t.indexOf('내 사주로') < 0){ continue; }
+        el.setAttribute('data-sshide', '1');
+        el.style.display = 'none';
+      }
+    }catch(e){}
+  }
+
+  function addButton(box, nm){
+    if(box.getAttribute('data-gobtn') === '1'){ return; }
+    box.setAttribute('data-gobtn', '1');
+
+    var b = document.createElement('button');
+    b.setAttribute('type', 'button');
+    b.className = 'stella-go';
+    b.innerHTML = '';
+    b.appendChild(document.createTextNode(nm + ' 님과 나의 궁합 보기'));
+    var s = document.createElement('span');
+    s.className = 's';
+    s.appendChild(document.createTextNode('내 생일만 넣으면 됩니다 · 무료'));
+    b.appendChild(s);
+
+    b.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      put(KEY, nm);
+      location.href = UM;
+    });
+
+    var wrap = document.createElement('div');
+    wrap.appendChild(b);
+
+    var note = document.createElement('p');
+    note.className = 'stella-gonote';
+    note.appendChild(document.createTextNode(
+      '두 사람의 사주를 나란히 놓고 봅니다. 사진은 쓰지 않습니다.'));
+    wrap.appendChild(note);
+
+    if(ADMIN){
+      var a = document.createElement('p');
+      a.className = 'stella-goadm';
+      a.id = 'stella-goadm';
+      ADMNAME = nm;
+      wrap.appendChild(a);
+    }
+    box.appendChild(wrap);
+  }
+
+  function onStar(){
+    try{
+      /* 결과가 담긴 상자 — 화면을 크게 덮는 붙박이 안쪽,
+         또는 쪽 안의 결과 자리. 이름에 안 기댑니다. */
+      var pick = null;
+      var all = document.querySelectorAll('div, section, article'), i, el, st, r;
+      for(i = 0; i < all.length; i++){
+        el = all[i];
+        if(el.getAttribute('data-gobtn') === '1'){ return; }
+        st = window.getComputedStyle(el);
+        if(!st){ continue; }
+        if(st.display === 'none'){ continue; }
+        r = el.getBoundingClientRect();
+        if(r.width < 260){ continue; }
+        if(r.height < 320){ continue; }
+        /* 그 안에 사주표(연주·월주)가 있으면 결과 상자입니다 */
+        var tx = String(el.textContent === null ? '' : el.textContent);
+        if(tx.indexOf('연주') < 0){ continue; }
+        if(tx.indexOf('일주') < 0){ continue; }
+        if(tx.length > 8000){ continue; }   /* 쪽 전체는 거릅니다 */
+        if(!pick){ pick = el; }
+        else if(el.contains(pick)){ }        /* 더 안쪽 것을 고릅니다 */
+        else if(pick.contains(el)){ pick = el; }
+      }
+      if(!pick){ return; }
+      if(!GAPBOX){ GAPBOX = pick; }
+      var nm = starName(pick);
+      if(!nm){ return; }
+      addButton(pick, nm);
+    }catch(e){}
+  }
+
+  /* ═══ 유앤미 쪽 ═══════════════════════════════════════
+     담아 둔 이름이 있으면, 연예인 목록이 뜨는 순간 그것을 눌러 줍니다.
+     손님은 자기 생일만 넣으면 됩니다. */
+  var want = '';
+
+  function clickIf(sel){
+    try{
+      var b = document.querySelector(sel);
+      if(!b){ return 0; }
+      var st = window.getComputedStyle(b);
+      if(st){ if(st.display === 'none'){ return 0; } }
+      b.click();
+      return 1;
+    }catch(e){ return 0; }
+  }
+
+  function pickFromSheet(){
+    var sheet = document.getElementById('um-celeb');
+    if(!sheet){ return 0; }
+    var q = squash(want);
+    var bs = sheet.querySelectorAll('button, li, div[data-n], a'), i, el, t;
+    for(i = 0; i < bs.length; i++){
+      el = bs[i];
+      t = el.getAttribute('data-n');
+      if(!t){ t = tidy(el.textContent); }
+      if(squash(t) !== q){ continue; }
+      try{ el.click(); }catch(e){}
+      return 1;
+    }
+    return 0;
+  }
+
+  function onUm(){
+    if(!want){ return; }
+    /* ① 연예인 목록이 이미 떠 있으면 고릅니다 */
+    if(pickFromSheet()){ want = ''; drop(KEY); return; }
+    /* ② 아직이면 「연예인 고르기 / 연예인이랑 볼래요」 단추를 눌러 둡니다 */
+    clickIf('#celeb');
+  }
+
+  /* ═══ 돌리기 ═══════════════════════════════════════ */
+  /* ★★ 관리자 줄 — 잰 값을 그대로 찍습니다 (2026-09-16)
+     소희 님 「아직도 그위치 그대로야」. 짐작으로 또 고치지 않으려고
+     **무엇을 얼마로 쟀는지** 화면에 내놓습니다. 이 한 줄이면
+     왜 안 밀렸는지 바로 압니다. 손님에게는 안 보입니다. */
+  var ADMNAME = '';
+
+  function admReport(){
+    if(!ADMIN){ return; }
+    try{
+      var a = document.getElementById('stella-goadm');
+      if(!a){ return; }
+      var hb = headBottom();
+      var anchor = gapAnchor();
+      if(!anchor){ anchor = GAPBOX; }
+      var dt = -1, tag = '없음';
+      if(anchor){
+        var sy = window.pageYOffset;
+        if(!sy){ sy = 0; }
+        dt = Math.round(anchor.getBoundingClientRect().top + (inFixed(anchor) ? 0 : sy));
+        tag = String(anchor.tagName) + ' 「'
+            + tidy(anchor.textContent).slice(0, 12) + '」'
+            + (inFixed(anchor) ? ' (덮개 안)' : '');
+      }
+      var g = document.querySelector('[data-sstop="1"]');
+      a.textContent =
+        '관리자에게만 보입니다 · 「' + ADMNAME + '」 을 담아 유앤미로 보냅니다'
+        + ' · 어려운 말 ' + JARGON + '줄 · 통계 ' + RARE + '줄 접음'
+        + ' · 오행 한 줄 ' + (OHDONE ? '됨' : '못 찾음')
+        + '  ///  머리글 아랫변 ' + Math.round(hb)
+        + ' · 기준 ' + tag + ' 쪽 위에서 ' + dt
+        + ' · 있어야 할 자리 ' + Math.round((hb > 24 ? hb : 24) + 30)
+        + ' · 민 곳 ' + (g ? String(g.tagName) + ' ' + g.style.paddingTop : '안 밂')
+        + ' · 잰 횟수 ' + GAPTRY
+        + ' · 멈출 자리 ' + SPDONE + ' · 되올림 ' + (NUDGED ? '함' : '안 함')
+        + ' · 내려온 만큼 ' + Math.round(window.pageYOffset ? window.pageYOffset : 0);
+    }catch(e){}
+  }
+
+  function allDone(){
+    if(!document.querySelector('.stella-go')){ return 0; }
+    if(!OHDONE){ return 0; }
+    if(!RARE){ return 0; }
+    if(!JARGON){ return 0; }
+    if(GAPTRY < 1){ return 0; }
+    if(!SPDONE){ return 0; }
+    return 1;
+  }
+
+  function tick(){
+    if(ON_STAR){ hideMine(); }
+    if(ON_STAR){ hideJargon(); }
+    if(ON_STAR){ hideRare(); }
+    if(ON_STAR){ ohOneLine(); }
+    if(ON_STAR){ onStar(); }       /* 단추 — 관리자 줄이 여기서 생깁니다 */
+    if(ON_STAR){ scrollPad(); }    /* 내려가 멈추는 자리 */
+    if(ON_STAR){ topGap(); }       /* 맨 위 여백 */
+    if(ON_STAR){ nudge(); }        /* 이미 가려 있으면 되올리기 */
+    if(ON_STAR){ admReport(); }    /* ★ 잰 값을 찍는 것이 맨 나중 */
+    if(ON_UM){ onUm(); }
+  }
+  function start(){
+    if(ON_UM){
+      want = get(KEY);
+      if(!want){ want = ''; }
+      /* ★★ 담아둔 이름이 없으면 유앤미에서는 **한 줄도 안 돕니다**
+         — 2026-09-16
+         소희 님이 유앤미를 여셨더니 쪽이 통째로 비어 있었습니다.
+         이 조각 탓인지 가리려면, 할 일이 없을 때 아예 손을 떼는 것이
+         가장 확실합니다. 스타 사주에서 단추를 누르고 오셨을 때만
+         움직입니다. */
+      if(!want){ return; }
+    }
+    tick();
+    var k = 0, quiet = 0;
+    var t = setInterval(function(){
+      k++;
+      tick();
+      /* ★ 다 마치면 훑기를 그만둡니다. 쪽이 크면 훑는 것만으로도
+         화면이 굼떠집니다 (이름 단추가 537개입니다). */
+      if(ON_STAR){
+        if(allDone()){ quiet++; } else { quiet = 0; }
+        if(quiet > 3){ clearInterval(t); return; }
+      }
+      if(k > 240){ clearInterval(t); }   /* 2분쯤 보다가 멈춥니다 */
+    }, 500);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+})();
+</script>
+	<?php
+} );

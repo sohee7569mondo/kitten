@@ -1,0 +1,130 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주 · 맨 위 빈 공간이 너무 커진 것 고치기
+   판 2026-09-16 · 5/5
+
+   소희 님 「우리 아까 위에 공간이 없다고 이것저것해서 이렇게 된듯」
+   — 맞습니다. 제가 넣은 여백 주는 코드가 과하게 밀고 있습니다.
+
+   지금 이렇게 돼 있습니다 —
+       var cr = svCard 의 자리;
+       if(cr.top < 머리글아래+12){ 여백 = 머리글아래+20 - cr.top }
+
+   덮개(svSheet)가 **앞서 보던 자리에 아직 내려가 있으면** cr.top 이
+   음수(-260 같은)가 됩니다. 그러면 여백이 56+20+260 = 336px 이 됩니다.
+   사진의 그 빈 공간이 이것입니다.
+
+   ★ 게다가 카드 자리를 **scrollTop 을 0 으로 되돌리기 전에** 재고
+     있었습니다. 그러니 늘 엉뚱한 값을 잽니다.
+
+   고침 : cr.top 을 아예 안 봅니다.
+       여백 = 머리글아래 + 20
+   덮개를 맨 위로 되돌리면 카드는 덮개 맨 위에 있으므로, 머리글
+   높이만큼만 밀면 정확합니다. 머리글이 없으면 20px 만 둡니다.
+   머리글 높이는 220 위로는 안 재므로 아무리 커도 240px 을 안 넘습니다.
+
+   ── 쓰는 법 ─────────────────────────────────────────
+   ① 고치기    https://stellasaju.com/?stella_star5=1
+              ★ 미리보기 없이 **바로 고칩니다.**
+   ② 되돌리기  https://stellasaju.com/?stella_star5=1&undo=1
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_star5'] ) ) { return; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 system-ui;'
+		. 'background:#141018;color:#eee;padding:24px;max-width:900px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	$pid  = 406;
+	$bak  = 'stella_bak_406_p5';
+	$page = get_post( $pid );
+	if ( ! $page ) { echo '<h1 style="color:#ff7b7b">쪽 406 을 못 찾았습니다.</h1>'; exit; }
+	/* ★ 줄끝을 먼저 가지런히 맞춥니다 — 살아 있는 쪽은 섞여 있습니다 */
+	$body = str_replace( array( "\r\n", "\r" ), "\n", $page->post_content );
+	$BS   = chr( 92 );
+
+	if ( isset( $_GET['undo'] ) ) {
+		$old = get_post_meta( $pid, $bak, true );
+		if ( ! $old ) { echo '<h1 style="color:#ff7b7b">되돌릴 것이 없습니다.</h1>'; exit; }
+		wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $old ) ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $bak );
+		echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2>';
+		exit;
+	}
+
+	$A = "      var cd=\$('svCard');\n"
+		. "      if(cd){\n"
+		. "        var cr=cd.getBoundingClientRect();\n"
+		. "        if(cr.top < hb+12){ cd.style.paddingTop=Math.round(hb+20-cr.top)+'px'; }\n"
+		. "      }";
+
+	$B = "      var cd=\$('svCard');\n"
+		. "      if(cd){ cd.style.paddingTop=Math.round(hb+20)+'px'; }";
+
+	echo '<h1 style="color:#ffd76a">맨 위 빈 공간 고치기</h1>';
+	printf( '<p>쪽 406 · 지금 <b>%s자</b> · 역빗금 <b style="color:%s">%d개</b></p>',
+		number_format( strlen( $body ) ),
+		( 5 === substr_count( $body, $BS ) ) ? '#7bff9b' : '#ff7b7b',
+		substr_count( $body, $BS ) );
+
+	/* 빈칸을 흘려 넘기는 본 — 들여쓰기·줄끝이 달라도 찾습니다 */
+	$pat = preg_quote( $A, '#' );
+	$pat = '#' . preg_replace( '#\s+#u', '\\\\s+', $pat ) . '#u';
+
+	$n    = substr_count( $body, $A );
+	$m    = preg_match_all( $pat, $body );
+	$how  = '';
+	if ( 1 === $n ) { $how = '그대로'; }
+	else if ( 1 === $m ) { $how = '빈칸맞춰'; }
+
+	if ( ! $how ) {
+		if ( substr_count( $body, $B ) >= 1 ) {
+			echo '<h2 style="color:#7bff9b">이미 고쳐져 있습니다.</h2>';
+			exit;
+		}
+		printf( '<h2 style="color:#ff7b7b">★ 고칠 자리를 못 찾았습니다 — '
+			. '그대로 %d군데 · 빈칸 흘려 %d군데</h2>', $n, $m );
+		echo '<p style="color:#888">이 숫자를 저에게 알려주세요.</p>';
+		exit;
+	}
+
+	printf( '<p>찾았습니다 — <b>%s</b></p>', esc_html( $how ) );
+
+	if ( '그대로' === $how ) {
+		$new = str_replace( $A, $B, $body );
+	} else {
+		$rep = $B;
+		$new = preg_replace_callback( $pat, function () use ( $rep ) { return $rep; }, $body, 1 );
+	}
+
+	update_post_meta( $pid, $bak, $body );
+	wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $new ) ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	clean_post_cache( $pid );
+	$chk = get_post( $pid );
+	$cnt = substr_count( $chk->post_content, $BS );
+
+	echo '<h2 style="color:#7bff9b">고쳤습니다.</h2>';
+	printf( '<p>%s자 → <b>%s자</b> · 역빗금 <b style="color:%s">%d개</b> (다섯이어야 합니다)</p>',
+		number_format( strlen( $body ) ), number_format( strlen( $new ) ),
+		( 5 === $cnt ) ? '#7bff9b' : '#ff7b7b', $cnt );
+	printf( '<p style="font-size:18px"><a style="color:#ffd76a" href="%s">→ 스타 사주 열어보기</a></p>',
+		esc_url( get_permalink( $pid ) ) );
+	echo '<p style="color:#888">★ 그리고 WPCode 에서 <b>patch_celebgo</b> 를 꺼주세요. '
+		. '그 조각도 같은 자리에 여백을 넣고 있어서 둘이 겹칩니다. '
+		. '유앤미로 이름 넘기는 일은 이제 쪽이 스스로 합니다.</p>';
+	exit;
+}, 1 );

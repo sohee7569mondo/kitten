@@ -1,0 +1,120 @@
+/* ════════════════════════════════════════════════════════════
+   문구를 넣으면 그 자리를 그대로 보여줍니다 (읽기만)
+   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   지금까지는 고칠 자리 하나마다 진단 스니펫을 따로 만들었는데,
+   이제 이거 하나면 됩니다. 찾고 싶은 말을 주소에 적으면
+   그 말이 들어 있는 자리를 앞뒤로 보여줍니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   쓰는 법
+     https://stellasaju.com/?stella_grab=여덟 글자에서 제일 많은 것
+     https://stellasaju.com/?stella_grab=이렇게 읽습니다&slug=door-love
+     https://stellasaju.com/?stella_grab=후기&n=800
+
+   slug 를 안 적으면 책(reading-book)에서 찾습니다.
+   n 은 앞뒤로 몇 글자를 보여줄지입니다 (안 적으면 400).
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_grab'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:28px 18px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 6px}'
+	   . 'h2{color:#9AD1A5;font-size:.95rem;margin:24px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:12px}'
+	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'mark{background:#D4AF6A;color:#12101B;font-weight:700}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.65 monospace;border-left:3px solid #D4AF6A;'
+	   . 'word-break:break-all}'
+	   . '</style>';
+
+	$word = wp_unslash( $_GET['stella_grab'] );
+	$word = trim( (string) $word );
+
+	$slug = 'reading-book';
+	if ( isset( $_GET['slug'] ) ) { $slug = sanitize_title( wp_unslash( $_GET['slug'] ) ); }
+
+	$n = 400;
+	if ( isset( $_GET['n'] ) ) { $n = max( 60, min( 4000, (int) $_GET['n'] ) ); }
+
+	echo '<h1>「' . esc_html( $word ) . '」 를 ' . esc_html( $slug ) . ' 에서 찾습니다</h1>';
+
+	if ( '' === $word ) {
+		echo '<p class="no">찾을 말을 적어주세요.</p>'; exit;
+	}
+
+	$p = get_page_by_path( $slug );
+	if ( ! $p ) { echo '<p class="no">그런 쪽이 없습니다.</p>'; exit; }
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+
+	echo '<p class="dim">쪽 번호 ' . (int) $p->ID
+	   . ' &middot; 크기 ' . number_format( strlen( $c ) ) . ' 바이트</p>';
+
+	/* 찾은 자리 모으기 — 정규식 안 씁니다 (한글이 깨지는 일이 있어서) */
+	$hits = array();
+	$at   = 0;
+	while ( true ) {
+		$at = strpos( $c, $word, $at );
+		if ( false === $at ) { break; }
+		$hits[] = $at;
+		$at    += 1;
+		if ( count( $hits ) >= 40 ) { break; }
+	}
+
+	if ( ! count( $hits ) ) {
+		echo '<p class="no">한 군데도 없습니다.</p>';
+		/* 띄어쓰기를 뺀 채로 다시 한 번 */
+		$flat  = str_replace( array( ' ', "\xC2\xA0", "\xE2\x80\x82",
+			"\xE2\x80\x83", "\xE3\x80\x80" ), '', $c );
+		$fword = str_replace( ' ', '', $word );
+		if ( '' !== $fword && false !== strpos( $flat, $fword ) ) {
+			echo '<p class="dim">다만 띄어쓰기를 빼고 보면 '
+			   . (int) substr_count( $flat, $fword )
+			   . ' 군데 있습니다. 띄어쓰기가 다른 것 같습니다.</p>';
+		}
+		exit;
+	}
+
+	echo '<p class="dim">' . count( $hits ) . ' 군데 찾았습니다.</p>';
+
+	$wlen = strlen( $word );
+	$i    = 0;
+	foreach ( $hits as $at ) {
+		$i++;
+		$from = max( 0, $at - $n );
+		$to   = min( strlen( $c ), $at + $wlen + $n );
+
+		$before = substr( $c, $from, $at - $from );
+		$after  = substr( $c, $at + $wlen, $to - ( $at + $wlen ) );
+
+		/* 잘린 자리에서 한글이 깨지지 않게 다듬습니다 */
+		if ( function_exists( 'mb_convert_encoding' ) ) {
+			$before = mb_convert_encoding( $before, 'UTF-8', 'UTF-8' );
+			$after  = mb_convert_encoding( $after, 'UTF-8', 'UTF-8' );
+		}
+
+		echo '<h2>' . (int) $i . ' 번째 &middot; ' . (int) $at . ' 바이트 자리</h2>';
+		echo '<pre>' . esc_html( $before )
+		   . '<mark>' . esc_html( $word ) . '</mark>'
+		   . esc_html( $after ) . '</pre>';
+	}
+
+	echo '<p class="dim">앞뒤를 더 보시려면 주소 뒤에 &amp;n=900 처럼 붙이세요.</p>';
+	exit;
+} );

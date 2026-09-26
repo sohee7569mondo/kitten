@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+  <style>
+    body { margin: 0; background: #F7F2FC; }
+    a { color: #6B5BA8; text-decoration: none; }
+    a:hover { color: #52447F; }
+    * { box-sizing: border-box; }
+    .peek { position: absolute; z-index: 0; filter: drop-shadow(0 5px 8px rgba(107,91,168,0.22)); }
+    .front { position: relative; z-index: 1; }
+    .lbl { font-size: 12.5px; font-weight: 700; color: #8C82A6; margin-bottom: 8px; }
+    .fld { height: 54px; background: #FFFFFF; border-radius: 18px; display: flex; align-items: center;
+            padding: 0 16px; font-size: 15px; color: #3F3A52; }
+    .ph { color: #C3BAD6; }
+    .btnP { display: flex; align-items: center; justify-content: center; height: 56px; background: #B8A6E8;
+             color: #FFFFFF; border-radius: 20px; font-family: 'Jua', sans-serif; font-size: 16.5px;
+             box-shadow: 0 10px 20px -12px rgba(107,91,168,0.8); }
+    .btnG { display: flex; align-items: center; justify-content: center; height: 52px; background: #FFFFFF;
+             color: #7C7392; border-radius: 20px; font-size: 14.5px; font-weight: 500; }
+    .top { display: flex; align-items: center; gap: 8px; padding: 16px 20px 0; }
+    .h1 { font-family: 'Jua', sans-serif; font-size: 30px; line-height: 1.28; letter-spacing: -0.02em; color: #3F3A52; }
+    .sub { font-size: 14px; line-height: 1.75; color: #7C7392; margin-top: 10px; }
+    .wrap { width: 390px; background: #F7F2FC; font-family: 'Noto Sans KR','Apple SD Gothic Neo',sans-serif;
+             color: #4A4358; padding-bottom: 48px; overflow: hidden; }
+  </style>
+</helmet>
+
+<div class="wrap">
+  <div class="top"><div style="width:30px;height:30px"><svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><ellipse cx="45" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(-9 45 31)"/><ellipse cx="75" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(9 75 31)"/><ellipse cx="60" cy="88" rx="31" ry="26" fill="#FFFFFF"/><circle cx="60" cy="63" r="27" fill="#FFFFFF"/></g><ellipse cx="45" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(-9 45 30)"/><ellipse cx="75" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(9 75 30)"/><ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/><circle cx="50" cy="61" r="3.6" fill="#5A4038"/><circle cx="70" cy="61" r="3.6" fill="#5A4038"/><ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg></div><div style="font-family:'Jua',sans-serif;font-size:21px;color:#6B5BA8">유앤미</div></div>
+  <div style="display:flex;gap:5px;padding:14px 20px 0"><div style="height:5px;flex:1;border-radius:99px;background:#B8A6E8"></div><div style="height:5px;flex:1;border-radius:99px;background:#B8A6E8"></div><div style="height:5px;flex:1;border-radius:99px;background:#B8A6E8"></div></div>
+
+  <div style="padding:22px 20px 0;position:relative">
+    <div class="peek" style="width:72px;height:72px;left:38px;top:12px;transform:rotate(-9deg)"><svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><ellipse cx="45" cy="31" rx="9" ry="25" fill="#F7C6D3" transform="rotate(-9 45 31)"/><ellipse cx="75" cy="31" rx="9" ry="25" fill="#F7C6D3" transform="rotate(9 75 31)"/><ellipse cx="60" cy="88" rx="31" ry="26" fill="#F7C6D3"/><circle cx="60" cy="63" r="27" fill="#F7C6D3"/></g><ellipse cx="45" cy="30" rx="4" ry="15" fill="#EDA0B6" transform="rotate(-9 45 30)"/><ellipse cx="75" cy="30" rx="4" ry="15" fill="#EDA0B6" transform="rotate(9 75 30)"/><ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/><circle cx="50" cy="61" r="3.6" fill="#5A4038"/><circle cx="70" cy="61" r="3.6" fill="#5A4038"/><ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg></div>
+    <div class="peek" style="width:72px;height:72px;right:38px;top:12px;transform:rotate(9deg)"><svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><path d="M38 46 L34 22 L56 34 Z" fill="#F5DFAF"/><path d="M82 46 L86 22 L64 34 Z" fill="#F5DFAF"/><path d="M92 96q10 4 8 12" fill="none" stroke-linecap="round"/><ellipse cx="60" cy="88" rx="30" ry="25" fill="#F5DFAF"/><circle cx="60" cy="58" r="28" fill="#F5DFAF"/></g><path d="M76 34a13 13 0 0 1 11 12a28 28 0 0 0-13-9z" fill="#B98A5A"/><ellipse cx="60" cy="94" rx="14" ry="12" fill="#FBF0DC"/><circle cx="50" cy="56" r="3.6" fill="#5A4038"/><circle cx="70" cy="56" r="3.6" fill="#5A4038"/><ellipse cx="40" cy="66" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="66" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="65" rx="3.5" ry="2.6" fill="#5A4038"/><g stroke="#5A4038" stroke-width="2.4" stroke-linecap="round"><path d="M30 62h-9M30 68l-9 3M90 62h9M90 68l9 3"/></g></svg></div>
+
+    <div class="front" style="background:#FFFFFF;border-radius:28px;padding:24px 22px;margin-top:44px;box-shadow:0 18px 34px -20px rgba(107,91,168,.4)">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="background:#FFE2D6;color:#C4674A;font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:999px">연인 궁합</div>
+        <div style="font-size:11.5px;color:#B3A9C9;font-weight:500">지은 × 도현</div>
+      </div>
+      <div style="display:flex;justify-content:center;margin-top:14px"><div style="position:relative;width:168px;height:168px">
+  <svg width="168" height="168" viewBox="0 0 168 168">
+    <defs><linearGradient id="rp" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#C3B2F0"/><stop offset="50%" stop-color="#F4B9D4"/><stop offset="100%" stop-color="#FFCBA8"/>
+    </linearGradient></defs>
+    <circle cx="84" cy="84" r="70" fill="none" stroke="#F1EBFA" stroke-width="17"/>
+    <circle cx="84" cy="84" r="70" fill="none" stroke="url(#rp)" stroke-width="17" stroke-linecap="round"
+            stroke-dasharray="404 440" transform="rotate(-90 84 84)"/>
+  </svg>
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+    <div style="font-family:'Jua',sans-serif;font-size:58px;line-height:1;color:#6B5BA8">92</div>
+    <div style="font-size:12px;color:#A79BC4;font-weight:500;margin-top:3px">점</div>
+  </div></div></div>
+      <div style="font-family:'Jua',sans-serif;font-size:27px;text-align:center;margin-top:10px;color:#3F3A52">완전 찰떡궁합</div>
+      <div style="font-size:13.5px;line-height:1.8;color:#7C7392;margin-top:9px;text-align:center;text-wrap:pretty">
+        갑돌이가 갑순이 시집가도 여전히 못 잊었다는데, 두 분은 그럴 걱정 없을 궁합이에요. 상견례 날짜부터 캘린더에 박아두세요.
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:20px">
+        <div style="background:#F1EBFA;border-radius:18px;padding:12px 6px;text-align:center"><div style="font-size:10.5px;color:#A79BC4;font-weight:500">성격</div><div style="font-family:'Jua',sans-serif;font-size:21px;color:#6B5BA8;margin-top:2px">90</div></div>
+        <div style="background:#FCE8F1;border-radius:18px;padding:12px 6px;text-align:center"><div style="font-size:10.5px;color:#C58AA8;font-weight:500">연애</div><div style="font-family:'Jua',sans-serif;font-size:21px;color:#C4658F;margin-top:2px">85</div></div>
+        <div style="background:#FFEFE2;border-radius:18px;padding:12px 6px;text-align:center"><div style="font-size:10.5px;color:#C99578;font-weight:500">결혼</div><div style="font-family:'Jua',sans-serif;font-size:21px;color:#C4784A;margin-top:2px">70</div></div>
+        <div style="background:#E2F5EE;border-radius:18px;padding:12px 6px;text-align:center"><div style="font-size:10.5px;color:#7FAE9C;font-weight:500">금전</div><div style="font-family:'Jua',sans-serif;font-size:21px;color:#4F937A;margin-top:2px">95</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 지은에게 결과 돌려보내기 -->
+  <div style="padding:18px 20px 0">
+    <div style="height:56px;background:#FAE100;border-radius:20px;display:flex;align-items:center;justify-content:center;gap:9px">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#3F2A08" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4a9.7 9.7 0 0 1-2.7-.4L3 21l1.6-4.1A8.2 8.2 0 0 1 3 11.5a8.4 8.4 0 0 1 9-8.4a8.4 8.4 0 0 1 9 8.4z"/></svg>
+      <div style="font-size:15.5px;font-weight:700;color:#3F2A08">지은님에게 결과 보내기</div>
+    </div>
+  </div>
+
+  <div style="padding:26px 20px 0">
+    <div class="lbl">자랑하기</div>
+    <div style="display:flex;gap:8px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:7px;flex:1"><div style="width:56px;height:56px;border-radius:20px;background:#1A1A1A;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg></div><div style="font-size:11.5px;font-weight:700;color:#57506E;text-align:center">스레드</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:7px;flex:1"><div style="width:56px;height:56px;border-radius:20px;background:#D9578C;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></div><div style="font-size:11.5px;font-weight:700;color:#57506E;text-align:center">인스타 스토리</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:7px;flex:1"><div style="width:56px;height:56px;border-radius:20px;background:#E2F5EE;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4F937A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div><div style="font-size:11.5px;font-weight:700;color:#57506E;text-align:center">이미지 저장</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:7px;flex:1"><div style="width:56px;height:56px;border-radius:20px;background:#E7DEFA;display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6B5BA8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></div><div style="font-size:11.5px;font-weight:700;color:#57506E;text-align:center">링크 복사</div></div>
+    </div>
+    <div style="font-size:11.5px;color:#A79BC4;margin-top:14px;line-height:1.75">
+      인스타와 스레드는 글자를 못 붙여서, 위 카드를 <b>그림 한 장으로 만들어</b> 올립니다.
+    </div>
+  </div>
+
+  <!-- 유료 -->
+  <div style="margin:34px 20px 0;position:relative">
+    <div class="peek" style="width:80px;height:80px;right:26px;top:-40px;transform:rotate(10deg)"><svg viewBox="0 0 120 120" width="100%" height="100%" style="display:block"><g stroke="#5A4038" stroke-width="4.5" stroke-linejoin="round"><ellipse cx="45" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(-9 45 31)"/><ellipse cx="75" cy="31" rx="9" ry="25" fill="#FFFFFF" transform="rotate(9 75 31)"/><ellipse cx="60" cy="88" rx="31" ry="26" fill="#FFFFFF"/><circle cx="60" cy="63" r="27" fill="#FFFFFF"/></g><ellipse cx="45" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(-9 45 30)"/><ellipse cx="75" cy="30" rx="4" ry="15" fill="#F7C6D3" transform="rotate(9 75 30)"/><ellipse cx="60" cy="95" rx="14" ry="12" fill="#FBF0DC"/><path d="M44 60q6 6 12 0" fill="none" stroke="#5A4038" stroke-width="4" stroke-linecap="round"/><path d="M64 60q6 6 12 0" fill="none" stroke="#5A4038" stroke-width="4" stroke-linecap="round"/><ellipse cx="40" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="80" cy="70" rx="6.5" ry="4.5" fill="#F7A8BC"/><ellipse cx="60" cy="69" rx="4" ry="3" fill="#EE8FA8"/></svg></div>
+    <div class="front" style="background:#FFFFFF;border-radius:28px;padding:24px 22px">
+      <div style="font-family:'Jua',sans-serif;font-size:22px;color:#3F3A52">왜 92점인지 궁금하면</div>
+      <div style="font-size:13.5px;line-height:1.8;color:#7C7392;margin-top:9px">
+        네 항목이 왜 그 점수인지, 두 사람이 어디서 부딪히고 어디서 맞는지를 풀어서 읽어드려요.
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px">
+        <div style="font-family:'Jua',sans-serif;font-size:30px;color:#6B5BA8">500<span style="font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:500;color:#A79BC4">원</span></div>
+        <div style="display:flex;align-items:center;height:46px;padding:0 22px;background:#FFC2A8;color:#8C4A2E;border-radius:16px;font-size:14.5px;font-weight:700">자세히 보기</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:30px 20px 0">
+    <div class="btnG" style="background:#FFFFFF">다른 사람과도 보기</div>
+  </div>
+</div>
+
+</x-dc>
+</body>
+</html>

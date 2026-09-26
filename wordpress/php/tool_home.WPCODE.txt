@@ -1,0 +1,154 @@
+/* ════════════════════════════════════════════════════════════
+   홈 페이지가 어떻게 짜여 있나 보기 · 소희 님께
+
+   왜
+     ① 배너와 헤더 사이 여백을 넓히려면 그 상자 이름을 알아야 합니다
+     ② 「인연을 잇는 가디언 · 벼리」 줄과 「모두 보기」를
+        휴대폰에서 세 줄로 앉히려면 지금 어떻게 붙어 있는지 봐야 합니다
+
+   ★ 아무것도 고치지 않습니다. 보여주기만 합니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 → 저장 → 활성
+
+        https://stellasaju.com/?stella_home=1
+
+   나온 화면을 통째로 복사해 보내주세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_home'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다. 관리자로 로그인한 창에서 열어주세요.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	$safe = function ( $s ) {
+		if ( function_exists( 'mb_convert_encoding' ) ) {
+			$s = mb_convert_encoding( $s, 'UTF-8', 'UTF-8' );
+		}
+		return esc_html( $s );
+	};
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.8 -apple-system,system-ui,sans-serif;'
+		. 'background:#111;color:#eee;padding:24px;max-width:1100px">';
+	echo '<h1 style="color:#ffd76a">홈 페이지 뜯어보기</h1>';
+
+	/* 어느 쪽이 홈인가 */
+	$front = (int) get_option( 'page_on_front' );
+	printf( '<p>앞쪽으로 정해진 페이지 : <b style="color:#9fd">%d</b></p>', $front );
+
+	$targets = array_unique( array_filter( array( $front, 62 ) ) );
+
+	$anchors = array(
+		'되풀이되는',
+		'모두 보기',
+		'가디언',
+		'오늘의 운세 자세히 보기',
+		'궁금한 것 하나를 골라',
+	);
+
+	foreach ( $targets as $pid ) {
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+		if ( ! $row ) {
+			printf( '<p style="color:#ff7b7b">%d 못 읽었습니다</p>', $pid );
+			continue;
+		}
+		printf(
+			'<h2 style="color:#9fd">%d · %s <span style="color:#888">(%s 글자)</span></h2>',
+			$pid,
+			esc_html( $row->post_title ),
+			number_format( strlen( $row->post_content ) )
+		);
+
+		$c = $row->post_content;
+
+		foreach ( $anchors as $a ) {
+			$p = strpos( $c, $a );
+			if ( false === $p ) {
+				printf( '<p style="color:#888">「%s」 — 없습니다</p>', esc_html( $a ) );
+				continue;
+			}
+			$ctx = substr( $c, max( 0, $p - 700 ), 1500 );
+			printf(
+				'<p style="margin:16px 0 4px;color:#ffd76a">「%s」 자리</p>'
+				. '<pre style="white-space:pre-wrap;background:#000;padding:10px;'
+				. 'border-left:3px solid #ffd76a;font:12px/1.55 monospace">%s</pre>',
+				esc_html( $a ),
+				$safe( $ctx )
+			);
+		}
+
+		/* 겉모습 규칙의 이름만 뽑습니다 */
+		echo '<h3 style="color:#9fd">겉모습 규칙 이름</h3>';
+		$sty = '';
+		$off = 0;
+		while ( ( $s1 = strpos( $c, '<style', $off ) ) !== false ) {
+			$s2 = strpos( $c, '>', $s1 );
+			$s3 = strpos( $c, '</style>', $s2 );
+			if ( false === $s2 || false === $s3 ) {
+				break;
+			}
+			$sty .= substr( $c, $s2 + 1, $s3 - $s2 - 1 ) . "\n";
+			$off  = $s3 + 8;
+		}
+		printf( '<p style="color:#888">규칙 덩어리 %s 글자</p>', number_format( strlen( $sty ) ) );
+
+		$names = array();
+		$lines = preg_split( "/\r\n|\n|\r/", $sty );
+		foreach ( $lines as $line ) {
+			$t = trim( $line );
+			if ( '' === $t ) {
+				continue;
+			}
+			if ( false === strpos( $t, '{' ) ) {
+				continue;
+			}
+			$sel = trim( substr( $t, 0, strpos( $t, '{' ) ) );
+			if ( '' === $sel ) {
+				continue;
+			}
+			$names[] = $sel;
+		}
+		$names = array_slice( array_unique( $names ), 0, 220 );
+		printf(
+			'<pre style="white-space:pre-wrap;background:#000;padding:10px;'
+			. 'font:12px/1.5 monospace">%s</pre>',
+			$safe( implode( "\n", $names ) )
+		);
+
+		/* 휴대폰용 규칙만 따로 */
+		echo '<h3 style="color:#9fd">휴대폰용 규칙 (@media)</h3>';
+		$med = array();
+		$off = 0;
+		while ( ( $m1 = strpos( $sty, '@media', $off ) ) !== false ) {
+			$med[] = substr( $sty, $m1, 900 );
+			$off   = $m1 + 6;
+			if ( count( $med ) >= 8 ) {
+				break;
+			}
+		}
+		if ( ! $med ) {
+			echo '<p style="color:#888">없습니다.</p>';
+		} else {
+			foreach ( $med as $m ) {
+				printf(
+					'<pre style="white-space:pre-wrap;background:#000;padding:10px;'
+					. 'border-left:3px solid #9fd;font:12px/1.5 monospace">%s</pre>',
+					$safe( $m )
+				);
+			}
+		}
+	}
+
+	echo '<h2 style="color:#7bff9b">끝났습니다. 아무것도 바뀌지 않았습니다.</h2></body>';
+	exit;
+} );

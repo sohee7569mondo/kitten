@@ -1,0 +1,177 @@
+/* ════════════════════════════════════════════════════════════
+   책 속 지도 · 두 번째 (MAP-2)   ★ 2026-09-11 · 소희 님께
+
+   MAP-1 이 알려준 것 셋이 제 짐작과 달랐습니다.
+
+     1  주제는 topic=== 로 갈라지지 않습니다.
+        '재물운': { … } 꼴의 **표(사전)** 로 되어 있습니다.
+     2  재물운 다섯 갈래 패치(__isMoney)가 지금 책에 없습니다.
+     3  it.month · it.hour · it.year · it.dae 는 없는 이름입니다.
+        제가 쓸 수 있는 진짜 이름을 알아야 합니다.
+
+   그래서 이번에는
+     · 재물운 · 결혼운 표가 **무슨 이름의 표**인지
+     · it. 뒤에 실제로 붙는 이름 전부
+     · 09장 「정리하면」 자리
+     · 재물운 패치 스니펫이 어디 갔는지
+   를 읽습니다.
+
+   아무것도 바꾸지 않습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   열기   https://stellasaju.com/?stella_map2=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_map2'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	echo "MAP-2  책 속 지도 · 두 번째  ★ 2026-09-11 판\n";
+	echo str_repeat( '=', 62 ) . "\n\n";
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", 160 ) );
+	if ( '' === $c ) { echo "책을 못 읽었습니다.\n"; exit; }
+
+	$lineno = function ( $s, $at ) {
+		return substr_count( substr( $s, 0, $at ), "\n" ) + 1;
+	};
+	$peek = function ( $s, $at, $before, $after ) {
+		$a = $at - $before; if ( $a < 0 ) { $a = 0; }
+		$t = substr( $s, $a, $before + $after );
+		$t = str_replace( array( "\r", "\n", "\t" ), array( '', ' ⏎ ', ' ' ), $t );
+		$t = preg_replace( '/ {2,}/', ' ', $t );
+		return trim( (string) $t );
+	};
+
+	/* ── 1 · it. 뒤에 붙는 진짜 이름 ───────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "1 · it. 뒤에 실제로 붙는 이름 (많이 쓰는 차례)\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	$names = array();
+	if ( preg_match_all( '/\bit\.([A-Za-z_][A-Za-z0-9_]*)/', $c, $m ) ) {
+		foreach ( $m[1] as $w ) {
+			if ( ! isset( $names[ $w ] ) ) { $names[ $w ] = 0; }
+			$names[ $w ]++;
+		}
+	}
+	arsort( $names );
+	$i = 0;
+	foreach ( $names as $w => $cnt ) {
+		echo sprintf( "  %-20s %4d번\n", 'it.' . $w, $cnt );
+		$i++;
+		if ( $i >= 50 ) { echo "  … 더 있습니다\n"; break; }
+	}
+	echo "\n";
+
+	/* ── 2 · 주제 이름을 담은 표들 ─────────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "2 · '재물운' · '결혼운' 이 들어 있는 표의 이름\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	foreach ( array( '재물운', '결혼운', '직장운' ) as $w ) {
+		echo "\n  [" . $w . "]\n";
+		$from = 0; $cnt = 0; $seen = array();
+		while ( true ) {
+			$at = strpos( $c, "'" . $w . "'", $from );
+			if ( false === $at ) { break; }
+			$from = $at + 1;
+
+			/* 이 앞쪽에서 가장 가까운 var XXX = { 를 찾습니다 */
+			$back = substr( $c, max( 0, $at - 6000 ), min( 6000, $at ) );
+			$tbl  = '(표 이름 못 찾음)';
+			if ( preg_match_all( '/var\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*\{/', $back, $mm ) ) {
+				$tbl = end( $mm[1] );
+			}
+			$key = $tbl;
+			if ( isset( $seen[ $key ] ) ) { $seen[ $key ]++; continue; }
+			$seen[ $key ] = 1;
+			$cnt++;
+			if ( $cnt > 14 ) { echo "    … 더 있습니다\n"; break; }
+			echo sprintf( "    %-22s 줄 %-7d %s\n", $tbl, $lineno( $c, $at ),
+				$peek( $c, $at, 0, 74 ) );
+		}
+		if ( ! $cnt ) { echo "    없습니다.\n"; }
+	}
+	echo "\n";
+
+	/* ── 3 · 09장 정리하면 ─────────────────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "3 · 09장 「정리하면」 자리 (SUM-3)\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	$at = strpos( $c, '09장' );
+	if ( false === $at ) {
+		echo "  09장 이라는 말이 없습니다.\n";
+	} else {
+		echo "  줄 " . $lineno( $c, $at ) . "\n\n";
+		$seg = substr( $c, $at, 1400 );
+		$seg = str_replace( "\t", '  ', $seg );
+		echo $seg . "\n";
+	}
+	echo "\n";
+
+	/* ── 4 · 장 제목을 담은 표 ─────────────────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "4 · 장 제목을 담고 있을 만한 곳\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	foreach ( array( 'eyebrow', 'chapTitle', 'CHAPS', 'TITLES', 'chapter',
+		'제 1 장', '차 례', 'toc' ) as $w ) {
+		$cnt = substr_count( $c, $w );
+		echo sprintf( "  %-12s %-4d번  %s\n", $w, $cnt,
+			$cnt ? $peek( $c, strpos( $c, $w ), 30, 80 ) : '—' );
+	}
+	echo "\n";
+
+	/* ── 5 · 재물운 패치 스니펫은 어디에 ───────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "5 · 스니펫 찾기 (켜짐 · 꺼짐 다 봅니다)\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	$snips = $wpdb->get_results(
+		"SELECT ID, post_title, post_status, post_content FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode' ORDER BY ID ASC" );
+
+	$WORDS = array( 'stella_money', '__isMoney', 'stella_marry',
+		'stella_title', '다섯 갈래', 'stella_gsay' );
+	foreach ( $WORDS as $w ) {
+		echo "\n  [" . $w . "]\n";
+		$k = 0;
+		foreach ( (array) $snips as $s ) {
+			if ( false === strpos( (string) $s->post_content, $w ) ) { continue; }
+			$k++;
+			$on = ( 'publish' === $s->post_status ) ? '켜짐' : ( '꺼짐 · ' . $s->post_status );
+			echo sprintf( "    %-6d %-8s %s\n", $s->ID, $on,
+				substr( (string) $s->post_title, 0, 46 ) );
+		}
+		if ( ! $k ) { echo "    없습니다.\n"; }
+	}
+	echo "\n";
+
+	/* ── 6 · 되돌리기 기록이 남아 있는지 ───────────── */
+	echo str_repeat( '-', 62 ) . "\n";
+	echo "6 · 책에 남아 있는 되돌리기 기록 (_stella_*_bak)\n";
+	echo str_repeat( '-', 62 ) . "\n";
+
+	$metas = $wpdb->get_results( $wpdb->prepare(
+		"SELECT meta_key, LENGTH(meta_value) AS len FROM {$wpdb->postmeta}
+		  WHERE post_id = %d AND meta_key LIKE %s ORDER BY meta_key",
+		160, '_stella%' ) );
+	if ( ! $metas ) { echo "  없습니다.\n"; }
+	foreach ( (array) $metas as $r ) {
+		echo sprintf( "  %-36s %12s 자\n", $r->meta_key,
+			number_format( (int) $r->len ) );
+	}
+
+	echo "\n" . str_repeat( '=', 62 ) . "\n";
+	echo "끝. 아무것도 바꾸지 않았습니다.\n";
+	exit;
+} );

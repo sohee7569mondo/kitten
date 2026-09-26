@@ -1,0 +1,230 @@
+/* ══════════════════════════════════════════════════════════
+   맺음말 세 가지에 빠진 주제를 채웁니다  ★ 2026-09-13 · 소희 님께
+                                         판 KEEPFIX-2
+
+   세는 자(?stella_audit=1)가 이것을 찾아냈습니다.
+
+       KEEPTOPIC   없음   맺음말 세 가지
+
+   맺음말 「딱 세 가지만 기억하세요」가 **주제별로 갈리지 않고**
+   문 단위 글로 나가고 있습니다. 연애운으로 물어도 이별운으로
+   물어도 같은 맺음말이 나옵니다.
+
+   ── 왜 비어 있나 ──────────────────────────────────────
+   patch160_gap 이 그 표를 만드는 조각인데 아직 안 들어갔습니다.
+   그래서 wedsplit 의 열넷·열다섯과 divorce 의 ⑨ 가 넣을 자리를
+   못 찾아 건너뛰었습니다.
+
+       1  patch160_gap       맺음말 표를 만듭니다 (열두 주제)
+       2  patch160_keepfix   ← 이 조각. 빠진 셋을 채웁니다.
+
+   ★ patch160_gap 을 **먼저** 넣으세요. 안 넣고 이것만 넣으면
+     자리가 없어 아무것도 안 바꾸고 멈춥니다.
+
+   ── 채우는 것 셋 ──────────────────────────────────────
+       ①  결혼운_미혼      결혼 전에 읽을 네 줄
+       ②  결혼운_기혼      결혼생활에서 읽을 네 줄
+       ③  이혼운           소희 님이 쓰신 네 줄
+       ④  찾을 때 topicKey 를 먼저 보게 (한 줄)
+
+   ④ 가 없으면 ①②③ 을 넣어도 안 쓰입니다.
+
+   ── 하는 법 ───────────────────────────────────────────
+   ① 먼저 보기   https://stellasaju.com/?stella_keepfix=preview
+   ② 정말 넣기   https://stellasaju.com/?stella_keepfix=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_keepfix=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_keepfix'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_keepfix'] ) );
+	$META = '_stella_keepfix_bak';
+	$MARK = 'KEEPFIX_2';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽을 못 찾았습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	if ( 'undo' === $mode ) {
+		$back = get_post_meta( $id, $META, true );
+		if ( '' === $back ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $back ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다. ' . number_format( strlen( $back ) ) . "바이트\n";
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
+
+	echo "맺음말 세 가지에 빠진 주제를 채웁니다   판 KEEPFIX-2\n";
+	echo '책 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "바이트\n\n";
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo "★ 이미 넣으셨습니다. 다시 넣지 않습니다.\n";
+		echo "   고치고 싶으시면 먼저 ?stella_keepfix=undo 를 하세요.\n";
+		exit;
+	}
+
+	/* KEEPTOPIC 이 있어야 합니다 */
+	$hit = preg_match( '/var\s+KEEPTOPIC\s*=\s*\{/u', $c, $m, PREG_OFFSET_CAPTURE );
+	if ( 1 !== $hit ) {
+		echo "★ KEEPTOPIC 표가 책에 없습니다.\n";
+		echo "  patch160_gap 을 먼저 넣으셔야 합니다.\n";
+		echo "  ?stella_gap=preview 로 먼저 보세요.\n";
+		exit;
+	}
+	$at  = (int) $m[0][1];
+	$len = strlen( $m[0][0] );
+	echo "KEEPTOPIC 표 있음 — 채울 준비가 되어 있습니다.\n\n";
+
+	/* 판 KEEPFIX-2 · 「이미 있나」는 **KEEPTOPIC 블록 안에서만** 봅니다.
+	   판 1 은 책 전체를 봐서, 다른 표(조합 풀이 등)에 있는 '이혼운' 을
+	   보고 「이미 있다」고 잘못 알고 건너뛰었습니다. */
+	$blockOf = function ( $src ) {
+		$h = preg_match( '/var\s+KEEPTOPIC\s*=\s*\{/u', $src, $mm, PREG_OFFSET_CAPTURE );
+		if ( 1 !== $h ) { return ''; }
+		$st = (int) $mm[0][1];
+		$ob = strpos( $src, '{', $st );
+		if ( false === $ob ) { return ''; }
+		$d = 0; $n = strlen( $src );
+		for ( $i = $ob; $i < $n; $i++ ) {
+			if ( '{' === $src[ $i ] ) { $d++; }
+			elseif ( '}' === $src[ $i ] ) {
+				$d--;
+				if ( 0 === $d ) { return substr( $src, $st, $i - $st + 1 ); }
+			}
+		}
+		return '';
+	};
+
+	$out   = $c;
+	$found = 0;
+
+	/* ── ①②  결혼운 두 벌 ─────────────────────────────── */
+	if ( false !== strpos( $blockOf( $out ), '결혼운_미혼' ) ) {
+		echo "  ①② 결혼운 두 벌     이미 있음 — 건너뜁니다\n";
+	} else {
+		$piece = stella_keepfix_piece( 'WED' );
+		$out   = substr_replace( $out, $m[0][0] . "\n" . $piece, $at, $len );
+		printf( "  ①② 결혼운 두 벌     넣음 (%s자)\n", number_format( strlen( $piece ) ) );
+		$found++;
+	}
+
+	/* ── ③  이혼운 (자리를 다시 찾습니다) ───────────────── */
+	if ( false !== strpos( $blockOf( $out ), '이혼운' ) ) {
+		echo "  ③  이혼운           이미 있음 — 건너뜁니다\n";
+	} else {
+		$h2 = preg_match( '/var\s+KEEPTOPIC\s*=\s*\{/u', $out, $m2, PREG_OFFSET_CAPTURE );
+		if ( 1 !== $h2 ) {
+			echo "  ③  이혼운           ★ 자리를 잃었습니다. 그만둡니다.\n";
+			exit;
+		}
+		$piece = stella_keepfix_piece( 'DIV' );
+		$out   = substr_replace( $out, $m2[0][0] . "\n" . $piece,
+			(int) $m2[0][1], strlen( $m2[0][0] ) );
+		printf( "  ③  이혼운           넣음 (%s자)\n", number_format( strlen( $piece ) ) );
+		$found++;
+	}
+
+	/* ── ④  찾을 때 topicKey 를 먼저 보게 ───────────────── */
+	$A = stella_keepfix_piece( 'FIND' );
+	$n = substr_count( $out, $A );
+	if ( 1 === $n ) {
+		$out = str_replace( $A, stella_keepfix_piece( 'HOOK' ), $out );
+		echo "  ④  topicKey 먼저 보기 넣음\n";
+		$found++;
+	} elseif ( false !== strpos( $out, 'KEEPTOPIC[topicKey]' ) ) {
+		echo "  ④  topicKey 먼저 보기 이미 있음 — 건너뜁니다\n";
+	} else {
+		echo "  ④  topicKey 먼저 보기 ★ " . $n . "군데입니다. 한 군데여야 합니다.\n";
+		echo "      찾는 것 : " . $A . "\n";
+		echo "\n  ①②③ 을 넣어도 안 쓰이니 아무것도 안 건드리고 그만둡니다.\n";
+		exit;
+	}
+
+	echo "\n채운 자리 " . $found . "개\n";
+	if ( 0 === $found ) { echo "\n채울 것이 없습니다. 이미 다 되어 있습니다.\n"; exit; }
+
+	echo number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $out ) )
+	   . '바이트 (+' . number_format( strlen( $out ) - strlen( $c ) ) . ")\n";
+
+	if ( 'apply' !== $mode ) {
+		echo "\n아직 안 넣었습니다. 정말 넣으시려면 ?stella_keepfix=apply\n";
+		exit;
+	}
+
+	$out = $out . "\n<!-- " . $MARK . " -->\n";
+	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
+		update_post_meta( $id, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $out ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n넣었습니다.\n";
+	echo "확인 : ?stella_audit=1 에서 KEEPTOPIC 에 주제가 몇 개인지 보세요.\n";
+	echo "되돌리기 : ?stella_keepfix=undo\n";
+	exit;
+}, 1 );
+
+/* 넣을 글 네 벌. 홑따옴표가 많아 nowdoc 으로 담습니다 */
+function stella_keepfix_piece( $which ) {
+
+	if ( 'WED' === $which ) {
+		return <<<'STELLA_WED'
+    '결혼운_미혼':{
+      first:'<p>특히 결혼을 앞두고는 이것이 중요합니다. 결혼은 한 번 고르고 끝나는 일이 아니라 <em>앞으로 어떤 아침을 함께 보낼지를 고르는 일</em>입니다. 남들 기준에 맞춰 고르시면, 고른 뒤에 더 오래 맞추셔야 합니다.</p>',
+      once:'상대가 결혼할 사람인지 재게 되실 때,',
+      hold:'「이 사람과의 생활을 앞으로도 가지고 갈 것인가?」',
+      then:'그렇다면 조건보다 마음을 한 번 더 확인하세요. 아니라면 그 답을 오래 미루지 마세요.'
+    },
+    '결혼운_기혼':{
+      first:'<p>특히 함께 사는 자리에서는 이것이 중요합니다. 결혼은 <em>아침마다 같은 사람을 다시 고르는 일</em>에 가깝습니다. 그 매일의 선택을 내 결과 다른 방식으로 하면, 십 년쯤 지나 유난히 지칩니다.</p>',
+      once:'살림이나 돈 이야기로 또 부딪히실 때,',
+      hold:'「이 관계를 십 년 뒤에도 가지고 갈 것인가?」',
+      then:'그렇다면 오늘의 서운함은 접어두셔도 됩니다. 아니라면 그 답을 오래 미루지 마세요.'
+    },
+STELLA_WED;
+	}
+
+	if ( 'DIV' === $which ) {
+		return <<<'STELLA_DIV'
+    /* ── 이혼운 · 맺음말 세 가지 (DIVORCE-1 · 소희 님 글) ──────── */
+    '이혼운':{
+      first:'<p>특히 이혼에서는 이것이 중요합니다. 부부 사이의 마음이 끝날 수 있습니다. '+
+        '하지만 그 뒤에는 집과 돈, 빚, 아이, 양가, 법적인 절차처럼 마음만으로 정리되지 않는 일이 남습니다. '+
+        '그래서 이혼을 생각할 때는 <em>마음의 끝과 현실의 끝을 따로 보셔야</em> 합니다. '+
+        '감정이 끝났다는 것과 이혼이 끝나는 것은 다른 일입니다.</p>',
+      once:'오늘 크게 싸우고 나서 이제 끝이라고 느껴지실 때,',
+      hold:'「이것이 이번 일인가, 몇 년째 반복된 일인가?」',
+      then:'몇 년째 반복된 일이라면 그 자리를 보셔야 합니다 — 돈인지 대화의 부재인지 존중인지 가족인지요. 이번 일뿐이라면 가장 화났던 날로 평생을 정하지 마세요. 그리고 어느 쪽이든 한 가지는 같이 보셔야 합니다. 이혼은 배우자에게서 벗어나는 일이면서 동시에 내 삶을 다시 세우는 일입니다. 끝낼 용기만큼, 끝난 뒤를 살아갈 준비도 필요합니다.'
+    },
+STELLA_DIV;
+	}
+
+	if ( 'FIND' === $which ) {
+		return <<<'STELLA_FIND'
+var KT = KEEPTOPIC[topic] || KEEPDOOR[slug] || KEEPDOOR['door-career'];
+STELLA_FIND;
+	}
+
+	if ( 'HOOK' === $which ) {
+		return <<<'STELLA_HOOK'
+var KT = KEEPTOPIC[topicKey] || KEEPTOPIC[topic] || KEEPDOOR[slug] || KEEPDOOR['door-career'];
+STELLA_HOOK;
+	}
+
+	return "";
+}

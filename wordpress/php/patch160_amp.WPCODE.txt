@@ -1,0 +1,170 @@
+/* ════════════════════════════════════════════════════════════
+   깨진 글자를 고칩니다 — 손님 눈에 보이는 것 둘, 안 보이는 것 다섯
+
+   지금 모든 책 3쪽에 이렇게 나오고 있습니다.
+
+     경도 보정   -32.1분 x26nbsp; 서울 기준
+     진태양시    07:53   x26nbsp; 이 시각이 시주를 정합니다
+
+   「x26nbsp;」는 원래 「띄어쓰기 하나」라는 뜻의 부호였습니다.
+   부호 앞에 붙는 글자(x26 자리에 원래 있던 것)를 스크립트 안에서
+   못 쓰게 되어 있어서, 그때 그 글자를 지우면서 나머지가 그대로
+   글이 되어 남았습니다. 부호를 빼고 진짜 띄어쓰기를 넣습니다.
+
+   같은 이유로 esc 라는 함수 다섯 개가 일을 안 하고 있습니다.
+   esc 는 손님이 적어주신 이름 · 도시 같은 글에 화면을 망가뜨리는
+   글자가 섞여 들어오면 막아주는 자리입니다. 지금은 막는 시늉만 하고
+   그냥 통과시킵니다. 한글 이름은 아무 문제가 없어서 아무도 몰랐는데,
+   이름 칸에 꺾쇠 같은 걸 넣으면 그때부터 책이 깨집니다.
+
+   막는 방법을 바꿉니다 — 못 쓰는 글자를 직접 적는 대신
+   String.fromCharCode(38) 로 그 자리에서 만들어 씁니다.
+   스크립트 안에 그 글자를 한 번도 안 적으므로 규칙을 어기지 않습니다.
+
+   확인한 것
+     · 「덕<선>」이라는 이름을 넣어보니 지금은 화면에 그대로 꽂히고,
+       고친 뒤에는 글자로만 보입니다.
+     · 스크립트 서른한 개 문법 검사 통과
+     · 스크립트 안에 그 글자가 새로 늘지 않았습니다
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로 바꾸세요.
+     기본값인 「사이트 전체 헤더」로 두면 아래 주소가 그냥 홈으로 넘어갑니다.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_amp=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_amp=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_amp=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_amp'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_amp_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_amp'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		echo '<p><a href="/reading-book/">책 보기</a></p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	$jobs = array();
+	$jobs[] = array(
+		'name' => '① 3쪽 · 경도 보정 칸의 깨진 글자',
+		'find' => '/ts\\.lonCorrection\\+\'분\\s+x26nbsp;<span\\s+class="mini">\'/u',
+		'to'   => "ts.lonCorrection+'분  <span class=\"mini\">'",
+	);
+
+	$jobs[] = array(
+		'name' => '② 3쪽 · 진태양시 칸의 깨진 글자',
+		'find' => '/\\(chart\\.pillars\\.hour\\?\'\\s+x26nbsp;<span\\s+class="mini">이\\s+시각이\\s+시주를\\s+정합니다/u',
+		'to'   => "(chart.pillars.hour?'  <span class=\"mini\">이 시각이 시주를 정합니다",
+	);
+
+	$jobs[] = array(
+		'name' => '③ esc 고침 · 궁합 셀틀',
+		'find' => '/\\s+var\\s+GH=root\\.StellaGunghap;\\s+function\\s+esc\\(s\\)\\{\\s+return\\s+String\\(s\\)\\.replace\\(\\/x26\\/g,\'x26amp;\'\\)\\.replace\\(\\/<\\/g,\'x26lt;\'\\)\\.replace\\(\\/>\\/g,\'x26gt;\'\\);\\s+\\}/u',
+		'to'   => "  var GH=root.StellaGunghap;\n\n  function esc(s){\n    var AMP=String.fromCharCode(38);\n    return String(s).replace(new RegExp(AMP,'g'),AMP+'amp;').replace(/</g,AMP+'lt;').replace(/>/g,AMP+'gt;');\n  }",
+	);
+
+	$jobs[] = array(
+		'name' => '④ esc 고침 · 짝을 때 셀틀',
+		'find' => '/\\s+function\\s+esc\\(s\\)\\s+\\{\\s+return\\s+String\\(s\\)\\.replace\\(\\/x26\\/g,\'x26amp;\'\\)\\.replace\\(\\/<\\/g,\\s+\'x26lt;\'\\)\\.replace\\(\\/>\\/g,\\s+\'x26gt;\'\\);\\s+\\}/u',
+		'to'   => "  function esc(s) {\n    var AMP=String.fromCharCode(38);\n    return String(s).replace(new RegExp(AMP,'g'),AMP+'amp;').replace(/</g, AMP+'lt;').replace(/>/g, AMP+'gt;');\n  }",
+	);
+
+	$jobs[] = array(
+		'name' => '⑤ esc 고침 · 책 조립',
+		'find' => '/\\s+function\\s+esc\\(s\\)\\{\\s+return\\s+String\\(s\\)\\.replace\\(\\/x26\\/g,\'x26amp;\'\\)\\.replace\\(\\/<\\/g,\'x26lt;\'\\)\\.replace\\(\\/>\\/g,\'x26gt;\'\\);\\s+\\}\\s+function\\s+page\\(html,\\s+kind,\\s+part\\)\\{/u',
+		'to'   => "  function esc(s){ var AMP=String.fromCharCode(38);\n    return String(s).replace(new RegExp(AMP,'g'),AMP+'amp;').replace(/</g,AMP+'lt;').replace(/>/g,AMP+'gt;'); }\n\n  function page(html, kind, part){",
+	);
+
+	$jobs[] = array(
+		'name' => '⑥ esc 고침 · 별자리',
+		'find' => '/\\s+function\\s+esc\\(x\\)\\{\\s+return\\s+String\\(x\\)\\.replace\\(\\/x26\\/g,\'x26amp;\'\\)\\.replace\\(\\/<\\/g,\'x26lt;\'\\)\\.replace\\(\\/>\\/g,\'x26gt;\'\\);\\s+\\}/u',
+		'to'   => "    function esc(x){\n      var AMP=String.fromCharCode(38);\n      return String(x).replace(new RegExp(AMP,'g'),AMP+'amp;').replace(/</g,AMP+'lt;').replace(/>/g,AMP+'gt;');\n    }",
+	);
+
+	$jobs[] = array(
+		'name' => '⑦ esc 고침 · 풀이글',
+		'find' => '/var\\s+GEUK\\s+=\\{\'목\':\'토\',\'토\':\'수\',\'수\':\'화\',\'화\':\'금\',\'금\':\'목\'\\};\\s+\\/\\*\\s+──\\s+잔손질\\s+─────────────────────────────────────────────────\\s+\\*\\/\\s+function\\s+esc\\(s\\)\\{\\s+return\\s+String\\(s\\)\\.replace\\(\\/x26\\/g,\'x26amp;\'\\)\\.replace\\(\\/<\\/g,\'x26lt;\'\\)\\.replace\\(\\/>\\/g,\'x26gt;\'\\);\\s+\\}/u',
+		'to'   => "var GEUK ={'목':'토','토':'수','수':'화','화':'금','금':'목'};\n\n  /* ── 잔손질 ───────────────────────────────────────────────── */\n  function esc(s){\n    var AMP=String.fromCharCode(38);\n    return String(s).replace(new RegExp(AMP,'g'),AMP+'amp;').replace(/</g,AMP+'lt;').replace(/>/g,AMP+'gt;');\n  }",
+	);
+
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], $j['to'], $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_amp=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_amp=undo</code></p>';
+	echo '<p><a href="/reading-book/">책 보기</a></p>';
+	exit;
+} );

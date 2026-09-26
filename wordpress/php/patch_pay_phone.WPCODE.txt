@@ -1,0 +1,214 @@
+/* ════════════════════════════════════════════════════════════
+   결제창 열리게 하기 · 소희 님께
+
+   무엇이 문제였나
+     KG이니시스는 결제창을 띄울 때 구매자 휴대폰 번호를 꼭 받습니다.
+     그런데 서버가 결제창에 넘기는 구매자 정보에 번호가 빠져 있어서
+     「구매자 휴대폰 번호는 필수 입력입니다」 하고 창이 안 열렸습니다.
+
+   무엇을 고치나
+     /pay/ 페이지는 서버가 준 구매자 정보를 그대로 결제창에 넘깁니다.
+     그러니 서버가 내보내는 길목에서 번호를 채워 넣기만 하면 됩니다.
+     페이지 243 도, 기존 「STELLA - 포트원 백엔드」 스니펫도
+     한 글자도 고치지 않습니다. 이 스니펫만 껐다 켜면 되돌아갑니다.
+
+     번호는 이 순서로 찾습니다.
+       1) 브라우저가 같이 보낸 번호 (나중에 입력칸을 붙이면 여기로 옵니다)
+       2) 회원 정보에 저장해 둔 번호
+       3) 위가 다 없으면 아래 예비 번호
+
+   붙여넣기
+     1) WPCode → 새 스니펫 → 「Add Your Custom Code (New Snippet)」
+     2) 종류(Code Type) 는 반드시  PHP Snippet
+     3) 위치(Location) 는  Run Everywhere
+     4) 첫 줄의 PHP 여는 태그는 그대로 두고 그 아래에 붙여넣기
+     5) 저장 → 활성(Active)
+     6) 제목은  STELLA - 결제 휴대폰번호  로 해주세요
+
+   확인
+        https://stellasaju.com/?stella_patch=phonecheck
+
+   ════════════════════════════════════════════════════════════ */
+
+/* 회원 번호를 못 찾았을 때 쓸 예비 번호.
+   이니시스는 번호가 비어 있으면 창을 안 띄웁니다.
+   나중에 /pay/ 에 입력칸을 붙이면 이 예비 번호는 거의 안 쓰이게 됩니다. */
+if ( ! defined( 'STELLA_PAY_PHONE_FALLBACK' ) ) {
+	define( 'STELLA_PAY_PHONE_FALLBACK', '01000000000' );
+}
+
+/* 번호를 숫자만 남기고 다듬습니다. 쓸 수 없는 번호면 빈 글자를 돌려줍니다. */
+if ( ! function_exists( 'stella_pay_tidy_phone' ) ) {
+	function stella_pay_tidy_phone( $raw ) {
+		$d = preg_replace( '/[^0-9]/', '', (string) $raw );
+		if ( '' === $d ) {
+			return '';
+		}
+		/* 나라번호 82 로 들어오면 앞을 0 으로 되돌립니다 */
+		if ( 0 === strpos( $d, '82' ) && strlen( $d ) >= 11 ) {
+			$d = '0' . substr( $d, 2 );
+		}
+		/* 010 으로 시작하는 10~11자리만 받습니다 */
+		if ( 0 !== strpos( $d, '01' ) ) {
+			return '';
+		}
+		$n = strlen( $d );
+		if ( $n < 10 || $n > 11 ) {
+			return '';
+		}
+		return $d;
+	}
+}
+
+/* 이 회원에게 쓸 번호를 고릅니다 */
+if ( ! function_exists( 'stella_pay_pick_phone' ) ) {
+	function stella_pay_pick_phone( $uid, $sent = '' ) {
+		/* 1) 브라우저가 보낸 번호 — 쓸 만하면 회원 정보에 적어둡니다 */
+		$p = stella_pay_tidy_phone( $sent );
+		if ( '' !== $p ) {
+			if ( $uid ) {
+				update_user_meta( $uid, 'stella_phone', $p );
+			}
+			return $p;
+		}
+		/* 2) 회원 정보에 저장해 둔 번호 */
+		if ( $uid ) {
+			foreach ( array( 'stella_phone', 'billing_phone', 'phone', 'mobile' ) as $k ) {
+				$p = stella_pay_tidy_phone( get_user_meta( $uid, $k, true ) );
+				if ( '' !== $p ) {
+					return $p;
+				}
+			}
+		}
+		/* 3) 예비 번호 */
+		return stella_pay_tidy_phone( STELLA_PAY_PHONE_FALLBACK );
+	}
+}
+
+/* 이 회원에게 쓸 이름을 고릅니다 (이니시스는 이름도 비어 있으면 싫어합니다) */
+if ( ! function_exists( 'stella_pay_pick_name' ) ) {
+	function stella_pay_pick_name( $uid ) {
+		if ( $uid ) {
+			$n = trim( (string) get_user_meta( $uid, 'stella_name', true ) );
+			if ( '' !== $n ) {
+				return $n;
+			}
+			$u = get_userdata( $uid );
+			if ( $u ) {
+				$n = trim( (string) $u->display_name );
+				if ( '' !== $n && 0 !== strpos( $n, 'guest-' ) ) {
+					return $n;
+				}
+			}
+		}
+		return '손님';
+	}
+}
+
+/* ── 서버가 결제 준비 답을 내보내는 길목에서 번호를 채웁니다 ── */
+add_filter( 'rest_post_dispatch', function ( $result, $server, $request ) {
+
+	if ( ! ( $request instanceof WP_REST_Request ) ) {
+		return $result;
+	}
+	if ( '/stella/v1/pay-order' !== $request->get_route() ) {
+		return $result;
+	}
+	if ( ! ( $result instanceof WP_REST_Response ) ) {
+		return $result;
+	}
+
+	$data = $result->get_data();
+	if ( ! is_array( $data ) || empty( $data['paymentId'] ) ) {
+		return $result;
+	}
+
+	$uid = get_current_user_id();
+
+	if ( ! isset( $data['customer'] ) || ! is_array( $data['customer'] ) ) {
+		$data['customer'] = array();
+	}
+
+	/* 브라우저가 번호를 같이 보냈다면 그걸 씁니다 */
+	$sent = '';
+	foreach ( array( 'phone', 'phoneNumber', 'tel', 'buyer_tel' ) as $k ) {
+		$v = $request->get_param( $k );
+		if ( is_string( $v ) && '' !== trim( $v ) ) {
+			$sent = $v;
+			break;
+		}
+	}
+
+	if ( empty( $data['customer']['phoneNumber'] ) ) {
+		$data['customer']['phoneNumber'] = stella_pay_pick_phone( $uid, $sent );
+	}
+	if ( empty( $data['customer']['fullName'] ) ) {
+		$data['customer']['fullName'] = stella_pay_pick_name( $uid );
+	}
+
+	$result->set_data( $data );
+	return $result;
+}, 20, 3 );
+
+/* ── 확인창 ─────────────────────────────────────────────── */
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_patch'] ) || 'phonecheck' !== $_GET['stella_patch'] ) {
+		return;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	$uid = get_current_user_id();
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.9 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:26px;max-width:760px">';
+	echo '<h1 style="color:#ffd76a">결제 휴대폰번호 · 확인</h1>';
+
+	$phone = stella_pay_pick_phone( $uid );
+	$name  = stella_pay_pick_name( $uid );
+	$saved = stella_pay_tidy_phone( get_user_meta( $uid, 'stella_phone', true ) );
+	$isfb  = ( $phone === stella_pay_tidy_phone( STELLA_PAY_PHONE_FALLBACK ) );
+
+	echo '<table cellpadding="10" style="border-collapse:collapse;width:100%">';
+	printf(
+		'<tr style="border-top:1px solid #333"><td style="color:#9fd">지금 로그인한 분</td><td>%s (번호 %d)</td></tr>',
+		esc_html( $name ),
+		$uid
+	);
+	printf(
+		'<tr style="border-top:1px solid #333"><td style="color:#9fd">회원 정보에 저장된 번호</td><td>%s</td></tr>',
+		'' === $saved ? '<span style="color:#888">없음</span>' : esc_html( $saved )
+	);
+	printf(
+		'<tr style="border-top:1px solid #333"><td style="color:#9fd">결제창에 넘어갈 번호</td><td style="color:%s"><b>%s</b> %s</td></tr>',
+		$isfb ? '#ffd76a' : '#7bff9b',
+		esc_html( $phone ),
+		$isfb ? '<span style="color:#ffd76a">(예비 번호)</span>' : ''
+	);
+	printf(
+		'<tr style="border-top:1px solid #333"><td style="color:#9fd">결제창에 넘어갈 이름</td><td><b>%s</b></td></tr>',
+		esc_html( $name )
+	);
+	echo '</table>';
+
+	$loaded = function_exists( 'stella_pay_pick_phone' );
+	$route  = ! empty( rest_get_server()->get_routes()['/stella/v1/pay-order'] );
+	printf(
+		'<p style="margin-top:20px">이 스니펫 : <b style="color:%s">%s</b><br>'
+		. '결제 준비 길(/stella/v1/pay-order) : <b style="color:%s">%s</b></p>',
+		$loaded ? '#7bff9b' : '#ff7b7b',
+		$loaded ? '올라와 있습니다' : '안 올라왔습니다',
+		$route ? '#7bff9b' : '#ff7b7b',
+		$route ? '열려 있습니다' : '없습니다 — 포트원 백엔드 스니펫을 켜주세요'
+	);
+
+	echo '<h2 style="color:#9fd;margin-top:26px">다음에 볼 것</h2>';
+	echo '<p>아래 주소도 한 번 열어보세요. 열쇠가 제대로 들어갔는지, 지금이 체험판(값이 전부 0원)인지 알려줍니다.<br>'
+		. '<a style="color:#ffd76a" href="/?stella_check=1">/?stella_check=1</a></p>';
+
+	echo '<p style="margin-top:20px"><a style="color:#ffd76a" href="/pay/">→ 결제 페이지 열어보기</a></p>';
+	echo '</body>';
+	exit;
+} );

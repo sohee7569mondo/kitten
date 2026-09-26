@@ -1,0 +1,242 @@
+// 홈에 띠 · 여는 동안 전부 무료          판 2026-09-23
+//
+// 소희 님 「지금 오픈해서 유입수를 늘려야 할거 같아
+// 전부 공짜로 풀자」
+//
+// 홈에는 값 얘기가 한 자도 없었습니다. 이제 무료라는 것을
+// 가장 먼저 말합니다 — 유입에는 이것보다 강한 문구가 없습니다.
+// 정가 9,000원에 줄을 그어 값어치를 함께 보입니다.
+//
+// ★ 짝이 있습니다 — 조각 patch_freeall
+// 그것이 실제로 값을 0 으로 만듭니다. 이 띠는 말만 합니다.
+// 띠만 붙이고 그것을 안 하시면 손님이 「무료」를 보고 들어가
+// 「구슬이 모자라요」로 막힙니다. 둘을 같이 하셔야 합니다.
+//
+// 놓는 자리
+// 「스텔라사주보기」 제목 바로 아래 — 물음 카드 열두 장 앞입니다.
+//
+// 앵커를 안 잡습니다
+// id 가 saju 인 자리를 찾아 그 머리말 뒤에 띠 하나를 끼웁니다.
+// 쪽 원본은 한 글자도 안 고칩니다 — 끄면 그대로 돌아갑니다.
+//
+// 여는 기간을 접으실 때는 아래 네 줄만 고치시면 됩니다.
+//
+// ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+// ★ 크롬 번역을 끄고 붙여넣으세요.
+
+add_action( 'wp_head', function () {
+
+	if ( ! is_front_page() ) { return; }
+
+	// ── 고치실 곳은 여기뿐입니다 ─────────────────────────
+	$WAS  = '9,000원';   // 정가 — 가운데 줄을 그어 보입니다
+	$NOW  = '무료';      // 지금 내실 값
+	$ORB  = '가입하지 않으셔도 됩니다';
+	$SAY  = '오픈 기간에는 여섯 문을 마음껏 여셔도 값을 안 받습니다. '
+		. '글은 줄이지 않았습니다 — 풀이 한 편이 책 한 권 그대로입니다.';
+	$GO   = '2026년 운세';   // 단추가 데려가는 주제
+	$GAP  = 88;            // 띠 아래 여백(px) — 더 띄우시려면 이 숫자만
+	$TOP  = 36;            // 띠 위 여백(px)
+	$b  = '';
+	$b .= "<style id='stella-homeprice-css'>\n";
+	$b .= "#hp-band{ padding:26px 28px; border-radius:16px;\n";
+	$b .= "  background:var(--plum-soft,#F0EBFB); border:1px solid #DED3F4;\n";
+	$b .= "  display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; }\n";
+	$b .= "#hp-band .hp-kick{ font-size:.82rem; letter-spacing:.04em; font-weight:700;\n";
+	$b .= "  color:var(--plum,#6B4FB0); background:#fff; border-radius:999px;\n";
+	$b .= "  padding:5px 12px; border:1px solid #DED3F4; }\n";
+	$b .= "#hp-band .hp-price{ display:flex; align-items:baseline; gap:9px; }\n";
+	$b .= "#hp-band .hp-was{ color:var(--ink-dim,#8B849C); text-decoration:line-through;\n";
+	$b .= "  font-size:1rem; }\n";
+	$b .= "#hp-band .hp-now{ color:#C4453A; font-weight:800; font-size:1.42rem;\n";
+	$b .= "  letter-spacing:-.01em; }\n";
+	$b .= "#hp-band .hp-orb{ color:var(--ink-dim,#8B849C); font-size:.82rem; }\n";
+	$b .= "#hp-band .hp-say{ color:var(--ink-soft,#4E4763); font-size:.92rem;\n";
+	$b .= "  line-height:1.7; flex:1 1 260px; min-width:200px; }\n";
+	$b .= "#hp-band .hp-say b{ color:var(--ink,#221C33); font-weight:700; }\n";
+	$b .= "#hp-band .hp-go{ display:inline-block; text-decoration:none; font-weight:700;\n";
+	$b .= "  font-size:.92rem; color:#fff; background:var(--plum,#6B4FB0);\n";
+	$b .= "  border-radius:999px; padding:11px 20px; white-space:nowrap; }\n";
+	$b .= "#hp-band .hp-go:hover{ background:#5A3F9C; }\n";
+	$b .= "@media(max-width:640px){\n";
+	$b .= "  #hp-band{ padding:20px 18px; gap:11px 14px; }\n";
+	$b .= "  #hp-band .hp-now{ font-size:1.26rem; }\n";
+	$b .= "  #hp-band .hp-go{ width:100%; text-align:center; }\n";
+	$b .= "}\n";
+	$b .= "</style>\n";
+	$b .= "<script>\n";
+	$b .= "(function(){\n";
+	$b .= "  if(window.StellaHomePrice){ return; }\n";
+	$b .= "  window.StellaHomePrice = 1;\n";
+	$b .= "\n";
+	$b .= "  var WAS = " . wp_json_encode( $WAS ) . ";\n";
+	$b .= "  var NOW = " . wp_json_encode( $NOW ) . ";\n";
+	$b .= "  var ORB = " . wp_json_encode( $ORB ) . ";\n";
+	$b .= "  var SAY = " . wp_json_encode( $SAY ) . ";\n";
+	$b .= "  var GO  = " . wp_json_encode( $GO ) . ";\n";
+	$b .= "  var ADMIN = " . ( current_user_can( 'manage_options' ) ? '1' : '0' ) . ";\n";
+	$b .= "  var GAP   = " . (int) $GAP . ";\n";
+	$b .= "  var TOP   = " . (int) $TOP . ";\n";
+	$b .= "\n";
+	$b .= "  function band(){\n";
+	$b .= "    var d = document.createElement('div');\n";
+	$b .= "    d.id = 'hp-band';\n";
+	$b .= "\n";
+	$b .= "    var kick = document.createElement('span');\n";
+	$b .= "    kick.className = 'hp-kick';\n";
+	$b .= "    kick.textContent = '오픈기념';\n";
+	$b .= "    d.appendChild(kick);\n";
+	$b .= "\n";
+	$b .= "    var p = document.createElement('div');\n";
+	$b .= "    p.className = 'hp-price';\n";
+	$b .= "    var w = document.createElement('span');\n";
+	$b .= "    w.className = 'hp-was';\n";
+	$b .= "    w.textContent = WAS;\n";
+	$b .= "    var n = document.createElement('span');\n";
+	$b .= "    n.className = 'hp-now';\n";
+	$b .= "    n.textContent = NOW;\n";
+	$b .= "    var o = document.createElement('span');\n";
+	$b .= "    o.className = 'hp-orb';\n";
+	$b .= "    o.textContent = ORB;\n";
+	$b .= "    p.appendChild(w); p.appendChild(n); p.appendChild(o);\n";
+	$b .= "    d.appendChild(p);\n";
+	$b .= "\n";
+	$b .= "    var s = document.createElement('div');\n";
+	$b .= "    s.className = 'hp-say';\n";
+	$b .= "    s.textContent = SAY;\n";
+	$b .= "    d.appendChild(s);\n";
+	$b .= "\n";
+	$b .= "    var a = document.createElement('a');\n";
+	$b .= "    a.className = 'hp-go';\n";
+	$b .= "    a.setAttribute('href', '/door-fortune/?topic=' + encodeURIComponent(GO));\n";
+	$b .= "    a.textContent = GO + '부터 보기 ' + String.fromCharCode(8250);\n";
+	$b .= "    d.appendChild(a);\n";
+	$b .= "\n";
+	$b .= "    // ★ 위아래 여백은 margin 이 아니라 padding 으로 줍니다.\n";
+	$b .= "    //   margin 은 위아래와 겹쳐서 사라지거나 다른 규칙에 질 수\n";
+	$b .= "    //   있지만, padding 은 반드시 그만큼 생깁니다.\n";
+	$b .= "    //   살아 있는 홈에서 여백이 샘플보다 좀았던 까닭입니다.\n";
+	$b .= "    var shell = document.createElement('div');\n";
+	$b .= "    shell.id = 'hp-wrap';\n";
+	$b .= "    shell.appendChild(d);\n";
+	$b .= "    shell.style.setProperty('padding-top', TOP + 'px', 'important');\n";
+	$b .= "    shell.style.setProperty('padding-bottom', GAP + 'px', 'important');\n";
+	$b .= "    shell.style.setProperty('margin', '0', 'important');\n";
+	$b .= "\n";
+	$b .= "    return shell;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "      // ★ 관리자에게만 — 띠가 어디 들어갔고 여백이 얼마인지\n";
+	$b .= "    // 짐작하지 말고 재서 찍습니다. 손님에게는 안 보입니다.\n";
+	$b .= "  // 자는 부르셔야 나옵니다 — 주소 뒤에 ?hpruler=1\n";
+	$b .= "  // 한 번 재고 나면 거슬리므로 평소에는 숨어 있습니다.\n";
+	$b .= "  function ruler(d){\n";
+	$b .= "    if(!ADMIN){ return; }\n";
+	$b .= "    if(String(location.search).indexOf('hpruler') < 0){ return; }\n";
+	$b .= "    if(document.getElementById('hp-ruler')){ return; }\n";
+	$b .= "    var box = document.createElement('div');\n";
+	$b .= "    box.id = 'hp-ruler';\n";
+	$b .= "    box.style.cssText = 'margin:6px 0 0;padding:7px 11px;border-radius:7px;'\n";
+	$b .= "      + 'background:#FFF6D8;border:1px solid #E2CE8A;color:#5B4A12;'\n";
+	$b .= "      + 'font-size:12px;line-height:1.7;word-break:break-all';\n";
+	$b .= "\n";
+	$b .= "    function say(){\n";
+	$b .= "      var box2 = d.parentNode;\n";
+	$b .= "      var prev = box2.previousElementSibling;\n";
+	$b .= "      var next = box2.nextElementSibling;\n";
+	$b .= "      var r  = box2.getBoundingClientRect();\n";
+	$b .= "      var cs = window.getComputedStyle(box2);\n";
+	$b .= "      var t = '띠 자리 — 앞: ' + (prev ? (prev.className || prev.tagName) : '(없음)');\n";
+	$b .= "      t += '  ·  뒤: ' + (next ? (next.className || next.tagName) : '(없음)');\n";
+	$b .= "      if(prev){\n";
+	$b .= "        t += '  ·  위 여백 ' + Math.round(r.top - prev.getBoundingClientRect().bottom) + 'px';\n";
+	$b .= "      }\n";
+	$b .= "      if(next){\n";
+	$b .= "        t += '  ·  아래 여백 ' + Math.round(next.getBoundingClientRect().top - r.bottom) + 'px';\n";
+	$b .= "      }\n";
+	$b .= "      t += '  ·  재서 놓은 margin ' + cs.marginTop + ' / ' + cs.marginBottom;\n";
+	$b .= "      var rb = d.getBoundingClientRect();\n";
+	$b .= "      t += '  ·  띠 왼 ' + Math.round(rb.left) + ' 오 ' + Math.round(rb.right);\n";
+	$b .= "      var row = document.querySelector('#saju .rowhead');\n";
+	$b .= "      if(row){\n";
+	$b .= "        var rr = row.getBoundingClientRect();\n";
+	$b .= "        t += '  ·  줄머리 왼 ' + Math.round(rr.left) + ' 오 ' + Math.round(rr.right);\n";
+	$b .= "      }\n";
+	$b .= "      var hero = document.querySelector('.banner');\n";
+	$b .= "      if(hero){\n";
+	$b .= "        var rh = hero.getBoundingClientRect();\n";
+	$b .= "        t += '  ·  배너 왼 ' + Math.round(rh.left) + ' 오 ' + Math.round(rh.right);\n";
+	$b .= "      }\n";
+	$b .= "      box.textContent = t;\n";
+	$b .= "    }\n";
+	$b .= "\n";
+	$b .= "        // ★ 띠 밖에 두면 자 자신이 여백을 밀어내 재는 것을\n";
+	$b .= "    // 망칩니다. 띠 안에 넣어 바깥 여백을 안 건드리게 합니다.\n";
+	$b .= "    box.style.flex = '1 1 100%';\n";
+	$b .= "    d.appendChild(box);\n";
+	$b .= "    say();\n";
+	$b .= "    setTimeout(say, 900);\n";
+	$b .= "    window.addEventListener('resize', say);\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  // ★ 짝짝이 맞추기 — 짐작하지 말고 화면에서 재서 맞춥니다.\n";
+	$b .= "  //   살아 있는 홈에는 제 사본에 없는 CSS 가 있어\n";
+	$b .= "  //   시험에서는 같던 선이 살아서는 몇 픽셀 어긋납니다.\n";
+	$b .= "  //   아래 줄머리(.rowhead)를 기준으로 재서 그에 맞춥니다.\n";
+	$b .= "  //   ★ 재서 더하지 않고 그대로 놓습니다 — 되풀이하면 불어납니다.\n";
+	$b .= "  function align(shell, d, sec){\n";
+	$b .= "    var base = sec.querySelector('.rowhead');\n";
+	$b .= "    if(!base){ base = sec.querySelector('.rail'); }\n";
+	$b .= "    if(!base){ return; }\n";
+	$b .= "    var rb = base.getBoundingClientRect();\n";
+	$b .= "    var rs = shell.getBoundingClientRect();\n";
+	$b .= "    if(rb.width < 40){ return; }\n";
+	$b .= "    var pl = Math.round(rb.left - rs.left);\n";
+	$b .= "    var pr = Math.round(rs.right - rb.right);\n";
+	$b .= "    if(pl < 0){ pl = 0; }\n";
+	$b .= "    if(pr < 0){ pr = 0; }\n";
+	$b .= "    shell.style.setProperty('padding-left', pl + 'px', 'important');\n";
+	$b .= "    shell.style.setProperty('padding-right', pr + 'px', 'important');\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function put(){\n";
+	$b .= "    if(document.getElementById('hp-band')){ return true; }\n";
+	$b .= "    var sec = document.getElementById('saju');\n";
+	$b .= "    if(!sec){ return false; }\n";
+	$b .= "\n";
+	$b .= "    var shell = band();\n";
+	$b .= "\n";
+	$b .= "    // ★ 상자(.wrap) 안 맨 앞 — 그래야 아래 배너들과 같은 선입니다.\n";
+	$b .= "    //   상자 밖에 두면 제 폭이 되어 카드보다 28px 씩 넘칩니다.\n";
+	$b .= "    //   (1254px 에서 재보니 히어로 67~1187 · 카드 95~1159 로 다릅니다.\n";
+	$b .= "    //    소희 님께서 아래 배너에 맞추라 하셨습니다.)\n";
+	$b .= "    var wrap = sec.querySelector('.wrap');\n";
+	$b .= "    if(wrap){\n";
+	$b .= "      wrap.insertBefore(shell, wrap.firstChild);\n";
+	$b .= "      align(shell, shell.firstChild, sec);\n";
+	$b .= "      setTimeout(function(){ align(shell, shell.firstChild, sec); }, 700);\n";
+	$b .= "      window.addEventListener('resize', function(){\n";
+	$b .= "        align(shell, shell.firstChild, sec);\n";
+	$b .= "      });\n";
+	$b .= "      ruler(shell.firstChild);\n";
+	$b .= "      return true;\n";
+	$b .= "    }\n";
+	$b .= "    // 상자를 못 찾으면 칸 맨 앞에 놓고 좌우 여백을 손으로 줍니다\n";
+	$b .= "    shell.style.setProperty('padding-left', '28px', 'important');\n";
+	$b .= "    shell.style.setProperty('padding-right', '28px', 'important');\n";
+	$b .= "    sec.insertBefore(shell, sec.firstChild);\n";
+	$b .= "    ruler(shell.firstChild);\n";
+	$b .= "    return true;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  if(put()){ return; }\n";
+	$b .= "  var n = 0;\n";
+	$b .= "  var t = setInterval(function(){\n";
+	$b .= "    n++;\n";
+	$b .= "    if(put()){ clearInterval(t); return; }\n";
+	$b .= "    if(n > 40){ clearInterval(t); }\n";
+	$b .= "  }, 200);\n";
+	$b .= "})();\n";
+	$b .= "</script>\n";
+	echo $b;
+} );

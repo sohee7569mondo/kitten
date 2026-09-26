@@ -1,0 +1,135 @@
+/* ════════════════════════════════════════════════════════════
+   「나의 인생길잡이」 페이지 속 보기 · 소희 님께
+
+   타일 여섯 개와 아래 단추가 어떻게 만들어져 있는지 봅니다.
+   아무것도 고치지 않습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere →
+              첫 줄 PHP 태그 아래에 붙여넣기 → 저장 → 활성
+
+        https://stellasaju.com/?stella_patch=guidelook
+
+   ※ 다른 진단 스니펫은 꺼주세요. 한 번에 하나만 켜져 있어야 합니다.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_patch'] ) || 'guidelook' !== $_GET['stella_patch'] ) {
+		return;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.7 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:22px;max-width:1150px">';
+	echo '<h1 style="color:#ffd76a">나의 인생길잡이 페이지 속</h1>';
+
+	/* ── 어느 페이지에 그 단추가 있나 ─────────────────────── */
+	$needle = '한 권 받아보기';
+	$rows   = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT ID, post_title, post_name FROM {$wpdb->posts}
+			  WHERE post_type = 'page' AND post_status = 'publish'
+			    AND post_content LIKE %s",
+			'%' . $wpdb->esc_like( $needle ) . '%'
+		)
+	);
+	echo '<h2 style="color:#9fd">「한 권 받아보기」 단추가 있는 페이지</h2>';
+	if ( ! $rows ) {
+		echo '<p style="color:#ff7b7b">못 찾았습니다.</p>';
+	} else {
+		foreach ( $rows as $r ) {
+			printf( '<p>· <b>%d</b> — %s (/%s/)</p>', $r->ID, esc_html( $r->post_title ), esc_html( $r->post_name ) );
+		}
+	}
+
+	/* ── 189 를 들여다봅니다 ──────────────────────────────── */
+	$pid = 189;
+	$c   = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $c ) {
+		echo '<p style="color:#ff7b7b">페이지 189 를 못 읽었습니다.</p></body>';
+		exit;
+	}
+	printf( '<h2 style="color:#9fd">페이지 %d · %d 바이트</h2>', $pid, strlen( $c ) );
+
+	$box = function ( $title, $text ) {
+		printf(
+			'<h3 style="color:#ffd76a;margin-top:20px">%s</h3>'
+			. '<pre style="white-space:pre-wrap;background:#000;padding:12px;border-left:3px solid #ffd76a;overflow-x:auto;font:12.5px/1.65 monospace">%s</pre>',
+			esc_html( $title ),
+			esc_html( $text )
+		);
+	};
+
+	/* 값이 적힌 곳 */
+	foreach ( array( '990원', '24,750', '24750', '구슬 1개' ) as $w ) {
+		$p = strpos( $c, $w );
+		if ( false !== $p ) {
+			$box( '값 「' . $w . '」 앞뒤', substr( $c, max( 0, $p - 700 ), 1500 ) );
+		}
+	}
+
+	/* 타일 여섯 개 — 첫 타일부터 단추까지 통째로 */
+	$a = strpos( $c, '직업운' );
+	$b = strpos( $c, '한 권 받아보기' );
+	if ( false !== $a && false !== $b && $b > $a ) {
+		$len = ( $b - $a ) + 700;
+		if ( $len > 9000 ) {
+			$box( '타일 첫머리 (너무 길어 앞부분만)', substr( $c, max( 0, $a - 900 ), 4000 ) );
+			$box( '단추 앞뒤', substr( $c, max( 0, $b - 2500 ), 3600 ) );
+		} else {
+			$box( '타일 여섯 개부터 단추까지 통째로', substr( $c, max( 0, $a - 900 ), $len + 900 ) );
+		}
+	} else {
+		if ( false !== $a ) {
+			$box( '「직업운」 앞뒤', substr( $c, max( 0, $a - 900 ), 3000 ) );
+		}
+		if ( false !== $b ) {
+			$box( '단추 앞뒤', substr( $c, max( 0, $b - 2000 ), 3200 ) );
+		}
+	}
+
+	/* 이 페이지에서 밖으로 나가는 길이 어디로 향하나 */
+	echo '<h2 style="color:#9fd">이 페이지에서 눌러 나가는 곳</h2>';
+	if ( preg_match_all( '/href\s*=\s*([\'"])(.*?)\1/', $c, $mm ) ) {
+		$seen = array();
+		echo '<table cellpadding="6" style="border-collapse:collapse"><tr style="color:#ffd76a"><td>몇 번</td><td>주소</td></tr>';
+		foreach ( $mm[2] as $h ) {
+			if ( ! isset( $seen[ $h ] ) ) {
+				$seen[ $h ] = 0;
+			}
+			$seen[ $h ]++;
+		}
+		foreach ( $seen as $h => $n ) {
+			printf( '<tr style="border-top:1px solid #333"><td>%d</td><td>%s</td></tr>', $n, esc_html( $h ) );
+		}
+		echo '</table>';
+	} else {
+		echo '<p>href 가 없습니다 — 자바스크립트로 넘기고 있을 수 있습니다.</p>';
+	}
+
+	/* 자바스크립트로 넘기는 곳 */
+	echo '<h2 style="color:#9fd">자바스크립트로 넘기는 곳</h2>';
+	$n = 0;
+	foreach ( array( 'location.href', 'location.assign', 'window.open', 'data-go', 'data-href' ) as $w ) {
+		$p = 0;
+		while ( ( $p = strpos( $c, $w, $p ) ) !== false ) {
+			$n++;
+			$box( $w, substr( $c, max( 0, $p - 300 ), 700 ) );
+			$p += strlen( $w );
+			if ( $n >= 6 ) {
+				break 2;
+			}
+		}
+	}
+	if ( 0 === $n ) {
+		echo '<p>없습니다.</p>';
+	}
+
+	echo '</body>';
+	exit;
+} );

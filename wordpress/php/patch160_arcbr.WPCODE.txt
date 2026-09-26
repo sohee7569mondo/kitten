@@ -1,0 +1,174 @@
+/* ══════════════════════════════════════════════════════════
+   아르카나 말상자 · 줄바꿈을 소희 님 판으로
+   ★ 2026-09-12 · 소희 님께
+
+   소희 님이 줄을 다시 나눠 보내주셨습니다.
+   글자는 한 자도 안 바뀌었습니다. 줄만 바뀝니다.
+
+   ── 지금 (br 여섯 개 · 여섯 줄) ───────────────────────
+       사주는 당신이 어떤 사람인지를 말합니다.
+       저는 그걸 바꾸지 않아요. 바꿀 수도 없고요.
+
+       다만 같은 사람도 어제와 오늘이 다릅니다.
+       사주가 지도라면 카드는 오늘의 날씨예요.
+       지도는 십 년을 가도 그대로지만,
+       오늘 우산을 챙길지는 날씨가 정합니다.
+
+       그래서 세 장을 뽑으시라고 했습니다.
+       앞의 사주가 당신의 지도라면,
+       이 세 장은 지금 이 계절의 하늘입니다.
+
+   ── 바꾼 뒤 (br 두 개 · 다섯 줄) ──────────────────────
+       사주는 당신이 어떤 사람인지를 말합니다. 저는 그걸 바꾸지 않아요. 바꿀 수도 없고요.
+
+       다만 같은 사람도 어제와 오늘이 다릅니다. 사주가 지도라면 카드는 오늘의 날씨예요.
+       지도는 십 년을 가도 그대로지만, 오늘 우산을 챙길지는 날씨가 정합니다.
+
+       그래서 세 장을 뽑으시라고 했습니다.
+       앞의 사주가 당신의 지도라면, 이 세 장은 지금 이 계절의 하늘입니다.
+
+   ── 왜 이게 나은가 ────────────────────────────────────
+   한 줄에 한 생각이 아니라, 한 줄에 한 짝이 옵니다.
+
+       「지도라면 → 날씨예요」    한 줄
+       「그대로지만 → 정합니다」  한 줄
+
+   비유가 한 줄 안에서 닫히니 읽고 바로 알아집니다.
+   여섯 줄일 때는 짝이 두 줄에 갈라져서 눈이 한 번 더 돌았습니다.
+   마지막 두 줄도 「뽑으시라고 했습니다 / 그게 무엇이냐」로 갈라집니다.
+
+   ── 지키는 것 ─────────────────────────────────────────
+   · 글자는 한 자도 안 건드립니다. <br> 자리만 옮깁니다.
+   · 세 자리가 다 한 군데씩 걸릴 때만 바꿉니다.
+   · 두 번 눌러도 한 번만 들어갑니다.
+   · 되돌림 꾸러미를 wp_slash 로 감쌉니다.
+
+   해보기   https://stellasaju.com/?stella_arcbr=preview
+   붙이기   https://stellasaju.com/?stella_arcbr=apply
+   되돌리기 https://stellasaju.com/?stella_arcbr=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_arcbr'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_arcbr'] ) );
+	$META = '_stella_arcbr_bak';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $id, $META, true );
+		if ( '' === $old ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다.';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	$O1 = <<<'TAG'
+<p>사주는 당신이 어떤 사람인지를 말합니다. <br>저는 그걸 바꾸지 않아요. 바꿀 수도 없고요.</p>
+TAG;
+	$N1 = <<<'TAG'
+<p>사주는 당신이 어떤 사람인지를 말합니다. 저는 그걸 바꾸지 않아요. 바꿀 수도 없고요.</p>
+TAG;
+
+	$O2 = <<<'TAG'
+<p>다만 같은 사람도 어제와 오늘이 다릅니다. <br><em>사주가 지도라면 카드는 오늘의 날씨예요.</em> <br>지도는 십 년을 가도 그대로지만, <br>오늘 우산을 챙길지는 날씨가 정합니다.</p>
+TAG;
+	$N2 = <<<'TAG'
+<p>다만 같은 사람도 어제와 오늘이 다릅니다. <em>사주가 지도라면 카드는 오늘의 날씨예요.</em><br>지도는 십 년을 가도 그대로지만, 오늘 우산을 챙길지는 날씨가 정합니다.</p>
+TAG;
+
+	$O3 = <<<'TAG'
+<p>그래서 세 장을 뽑으시라고 했습니다. <br>앞의 사주가 당신의 지도라면, <br><em>이 세 장은 지금 이 계절의 하늘입니다.</em></p>
+TAG;
+	$N3 = <<<'TAG'
+<p>그래서 세 장을 뽑으시라고 했습니다.<br>앞의 사주가 당신의 지도라면, <em>이 세 장은 지금 이 계절의 하늘입니다.</em></p>
+TAG;
+
+	$FIX = array(
+		array( '첫 문단', $O1, $N1 ),
+		array( '둘째 문단', $O2, $N2 ),
+		array( '셋째 문단', $O3, $N3 ),
+	);
+
+	echo "═══ 아르카나 말상자 · 줄바꿈 ═══════════\n";
+	echo '쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "자\n\n";
+
+	$todo = array();
+	$done = 0;
+	$miss = 0;
+	foreach ( $FIX as $r ) {
+		$got = substr_count( $c, $r[1] );
+		if ( 1 === $got ) {
+			echo '  ' . $r[0] . '  찾았습니다' . "\n";
+			$todo[] = $r;
+			continue;
+		}
+		if ( $got > 1 ) {
+			echo '  ' . $r[0] . '  ★ ' . $got . "군데입니다 — 건너뜁니다\n";
+			$miss = $miss + 1;
+			continue;
+		}
+		if ( substr_count( $c, $r[2] ) > 0 ) {
+			echo '  ' . $r[0] . "  이미 바뀌어 있습니다\n";
+			$done = $done + 1;
+			continue;
+		}
+		echo '  ' . $r[0] . "  ★ 못 찾았습니다 — 건너뜁니다\n";
+		$miss = $miss + 1;
+	}
+	echo "\n";
+
+	if ( 0 === count( $todo ) ) {
+		if ( $done > 0 ) { echo "이미 다 바뀌어 있습니다.\n"; }
+		else { echo "하나도 못 찾았습니다. 아무것도 안 바꿨습니다.\n이 화면을 저에게 보내주세요.\n"; }
+		exit;
+	}
+
+	if ( count( $todo ) < 3 ) {
+		echo "세 자리가 다 걸릴 때만 바꿉니다. 아무것도 안 건드렸습니다.\n";
+		echo "이 화면을 저에게 보내주세요.\n";
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $todo as $r ) { $new = str_replace( $r[1], $r[2], $new ); }
+
+	if ( 'preview' === $mode ) {
+		echo "세 자리를 바꿉니다. 글자는 한 자도 안 바뀝니다.\n";
+		echo number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "자\n";
+		echo "  (<br> 네 개가 빠지고 두 개가 남습니다)\n\n";
+		echo "괜찮으시면 ?stella_arcbr=apply\n";
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) { echo '?stella_arcbr=preview 부터 보세요.'; exit; }
+
+	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
+		update_post_meta( $id, $META, wp_slash( $c ) );
+	}
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "바꿨습니다.\n";
+	echo number_format( strlen( $new ) ) . "자\n\n";
+	echo "카드 세 장 앞의 아르카나 말상자를 보세요.\n";
+	echo "되돌리려면 ?stella_arcbr=undo\n";
+	exit;
+}, 1 );

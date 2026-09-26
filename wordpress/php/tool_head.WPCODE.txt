@@ -1,0 +1,78 @@
+/* ══════════════════════════════════════════════════════════
+   wp_head 안의 71초 찾기 · 소희 님께             2026-09-11
+   ── 판 : HEAD-1 (2026-09-11) ──
+
+   구간 시계에서 나온 값 :
+       6,924ms   wp_head 들어감
+      78,403ms   ← 71,479ms 가 이 안에서 사라집니다
+      78,433ms   요약글 만듦
+
+   wp_head 안에 붙어 있는 조각들을 하나씩 돌려보며 시간을 잽니다.
+   그중 하나가 71초를 먹고 있습니다.
+   제 짐작으로는 「1.3MB 본문으로 소개문 만들기」입니다 —
+   검색엔진·카톡 공유에 쓸 한두 줄을 뽑으려고 130만 글자를 훑는 것이죠.
+
+   ★ 이 주소는 책을 안 그립니다. 숫자만 내놓습니다.
+   ★ 아무것도 안 바꿉니다.
+
+   주소  https://stellasaju.com/reading-book/?demo=door-love&stella_head911=1
+
+   ★ 스니펫 이름 「STELLA - 머리 조각 시계」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_head911'] ) ) { return; }
+
+	global $wp_filter;
+	@set_time_limit( 300 );
+
+	if ( have_posts() ) { the_post(); rewind_posts(); }
+
+	$rows = array();
+	if ( isset( $wp_filter['wp_head'] ) ) {
+		foreach ( $wp_filter['wp_head']->callbacks as $prio => $cbs ) {
+			foreach ( $cbs as $idn => $cb ) {
+				$fn = $cb['function'];
+
+				if ( is_string( $fn ) ) { $nm = $fn; }
+				elseif ( is_array( $fn ) ) {
+					$cls = is_object( $fn[0] ) ? get_class( $fn[0] ) : (string) $fn[0];
+					$nm  = $cls . '::' . (string) $fn[1];
+				} elseif ( $fn instanceof Closure ) { $nm = '(이름 없는 조각)'; }
+				else { $nm = '(모름)'; }
+
+				$t = microtime( true );
+				ob_start();
+				try { call_user_func( $fn, '' ); }
+				catch ( Throwable $e ) { /* 넘어갑니다 */ }
+				$len = strlen( (string) ob_get_clean() );
+				$rows[] = array( ( microtime( true ) - $t ) * 1000, $prio, $nm, $len );
+			}
+		}
+	}
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+	echo "═══ 머리 조각 시계 · 판 HEAD-1 (2026-09-11) ═══\n\n";
+	echo 'wp_head 조각 ' . count( $rows ) . "가지\n\n";
+
+	$sum = 0;
+	foreach ( $rows as $r ) { $sum += $r[0]; }
+	echo '모두 합쳐 ' . number_format( $sum, 0 ) . "ms\n\n";
+
+	usort( $rows, function ( $a, $b ) {
+		if ( $a[0] === $b[0] ) { return 0; }
+		return ( $a[0] < $b[0] ) ? 1 : -1;
+	} );
+
+	echo "─── 오래 걸리는 차례대로 ───\n";
+	foreach ( $rows as $r ) {
+		list( $ms, $prio, $nm, $len ) = $r;
+		echo sprintf( "  %9sms  [%6s] %-52s 내놓은 글자 %d\n",
+			number_format( $ms, 0 ), $prio, mb_substr( $nm, 0, 52, 'UTF-8' ), $len );
+	}
+
+	echo "\n이 화면을 통째로 붙여주세요. 맨 위 하나만 빼면 됩니다.\n";
+	exit;
+}, 6 );

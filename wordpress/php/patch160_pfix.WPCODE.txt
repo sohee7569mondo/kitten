@@ -1,0 +1,348 @@
+/* ══════════════════════════════════════════════════════════
+   궁합 — 상대 생년월일이 주문에 안 담기던 것을 고칩니다
+                                        ★ 2026-09-13 · 소희 님께
+                                        판 PFIX-4
+
+   ── 무엇이 잘못돼 있었나 ──────────────────────────────
+   ?stella_gtext=1 에서 샘플 궁합 책은 잘 나왔습니다. 셈법(GCALC)과
+   본문(GTEXT) 두 조각은 살아 있다는 뜻입니다.
+
+   그런데 실제로 주문을 넣고 책을 열면 궁합이 안 나왔습니다.
+   ?stella_gdemo=see 로 저장된 주문을 찍어 보니 이렇게 나왔습니다 —
+
+       {"guardian":"벼리","guardian_slug":"door-love","topic":"궁합",
+        "oneline":"","memo":"","deeps":[]}
+
+   「partner」가 아예 없습니다. door-love 쪽에 상대 생년월일을 읽는
+   함수(readPartner)는 있는데, 그 결과를 주문에 담지 않고 있었습니다.
+
+   책의 궁합 갈래는 다섯 가지를 봅니다 —
+       StellaGunghapCalc · StellaGunghapText · partner.year ·
+       partner.month · partner.day
+   뒤의 셋이 없어서 ready 가 거짓이 되고, 일반 책으로 흘러갔습니다.
+
+   ── ★ 판 3 에서 더한 것 · 상대 정보를 따로 챙겨 둡니다 ──
+   PFIX-1 을 넣으신 뒤에 남편분 생년월일을 넣고 책까지 보셨는데도
+   partner 가 여전히 없었습니다. 그렇다면 짚이는 자리가 둘입니다.
+
+     가. is_page 판정이 어긋나 체가 아예 안 걸렸다
+     나. 주문이 door-love 가 아닌 **다른 쪽에서** 저장된다
+         (가입이 서버로 가고, 돌아온 뒤 다른 쪽이 주문을 적는 길)
+
+   가 는 판 2 에서 없앴습니다 — 쪽을 안 따지고 머리와 발 두 군데서
+   겁니다.
+
+   나 를 없애려고 판 3 은 **상대 정보를 따로 챙겨 둡니다.**
+
+       상대 칸이 채워지는 순간            stella_partner 에 적어 둡니다
+       (칸이 나중에 생겨도 됩니다 — 쪽 전체에 귀를 답니다)
+       어느 쪽에서든 주문이 저장될 때     화면에 칸이 없으면
+                                          챙겨둔 것에서 꺼내 넣습니다
+
+   그래서 주문을 어느 쪽이 적든 partner 가 따라갑니다.
+
+   ── 어떻게 고치나 (쪽을 안 건드립니다) ────────────────
+   이 조각은 door-love 쪽의 글을 **한 글자도 바꾸지 않습니다.**
+   앵커를 찾지 않으니 「0군데」가 날 일이 없습니다.
+
+   대신 door-love 쪽에서만, 주문을 저장하는 통로에 체를 하나 겁니다.
+
+       주문을 stella_demo 로 저장하려 할 때
+         → 주제가 「궁합」이고 partner 가 비어 있으면
+         → 화면의 상대 칸(pYear · pMonth · pDay …)을 그 자리에서 읽어
+         → partner 를 채워 넣고 저장합니다
+
+   서버로 보내는 주문(order · signup)에도 같은 것을 얹습니다.
+   그래서 체험판이든 가입 회원이든 똑같이 담깁니다.
+
+   칸 이름은 아홉 개 다 맞는 것을 ?stella_pfix=see 로 확인했습니다 —
+   pAlias · pRel · pSex · pYear · pMonth · pDay · pHour · pMin ·
+   pHourUnknown.
+
+   ★★ 이 체는 「다음에 저장되는 주문」부터 일을 합니다.
+   조각을 넣으신 뒤에 door-love 에서 **다시 한 번 걸어오셔야**
+   partner 가 담깁니다. 전에 저장된 주문은 그대로 비어 있습니다.
+
+   ── 하는 법 ───────────────────────────────────────────
+   ① 넣기만 하면 됩니다. preview · apply 가 없습니다.
+      WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+      ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+      ★ 크롬 번역을 끄고 붙여넣으세요.
+
+   ② 확인    https://stellasaju.com/?stella_pfix=see
+      살아 있는 door-love 쪽에 상대 칸 이름이 무엇으로 적혀 있는지,
+      readPartner 함수가 어떻게 생겼는지 그대로 찍어 줍니다.
+      (제가 짐작한 이름과 다르면 여기 바로 보입니다)
+
+   ③ 시험    door-love 에서 「궁합」을 고르고 상대 생년월일을 적고
+             책까지 걸어갑니다. 그다음
+             https://stellasaju.com/?stella_gdemo=see
+             에 partner 가 들어 있으면 다 된 것입니다.
+
+   ── 검사한 것 ─────────────────────────────────────────
+   php -l 통과 · 앰퍼샌드 0개 · node --check 통과 ·
+   node 로 체를 실제로 돌려봄(궁합일 때만 채우고, 다른 주제는 그대로)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── ② 확인 화면 ─────────────────────────────────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_pfix'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$page = get_page_by_path( 'door-love' );
+	if ( ! $page ) { echo 'door-love 쪽을 못 찾았습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
+
+	echo "═══ 상대 칸 이름 살펴보기 ═══\n";
+	echo 'door-love 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "바이트\n\n";
+
+	echo "── 가 · 쪽에 있는 p 로 시작하는 칸 이름 ──\n";
+	$hit = preg_match_all( '/id\s*=\s*[\'"](p[A-Za-z0-9_]*)[\'"]/u', $c, $m );
+	if ( ! $hit ) {
+		echo "하나도 없습니다. 상대 입력 칸이 아직 없는 쪽입니다.\n";
+	} else {
+		$names = array_values( array_unique( $m[1] ) );
+		sort( $names );
+		echo implode( ' · ', $names ) . "\n";
+		echo '모두 ' . count( $names ) . "가지\n";
+	}
+	echo "\n";
+
+	echo "── 나 · 제 조각이 찾는 이름과 맞는지 ──\n";
+	$want = array(
+		'상대 이름'  => array( 'pAlias' ),
+		'관계'       => array( 'pRel' ),
+		'성별'       => array( 'pSex' ),
+		'태어난 해'  => array( 'pYear' ),
+		'태어난 달'  => array( 'pMonth', 'pMonthSel' ),
+		'태어난 날'  => array( 'pDay', 'pDaySel' ),
+		'태어난 시'  => array( 'pHour', 'pHourSel' ),
+		'분'         => array( 'pMin', 'pMinute', 'pMinSel' ),
+		'시각 모름'  => array( 'pUnknown', 'pNoHour', 'pHourUnknown' ),
+	);
+	foreach ( $want as $label => $cands ) {
+		$found = '';
+		foreach ( $cands as $cand ) {
+			if ( false !== strpos( $c, 'id="' . $cand . '"' ) ) { $found = $cand; break; }
+			if ( false !== strpos( $c, "id='" . $cand . "'" ) ) { $found = $cand; break; }
+		}
+		if ( '' === $found ) {
+			echo '  ✗ ' . $label . ' — 못 찾았습니다 (찾아본 이름 : ' . implode( ', ', $cands ) . ")\n";
+		} else {
+			echo '  ○ ' . $label . ' — ' . $found . "\n";
+		}
+	}
+	echo "\n";
+
+	echo "── 다 · readPartner 함수 그대로 ──\n";
+	$p = strpos( $c, 'function readPartner' );
+	if ( false === $p ) {
+		echo "readPartner 라는 함수가 없습니다.\n";
+	} else {
+		echo substr( $c, $p, 900 ) . "\n";
+	}
+	echo "\n";
+
+	echo "── 라 · 주문을 저장하는 자리 ──\n";
+	foreach ( array( 'function keepOrder', 'function goDemo' ) as $needle ) {
+		$q = strpos( $c, $needle );
+		if ( false === $q ) {
+			echo $needle . " — 없습니다\n";
+		} else {
+			echo substr( $c, $q, 260 ) . "\n\n";
+		}
+	}
+
+	echo "── 마 · 이 조각이 하는 일 ──\n";
+	echo "주문을 저장하는 통로에 체를 겁니다. 쪽 글은 안 바꿉니다.\n";
+	echo "그래서 되돌리기가 따로 없습니다 — 스니펫을 꺼면 원래대로입니다.\n";
+	exit;
+} );
+
+
+/* ── ① 실제 고침 ──────────────────────────────────────
+   판 PFIX-4 에서 두 가지를 더 튼튼하게 했습니다.
+
+   가. 「door-love 쪽인가」를 따지지 않습니다.
+       is_page 가 어긋나면 체가 아예 안 걸립니다. 그런데 이 체는
+       주제가 「궁합」이고 · partner 가 비었고 · 화면에 상대 칸이
+       실제로 있을 때만 일을 합니다. 그 셋이 다 맞는 쪽은 door-love
+       뿐이라, 어디서나 켜 두어도 다른 쪽에는 아무 일도 안 합니다.
+
+   나. 머리(wp_head)와 발(wp_footer) 두 군데서 겁니다.
+       한쪽이 안 불려도 다른 쪽이 겁니다. 두 번 걸리지 않도록
+       표시를 하나 두고 이미 걸렸으면 그냥 지나갑니다.
+   ────────────────────────────────────────────────── */
+function stella_pfix_script() {
+
+	$js = <<<'STELLAPFIX'
+<script>
+/* ═══ 궁합 · 상대 생년월일을 주문에 담습니다 (PFIX-1 · 2026-09-13) ═══
+   door-love 쪽 글은 건드리지 않습니다. 주문이 저장되는 통로에서만
+   주제가 「궁합」일 때 partner 를 채워 넣습니다. */
+(function(){
+
+  /* 두 번 걸리지 않게 합니다 (머리와 발 두 군데서 부릅니다) */
+  if(window.StellaFillPartner){ return; }
+
+  /* 칸 하나를 여러 이름으로 찾아봅니다 */
+  function fld(names){
+    for(var i=0;i<names.length;i++){
+      var el=document.getElementById(names[i]);
+      if(el){ return el; }
+    }
+    return null;
+  }
+  function txt(el){
+    if(!el){ return ''; }
+    return String(el.value===undefined?'':el.value).replace(/^\s+/,'').replace(/\s+$/,'');
+  }
+  function num(el){
+    if(!el){ return null; }
+    var v=parseInt(String(el.value===undefined?'':el.value),10);
+    if(isNaN(v)){ return null; }
+    return v;
+  }
+
+  /* 화면의 상대 칸을 그 자리에서 읽습니다 */
+  function readPartnerNow(){
+    var y=num(fld(['pYear']));
+    var m=num(fld(['pMonth','pMonthSel']));
+    var d=num(fld(['pDay','pDaySel']));
+    if(!y){ return null; }
+    if(!m){ return null; }
+    if(!d){ return null; }
+
+    var h=num(fld(['pHour','pHourSel']));
+    var mn=num(fld(['pMin','pMinute','pMinSel']));
+    if(mn===null){ mn=0; }
+    var unk=fld(['pUnknown','pNoHour','pHourUnknown']);
+    if(unk){ if(unk.checked){ h=null; mn=0; } }
+
+    var out={ alias:txt(fld(['pAlias'])), rel:txt(fld(['pRel'])), sex:txt(fld(['pSex'])),
+              year:y, month:m, day:d, hour:h, minute:mn };
+    return out;
+  }
+
+  /* ── 챙겨 두는 자리 ────────────────────────────────
+     주문이 door-love 가 아닌 다른 쪽에서 저장되는 길이 있을 수 있어,
+     상대 칸이 채워지는 순간 따로 적어 둡니다. */
+  var STASH='stella_partner';
+  function keepPartner(){
+    var P=readPartnerNow();
+    if(!P){ return null; }
+    try{ window.localStorage.setItem(STASH, JSON.stringify(P)); }catch(e){}
+    return P;
+  }
+  function takePartner(){
+    try{
+      var v=window.localStorage.getItem(STASH);
+      if(!v){ return null; }
+      var P=JSON.parse(v);
+      if(!P){ return null; }
+      if(!P.year){ return null; }
+      if(!P.month){ return null; }
+      if(!P.day){ return null; }
+      return P;
+    }catch(e){ return null; }
+  }
+  window.StellaPartnerStash=takePartner;
+
+  /* 상대 칸이 있는 쪽에서는 값이 바뀔 때마다 챙겨 둡니다.
+     ★ 통째로 try 로 감쌉니다. 여기서 탈이 나도 아래의 체는 걸려야
+     합니다 — 챙겨두기는 거들 뿐이고, 체가 본 일입니다. */
+  function watch(){
+    try{
+      /* ★ 판 4 — 「지금 칸이 있나」로 막지 않습니다.
+         궁합을 고른 뒤에야 상대 칸이 생기는 쪽이라면, 쪽이 열릴 때는
+         칸이 없어서 지켜보기가 아예 시작되지 않았습니다. 이제 쪽
+         전체에 귀를 답니다. 칸이 없으면 keepPartner 가 조용히
+         아무것도 안 하니 다른 쪽에서도 탈이 없습니다. */
+      document.addEventListener('change', keepPartner, true);
+      document.addEventListener('input',  keepPartner, true);
+      document.addEventListener('click',  keepPartner, true);
+      document.addEventListener('blur',   keepPartner, true);
+      keepPartner();
+    }catch(e){}
+  }
+
+  /* 주문 하나를 보고, 궁합인데 partner 가 비었으면 채웁니다.
+     채웠으면 참, 그대로 두었으면 거짓을 돌려줍니다. */
+  function fill(o){
+    if(!o){ return false; }
+    var t=String(o.topic===undefined?'':o.topic).replace(/^\s+/,'').replace(/\s+$/,'');
+    if(t!=='궁합'){ return false; }
+    if(o.partner){ if(o.partner.year){ return false; } }
+    var P=readPartnerNow();          /* 먼저 화면에서 */
+    if(!P){ P=takePartner(); }       /* 없으면 챙겨둔 것에서 */
+    if(!P){ return false; }
+    o.partner=P;
+    return true;
+  }
+  window.StellaFillPartner=fill;
+
+  /* ── 하나 · 주문이 저장되는 길 (localStorage) ── */
+  try{
+    var LS=window.localStorage;
+    var origSet=LS.setItem.bind(LS);
+    LS.setItem=function(k,v){
+      if(k!=='stella_demo'){ return origSet(k,v); }
+      var o=null;
+      try{ o=JSON.parse(v); }catch(e){ o=null; }
+      if(fill(o)){
+        try{ v=JSON.stringify(o); }catch(e2){}
+      }
+      return origSet(k,v);
+    };
+  }catch(err){}
+
+  /* ── 둘 · 서버로 보내는 길 (order · signup) ── */
+  try{
+    var origFetch=window.fetch;
+    if(origFetch){
+      window.fetch=function(url,opt){
+        var u=String(url||'');
+        var mine=false;
+        if(u.indexOf('/stella/v1/order')>=0){ mine=true; }
+        if(u.indexOf('/stella/v1/signup')>=0){ mine=true; }
+        if(mine){
+          if(opt){
+            if(typeof opt.body==='string'){
+              var o=null;
+              try{ o=JSON.parse(opt.body); }catch(e){ o=null; }
+              if(fill(o)){
+                try{ opt.body=JSON.stringify(o); }catch(e2){}
+              }
+            }
+          }
+        }
+        return origFetch.call(window,url,opt);
+      };
+    }
+  }catch(err2){}
+
+  /* ★ 체를 다 건 다음에 지켜보기를 시작합니다 (차례가 중요합니다) */
+  try{
+    if(document.readyState==='loading'){
+      document.addEventListener('DOMContentLoaded', watch);
+    } else {
+      watch();
+    }
+  }catch(err3){}
+
+})();
+</script>
+STELLAPFIX;
+
+	echo $js;
+}
+add_action( 'wp_head',   'stella_pfix_script', 5 );
+add_action( 'wp_footer', 'stella_pfix_script', 5 );

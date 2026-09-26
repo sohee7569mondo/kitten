@@ -1,0 +1,149 @@
+/* ══════════════════════════════════════════════════════════
+   신년운세 문(때를 아는 신) 사전질문 다시 쓰기
+   ★ 2026-09-10 · 소희 님께
+
+   소희 님 : 「질문이 난해했어 사전질문....」
+
+   맞습니다. 다른 문과 견주면 확실합니다.
+
+     연애운   「다툰 뒤에 어떻게 하세요?」        ← 장면이 보입니다
+     신년운세 「변화를 어떻게 받아들이세요?」      ← 나를 요약하라는 말입니다
+
+   게다가 다섯 중 셋(변화 · 때 · 계획)이 사실상 같은 것을 세 번
+   묻고 있었습니다. 그래서 「내가 아까 뭐라고 했더라」 하게 되고,
+   답이 틀린 것 같은 기분이 듭니다.
+
+   ── 다섯 개 모두 장면으로 바꿉니다 ──────────────────────
+
+     1  이사를 가야 할 일이 생겼습니다
+          · 집을 여러 곳 다 보고 정한다
+          · 마음에 들면 그 자리에서 정한다
+     2  사고 싶던 것이 다음 달에 싸진다고 합니다
+          · 다음 달까지 기다린다
+          · 기다리느니 오늘 산다
+     3  두 곳에서 견적을 받았습니다. 값은 비슷합니다
+          · 적어놓고 하나씩 따져본다
+          · 사람을 만나보고 느낌으로 정한다
+     4  지난 십 년 가운데 인생이 갈린 해가 있나요?
+          · 있다. 그 해를 기점으로 달라졌다
+          · 딱히 없는 것 같다. 그냥 평범했다
+     5  내년 이맘때 무엇을 하고 계실 것 같으세요?
+          · 내년에 뭘 할지 계획을 세워뒀다
+          · 내년도 올해와 비슷하지 않을까 싶다
+
+   1번은 「얼마나 빨리 움직이나」, 3번은 「무엇을 보고 정하나」로
+   갈랐습니다. 이제 겹치지 않습니다.
+
+   ★ 속에 있는 셈(change · wait · decide · past · plan)은 하나도
+     안 바꿉니다. 말만 바뀌니 책에 나오는 풀이는 그대로입니다.
+   ★ 다른 다섯 문은 한 글자도 안 건드립니다.
+
+   해보기   https://stellasaju.com/?stella_q=preview
+   붙이기   https://stellasaju.com/?stella_q=apply
+   되돌리기 https://stellasaju.com/?stella_q=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_q'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_q'] ) );
+	$META = '_stella_q_bak';
+
+	$page = get_page_by_path( 'reading-start' );
+	if ( ! $page ) { echo '질문 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $id, $META, true );
+		if ( '' === $old ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다.';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	$PAIRS = array(
+		array( '1 질문', '\'변화를 어떻게 받아들이세요?\'', '\'이사를 가야 할 일이 생겼습니다\'' ),
+		array( '1 가', '\'천천히 준비해서 옮긴다\'', '\'집을 여러 곳 다 보고 정한다\'' ),
+		array( '1 나', '\'일단 저지르고 맞춰간다\'', '\'마음에 들면 그 자리에서 정한다\'' ),
+		array( '2 질문', '\'때를 기다릴 수 있으세요?\'', '\'사고 싶던 것이 다음 달에 싸진다고 합니다\'' ),
+		array( '2 가', '\'맞는 때까지 기다린다\'', '\'다음 달까지 기다린다\'' ),
+		array( '2 나', '\'기다리는 게 더 답답하다\'', '\'기다리느니 오늘 산다\'' ),
+		array( '3 질문', '\'무언가 결정할 때 어느 쪽인가요?\'', '\'두 곳에서 견적을 받았습니다. 값은 비슷합니다\'' ),
+		array( '3 가', '\'따져보고 숫자로 정한다\'', '\'적어놓고 하나씩 따져본다\'' ),
+		array( '3 나', '\'느낌이 오는 쪽으로 간다\'', '\'사람을 만나보고 느낌으로 정한다\'' ),
+		array( '4 질문', '\'지난 십 년을 돌아보면?\'', '\'지난 십 년 가운데 인생이 갈린 해가 있나요?\'' ),
+		array( '4 가', '\'크게 흔들린 적이 있었다\'', '\'있다. 그 해를 기점으로 달라졌다\'' ),
+		array( '4 나', '\'대체로 잔잔하게 흘러왔다\'', '\'딱히 없는 것 같다. 그냥 평범했다\'' ),
+		array( '5 질문', '\'인생 계획은 어느 쪽이세요?\'', '\'내년 이맘때 무엇을 하고 계실 것 같으세요?\'' ),
+		array( '5 가', '\'몇 년 앞을 그려두는 편이다\'', '\'내년에 뭘 할지 계획을 세워뒀다\'' ),
+		array( '5 나', '\'그때그때 정하는 편이다\'', '\'내년도 올해와 비슷하지 않을까 싶다\'' ),
+	);
+
+	echo "═══ 신년운세 문 사전질문 ═══\n";
+	echo '쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	$bad  = false;
+	$done = 0;
+	foreach ( $PAIRS as $r ) {
+		list( $nm, $old, $new ) = $r;
+		$n = substr_count( $c, $old );
+		if ( 1 === $n ) {
+			echo sprintf( "  %-8s 찾음\n", $nm );
+			continue;
+		}
+		if ( 0 === $n ) {
+			if ( substr_count( $c, $new ) > 0 ) {
+				echo sprintf( "  %-8s 이미 고쳐져 있습니다\n", $nm );
+				$done++;
+				continue;
+			}
+		}
+		echo sprintf( "  %-8s ★ %d군데 (하나여야 합니다)\n", $nm, $n );
+		$bad = true;
+	}
+
+	if ( $bad ) {
+		echo "\n한 군데가 아닌 것이 있어 아무것도 안 바꿨습니다.";
+		exit;
+	}
+	if ( $done === count( $PAIRS ) ) {
+		echo "\n이미 다 고쳐져 있습니다.";
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $PAIRS as $r ) {
+		list( $nm, $o, $n2 ) = $r;
+		$new = str_replace( $o, $n2, $new );
+	}
+
+	if ( 'preview' === $mode ) {
+		echo "\n열다섯 자리 모두 준비됐습니다. "
+		   . number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
+		echo "붙이시려면 ?stella_q=apply\n";
+		exit;
+	}
+
+	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
+		update_post_meta( $id, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n고쳤습니다. 신년운세 문에서 운세 보기를 눌러 보세요.\n";
+	echo "되돌리려면 ?stella_q=undo\n";
+	exit;
+}, 1 );

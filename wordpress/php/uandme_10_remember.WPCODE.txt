@@ -1,0 +1,202 @@
+/* ════════════════════════════════════════════════════════════
+   유앤미 ⑩ · 내 생일을 기억해 둡니다        판 2026-09-16
+
+   소희 님 : 「스텔라 사이트 처럼 한번 내 사주 입력하면 자동
+              저장 안돼? 매번 넣으려니 불편하네」
+
+   ── 무엇을 하나 ─────────────────────────────────────
+   「먼저 내 것부터」 화면에 넣으신 것을 이 기기에 담아 두고,
+   다음에 오시면 저절로 채워 넣습니다.
+
+       부를 이름 · 생년월일 · 태어난 시각 · 오전오후 · 성별
+
+   ★ **「상대는 언제 태어났나요」 화면은 안 건드립니다.**
+     화면 맨 위 제목으로 가립니다 — 「내 것」이 있으면 내 것,
+     「상대는」이 있으면 남의 것.
+   ★ 이미 글자가 들어 있는 칸은 안 건드립니다. 손님이 고치는
+     중에 끼어들지 않습니다.
+   ★ 담는 곳은 **이 기기의 브라우저**뿐입니다. 서버로 안 보냅니다.
+     폼 아래에 「지우기」 한 줄을 달아 두었습니다.
+
+   ── 다른 조각을 안 건드립니다 ───────────────────────
+   ⑥(화면 그리기)은 손대지 않습니다. 밖에서 칸만 채웁니다.
+   그래서 ⑥을 다시 뽑아도 이 조각은 그대로 삽니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	$here = ( false !== strpos( $uri, '/uandme' ) ) ? 1 : 0;
+	if ( ! $here ) { if ( ! is_page( 'uandme' ) ) { return; } }
+	?>
+<!-- stella 유앤미 · 내 생일 기억 · 판 2026-09-16 -->
+<style id="stella-umremember">
+#umrm-note{
+  margin:10px 22px 0; font-size:.74rem; line-height:1.6; color:#B3A9C9;
+}
+#umrm-note button{
+  border:0; background:none; padding:0; margin:0; cursor:pointer;
+  font:inherit; color:#8E7BD0; text-decoration:underline;
+}
+</style>
+<script>
+(function(){
+  if(window.StellaUmRemember){ return; }
+  window.StellaUmRemember = 1;
+
+  var KEY = 'stella_um_me';
+
+  function get(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(!raw){ return null; }
+      var o = JSON.parse(raw);
+      if(!o){ return null; }
+      if(!o.y){ return null; }
+      return o;
+    }catch(e){ return null; }
+  }
+  function put(o){ try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){} }
+  function wipe(){ try{ localStorage.removeItem(KEY); }catch(e){} }
+
+  function el(id){ return document.getElementById(id); }
+  function val(id){ var n = el(id); return n ? String(n.value).trim() : ''; }
+
+  /* ═══ 지금 보이는 화면이 「내 것」인가 ═════════════════
+     칸 이름에 안 기댑니다 — 화면 맨 위 제목으로 가립니다. */
+  function screenIsMine(){
+    if(!el('f-y')){ return 0; }
+    var hs = document.querySelectorAll('.h1'), i, t;
+    var mine = 0, yours = 0;
+    for(i = 0; i < hs.length; i++){
+      t = String(hs[i].textContent === null ? '' : hs[i].textContent);
+      if(t.indexOf('내 것') >= 0){ mine = 1; }
+      if(t.indexOf('상대는') >= 0){ yours = 1; }
+    }
+    if(yours){ return 0; }
+    return mine;
+  }
+
+  /* ═══ 담기 ═══════════════════════════════════════════ */
+  function save(){
+    if(!screenIsMine()){ return; }
+    var y = val('f-y');
+    if(y.length < 4){ return; }
+    var o = {
+      name: val('f-name'), y: y, m: val('f-m'), d: val('f-d'),
+      h: val('f-h'), mi: val('f-mi'),
+      ampm: segOn('data-ampm'), sex: segOn('data-sex')
+    };
+    put(o);
+  }
+
+  function segOn(attr){
+    try{
+      var bs = document.querySelectorAll('[' + attr + ']'), i, c;
+      for(i = 0; i < bs.length; i++){
+        c = String(bs[i].className === null ? '' : bs[i].className);
+        if(c.indexOf('on') >= 0){ return String(bs[i].getAttribute(attr)); }
+      }
+    }catch(e){}
+    return '';
+  }
+  /* 단추를 눌러 줍니다. 누르면 화면을 다시 그리기도 하므로,
+     이미 켜져 있으면 안 누릅니다. 몇 번 이상은 포기합니다. */
+  var taps = {};
+  function segTap(attr, want){
+    if(!want){ return; }
+    if(segOn(attr) === want){ return; }
+    var n = taps[attr] ? taps[attr] : 0;
+    if(n > 3){ return; }
+    try{
+      var b = document.querySelector('[' + attr + '="' + want + '"]');
+      if(!b){ return; }
+      taps[attr] = n + 1;
+      b.click();
+    }catch(e){}
+  }
+
+  /* ═══ 채우기 ═════════════════════════════════════════
+     비어 있는 칸만 채웁니다. 손님이 고치는 중에는 안 끼어듭니다. */
+  function fill(id, v){
+    if(!v){ return; }
+    var n = el(id);
+    if(!n){ return; }
+    if(String(n.value).trim()){ return; }
+    n.value = v;
+    try{
+      var ev = document.createEvent('HTMLEvents');
+      ev.initEvent('input', true, false);
+      n.dispatchEvent(ev);
+    }catch(e){}
+  }
+
+  function restore(){
+    if(!screenIsMine()){ return; }
+    var o = get();
+    if(!o){ return; }
+    fill('f-name', o.name);
+    fill('f-y', o.y);
+    fill('f-m', o.m);
+    fill('f-d', o.d);
+    fill('f-h', o.h);
+    fill('f-mi', o.mi);
+    segTap('data-ampm', o.ampm);
+    segTap('data-sex', o.sex);
+    note();
+  }
+
+  /* ═══ 발치 한 줄 — 담아 둔 것을 지울 수 있게 ══════════ */
+  function note(){
+    if(!screenIsMine()){ return; }
+    if(el('umrm-note')){ return; }
+    var y = el('f-y');
+    if(!y){ return; }
+    var box = y.parentElement;
+    if(box){ box = box.parentElement; }
+    if(!box){ return; }
+    var p = document.createElement('p');
+    p.id = 'umrm-note';
+    p.appendChild(document.createTextNode('이 기기에 기억해 둡니다 · '));
+    var b = document.createElement('button');
+    b.setAttribute('type', 'button');
+    b.appendChild(document.createTextNode('지우기'));
+    b.addEventListener('click', function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      wipe();
+      var ids = ['f-name', 'f-y', 'f-m', 'f-d', 'f-h', 'f-mi'], i, n;
+      for(i = 0; i < ids.length; i++){
+        n = el(ids[i]);
+        if(n){ n.value = ''; }
+      }
+      p.textContent = '지웠습니다.';
+    });
+    p.appendChild(b);
+    if(box.parentNode){ box.parentNode.insertBefore(p, box.nextSibling); }
+  }
+
+  /* ═══ 돌리기 ═════════════════════════════════════════ */
+  document.addEventListener('input', function(){ save(); }, true);
+  document.addEventListener('change', function(){ save(); }, true);
+  document.addEventListener('click', function(){
+    save();
+    setTimeout(function(){ taps = {}; }, 60);
+  }, true);
+
+  function tick(){ try{ restore(); }catch(e){} }
+  function start(){
+    tick();
+    setInterval(tick, 400);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else { start(); }
+})();
+</script>
+	<?php
+} );

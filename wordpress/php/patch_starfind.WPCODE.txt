@@ -1,0 +1,693 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주 — 이름 쓰는 칸 하나만 남깁니다
+   ★ 2026-09-16 · 소희 님께
+
+   소희 님 : 「이름하고 연예인이름쓰는 란만 있으면 돼 아래 리스트는
+              필요없어 고르는게 더 힘들어」
+              「변화가 없음 그대로 있어 이름넣는 칸도 안보이고
+               밑에 무려 500여명의 리스트가 보임」
+
+   ── 앞 조각이 왜 안 먹었나 ──────────────────────────
+   제가 쪽의 이름(#cRoster · .find)에 기대어 찾았는데, **살아 있는
+   쪽은 제 사본과 다릅니다.** 「이름 넣는 칸도 안 보인다」는 말씀이
+   그 증거입니다 — 제 사본에는 그 칸이 있습니다.
+
+   그래서 이 조각은 **이름을 하나도 안 씁니다.** 화면을 보고 찾습니다 —
+
+       한 상자 안에 단추가 스무 개 넘게 모여 있으면, 그것이 목록입니다.
+
+   사람 이름 단추가 수백 개 모인 자리는 그 쪽에 하나뿐이니 틀릴 수
+   없습니다. 쪽이 어떻게 바뀌어도 따라갑니다.
+
+   ── 무엇을 하나 ─────────────────────────────────────
+   ① 그 목록을 감춥니다 (머리말이 함께 있는 상자면 상자째)
+   ② 그 자리에 **이름 쓰는 칸**을 놓습니다
+   ③ 적으실 때마다 맞는 이름을 여덟 개까지 보여드립니다.
+      고르시면 숨어 있던 그 단추를 대신 눌러 줍니다 —
+      그래서 결과는 예전과 똑같이 나옵니다.
+   ④ 엔터만 치셔도 첫 번째 것이 열립니다.
+
+   ★ 쪽 글은 한 글자도 안 바꿉니다. 스니펫을 끄면 그대로 돌아옵니다.
+
+   ── 결과 팝업 ───────────────────────────────────────
+   소희 님 : 「결과 값보여주는 페이지가 좀 어색해… 팝업처럼뜨고
+              내가 천천히 보고 싶어도 갑자기 사라지기도 하고」
+              「진한 파랑색바탕을 클릭하면 화면이 없어져」
+
+   결과는 쪽이 팝업으로 띄웁니다. 그 어두운 바탕을 누르면 닫히게
+   되어 있어서, 글을 읽다가 옆을 잘못 누르면 사라집니다.
+
+   **바탕을 눌러도 안 닫히게** 합니다. 닫는 것은 단추로만.
+   단추가 없으면 오른쪽 위에 하나 만들어 답니다.
+   ★ 닫는 방법 자체는 쪽 것을 그대로 씁니다 — 우리가 만든 단추도
+     바탕을 대신 눌러 주는 것뿐이라, 쪽이 어떻게 닫든 따라갑니다.
+   ★ 팝업을 찾는 법도 이름에 안 기댑니다 — 화면을 거의 다 덮는
+     붙박이(position:fixed) 상자가 팝업입니다.
+
+   ── 배경색 ──────────────────────────────────────────
+   소희 님 : 「스타 사주 페이지 다른 페이지랑 비슷하게 아이보리를
+              배경색으로 해주라 가운데는 흰색 좋아」
+              「지금처럼 놔두고 배경색만 바꿔줘」
+
+   본문 바깥이 진한 남색이라 다른 쪽과 달라 보였습니다.
+   아이보리(#F5F1E8)로 바꿉니다 — 문 쪽에서 쓰는 그 색입니다.
+   가운데 흰 상자와 폭은 **한 군데도 안 건드립니다.**
+
+   ★ 색을 짐작으로 덮지 않습니다. 본문을 감싸는 상자를 위로
+     여덟 겹까지 훑어 **밝기를 재서 어두운 것만** 바꿉니다.
+     밝은 상자(가운데 흰색)는 그대로 둡니다.
+   ★ 결과 팝업의 어두운 바탕도 같은 아이보리로 바꿉니다.
+     머리글·바닥글은 제 배경이 있어 안 바뀝니다.
+
+   ── 켜졌는지 보기 ───────────────────────────────────
+   관리자로 보시면 칸 아래에 한 줄이 뜹니다 —
+       「관리자에게만 보입니다 · 이름 537개를 찾았습니다」
+   이 줄이 없으면 조각이 안 켜졌거나 옛 판이 도는 것입니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ★ 앞서 드린 patch_starfix 는 **꺼주세요** — 이 조각이 대신합니다.
+     (숫자 「191명」 고치는 일은 이 조각에도 들어 있습니다)
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 사람 수 세기 ───────────────────────────────────── */
+if ( ! function_exists( 'stella_star_count' ) ) {
+	function stella_star_count( $fresh = false ) {
+		$key = 'stella_star_n';
+		if ( ! $fresh ) {
+			$n = (int) get_transient( $key );
+			if ( $n > 0 ) { return $n; }
+		}
+		$p = get_page_by_path( 'star-saju' );
+		if ( ! $p ) { return 0; }
+		$c = (string) $p->post_content;
+		$n = substr_count( $c, '{"n":"' );
+		if ( $n < 1 ) { $n = substr_count( $c, 'name:' ); }
+		if ( $n > 0 ) { set_transient( $key, $n, DAY_IN_SECONDS ); }
+		return $n;
+	}
+}
+
+/* ── ① 발췌의 「191명」 ─────────────────────────────── */
+add_filter( 'get_the_excerpt', function ( $text, $post = null ) {
+	if ( ! $post ) { return $text; }
+	$id = is_object( $post ) ? (int) $post->ID : (int) $post;
+	$p  = get_page_by_path( 'star-saju' );
+	if ( ! $p ) { return $text; }
+	if ( $id !== (int) $p->ID ) { return $text; }
+	$n = stella_star_count();
+	if ( $n < 1 ) { return $text; }
+	return preg_replace( '/[0-9][0-9,]*\s*명/u', number_format( $n ) . '명', $text, 1 );
+}, 20, 2 );
+
+/* ── ② 스타 사주 쪽 ────────────────────────────────── */
+add_action( 'wp_head', function () {
+
+	if ( ! is_page( 'star-saju' ) ) { return; }
+
+	$n     = stella_star_count();
+	$admin = current_user_can( 'manage_options' ) ? 1 : 0;
+	?>
+<!-- stella 스타 사주 찾기 · 판 2026-09-16 -->
+<style id="stella-starfind">
+.stella-find{ margin:26px 0 6px; position:relative; }
+.stella-find .row{ display:flex; gap:8px; align-items:stretch; }
+.stella-find input{
+  flex:1 1 auto; min-width:0;
+  padding:14px 16px; font:inherit; font-size:1rem;
+  border:1px solid rgba(212,175,106,.45); border-radius:10px;
+  background:rgba(255,255,255,.55); color:inherit;
+  box-sizing:border-box;
+}
+.stella-find input:focus{ outline:none; border-color:rgba(212,175,106,.9); }
+.stella-find .go{
+  flex:0 0 auto; padding:14px 22px; font:inherit; font-size:.98rem;
+  border:0; border-radius:10px; cursor:pointer;
+  background:#2B2456; color:#F2ECE0; letter-spacing:.02em;
+}
+.stella-find .go:hover{ opacity:.92; }
+.stella-note{ margin:10px 2px 0; font-size:.88rem; opacity:.6; }
+.stella-hits{ margin:10px 0 0; display:flex; flex-wrap:wrap; gap:8px; }
+.stella-hits button{
+  padding:9px 15px; font:inherit; font-size:.94rem; cursor:pointer;
+  border:1px solid rgba(0,0,0,.14); border-radius:999px;
+  background:rgba(255,255,255,.6); color:inherit;
+}
+.stella-hits button:hover{ border-color:rgba(212,175,106,.85); }
+.stella-hits .none{ font-size:.9rem; opacity:.6; padding:6px 2px; }
+.stella-x{
+  position:absolute; top:14px; right:16px; z-index:99;
+  padding:9px 16px; font:inherit; font-size:.9rem; cursor:pointer;
+  border:1px solid rgba(0,0,0,.18); border-radius:999px;
+  background:rgba(255,255,255,.9); color:#3A3350; letter-spacing:.02em;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+.stella-x:hover{ background:#fff; }
+.stella-adm{
+  margin:10px 0 0; padding:7px 11px; font-size:.8rem;
+  border-left:3px solid #2F7D4A; background:rgba(47,125,74,.07);
+  color:#1d3a27;
+}
+@media(max-width:560px){
+  .stella-find .row{ flex-wrap:wrap; }
+  .stella-find .go{ width:100%; }
+}
+</style>
+<script>
+(function(){
+  if(window.StellaStarFind){ return; }
+  window.StellaStarFind = 1;
+
+  var ADMIN = <?php echo (int) $admin; ?>;
+  var HOWMANY = '<?php echo esc_js( $n > 0 ? number_format( $n ) : "" ); ?>';
+
+  /* ★ 찾기 칸에 흐리게 보이는 보기 이름 — 2026-09-16
+     소희 님 「샘플로 이름 유재석 별로야 변우석이 서강준하자. 요샤 핫해」
+     여기 한 줄만 고치시면 바뀝니다. 유행이 지나면 또 바꾸세요. */
+  var SAMPLE = '변우석';
+
+  /* 몇 개부터 「목록」으로 볼 것인가 */
+  var MANY = 20;
+  /* 한 번에 보여드릴 후보 수 */
+  var SHOW = 8;
+
+  var box = null;      /* 숨긴 목록 상자 */
+  var names = [];      /* [이름, 단추] */
+  var wrap = null;     /* 우리가 만든 찾기 칸 */
+
+  /* ★ 정규식을 안 씁니다 — 집 규칙대로 역빗금을 두지 않습니다.
+     워드프레스가 홑 역빗금을 한 겹 벗겨내면 정규식이 망가집니다. */
+  var SP = ' ' + String.fromCharCode(9) + String.fromCharCode(10) + String.fromCharCode(13);
+
+  function tidy(v){
+    var s = String(v === null ? '' : v), out = '', i, ch;
+    for(i = 0; i < s.length; i++){
+      ch = s.charAt(i);
+      if(SP.indexOf(ch) >= 0){ ch = ' '; }
+      out += ch;
+    }
+    while(out.indexOf('  ') >= 0){ out = out.split('  ').join(' '); }
+    return out.trim();
+  }
+
+  function squash(v){
+    var s = String(v === null ? '' : v), out = '', i, ch;
+    for(i = 0; i < s.length; i++){
+      ch = s.charAt(i);
+      if(SP.indexOf(ch) >= 0){ continue; }
+      out += ch;
+    }
+    return out;
+  }
+
+  function txt(el){
+    var b = el.querySelector ? el.querySelector('b') : null;
+    var t = b ? b.textContent : el.textContent;
+    return tidy(t);
+  }
+
+  /* ── 단추가 가장 많이 모인 상자를 찾습니다 ─────────
+     클래스 이름에 기대지 않습니다. 사람 이름 단추가 수백 개
+     모인 자리는 이 쪽에 하나뿐입니다. */
+  function findRoster(){
+    var btns = document.querySelectorAll('button');
+    var pars = [], cnt = [], i, p, j;
+    for(i = 0; i < btns.length; i++){
+      p = btns[i].parentNode;
+      if(!p){ continue; }
+      j = pars.indexOf(p);
+      if(j < 0){ pars.push(p); cnt.push(1); }
+      else { cnt[j]++; }
+    }
+    var best = -1, bestN = 0;
+    for(i = 0; i < cnt.length; i++){
+      if(cnt[i] > bestN){ bestN = cnt[i]; best = i; }
+    }
+    if(best < 0){ return null; }
+    if(bestN < MANY){ return null; }
+    return pars[best];
+  }
+
+  /* ── 무엇을 감추나 ──────────────────────────
+     2026-09-16 · 소희 님 「내용이 너무 없어 기존의 내용은 넣고
+     이름넣는 칸만 넣고 가수 탤런트 선택하는 부분부터 아랫부분만
+     삭제했으면 될듯한데」
+
+     앞 판은 목록의 **부모**를 감췄습니다. 그 부모가 쪽의 큰 상자라
+     제목과 설명글까지 같이 사라졌습니다. 부모로 올라가지 않습니다.
+
+     소희 님 말씀 그대로 잡습니다 —
+         직업 고르는 줄(가수·배우·탤런트…)부터 이름 목록까지
+     그 사이만 감춥니다. 위의 제목과 설명글은 그대로 두고,
+     아래의 결과 자리도 그대로 둡니다. */
+  var ROLES = ['전체','가수','배우','탤런트','방송인','아이돌','개그맨',
+               '코미디언','운동선수','모델','성우','감독','작가','기타',
+               'MC','프로듀서','아나운서'];
+
+  function roleRow(){
+    var bs = document.querySelectorAll('button'), i, t, par;
+    var pars = [], hit = [];
+    for(i = 0; i < bs.length; i++){
+      t = tidy(bs[i].textContent);
+      if(ROLES.indexOf(t) < 0){ continue; }
+      par = bs[i].parentNode;
+      if(!par){ continue; }
+      var j = pars.indexOf(par);
+      if(j < 0){ pars.push(par); hit.push(1); }
+      else { hit[j]++; }
+    }
+    var best = -1, bn = 0, k;
+    for(k = 0; k < hit.length; k++){ if(hit[k] > bn){ bn = hit[k]; best = k; } }
+    if(best < 0){ return null; }
+    if(bn < 2){ return null; }          /* 두 개 넘게 모여야 거르개입니다 */
+    return pars[best];
+  }
+
+  var hidden = [];
+  function hide(el){
+    if(!el){ return; }
+    if(hidden.indexOf(el) >= 0){ return; }
+    el.style.display = 'none';
+    hidden.push(el);
+  }
+  function keepHidden(){
+    var i;
+    for(i = 0; i < hidden.length; i++){
+      if(hidden[i].style.display !== 'none'){ hidden[i].style.display = 'none'; }
+    }
+  }
+
+  /* 목록과, 그 바로 위의 머리말까지 — **딱 두 줄만** 올라갑니다.
+     2026-09-16 · 시험에서 쪽 설명글까지 감춰져 고쳤습니다.
+     설명글은 길고 「명」이 안 들어갑니다. 목록 머리말은 짧고
+     「가나다순 537명」처럼 「명」이 들어갑니다. 그것으로 가릅니다. */
+  function hideList(inner){
+    hide(inner);
+    var el = inner.previousElementSibling, k = 0;
+    while(el){
+      if(k > 1){ break; }
+      var tag = String(el.tagName === undefined ? '' : el.tagName).toLowerCase();
+      var t = tidy(el.textContent);
+      var ok = 0;
+      /* 「지금까지 올라온 인물」 같은 목록 머리말 — 바로 위 하나만 */
+      if(k === 0){
+        if(tag === 'h2'){ if(t.length <= 24){ ok = 1; } }
+        if(tag === 'h3'){ if(t.length <= 24){ ok = 1; } }
+      }
+      /* 「가나다순 537명」 — 짧고 「명」이 들어간 줄만 */
+      if(tag === 'p'){
+        if(t.length <= 30){ if(t.indexOf('명') >= 0){ ok = 1; } }
+      }
+      if(!ok){ break; }
+      hide(el);
+      el = el.previousElementSibling;
+      k++;
+    }
+  }
+
+  /* 직업 고르는 줄부터 목록까지 (같은 부모일 때) */
+  function hideBetween(row, inner){
+    if(!row){ return; }
+    hide(row);
+    if(!inner){ return; }
+    if(row.parentNode !== inner.parentNode){ return; }
+    var el = row.nextElementSibling, k = 0;
+    while(el){
+      if(k > 12){ break; }
+      var isList = (el === inner);
+      if(!isList){ if(el.contains){ isList = el.contains(inner); } }
+
+      /* ★ 단추가 하나도 없는 글 문단은 남깁니다 — 2026-09-16
+         쪽 설명글이 직업 줄 아래에 올 수도 있습니다. 시험에서
+         그 경우에 설명글이 같이 사라져 고쳤습니다.
+         목록 머리말(「가나다순 537명」)은 hideList 가 따로 봅니다. */
+      var skip = 0;
+      if(!isList){
+        var btn = el.querySelectorAll ? el.querySelectorAll('button').length : 0;
+        if(btn === 0){
+          var tg = String(el.tagName === undefined ? '' : el.tagName).toLowerCase();
+          if(tg === 'p'){ skip = 1; }
+          if(tg === 'div'){ if(tidy(el.textContent).length > 40){ skip = 1; } }
+        }
+      }
+      if(!skip){ hide(el); }
+      if(isList){ return; }
+      el = el.nextElementSibling;
+      k++;
+    }
+  }
+
+  function collect(inner){
+    var out = [], seen = {}, i, b, nm;
+    var bs = inner.querySelectorAll('button');
+    for(i = 0; i < bs.length; i++){
+      b = bs[i];
+      nm = b.getAttribute('data-n');
+      if(!nm){ nm = txt(b); }
+      nm = String(nm === null ? '' : nm).trim();
+      if(!nm){ continue; }
+      if(nm.length > 24){ continue; }
+      if(seen[nm]){ continue; }
+      seen[nm] = 1;
+      out.push([nm, b]);
+    }
+    return out;
+  }
+
+  /* ── 찾기 칸 ─────────────────────────────────────── */
+  function build(after){
+    var d = document.createElement('div');
+    d.className = 'stella-find';
+    var row = document.createElement('div');
+    row.className = 'row';
+
+    var inp = document.createElement('input');
+    inp.setAttribute('type', 'text');
+    inp.setAttribute('maxlength', '24');
+    inp.setAttribute('autocomplete', 'off');
+    inp.setAttribute('placeholder', '연예인 이름을 적어보세요 (예: ' + SAMPLE + ')');
+
+    var go = document.createElement('button');
+    go.setAttribute('type', 'button');
+    go.className = 'go';
+    go.textContent = '찾기';
+
+    row.appendChild(inp);
+    row.appendChild(go);
+    d.appendChild(row);
+
+    if(HOWMANY){
+      var note = document.createElement('p');
+      note.className = 'stella-note';
+      note.textContent = '지금 ' + HOWMANY + '명이 들어 있습니다';
+      d.appendChild(note);
+    }
+
+    var hits = document.createElement('div');
+    hits.className = 'stella-hits';
+    d.appendChild(hits);
+
+    if(ADMIN){
+      var a = document.createElement('p');
+      a.className = 'stella-adm';
+      a.textContent = '관리자에게만 보입니다 · 이름 ' + names.length +
+        '개를 찾았습니다 · 감춘 칸 ' + hidden.length + '개';
+      d.appendChild(a);
+    }
+
+    if(after.parentNode){ after.parentNode.insertBefore(d, after); }
+
+    function clean(s){ return squash(s); }
+
+    function pick(b){
+      hits.innerHTML = '';
+      inp.value = '';
+      try{ b.click(); }catch(e){}
+      /* 결과가 그려질 틈을 두고 그 자리로 옮겨 갑니다 */
+      setTimeout(function(){
+        try{
+          var art = document.getElementById('cArt');
+          if(!art){ art = document.querySelector('.art'); }
+          if(art){ if(art.scrollIntoView){ art.scrollIntoView({ block:'start' }); } }
+        }catch(e){}
+      }, 120);
+    }
+
+    function draw(){
+      var q = clean(inp.value);
+      hits.innerHTML = '';
+      if(!q){ return; }
+      var head = [], mid = [], i, nm;
+      for(i = 0; i < names.length; i++){
+        nm = clean(names[i][0]);
+        if(nm === q){ head.unshift(names[i]); continue; }
+        if(nm.indexOf(q) === 0){ head.push(names[i]); continue; }
+        if(nm.indexOf(q) > 0){ mid.push(names[i]); }
+      }
+      var list = head.concat(mid).slice(0, SHOW);
+      if(!list.length){
+        var no = document.createElement('div');
+        no.className = 'none';
+        no.textContent = '그 이름은 아직 없습니다. 다른 이름을 적어보세요.';
+        hits.appendChild(no);
+        return;
+      }
+      for(i = 0; i < list.length; i++){
+        (function(one){
+          var b = document.createElement('button');
+          b.setAttribute('type', 'button');
+          b.textContent = one[0];
+          b.addEventListener('click', function(){ pick(one[1]); });
+          hits.appendChild(b);
+        })(list[i]);
+      }
+    }
+
+    function first(){
+      var b = hits.querySelector('button');
+      if(b){ b.click(); return; }
+      draw();
+      var b2 = hits.querySelector('button');
+      if(b2){ b2.click(); }
+    }
+
+    inp.addEventListener('input', draw);
+    inp.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); first(); }
+    });
+    go.addEventListener('click', first);
+
+    return d;
+  }
+
+  function run(){
+    if(wrap){ return 1; }
+    var inner = findRoster();
+    if(!inner){ return 0; }
+    names = collect(inner);
+    if(names.length < MANY){ return 0; }
+
+    var row = roleRow();
+    hideList(inner);
+    hideBetween(row, inner);
+
+    /* 이름 칸은 감춘 것들 가운데 **맨 위**에 놓습니다 */
+    var first = row ? row : inner;
+    var i;
+    for(i = 0; i < hidden.length; i++){
+      if(hidden[i].compareDocumentPosition){
+        /* 4 = 뒤에 있음 → 더 앞선 것을 고릅니다 */
+        if(first.compareDocumentPosition(hidden[i]) === 2){ first = hidden[i]; }
+      }
+    }
+    box = first;
+    wrap = build(first);
+    return 1;
+  }
+
+  /* ── 배경을 아이보리로 ──────────────────────
+     2026-09-16 · 소희 님 「다른 페이지랑 비슷하게 아이보리로,
+     가운데는 흰색 좋아」 「지금처럼 놔두고 배경색만」
+
+     색을 짐작으로 덮지 않습니다. 본문을 감싸는 상자를 위로 훑어
+     **밝기를 재서 어두운 것만** 바꿉니다. 가운데 흰 상자는 밝으니
+     그대로 있습니다. 폭도 한 군데 안 건드립니다. */
+  var IVORY = '#F5F1E8';
+
+  function darkness(css){
+    /* rgb(…) 에서 숫자를 꺼내 밝기를 잽니다. 0(검정) ~ 255(흰색) */
+    var s = String(css === null ? '' : css);
+    var a = s.indexOf('('), b = s.indexOf(')');
+    if(a < 0){ return -1; }
+    if(b < a){ return -1; }
+    var f = s.slice(a + 1, b).split(','), n = [], i, v;
+    for(i = 0; i < f.length; i++){
+      v = parseFloat(f[i]);
+      if(v !== v){ continue; }        /* 숫자가 아니면 건너뜁니다 */
+      n.push(v);
+    }
+    if(n.length < 3){ return -1; }
+    if(n.length > 3){ if(n[3] < 0.1){ return -1; } }   /* 거의 투명이면 셈에서 뺍니다 */
+    return (n[0] * 299 + n[1] * 587 + n[2] * 114) / 1000;
+  }
+
+  function paint(el){
+    if(!el){ return 0; }
+    if(el.nodeType !== 1){ return 0; }
+    if(el.getAttribute('data-stellabg') === '1'){ return 0; }
+    try{
+      var st = window.getComputedStyle(el);
+      if(!st){ return 0; }
+      var d = darkness(st.backgroundColor);
+      if(d < 0){ return 0; }      /* 투명 — 뒤가 비치므로 그대로 둡니다 */
+      if(d > 120){ return 0; }    /* 이미 밝습니다 (가운데 흰 상자) */
+      el.setAttribute('data-stellabg', '1');
+      el.style.backgroundColor = IVORY;
+      return 1;
+    }catch(e){ return 0; }
+  }
+
+  function ivory(){
+    try{
+      paint(document.body);
+      var start = document.getElementById('ssc');
+      if(!start){ start = document.querySelector('.stella-find'); }
+      if(!start){ return; }
+      var el = start, k = 0;
+      while(el){
+        if(k > 8){ break; }
+        paint(el);
+        el = el.parentNode;
+        k++;
+      }
+    }catch(e){}
+  }
+
+  /* ── 결과 팝업이 바탕 클릭으로 안 닫히게 ────────────
+     2026-09-16 · 소희 님 「천천히 보고 싶어도 갑자기 사라지기도」
+
+     팝업을 이름으로 안 찾습니다 — 화면을 거의 다 덮는 붙박이
+     (position:fixed) 상자가 팝업 바탕입니다.
+     그 바탕을 **정확히** 눌렀을 때만 막습니다. 안쪽 글이나 단추를
+     누르는 것은 그대로 둡니다. */
+  var allowClose = 0;
+
+  function isBackdrop(el){
+    if(!el){ return 0; }
+    if(el === document.body){ return 0; }
+    if(el.nodeType !== 1){ return 0; }
+    try{
+      var st = window.getComputedStyle(el);
+      if(!st){ return 0; }
+      if(st.position !== 'fixed'){ return 0; }
+      if(st.display === 'none'){ return 0; }
+      if(st.visibility === 'hidden'){ return 0; }
+      var r = el.getBoundingClientRect();
+      if(r.width < window.innerWidth * 0.85){ return 0; }
+      if(r.height < window.innerHeight * 0.85){ return 0; }
+      return 1;
+    }catch(e){ return 0; }
+  }
+
+  /* 닫기 단추 — 팝업 안에 이미 있으면 안 만듭니다 */
+  function closeBtn(back){
+    if(back.getAttribute('data-stellaclose') === '1'){ return; }
+    back.setAttribute('data-stellaclose', '1');
+
+    var has = 0;
+    try{
+      var bs = back.querySelectorAll('button, a'), i, t;
+      for(i = 0; i < bs.length; i++){
+        t = tidy(bs[i].textContent);
+        if(t === '닫기'){ has = 1; break; }
+        if(t === '×'){ has = 1; break; }
+        if(t === 'X'){ has = 1; break; }
+        if(t === '✕'){ has = 1; break; }
+        var al = String(bs[i].getAttribute('aria-label') === null ? '' : bs[i].getAttribute('aria-label'));
+        if(al.indexOf('닫') >= 0){ has = 1; break; }
+      }
+    }catch(e){}
+    if(has){ return; }
+
+    var b = document.createElement('button');
+    b.setAttribute('type', 'button');
+    b.className = 'stella-x';
+    b.textContent = '닫기';
+    b.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      allowClose = 1;
+      try{ back.click(); }catch(e){}
+      setTimeout(function(){ allowClose = 0; }, 120);
+    });
+    back.appendChild(b);
+  }
+
+  function guard(){
+    if(window.StellaStarGuard){ return; }
+    window.StellaStarGuard = 1;
+    document.addEventListener('click', function(e){
+      if(allowClose){ return; }
+      if(!isBackdrop(e.target)){ return; }
+      e.stopPropagation();
+      if(e.preventDefault){ e.preventDefault(); }
+    }, true);
+  }
+
+  function watchPopup(){
+    try{
+      var all = document.querySelectorAll('div, section, aside'), i;
+      for(i = 0; i < all.length; i++){
+        if(!isBackdrop(all[i])){ continue; }
+        closeBtn(all[i]);
+        /* 팝업의 어두운 바탕도 아이보리로 — 뒤가 살짝 비치게 */
+        if(all[i].getAttribute('data-stellabg') !== '1'){
+          if(darkness(window.getComputedStyle(all[i]).backgroundColor) < 120){
+            all[i].setAttribute('data-stellabg', '1');
+            all[i].style.backgroundColor = 'rgba(245,241,232,.95)';
+          }
+        }
+      }
+    }catch(e){}
+  }
+
+  /* 목록은 쪽의 자바스크립트가 나중에 그리고, 다시 그리기도 합니다 */
+  function watch(){
+    guard();
+    ivory();
+    run();
+    var k = 0;
+    var t = setInterval(function(){
+      k++;
+      keepHidden();
+      watchPopup();
+      ivory();
+      if(!wrap){ run(); }
+      if(k > 120){ clearInterval(t); }
+    }, 500);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', watch);
+  } else { watch(); }
+})();
+</script>
+	<?php
+} );
+
+/* ── ③ 세어보기 (관리자만) ───────────────────────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_starn'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$p = get_page_by_path( 'star-saju' );
+	if ( ! $p ) { echo "★ /star-saju/ 쪽을 못 찾았습니다.\n"; exit; }
+	$c = (string) $p->post_content;
+	$n = stella_star_count( true );
+
+	echo "═══ 스타 사주 ═══\n";
+	echo '쪽 ' . (int) $p->ID . ' · /' . $p->post_name . "/\n";
+	echo '쪽 글자 수 ' . number_format( mb_strlen( $c ) ) . "\n\n";
+	echo '지금 사람 수 ' . number_format( $n ) . "명\n";
+	echo '  {"n":" 꼴  ' . number_format( substr_count( $c, '{"n":"' ) ) . "명\n";
+	echo '  name: 꼴   ' . number_format( substr_count( $c, 'name:' ) ) . "명\n\n";
+
+	$ex = (string) $p->post_excerpt;
+	echo "발췌 (차림표·카드에 나오는 글)\n";
+	echo '  지금   : ' . ( '' === $ex ? '(비어 있음)' : $ex ) . "\n";
+	if ( $n > 0 ) {
+		echo '  보여줄 것 : '
+			. preg_replace( '/[0-9][0-9,]*\s*명/u', number_format( $n ) . '명', $ex, 1 ) . "\n";
+	}
+	echo "\n";
+	echo "이름 목록\n";
+	echo "  쪽의 이름에 기대지 않습니다. 단추가 스무 개 넘게 모인 상자를\n";
+	echo "  찾아 감추고, 그 자리에 이름 쓰는 칸을 놓습니다.\n";
+	echo "  관리자로 스타 사주 쪽을 여시면 칸 아래에 초록 줄이 뜹니다 —\n";
+	echo "  「이름 N개를 찾았습니다」. 그 줄이 없으면 조각이 안 켜진 것입니다.\n\n";
+	echo "★ 쪽 글도 DB 도 한 글자 안 바꿉니다. 스니펫을 끄면 그대로 돌아옵니다.\n";
+	exit;
+} );

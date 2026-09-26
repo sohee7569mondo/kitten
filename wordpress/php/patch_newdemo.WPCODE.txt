@@ -1,0 +1,150 @@
+/* ════════════════════════════════════════════════════════════
+   새 주제도 미리 볼 수 있게   patch_newdemo
+   ★ 2026-09-15 · 소희 님께
+
+   ?stella_preview=1 이 찍어준 것 —
+
+       신년운세 ★ 미리보기 없음
+       삼재     ★ 미리보기 없음
+       가족운   ★ 미리보기 없음
+       건강운   ★ 미리보기 없음   … 여덟 가지
+
+   책 안의 데모 사람은 열둘인데, 그 열둘은 8월에 정해진 것입니다.
+   그 뒤에 지은 주제들은 미리 볼 길이 아예 없었습니다.
+
+   ── 하는 법 ──
+     /reading-book/?demo=samjae   처럼 열면 그 자리에서 그려집니다.
+
+       samjae    삼재           지은 · 1987-05-12 (토끼띠 · 2026 머무는 해)
+       ny2026    2026년 운세    도윤 · 1990-03-21
+       ny2027    2027년 운세    도윤 · 1990-03-21
+       family    가족운         수아 · 1985-11-07
+       health    건강운         민재 · 1978-06-15
+       chejil    체질           민재 · 1978-06-15
+
+     한글로도 됩니다 — ?demo=삼재 · ?demo=가족운
+
+   ★★ 손님 정보를 지우지 않습니다.
+     책은 주문을 localStorage 의 stella_demo 에서 읽습니다. 그 자리에
+     데모를 그냥 넣으면 **손님이 넣어둔 생년월일이 날아갑니다.**
+     그래서 —
+       ① 덮기 전에 원래 주문을 stella_demo_keep 에 옮겨 둡니다
+       ② 데모 주문에는 표(_sdemo)를 답니다
+       ③ ?demo= 없이 책을 열면, 표가 달린 데모를 치우고 원래 주문을
+          되돌립니다
+
+   ★ 책 쪽(reading-book)에서만 실립니다. 다른 쪽에는 한 자도 안 나갑니다.
+   ★ 책이 이미 아는 데모(door-love 같은 것)는 건드리지 않습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+
+	if ( ! is_page( 'reading-book' ) ) { return; }
+
+	/* 지은 해를 글에 안 박습니다 — 다음 해에도 그대로 씁니다 */
+	$y = (int) gmdate( 'Y' );
+
+	/* 새 주제 데모 사람 — 이름 · 생년월일시 · 주제말
+	   ★ 주제말은 각 책의 TOPICS 와 **한 글자도 달라선 안 됩니다.** */
+	$TAB = array(
+		'samjae' => array( '지은', 1987, 5, 12, 9, 0, 'F', '삼재' ),
+		'삼재'   => array( '지은', 1987, 5, 12, 9, 0, 'F', '삼재' ),
+
+		'ny2026' => array( '도윤', 1990, 3, 21, 14, 30, 'M', '2026년 운세' ),
+		'ny2027' => array( '도윤', 1990, 3, 21, 14, 30, 'M', '2027년 운세' ),
+		'newyear' => array( '도윤', 1990, 3, 21, 14, 30, 'M', $y . '년 운세' ),
+		'신년운세' => array( '도윤', 1990, 3, 21, 14, 30, 'M', $y . '년 운세' ),
+
+		'family' => array( '수아', 1985, 11, 7, 7, 40, 'F', '가족운' ),
+		'가족운' => array( '수아', 1985, 11, 7, 7, 40, 'F', '가족운' ),
+
+		'health' => array( '민재', 1978, 6, 15, 21, 10, 'M', '건강운' ),
+		'건강운' => array( '민재', 1978, 6, 15, 21, 10, 'M', '건강운' ),
+		'chejil' => array( '민재', 1978, 6, 15, 21, 10, 'M', '체질' ),
+		'체질'   => array( '민재', 1978, 6, 15, 21, 10, 'M', '체질' ),
+	);
+
+	$want = isset( $_GET['demo'] )
+		? sanitize_text_field( wp_unslash( $_GET['demo'] ) ) : '';
+	/* ★ 앰퍼샌드를 안 씁니다 — 검사에서 0 이 나와야 마음이 놓입니다.
+	   집 규칙이고, 워드프레스가 건드린 적이 있습니다. */
+	$one = null;
+	if ( '' !== $want ) {
+		if ( isset( $TAB[ $want ] ) ) { $one = $TAB[ $want ]; }
+	}
+
+	/* 우리 것이 아닌 데모는 책이 알아서 합니다 — 손대지 않습니다 */
+	if ( '' !== $want ) {
+		if ( ! $one ) { return; }
+	}
+
+	$json = '';
+	if ( $one ) {
+		$json = wp_json_encode( array(
+			'profile' => array(
+				'name'    => $one[0],
+				'year'    => (int) $one[1],
+				'month'   => (int) $one[2],
+				'day'     => (int) $one[3],
+				'hour'    => (int) $one[4],
+				'minute'  => (int) $one[5],
+				'sex'     => $one[6],
+				'city'    => '서울',
+				'country' => '대한민국',
+				'topic'   => $one[7],
+			),
+			'topic'  => $one[7],
+			'_sdemo' => 1,
+		), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+		/* ★★ 그냥 wp_json_encode 를 쓰면 한글이 \uXXXX 로 바뀌어
+		   **역빗금이 잔뜩 생깁니다.** 워드프레스 편집기로 저장하면
+		   그 역빗금이 한 겹 벗겨져 글이 깨집니다 — 책이 하얗게 나오던
+		   되풀이 탈이 그것이었습니다. 그래서 한글도 빗금도 그대로 둡니다. */
+	}
+	?>
+<!-- stella 새 주제 미리보기 · 판 2026-09-15 -->
+<script>
+(function(){
+  if(window.StellaNewDemo){ return; }
+  window.StellaNewDemo = 1;
+
+  var KEY  = 'stella_demo';
+  var KEEP = 'stella_demo_keep';
+  var NEW  = <?php echo $json ? $json : 'null'; ?>;
+
+  function get(k){
+    try{ return localStorage.getItem(k); }catch(e){ return null; }
+  }
+  function put(k, v){
+    try{ localStorage.setItem(k, v); }catch(e){}
+  }
+  function drop(k){
+    try{ localStorage.removeItem(k); }catch(e){}
+  }
+  function isDemo(raw){
+    if(!raw){ return false; }
+    try{ return JSON.parse(raw)._sdemo === 1; }catch(e){ return false; }
+  }
+
+  if(NEW){
+    /* 데모로 들어왔습니다 — 원래 주문을 옮겨 두고 데모를 놓습니다 */
+    var had = get(KEY);
+    if(had){ if(!isDemo(had)){ put(KEEP, had); } }
+    put(KEY, JSON.stringify(NEW));
+    return;
+  }
+
+  /* 데모 없이 책을 열었습니다 — 데모가 남아 있으면 치우고 되돌립니다 */
+  var now = get(KEY);
+  if(!isDemo(now)){ return; }
+  var back = get(KEEP);
+  if(back){ put(KEY, back); drop(KEEP); }
+  else { drop(KEY); }
+})();
+</script>
+	<?php
+}, 1 );

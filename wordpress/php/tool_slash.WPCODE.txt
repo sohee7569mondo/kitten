@@ -1,0 +1,148 @@
+/* ══════════════════════════════════════════════════════════
+   빗금(/) 잘못 읽히는 자리 찾기 · 소희 님께     2026-09-11
+   ── 판 : SLASH-1 (2026-09-11) ──
+
+   지금 나는 오류는 「Invalid regular expression flags」입니다.
+   자바스크립트는 빗금 / 을 만나면
+   「나누기」인지 「정규식 시작」인지를 앞 글자를 보고 정합니다.
+   한 번 잘못 정하면 그 뒤가 전부 어긋나고, 책이 통째로 안 나옵니다.
+
+   이 도구는 브라우저가 하는 그 판단을 똑같이 흉내 내서
+   어긋나는 자리를 집어냅니다.
+
+   주소  https://stellasaju.com/?stella_slash911=1
+
+   ★ 스니펫 이름 「STELLA - 빗금 찾기」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 아무것도 안 바꿉니다. 보기만 합니다.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_slash911'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo "═══ 빗금 찾기 · 판 SLASH-1 (2026-09-11) ═══\n";
+	echo '쪽 ' . $id . ' - ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	$KW    = array( 'return', 'typeof', 'case', 'in', 'of', 'new', 'delete',
+	                'void', 'do', 'else', 'instanceof', 'yield', 'await' );
+	$FLAGS = 'dgimsuvy';
+
+	$scan = function ( $js ) use ( $KW, $FLAGS ) {
+		$n = strlen( $js ); $st = 0; $line = 1; $last = ''; $lastw = ''; $out = array();
+		for ( $i = 0; $i < $n; $i++ ) {
+			$ch = $js[ $i ];
+			if ( "\n" === $ch ) { $line++; if ( 4 === $st ) { $st = 0; } continue; }
+			if ( 1 === $st || 2 === $st || 3 === $st ) {
+				if ( '\\' === $ch ) { $i++; continue; }
+				if ( 1 === $st && "'" === $ch ) { $st = 0; $last = 'x'; }
+				elseif ( 2 === $st && '"' === $ch ) { $st = 0; $last = 'x'; }
+				elseif ( 3 === $st && '`' === $ch ) { $st = 0; $last = 'x'; }
+				continue;
+			}
+			if ( 4 === $st ) { continue; }
+			if ( 5 === $st ) {
+				if ( '*' === $ch && $i + 1 < $n && '/' === $js[ $i + 1 ] ) { $st = 0; $i++; }
+				continue;
+			}
+			if ( '/' === $ch && $i + 1 < $n ) {
+				$nx = $js[ $i + 1 ];
+				if ( '/' === $nx ) { $st = 4; $i++; continue; }
+				if ( '*' === $nx ) { $st = 5; $i++; continue; }
+				$div = ( 1 === preg_match( '/[A-Za-z0-9_$\)\]]/', $last ) );
+				if ( $div && '' !== $lastw && in_array( $lastw, $KW, true ) ) { $div = false; }
+				if ( ! $div ) {
+					$j = $i + 1; $cls = false; $ok = false;
+					while ( $j < $n ) {
+						$c2 = $js[ $j ];
+						if ( '\\' === $c2 ) { $j += 2; continue; }
+						if ( "\n" === $c2 ) { break; }
+						if ( '[' === $c2 ) { $cls = true; $j++; continue; }
+						if ( ']' === $c2 ) { $cls = false; $j++; continue; }
+						if ( '/' === $c2 && ! $cls ) { $ok = true; break; }
+						$j++;
+					}
+					if ( ! $ok ) {
+						$out[] = array( $line, '닫는 빗금이 그 줄 안에 없습니다', $i );
+						if ( count( $out ) >= 8 ) { return $out; }
+					} else {
+						$k = $j + 1; $fl = '';
+						while ( $k < $n && 1 === preg_match( '/[A-Za-z0-9_$]/', $js[ $k ] ) ) {
+							$fl .= $js[ $k ]; $k++;
+						}
+						$bad = '';
+						for ( $m = 0; $m < strlen( $fl ); $m++ ) {
+							if ( false === strpos( $FLAGS, $fl[ $m ] ) ) { $bad = $fl; break; }
+						}
+						if ( '' !== $bad ) {
+							$out[] = array( $line, '정규식 뒤에 이상한 꼬리표 [' . $bad . ']', $i );
+						}
+						$i = $k - 1; $last = 'x'; $lastw = '';
+						if ( count( $out ) >= 8 ) { return $out; }
+						continue;
+					}
+				}
+				$last = '/'; $lastw = ''; continue;
+			}
+			if ( "'" === $ch ) { $st = 1; continue; }
+			if ( '"' === $ch ) { $st = 2; continue; }
+			if ( '`' === $ch ) { $st = 3; continue; }
+			if ( 1 === preg_match( '/\s/', $ch ) ) { continue; }
+			if ( 1 === preg_match( '/[A-Za-z0-9_$]/', $ch ) ) {
+				$lastw = ( 1 === preg_match( '/[A-Za-z0-9_$]/', $last ) ) ? $lastw . $ch : $ch;
+			} else { $lastw = ''; }
+			$last = $ch;
+		}
+		return $out;
+	};
+
+	$from = 0; $bi = 0; $total = 0;
+	while ( true ) {
+		$a = stripos( $c, '<script', $from );
+		if ( false === $a ) { break; }
+		$o = strpos( $c, '>', $a );
+		if ( false === $o ) { break; }
+		$b = stripos( $c, '</script', $o );
+		if ( false === $b ) { break; }
+		$js   = substr( $c, $o + 1, $b - $o - 1 );
+		$from = $b + 8;
+		$bi++;
+
+		$r = $scan( $js );
+		if ( ! count( $r ) ) { continue; }
+		$total += count( $r );
+
+		foreach ( $r as $h ) {
+			list( $ln, $why, $pos ) = $h;
+			echo "───────────────────────────────────────\n";
+			echo '★ ' . $bi . '번째 script 토막 · ' . $ln . '줄 — ' . $why . "\n";
+			$s   = max( 0, $pos - 170 );
+			$ctx = mb_strcut( $js, $s, 380, 'UTF-8' );
+			$ctx = mb_convert_encoding( $ctx, 'UTF-8', 'UTF-8' );
+			$t   = preg_replace( '/\s+/u', ' ', $ctx );
+			if ( null === $t ) { $t = preg_replace( '/\s+/', ' ', $ctx ); }
+			echo '   …' . $t . "…\n\n";
+		}
+	}
+
+	echo 'script 토막 ' . $bi . "개를 다 봤습니다.\n";
+	if ( ! $total ) {
+		echo "빗금 때문에 어긋나는 자리는 없습니다.\n";
+		echo "이 화면을 저에게 붙여주세요. 다른 데를 보겠습니다.\n";
+	} else {
+		echo '어긋나는 자리 ' . $total . "군데.\n";
+		echo "이 화면을 통째로 붙여주세요. 바로 고치겠습니다.\n";
+	}
+	exit;
+}, 1 );

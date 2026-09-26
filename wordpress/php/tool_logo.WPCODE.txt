@@ -1,0 +1,503 @@
+/* ════════════════════════════════════════════════════════════
+   머리글 로고 갈아끼우기 + 크기 조절   tool_logo
+   ★ 2026-09-15 · 소희 님께
+
+   소희 님이 새 로고를 만드셨습니다 — 별 심볼 + 「스텔라사주」 글자.
+   어두운 배경용(흰색)과 밝은 배경용(남색), 가로형과 아이콘.
+   머리글은 밤하늘(#0D0A1A)이라 **흰색 가로형**이 맞습니다.
+
+   ★★ 다른 로고 조각을 **꼭 끄세요** — patch_logo · patch_logotext ·
+     patch_logotext2. 켜져 있으면 그것이 글씨를 또 넣어 우리 그림과
+     겹칩니다 (소희 님이 보신 「기존것이 보이고 새로운 것이 덮는」).
+     못 끄셔도 우리가 이기도록 열다섯 초 동안 자리를 지키지만,
+     끄시는 편이 깨끗합니다.
+   ★ 「로고를 글씨로」는 이제 필요 없습니다 — patch_logotext 두 판을
+     다 끄세요. 새 로고에 글자가 이미 들어 있습니다.
+   ★ 옛 patch_logo 도 끄세요. 그림 주소를 바꾸는 조각이라 서로 덮습니다.
+
+   ── 쓰는 법 ──
+     https://stellasaju.com/?stella_logo=1
+       미디어에 올리신 그림을 늘어놓습니다. 누르면 바뀝니다.
+       크기(높이)도 그 화면에서 바로 조절합니다.
+       「원래대로 되돌리기」 단추 하나면 옛 로고로 돌아갑니다.
+
+     ★ 머리글과 바닥글을 **따로** 고릅니다 — 화면 위 단추로 오갑니다.
+       머리글은 어두운 바탕이라 흰색 로고,
+       바닥글은 밝은 바탕(종이색)이라 남색 로고가 맞습니다.
+
+   ★ 쪽도 테마도 안 고칩니다. 고른 주소를 따로 적어두고 화면에서만
+     갈아 끼웁니다. 스위치를 끄면 그 즉시 옛 로고입니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 고른 로고를 머리글에 씌웁니다 ────────────────────── */
+add_action( 'wp_head', function () {
+	$u = get_option( 'stella_logo_img', '' );
+	if ( ! $u ) { return; }
+	if ( 'off' === $u ) { return; }
+	$h = (int) get_option( 'stella_logo_h', 46 );
+	if ( $h < 20 )  { $h = 20; }
+	if ( $h > 140 ) { $h = 140; }
+	$hm = (int) round( $h * 0.78 );   /* 폰에서는 조금 작게 */
+	?>
+<!-- stella 머리글 로고 · 판 2026-09-15 -->
+<style id="stella-logo-swap">
+.ssnav-logo{ display:inline-flex !important; align-items:center;
+  /* ★★ 2026-09-15 · 소희 님 「기존거 쓰고 새거가 위로 덮는 느낌」
+     자식 노드를 치우는 것만으로는 모자랍니다. 다른 조각이 글자를
+     CSS 의 ::before 로 넣으면 **자바스크립트로는 못 지웁니다.**
+     그래서 이 자리의 글자를 아예 안 보이게 눌러 둡니다.
+     무엇이 들어와도 우리 그림만 보입니다. */
+  font-size:0 !important; line-height:0 !important; }
+.ssnav-logo::before, .ssnav-logo::after{
+  content:none !important; display:none !important; }
+.ssnav-logo > *{ display:none !important; }
+.ssnav-logo > .stella-logo-new{ display:block !important; }
+.stella-logo-new{ display:block; height:<?php echo $h; ?>px; width:auto;
+  max-width:min(70vw, 420px); object-fit:contain; font-size:1rem; }
+.stella-logo-old{ display:none !important; }
+@media(max-width:600px){
+  .stella-logo-new{ height:<?php echo $hm; ?>px; }
+}
+</style>
+<script>
+(function(){
+  if(window.StellaLogoSwap){ return; }
+  window.StellaLogoSwap = 1;
+
+  var URL = '<?php echo esc_js( $u ); ?>';
+
+  function head(){
+    var h = document.querySelector('header');
+    if(h){ return h; }
+    h = document.querySelector('.wp-block-template-part');
+    if(h){ return h; }
+    return document.body;
+  }
+  function inFooter(el){
+    var n = el;
+    while(n){
+      if(!n.tagName){ break; }
+      var t = n.tagName.toLowerCase();
+      if(t === 'footer'){ return 1; }
+      if(t === 'header'){ return 0; }
+      if(t === 'body'){ break; }
+      n = n.parentNode;
+    }
+    return 0;
+  }
+  /* 로고일 만한 그림 — patch_logotext2 와 같은 그물입니다 */
+  function looksLogo(im){
+    var cls = String(im.className || '');
+    var src = String(im.getAttribute('src') || '');
+    var alt = String(im.getAttribute('alt') || '');
+    if(cls.indexOf('logo') >= 0){ return 1; }
+    if(src.toLowerCase().indexOf('logo') >= 0){ return 1; }
+    if(alt.indexOf('logo') >= 0){ return 1; }
+    if(alt.indexOf('스텔라') >= 0){ return 1; }
+    if(src.indexOf('%EB%A1%9C%EA%B3%A0') >= 0){ return 1; }
+    var n = im.parentNode, deep = 0;
+    while(n){
+      if(!n.tagName){ break; }
+      var tg = n.tagName.toLowerCase();
+      var nc = String(n.className || '');
+      if(nc.indexOf('logo') >= 0){ return 1; }
+      if(nc.indexOf('site-title') >= 0){ return 1; }
+      if(nc.indexOf('brand') >= 0){ return 1; }
+      if(tg === 'a'){
+        var rl = String(n.getAttribute('rel') || '');
+        if(rl.indexOf('home') >= 0){ return 1; }
+        var pn = '';
+        try{ pn = String(n.pathname || ''); }catch(e){}
+        if(pn === '/'){ return 1; }
+        if(String(n.getAttribute('href') || '') === '/'){ return 1; }
+      }
+      deep++;
+      if(deep > 5){ break; }
+      n = n.parentNode;
+    }
+    var hgt = im.offsetHeight;
+    if(hgt > 0){ if(hgt <= 140){ return 2; } }
+    return 0;
+  }
+
+  /* ── 로고 자리를 갈아 끼웁니다 ────────────────────────
+     2026-09-15 · ?stella_header=1 로 알아낸 것 —
+       머리글 로고는 <img> 가 아니라 **글자 고리**였습니다.
+         a.ssnav-logo  「STELLA SAJU」
+       그래서 그림을 찾는 그물에 하나도 안 걸렸습니다.
+       (바닥글 로고는 img.ssf-logo 로 그림입니다)
+
+     그러니 그림이든 글자든 **그 자리를 통째로** 새 그림으로 채웁니다.
+     찾는 차례 —
+       ① .ssnav-logo   우리 머리글 차림표의 로고 자리 (지금 이것)
+       ② 머리글 안 로고 그림 (테마가 바뀌었을 때를 대비)
+       ③ 사이트 제목 자리 */
+  function fill(box){
+    if(!box){ return 0; }
+    if(box.getAttribute('data-logoswap') === '1'){ return 0; }
+    var nu = document.createElement('img');
+    nu.className = 'stella-logo-new';
+    nu.setAttribute('src', URL);
+    nu.setAttribute('alt', '스텔라사주');
+    nu.setAttribute('decoding', 'async');
+    box.innerHTML = '';
+    box.appendChild(nu);
+    box.setAttribute('data-logoswap', '1');
+    return 1;
+  }
+
+  function run(){
+    /* ① 이름난 자리부터 */
+    var a = document.querySelector('.ssnav-logo');
+    if(a){ if(fill(a)){ return 1; } }
+
+    /* ② 머리글 안 로고 그림 */
+    var h = head();
+    var imgs = h.querySelectorAll('img');
+    var i, im, box, done = 0;
+    for(i = 0; i < imgs.length; i++){
+      im = imgs[i];
+      if(im.getAttribute('data-logoswap') === '1'){ continue; }
+      if(inFooter(im)){ continue; }
+      if(!looksLogo(im)){ continue; }
+      box = im.parentNode;
+      if(!box){ continue; }
+      var n2 = document.createElement('img');
+      n2.className = 'stella-logo-new';
+      n2.setAttribute('src', URL);
+      n2.setAttribute('alt', '스텔라사주');
+      n2.setAttribute('decoding', 'async');
+      box.insertBefore(n2, im);
+      im.className = im.className + ' stella-logo-old';
+      im.setAttribute('data-logoswap', '1');
+      done++;
+    }
+    if(done){ return done; }
+
+    /* ③ 사이트 제목 자리 */
+    var t = h.querySelector('.wp-block-site-title a, .site-title a, h1.site-title a');
+    if(t){ if(fill(t)){ return 1; } }
+    return 0;
+  }
+
+  /* ── 자리를 지킵니다 ──────────────────────────────────
+     2026-09-15 · 소희 님 : 「로고가 기존것이 보이고 새로운 것이
+     덮는 식으로 글씩가 나오는데」
+     다른 로고 조각(patch_logotext 1·2판)이 아직 켜져 있으면 그것이
+     나중에 글씨를 또 넣습니다. 그러면 우리 그림과 겹칩니다.
+     조각을 못 끄셔도 우리가 이기도록, 우리 그림 말고 다른 것이
+     들어오면 열 몇 초 동안 지켜보며 치웁니다. */
+  function guard(){
+    var a = document.querySelector('.ssnav-logo');
+    if(!a){ return; }
+    var mine = a.querySelector('.stella-logo-new');
+    if(!mine){ fill2(a); return; }
+    var kids = a.childNodes, i, k;
+    for(i = kids.length - 1; i >= 0; i--){
+      k = kids[i];
+      if(k === mine){ continue; }
+      if(k.nodeType === 1){
+        if(String(k.className || '').indexOf('stella-logo-new') >= 0){ continue; }
+      }
+      a.removeChild(k);
+    }
+  }
+  /* 지킬 때는 표(data-logoswap)를 무시하고 다시 채웁니다 */
+  function fill2(box){
+    box.removeAttribute('data-logoswap');
+    fill(box);
+  }
+
+  function watch(){
+    if(run()){ return; }
+    var k = 0;
+    var t = setInterval(function(){
+      k++;
+      if(run()){ clearInterval(t); return; }
+      if(k > 30){ clearInterval(t); }
+    }, 300);
+  }
+  function keep(){
+    var n = 0;
+    var t = setInterval(function(){
+      n++;
+      try{ guard(); }catch(e){}
+      if(n > 30){ clearInterval(t); }     /* 열다섯 초쯤 지켜봅니다 */
+    }, 500);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ watch(); keep(); });
+  } else { watch(); keep(); }
+})();
+</script>
+	<?php
+} );
+
+/* ── 바닥글 로고 ──────────────────────────────────────
+   2026-09-15 · 소희 님 「풋터 안됐어」
+
+   맞습니다. 머리글 조각이 `inFooter()` 로 바닥글을 **일부러 걸러내고**
+   있었습니다. 머리글만 바꾸려던 조각이라 그랬습니다.
+
+   ★ 2026-09-15 다시 봄 — 소희 님 「모바일엔 글자로고가 들어감」
+     바닥글 그림(img.ssf-logo)의 주소가 죽어 있어서, 테마가 넣어둔
+     대체 글자(div.ssf-fallback  「✦ STELLA SAJU」)가 대신 나오고
+     있었습니다. 그림이 아니라 **글자**라 로고를 바꿔치는 코드가
+     못 잡았습니다.
+
+   ★ 바닥글 바탕은 **어둡습니다**(#0D0A1A). 그래서 기본값을 흰 글자
+     로고로 둡니다. 이제 아무것도 안 고르셔도 바로 나옵니다.
+        stellasaju-logo-text-white.png  (1942 x 502)
+     다른 그림을 쓰시려면 ?stella_logo=1 에서 w=foot 으로 고르시면 되고,
+     'off' 로 두시면 이 부분이 아예 안 돕니다. */
+add_action( 'wp_head', function () {
+	$u = get_option( 'stella_logo_foot', '' );
+	if ( 'off' === $u ) { return; }
+	if ( ! $u ) {
+		/* 안 고르셨으면 흰 글자 로고를 씁니다 — 바닥글이 어둡습니다 */
+		$u = 'https://stellasaju.com/wp-content/uploads/2026/09/stellasaju-logo-text-white.png';
+	}
+	$h = (int) get_option( 'stella_logo_footh', 40 );
+	if ( $h < 16 )  { $h = 16; }
+	if ( $h > 140 ) { $h = 140; }
+	?>
+<!-- stella 바닥글 로고 · 판 2026-09-15 -->
+<style id="stella-logo-foot">
+.stella-foot-logo{ display:block; height:<?php echo $h; ?>px; width:auto;
+  max-width:min(70vw, 420px); object-fit:contain; margin:0 auto 18px; }
+.stella-foot-old{ display:none !important; }
+/* 테마가 넣어둔 대체 글자 — 그림이 뜨면 이건 안 보여야 합니다.
+   테마 스크립트가 style="display:block" 을 손으로 박으므로 !important 로 누릅니다 */
+#ss-footer .ssf-fallback{ display:none !important; }
+/* 바닥글 글이 옆으로 넘쳐 화면이 가로로 밀리던 것 — 접히게 둡니다.
+   모바일에서 「통신판매업신고 2026-서울양천-100…」 줄이 잘리고
+   화면이 좌우로 밀렸습니다. 긴 번호가 한 덩어리라 안 접힌 탓입니다. */
+footer, #ss-footer{ overflow-x:hidden; }
+footer *, #ss-footer *{ max-width:100%; overflow-wrap:anywhere; }
+</style>
+<script>
+(function(){
+  if(window.StellaLogoFoot){ return; }
+  window.StellaLogoFoot = 1;
+
+  var URL = '<?php echo esc_js( $u ); ?>';
+
+  function foot(){
+    var f = document.querySelector('footer');
+    if(f){ return f; }
+    return null;
+  }
+  function swap(im){
+    if(!im){ return 0; }
+    if(im.getAttribute('data-footswap') === '1'){ return 0; }
+    var box = im.parentNode;
+    if(!box){ return 0; }
+    var nu = document.createElement('img');
+    nu.className = 'stella-foot-logo';
+    nu.setAttribute('src', URL);
+    nu.setAttribute('alt', '스텔라사주');
+    nu.setAttribute('decoding', 'async');
+    box.insertBefore(nu, im);
+    im.className = String(im.className || '') + ' stella-foot-old';
+    im.setAttribute('data-footswap', '1');
+    return 1;
+  }
+  function run(){
+    /* ① 이름난 자리부터 — 바닥글 로고는 img.ssf-logo 입니다 */
+    var one = document.querySelector('img.ssf-logo');
+    if(one){ if(swap(one)){ return 1; } }
+
+    /* ② 바닥글 안에서 로고일 만한 그림 */
+    var f = foot();
+    if(!f){ return 0; }
+    var imgs = f.querySelectorAll('img'), i, im, done = 0;
+    for(i = 0; i < imgs.length; i++){
+      im = imgs[i];
+      if(im.getAttribute('data-footswap') === '1'){ continue; }
+      var cls = String(im.className || '');
+      var src = String(im.getAttribute('src') || '');
+      var alt = String(im.getAttribute('alt') || '');
+      var ok = 0;
+      if(cls.indexOf('logo') >= 0){ ok = 1; }
+      if(src.toLowerCase().indexOf('logo') >= 0){ ok = 1; }
+      if(alt.indexOf('스텔라') >= 0){ ok = 1; }
+      if(!ok){ continue; }
+      if(swap(im)){ done++; }
+    }
+    return done;
+  }
+  function watch(){
+    if(run()){ return; }
+    var k = 0;
+    var t = setInterval(function(){
+      k++;
+      if(run()){ clearInterval(t); return; }
+      if(k > 30){ clearInterval(t); }
+    }, 300);
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', watch);
+  } else { watch(); }
+})();
+</script>
+	<?php
+} );
+
+/* ── 고르는 화면 ──────────────────────────────────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_logo'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	/* 어디에 쓸 로고인가 — 머리글(head) 인가 바닥글(foot) 인가 */
+	$where = isset( $_GET['w'] ) ? sanitize_key( $_GET['w'] ) : 'head';
+	if ( 'foot' !== $where ) { $where = 'head'; }
+	$K_IMG = ( 'foot' === $where ) ? 'stella_logo_foot'  : 'stella_logo_img';
+	$K_H   = ( 'foot' === $where ) ? 'stella_logo_footh' : 'stella_logo_h';
+	$D_H   = ( 'foot' === $where ) ? 40 : 46;
+
+	if ( isset( $_GET['set'] ) ) {
+		check_admin_referer( 'stella_logo' );
+		$v = esc_url_raw( wp_unslash( $_GET['set'] ) );
+		if ( $v ) { update_option( $K_IMG, $v ); }
+		else      { update_option( $K_IMG, 'off' ); }
+		wp_safe_redirect( add_query_arg(
+			array( 'stella_logo' => '1', 'w' => $where ), home_url( '/' ) ) );
+		exit;
+	}
+	if ( isset( $_GET['h'] ) ) {
+		check_admin_referer( 'stella_logo' );
+		update_option( $K_H, (int) $_GET['h'] );
+		wp_safe_redirect( add_query_arg(
+			array( 'stella_logo' => '1', 'w' => $where ), home_url( '/' ) ) );
+		exit;
+	}
+
+	$now = get_option( $K_IMG, '' );
+	$hgt = (int) get_option( $K_H, $D_H );
+	$q   = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '';
+
+	$imgs = get_posts( array(
+		'post_type'      => 'attachment',
+		'post_mime_type' => 'image',
+		'post_status'    => 'inherit',
+		'posts_per_page' => 80,
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+		's'              => $q,
+	) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!doctype html><meta charset="utf-8">';
+	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
+	echo '<title>머리글 로고 고르기</title>';
+	echo '<style>
+	 body{font:15px/1.7 system-ui,-apple-system,sans-serif; margin:0;
+	      background:#14112b; color:#F6F1E7; padding:20px;}
+	 h1{font-size:19px; margin:0 0 6px;}
+	 .dim{opacity:.7; font-size:13px;}
+	 .now{margin:16px 0; padding:14px; border:1px solid #4b3f82;
+	      border-radius:10px; background:#0D0A1A;}
+	 .now img{display:block; margin-top:10px; width:auto;}
+	 .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+	       gap:12px; margin-top:16px;}
+	 .cell{border:1px solid #3a3268; border-radius:10px; overflow:hidden;
+	       background:#0D0A1A;}
+	 .cell img{width:100%; height:80px; object-fit:contain; display:block;
+	       padding:10px; box-sizing:border-box;}
+	 .cell .nm{font-size:11px; padding:6px 8px; opacity:.8; word-break:break-all;
+	       background:#1d1840;}
+	 .cell a{color:inherit; text-decoration:none; display:block;}
+	 .cell:hover{border-color:#C79A4A;}
+	 .bar{margin:18px 0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+	 .btn{display:inline-block; padding:9px 16px; border-radius:8px;
+	      background:#C79A4A; color:#231a08; text-decoration:none; font-weight:700;}
+	 .btn.gray{background:#3a3268; color:#F6F1E7;}
+	 .btn.sm{padding:6px 12px; font-size:13px;}
+	 input[type=text]{padding:8px 10px; border-radius:8px; border:1px solid #4b3f82;
+	      background:#1d1840; color:#F6F1E7;}
+	</style>';
+
+	$isFoot = ( 'foot' === $where );
+	echo '<h1>' . ( $isFoot ? '바닥글' : '머리글' ) . ' 로고 고르기</h1>';
+
+	/* 머리글 · 바닥글 전환 — 둘은 배경색이 달라 로고도 달라야 합니다 */
+	echo '<div class="bar">';
+	foreach ( array( 'head' => '머리글 (어두운 바탕)',
+	                 'foot' => '바닥글 (밝은 바탕)' ) as $k2 => $lbl ) {
+		$go2 = add_query_arg( array( 'stella_logo' => '1', 'w' => $k2 ), home_url( '/' ) );
+		$on2 = ( $where === $k2 );
+		echo '<a class="btn' . ( $on2 ? '' : ' gray' ) . '" href="' . esc_url( $go2 ) . '">'
+		   . $lbl . ( $on2 ? ' ✓' : '' ) . '</a>';
+	}
+	echo '</div>';
+
+	if ( $isFoot ) {
+		echo '<p class="dim">바닥글 바탕은 <b>밝습니다</b>(종이색). '
+		   . '그래서 <b>남색 로고</b>가 맞습니다. 머리글의 흰색 로고를 쓰면 '
+		   . '안 보입니다. 아래 칸 바탕은 어두우니 눈으로 고르실 때 주의하세요.</p>';
+	} else {
+		echo '<p class="dim">머리글 배경이 어두우니 <b>흰색 로고</b>가 맞습니다. '
+		   . '아래 칸의 바탕도 같은 어두운 색으로 해두었습니다.</p>';
+	}
+
+	echo '<div class="now"><b style="color:#F6F1E7">지금 로고</b><br>';
+	if ( $now ) { if ( 'off' !== $now ) {
+		echo '<span class="dim">' . esc_html( basename( $now ) ) . ' · 높이 ' . $hgt . 'px</span>';
+		echo '<img src="' . esc_url( $now ) . '" alt="" style="height:' . $hgt . 'px">';
+	} }
+	if ( ! $now || 'off' === $now ) {
+		echo '<span class="dim">아직 안 바꾸셨습니다 — 테마의 옛 로고가 나옵니다.</span>';
+	}
+	echo '</div>';
+
+	/* 크기 조절 */
+	echo '<div class="now"><b>크기 (높이)</b><br>';
+	echo '<span class="dim">지금 ' . $hgt . 'px. 머리글이 좁으면 로고가 클수록 '
+	   . '차림표가 밀립니다. 40~60px 쯤이 무난합니다.</span><br>';
+	foreach ( array( 32, 40, 46, 54, 62, 72, 88 ) as $k ) {
+		$go = wp_nonce_url( add_query_arg(
+			array( 'stella_logo' => '1', 'w' => $where, 'h' => $k ), home_url( '/' ) ), 'stella_logo' );
+		$on = ( $hgt === $k );
+		echo '<a class="btn sm' . ( $on ? '' : ' gray' ) . '" style="margin:8px 6px 0 0" href="'
+		   . esc_url( $go ) . '">' . $k . 'px' . ( $on ? ' ✓' : '' ) . '</a>';
+	}
+	echo '</div>';
+
+	$undo = wp_nonce_url( add_query_arg(
+		array( 'stella_logo' => '1', 'w' => $where, 'set' => '' ), home_url( '/' ) ), 'stella_logo' );
+	echo '<div class="bar">';
+	echo '<form method="get" action="' . esc_url( home_url( '/' ) ) . '">';
+	echo '<input type="hidden" name="stella_logo" value="1">';
+	echo '<input type="hidden" name="w" value="' . esc_attr( $where ) . '">';
+	echo '<input type="text" name="q" value="' . esc_attr( $q ) . '" '
+	   . 'placeholder="이름으로 찾기 (예: logo)"> ';
+	echo '<button class="btn" type="submit">찾기</button>';
+	echo '</form>';
+	echo '<a class="btn gray" href="' . esc_url( $undo ) . '">원래대로 되돌리기</a>';
+	echo '<a class="btn gray" href="' . esc_url( home_url( '/' ) ) . '">홈 보기</a>';
+	echo '</div>';
+
+	if ( ! $imgs ) { echo '<p>그림을 못 찾았습니다.</p>'; exit; }
+
+	echo '<p class="dim">최근 올리신 그림 ' . count( $imgs ) . '장입니다.</p>';
+	echo '<div class="grid">';
+	foreach ( $imgs as $im ) {
+		$full = wp_get_attachment_url( $im->ID );
+		$go = wp_nonce_url( add_query_arg(
+			array( 'stella_logo' => '1', 'w' => $where, 'set' => $full ), home_url( '/' ) ), 'stella_logo' );
+		echo '<div class="cell"><a href="' . esc_url( $go ) . '">';
+		echo '<img src="' . esc_url( $full ) . '" alt="" loading="lazy">';
+		echo '<div class="nm">' . esc_html( basename( $full ) ) . '</div>';
+		echo '</a></div>';
+	}
+	echo '</div>';
+	exit;
+} );

@@ -9,7 +9,7 @@
   var GUIDE={
 
   'door-career':{
-    name:'직성의 신', en:'THE ARCHITECT', face:'stellardoorarchitect-small.jpg',
+    name:'일을 짓는 신', en:'THE ARCHITECT', face:'stellardoorarchitect-small.jpg',
     subject:'일과 돈',
     open:[
       '일과 돈은 재능의 문제가 아니라 자리의 문제입니다. 같은 사람이 어느 자리에 서느냐에 따라 유능해지기도 하고 무능해지기도 해요. 저는 그 자리를 찾아드리는 신입니다.',
@@ -27,7 +27,7 @@
   },
 
   'door-love':{
-    name:'연성의 신', en:'THE LOVERS', face:'stellardoorlovers-small.jpg',
+    name:'인연을 잇는 신', en:'THE LOVERS', face:'stellardoorlovers-small.jpg',
     subject:'사랑과 인연',
     open:[
       '사랑은 마음의 문제 같지만, 저는 다르게 봅니다. 사랑은 습관의 문제예요. 어떤 사람에게 끌리는지, 다투면 어떻게 하는지, 그건 태어날 때부터 몸에 새겨져 있습니다.',
@@ -45,7 +45,7 @@
   },
 
   'door-health':{
-    name:'강성의 신', en:'THE NURTURER', face:'stellardoornurturer-small.jpg',
+    name:'몸을 지키는 신', en:'THE NURTURER', face:'stellardoornurturer-small.jpg',
     subject:'건강과 가족',
     open:[
       '몸은 거짓말을 하지 않습니다. 마음은 괜찮다고 하는데 몸이 먼저 주저앉는 일이 있죠. 저는 그 몸이 어느 계절에 약해지는지를 읽는 신입니다.',
@@ -63,7 +63,7 @@
   },
 
   'door-fortune':{
-    name:'세성의 신', en:'THE SEASONS', face:'stellardoorseasons-small.jpg',
+    name:'때를 아는 신', en:'THE SEASONS', face:'stellardoorseasons-small.jpg',
     subject:'흐름과 시기',
     open:[
       '인생에도 계절이 있습니다. 봄에 거두려 하면 아무것도 없고, 가을에 씨를 뿌리면 얼어 죽습니다. 저는 지금이 어느 계절인지를 알려주는 신입니다.',
@@ -81,7 +81,7 @@
   },
 
   'door-astro':{
-    name:'성좌의 신', en:'ASTRAIOS', face:'stellardoorastraios-small.jpg',
+    name:'별을 읽는 신', en:'ASTRAIOS', face:'stellardoorastraios-small.jpg',
     subject:'별자리',
     open:[
       '당신이 태어나던 순간, 하늘은 딱 한 번 그 모양이었습니다. 다시는 같은 모양이 되지 않아요. 저는 그 하늘을 다시 펼쳐 보이는 신입니다.',

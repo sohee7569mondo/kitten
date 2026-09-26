@@ -1,0 +1,257 @@
+// 홈에 유앤미와 스텔라 랩을 겁니다            판 2026-09-22
+//
+// 소희 님 「사람을 StellaSaju.com 으로 보내는 유입 구조를 잡자」
+//
+// 왜 — 가장 강한 것이 잠자고 있었습니다
+// 홈에서 유앤미로 가는 링크가 0개, 스텔라 랩도 0개입니다.
+// 홈을 고치는 조각 셋(askmore · freeimg · freelabel)에도 없습니다.
+// 세어 보고 알았습니다.
+//
+// 둘 다 가입도 결제도 없고, 카톡으로 퍼뜨리라고 만든 것입니다.
+// 새로 무엇을 만드는 것보다 이미 만든 것을 켜는 편이 훨씬 쌉니다.
+//
+// 어디에 — 「무료로 보는 것」 줄
+// 그 줄의 제목이 이미 「가입하지 않으셔도 됩니다」입니다. 딱 맞습니다.
+// 카드 모양(free-card)도 그대로 빌려 쓰므로 새 CSS 가 거의 없습니다.
+// 자리는 「오늘의 운세」 바로 뒤 — 눈에 띄면서 흐름을 안 깹니다.
+//
+// ★ 점(dots)도 다시 그립니다
+// 그 줄의 스크립트는 처음에 카드 수를 세어 두고 그만큼 점을
+// 만듭니다. 카드가 늘면 점이 옛 수에 머무릅니다.
+// 그리고 숨겨진 카드(로또)까지 세던 것도 이참에 바로잡습니다 —
+// 보이는 카드만 셉니다.
+//
+// ★ patch160_freeimg 와 부딪히지 않습니다
+// 그 조각은 자기 표에 적힌 주소만 건드립니다. 우리 카드 둘은
+// 표에 없으므로 그냥 지나갑니다.
+//
+// 앵커를 안 잡습니다
+// 줄을 class 로 찾아 카드를 끼웁니다. 쪽 원본은 한 글자도 안
+// 고칩니다 — 끄면 그대로 돌아갑니다.
+//
+// 살펴보기  https://stellasaju.com/?stella_homeviral=1
+//
+// ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+// ★ 크롬 번역을 끄고 붙여넣으세요.
+
+add_action( 'wp_head', function () {
+
+	if ( ! is_front_page() ) { return; }
+	$b  = '';
+	$b .= "<style id='stella-homeviral-css'>\n";
+	$b .= "#stellar-home a.free-card[data-viral=on] .free-kicker{ opacity:.9; }\n";
+	$b .= "</style>\n";
+	$b .= "<script>\n";
+	$b .= "(function(){\n";
+	$b .= "  if(window.StellaHomeViral){ return; }\n";
+	$b .= "  window.StellaHomeViral = 1;\n";
+	$b .= "\n";
+	$b .= "      // [ 주소, 바탕색, 윗줄, 아랫줄 첫 줄, 아랫줄 둘째 줄 ]\n";
+	$b .= "  var ADD = [\n";
+	$b .= "    ['/uandme/', '#D94F70', '둘이서',   '유앤미',   '궁합 보기'],\n";
+	$b .= "    ['/lab/',    '#2E6F9E', '심심풀이', '스텔라 랩', '성향 검사']\n";
+	$b .= "  ];\n";
+	$b .= "\n";
+	$b .= "  function card(c){\n";
+	$b .= "    var a = document.createElement('a');\n";
+	$b .= "    a.className = 'free-card';\n";
+	$b .= "    a.setAttribute('href', c[0]);\n";
+	$b .= "    a.setAttribute('data-viral', 'on');\n";
+	$b .= "    a.style.setProperty('--bg', c[1]);\n";
+	$b .= "\n";
+	$b .= "    var tag = document.createElement('span');\n";
+	$b .= "    tag.className = 'free-tag';\n";
+	$b .= "    tag.textContent = 'Free';\n";
+	$b .= "    a.appendChild(tag);\n";
+	$b .= "\n";
+	$b .= "    var k = document.createElement('span');\n";
+	$b .= "    k.className = 'free-kicker';\n";
+	$b .= "    k.textContent = c[2];\n";
+	$b .= "    a.appendChild(k);\n";
+	$b .= "\n";
+	$b .= "    var s = document.createElement('span');\n";
+	$b .= "    s.className = 'free-sub';\n";
+	$b .= "    s.appendChild(document.createTextNode(c[3]));\n";
+	$b .= "    s.appendChild(document.createElement('br'));\n";
+	$b .= "    s.appendChild(document.createTextNode(c[4]));\n";
+	$b .= "    a.appendChild(s);\n";
+	$b .= "\n";
+	$b .= "    return a;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "      // 보이는 카드만 세어 점을 다시 그립니다\n";
+	$b .= "  function redots(rail){\n";
+	$b .= "    var bar = rail.nextElementSibling;\n";
+	$b .= "    if(!bar){ return; }\n";
+	$b .= "    if(String(bar.className).indexOf('railbar') < 0){ return; }\n";
+	$b .= "    var dots = bar.querySelector('[data-dots]');\n";
+	$b .= "    if(!dots){ return; }\n";
+	$b .= "\n";
+	$b .= "    function seen(){\n";
+	$b .= "      var out = [], kids = rail.children, i;\n";
+	$b .= "      for(i = 0; i < kids.length; i++){\n";
+	$b .= "        if(kids[i].offsetParent === null){ continue; }\n";
+	$b .= "        out.push(kids[i]);\n";
+	$b .= "      }\n";
+	$b .= "      return out;\n";
+	$b .= "    }\n";
+	$b .= "\n";
+	$b .= "    function draw(){\n";
+	$b .= "      var list = seen(), i;\n";
+	$b .= "      if(dots.children.length !== list.length){\n";
+	$b .= "        dots.innerHTML = '';\n";
+	$b .= "        for(i = 0; i < list.length; i++){\n";
+	$b .= "          dots.appendChild(document.createElement('i'));\n";
+	$b .= "        }\n";
+	$b .= "      }\n";
+	$b .= "      var mid = rail.scrollLeft + rail.clientWidth / 2;\n";
+	$b .= "      var best = 0, bestD = 1e9, c, cc, d;\n";
+	$b .= "      for(i = 0; i < list.length; i++){\n";
+	$b .= "        c  = list[i];\n";
+	$b .= "        cc = c.offsetLeft + c.offsetWidth / 2;\n";
+	$b .= "        d  = Math.abs(cc - mid);\n";
+	$b .= "        if(d < bestD){ bestD = d; best = i; }\n";
+	$b .= "      }\n";
+	$b .= "      for(i = 0; i < dots.children.length; i++){\n";
+	$b .= "        dots.children[i].className = (i === best) ? 'on' : '';\n";
+	$b .= "      }\n";
+	$b .= "    }\n";
+	$b .= "\n";
+	$b .= "    rail.addEventListener('scroll', draw);\n";
+	$b .= "    window.addEventListener('resize', draw);\n";
+	$b .= "    draw();\n";
+	$b .= "        // 로또를 숨기는 조각이 늦게 돌 수 있어 잠깐 더 봅니다\n";
+	$b .= "    var n = 0;\n";
+	$b .= "    var t = setInterval(function(){\n";
+	$b .= "      n++;\n";
+	$b .= "      draw();\n";
+	$b .= "      if(n > 12){ clearInterval(t); }\n";
+	$b .= "    }, 400);\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function put(){\n";
+	$b .= "    var rail = document.querySelector('.rail.w-free');\n";
+	$b .= "    if(!rail){ return false; }\n";
+	$b .= "    if(rail.querySelector('a.free-card[data-viral=on]')){ return true; }\n";
+	$b .= "\n";
+	$b .= "        // 「오늘의 운세」 바로 뒤에 놓습니다\n";
+	$b .= "    var at = rail.children.length ? rail.children[0].nextSibling : null;\n";
+	$b .= "    var i;\n";
+	$b .= "    for(i = 0; i < ADD.length; i++){\n";
+	$b .= "      var el = card(ADD[i]);\n";
+	$b .= "      if(at){ rail.insertBefore(el, at); }\n";
+	$b .= "      else { rail.appendChild(el); }\n";
+	$b .= "      at = el.nextSibling;\n";
+	$b .= "    }\n";
+	$b .= "    redots(rail);\n";
+	$b .= "    return true;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  if(put()){ return; }\n";
+	$b .= "  var k = 0;\n";
+	$b .= "  var tk = setInterval(function(){\n";
+	$b .= "    k++;\n";
+	$b .= "    if(put()){ clearInterval(tk); return; }\n";
+	$b .= "    if(k > 40){ clearInterval(tk); }\n";
+	$b .= "  }, 200);\n";
+	$b .= "})();\n";
+	$b .= "</script>\n";
+	echo $b;
+} );
+
+// ── 살펴보기 ───────────────────────────────────────────
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_homeviral'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+	echo "홈에 유앤미·스텔라 랩 걸기 — 살펴보기\n";
+	echo "═══════════════════════════════════════════\n\n";
+
+	$home = get_post( (int) get_option( 'page_on_front' ) );
+	if ( ! $home ) {
+		echo "홈 쪽을 못 찾았습니다.\n";
+		exit;
+	}
+	$hc = (string) $home->post_content;
+
+	echo "홈 쪽  " . intval( $home->ID ) . ' · ' . strlen( $hc ) . "바이트\n\n";
+
+	echo "지금 홈에 있는 링크\n";
+	foreach ( array( '/uandme/', '/lab/' ) as $u ) {
+		$n = substr_count( $hc, 'href="' . $u . '"' );
+		echo '   ' . str_pad( $u, 12 ) . $n . "군데"
+			. ( $n ? '' : '   ← 이 조각이 겁니다' ) . "\n";
+	}
+	echo "\n";
+
+	echo "무료 줄에 있는 카드\n";
+	$at = 0; $n = 0;
+	while ( true ) {
+		$a = strpos( $hc, 'class="free-card', $at );
+		if ( false === $a ) { break; }
+		$h = strpos( $hc, 'href="', $a - 60 );
+		$slug = '?';
+		if ( false !== $h ) {
+			$h = $h + 6;
+			$e = strpos( $hc, '"', $h );
+			if ( false !== $e ) { $slug = substr( $hc, $h, $e - $h ); }
+		}
+		$n++;
+		echo '   ' . $n . '. ' . $slug . "\n";
+		$at = $a + 10;
+	}
+	echo "\n   여기에 /uandme/ 와 /lab/ 두 장을 1번 뒤에 끼웁니다.\n";
+	echo "   (쪽 원본은 안 고칩니다 — 화면에서만 끼웁니다)\n\n";
+
+	// 갈 곳이 살아 있나
+	echo "갈 곳이 살아 있나\n";
+	foreach ( array( 'uandme', 'lab' ) as $s ) {
+		$p = get_page_by_path( $s );
+		if ( $p ) {
+			echo '   /' . str_pad( $s . '/', 10 ) . '쪽 있음 · 번호 '
+				. intval( $p->ID ) . ' · ' . $p->post_status . "\n";
+		} else {
+			echo '   /' . str_pad( $s . '/', 10 )
+				. "쪽은 없습니다 — 조각이 주소를 가로채 그립니다\n";
+		}
+	}
+	echo "\n";
+
+	// 그 둘을 그리는 조각이 켜져 있나 — 이름과 켜짐만 찍습니다
+	global $wpdb;
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_status, post_content FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode' ORDER BY post_title ASC" );
+
+	$want = array(
+		array( 'uandme-screens.js', '유앤미 화면 그리기 (없으면 빈 화면)' ),
+		array( 'UANDME_TIERS',      '유앤미 점수 셈 (없으면 빈 화면)' ),
+		array( 'um-chars.js',       '유앤미 화면 밑감 (없으면 빈 화면)' ),
+		array( 'stella_labpage',    '스텔라 랩 쪽 만들기' ),
+		array( 'snip_lab_index',    '스텔라 랩 목록 (조각 판)' ),
+	);
+
+	echo "그 둘을 그리는 조각 — 이름과 켜짐만 찍습니다\n";
+	echo "(안에 든 글은 한 자도 안 찍습니다)\n";
+	foreach ( $want as $w ) {
+		$on = false; $any = false; $title = '';
+		foreach ( (array) $rows as $r ) {
+			if ( false === strpos( (string) $r->post_content, $w[0] ) ) { continue; }
+			$any   = true;
+			$title = $r->post_title;
+			if ( 'publish' === $r->post_status ) { $on = true; }
+		}
+		$say = $any ? ( $on ? '켜짐' : '★ 꺼짐' ) : '★ WPCode 에 없음';
+		echo '   ' . str_pad( $say, 16 ) . $w[1];
+		if ( $any ) { echo '  ·  ' . $title; }
+		echo "\n";
+	}
+
+	echo "\n열어 보실 곳\n";
+	echo '   ' . home_url( '/' ) . "                 홈 (카드 둘이 보이는지)\n";
+	echo '   ' . home_url( '/uandme/' ) . "\n";
+	echo '   ' . home_url( '/lab/' ) . "\n";
+	exit;
+} );

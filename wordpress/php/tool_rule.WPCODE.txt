@@ -1,0 +1,89 @@
+/* ══════════════════════════════════════════════════════════
+   규칙이 어디 적혀 있나 찾기 · 소희 님께        2026-09-11
+   ── 판 : RULE-1 (2026-09-11) ──
+
+   폭을 재보니 두 가지가 나왔습니다.
+
+     · 벼리(door-love) 의 .g-cols 에 max-width 760px 이 걸려 있습니다.
+       마루(door-career) 에는 없습니다. 그래서 벼리만 좁습니다.
+
+     · 책(#ssb) 은 좌우 여백이 -710px 인데 max-width 가 100% 라
+       왼쪽으로 끌려만 가고 넓어지지는 못했습니다.
+
+   그런데 그 규칙들이 제 사본에는 없습니다.
+   그래서 이 도구가 「어느 스타일 안에 적혀 있는지」를 찾아줍니다.
+
+   재고 싶은 쪽을 그냥 열면 됩니다.
+     ① https://stellasaju.com/door-love/
+     ② https://stellasaju.com/reading-book/?demo=door-love
+
+   ★ 스니펫 이름 「STELLA - 규칙 찾기」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 관리자로 로그인했을 때만 보입니다. 아무것도 안 바꿉니다.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_footer', function () {
+
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	?>
+<script>
+(function(){
+  var WANT = ['g-cols', 'ssb', 'ssg', 'bkBook', 'g-inner'];
+  var L = [];
+
+  function src(sheet){
+    if(sheet.href){ return '파일 : ' + sheet.href.replace(location.origin, ''); }
+    var o = sheet.ownerNode;
+    if(!o){ return '어디인지 모름'; }
+    var tag = '<style>';
+    if(o.id){ tag += ' id=' + o.id; }
+    if(o.className){ tag += ' class=' + o.className; }
+    var head = (o.textContent || '').replace(/\s+/g, ' ').slice(0, 90);
+    return '쪽 안의 ' + tag + '\n        첫머리 : ' + head;
+  }
+
+  function walk(rules, sheet, depth){
+    if(!rules){ return; }
+    for(var i = 0; i < rules.length; i++){
+      var r = rules[i];
+      if(r.cssRules){ walk(r.cssRules, sheet, depth + 1); continue; }
+      var sel = r.selectorText;
+      if(!sel){ continue; }
+      var hit = false;
+      for(var k = 0; k < WANT.length; k++){
+        if(sel.indexOf(WANT[k]) >= 0){ hit = true; break; }
+      }
+      if(!hit){ continue; }
+      var txt = r.cssText || '';
+      if(txt.indexOf('max-width') < 0 && txt.indexOf('margin') < 0 && txt.indexOf('width') < 0){ continue; }
+      L.push('  ' + txt.slice(0, 260) + '\n     ↳ ' + src(sheet));
+    }
+  }
+
+  function run(){
+    L.push('판 RULE-1 · ' + location.pathname + location.search);
+    L.push('스타일 묶음 ' + document.styleSheets.length + '개');
+    L.push('');
+    for(var s = 0; s < document.styleSheets.length; s++){
+      var sh = document.styleSheets[s];
+      try { walk(sh.cssRules, sh, 0); }
+      catch(e){ L.push('  (' + s + '번 묶음은 못 읽습니다 — 바깥 파일)'); }
+    }
+    if(L.length <= 3){ L.push('  찾은 규칙이 없습니다.'); }
+
+    var d = document.createElement('div');
+    d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:2147483647;'
+      + 'background:#10233f;color:#dfe9ff;padding:12px 16px;font:11px/1.55 ui-monospace,monospace;'
+      + 'white-space:pre-wrap;max-height:62vh;overflow:auto;'
+      + 'box-shadow:0 -2px 16px rgba(0,0,0,.5)';
+    d.textContent = L.join('\n');
+    document.body.appendChild(d);
+  }
+
+  if(document.readyState === 'complete'){ setTimeout(run, 2200); }
+  else { window.addEventListener('load', function(){ setTimeout(run, 2200); }); }
+})();
+</script>
+	<?php
+}, 99 );

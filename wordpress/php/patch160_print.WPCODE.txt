@@ -1,0 +1,192 @@
+/* ══════════════════════════════════════════════════════════
+   종이에 찍히는 책 — 인쇄 전용      ★ 2026-09-12 · 소희 님께
+                                     판 PRINT-3
+
+   소희 님 : 「인쇄용 글은 완전 구린듯…. 이쁘게 만들 방법이 있을까?」
+             「글씨 크기를 조금 다르게 한다든지, 배경을 그냥 하얀색으로,
+              옆에 파란 줄도 없고…. 목차 폭은 인쇄니 너무 좁아」
+
+   ── 왜 구렸나 ─────────────────────────────────────────
+   이 책은 화면용으로 지어졌습니다. 인쇄는 「화면을 그대로 종이에
+   옮긴 것」이었습니다. 그래서 이렇게 나왔습니다.
+
+       ① 쪽마다 왼쪽에 군청색 세로 막대     화면의 장식입니다
+       ② 크림색 상자가 종이 한가운데 덩그러니  종이는 하얀데 상자만 색
+       ③ 글자리가 종이의 절반쯤             화면 폭이 그대로 넘어옴
+       ④ 글씨가 화면 크기 그대로            종이에서는 너무 큽니다
+       ⑤ 제목만 쪽 맨 아래에 혼자 남음        읽기가 끊깁니다
+       ⑥ 표가 두 장에 걸쳐 잘림
+
+   ── 이 조각이 하는 일 ─────────────────────────────────
+   종이에서만 듣는 규칙을 따로 적습니다. 화면은 한 글자도 안 바뀝니다.
+
+       종이       흰 바탕 · 검은 글씨 · 장식 막대 없음
+       여백       위아래 18mm, 좌우 20mm (A4·Letter 둘 다)
+       글씨       본문 10pt · 제목 14pt · 표 9pt
+                  일반 책이 쓰는 크기입니다 (책은 9.5~11pt)
+                  화면은 픽셀, 종이는 포인트로 잽니다
+       글자리     종이의 글 자리를 끝까지 씁니다
+       차례       인쇄에서도 폭을 다 쓰고 글씨를 키웁니다
+       속표지     한 장을 통째로, 글은 그 한가운데
+       쪽 넘김    장이 바뀔 때만 — 책처럼 글이 이어집니다
+       안 잘리게  표 · 그림 · 말상자는 두 장에 걸치지 않습니다
+                  제목은 제 글과 떨어지지 않습니다
+
+   ── 인쇄 창에서 하실 것 두 가지 ───────────────────────
+   Ctrl+P 를 누르면 오른쪽에 설정이 나옵니다. 「옵션 더보기」를 펴세요.
+
+       ① 머리글 및 바닥글  ☐ 끕니다
+          이걸 켜두면 종이마다 위에 날짜와 「나의 전자책」,
+          아래에 주소와 18/73 이 찍힙니다. 우리 책이 아니라
+          브라우저가 찍는 것이라 코드로는 못 막습니다.
+
+       ② 배경 그래픽      켜도 되고 꺼도 됩니다
+          바탕을 하얗게 했으니 켜도 잉크를 안 먹습니다.
+          켜면 「지금 여기」 줄과 덤 쪽의 크림색 상자가 같이 나옵니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+
+   ── 들어갔는지 확인 ───────────────────────────────────
+   Ctrl+U 로 소스를 열고 「인쇄 판」 을 찾으세요.
+
+       <!-- stella 인쇄 판 PRINT-3 -->
+   ══════════════════════════════════════════════════════════ */
+
+if ( ! function_exists( 'stella_print3_css' ) ) {
+
+add_action( 'wp_footer', function () {
+	echo stella_print3_css();
+}, 100 );
+
+function stella_print3_css() {
+
+	$out  = "\n<!-- stella 인쇄 판 PRINT-3 -->\n";
+	$out .= '<style id="stella-print" media="print">' . "\n";
+
+	/* ── 종이 한 장의 크기와 여백 ───────────────────────
+	   A4 든 Letter 든 이 여백이 그대로 듣습니다. */
+	$out .= "@page{ margin:18mm 20mm; }\n";
+
+	/* ── 종이는 하얗게, 장식은 뺍니다 ───────────────────
+	   왼쪽 군청색 세로 막대(.page::before)는 화면에서만 쓰던 것입니다.
+	   화면에서는 꺼져 있었는데 종이에서만 살아나고 있었습니다. */
+	$out .= "html, body{ background:#fff !important; }\n";
+	$out .= "#ssb{ background:#fff !important; color:#1A1713 !important; }\n";
+	$out .= "#ssb .page{ background:#fff !important; box-shadow:none !important;\n";
+	$out .= "  border:0 !important; border-radius:0 !important; }\n";
+	$out .= "#ssb .page::before{ display:none !important; }\n";
+
+	/* ── 글 자리를 종이 끝까지 ──────────────────────────
+	   화면의 폭(900px)과 사이트 틀이 종이까지 따라오고 있었습니다.
+	   종이에서는 위 @page 여백이 여백을 맡으니 다 풉니다. */
+	$out .= "body, main, .wp-site-blocks, .entry-content, .wp-block-post-content,\n";
+	$out .= ".is-layout-constrained, .alignfull{\n";
+	$out .= "  max-width:none !important; width:auto !important;\n";
+	$out .= "  margin-left:0 !important; margin-right:0 !important;\n";
+	$out .= "  padding-left:0 !important; padding-right:0 !important; }\n";
+	$out .= "#ssb, #ssb .book, #ssb .page{\n";
+	$out .= "  max-width:none !important; width:auto !important;\n";
+	$out .= "  margin-left:0 !important; margin-right:0 !important; }\n";
+	$out .= "#ssb .book{ padding:0 !important; gap:0 !important; }\n";
+	$out .= "#ssb .page{ padding:0 0 8mm !important; }\n";
+
+	/* ── 글씨 — 종이는 포인트로 잽니다 ──────────────────
+	   화면에서 18.5px 로 읽던 글씨는 종이에서 너무 큽니다.
+	   책에서 쓰는 크기는 10~11pt 입니다. */
+	$out .= "#ssb{ font-size:10pt !important; line-height:1.62 !important; }\n";
+	$out .= "#ssb p{ margin:0 0 .55em !important; orphans:3; widows:3; }\n";
+	$out .= "#ssb h2{ font-size:14pt !important; line-height:1.42 !important;\n";
+	$out .= "  margin:0 0 .45em !important; }\n";
+	$out .= "#ssb h3{ font-size:11pt !important; margin:1.4em 0 .4em !important; }\n";
+	$out .= "#ssb .eyebrow{ font-size:7.2pt !important; letter-spacing:.22em !important; }\n";
+	$out .= "#ssb .dek{ font-size:9pt !important; color:#5A5148 !important; }\n";
+	$out .= "#ssb .mini, #ssb p.mini{ font-size:8.4pt !important; color:#5A5148 !important; }\n";
+	$out .= "#ssb .lead{ font-size:10.4pt !important; }\n";
+
+	/* 제목이 쪽 맨 아래에 혼자 남지 않게 */
+	$out .= "#ssb h2, #ssb h3{ break-after:avoid !important;\n";
+	$out .= "  page-break-after:avoid !important; break-inside:avoid !important; }\n";
+
+	/* ── 표 ─────────────────────────────────────────────
+	   두 장에 걸쳐 잘리지 않게 하고, 줄 사이를 종이 눈금으로 잡습니다. */
+	$out .= "#ssb .tw{ overflow:visible !important; }\n";
+	$out .= "#ssb .page table{ font-size:9pt !important;\n";
+	$out .= "  break-inside:avoid !important; page-break-inside:avoid !important; }\n";
+	$out .= "#ssb thead{ display:table-header-group; }\n";
+	$out .= "#ssb th, #ssb td{ padding:6pt 7pt !important;\n";
+	$out .= "  border-bottom:1px solid #DCD6C9 !important; }\n";
+	$out .= "#ssb th{ font-size:7.6pt !important; color:#5A5148 !important; }\n";
+	$out .= "#ssb td{ color:#26211C !important; }\n";
+	$out .= "#ssb td .mini{ font-size:8.2pt !important; }\n";
+
+	/* ── 쪼개지면 안 되는 것들 ──────────────────────────
+	   말상자 · 덤 쪽 상자 · 그림 · 카드는 한 장 안에 둡니다. */
+	$out .= "#ssb .voice, #ssb .tailbox, #ssb .keep, #ssb .alert,\n";
+	$out .= "#ssb .arcv, #ssb figure, #ssb img, #ssb .chart{\n";
+	$out .= "  break-inside:avoid !important; page-break-inside:avoid !important; }\n";
+	$out .= "#ssb img{ max-width:100% !important; height:auto !important; }\n";
+
+	/* ── 속표지는 한 장을 통째로 ────────────────────────
+	   235mm 는 A4(글 자리 266mm)와 Letter(248mm) 둘 다에 들어갑니다.
+	   더 크게 잡으면 빈 종이가 한 장 더 나옵니다. */
+	$out .= "#ssb .page.divider{ min-height:235mm !important; height:auto !important;\n";
+	$out .= "  display:flex !important; flex-direction:column !important;\n";
+	$out .= "  justify-content:center !important; padding:0 !important;\n";
+	$out .= "  break-inside:avoid !important; break-after:page !important; }\n";
+	$out .= "#ssb .page.divider h2{ font-size:17pt !important; }\n";
+	$out .= "#ssb .page.divider .dvno{ font-size:8.4pt !important; }\n";
+
+	/* ── 차례 ───────────────────────────────────────────
+	   소희 님 : 「목차 폭은 인쇄니 너무 좁아」
+	   폭을 다 쓰고, 화면보다 한 단계 크게 찍습니다. */
+	$out .= "#ssb .tocpage .tocp-list{ max-width:none !important; margin:0 !important; }\n";
+	$out .= "#ssb .tocpage .tocp-eye{ font-size:8.4pt !important;\n";
+	$out .= "  letter-spacing:.4em !important; margin:0 0 12mm !important; }\n";
+	$out .= "#ssb .tocpage .tocp-ch{ font-size:11pt !important; margin-top:7mm !important;\n";
+	$out .= "  padding-top:4mm !important; }\n";
+	$out .= "#ssb .tocpage .tocp-sub{ font-size:9.8pt !important; margin-top:2.6mm !important;\n";
+	$out .= "  padding-left:9mm !important; }\n";
+	$out .= "#ssb .tocpage{ break-inside:auto !important; }\n";
+
+	/* ── 화면에만 있는 것 ───────────────────────────────
+	   위 도구막 · 목차 서랍 · 진단 상자는 종이에 안 나갑니다. */
+	$out .= "#ssb .bk-bar, #ssb .tocback, #ssb .bk-toc, #ssb .more,\n";
+	$out .= "#tailsayout, #ssb .foldbtn{ display:none !important; }\n";
+
+
+	/* ══ 책처럼 이어 읽습니다 ═══════════════════════════
+	   소희 님 : 「장이 바뀔 때만 페이지가 바뀌게 해줘」
+
+	   앞서는 꼭지 하나가 종이 한 장씩이었습니다. 글이 반 장만 차도
+	   다음 꼭지는 새 종이에서 시작했습니다. 그래서 일흔석 장이었고,
+	   글씨를 책 크기로 줄이자 빈자리가 더 늘었습니다.
+
+	   이제 일반 책처럼 글이 죽 이어집니다.
+	   새 종이에서 시작하는 것은 여섯 가지뿐입니다.
+
+	       표지 · 차례 · 장 속표지 · 덤 두 쪽 · 맺음말 · 편지
+
+	   꼭지와 꼭지 사이는 9mm 를 띄웁니다. 종이가 마흔 장 안팎으로
+	   줄어듭니다. 같은 글인데 밀도가 올라갑니다.
+
+	   ★ 도로 한 꼭지 한 장으로 하시려면 아래 여섯 줄을 지우세요. */
+	$out .= "#ssb .page{ break-after:auto !important;\n";
+	$out .= "  page-break-after:auto !important; padding-top:0 !important; }\n";
+	$out .= "#ssb .page + .page{ margin-top:9mm !important; }\n";
+	$out .= "#ssb .page.divider, #ssb .page.cover, #ssb .page[data-part=\"cover\"],\n";
+	$out .= "#ssb .tocpage, #ssb .page[data-part=\"tail\"],\n";
+	$out .= "#ssb .page.close, #ssb .page.farewell{\n";
+	$out .= "  break-before:page !important; page-break-before:always !important; }\n";
+
+	/* 첫 장 앞에서는 종이를 넘기지 않습니다 — 빈 종이가 한 장
+	   먼저 나오는 것을 막습니다. */
+	$out .= "#ssb .book > *:first-child{ break-before:auto !important;\n";
+	$out .= "  page-break-before:auto !important; }\n";
+
+	$out .= "</style>\n";
+	return $out;
+}
+
+}
