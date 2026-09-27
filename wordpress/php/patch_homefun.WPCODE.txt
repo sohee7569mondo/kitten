@@ -7,181 +7,185 @@
 //
 // 위치는 「어디서나 실행 / Run Everywhere」로. 크롬 번역을 끄고 붙여넣으세요.
 
-add_action( 'wp_head', function () {
+add_action( 'template_redirect', function () {
 
 	if ( ! is_front_page() ) { return; }
 
-	// 로고 — 미디어에서 파일 이름으로 찾습니다. 못 찾으면 그 카드만 빕니다
-	$logo = get_transient( 'stella_fun_logo' );
+	add_action( 'wp_footer', function () {
 
-	if ( ! is_array( $logo ) ) {
+		// 로고 — 미디어에서 파일 이름으로 찾습니다. 못 찾으면 그 카드만 빕니다
+		$logo = get_transient( 'stella_fun_logo' );
 
-		$logo = array( 'um' => '', 'lab' => '' );
+		if ( ! is_array( $logo ) ) {
 
-		$ids = get_posts( array(
-			'post_type'      => 'attachment',
-			'post_mime_type' => 'image',
-			'post_status'    => 'inherit',
-			'posts_per_page' => 300,
-			'orderby'        => 'ID',
-			'order'          => 'DESC',
-			'fields'         => 'ids',
-		) );
+			$logo = array( 'um' => '', 'lab' => '' );
 
-		foreach ( $ids as $id ) {
+			$ids = get_posts( array(
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'image',
+				'post_status'    => 'inherit',
+				'posts_per_page' => 300,
+				'orderby'        => 'ID',
+				'order'          => 'DESC',
+				'fields'         => 'ids',
+			) );
 
-			$f = strtolower( (string) get_post_meta( $id, '_wp_attached_file', true ) );
-			if ( false === strpos( $f, 'logo' ) ) { continue; }
+			foreach ( $ids as $id ) {
 
-			if ( '' === $logo['um'] ) {
-				if ( false !== strpos( $f, 'uandme' ) ) {
-					$logo['um'] = wp_get_attachment_url( $id );
+				$f = strtolower( (string) get_post_meta( $id, '_wp_attached_file', true ) );
+				if ( false === strpos( $f, 'logo' ) ) { continue; }
+
+				if ( '' === $logo['um'] ) {
+					if ( false !== strpos( $f, 'uandme' ) ) {
+						$logo['um'] = wp_get_attachment_url( $id );
+					}
+				}
+				if ( '' === $logo['lab'] ) {
+					if ( false !== strpos( $f, 'lab' ) ) {
+						$logo['lab'] = wp_get_attachment_url( $id );
+					}
 				}
 			}
-			if ( '' === $logo['lab'] ) {
-				if ( false !== strpos( $f, 'lab' ) ) {
-					$logo['lab'] = wp_get_attachment_url( $id );
-				}
+
+			// 큰 그림을 그대로 쓰면 화면이 느립니다. CDN 으로 줄여 씁니다
+			foreach ( $logo as $k => $v ) {
+				if ( '' === $v ) { continue; }
+				$logo[ $k ] = 'https://i0.wp.com/'
+					. str_replace( array( 'https://', 'http://' ), '', $v ) . '?w=160';
 			}
+
+			set_transient( 'stella_fun_logo', $logo, 12 * HOUR_IN_SECONDS );
 		}
 
-		// 큰 그림을 그대로 쓰면 화면이 느립니다. CDN 으로 줄여 씁니다
-		foreach ( $logo as $k => $v ) {
-			if ( '' === $v ) { continue; }
-			$logo[ $k ] = 'https://i0.wp.com/'
-				. str_replace( array( 'https://', 'http://' ), '', $v ) . '?w=160';
-		}
 
-		set_transient( 'stella_fun_logo', $logo, 12 * HOUR_IN_SECONDS );
-	}
+		$b  = '';
+		$b .= "<style id='sfun-css'>\n";
+		$b .= "#sfun .sfhead{ margin-bottom:20px; }\n";
+		$b .= "#sfun .sfkick{ font-size:.72rem; letter-spacing:.16em;\n";
+		$b .= "  text-transform:uppercase; color:var(--gold); margin-bottom:7px; }\n";
+		$b .= "#sfun .sfbig{ font-size:clamp(1.24rem,3vw,1.62rem); font-weight:700;\n";
+		$b .= "  line-height:1.45; color:var(--ink); }\n";
+		$b .= "#sfun .sfdek{ margin-top:8px; font-size:.9rem; color:var(--ink-dim); }\n";
+		$b .= "#sfun .sfgrid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }\n";
+		$b .= "@media(max-width:760px){ #sfun .sfgrid{ grid-template-columns:1fr; } }\n";
+		$b .= "#sfun a.sfc{ display:block; position:relative; overflow:hidden;\n";
+		$b .= "  border-radius:14px; padding:26px 24px 22px; min-height:172px;\n";
+		$b .= "  text-decoration:none; color:#FFFDF9; isolation:isolate;\n";
+		$b .= "  display:flex; flex-direction:column; align-items:flex-start;\n";
+		$b .= "  box-shadow:var(--shadow); transition:transform .25s ease, box-shadow .25s ease; }\n";
+		$b .= "#sfun a.sfc:hover{ transform:translateY(-6px); box-shadow:var(--shadow-up); }\n";
+		$b .= "#sfun a.sfc:focus-visible{ outline:2px solid var(--plum); outline-offset:3px; }\n";
+		$b .= "#sfun #sfc1{ background:linear-gradient(135deg,#E0607F 0%,#A83457 100%); }\n";
+		$b .= "#sfun #sfc2{ background:linear-gradient(135deg,#4A87BA 0%,#22506F 100%); }\n";
+		$b .= "#sfun a.sfc::after{ content:''; position:absolute; z-index:-1;\n";
+		$b .= "  right:-60px; top:-70px; width:210px; height:210px; border-radius:50%;\n";
+		$b .= "  background:rgba(255,253,249,.12); }\n";
+		$b .= "#sfun .sftop{ display:flex; align-items:center; gap:11px; }\n";
+		$b .= "#sfun .sfbadge{ flex:0 0 auto; width:58px; height:58px; border-radius:50%;\n";
+		$b .= "  background:#FFFDF9; display:flex; align-items:center; justify-content:center;\n";
+		$b .= "  overflow:hidden; box-shadow:0 3px 10px -4px rgba(20,16,49,.45); }\n";
+		$b .= "#sfun .sfbadge img{ width:100%; height:100%; object-fit:contain; display:block; }\n";
+		$b .= "#sfun .sfbrand{ font-size:.79rem; letter-spacing:.06em;\n";
+		$b .= "  color:rgba(255,253,249,.82); }\n";
+		$b .= "#sfun .sfhook{ margin-top:17px; font-weight:700; line-height:1.36;\n";
+		$b .= "  font-size:clamp(1.22rem,4.2vw,1.46rem); letter-spacing:-.01em;\n";
+		$b .= "  text-wrap:balance; }\n";
+		$b .= "#sfun .sfsay{ margin-top:8px; font-size:.91rem; line-height:1.7;\n";
+		$b .= "  color:rgba(255,253,249,.86); max-width:23em; }\n";
+		$b .= "#sfun .sfgo{ margin-top:auto; padding-top:16px; font-size:.86rem; font-weight:700;\n";
+		$b .= "  color:rgba(255,253,249,.95); }\n";
+		$b .= "#sfun .sffree{ margin-top:16px; font-size:.82rem; color:var(--ink-dim);\n";
+		$b .= "  text-align:center; }\n";
+		$b .= "</style>\n";
 
+		$b .= "<script>\n";
+		$b .= "(function(){\n";
+		$b .= "  if(window.StellaHomeFun){ return; }\n";
+		$b .= "  window.StellaHomeFun = 1;\n";
 
-	$b  = '';
-	$b .= "<style id='sfun-css'>\n";
-	$b .= "#sfun .sfhead{ margin-bottom:20px; }\n";
-	$b .= "#sfun .sfkick{ font-size:.72rem; letter-spacing:.16em;\n";
-	$b .= "  text-transform:uppercase; color:var(--gold); margin-bottom:7px; }\n";
-	$b .= "#sfun .sfbig{ font-size:clamp(1.24rem,3vw,1.62rem); font-weight:700;\n";
-	$b .= "  line-height:1.45; color:var(--ink); }\n";
-	$b .= "#sfun .sfdek{ margin-top:8px; font-size:.9rem; color:var(--ink-dim); }\n";
-	$b .= "#sfun .sfgrid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }\n";
-	$b .= "@media(max-width:760px){ #sfun .sfgrid{ grid-template-columns:1fr; } }\n";
-	$b .= "#sfun a.sfc{ display:block; position:relative; overflow:hidden;\n";
-	$b .= "  border-radius:14px; padding:26px 24px 22px; min-height:172px;\n";
-	$b .= "  text-decoration:none; color:#FFFDF9; isolation:isolate;\n";
-	$b .= "  display:flex; flex-direction:column; align-items:flex-start;\n";
-	$b .= "  box-shadow:var(--shadow); transition:transform .25s ease, box-shadow .25s ease; }\n";
-	$b .= "#sfun a.sfc:hover{ transform:translateY(-6px); box-shadow:var(--shadow-up); }\n";
-	$b .= "#sfun a.sfc:focus-visible{ outline:2px solid var(--plum); outline-offset:3px; }\n";
-	$b .= "#sfun #sfc1{ background:linear-gradient(135deg,#E0607F 0%,#A83457 100%); }\n";
-	$b .= "#sfun #sfc2{ background:linear-gradient(135deg,#4A87BA 0%,#22506F 100%); }\n";
-	$b .= "#sfun a.sfc::after{ content:''; position:absolute; z-index:-1;\n";
-	$b .= "  right:-60px; top:-70px; width:210px; height:210px; border-radius:50%;\n";
-	$b .= "  background:rgba(255,253,249,.12); }\n";
-	$b .= "#sfun .sftop{ display:flex; align-items:center; gap:11px; }\n";
-	$b .= "#sfun .sfbadge{ flex:0 0 auto; width:58px; height:58px; border-radius:50%;\n";
-	$b .= "  background:#FFFDF9; display:flex; align-items:center; justify-content:center;\n";
-	$b .= "  overflow:hidden; box-shadow:0 3px 10px -4px rgba(20,16,49,.45); }\n";
-	$b .= "#sfun .sfbadge img{ width:100%; height:100%; object-fit:contain; display:block; }\n";
-	$b .= "#sfun .sfbrand{ font-size:.79rem; letter-spacing:.06em;\n";
-	$b .= "  color:rgba(255,253,249,.82); }\n";
-	$b .= "#sfun .sfhook{ margin-top:17px; font-weight:700; line-height:1.36;\n";
-	$b .= "  font-size:clamp(1.22rem,4.2vw,1.46rem); letter-spacing:-.01em;\n";
-	$b .= "  text-wrap:balance; }\n";
-	$b .= "#sfun .sfsay{ margin-top:8px; font-size:.91rem; line-height:1.7;\n";
-	$b .= "  color:rgba(255,253,249,.86); max-width:23em; }\n";
-	$b .= "#sfun .sfgo{ margin-top:auto; padding-top:16px; font-size:.86rem; font-weight:700;\n";
-	$b .= "  color:rgba(255,253,249,.95); }\n";
-	$b .= "#sfun .sffree{ margin-top:16px; font-size:.82rem; color:var(--ink-dim);\n";
-	$b .= "  text-align:center; }\n";
-	$b .= "</style>\n";
+		$b .= "  var LOGO_UM = '" . str_replace( "'", '', $logo['um'] ) . "';\n";
+		$b .= "  var LOGO_LAB = '" . str_replace( "'", '', $logo['lab'] ) . "';\n";
+		// 카피는 소희 님 판입니다. 이름보다 후킹 문구가 큽니다.
+		$b .= "  var CARDS = [\n";
+		$b .= "    ['sfc1','/uandme/','유앤미',\n";
+		$b .= "     '그 사람과 나, 정말 잘 맞을까?',\n";
+		$b .= "     '이름과 생일만 넣으면 바로 나옵니다',\n";
+		$b .= "     '연인 · 가족 · 직장 · 스타 궁합보기', LOGO_UM],\n";
+		$b .= "    ['sfc2','/lab/','스텔라 랩',\n";
+		$b .= "     '내가 이런 성격이라고?',\n";
+		$b .= "     '행동으로 알아보는 진짜 나',\n";
+		$b .= "     '성격 · 취향 · 여행 테스트', LOGO_LAB]\n";
+		$b .= "  ];\n";
 
-	$b .= "<script>\n";
-	$b .= "(function(){\n";
-	$b .= "  if(window.StellaHomeFun){ return; }\n";
-	$b .= "  window.StellaHomeFun = 1;\n";
+		$b .= "  function esc(s){\n";
+		$b .= "    var d = document.createElement('div');\n";
+		$b .= "    d.textContent = s;\n";
+		$b .= "    return d.innerHTML;\n";
+		$b .= "  }\n";
 
-	$b .= "  var LOGO_UM = '" . str_replace( "'", '', $logo['um'] ) . "';\n";
-	$b .= "  var LOGO_LAB = '" . str_replace( "'", '', $logo['lab'] ) . "';\n";
-	// 카피는 소희 님 판입니다. 이름보다 후킹 문구가 큽니다.
-	$b .= "  var CARDS = [\n";
-	$b .= "    ['sfc1','/uandme/','유앤미',\n";
-	$b .= "     '그 사람과 나, 정말 잘 맞을까?',\n";
-	$b .= "     '이름과 생일만 넣으면 바로 나옵니다',\n";
-	$b .= "     '연인 · 가족 · 직장 · 스타 궁합보기', LOGO_UM],\n";
-	$b .= "    ['sfc2','/lab/','스텔라 랩',\n";
-	$b .= "     '내가 이런 성격이라고?',\n";
-	$b .= "     '행동으로 알아보는 진짜 나',\n";
-	$b .= "     '성격 · 취향 · 여행 테스트', LOGO_LAB]\n";
-	$b .= "  ];\n";
+		$b .= "  function build(){\n";
+		$b .= "    var home = document.getElementById('stellar-home');\n";
+		$b .= "    if(!home){ return false; }\n";
+		$b .= "    if(document.getElementById('sfun')){ return true; }\n";
+		$b .= "    var i, c, h = '';\n";
+		$b .= "    for(i = 0; i < CARDS.length; i++){\n";
+		$b .= "      c = CARDS[i];\n";
+		$b .= "      var badge = '';\n";
+		$b .= "      if(c[6]){\n";
+		$b .= "        badge = '<span class=sfbadge><img role=presentation src='\n";
+		$b .= "              + c[6] + '></span>';\n";
+		$b .= "      }\n";
+		$b .= "      h += '<a class=sfc id=' + c[0] + ' href=' + c[1] + '>'\n";
+		$b .= "         + '<div class=sftop>' + badge\n";
+		$b .= "         + '<span class=sfbrand>' + esc(c[2]) + '</span></div>'\n";
+		$b .= "         + '<div class=sfhook>' + esc(c[3]) + '</div>'\n";
+		$b .= "         + '<div class=sfsay>' + esc(c[4]) + '</div>'\n";
+		$b .= "         + '<div class=sfgo>' + esc(c[5]) + ' →</div></a>';\n";
+		$b .= "    }\n";
+		$b .= "    var sec = document.createElement('section');\n";
+		$b .= "    sec.id = 'sfun';\n";
+		$b .= "    sec.className = 'sh-section';\n";
+		$b .= "    sec.innerHTML = '<div class=wrap>'\n";
+		$b .= "      + '<div class=sfhead>'\n";
+		$b .= "      + '<div class=sfkick>ALSO FROM STELLA</div>'\n";
+		$b .= "      + '<div class=sfbig>친구와 나누는 것</div>'\n";
+		$b .= "      + '<div class=sfdek>사주와는 조금 다른 자리입니다. '\n";
+		$b .= "      + '가볍게 보고 결과를 그대로 보내보세요.</div>'\n";
+		$b .= "      + '</div>'\n";
+		$b .= "      + '<div class=sfgrid>' + h + '</div>'\n";
+		$b .= "      + '<div class=sffree>둘 다 값 없이 보실 수 있습니다.</div>'\n";
+		$b .= "      + '</div>';\n";
+		$b .= "    var fin = home.querySelector('section.final');\n";
+		$b .= "    if(fin){ home.insertBefore(sec, fin); }\n";
+		$b .= "    if(!fin){ home.appendChild(sec); }\n";
+		$b .= "    return true;\n";
+		$b .= "  }\n";
 
-	$b .= "  function esc(s){\n";
-	$b .= "    var d = document.createElement('div');\n";
-	$b .= "    d.textContent = s;\n";
-	$b .= "    return d.innerHTML;\n";
-	$b .= "  }\n";
+		// 옛 조각 patch_homeviral 이 무료 줄에 넣은 카드를 치웁니다
+		$b .= "  function sweep(){\n";
+		$b .= "    var old = document.querySelectorAll('a.free-card[data-viral=on]');\n";
+		$b .= "    var i;\n";
+		$b .= "    for(i = 0; i < old.length; i++){\n";
+		$b .= "      if(old[i].parentNode){ old[i].parentNode.removeChild(old[i]); }\n";
+		$b .= "    }\n";
+		$b .= "  }\n";
 
-	$b .= "  function build(){\n";
-	$b .= "    var home = document.getElementById('stellar-home');\n";
-	$b .= "    if(!home){ return false; }\n";
-	$b .= "    if(document.getElementById('sfun')){ return true; }\n";
-	$b .= "    var i, c, h = '';\n";
-	$b .= "    for(i = 0; i < CARDS.length; i++){\n";
-	$b .= "      c = CARDS[i];\n";
-	$b .= "      var badge = '';\n";
-	$b .= "      if(c[6]){\n";
-	$b .= "        badge = '<span class=sfbadge><img role=presentation src='\n";
-	$b .= "              + c[6] + '></span>';\n";
-	$b .= "      }\n";
-	$b .= "      h += '<a class=sfc id=' + c[0] + ' href=' + c[1] + '>'\n";
-	$b .= "         + '<div class=sftop>' + badge\n";
-	$b .= "         + '<span class=sfbrand>' + esc(c[2]) + '</span></div>'\n";
-	$b .= "         + '<div class=sfhook>' + esc(c[3]) + '</div>'\n";
-	$b .= "         + '<div class=sfsay>' + esc(c[4]) + '</div>'\n";
-	$b .= "         + '<div class=sfgo>' + esc(c[5]) + ' →</div></a>';\n";
-	$b .= "    }\n";
-	$b .= "    var sec = document.createElement('section');\n";
-	$b .= "    sec.id = 'sfun';\n";
-	$b .= "    sec.className = 'sh-section';\n";
-	$b .= "    sec.innerHTML = '<div class=wrap>'\n";
-	$b .= "      + '<div class=sfhead>'\n";
-	$b .= "      + '<div class=sfkick>ALSO FROM STELLA</div>'\n";
-	$b .= "      + '<div class=sfbig>친구와 나누는 것</div>'\n";
-	$b .= "      + '<div class=sfdek>사주와는 조금 다른 자리입니다. '\n";
-	$b .= "      + '가볍게 보고 결과를 그대로 보내보세요.</div>'\n";
-	$b .= "      + '</div>'\n";
-	$b .= "      + '<div class=sfgrid>' + h + '</div>'\n";
-	$b .= "      + '<div class=sffree>둘 다 값 없이 보실 수 있습니다.</div>'\n";
-	$b .= "      + '</div>';\n";
-	$b .= "    var fin = home.querySelector('section.final');\n";
-	$b .= "    if(fin){ home.insertBefore(sec, fin); }\n";
-	$b .= "    if(!fin){ home.appendChild(sec); }\n";
-	$b .= "    return true;\n";
-	$b .= "  }\n";
+		$b .= "  var tries = 0;\n";
+		$b .= "  function tick(){\n";
+		$b .= "    tries++;\n";
+		$b .= "    build();\n";
+		$b .= "    sweep();\n";
+		$b .= "    if(tries < 12){ setTimeout(tick, 400); }\n";
+		$b .= "  }\n";
 
-	// 옛 조각 patch_homeviral 이 무료 줄에 넣은 카드를 치웁니다
-	$b .= "  function sweep(){\n";
-	$b .= "    var old = document.querySelectorAll('a.free-card[data-viral=on]');\n";
-	$b .= "    var i;\n";
-	$b .= "    for(i = 0; i < old.length; i++){\n";
-	$b .= "      if(old[i].parentNode){ old[i].parentNode.removeChild(old[i]); }\n";
-	$b .= "    }\n";
-	$b .= "  }\n";
+		$b .= "  if(document.readyState === 'loading'){\n";
+		$b .= "    document.addEventListener('DOMContentLoaded', tick);\n";
+		$b .= "  }\n";
+		$b .= "  if(document.readyState !== 'loading'){ tick(); }\n";
+		$b .= "})();\n";
+		$b .= "</script>\n";
 
-	$b .= "  var tries = 0;\n";
-	$b .= "  function tick(){\n";
-	$b .= "    tries++;\n";
-	$b .= "    build();\n";
-	$b .= "    sweep();\n";
-	$b .= "    if(tries < 12){ setTimeout(tick, 400); }\n";
-	$b .= "  }\n";
+		echo $b;
 
-	$b .= "  if(document.readyState === 'loading'){\n";
-	$b .= "    document.addEventListener('DOMContentLoaded', tick);\n";
-	$b .= "  }\n";
-	$b .= "  if(document.readyState !== 'loading'){ tick(); }\n";
-	$b .= "})();\n";
-	$b .= "</script>\n";
-
-	echo $b;
+	} );
 } );

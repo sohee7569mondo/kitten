@@ -500,7 +500,42 @@ GWHY-6 이 `GK.grade.name` 한 줄 때문에 통째로 안 그려졌습니다.
 ☞ **그 다음부터는 짐작을 쌓지 말고 소희 님께 여쭙습니다** —
   「WPCode 편집기에 줄 번호가 보입니다. 20번째 줄이 무엇인지 알려주세요.」
   제가 다섯 번 추측하는 것보다 삼 초가 빠릅니다.
-  화면 사진 한 장이 나흘 걸릴 짐작을 끝낸 적이 이미 있습니다.
+
+★★★ **여쭤보니 한 번에 끝났습니다.** 소희 님이 알려주신 9번째 줄 —
+
+      add_action( 'wp_head', function () {
+
+  그 줄로 여섯 조각을 갈라 보니 **예외가 하나도 없었습니다** —
+
+      통과   patch_freetext · patch_tarot_free · patch_freeall
+             → 전부 add_action( 'template_redirect', …
+      막힘   patch_homefun · patch_homeprice · patch_doortopics
+             → 전부 add_action( 'wp_head', …
+
+  그동안 세었던 것은 전부 죄가 없었습니다 —
+  중괄호 49/49 · 괄호 87/87 · 대괄호 23/23 · 스택이 음수가 되는 자리 없음.
+  `php -l` 도 통과합니다. **바깥 훅 이름 하나가 갈랐습니다.**
+
+### ★★ 그래서 홈·문에 얹는 조각은 template_redirect 로 감쌉니다
+
+    add_action( 'template_redirect', function () {
+        if ( ! is_front_page() ) { return; }
+        add_action( 'wp_footer', function () {
+            … 여기서 CSS 와 JS 를 냅니다 …
+        } );
+    } );
+
+  · 바깥이 `template_redirect` 라 WPCode 를 통과합니다
+  · 울타리(`is_front_page`)는 바깥에서 한 번만 봅니다
+  · `wp_footer` 가 `wp_head` 보다 낫습니다 — DOM 이 이미 있어 JS 가
+    바로 돌고, 화면 그리기를 안 막습니다
+
+★ 왜 `wp_head` 가 걸리는지는 아직 모릅니다. WPCode 가 그 이름을 보고
+  다른 검사기를 돌리는 듯합니다. **까닭은 몰라도 가르는 선은 확실합니다.**
+
+★★ 이 일에서 제가 배운 것 — **다섯 번 추측하는 동안 소희 님께 한 줄을
+  여쭸으면 첫 번에 끝났습니다.** 화면에 보이는 것을 저는 못 봅니다.
+  오류에 줄 번호가 있으면 **그 줄이 무엇인지부터 여쭙습니다.**
 
 ### 그래서 조각을 이렇게 만듭니다
 
