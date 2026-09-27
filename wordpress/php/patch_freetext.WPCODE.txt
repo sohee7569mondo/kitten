@@ -1,55 +1,13 @@
-/* ══════════════════════════════════════════════════════════
-   오픈기념 무료 — 쪽에 박힌 「구슬 3개, 3,000원」 지우기
-   ★ 2026-09-27 · 소희 님께
-
-   ── 왜 이 조각이 필요한가 ───────────────────────────────
-
-   patch_freeall 이 문 여섯의 var TRIAL 을 true 로 바꿔
-   값을 안 받게 했습니다. 그런데 두 쪽이 아직 옛말을 합니다.
-
-     마이페이지(185)   「문 하나를 여는 데 구슬 3개, 3,000원을 씁니다.」
-     자료 쪽(156)      「쓰는 구슬 · 없음」
-
-   ★★ 제가 어제 「조각 patch_open 을 꺼 주세요」라고 말씀드린 것은
-     틀렸습니다. patch_open 은 화면에 얹는 조각이 아니라
-     **쪽 글을 한 번 고치고 끝나는** 조각입니다. 이미 고쳐 놓았으니
-     꺼도 글은 그대로 남습니다. 그래서 이 조각으로 되돌립니다.
-
-   ── 무엇이 어떻게 바뀌나 ────────────────────────────────
-
-     전   문 하나를 여는 데 구슬 3개, 3,000원을 씁니다.
-     후   오픈기념으로 여섯 문이 모두 무료입니다.
-
-     전   쓰는 구슬 · 없음
-     후   쓰는 구슬 · 무료
-
-   마이페이지는 두 군데입니다 — 화면에 박힌 글 하나,
-   셈틀이 다시 쓰는 글 하나. 둘 다 안 바꾸면 한쪽이 남습니다.
-
-   ── 주소 ────────────────────────────────────────────────
-
-   살펴보기   https://stellasaju.com/?stella_freetext=1
-   바꾸기     https://stellasaju.com/?stella_freetext=apply
-   되돌리기   https://stellasaju.com/?stella_freetext=paid
-
-   되돌리기는 값을 받기 시작할 때 씁니다. 백업을 따로 두지 않고
-   찾을 글과 넣을 글을 맞바꾸기만 하므로, 다른 조각이 넣은 글을
-   건드릴 일이 없습니다.
-
-   ── 이 조각이 지키는 것 ─────────────────────────────────
-
-   · 정규식을 쓰지 않습니다 — strpos 와 str_replace 만 씁니다
-     (105,000자짜리 줄에서 504 를 낸 적이 있습니다)
-   · 저장한 뒤 역빗금 수를 다시 세어, 어긋나면 그 자리에서 되돌립니다
-     (wp_update_post 가 역빗금을 한 겹 벗겨냅니다)
-   · 「이미 넣었나」는 넣을 글이 있는지로 가립니다.
-     찾을 글을 먼저 봅니다 — 순서를 거꾸로 하면 거짓으로 걸립니다
-   · 스니펫을 훑지 않습니다. 쪽 두 개만 봅니다
-
-   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
-   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
-   ★ 크롬 번역을 끄고 붙여넣으세요.
-   ══════════════════════════════════════════════════════════ */
+// 오픈기념 무료 — 쪽에 박힌 「구슬 3개, 3,000원」 지우기
+// 2026-09-27 · 쓰는 법은 notes/2026-09-27-무료말-조각.md 에 있습니다
+//
+//   살펴보기   https://stellasaju.com/?stella_freetext=1
+//   바꾸기     https://stellasaju.com/?stella_freetext=apply
+//   되돌리기   https://stellasaju.com/?stella_freetext=paid
+//
+// 위치(Location)는 「어디서나 실행 / Run Everywhere」로.
+// 크롬 번역을 끄고 붙여넣으세요.
+// 맨 아랫줄이  } );  인지 확인하세요. 아니면 붙여넣기가 잘린 것입니다.
 
 add_action( 'template_redirect', function () {
 
@@ -59,156 +17,91 @@ add_action( 'template_redirect', function () {
 	header( 'Content-Type: text/plain; charset=utf-8' );
 
 	$mode = sanitize_text_field( wp_unslash( $_GET['stella_freetext'] ) );
+	$WON  = '문 하나를 여는 데 구슬 3개, 3,000원을 씁니다.';
+	$FRE  = '오픈기념으로 여섯 문이 모두 무료입니다.';
 
-	$WON = '문 하나를 여는 데 구슬 3개, 3,000원을 씁니다.';
-	$FRE = '오픈기념으로 여섯 문이 모두 무료입니다.';
-
-	/* 찾을 글(값 받는 말) · 넣을 글(무료 말) */
-	$PAIRS = array(
-		array( 'mypage', '마이페이지 · 화면에 박힌 글',
-			'>' . $WON . '<',
-			'>' . $FRE . '<' ),
-		array( 'mypage', '마이페이지 · 셈틀이 다시 쓰는 글',
-			"'" . $WON . "'",
-			"'" . $FRE . "'" ),
-		array( 'reading-ready', '자료 쪽 · 쓰는 구슬 줄',
+	$P = array(
+		array( 'mypage', '마이페이지 · 박힌 글', '>' . $WON . '<', '>' . $FRE . '<' ),
+		array( 'mypage', '마이페이지 · 셈틀 글', "'" . $WON . "'", "'" . $FRE . "'" ),
+		array( 'reading-ready', '자료 쪽 · 쓰는 구슬',
 			"od.push(['쓰는 구슬', orbs===0 ? '없음' : orbs+'구슬']);",
 			"od.push(['쓰는 구슬', orbs===0 ? '무료' : orbs+'구슬']);" ),
 	);
 
-	$to_free = ( 'apply' === $mode );
-	$to_paid = ( 'paid' === $mode );
+	$free = ( 'apply' === $mode );
+	$paid = ( 'paid' === $mode );
 
-	echo "오픈기념 무료 — 쪽에 박힌 값 이야기\n";
-	echo "═══════════════════════════════════════════\n\n";
+	echo "오픈기념 무료 — 쪽에 박힌 값 이야기\n\n";
 
-	/* ── 쪽을 모읍니다 ─────────────────────────── */
 	$pages = array();
-	foreach ( $PAIRS as $r ) {
-		if ( isset( $pages[ $r[0] ] ) ) { continue; }
-		$p = get_page_by_path( $r[0] );
-		if ( ! $p ) {
-			echo '★ 쪽을 못 찾았습니다 — ' . $r[0] . "\n";
-			continue;
+	$todo  = array();
+
+	foreach ( $P as $r ) {
+		if ( ! isset( $pages[ $r[0] ] ) ) {
+			$pg = get_page_by_path( $r[0] );
+			if ( ! $pg ) { echo '쪽을 못 찾음 — ' . $r[0] . "\n"; continue; }
+			$pages[ $r[0] ] = $pg;
 		}
-		$pages[ $r[0] ] = $p;
+		$c = (string) $pages[ $r[0] ]->post_content;
+		$a = substr_count( $c, $r[2] );
+		$b = substr_count( $c, $r[3] );
+		echo '   ' . $r[1] . ' — 값 받는 말 ' . $a . '곳 · 무료 말 ' . $b . "곳\n";
+		if ( $paid ) { if ( $b > 0 ) { $todo[] = array( $r[0], $r[3], $r[2] ); } }
+		if ( ! $paid ) { if ( $a > 0 ) { $todo[] = array( $r[0], $r[2], $r[3] ); } }
 	}
 
-	if ( ! count( $pages ) ) { echo "\n고칠 쪽이 없습니다."; exit; }
+	echo "\n";
 
-	/* ── 지금 상태 ─────────────────────────────── */
-	echo "① 지금 쪽에 무엇이 적혀 있나\n\n";
+	if ( ! count( $todo ) ) { echo '바꿀 것이 없습니다. 이미 다 되어 있습니다.'; exit; }
 
-	$todo = array();
-
-	foreach ( $PAIRS as $r ) {
-
-		$slug = $r[0];
-		if ( ! isset( $pages[ $slug ] ) ) { continue; }
-
-		$c = (string) $pages[ $slug ]->post_content;
-
-		$n_won = substr_count( $c, $r[2] );
-		$n_fre = substr_count( $c, $r[3] );
-
-		echo '   ' . $r[1] . "\n";
-		echo '      값 받는 말 ' . $n_won . '군데   ·   무료 말 ' . $n_fre . "군데\n";
-
-		if ( $to_paid ) {
-			if ( $n_fre > 0 ) { $todo[] = array( $slug, $r[3], $r[2], $r[1] ); }
-			else { echo "      → 바꿀 것이 없습니다\n"; }
-		} else {
-			if ( $n_won > 0 ) { $todo[] = array( $slug, $r[2], $r[3], $r[1] ); }
-			else { echo "      → 바꿀 것이 없습니다\n"; }
-		}
-		echo "\n";
-	}
-
-	if ( ! count( $todo ) ) {
-		echo "\n바꿀 것이 하나도 없습니다. 이미 다 되어 있습니다.";
-		exit;
-	}
-
-	if ( ! $to_free ) {
-		if ( ! $to_paid ) {
-			echo "② 바꾸려면\n\n";
-			echo "   무료로   ?stella_freetext=apply\n";
-			echo "   값 받게  ?stella_freetext=paid\n";
+	if ( ! $free ) {
+		if ( ! $paid ) {
+			echo "무료로   ?stella_freetext=apply\n";
+			echo "값 받게  ?stella_freetext=paid\n";
 			exit;
 		}
 	}
 
-	/* ── 바꿉니다 ──────────────────────────────── */
-	echo '② 바꿉니다 (' . ( $to_paid ? '값 받는 말로' : '무료 말로' ) . ")\n";
-	echo "───────────────────────────────────────────\n";
-
-	$by_page = array();
+	$jobs = array();
 	foreach ( $todo as $t ) {
-		if ( ! isset( $by_page[ $t[0] ] ) ) { $by_page[ $t[0] ] = array(); }
-		$by_page[ $t[0] ][] = $t;
+		if ( ! isset( $jobs[ $t[0] ] ) ) { $jobs[ $t[0] ] = array(); }
+		$jobs[ $t[0] ][] = $t;
 	}
 
 	$done = 0;
 
-	foreach ( $by_page as $slug => $jobs ) {
+	foreach ( $jobs as $slug => $list ) {
 
-		$p   = $pages[ $slug ];
-		$pid = (int) $p->ID;
-		$old = (string) $p->post_content;
-
-		$before = substr_count( $old, chr( 92 ) );
-
+		$pid = (int) $pages[ $slug ]->ID;
+		$old = (string) $pages[ $slug ]->post_content;
 		$new = $old;
 		$hit = 0;
-		foreach ( $jobs as $j ) {
+
+		foreach ( $list as $j ) {
 			$k = substr_count( $new, $j[1] );
 			if ( $k < 1 ) { continue; }
 			$new = str_replace( $j[1], $j[2], $new );
 			$hit = $hit + $k;
 		}
 
-		if ( $hit < 1 ) {
-			echo '   ' . str_pad( $slug, 14 ) . "바꿀 것이 없었습니다\n";
-			continue;
-		}
+		if ( $hit < 1 ) { continue; }
 
+		$b1 = substr_count( $old, chr( 92 ) );
 		wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $new ) ) );
 		clean_post_cache( $pid );
+		$b2 = substr_count( (string) get_post( $pid )->post_content, chr( 92 ) );
 
-		$saved = (string) get_post( $pid )->post_content;
-		$after = substr_count( $saved, chr( 92 ) );
-
-		if ( $after !== $before ) {
-			/* 역빗금이 사라졌습니다 — 그 자리에서 되돌립니다 */
+		if ( $b2 !== $b1 ) {
 			wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $old ) ) );
 			clean_post_cache( $pid );
-			echo '   ' . str_pad( $slug, 14 ) . '★ 되돌렸습니다 — 역빗금 '
-				. $before . ' → ' . $after . "\n";
+			echo '   ' . $slug . ' — 되돌림 · 역빗금 ' . $b1 . ' → ' . $b2 . "\n";
 			continue;
 		}
 
-		$left = 0;
-		foreach ( $jobs as $j ) { $left = $left + substr_count( $saved, $j[2] ); }
-
-		echo '   ' . str_pad( $slug, 14 ) . '됐습니다 · ' . $hit . '군데 · 넣은 글 '
-			. $left . '군데 · 역빗금 ' . $after . "개 그대로\n";
-
+		echo '   ' . $slug . ' — 됐습니다 · ' . $hit . '곳 · 역빗금 ' . $b2 . "개 그대로\n";
 		$done++;
 	}
 
-	echo "\n" . $done . "쪽을 고쳤습니다.\n\n";
-
-	if ( $to_paid ) {
-		echo "이제 마이페이지가 값을 다시 말합니다.\n";
-		exit;
-	}
-
-	echo "이제 확인하실 것 —\n";
-	echo "  · /mypage/ 를 열어 구슬 칸이 「오픈기념으로 여섯 문이 모두\n";
-	echo "    무료입니다」인지 (로그아웃한 채로도요)\n";
-	echo "  · 회원으로 보시면 다른 글이 나옵니다 — 그건 서버가 쓰는 글이라\n";
-	echo "    STELLA_TRIAL 이 true 인 동안 저절로 무료라고 말합니다\n";
-	echo "  · 자료 쪽에서 「쓰는 구슬 · 무료」인지\n";
-
+	echo "\n" . $done . "쪽을 고쳤습니다.\n";
 	exit;
 } );
