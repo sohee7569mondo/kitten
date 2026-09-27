@@ -99,8 +99,9 @@ add_action( 'wp_enqueue_scripts', function () {
 	$js .= "  if(window.StellaHomeFun){ return; }\n";
 	$js .= "  window.StellaHomeFun = 1;\n";
 
-	$js .= "  var LOGO_UM = '" . str_replace( "'", '', $logo['um'] ) . "';\n";
-	$js .= "  var LOGO_LAB = '" . str_replace( "'", '', $logo['lab'] ) . "';\n";
+	$q = chr( 39 );
+	$js .= '  var LOGO_UM = ' . $q . str_replace( $q, '', $logo['um'] ) . $q . ";\n";
+	$js .= '  var LOGO_LAB = ' . $q . str_replace( $q, '', $logo['lab'] ) . $q . ";\n";
 	// 카피는 소희 님 판입니다. 이름보다 후킹 문구가 큽니다.
 	$js .= "  var CARDS = [\n";
 	$js .= "    ['sfc1','/uandme/','유앤미',\n";
