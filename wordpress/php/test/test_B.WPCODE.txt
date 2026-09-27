@@ -1,0 +1,6 @@
+// 시험 B — 문자열 안에 중괄호가 있습니다. 화면은 안 바뀝니다.
+add_action( 'wp_footer', function () {
+	$css = '';
+	$css .= "#x{ color:red; }\n";
+	echo '';
+} );

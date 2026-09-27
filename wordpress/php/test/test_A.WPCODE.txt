@@ -1,0 +1,4 @@
+// 시험 A — 아무 일도 안 합니다. 저장이 되는지만 봅니다.
+add_action( 'wp_footer', function () {
+	echo '';
+} );
