@@ -8,6 +8,12 @@
 //   patch_homeviral 은 꺼 주셔도 됩니다. 켜 두셔도 이 조각이 그 카드를
 //   치웁니다. 쪽 원본은 한 글자도 안 고칩니다 — 끄면 그대로 돌아갑니다.
 //
+//   [로고]
+//   유앤미 로고는 미디어에 이미 있습니다 (uandme_logo-01.png).
+//   스텔라 랩 로고는 파일 이름에 lab 과 logo 가 들어가게 올려주세요 —
+//   이를테면  stellalab-logo.png  입니다. 조각이 미디어에서 찾아 씁니다.
+//   못 찾으면 그 카드만 로고 없이 나옵니다. 깨지지 않습니다.
+//
 // 위치(Location)는 「어디서나 실행 / Run Everywhere」로.
 // 크롬 번역을 끄고 붙여넣으세요.
 // 맨 아랫줄이  } );  인지 확인하세요. 아니면 붙여넣기가 잘린 것입니다.
@@ -15,6 +21,28 @@
 add_action( 'wp_head', function () {
 
 	if ( ! is_front_page() ) { return; }
+
+	global $wpdb;
+
+	/* 로고 — 미디어에서 파일 이름으로 찾습니다. 못 찾으면 그 카드만 로고가 빕니다 */
+	$logo = array( 'um' => '', 'lab' => '' );
+
+	$um = $wpdb->get_var(
+		"SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file'"
+		. " AND meta_value LIKE '%uandme%logo%' ORDER BY post_id DESC LIMIT 1" );
+	if ( $um ) { $logo['um'] = content_url( 'uploads/' . $um ); }
+
+	$lab = $wpdb->get_var(
+		"SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file'"
+		. " AND meta_value LIKE '%lab%logo%' ORDER BY post_id DESC LIMIT 1" );
+	if ( $lab ) { $logo['lab'] = content_url( 'uploads/' . $lab ); }
+
+	/* 큰 그림을 그대로 쓰면 화면이 느립니다 — CDN 으로 줄여 씁니다 */
+	foreach ( $logo as $k => $v ) {
+		if ( '' === $v ) { continue; }
+		$logo[ $k ] = 'https://i0.wp.com/'
+			. str_replace( array( 'https://', 'http://' ), '', $v ) . '?w=160';
+	}
 
 	$b  = '';
 	$b .= "<style id='sfun-css'>\n";
@@ -38,9 +66,14 @@ add_action( 'wp_head', function () {
 	$b .= "#sfun a.sfc::after{ content:''; position:absolute; z-index:-1;\n";
 	$b .= "  right:-60px; top:-70px; width:210px; height:210px; border-radius:50%;\n";
 	$b .= "  background:rgba(255,253,249,.12); }\n";
+	$b .= "#sfun .sftop{ display:flex; align-items:center; gap:11px; }\n";
+	$b .= "#sfun .sfbadge{ flex:0 0 auto; width:58px; height:58px; border-radius:50%;\n";
+	$b .= "  background:#FFFDF9; display:flex; align-items:center; justify-content:center;\n";
+	$b .= "  overflow:hidden; box-shadow:0 3px 10px -4px rgba(20,16,49,.45); }\n";
+	$b .= "#sfun .sfbadge img{ width:100%; height:100%; object-fit:contain; display:block; }\n";
 	$b .= "#sfun .sftag{ display:inline-block; padding:4px 11px; border-radius:99px;\n";
 	$b .= "  background:rgba(255,253,249,.18); font-size:.7rem; letter-spacing:.08em; }\n";
-	$b .= "#sfun .sfname{ margin-top:13px; font-size:1.42rem; font-weight:700;\n";
+	$b .= "#sfun .sfname{ margin-top:15px; font-size:1.42rem; font-weight:700;\n";
 	$b .= "  line-height:1.3; letter-spacing:-.01em; }\n";
 	$b .= "#sfun .sfsay{ margin-top:9px; font-size:.92rem; line-height:1.7;\n";
 	$b .= "  color:rgba(255,253,249,.88); max-width:23em; }\n";
@@ -55,15 +88,18 @@ add_action( 'wp_head', function () {
 	$b .= "  if(window.StellaHomeFun){ return; }\n";
 	$b .= "  window.StellaHomeFun = 1;\n";
 
+	$b .= "  var LOGO_UM = '" . str_replace( "'", '', $logo['um'] ) . "';\n";
+	$b .= "  var LOGO_LAB = '" . str_replace( "'", '', $logo['lab'] ) . "';\n";
+
 	$b .= "  var CARDS = [\n";
 	$b .= "    ['sfc1','/uandme/','둘이서 보는 것','유앤미',\n";
 	$b .= "     '이름과 생일만 넣으면 두 사람 사이를 점수로 봅니다. '\n";
 	$b .= "     + '연인 · 친구 · 부부 · 남매까지 관계 일곱 가지로 나눠서요.',\n";
-	$b .= "     '궁합 보러 가기'],\n";
+	$b .= "     '궁합 보러 가기', LOGO_UM],\n";
 	$b .= "    ['sfc2','/lab/','혼자 심심할 때','스텔라 랩',\n";
 	$b .= "     '도쿄 여행 · 카페 · 캠핑 · 야식. 고르다 보면 '\n";
 	$b .= "     + '내가 어떤 사람인지가 나옵니다. 사주도 가입도 없습니다.',\n";
-	$b .= "     '검사하러 가기']\n";
+	$b .= "     '검사하러 가기', LOGO_LAB]\n";
 	$b .= "  ];\n";
 
 	$b .= "  function esc(s){\n";
@@ -79,8 +115,14 @@ add_action( 'wp_head', function () {
 	$b .= "    var i, c, h = '';\n";
 	$b .= "    for(i = 0; i < CARDS.length; i++){\n";
 	$b .= "      c = CARDS[i];\n";
+	$b .= "      var badge = '';\n";
+	$b .= "      if(c[6]){\n";
+	$b .= "        badge = '<span class=sfbadge><img role=presentation src='\n";
+	$b .= "              + c[6] + '></span>';\n";
+	$b .= "      }\n";
 	$b .= "      h += '<a class=sfc id=' + c[0] + ' href=' + c[1] + '>'\n";
-	$b .= "         + '<span class=sftag>' + esc(c[2]) + '</span>'\n";
+	$b .= "         + '<div class=sftop>' + badge\n";
+	$b .= "         + '<span class=sftag>' + esc(c[2]) + '</span></div>'\n";
 	$b .= "         + '<div class=sfname>' + esc(c[3]) + '</div>'\n";
 	$b .= "         + '<div class=sfsay>' + esc(c[4]) + '</div>'\n";
 	$b .= "         + '<div class=sfgo>' + esc(c[5]) + ' →</div></a>';\n";
