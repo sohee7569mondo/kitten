@@ -35,8 +35,8 @@ add_action( 'wp_head', function () {
 	$SAY  = '오픈 기간에는 여섯 문을 마음껏 여셔도 값을 안 받습니다. '
 		. '글은 줄이지 않았습니다 — 풀이 한 편이 책 한 권 그대로입니다.';
 	$GO   = '2026년 운세';   // 단추가 데려가는 주제
-	$GAP  = 88;            // 띠 아래 여백(px) — 더 띄우시려면 이 숫자만
-	$TOP  = 36;            // 띠 위 여백(px)
+	$GAP  = 120;            // 띠 아래 여백(px) — 더 띄우시려면 이 숫자만
+	$TOP  = 64;            // 띠 위 여백(px)
 	$b  = '';
 	$b .= "<style id='stella-homeprice-css'>\n";
 	$b .= "#hp-band{ padding:26px 28px; border-radius:16px;\n";
