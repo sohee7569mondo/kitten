@@ -71,13 +71,14 @@ add_action( 'wp_head', function () {
 	$b .= "  background:#FFFDF9; display:flex; align-items:center; justify-content:center;\n";
 	$b .= "  overflow:hidden; box-shadow:0 3px 10px -4px rgba(20,16,49,.45); }\n";
 	$b .= "#sfun .sfbadge img{ width:100%; height:100%; object-fit:contain; display:block; }\n";
-	$b .= "#sfun .sftag{ display:inline-block; padding:4px 11px; border-radius:99px;\n";
-	$b .= "  background:rgba(255,253,249,.18); font-size:.7rem; letter-spacing:.08em; }\n";
-	$b .= "#sfun .sfname{ margin-top:15px; font-size:1.42rem; font-weight:700;\n";
-	$b .= "  line-height:1.3; letter-spacing:-.01em; }\n";
-	$b .= "#sfun .sfsay{ margin-top:9px; font-size:.92rem; line-height:1.7;\n";
-	$b .= "  color:rgba(255,253,249,.88); max-width:23em; }\n";
-	$b .= "#sfun .sfgo{ margin-top:auto; padding-top:15px; font-size:.82rem; font-weight:700;\n";
+	$b .= "#sfun .sfbrand{ font-size:.79rem; letter-spacing:.06em;\n";
+	$b .= "  color:rgba(255,253,249,.82); }\n";
+	$b .= "#sfun .sfhook{ margin-top:17px; font-weight:700; line-height:1.36;\n";
+	$b .= "  font-size:clamp(1.22rem,4.2vw,1.46rem); letter-spacing:-.01em;\n";
+	$b .= "  text-wrap:balance; }\n";
+	$b .= "#sfun .sfsay{ margin-top:8px; font-size:.91rem; line-height:1.7;\n";
+	$b .= "  color:rgba(255,253,249,.86); max-width:23em; }\n";
+	$b .= "#sfun .sfgo{ margin-top:auto; padding-top:16px; font-size:.86rem; font-weight:700;\n";
 	$b .= "  color:rgba(255,253,249,.95); }\n";
 	$b .= "#sfun .sffree{ margin-top:16px; font-size:.82rem; color:var(--ink-dim);\n";
 	$b .= "  text-align:center; }\n";
@@ -90,16 +91,16 @@ add_action( 'wp_head', function () {
 
 	$b .= "  var LOGO_UM = '" . str_replace( "'", '', $logo['um'] ) . "';\n";
 	$b .= "  var LOGO_LAB = '" . str_replace( "'", '', $logo['lab'] ) . "';\n";
-
+	/* 카피는 소희 님 판입니다 (2026-09-27). 이름보다 후킹 문구가 큽니다. */
 	$b .= "  var CARDS = [\n";
-	$b .= "    ['sfc1','/uandme/','둘이서 보는 것','유앤미',\n";
-	$b .= "     '이름과 생일만 넣으면 두 사람 사이를 점수로 봅니다. '\n";
-	$b .= "     + '연인 · 친구 · 부부 · 남매까지 관계 일곱 가지로 나눠서요.',\n";
-	$b .= "     '궁합 보러 가기', LOGO_UM],\n";
-	$b .= "    ['sfc2','/lab/','혼자 심심할 때','스텔라 랩',\n";
-	$b .= "     '도쿄 여행 · 카페 · 캠핑 · 야식. 고르다 보면 '\n";
-	$b .= "     + '내가 어떤 사람인지가 나옵니다. 사주도 가입도 없습니다.',\n";
-	$b .= "     '검사하러 가기', LOGO_LAB]\n";
+	$b .= "    ['sfc1','/uandme/','유앤미',\n";
+	$b .= "     '그 사람과 나, 정말 잘 맞을까?',\n";
+	$b .= "     '이름과 생일만 넣으면 바로 나옵니다',\n";
+	$b .= "     '연인 · 가족 · 직장 · 스타 궁합보기', LOGO_UM],\n";
+	$b .= "    ['sfc2','/lab/','스텔라 랩',\n";
+	$b .= "     '내가 이런 성격이라고?',\n";
+	$b .= "     '행동으로 알아보는 진짜 나',\n";
+	$b .= "     '성격 · 취향 · 여행 테스트', LOGO_LAB]\n";
 	$b .= "  ];\n";
 
 	$b .= "  function esc(s){\n";
@@ -122,8 +123,8 @@ add_action( 'wp_head', function () {
 	$b .= "      }\n";
 	$b .= "      h += '<a class=sfc id=' + c[0] + ' href=' + c[1] + '>'\n";
 	$b .= "         + '<div class=sftop>' + badge\n";
-	$b .= "         + '<span class=sftag>' + esc(c[2]) + '</span></div>'\n";
-	$b .= "         + '<div class=sfname>' + esc(c[3]) + '</div>'\n";
+	$b .= "         + '<span class=sfbrand>' + esc(c[2]) + '</span></div>'\n";
+	$b .= "         + '<div class=sfhook>' + esc(c[3]) + '</div>'\n";
 	$b .= "         + '<div class=sfsay>' + esc(c[4]) + '</div>'\n";
 	$b .= "         + '<div class=sfgo>' + esc(c[5]) + ' →</div></a>';\n";
 	$b .= "    }\n";
