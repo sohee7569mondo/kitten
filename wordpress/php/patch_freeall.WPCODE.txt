@@ -183,8 +183,10 @@ add_action( 'template_redirect', function () {
 		echo "  · 문을 열어 단추가 「체험판으로 풀이 받기 · 무료」인지\n";
 		echo "  · 로그아웃한 채로도 막히지 않는지\n";
 		echo "  · 위 ① 서버 값이 true 인지 (false 면 아직 값을 받습니다)\n";
-		echo "  · 조각 patch_open 을 꺼 주세요 — 마이페이지와 자료 쪽에\n";
-		echo "    「구슬 3개, 3,000원」이라고 써 두는 조각입니다\n";
+		echo "  · 마이페이지와 자료 쪽은 따로 고쳐야 합니다 —\n";
+		echo "    ?stella_freetext=1 (조각 patch_freetext)\n";
+		echo "    patch_open 을 끄는 것으로는 안 바뀝니다. 그 조각은\n";
+		echo "    쪽 글을 한 번 고치고 끝난 조각이라 이미 박혀 있습니다\n";
 	}
 	exit;
 } );
