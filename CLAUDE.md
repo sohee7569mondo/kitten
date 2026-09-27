@@ -516,7 +516,44 @@ GWHY-6 이 `GK.grade.name` 한 줄 때문에 통째로 안 그려졌습니다.
   중괄호 49/49 · 괄호 87/87 · 대괄호 23/23 · 스택이 음수가 되는 자리 없음.
   `php -l` 도 통과합니다. **바깥 훅 이름 하나가 갈랐습니다.**
 
-### ★★ 그래서 홈·문에 얹는 조각은 template_redirect 로 감쌉니다
+★★★ **그런데 `wp_footer` 로 바꿨더니 이번엔 그 줄을 짚었습니다.**
+  소희 님 「이번엔 11번째 줄인데 이거 같은 코딩이잖아」 — 맞는 말씀입니다.
+  **훅 이름은 원인이 아니었습니다.** 통과·막힘이 갈린 진짜 차이는 따로 있습니다.
+
+      통과   echo 로 **평범한 글자만** 내보냅니다 (text/plain 진단 화면)
+      막힘   문자열에 **`<style>` 과 `<script>` 태그**를 담아 내보냅니다
+
+  ☞ WPCode 가 코드 안에서 그 태그를 보면 **PHP 가 아니라 HTML 로 검사**하는
+    듯합니다. 그러면 「Unclosed」는 중괄호가 아니라 **태그**를 말하는 것이고,
+    짚는 줄이 늘 조각 머리의 `add_action …{` 인 것도 설명됩니다.
+
+### ★★ 그래서 CSS·JS 를 얹을 때 태그를 우리가 쓰지 않습니다
+
+    add_action( 'wp_enqueue_scripts', function () {
+
+        if ( ! is_front_page() ) { return; }
+
+        $css = '';
+        $css .= "#sfun .sfgrid{ display:grid; }\n";
+
+        $js  = '';
+        $js  .= "(function(){ … })();\n";
+
+        wp_register_style( 'stella-fun', false );
+        wp_enqueue_style( 'stella-fun' );
+        wp_add_inline_style( 'stella-fun', $css );
+
+        wp_register_script( 'stella-fun', false, array(), null, true );
+        wp_enqueue_script( 'stella-fun' );
+        wp_add_inline_script( 'stella-fun', $js );
+    } );
+
+  · `<style>` `<script>` 글자가 **하나도 없습니다** — 워드프레스가 감쌉니다
+  · `wp_register_*( 핸들, false )` 는 src 없는 빈 핸들. inline 만 붙일 때 씁니다
+  · 마지막 인자 `true` 가 발치(footer)에 놓습니다 — DOM 이 이미 있어 JS 가 바로 돕니다
+  · `add_action` 이 **하나**입니다. 중첩을 안 씁니다
+
+### ★ (틀린 가설로 남겨둠) 훅 이름으로 갈린다고 본 적이 있습니다
 
     add_action( 'template_redirect', function () {
         if ( ! is_front_page() ) { return; }
