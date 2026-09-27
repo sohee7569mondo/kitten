@@ -1,0 +1,132 @@
+// 홈 아래에 「친구와 나누는 것」 구역 — 유앤미 · 스텔라 랩
+// 2026-09-27 · 자세한 것은 notes/2026-09-27-홈-친구배너.md
+//
+//   소희 님 「그건 좀 다른 사이트라서 아래에 따로 배너 만들었으면 좋겠어」
+//   무료 다섯 장 줄에 끼워넣던 것을 치우고, 홈 맨 아래 인사말 앞에
+//   가로로 넓은 카드 두 장을 따로 놓습니다.
+//
+//   patch_homeviral 은 꺼 주셔도 됩니다. 켜 두셔도 이 조각이 그 카드를
+//   치웁니다. 쪽 원본은 한 글자도 안 고칩니다 — 끄면 그대로 돌아갑니다.
+//
+// 위치(Location)는 「어디서나 실행 / Run Everywhere」로.
+// 크롬 번역을 끄고 붙여넣으세요.
+// 맨 아랫줄이  } );  인지 확인하세요. 아니면 붙여넣기가 잘린 것입니다.
+
+add_action( 'wp_head', function () {
+
+	if ( ! is_front_page() ) { return; }
+
+	$b  = '';
+	$b .= "<style id='sfun-css'>\n";
+	$b .= "#sfun .sfhead{ margin-bottom:20px; }\n";
+	$b .= "#sfun .sfkick{ font-size:.72rem; letter-spacing:.16em;\n";
+	$b .= "  text-transform:uppercase; color:var(--gold); margin-bottom:7px; }\n";
+	$b .= "#sfun .sfbig{ font-size:clamp(1.24rem,3vw,1.62rem); font-weight:700;\n";
+	$b .= "  line-height:1.45; color:var(--ink); }\n";
+	$b .= "#sfun .sfdek{ margin-top:8px; font-size:.9rem; color:var(--ink-dim); }\n";
+	$b .= "#sfun .sfgrid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }\n";
+	$b .= "@media(max-width:760px){ #sfun .sfgrid{ grid-template-columns:1fr; } }\n";
+	$b .= "#sfun a.sfc{ display:block; position:relative; overflow:hidden;\n";
+	$b .= "  border-radius:14px; padding:26px 24px 22px; min-height:172px;\n";
+	$b .= "  text-decoration:none; color:#FFFDF9; isolation:isolate;\n";
+	$b .= "  display:flex; flex-direction:column; align-items:flex-start;\n";
+	$b .= "  box-shadow:var(--shadow); transition:transform .25s ease, box-shadow .25s ease; }\n";
+	$b .= "#sfun a.sfc:hover{ transform:translateY(-6px); box-shadow:var(--shadow-up); }\n";
+	$b .= "#sfun a.sfc:focus-visible{ outline:2px solid var(--plum); outline-offset:3px; }\n";
+	$b .= "#sfun #sfc1{ background:linear-gradient(135deg,#E0607F 0%,#A83457 100%); }\n";
+	$b .= "#sfun #sfc2{ background:linear-gradient(135deg,#4A87BA 0%,#22506F 100%); }\n";
+	$b .= "#sfun a.sfc::after{ content:''; position:absolute; z-index:-1;\n";
+	$b .= "  right:-60px; top:-70px; width:210px; height:210px; border-radius:50%;\n";
+	$b .= "  background:rgba(255,253,249,.12); }\n";
+	$b .= "#sfun .sftag{ display:inline-block; padding:4px 11px; border-radius:99px;\n";
+	$b .= "  background:rgba(255,253,249,.18); font-size:.7rem; letter-spacing:.08em; }\n";
+	$b .= "#sfun .sfname{ margin-top:13px; font-size:1.42rem; font-weight:700;\n";
+	$b .= "  line-height:1.3; letter-spacing:-.01em; }\n";
+	$b .= "#sfun .sfsay{ margin-top:9px; font-size:.92rem; line-height:1.7;\n";
+	$b .= "  color:rgba(255,253,249,.88); max-width:23em; }\n";
+	$b .= "#sfun .sfgo{ margin-top:auto; padding-top:15px; font-size:.82rem; font-weight:700;\n";
+	$b .= "  color:rgba(255,253,249,.95); }\n";
+	$b .= "#sfun .sffree{ margin-top:16px; font-size:.82rem; color:var(--ink-dim);\n";
+	$b .= "  text-align:center; }\n";
+	$b .= "</style>\n";
+
+	$b .= "<script>\n";
+	$b .= "(function(){\n";
+	$b .= "  if(window.StellaHomeFun){ return; }\n";
+	$b .= "  window.StellaHomeFun = 1;\n";
+
+	$b .= "  var CARDS = [\n";
+	$b .= "    ['sfc1','/uandme/','둘이서 보는 것','유앤미',\n";
+	$b .= "     '이름과 생일만 넣으면 두 사람 사이를 점수로 봅니다. '\n";
+	$b .= "     + '연인 · 친구 · 부부 · 남매까지 관계 일곱 가지로 나눠서요.',\n";
+	$b .= "     '궁합 보러 가기'],\n";
+	$b .= "    ['sfc2','/lab/','혼자 심심할 때','스텔라 랩',\n";
+	$b .= "     '도쿄 여행 · 카페 · 캠핑 · 야식. 고르다 보면 '\n";
+	$b .= "     + '내가 어떤 사람인지가 나옵니다. 사주도 가입도 없습니다.',\n";
+	$b .= "     '검사하러 가기']\n";
+	$b .= "  ];\n";
+
+	$b .= "  function esc(s){\n";
+	$b .= "    var d = document.createElement('div');\n";
+	$b .= "    d.textContent = s;\n";
+	$b .= "    return d.innerHTML;\n";
+	$b .= "  }\n";
+
+	$b .= "  function build(){\n";
+	$b .= "    var home = document.getElementById('stellar-home');\n";
+	$b .= "    if(!home){ return false; }\n";
+	$b .= "    if(document.getElementById('sfun')){ return true; }\n";
+	$b .= "    var i, c, h = '';\n";
+	$b .= "    for(i = 0; i < CARDS.length; i++){\n";
+	$b .= "      c = CARDS[i];\n";
+	$b .= "      h += '<a class=sfc id=' + c[0] + ' href=' + c[1] + '>'\n";
+	$b .= "         + '<span class=sftag>' + esc(c[2]) + '</span>'\n";
+	$b .= "         + '<div class=sfname>' + esc(c[3]) + '</div>'\n";
+	$b .= "         + '<div class=sfsay>' + esc(c[4]) + '</div>'\n";
+	$b .= "         + '<div class=sfgo>' + esc(c[5]) + ' →</div></a>';\n";
+	$b .= "    }\n";
+	$b .= "    var sec = document.createElement('section');\n";
+	$b .= "    sec.id = 'sfun';\n";
+	$b .= "    sec.className = 'sh-section';\n";
+	$b .= "    sec.innerHTML = '<div class=wrap>'\n";
+	$b .= "      + '<div class=sfhead>'\n";
+	$b .= "      + '<div class=sfkick>ALSO FROM STELLA</div>'\n";
+	$b .= "      + '<div class=sfbig>친구와 나누는 것</div>'\n";
+	$b .= "      + '<div class=sfdek>사주와는 조금 다른 자리입니다. '\n";
+	$b .= "      + '가볍게 보고 결과를 그대로 보내보세요.</div>'\n";
+	$b .= "      + '</div>'\n";
+	$b .= "      + '<div class=sfgrid>' + h + '</div>'\n";
+	$b .= "      + '<div class=sffree>둘 다 값 없이 보실 수 있습니다.</div>'\n";
+	$b .= "      + '</div>';\n";
+	$b .= "    var fin = home.querySelector('section.final');\n";
+	$b .= "    if(fin){ home.insertBefore(sec, fin); }\n";
+	$b .= "    if(!fin){ home.appendChild(sec); }\n";
+	$b .= "    return true;\n";
+	$b .= "  }\n";
+
+	/* 옛 조각(patch_homeviral)이 무료 줄에 넣은 카드를 치웁니다 */
+	$b .= "  function sweep(){\n";
+	$b .= "    var old = document.querySelectorAll('a.free-card[data-viral=on]');\n";
+	$b .= "    var i;\n";
+	$b .= "    for(i = 0; i < old.length; i++){\n";
+	$b .= "      if(old[i].parentNode){ old[i].parentNode.removeChild(old[i]); }\n";
+	$b .= "    }\n";
+	$b .= "  }\n";
+
+	$b .= "  var tries = 0;\n";
+	$b .= "  function tick(){\n";
+	$b .= "    tries++;\n";
+	$b .= "    build();\n";
+	$b .= "    sweep();\n";
+	$b .= "    if(tries < 12){ setTimeout(tick, 400); }\n";
+	$b .= "  }\n";
+
+	$b .= "  if(document.readyState === 'loading'){\n";
+	$b .= "    document.addEventListener('DOMContentLoaded', tick);\n";
+	$b .= "  }\n";
+	$b .= "  if(document.readyState !== 'loading'){ tick(); }\n";
+	$b .= "})();\n";
+	$b .= "</script>\n";
+
+	echo $b;
+} );
