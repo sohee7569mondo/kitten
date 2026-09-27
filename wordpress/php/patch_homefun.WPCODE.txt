@@ -24,7 +24,7 @@ add_action( 'wp_head', function () {
 
 	global $wpdb;
 
-	/* 로고 — 미디어에서 파일 이름으로 찾습니다. 못 찾으면 그 카드만 로고가 빕니다 */
+	// 로고 — 미디어에서 파일 이름으로 찾습니다. 못 찾으면 그 카드만 로고가 빕니다
 	$logo = array( 'um' => '', 'lab' => '' );
 
 	$um = $wpdb->get_var(
@@ -37,7 +37,7 @@ add_action( 'wp_head', function () {
 		. " AND meta_value LIKE '%lab%logo%' ORDER BY post_id DESC LIMIT 1" );
 	if ( $lab ) { $logo['lab'] = content_url( 'uploads/' . $lab ); }
 
-	/* 큰 그림을 그대로 쓰면 화면이 느립니다 — CDN 으로 줄여 씁니다 */
+	// 큰 그림을 그대로 쓰면 화면이 느립니다 — CDN 으로 줄여 씁니다
 	foreach ( $logo as $k => $v ) {
 		if ( '' === $v ) { continue; }
 		$logo[ $k ] = 'https://i0.wp.com/'
@@ -91,7 +91,7 @@ add_action( 'wp_head', function () {
 
 	$b .= "  var LOGO_UM = '" . str_replace( "'", '', $logo['um'] ) . "';\n";
 	$b .= "  var LOGO_LAB = '" . str_replace( "'", '', $logo['lab'] ) . "';\n";
-	/* 카피는 소희 님 판입니다 (2026-09-27). 이름보다 후킹 문구가 큽니다. */
+	// 카피는 소희 님 판입니다 (2026-09-27). 이름보다 후킹 문구가 큽니다.
 	$b .= "  var CARDS = [\n";
 	$b .= "    ['sfc1','/uandme/','유앤미',\n";
 	$b .= "     '그 사람과 나, 정말 잘 맞을까?',\n";
@@ -147,7 +147,7 @@ add_action( 'wp_head', function () {
 	$b .= "    return true;\n";
 	$b .= "  }\n";
 
-	/* 옛 조각(patch_homeviral)이 무료 줄에 넣은 카드를 치웁니다 */
+	// 옛 조각(patch_homeviral)이 무료 줄에 넣은 카드를 치웁니다
 	$b .= "  function sweep(){\n";
 	$b .= "    var old = document.querySelectorAll('a.free-card[data-viral=on]');\n";
 	$b .= "    var i;\n";
