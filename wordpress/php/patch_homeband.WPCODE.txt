@@ -1,0 +1,125 @@
+// 오픈기념 띠를 홈 쪽 글에 직접 넣습니다
+// 2026-09-27 · 자세한 것은 notes 의 2026-09-27-띠를-쪽글로.md
+//
+// 그동안 띠는 자바스크립트가 만들어 끼워넣었습니다. 그래서 여백이
+// 덮이고 자리가 흔들렸습니다. 이제 쪽 글에 박아 CSS 한 줄이 여백을 정합니다.
+//
+//   살펴보기   https://stellasaju.com/?stella_homeband=1
+//   넣기       https://stellasaju.com/?stella_homeband=apply
+//   빼기       https://stellasaju.com/?stella_homeband=undo
+//
+// 넣으신 뒤 patch_homeprice 를 꺼 주세요 - 켜 두면 띠가 둘이 됩니다.
+// 위치는 어디서나 실행. 크롬 번역을 끄고 붙여넣으세요.
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_homeband'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_homeband'] ) );
+	$pid  = 62;
+
+	$p = get_post( $pid );
+	if ( ! $p ) { echo '홈 쪽 62 를 못 찾았습니다'; exit; }
+
+	$c = (string) $p->post_content;
+
+	// 넣을 자리 — 히어로 바로 다음, 폼 앞
+	$AN = '  <!-- ══ 폼 ═';
+	$MK = 'id=' . chr(34) . 'hp-open' . chr(34);
+
+	// 넣을 글
+	$S = '  <!-- STELLA-BAND-START -->';
+	$E = '  <!-- STELLA-BAND-END -->';
+	$H = '';
+	$H .= $S . chr(10);
+	$H .= '  <!-- ══ 오픈기념 띠 ══════════════════════════════' . chr(10);
+	$H .= '       2026-09-27 · 조각(patch_homeprice)이 자바스크립트로 끌워넣던 것을' . chr(10);
+	$H .= '       쪽 글로 옮겼습니다. 여백은 #hp-open 의 padding 한 줄이 정합니다.' . chr(10);
+	$H .= '       ★ 그 조각은 꺼야 합니다 — 켜 두면 띄가 둘이 됩니다. -->' . chr(10);
+	$H .= '  <style>' . chr(10);
+	$H .= '  #stellar-home #hp-open{ padding:64px 0 120px; }' . chr(10);
+	$H .= '  @media(max-width:700px){ #stellar-home #hp-open{ padding:44px 0 84px; } }' . chr(10);
+	$H .= '  #hp-band{ padding:26px 28px; border-radius:16px;' . chr(10);
+	$H .= '    background:var(--plum-soft,#F0EBFB); border:1px solid #DED3F4;' . chr(10);
+	$H .= '    display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; }' . chr(10);
+	$H .= '  #hp-band .hp-kick{ font-size:.82rem; letter-spacing:.04em; font-weight:700;' . chr(10);
+	$H .= '    color:var(--plum,#6B4FB0); background:#fff; border-radius:999px;' . chr(10);
+	$H .= '    padding:5px 12px; border:1px solid #DED3F4; }' . chr(10);
+	$H .= '  #hp-band .hp-price{ display:flex; align-items:baseline; gap:9px; }' . chr(10);
+	$H .= '  #hp-band .hp-was{ color:var(--ink-dim,#8B849C); text-decoration:line-through;' . chr(10);
+	$H .= '    font-size:1rem; }' . chr(10);
+	$H .= '  #hp-band .hp-now{ color:#C4453A; font-weight:800; font-size:1.42rem;' . chr(10);
+	$H .= '    letter-spacing:-.01em; }' . chr(10);
+	$H .= '  #hp-band .hp-orb{ color:var(--ink-dim,#8B849C); font-size:.82rem; }' . chr(10);
+	$H .= '  #hp-band .hp-say{ color:var(--ink-soft,#4E4763); font-size:.92rem;' . chr(10);
+	$H .= '    line-height:1.7; flex:1 1 260px; min-width:200px; }' . chr(10);
+	$H .= '  #hp-band .hp-go{ display:inline-block; text-decoration:none; font-weight:700;' . chr(10);
+	$H .= '    font-size:.92rem; color:#fff; background:var(--plum,#6B4FB0);' . chr(10);
+	$H .= '    border-radius:999px; padding:11px 20px; white-space:nowrap; }' . chr(10);
+	$H .= '  #hp-band .hp-go:hover{ background:#5A3F9C; }' . chr(10);
+	$H .= '  @media(max-width:640px){' . chr(10);
+	$H .= '    #hp-band{ padding:20px 18px; gap:11px 14px; }' . chr(10);
+	$H .= '    #hp-band .hp-now{ font-size:1.26rem; }' . chr(10);
+	$H .= '    #hp-band .hp-go{ width:100%; text-align:center; }' . chr(10);
+	$H .= '  }' . chr(10);
+	$H .= '  </style>' . chr(10);
+	$H .= '' . chr(10);
+	$H .= '  <section class="sh-section" id="hp-open">' . chr(10);
+	$H .= '    <div class="wrap">' . chr(10);
+	$H .= '      <div id="hp-band">' . chr(10);
+	$H .= '        <span class="hp-kick">오픈기념</span>' . chr(10);
+	$H .= '        <div class="hp-price">' . chr(10);
+	$H .= '          <span class="hp-was">9,000원</span>' . chr(10);
+	$H .= '          <span class="hp-now">무료</span>' . chr(10);
+	$H .= '          <span class="hp-orb">가입하지 않으셔도 됩니다</span>' . chr(10);
+	$H .= '        </div>' . chr(10);
+	$H .= '        <div class="hp-say">오픈 기간에는 여섯 문을 마음껏 여셔도 값을 안 받습니다. 글은 줄이지 않았습니다 — 풀이 한 편이 책 한 권 그대로입니다.</div>' . chr(10);
+	$H .= '        <a class="hp-go" href="/door-fortune/?topic=2026%EB%85%84%20%EC%9A%B4%EC%84%B8">2026년 운세부터 보기 ›</a>' . chr(10);
+	$H .= '      </div>' . chr(10);
+	$H .= '    </div>' . chr(10);
+	$H .= '  </section' . chr(10);
+	$H .= $E . chr(10);
+
+	echo "오픈기념 띠 - 홈 쪽 글에 넣기\n\n";
+	echo '지금 쪽 ' . number_format( strlen( $c ) ) . "자\n";
+	echo '넣을 자리 ' . substr_count( $c, $AN ) . "군데\n";
+	echo '이미 들어감 ' . substr_count( $c, $MK ) . "군데\n\n";
+
+	if ( 'undo' === $mode ) {
+		$a = strpos( $c, $S );
+		if ( false === $a ) { echo '뺄 것이 없습니다'; exit; }
+		$b = strpos( $c, $E, $a );
+		if ( false === $b ) { echo '끝 표지를 못 찾았습니다'; exit; }
+		$new = substr( $c, 0, $a ) . substr( $c, $b + strlen( $E ) + 1 );
+	} else {
+		if ( substr_count( $c, $MK ) > 0 ) { echo '이미 들어가 있습니다.'; exit; }
+		if ( 1 !== substr_count( $c, $AN ) ) { echo '넣을 자리를 못 찾았거나 여럿입니다.'; exit; }
+		if ( 'apply' !== $mode ) {
+			echo "넣으려면  ?stella_homeband=apply\n";
+			echo "빼려면    ?stella_homeband=undo\n";
+			exit;
+		}
+		$new = str_replace( $AN, $H . $AN, $c );
+	}
+
+	$b1 = substr_count( $c, chr(92) );
+	wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $new ) ) );
+	clean_post_cache( $pid );
+	$saved = (string) get_post( $pid )->post_content;
+	$b2 = substr_count( $saved, chr(92) );
+
+	if ( $b2 !== $b1 ) {
+		wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $c ) ) );
+		clean_post_cache( $pid );
+		echo '되돌렸습니다 - 역빗금 ' . $b1 . ' 에서 ' . $b2;
+		exit;
+	}
+
+	echo '됐습니다 · 지금 ' . number_format( strlen( $saved ) ) . '자 · 띠 '
+		. substr_count( $saved, $MK ) . '군데 · 역빗금 ' . $b2 . "개 그대로\n\n";
+	echo "이제 patch_homeprice 를 꺼 주세요.\n";
+	exit;
+} );
