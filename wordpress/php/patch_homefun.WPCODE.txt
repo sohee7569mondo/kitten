@@ -58,13 +58,43 @@ add_action( 'wp_enqueue_scripts', function () {
 
 	$css = '';
 	$css .= "#stellar-home #steps{ display:none !important; }\n";
-
-	// 맨 위 배너가 28px 밖으로 나가 있었습니다. .banner-wrap 에 max-width 가
-	// 없어서 .wrap 과 기준이 달랐습니다. 같은 폭을 주면 셋이 나란해집니다
-	$css .= "#stellar-home .banner-wrap{ max-width:1120px; margin:0 auto;\n";
-	$css .= "  box-sizing:border-box; }\n";
-	$css .= "@media(max-width:700px){ #stellar-home .banner-wrap{\n";
-	$css .= "  padding-left:20px; padding-right:20px; } }\n";
+	$css .= "#stellar-home .banner-wrap{ max-width:1120px; margin:0 auto; box-sizing:border-box; }\n";
+	$css .= "@media(max-width:700px){ body #stellar-home .banner-wrap{\n";
+	$css .= "  padding-left:20px !important; padding-right:20px !important; } }\n";
+	$css .= "#stellar-home .sfhead{ margin-bottom:22px; }\n";
+	$css .= "#stellar-home .sfkick{ font-size:.72rem; letter-spacing:.18em;\n";
+	$css .= "  font-weight:700; color:var(--gold); }\n";
+	$css .= "#stellar-home .sfbig{ margin-top:8px; font-family:Noto Serif KR,serif;\n";
+	$css .= "  font-weight:700; font-size:clamp(1.3rem,3.2vw,1.7rem);\n";
+	$css .= "  line-height:1.5; color:var(--ink); }\n";
+	$css .= "#stellar-home .sfdek{ margin-top:8px; font-size:.9rem; color:var(--ink-dim); }\n";
+	$css .= "#stellar-home .sfgrid{ display:grid !important;\n";
+	$css .= "  grid-template-columns:repeat(2,1fr); gap:16px; }\n";
+	$css .= "@media(max-width:760px){ #stellar-home .sfgrid{ grid-template-columns:1fr; } }\n";
+	$css .= "#stellar-home a.sfc{ display:block !important; padding:24px 24px 22px;\n";
+	$css .= "  border-radius:16px; border:1px solid var(--line);\n";
+	$css .= "  background:var(--card); box-shadow:var(--shadow);\n";
+	$css .= "  color:var(--ink); text-decoration:none;\n";
+	$css .= "  transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease; }\n";
+	$css .= "#stellar-home a.sfc:hover{ transform:translateY(-3px);\n";
+	$css .= "  box-shadow:var(--shadow-up); border-color:var(--line-2); }\n";
+	$css .= "#stellar-home .sftop{ display:flex !important; align-items:center;\n";
+	$css .= "  gap:12px; margin-bottom:14px; min-height:48px; }\n";
+	$css .= "#stellar-home .sfbadge{ flex:0 0 auto; width:48px; height:48px;\n";
+	$css .= "  border-radius:13px; display:flex !important; align-items:center;\n";
+	$css .= "  justify-content:center; overflow:hidden;\n";
+	$css .= "  background:var(--paper-2); border:1px solid var(--line); }\n";
+	$css .= "#stellar-home .sfbadge img{ display:block; width:32px; height:32px;\n";
+	$css .= "  object-fit:contain; }\n";
+	$css .= "#stellar-home .sfbrand{ font-size:.78rem; letter-spacing:.06em;\n";
+	$css .= "  font-weight:700; color:var(--ink-dim); }\n";
+	$css .= "#stellar-home .sfhook{ font-family:Noto Serif KR,serif; font-weight:700;\n";
+	$css .= "  font-size:1.12rem; line-height:1.55; color:var(--ink); }\n";
+	$css .= "#stellar-home .sfsay{ margin-top:8px; font-size:.9rem; color:var(--ink-soft); }\n";
+	$css .= "#stellar-home .sfgo{ margin-top:16px; font-size:.86rem;\n";
+	$css .= "  font-weight:700; color:var(--plum); }\n";
+	$css .= "#stellar-home .sffree{ margin-top:18px; text-align:center;\n";
+	$css .= "  font-size:.84rem; color:var(--ink-dim); }\n";
 
 
 	$js = '';
