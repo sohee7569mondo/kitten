@@ -61,7 +61,9 @@ add_action( 'template_redirect', function () {
 	$H .= '    font-size:.98rem; }' . chr(10);
 	$H .= '  #hp-band .hp-arrow{ color:var(--ink-dim,#8B849C); font-size:.9rem; }' . chr(10);
 	$H .= '  #hp-band .hp-now{ color:#C4453A; font-weight:800; font-size:1.34rem; }' . chr(10);
-	$H .= '  #hp-band .hp-say{ margin-top:14px; max-width:660px;' . chr(10);
+	$H .= '  #hp-band .hp-topics{ margin-top:12px; color:var(--plum,#6B4FB0);' . chr(10);
+	$H .= '    font-size:.92rem; font-weight:700; line-height:1.75; }' . chr(10);
+	$H .= '  #hp-band .hp-say{ margin-top:9px; max-width:660px;' . chr(10);
 	$H .= '    color:var(--ink-soft,#4E4763); font-size:.94rem; line-height:1.85; }' . chr(10);
 	$H .= '  #hp-band .hp-go{ flex:0 0 auto; text-decoration:none;' . chr(10);
 	$H .= '    padding:13px 26px; border-radius:30px; font-weight:700; font-size:.95rem;' . chr(10);
@@ -81,13 +83,14 @@ add_action( 'template_redirect', function () {
 	$H .= '        <div class="hp-main">' . chr(10);
 	$H .= '        <span class="hp-kick">오픈기념</span>' . chr(10);
 	$H .= '        <div class="hp-row">' . chr(10);
-	$H .= '          <div class="hp-big">여섯 문이 모두 무료입니다</div>' . chr(10);
+	$H .= '          <div class="hp-big">모든 사주풀이가 무료입니다</div>' . chr(10);
 	$H .= '          <div class="hp-price">' . chr(10);
 	$H .= '            <span class="hp-was">9,000원</span>' . chr(10);
 	$H .= '            <span class="hp-arrow">›</span>' . chr(10);
 	$H .= '            <span class="hp-now">0원</span>' . chr(10);
 	$H .= '          </div>' . chr(10);
 	$H .= '        </div>' . chr(10);
+	$H .= '        <div class="hp-topics">연애운 · 결혼운 · 재회운 · 직장운 · 재물운 · 건강운 · 가족운 · 신년운세 · 별자리 · 타로</div>' . chr(10);
 	$H .= '        <div class="hp-say">오픈 기간에는 값을 받지 않습니다. 가입도, 카드도 필요 없습니다. 글은 한 줄도 줄이지 않아서, 풀이 한 편이 책 한 권 그대로입니다.</div>' . chr(10);
 	$H .= '        </div>' . chr(10);
 	$H .= '        <a class="hp-go" href="/door-fortune/?topic=2026%EB%85%84%20%EC%9A%B4%EC%84%B8">2026년 운세부터 보기 ›</a>' . chr(10);
