@@ -1200,3 +1200,21 @@ body.page-id-62 .wp-block-post-content{margin-block-start:0 !important; padding:
 }
 </style>
 <!-- /wp:html -->
+<!-- wp:html -->
+<style id="stella-home6-css">
+/* 2026-09-30 · 조각이 꺼져도 되돌아가지 않게 쪽 글에 박아 둡니다.
+   그동안 이 둘을 patch_homefun 이 맡고 있어서, 그 조각이 꺼질 때마다
+   「보는 순서」가 되살아나고 배너 줄이 6px 어긋났습니다. */
+
+/* ① 보는 순서 — 손님이 안 보고 지나칩니다. 숨깁니다. */
+#stellar-home #steps{ display:none !important; }
+
+/* ② 맨위 배너 · 오픈기념 배너 · 주제 줄의 시작점을 맞춥니다.
+      위 블록에 padding 이 한 덩어리로 !important 로 걸려 있어서
+      낱개로는 힘이 모자랍니다. body 를 앞에 붙여 올립니다. */
+#stellar-home .banner-wrap{ max-width:1120px; margin:0 auto; box-sizing:border-box; }
+@media(max-width:700px){
+  body #stellar-home .banner-wrap{
+    padding-left:20px !important; padding-right:20px !important; } }
+</style>
+<!-- /wp:html -->
