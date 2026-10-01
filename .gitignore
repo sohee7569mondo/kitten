@@ -6,3 +6,7 @@ preview/*.webp
 __pycache__/
 *.pyc
 wordpress/tools/*.png
+
+# 화면을 재 보려고 playwright 를 깔면 생기는 것 (검사용 · 저장소에는 필요 없습니다)
+package.json
+package-lock.json
