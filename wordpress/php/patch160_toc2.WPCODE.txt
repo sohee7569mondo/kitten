@@ -1,0 +1,233 @@
+/* ════════════════════════════════════════════════════════════
+   차례 손보기 + PDF 단추   ★ 2026-09-09 · 소희 님께
+
+   ── 무엇을 하나 ───────────────────────────────────────
+   ① 「PDF 로 저장」 글씨가 안 보이는 것을 고칩니다.
+      금빛을 걷어내면서 단추 바탕과 글씨가 같은 색이 됐습니다.
+
+   ② 차례 맨 앞 다섯 줄에 제목을 세웁니다.                (19)
+
+        전                          후
+        연애운에 대해 — 벼리 02      여는 장 사주를 읽기 전에 02
+        여덟 글자        03            연애운에 대해 — 벼리 02
+        태어나던 밤의 하늘 04           여덟 글자        03
+        ...                            ...
+
+      「제 1 장」처럼 굵게 서서, 앞 묶음이 무엇인지 보입니다.
+
+   ③ 차례에서 제목을 누르면 그 쪽으로 갑니다.             (20)
+      위 도구막에 가리지 않게 조금 위에서 멈춥니다.
+
+   ★ 먼저 ?stella_tocpage=apply 가 들어가 있어야 합니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_toc2=1
+   ② 정말 고치기 https://stellasaju.com/?stella_toc2=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_toc2=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_toc2'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_toc2_backup';
+	$MARK = 'stella-toc2-0909';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_toc2'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.85;'
+	   . 'padding:34px 24px;max-width:940px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.35rem;margin:0 0 18px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.88rem}a{color:#D4AF6A}li{margin:6px 0}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:11.5px/1.6 monospace;border-left:3px solid #D4AF6A}</style>';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	$b  = "\n<!-- " . $MARK . " 시작 -->\n<style>\n";
+	$b .= "/* 차례 손보기 + PDF 단추 · 2026-09-09 */\n";
+	$b .= "#ssb #bkPrint,#bkPrint{ background:#26346B !important;\n";
+	$b .= "  color:#FFFFFF !important; border:1px solid #26346B !important; }\n";
+	$b .= "#ssb #bkTocBtn,#bkTocBtn{ color:#26346B !important;\n";
+	$b .= "  border-color:rgba(38,52,107,.45) !important; }\n";
+	$b .= "#ssb .tocpage .tocp-ch,#ssb .tocpage .tocp-sub{ cursor:pointer; }\n";
+	$b .= "#ssb .tocpage .tocp-ch:hover .t,#ssb .tocpage .tocp-sub:hover .t{\n";
+	$b .= "  color:#26346B; }\n";
+	$b .= "</style>\n";
+	$b .= "<script>\n";
+	$b .= "/* 차례 · 누르면 그 쪽으로 + 앞 묶음 제목\n";
+	$b .= "   ★ 이 안에서 홑 앰퍼샌드를 쓰지 않습니다 (사이트 규칙). */\n";
+	$b .= "(function(){\n";
+	$b .= "  var HEAD = '여는 장';\n";
+	$b .= "  var TITLE = '사주를 읽기 전에';\n";
+	$b .= "\n";
+	$b .= "  function goTo(el){\n";
+	$b .= "    if(!el){ return; }\n";
+	$b .= "    var y = el.getBoundingClientRect().top + window.pageYOffset - 88;\n";
+	$b .= "    if(y < 0){ y = 0; }\n";
+	$b .= "    window.scrollTo({ top:y, behavior:'smooth' });\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function headRow(no){\n";
+	$b .= "    var d = document.createElement('div');\n";
+	$b .= "    d.className = 'tocp-ch';\n";
+	$b .= "    var t = document.createElement('span');\n";
+	$b .= "    t.className = 't';\n";
+	$b .= "    var s = document.createElement('b');\n";
+	$b .= "    s.textContent = HEAD;\n";
+	$b .= "    t.appendChild(s);\n";
+	$b .= "    t.appendChild(document.createTextNode(' ' + TITLE));\n";
+	$b .= "    var dot = document.createElement('i');\n";
+	$b .= "    dot.className = 'd';\n";
+	$b .= "    var n = document.createElement('span');\n";
+	$b .= "    n.className = 'n';\n";
+	$b .= "    n.textContent = no;\n";
+	$b .= "    d.appendChild(t);\n";
+	$b .= "    d.appendChild(dot);\n";
+	$b .= "    d.appendChild(n);\n";
+	$b .= "    return d;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function wire(){\n";
+	$b .= "    var box = document.getElementById('ssb');\n";
+	$b .= "    if(!box){ return false; }\n";
+	$b .= "    var tp = box.querySelector('.tocpage');\n";
+	$b .= "    if(!tp){ return false; }\n";
+	$b .= "    if(tp.getAttribute('data-wired') === '1'){ return true; }\n";
+	$b .= "\n";
+	$b .= "    var pages = box.querySelectorAll('.page');\n";
+	$b .= "    var map = {};\n";
+	$b .= "    var i, f, k;\n";
+	$b .= "    for(i = 0; i < pages.length; i++){\n";
+	$b .= "      f = pages[i].querySelector('.folio');\n";
+	$b .= "      if(!f){ continue; }\n";
+	$b .= "      k = f.textContent.replace(/\\s+/g, '');\n";
+	$b .= "      if(k){ if(!map[k]){ map[k] = pages[i]; } }\n";
+	$b .= "    }\n";
+	$b .= "\n";
+	$b .= "    var rows = tp.querySelectorAll('.tocp-ch, .tocp-sub');\n";
+	$b .= "    if(rows.length < 3){ return false; }\n";
+	$b .= "\n";
+	$b .= "    for(i = 0; i < rows.length; i++){\n";
+	$b .= "      (function(r){\n";
+	$b .= "        var nn = r.querySelector('.n');\n";
+	$b .= "        if(!nn){ return; }\n";
+	$b .= "        var key = nn.textContent.replace(/\\s+/g, '');\n";
+	$b .= "        var target = map[key];\n";
+	$b .= "        if(!target){ return; }\n";
+	$b .= "        r.addEventListener('click', function(){ goTo(target); });\n";
+	$b .= "      })(rows[i]);\n";
+	$b .= "    }\n";
+	$b .= "\n";
+	$b .= "    /* 맨 앞이 작은 줄이면 그 위에 묶음 제목을 세웁니다 */\n";
+	$b .= "    var first = rows[0];\n";
+	$b .= "    if(first){\n";
+	$b .= "      if(first.className.indexOf('tocp-ch') < 0){\n";
+	$b .= "        var nf = first.querySelector('.n');\n";
+	$b .= "        var no = nf ? nf.textContent.replace(/\\s+/g, '') : '';\n";
+	$b .= "        var hr = headRow(no);\n";
+	$b .= "        first.parentNode.insertBefore(hr, first);\n";
+	$b .= "        if(map[no]){\n";
+	$b .= "          (function(t){\n";
+	$b .= "            hr.addEventListener('click', function(){ goTo(t); });\n";
+	$b .= "          })(map[no]);\n";
+	$b .= "        }\n";
+	$b .= "      }\n";
+	$b .= "    }\n";
+	$b .= "\n";
+	$b .= "    tp.setAttribute('data-wired', '1');\n";
+	$b .= "    return true;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  var tries = 0;\n";
+	$b .= "  var tick = setInterval(function(){\n";
+	$b .= "    tries = tries + 1;\n";
+	$b .= "    if(wire()){ clearInterval(tick); return; }\n";
+	$b .= "    if(tries > 60){ clearInterval(tick); }\n";
+	$b .= "  }, 400);\n";
+	$b .= "})();\n";
+	$b .= "</script>\n<!-- " . $MARK . " 끝 -->\n";
+
+	if ( false !== strpos( $b, '&' ) ) {
+		echo '<h1 class="no">앰퍼샌드가 섞여 있습니다. 넣지 않았습니다.</h1>';
+		exit;
+	}
+
+	$s   = '<!-- ' . $MARK . ' 시작 -->';
+	$e   = '<!-- ' . $MARK . ' 끝 -->';
+	$has = ( false !== strpos( $c, $s ) );
+
+	echo '<h1>' . ( 'apply' === $mode ? '고쳤습니다' : '이렇게 바꿉니다 (아직 안 고쳤습니다)' ) . '</h1>';
+	echo '<ul><li>「PDF 로 저장」 글씨를 <b>흰색</b>으로 되살립니다</li>'
+	   . '<li>차례 맨 앞에 <b>「여는 장 · 사주를 읽기 전에」</b>를 세웁니다</li>'
+	   . '<li>차례의 제목을 <b>누르면 그 쪽으로</b> 갑니다</li></ul>';
+
+	if ( false === strpos( $c, 'tocpage' ) ) {
+		echo '<p class="no">차례 쪽이 아직 안 들어가 있습니다. '
+		   . '먼저 <code>/?stella_tocpage=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	echo '<p class="dim">'
+	   . ( $has ? '이미 들어가 있는 덩어리를 <b>새것으로 바꿉니다</b>.' : '덩어리를 쪽 맨 뒤에 <b>새로 붙입니다</b>.' )
+	   . '</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<pre>' . esc_html( $b ) . '</pre>';
+		echo '<p>정말 고치시려면 <code>/?stella_toc2=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+
+	if ( $has ) {
+		$a = strpos( $c, $s );
+		$z = strpos( $c, $e );
+		if ( false === $z || $z < $a ) {
+			echo '<h1 class="no">표는 찾았는데 끝을 못 찾았습니다. 아무것도 안 바꿨습니다.</h1>';
+			exit;
+		}
+		$z   = $z + strlen( $e );
+		$new = substr( $c, 0, $a ) . ltrim( $b, "\n" ) . substr( $c, $z );
+	} else {
+		$new = $c . $b;
+	}
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<p class="ok">고쳤습니다. ' . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p><a href="/reading-book/?demo=door-love&v=' . time() . '">책 열어보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_toc2=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

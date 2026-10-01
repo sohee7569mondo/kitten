@@ -1,0 +1,204 @@
+/* ════════════════════════════════════════════════════════════
+   장 속표지 — 차례를 바로잡습니다   ★ 2026-09-08
+
+   소희 님 :「주제가 장 이름이고 벼리는 글쓴이라서 순서가
+   바뀐 거 같아」 「장은 사진이 좀 작게」
+
+   맞습니다. 지금은 이렇게 나옵니다 —
+
+     (큰 사진)
+      벼리
+     제 1 장
+     사주가 말하는 하은님 모습
+
+   벼리가 먼저 나오고 장 이름이 뒤에 옵니다. 그런데 그 장의
+   주인은 「사주가 말하는 하은님 모습」이고, 벼리는 그걸 쓴
+   사람입니다. 주인이 뒤에 서 있었습니다.
+
+   ── 바뀌는 모습 ────────────────────────────────
+
+     STELLA SAJU
+      스텔라사주
+
+       제 1 장
+     사주가 말하는
+      하은님 모습
+     여덟 글자를 보고 전해드립니다
+
+       (작은 사진)
+       쓴 이  벼리
+
+   · 사진을 118px 에서 88px 로 줄입니다.
+   · 이름 앞에 「쓴 이」를 붙입니다. 표지 판권에 이미 그렇게
+     쓰고 계셔서 책 안에서 같은 말이 됩니다.
+     그리고 이름마다 조사가 달라지는 문제도 없어집니다
+     (「마루가 씁니다」 「아람이 씁니다」처럼 갈리지 않습니다).
+   · 제목이 한 줄이든 두 줄이든 낱장 키가 같습니다.
+     「연애운」처럼 한 줄인 장만 짧아지지 않습니다.
+
+   ── 코드는 한 줄도 안 건드립니다 ───────────────
+   장 속표지 덩이가 세로로 쌓이는 짜임이라, 차례만 색표로
+   바꿔 끼웁니다. 글을 만드는 코드는 그대로입니다.
+   되돌리면 원래 차례로 그대로 돌아옵니다.
+
+   ★ 먼저 patch160_face 를 넣으셔야 합니다. 그게 동그라미에
+     사진을 넣고 이름을 아래로 내려놓는 패치입니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_sheet=1
+   ② 정말 넣기   https://stellasaju.com/?stella_sheet=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_sheet=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_sheet'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_sheet_backup';
+	$MARK = '2026-09-08 · 장 속표지 차례';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_sheet'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:880px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<h1 class="no">이미 들어가 있습니다.</h1>';
+		echo '<p><code>/?stella_sheet=undo</code> 로 걷어낸 뒤 다시 넣으세요.</p>';
+		exit;
+	}
+
+	$hasFace = ( false !== strpos( $c, 'dvwho' ) );
+
+	$CSS = <<<'CSSX'
+
+<style>
+/* ══ 2026-09-08 · 장 속표지 차례 ═══════════════════════════
+   장 이름이 그 장의 주인이고 쓴 이는 아래에 작게.
+   글을 만드는 코드는 한 줄도 안 건드리고 차례만 바꿔 끼웁니다. */
+
+#ssb .divider{
+  display:flex !important;
+  flex-direction:column;
+  justify-content:flex-start;
+}
+
+/* 차례 — 적어두지 않은 것(마크 같은 것)은 0 이라 맨 위에 그대로 있습니다 */
+#ssb .divider .dvno   { order:2; }
+#ssb .divider h2      { order:3; }
+#ssb .divider .dvrule { order:4; }
+#ssb .divider .dvwhat { order:5; }
+#ssb .divider .dvmark { order:8; }
+#ssb .divider .dvwho  { order:9; }
+
+/* 빈 자리를 둘로 나눠 : 장 이름 덩이는 가운데, 쓴 이는 아래로 */
+#ssb .divider .dvno   { margin-top:auto; }
+#ssb .divider .dvmark { margin-top:auto; }
+
+/* 제목이 한 줄이어도 낱장 키가 같아야 합니다. 두 줄 자리를 늘 비워둡니다. */
+#ssb .divider h2{
+  min-height:3.1em;
+  display:flex; align-items:center; justify-content:center;
+}
+#ssb .divider .dvwhat{ min-height:3.7em; }
+#ssb .divider .dvrule{ margin:22px auto 18px; }
+
+/* 사진은 작게 — 장 표지에서는 거들 뿐입니다 */
+#ssb .divider .dvmark{
+  width:88px; height:88px;
+  margin-bottom:12px;
+}
+
+/* 쓴 이 — 이름 앞에 말을 붙입니다.
+   표지 판권이 이미 「쓴 이  벼리」라고 쓰고 있어서 같은 말이 됩니다.
+   이렇게 하면 이름마다 조사가 갈리는 문제도 없습니다. */
+#ssb .divider .dvwho{
+  margin:0;
+  font-family:var(--serif); font-weight:700;
+  font-size:.98rem; color:var(--star);
+}
+#ssb .divider .dvwho::before{
+  content:'쓴 이 ';
+  font-family:var(--mono); font-weight:400;
+  font-size:.72rem; letter-spacing:.14em;
+  color:var(--dim);
+}
+
+@media(max-width:640px){
+  /* 좁은 화면에서 원래는 블록으로 바뀌는데, 그러면 차례가 안 먹습니다 */
+  #ssb .divider{ display:flex !important; padding:62px 26px 70px; }
+  #ssb .divider h2{ min-height:3.1em; }
+  #ssb .divider .dvmark{ width:74px; height:74px; }
+  #ssb .divider .dvwho{ font-size:.9rem; }
+}
+</style>
+CSSX;
+
+	$new = $c . $CSS;
+
+	echo '<h1>' . ( 'apply' === $mode ? '넣었습니다' : '넣으면 이렇게 됩니다 (아직 안 넣었습니다)' ) . '</h1>';
+
+	echo '<h2>먼저 볼 것</h2>';
+	if ( $hasFace ) {
+		echo '<p class="ok">patch160_face 가 들어가 있습니다. 이름 자리(dvwho)를 찾았습니다.</p>';
+	} else {
+		echo '<p class="no">patch160_face 가 아직 안 들어갔습니다. '
+		   . '그게 있어야 동그라미에 사진이 들어가고 이름이 아래로 내려옵니다.<br>'
+		   . '먼저 <code>/?stella_face=apply</code> 를 하신 뒤에 이걸 넣어주세요.</p>';
+	}
+
+	echo '<h2>바꾸는 것</h2>';
+	echo '<p class="ok">차례를 바꿉니다 — 마크 &rarr; 제 N 장 &rarr; 제목 &rarr; 한 줄 설명 '
+	   . '&rarr; (아래) 작은 사진 &rarr; 쓴 이 벼리</p>';
+	echo '<p class="ok">사진 118px &rarr; 88px &middot; 이름 앞에 「쓴 이」 &middot; '
+	   . '제목이 한 줄이어도 낱장 키 그대로</p>';
+	echo '<p class="dim">글을 만드는 코드는 한 줄도 안 건드립니다. 쪽 맨 뒤에 색표만 붙입니다 — '
+	   . number_format( strlen( $CSS ) ) . ' 바이트</p>';
+	echo '<p class="dim">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 넣으시려면 <code>/?stella_sheet=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+
+	echo '<p class="ok">넣었습니다.</p>';
+	echo '<p><a href="/reading-book/?demo=door-love">샘플 책으로 확인해보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_sheet=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

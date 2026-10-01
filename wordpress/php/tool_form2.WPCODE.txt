@@ -1,0 +1,86 @@
+/* ════════════════════════════════════════════════════════════
+   문 첫 화면 · 주제 고르는 자리 뜯어보기 (읽기만)
+   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   고칠 자리 넷의 실제 코드를 그대로 보여줍니다.
+     ① 주제 고르는 단추 (연애운 · 결혼운 · 재회운 · 궁합)
+     ② 「지금의 관계」 예시 여섯
+     ③ 완성본 미리보기 링크
+     ④ 주제를 들고 다니는 자리
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   벼리   https://stellasaju.com/?stella_form2=door-love
+   마루   https://stellasaju.com/?stella_form2=door-career
+
+   ★ 브라우저 번역을 끄고 여세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_form2'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	$slug = sanitize_title( wp_unslash( $_GET['stella_form2'] ) );
+	if ( '' === $slug ) { $slug = 'door-love'; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:26px 16px;max-width:1040px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.25rem;margin:0 0 12px}'
+	   . 'h2{color:#9AD1A5;font-size:.98rem;margin:24px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.85rem}'
+	   . 'pre{background:#000;padding:11px;white-space:pre-wrap;word-break:break-all;'
+	   . 'font:11px/1.6 monospace;border-left:3px solid #D4AF6A;margin:6px 0}'
+	   . '</style>';
+
+	$page = get_page_by_path( $slug );
+	if ( ! $page ) { echo '<h1 class="no">' . esc_html( $slug ) . ' 쪽을 못 찾았습니다.</h1>'; exit; }
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $page->ID ) );
+
+	echo '<h1>' . esc_html( $slug ) . ' · ' . number_format( strlen( $c ) ) . ' 바이트</h1>';
+
+	$spots = array(
+		'주제 고르는 자리'   => array( '무엇이 궁금하세요', 700 ),
+		'주제 단추들'        => array( 'topic', 320 ),
+		'지금의 관계 예시'   => array( '년째 연애 중', 900 ),
+		'완성본 미리보기'    => array( '완성본 미리보기', 600 ),
+		'미리보기 링크'      => array( 'demo=', 260 ),
+		'상황 적는 칸'       => array( '비워두셔도', 700 ),
+		'주제 검사'          => array( '궁금한 주제를 하나', 420 ),
+	);
+
+	foreach ( $spots as $title => $conf ) {
+		$needle = $conf[0];
+		$span   = $conf[1];
+		$n      = substr_count( $c, $needle );
+
+		echo '<h2>' . esc_html( $title ) . ' — 「' . esc_html( $needle ) . '」 ' . $n . ' 군데</h2>';
+		if ( 0 === $n ) { echo '<p class="dim">없습니다.</p>'; continue; }
+
+		$from = 0;
+		$show = 0;
+		$cap  = ( 'topic' === $needle ) ? 8 : 3;
+		while ( $show < $cap ) {
+			$at = strpos( $c, $needle, $from );
+			if ( false === $at ) { break; }
+			$a   = max( 0, $at - (int) ( $span / 3 ) );
+			$b   = min( strlen( $c ), $at + strlen( $needle ) + $span );
+			echo '<pre>' . esc_html( substr( $c, $a, $b - $a ) ) . '</pre>';
+			$from = $at + strlen( $needle );
+			$show++;
+		}
+		if ( $n > $cap ) { echo '<p class="dim">... 나머지 ' . ( $n - $cap ) . ' 군데는 생략</p>'; }
+	}
+
+	exit;
+}, 0 );

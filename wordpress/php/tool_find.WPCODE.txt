@@ -1,0 +1,99 @@
+/* ════════════════════════════════════════════════════════════
+   이 말이 어느 쪽에 있나 (FIND)   ★ 2026-09-11 · 소희 님께
+
+   「내 전자책」 누르는 자리에 책 안의 내용이 미리 나오는 문제 —
+   그 화면이 어느 쪽인지부터 찾습니다.
+
+   사이트의 모든 쪽(page · post · 틀 · 스니펫)을 훑어
+   그 말이 몇 번 나오는지, 어디쯤 나오는지 보여줍니다.
+
+   아무것도 바꾸지 않습니다. 번역 금지 표시가 달려 나옵니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   https://stellasaju.com/?stella_find911=내 전자책
+   https://stellasaju.com/?stella_find911=아무 말이나
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_find911'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	$q = sanitize_text_field( wp_unslash( $_GET['stella_find911'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!DOCTYPE html><html lang="ko" translate="no"><head><meta charset="utf-8">'
+	   . '<meta name="google" content="notranslate">'
+	   . '<meta name="viewport" content="width=device-width,initial-scale=1">'
+	   . '<title>FIND</title><style>body{background:#12101B;color:#F2ECE0;margin:0;'
+	   . 'padding:18px;font:12px/1.7 ui-monospace,Menlo,monospace}'
+	   . 'h1{color:#D4AF6A;font-size:15px;margin:0 0 14px}'
+	   . 'h2{color:#9AD1A5;font-size:13px;margin:20px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:12px}'
+	   . '.dim{color:#8B849C}.no{color:#E5A0A0}'
+	   . 'pre{white-space:pre-wrap;word-break:break-all;margin:0;color:#CFC8DA}'
+	   . '</style></head><body class="notranslate" translate="no">';
+
+	if ( '' === $q ) {
+		echo '<p class="no">찾을 말을 적어주세요. /?stella_find911=내 전자책</p>';
+		echo '</body></html>';
+		exit;
+	}
+
+	echo '<h1>FIND &middot; ' . esc_html( $q ) . '</h1>';
+
+	$rows = $wpdb->get_results( $wpdb->prepare(
+		"SELECT ID, post_title, post_name, post_type, post_status,
+		        LENGTH(post_content) AS len
+		   FROM {$wpdb->posts}
+		  WHERE post_content LIKE %s
+		    AND post_status IN ('publish','draft','private','inherit')
+		    AND post_type IN ('page','post','wpcode','wp_template','wp_template_part','wp_block')
+		  ORDER BY len DESC LIMIT 40",
+		'%' . $wpdb->esc_like( $q ) . '%' ) );
+
+	if ( ! $rows ) {
+		echo '<p class="no">어느 쪽에도 없습니다.</p></body></html>';
+		exit;
+	}
+
+	echo '<p class="dim">' . count( $rows ) . '군데에서 찾았습니다. 큰 쪽부터입니다.</p>';
+
+	foreach ( $rows as $r ) {
+		$c = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $r->ID ) );
+		$n = substr_count( $c, $q );
+
+		echo '<h2>' . (int) $r->ID . ' &middot; '
+		   . esc_html( (string) $r->post_name ) . ' &middot; '
+		   . esc_html( (string) $r->post_type ) . ' &middot; '
+		   . esc_html( (string) $r->post_status ) . ' &middot; '
+		   . number_format( (int) $r->len ) . '자 &middot; '
+		   . (int) $n . '번</h2>';
+		if ( '' !== (string) $r->post_title ) {
+			echo '<p class="dim">' . esc_html( (string) $r->post_title ) . '</p>';
+		}
+
+		$from = 0; $k = 0;
+		while ( true ) {
+			$at = strpos( $c, $q, $from );
+			if ( false === $at ) { break; }
+			$from = $at + 1;
+			$k++;
+			if ( $k > 5 ) { echo '<pre class="dim">… 더 있습니다</pre>'; break; }
+			$a = $at - 90; if ( $a < 0 ) { $a = 0; }
+			$seg = substr( $c, $a, 260 );
+			$seg = str_replace( array( "\r", "\n", "\t" ),
+				array( '', ' / ', ' ' ), $seg );
+			$seg = preg_replace( '/ {2,}/', ' ', $seg );
+			$ln  = substr_count( substr( $c, 0, $at ), "\n" ) + 1;
+			echo '<pre>줄 ' . (int) $ln . '  ' . esc_html( trim( (string) $seg ) ) . '</pre>';
+		}
+	}
+
+	echo '</body></html>';
+	exit;
+} );

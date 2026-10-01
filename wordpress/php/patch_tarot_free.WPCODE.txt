@@ -1,0 +1,118 @@
+// 아르카나 — 하루 다섯 번을 풀어 마음껏 뽑게 합니다
+// 2026-09-27 · 자세한 것은 notes/2026-09-27-타로-무제한.md
+//
+//   살펴보기   https://stellasaju.com/?stella_tarotfree=1
+//   마음껏     https://stellasaju.com/?stella_tarotfree=apply
+//   되돌리기   https://stellasaju.com/?stella_tarotfree=limit
+//
+// 네 자리 가운데 하나라도 못 찾으면 아무것도 안 바꿉니다.
+// 위치(Location)는 「어디서나 실행 / Run Everywhere」로.
+// 크롬 번역을 끄고 붙여넣으세요.
+// 맨 아랫줄이  } );  인지 확인하세요. 아니면 붙여넣기가 잘린 것입니다.
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_tarotfree'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_tarotfree'] ) );
+
+	$SAY = '오픈기념 · <b>마음껏</b> 뽑으실 수 있습니다. '
+		. '다만 같은 질문은 한 번만 뽑는 편이 좋아요.';
+
+	$P = array(
+		array( '셈', 'var DAILY=5;', 'var DAILY=99999;' ),
+		array( '머리 소개',
+			'<b>하루 다섯 번까지 값 없이</b> 뽑으실 수 있어요.',
+			'<b>값 없이 마음껏</b> 뽑으실 수 있어요.' ),
+		array( '띠 · 박힌 글',
+			'오늘 남은 뽑기 <b>5</b> 번 · 자정이 지나면 다시 다섯 번 드립니다.',
+			$SAY ),
+		array( '띠 · 셈틀 글',
+			"q.innerHTML='오늘 남은 뽑기 <b>'+left+'</b> 번 · 자정이 지나면 다시 다섯 번 드립니다.';",
+			"q.innerHTML='" . $SAY . "';" ),
+	);
+
+	$free  = ( 'apply' === $mode );
+	$limit = ( 'limit' === $mode );
+
+	echo "아르카나 · 하루 다섯 번 풀기\n\n";
+
+	$pg = get_page_by_path( 'door-tarot' );
+	if ( ! $pg ) { echo '쪽을 못 찾음 — door-tarot'; exit; }
+
+	$pid = (int) $pg->ID;
+	$c   = (string) $pg->post_content;
+
+	echo '쪽 ' . $pid . ' · ' . number_format( strlen( $c ) ) . "자\n\n";
+
+	$miss = 0;
+
+	foreach ( $P as $r ) {
+		$a = substr_count( $c, $r[1] );
+		$b = substr_count( $c, $r[2] );
+		$m = '하루 다섯 번';
+		if ( $a < 1 ) { $m = '마음껏'; }
+		if ( $a < 1 ) { if ( $b < 1 ) { $m = '★ 못 찾음'; $miss++; } }
+		echo '   ' . $r[0] . ' — ' . $m . ' (다섯 ' . $a . ' · 마음껏 ' . $b . ")\n";
+	}
+
+	echo "\n";
+
+	if ( $miss > 0 ) {
+		echo "못 찾은 자리가 있어 아무것도 안 바꿉니다.\n";
+		echo "이 화면을 그대로 보내주시면 찾을 글을 고쳐 다시 드리겠습니다.\n";
+		exit;
+	}
+
+	if ( ! $free ) {
+		if ( ! $limit ) {
+			echo "마음껏      ?stella_tarotfree=apply\n";
+			echo "하루 다섯 번  ?stella_tarotfree=limit\n";
+			exit;
+		}
+	}
+
+	$new = $c;
+	$hit = 0;
+	$gap = 0;
+
+	foreach ( $P as $r ) {
+		$from = $r[1];
+		$into = $r[2];
+		if ( $limit ) { $from = $r[2]; $into = $r[1]; }
+		$k = substr_count( $new, $from );
+		if ( $k < 1 ) {
+			if ( substr_count( $new, $into ) < 1 ) { $gap++; }
+			continue;
+		}
+		$new = str_replace( $from, $into, $new );
+		$hit = $hit + $k;
+	}
+
+	if ( $gap > 0 ) { echo '못 찾은 자리 ' . $gap . '곳 — 아무것도 안 바꿨습니다.'; exit; }
+	if ( $hit < 1 ) { echo '바꿀 것이 없습니다. 이미 다 되어 있습니다.'; exit; }
+
+	$b1 = substr_count( $c, chr( 92 ) );
+	wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $new ) ) );
+	clean_post_cache( $pid );
+	$b2 = substr_count( (string) get_post( $pid )->post_content, chr( 92 ) );
+
+	if ( $b2 !== $b1 ) {
+		wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $c ) ) );
+		clean_post_cache( $pid );
+		echo '되돌렸습니다 — 역빗금 ' . $b1 . ' → ' . $b2;
+		exit;
+	}
+
+	echo '됐습니다 · ' . $hit . '곳 · 역빗금 ' . $b2 . "개 그대로\n\n";
+
+	if ( $limit ) { echo '다시 하루 다섯 번입니다.'; exit; }
+
+	echo "확인하실 것 —\n";
+	echo "  · 띠가 「오픈기념 · 마음껏 뽑으실 수 있습니다」인지\n";
+	echo "  · 여섯 번 넘게 뽑아도 「오늘은 여기까지」가 안 나오는지\n";
+	exit;
+} );

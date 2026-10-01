@@ -1,0 +1,117 @@
+/* ════════════════════════════════════════════════════════════
+   랩 지도 그리기 (읽기만)   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   랩과 얽힌 스니펫마다
+     · 맨 앞에 적힌 설명
+     · 그 스니펫이 맡고 있는 /lab/ 주소들
+     · 서로 겹치는 곳
+   을 찾아서 한 장으로 보여줍니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   지도 보기   https://stellasaju.com/?stella_labmap=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_labmap'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:28px 18px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.3rem;margin:0 0 14px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:16px}'
+	   . '.no{color:#E5A0A0}.ok{color:#9AD1A5}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'b{color:#F0D9A8}'
+	   . 'pre{background:#000;padding:11px;white-space:pre-wrap;'
+	   . 'font:11.5px/1.6 monospace;border-left:3px solid #D4AF6A;margin:6px 0}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 5px;border-radius:3px}'
+	   . '</style>';
+
+	$ids = array( 804, 805, 806, 807, 808, 809, 1061 );
+
+	echo '<h1>랩 지도</h1>';
+
+	$paths = array();
+
+	foreach ( $ids as $id ) {
+		$r = $wpdb->get_row( $wpdb->prepare(
+			"SELECT ID, post_title, post_status, post_content
+			   FROM {$wpdb->posts} WHERE ID = %d AND post_type = 'wpcode'", $id ) );
+		if ( ! $r ) { continue; }
+
+		$c = (string) $r->post_content;
+
+		echo '<h2>' . (int) $r->ID . ' · ' . esc_html( $r->post_title )
+		   . ' · ' . number_format( strlen( $c ) ) . ' 바이트 · '
+		   . ( 'publish' === $r->post_status ? '<span class="ok">켜짐</span>' : '<span class="dim">꺼짐</span>' )
+		   . '</h2>';
+
+		/* 맨 앞 설명 */
+		echo '<pre>' . esc_html( mb_substr( $c, 0, 900 ) ) . '</pre>';
+
+		/* 이 스니펫이 다루는 /lab/ 주소들 */
+		$found = array();
+		$from  = 0;
+		while ( true ) {
+			$at = strpos( $c, '/lab/', $from );
+			if ( false === $at ) { break; }
+			$cut = substr( $c, $at, 40 );
+			$p   = '';
+			$i   = 0;
+			$len = strlen( $cut );
+			while ( $i < $len ) {
+				$ch = $cut[ $i ];
+				if ( false === strpos( 'abcdefghijklmnopqrstuvwxyz0123456789-_/', $ch ) ) { break; }
+				$p .= $ch;
+				$i++;
+			}
+			if ( '' !== $p ) {
+				if ( ! isset( $found[ $p ] ) ) { $found[ $p ] = 0; }
+				$found[ $p ]++;
+				if ( ! isset( $paths[ $p ] ) ) { $paths[ $p ] = array(); }
+				if ( ! in_array( $r->ID, $paths[ $p ], true ) ) { $paths[ $p ][] = $r->ID; }
+			}
+			$from = $at + 5;
+		}
+		if ( $found ) {
+			ksort( $found );
+			$t = '';
+			foreach ( $found as $p => $n ) { $t .= str_pad( $p, 26 ) . $n . "\n"; }
+			echo '<pre>' . esc_html( $t ) . '</pre>';
+		} else {
+			echo '<p class="dim">/lab/ 주소가 없습니다.</p>';
+		}
+
+		/* 주소를 가로채는 줄 */
+		$hooks = array( 'REQUEST_URI', 'template_redirect', 'add_rewrite_rule',
+			'parse_request', 'init', 'wp_loaded', 'the_content' );
+		$h = '';
+		foreach ( $hooks as $k ) {
+			$n = substr_count( $c, $k );
+			if ( $n > 0 ) { $h .= str_pad( $k, 22 ) . $n . "\n"; }
+		}
+		if ( '' !== $h ) { echo '<pre>' . esc_html( $h ) . '</pre>'; }
+	}
+
+	echo '<h2>주소마다 누가 맡고 있나</h2>';
+	ksort( $paths );
+	$t = '';
+	foreach ( $paths as $p => $who ) {
+		$t .= str_pad( $p, 26 ) . implode( ' · ', $who )
+		    . ( count( $who ) > 1 ? '   ← 둘 이상' : '' ) . "\n";
+	}
+	echo '<pre>' . esc_html( $t ) . '</pre>';
+	echo '<p class="dim">「← 둘 이상」이 붙은 주소는 스니펫 둘이 같은 자리를 맡고 있다는 뜻입니다.</p>';
+
+	exit;
+}, 0 );

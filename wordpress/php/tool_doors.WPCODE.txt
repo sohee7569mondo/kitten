@@ -1,0 +1,137 @@
+/* ════════════════════════════════════════════════════════════
+   문 여섯을 한꺼번에 훑기 (읽기만)   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   문마다 이것을 봅니다.
+     ① 주제 단추가 몇 개이고 이름이 무엇인지
+     ② 「지금 상황」 칸의 이름표(id)가 무엇인지
+     ③ 미리보기 링크가 어디를 가리키는지
+     ④ 첫머리 가디언 말이 몇 줄이고 얼마나 긴지
+
+   이걸 보고 나서 패치를 씁니다. 짐작으로 고치면 못 찾습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   보기   https://stellasaju.com/?stella_doors=1
+
+   ★ 브라우저 번역을 끄고 여세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_doors'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:26px 16px;max-width:1040px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.25rem;margin:0 0 12px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:15px}'
+	   . 'h3{color:#F0D9A8;font-size:.9rem;margin:14px 0 4px}'
+	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.85rem}'
+	   . '.big{color:#F0D9A8}'
+	   . 'pre{background:#000;padding:10px;white-space:pre-wrap;'
+	   . 'font:11.5px/1.6 monospace;border-left:3px solid #D4AF6A;margin:5px 0}'
+	   . 'ol{padding-left:2.2em;margin:4px 0}li{font-size:.88rem;margin:2px 0}'
+	   . '</style>';
+
+	$doors = array(
+		'door-career' => '마루 · 일과 돈',
+		'door-love'   => '벼리 · 연애와 결혼',
+		'door-health' => '아람 · 건강과 가족',
+		'door-fortune'=> '미르 · 흐름과 시기',
+		'door-astro'  => '아라 · 점성술',
+		'door-tarot'  => '아르카나 · 타로',
+	);
+
+	echo '<h1>문 여섯</h1>';
+
+	foreach ( $doors as $slug => $name ) {
+		$page = get_page_by_path( $slug );
+		if ( ! $page ) {
+			echo '<h2>' . esc_html( $slug ) . '</h2><p class="no">쪽을 못 찾았습니다.</p>';
+			continue;
+		}
+		$c = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $page->ID ) );
+
+		echo '<h2>' . esc_html( $slug ) . ' · ' . esc_html( $name )
+		   . ' · ' . number_format( strlen( $c ) ) . ' 바이트</h2>';
+
+		/* ① 주제 단추 */
+		$vals = array();
+		$from = 0;
+		while ( true ) {
+			$at = strpos( $c, 'name="ssg-topic"', $from );
+			if ( false === $at ) { break; }
+			$vp = strpos( $c, 'value="', $at );
+			if ( false === $vp ) { break; }
+			$vp = $vp + 7;
+			$ve = strpos( $c, '"', $vp );
+			if ( false === $ve ) { break; }
+			$v  = substr( $c, $vp, $ve - $vp );
+			$chk = ( false !== strpos( substr( $c, $at, 160 ), 'checked' ) ) ? '  <- 미리 골라져 있음' : '';
+			$vals[] = $v . $chk;
+			$from = $ve;
+		}
+		echo '<h3>주제 단추 ' . count( $vals ) . '개</h3>';
+		echo '<pre>' . esc_html( $vals ? implode( "\n", $vals ) : '없음' ) . '</pre>';
+
+		/* ② 칸 이름표 */
+		$ids  = array();
+		$from = 0;
+		while ( true ) {
+			$at = strpos( $c, ' id="g', $from );
+			if ( false === $at ) { break; }
+			$p  = $at + 5;
+			$q  = strpos( $c, '"', $p );
+			if ( false === $q ) { break; }
+			$ids[ substr( $c, $p, $q - $p ) ] = true;
+			$from = $q;
+		}
+		echo '<h3>칸 이름표</h3>';
+		echo '<pre>' . esc_html( $ids ? implode( ' · ', array_keys( $ids ) ) : '없음' ) . '</pre>';
+
+		/* ③ 미리보기 링크 */
+		$sp = strpos( $c, 'class="sample"' );
+		if ( false !== $sp ) {
+			$a = max( 0, $sp - 120 );
+			echo '<h3>미리보기</h3><pre>' . esc_html( substr( $c, $a, 420 ) ) . '</pre>';
+		} else {
+			echo '<h3>미리보기</h3><pre>없음</pre>';
+		}
+
+		/* ④ 첫머리 가디언 말 */
+		$stop = strpos( $c, '<section class="step"' );
+		if ( false === $stop ) { $stop = min( strlen( $c ), 12000 ); }
+		$head = substr( $c, 0, $stop );
+		$head = wp_strip_all_tags( $head );
+		$lines = array();
+		if ( mb_check_encoding( $head, 'UTF-8' ) ) {
+			$ok = preg_match_all(
+				'/[가-힣][가-힣0-9A-Za-z ,.\-·…?!%()\x{2018}\x{2019}\x{201C}\x{201D}\x{300C}\x{300D}]{11,}/u',
+				$head, $m );
+			if ( $ok ) { if ( ! empty( $m[0] ) ) { $lines = $m[0]; } }
+		}
+		echo '<h3>첫머리 말 ' . count( $lines ) . '줄</h3><ol>';
+		$k = 0;
+		foreach ( $lines as $ln ) {
+			$k++;
+			if ( $k > 30 ) { break; }
+			$n = mb_strlen( trim( $ln ) );
+			echo '<li' . ( $n > 45 ? ' class="big"' : '' ) . '>'
+			   . esc_html( trim( $ln ) ) . ' <span class="dim">' . $n . '</span></li>';
+		}
+		echo '</ol>';
+	}
+
+	echo '<p class="dim">노란 글씨는 45자가 넘는 줄입니다. 덜어낼 자리가 대개 거기입니다.</p>';
+	exit;
+}, 0 );

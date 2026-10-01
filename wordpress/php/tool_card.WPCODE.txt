@@ -1,0 +1,81 @@
+/* ════════════════════════════════════════════════════════════
+   가디언 카드가 어떻게 생겼나 보기 (읽기만)
+   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   벼리 문에만 가디언 카드가 없습니다. 마루 카드와 똑같은 모양으로
+   만들어 넣으려면 그 카드가 어떤 코드인지 그대로 봐야 합니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   마루   https://stellasaju.com/?stella_card=door-career
+   벼리   https://stellasaju.com/?stella_card=door-love
+
+   ★ 브라우저 번역을 끄고 여세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_card'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	$slug = sanitize_title( wp_unslash( $_GET['stella_card'] ) );
+	if ( '' === $slug ) { $slug = 'door-career'; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:26px 16px;max-width:1040px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.25rem;margin:0 0 12px}'
+	   . 'h2{color:#9AD1A5;font-size:.98rem;margin:22px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.85rem}'
+	   . 'pre{background:#000;padding:11px;white-space:pre-wrap;word-break:break-all;'
+	   . 'font:11px/1.6 monospace;border-left:3px solid #D4AF6A;margin:6px 0}'
+	   . '</style>';
+
+	$page = get_page_by_path( $slug );
+	if ( ! $page ) { echo '<h1 class="no">' . esc_html( $slug ) . ' 쪽을 못 찾았습니다.</h1>'; exit; }
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $page->ID ) );
+
+	echo '<h1>' . esc_html( $slug ) . ' · ' . number_format( strlen( $c ) ) . ' 바이트</h1>';
+
+	/* g-cols 부터 첫 sample 까지가 왼쪽 칸입니다 */
+	$a = strpos( $c, 'g-cols' );
+	$b = strpos( $c, 'class="sample"' );
+	echo '<h2>왼쪽 칸 (g-cols 부터 미리보기 상자까지)</h2>';
+	if ( false === $a ) {
+		echo '<p class="no">g-cols 를 못 찾았습니다.</p>';
+	} else {
+		$a = max( 0, $a - 260 );
+		$end = ( false !== $b ) ? $b : ( $a + 3000 );
+		if ( $end - $a > 5200 ) { $end = $a + 5200; }
+		echo '<pre>' . esc_html( substr( $c, $a, $end - $a ) ) . '</pre>';
+		echo '<p class="dim">' . number_format( $end - $a ) . ' 글자</p>';
+	}
+
+	/* 사진 주소 */
+	echo '<h2>이 쪽에 쓰인 사진 주소</h2>';
+	$imgs = array();
+	$from = 0;
+	while ( true ) {
+		$at = strpos( $c, 'src="http', $from );
+		if ( false === $at ) { break; }
+		$p = $at + 5;
+		$q = strpos( $c, '"', $p );
+		if ( false === $q ) { break; }
+		$u = substr( $c, $p, $q - $p );
+		if ( false !== strpos( $u, 'uploads' ) ) { $imgs[ $u ] = true; }
+		$from = $q;
+		if ( count( $imgs ) > 30 ) { break; }
+	}
+	echo '<pre>' . esc_html( $imgs ? implode( "\n", array_keys( $imgs ) ) : '없음' ) . '</pre>';
+
+	exit;
+}, 0 );

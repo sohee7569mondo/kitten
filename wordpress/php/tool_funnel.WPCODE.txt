@@ -1,0 +1,139 @@
+/* ════════════════════════════════════════════════════════════
+   손님이 어디서 멈췄나 (읽기만)   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   회원은 12명인데 결제는 0건입니다. 소희 님 : 「거의 나이거나 친구
+   정도야. 새로 들어온 사람도 있지만 한 번 보고 구슬은 안 쓴 것 같고」
+
+   그런데 가입하면 2 + 이벤트 1 = 3구슬이라 첫 편은 공짜여야 합니다.
+   공짜인데도 안 읽었다면 앞뒤가 안 맞습니다.
+   그래서 한 사람씩 어디까지 갔는지 봅니다.
+
+   ★ 이름과 이메일은 가립니다. 언제 · 구슬 · 어디까지만 봅니다.
+
+   보기   https://stellasaju.com/?stella_funnel=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_funnel'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:28px 18px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 10px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}.warn{color:#E8CD96}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.8 monospace;border-left:3px solid #D4AF6A}'
+	   . '</style>';
+
+	echo '<h1>손님이 어디서 멈췄나</h1>';
+
+	$users = get_users( array( 'number' => 200, 'orderby' => 'ID', 'order' => 'ASC' ) );
+
+	$hdr = str_pad( '가입한 날', 13 ) . str_pad( '구슬', 6 )
+	     . str_pad( '받은 적', 8 ) . str_pad( '쓴 적', 7 )
+	     . str_pad( '풀이', 6 ) . str_pad( '주제', 14 ) . '어디까지';
+	$out = $hdr . "\n" . str_repeat( '-', 78 ) . "\n";
+
+	$n_signed = 0; $n_got = 0; $n_spent = 0; $n_read = 0; $n_stuck = 0;
+
+	foreach ( $users as $u ) {
+		$uid = (int) $u->ID;
+		$n_signed++;
+
+		$bal = function_exists( 'stella_orb_balance' )
+			? (int) stella_orb_balance( $uid ) : -1;
+
+		$log = get_user_meta( $uid, 'stella_orb_log', true );
+		if ( ! is_array( $log ) ) { $log = array(); }
+		$got = 0; $spent = 0;
+		foreach ( $log as $row ) {
+			$v = 0;
+			if ( isset( $row['n'] ) ) { $v = (int) $row['n']; }
+			elseif ( isset( $row['orbs'] ) ) { $v = (int) $row['orbs']; }
+			elseif ( isset( $row['amount'] ) ) { $v = (int) $row['amount']; }
+			if ( $v > 0 ) { $got += $v; }
+			if ( $v < 0 ) { $spent += -$v; }
+		}
+		/* 기록이 없어도 지금 갖고 있으면 받은 것입니다 */
+		if ( ! $got ) { if ( $bal > 0 ) { $got = $bal; } }
+
+		$orders = get_user_meta( $uid, 'stella_orders', true );
+		if ( ! is_array( $orders ) ) { $orders = array(); }
+		$now = get_user_meta( $uid, 'stella_order_now', true );
+
+		$topic = '';
+		if ( is_array( $now ) ) {
+			if ( isset( $now['topic'] ) ) { $topic = (string) $now['topic']; }
+		}
+
+		$where = '';
+		if ( count( $orders ) ) {
+			$where = '책까지 봤음';
+			$n_read++;
+		} elseif ( $spent > 0 ) {
+			$where = '구슬은 썼는데 주문 기록 없음';
+			$n_read++;
+		} elseif ( is_array( $now ) ) {
+			$where = '주문은 걸었는데 못 봄';
+			$n_stuck++;
+		} elseif ( $bal > 0 ) {
+			$where = '구슬만 받고 아무것도 안 함';
+			$n_stuck++;
+		} else {
+			$where = '가입만';
+			$n_stuck++;
+		}
+		if ( $got > 0 )   { $n_got++; }
+		if ( $spent > 0 ) { $n_spent++; }
+
+		$out .= str_pad( substr( (string) $u->user_registered, 2, 8 ), 13 )
+		     . str_pad( ( $bal < 0 ? '?' : (string) $bal ), 6 )
+		     . str_pad( (string) $got, 8 )
+		     . str_pad( (string) $spent, 7 )
+		     . str_pad( (string) count( $orders ), 6 )
+		     . str_pad( ( '' === $topic ? '-' : $topic ), 14 )
+		     . $where . "\n";
+	}
+
+	echo '<pre>' . esc_html( $out ) . '</pre>';
+
+	echo '<h2>세어보면</h2><pre>'
+	   . str_pad( '가입', 26 ) . $n_signed . "명\n"
+	   . str_pad( '구슬을 받은 사람', 26 ) . $n_got . "명\n"
+	   . str_pad( '구슬을 쓴 사람', 26 ) . $n_spent . "명\n"
+	   . str_pad( '책까지 본 사람', 26 ) . $n_read . "명\n"
+	   . str_pad( '중간에 멈춘 사람', 26 ) . $n_stuck . '명'
+	   . '</pre>';
+
+	/* 새로 가입하면 몇 구슬이 되는지 */
+	echo '<h2>새로 가입하면 구슬이 몇 개가 되나</h2><pre>';
+	$w = defined( 'STELLA_WELCOME_ORBS' ) ? (int) STELLA_WELCOME_ORBS : -1;
+	$b = defined( 'STELLA_PRICE_BASE' )   ? (int) STELLA_PRICE_BASE   : -1;
+	echo '가입 축하 구슬        ' . ( $w < 0 ? '?' : $w ) . "개\n";
+	echo '풀이 한 편            ' . ( $b < 0 ? '?' : $b ) . "개\n\n";
+	if ( $w >= 0 ) {
+		if ( $b >= 0 ) {
+			if ( $w >= $b ) {
+				echo "→ 가입만 해도 첫 편을 볼 수 있습니다.\n";
+			} else {
+				echo "→ 가입만으로는 " . ( $b - $w ) . "개 모자랍니다.\n";
+				echo "   이벤트로 " . ( $b - $w ) . "개가 더 들어와야 첫 편이 공짜입니다.\n";
+				echo "   위 표의 「받은 적」 칸이 " . $b . " 이상인 사람이 있어야 맞습니다.\n";
+			}
+		}
+	}
+	echo '</pre>';
+
+	echo '<p class="dim">이름과 이메일은 일부러 안 보여드립니다. '
+	   . '이 자는 읽기만 합니다.</p>';
+	exit;
+} );

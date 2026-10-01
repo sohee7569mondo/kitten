@@ -1,0 +1,153 @@
+/* ════════════════════════════════════════════════════════════
+   문 페이지의 폼이 어떻게 생겼나 보기 · 소희 님께
+
+   「벼리가 말이 많고 써야 할 게 많아. 처음 입력란은 생년월일시와
+     태어난 도시만 넣고」 — 자르려면 지금 무엇을 묻고 있는지
+   먼저 정확히 봐야 합니다.
+
+   보여주는 것
+     · 칸 하나하나 — 이름표 · id · 안내글 · 필수인지
+     · 칸을 묶고 있는 상자들
+     · 맨 위 인사말 (벼리가 하는 말) 길이와 내용
+     · 「일곱 가지」 같은 질문 묶음이 있으면 그것도
+
+   ★ 아무것도 고치지 않습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 → 저장 → 활성
+
+        https://stellasaju.com/?stella_form=141      벼리 · 연애와 결혼
+        https://stellasaju.com/?stella_form=130      마루 · 일과 돈
+
+   ★ 브라우저 번역을 꺼주세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_form'] ) ) { return; }
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	$pid = (int) $_GET['stella_form'];
+	if ( $pid < 1 ) { $pid = 141; }
+
+	$safe = function ( $s ) {
+		if ( function_exists( 'mb_convert_encoding' ) ) {
+			$s = mb_convert_encoding( $s, 'UTF-8', 'UTF-8' );
+		}
+		return esc_html( $s );
+	};
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.7 -apple-system,system-ui,sans-serif;'
+		. 'background:#111;color:#eee;padding:24px;max-width:1050px">';
+	printf( '<h1 style="color:#ffd76a">%d 쪽의 폼</h1>', $pid );
+	echo '<p style="color:#ff9b9b">브라우저 번역을 꺼주세요.</p>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<p style="color:#ff7b7b">못 읽었습니다.</p></body>'; exit; }
+	$c = $row->post_content;
+	printf( '<p>%s · %s 글자</p>', esc_html( $row->post_title ), number_format( strlen( $c ) ) );
+
+	/* ── 1. 넣는 칸들 ── */
+	echo '<h2 style="color:#9fd">1. 넣는 칸</h2>';
+	echo '<table cellpadding="7" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>종류</td><td>id / name</td><td>안내글</td><td>그 밖에</td></tr>';
+
+	$n = 0;
+	foreach ( array( '<input', '<select', '<textarea' ) as $tag ) {
+		$pos = 0;
+		while ( ( $p = strpos( $c, $tag, $pos ) ) !== false ) {
+			$e = strpos( $c, '>', $p );
+			if ( false === $e ) { break; }
+			$t = substr( $c, $p, $e - $p + 1 );
+			$pos = $e;
+
+			$grab = function ( $key ) use ( $t ) {
+				$k = $key . '="';
+				$a = strpos( $t, $k );
+				if ( false === $a ) { return ''; }
+				$a += strlen( $k );
+				$b  = strpos( $t, '"', $a );
+				if ( false === $b ) { return ''; }
+				return substr( $t, $a, $b - $a );
+			};
+
+			$id   = $grab( 'id' );
+			$nm   = $grab( 'name' );
+			$ph   = $grab( 'placeholder' );
+			$ty   = $grab( 'type' );
+			$more = array();
+			if ( false !== strpos( $t, 'required' ) ) { $more[] = '꼭 넣어야 함'; }
+			if ( false !== strpos( $t, 'hidden' ) )   { $more[] = '숨김'; }
+			if ( '' !== $ty ) { $more[] = $ty; }
+
+			$n++;
+			printf(
+				'<tr style="border-top:1px solid #333"><td style="color:#888">%s</td>'
+				. '<td><code>%s</code></td><td>%s</td><td style="color:#888">%s</td></tr>',
+				esc_html( ltrim( $tag, '<' ) ),
+				esc_html( $id ? $id : $nm ),
+				$safe( $ph ),
+				esc_html( implode( ' · ', $more ) )
+			);
+			if ( $n > 60 ) { break 2; }
+		}
+	}
+	echo '</table>';
+	printf( '<p style="color:#888">모두 %d 칸.</p>', $n );
+
+	/* ── 2. 이름표 ── */
+	echo '<h2 style="color:#9fd">2. 칸에 붙은 이름표</h2><p style="color:#9fd">';
+	$labs = array();
+	$pos  = 0;
+	while ( ( $p = strpos( $c, '<label', $pos ) ) !== false ) {
+		$e = strpos( $c, '</label>', $p );
+		if ( false === $e ) { break; }
+		$in = strip_tags( substr( $c, $p, $e - $p ) );
+		$in = trim( preg_replace( '/\s+/', ' ', $in ) );
+		if ( '' !== $in ) { $labs[] = $in; }
+		$pos = $e + 8;
+		if ( count( $labs ) > 60 ) { break; }
+	}
+	echo $safe( implode( '  ·  ', $labs ) ) . '</p>';
+
+	/* ── 3. 칸을 묶은 상자 ── */
+	echo '<h2 style="color:#9fd">3. 상자들</h2><p style="color:#9fd">';
+	$secs = array();
+	$pos  = 0;
+	while ( ( $p = strpos( $c, '<section', $pos ) ) !== false ) {
+		$e = strpos( $c, '>', $p );
+		if ( false === $e ) { break; }
+		$secs[] = substr( $c, $p, $e - $p + 1 );
+		$pos = $e;
+		if ( count( $secs ) > 40 ) { break; }
+	}
+	echo $safe( implode( "\n", $secs ) ) . '</p>';
+
+	/* ── 4. 맨 위 인사말 ── */
+	echo '<h2 style="color:#9fd">4. 맨 위 인사말 (벼리가 하는 말)</h2>';
+	foreach ( array( 'class="intro"', 'class="hello"', 'class="lead"', 'class="say"', '<h1' ) as $a ) {
+		$p = strpos( $c, $a );
+		if ( false === $p ) {
+			printf( '<p style="color:#888">%s 없음</p>', esc_html( $a ) );
+			continue;
+		}
+		printf(
+			'<p style="margin:14px 0 4px;color:#ffd76a">%s</p>'
+			. '<pre style="white-space:pre-wrap;background:#000;padding:10px;'
+			. 'border-left:3px solid #ffd76a;font:12px/1.55 monospace">%s</pre>',
+			esc_html( $a ), $safe( substr( $c, max( 0, $p - 200 ), 1100 ) )
+		);
+	}
+
+	echo '<h2 style="color:#7bff9b">끝났습니다. 아무것도 바뀌지 않았습니다.</h2></body>';
+	exit;
+} );

@@ -1,0 +1,305 @@
+/* ══════════════════════════════════════════════════════════
+   책 쪽은 우리가 직접 그립니다
+   ★ 2026-09-12 · 소희 님께      판 SERVE-7
+
+   ── SERVE-5 (2026-09-12 밤) — 이번엔 시간을 잽니다 ─────
+   소희 님 : 책이 열리는 데 1분쯤 걸립니다.
+
+   메모리는 511MB → 47MB 로 잡았는데 속도는 그대로입니다.
+   또 짐작하지 않고 잽니다. 시간을 네 토막으로 쪼갭니다.
+
+       워드프레스 뜨는 데   ← 우리 코드가 시작되기도 전
+       본문 읽고            ← 글 1MB 를 밑바닥에서 꺼내는 데
+       머리말 끝            ← wp_head() · 조각들과 글꼴
+       본문 내고            ← 1MB 를 브라우저로 보내는 데
+       바닥글 끝            ← wp_footer() · 덤 두 쪽 조각들
+
+   어디가 큰지 보고 거기만 고칩니다. 물어본 횟수와 글 크기도 적습니다.
+
+   ── SERVE-6 에서 잰 값 (소희 님) ──────────────────────
+       서버는 0.83초. 아주 빠릅니다. 1분은 서버 탓이 아닙니다.
+       ★ 눌러 보내기(gzip)가 꺼져 있습니다 — 글 1MB 를 그대로 보냅니다.
+       남은 시간은 브라우저 쪽입니다. 그래서 SERVE-6 은
+       오간 글의 크기와 그리는 시간을 같이 잽니다.
+
+   ★ 보시는 법 — 책 주소 뒤에 붙이면 오른쪽 아래에 상자로 뜹니다.
+
+       https://stellasaju.com/reading-book/?stella_time=1
+
+     안 붙이셔도 Ctrl+U 소스 맨 끝에 늘 적혀 있습니다.
+     손님에게는 상자가 안 보입니다.
+
+   ── SERVE-4 (2026-09-12 밤) ───────────────────────────
+   소희 님 쪽에서 잰 값 : 끝까지 511MB · 한도 512M
+   ★ 1MB 남기고 지나갑니다. 그래서 어떤 때는 넘고 어떤 때는 못 넘습니다.
+     오늘 흰 화면과 끊긴 소스가 전부 이것이었습니다.
+
+   이 판은 구간마다 재어 어디서 늘어나는지 적습니다. Ctrl+U 로 보입니다.
+
+   ── SERVE-3 에서 달라진 것 ────────────────────────────
+   · 만든 만큼 바로 내보냅니다 (여태는 1.33MB 를 통째로 안고 있다가
+     마지막에 한꺼번에 보냈습니다. 도중에 죽으면 반쪽만 남습니다)
+   · 본문을 보낸 뒤 손에서 놓습니다
+   · 쪽 맨 끝에 메모리를 적어 둡니다 — Ctrl+U 로 보입니다
+
+         <!-- stella 본문까지 ???MB · 한도 512M -->
+         <!-- stella 끝까지 ???MB -->
+
+     ★ 이 줄이 있으면 새 판입니다. 없으면 옛 판입니다.
+
+   ── 여기까지 밝혀진 것 ────────────────────────────────
+   ?stella_raw=1 로는 책이 멀쩡히 보입니다.
+   → 본문은 온전합니다. 조각들 탓도 아닙니다.
+   → 워드프레스가 쪽을 그리는 길 어딘가에서 터집니다.
+
+   메모리 한도는 512M 로 박혀 있어 못 올립니다.
+   the_content 손길을 비워도 다른 길이 또 있습니다.
+   블록 테마는 템플릿까지 블록으로 파싱하면서 1.33MB 본문을
+   여러 겹으로 다시 만듭니다.
+
+   ── 그래서 이렇게 합니다 ──────────────────────────────
+   책 쪽에 들어오면 워드프레스의 긴 길을 타지 않고
+   우리가 곧바로 그려서 내보냅니다.
+
+       머리글  wp_head()   ← 글꼴·스타일·다른 조각들
+       본문    그대로
+       바닥글  wp_footer() ← tailrun 같은 조각들
+
+   ★ 책 쪽은 원래 테마 머리말·바닥글을 CSS 로 숨기고
+     있었습니다. 그러니 잃는 것이 없습니다.
+
+   ★ 필터를 한 번도 안 거칩니다. 그래서 —
+     · 메모리가 확 줄어듭니다
+     · 「&」를 써도 안 깨집니다
+     · 따옴표가 둥글게 안 바뀝니다
+     · 그림 태그에 decoding 이 두 번 안 끼입니다
+
+   ── 안전장치 ──────────────────────────────────────────
+   끄고 싶으면 조각을 비활성으로 두시면 됩니다.
+   급하면 주소로도 한 번 건너뜁니다 —
+       https://stellasaju.com/reading-book/?stella_serve=off
+
+   ── 지키는 것 ─────────────────────────────────────────
+   · 책 쪽에서만 합니다. 다른 쪽은 워드프레스가 그립니다.
+   · 본문을 한 글자도 안 바꿉니다.
+   · 손님도 그대로 봅니다. 로그인과 상관없습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ★★ patch160_light 는 꺼주세요. 이제 필요 없습니다.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	/* 관리자 화면과 피드는 건드리지 않습니다 */
+	if ( is_admin() ) { return; }
+	if ( is_feed() ) { return; }
+	if ( is_embed() ) { return; }
+
+	/* 건너뛰기 주소 */
+	if ( isset( $_GET['stella_serve'] ) ) {
+		if ( 'off' === $_GET['stella_serve'] ) { return; }
+	}
+
+	if ( ! is_singular() ) { return; }
+	$p = get_post();
+	if ( ! $p ) { return; }
+	if ( 'reading-book' !== $p->post_name ) { return; }
+
+	/* ── 구간마다 재어 둡니다 ─────────────────────────
+	   메모리와 시간을 같이 잽니다. 짐작하지 않습니다.
+
+	   REQUEST_TIME_FLOAT 은 브라우저의 부름이 이 서버에 닿은 때입니다.
+	   그러니 「들어올 때」에 찍히는 시간이 곧 워드프레스가 뜨는 데
+	   걸린 시간입니다 — 우리 코드는 아직 한 줄도 안 돌았습니다. */
+	$stella_marks = array();
+	$stella_t0 = microtime( true );
+	if ( isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ) {
+		$stella_t0 = (float) $_SERVER['REQUEST_TIME_FLOAT'];
+	}
+	$stella_prev = $stella_t0;
+	$stella_mark = function ( $where ) use ( &$stella_marks, &$stella_prev, $stella_t0 ) {
+		$now = microtime( true );
+		$stella_marks[] = sprintf( '%-16s %6.2f초  (여기까지 %6.2f초)  %4dMB',
+			$where,
+			$now - $stella_prev,
+			$now - $stella_t0,
+			round( memory_get_peak_usage( true ) / 1048576 ) );
+		$stella_prev = $now;
+	};
+	$stella_mark( '워드프레스 뜨는 데' );
+
+	global $wpdb;
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", (int) $p->ID ) );
+	if ( '' === $c ) { return; }   /* 못 읽었으면 워드프레스에 맡깁니다 */
+	$stella_mark( '본문 읽고' );
+	$stella_len = strlen( $c );
+
+	/* 본문 손길을 비웁니다 — wp_head 안에서 누가 부를 수도 있어서 */
+	global $wp_filter;
+	if ( isset( $wp_filter['the_content'] ) ) { unset( $wp_filter['the_content'] ); }
+
+	/* ★★ 이 쪽은 절대 담아두지 않습니다 (2026-09-12 · 사고로 배움)
+	   아침에 글을 내보내다 끊긴 적이 있는데, 그 끊긴 글이 그대로
+	   담겨서 그 뒤로 계속 하얀 화면을 내주었습니다.
+	   처음 여는 주소(?stella_page=1 같은)에서만 책이 보이던 까닭입니다.
+	   책은 손님마다 다른 쪽이기도 하니 담아둘 이유가 없습니다. */
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) { define( 'DONOTCACHEPAGE', true ); }
+	if ( ! defined( 'DONOTCACHEOBJECT' ) ) { define( 'DONOTCACHEOBJECT', true ); }
+	if ( ! defined( 'DONOTCACHEDB' ) ) { define( 'DONOTCACHEDB', true ); }
+	if ( function_exists( 'nocache_headers' ) ) { nocache_headers(); }
+	header( 'Cache-Control: no-store, no-cache, must-revalidate, max-age=0' );
+	header( 'Pragma: no-cache' );
+	header( 'X-Accel-Expires: 0' );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+
+	/* ★★ 담아두기를 풉니다 (2026-09-12)
+	   여태는 쪽 전체를 메모리에 담았다가 마지막에 한꺼번에 보냈습니다.
+	   1.33MB 를 들고 있다가 보내는 셈이라, 도중에 죽으면 반쪽만 남고
+	   오류 화면으로 바꿀 수도 없습니다 — 소희 님이 보신 흰 화면입니다.
+	   이제 만든 만큼 바로바로 내보냅니다. 들고 있는 양이 줄고,
+	   브라우저도 먼저 그리기 시작합니다. */
+	$guard = 0;
+	while ( ob_get_level() > 0 ) {
+		if ( ! @ob_end_flush() ) { break; }
+		$guard++;
+		if ( $guard > 20 ) { break; }
+	}
+
+	echo '<!doctype html>' . "\n";
+	echo '<html lang="ko">' . "\n<head>\n";
+	echo '<meta charset="utf-8">' . "\n";
+	echo '<meta name="viewport" content="width=device-width, initial-scale=1">' . "\n";
+	echo '<title>' . esc_html( get_the_title( $p ) ) . '</title>' . "\n";
+	wp_head();
+	$stella_mark( '머리말 끝' );
+	echo "\n</head>\n<body class=\"stella-book\">\n";
+	flush();
+
+	echo $c;
+	unset( $c );          /* 다 보냈으니 들고 있지 않습니다 */
+	flush();
+
+	/* ★ 얼마나 아슬아슬한지 적어둡니다.
+	   Ctrl+U 로 소스를 보면 이 줄이 있습니다.
+	   이 줄이 아예 없으면 본문을 보내다 죽은 것입니다. */
+	$stella_mark( '본문 내고' );
+	echo "\n<!-- stella 본문까지 " . round( memory_get_peak_usage( true ) / 1048576 )
+	   . "MB · 한도 " . ini_get( 'memory_limit' ) . " -->\n";
+	flush();
+
+	wp_footer();
+
+	$stella_mark( '바닥글 끝' );
+
+	/* ── 시간표 ───────────────────────────────────────
+	   소스(Ctrl+U) 맨 끝에 늘 적힙니다. */
+	$stella_all = microtime( true ) - $stella_t0;
+	$stella_q   = function_exists( 'get_num_queries' ) ? get_num_queries() : 0;
+	$stella_zip = ini_get( 'zlib.output_compression' ) ? '켜짐' : '꺼짐';
+
+	$stella_tbl  = "\n<!-- stella 어디서 걸렸나 ─────────────────────────────\n";
+	foreach ( $stella_marks as $m ) { $stella_tbl .= '     ' . $m . "\n"; }
+	$stella_tbl .= sprintf( "     %-16s %6.2f초\n", '모두', $stella_all );
+	$stella_tbl .= sprintf( "     %-16s 글 %s · 물어본 횟수 %d · 눌러 보내기 %s\n",
+		'딸린 것', size_format( $stella_len ), $stella_q, $stella_zip );
+	$stella_tbl .= "   ───────────────────────────────────────────────── -->\n";
+	echo $stella_tbl;
+	echo "\n<!-- stella 끝까지 " . round( memory_get_peak_usage( true ) / 1048576 ) . "MB -->\n";
+
+	/* 주소에 ?stella_time=1 이 붙어 있을 때만 눈에 보이게 띄웁니다.
+	   손님에게는 안 보입니다. */
+	if ( isset( $_GET['stella_time'] ) ) {
+		echo '<div style="position:fixed;right:8px;bottom:8px;z-index:99999;'
+		   . 'background:#1d1a16;color:#f0e7d4;font:12px/1.55 monospace;'
+		   . 'padding:12px 14px;border-radius:8px;white-space:pre;max-width:92vw;'
+		   . 'overflow:auto">' . esc_html( trim( strip_tags( str_replace(
+			array( '<!--', '-->' ), '', $stella_tbl ) ) ) ) . '</div>' . "\n";
+	}
+
+	/* ── 브라우저 쪽도 잽니다 ─────────────────────────
+	   서버만 재면 반쪽입니다. 손님이 기다리는 1분은
+	   「서버가 만드는 시간 + 글이 오는 시간 + 브라우저가 그리는 시간」
+	   을 다 더한 것이니까요. 뒤의 둘은 브라우저만 압니다.
+	   ★ 홑 앰퍼샌드와 두 글자 논리기호를 쓰지 않습니다 (사이트 규칙). */
+	if ( isset( $_GET['stella_time'] ) ) {
+		echo stella_serve7_watch();
+	}
+
+	echo "\n</body>\n</html>";
+	exit;
+}, 5 );
+
+function stella_serve7_watch() {
+	return <<<'STELLAWATCH'
+<script>
+/* ══ 브라우저 쪽 시계 · SERVE-7 ═══════════════════════════
+   ★ 두 번이나 브라우저 줄이 안 왔습니다. 그래서 이번에는
+     ① 켜지자마자 「시계 켜짐」을 찍습니다 — 이 줄이 없으면
+        이 조각이 아예 안 돈 것입니다
+     ② 쪽 수가 멎기를 기다리지 않고, 창이 다 뜨면 바로 적습니다
+     ③ 그 뒤로도 2초마다 새로 고쳐 적습니다
+   ★ 홑 앰퍼샌드와 두 글자 논리기호를 쓰지 않습니다 (사이트 규칙) */
+(function(){
+  'use strict';
+  var box=document.getElementById('stellatime');
+  if(!box){ return; }
+
+  var head=box.textContent;
+  box.textContent=head+'\n브라우저 시계 켜짐 — 잠시 뒤 채워집니다';
+
+  function s(ms){ return (ms/1000).toFixed(2)+'초'; }
+  function mb(b){
+    if(!b){ return '모름'; }
+    return (b/1048576).toFixed(2)+'MB';
+  }
+  function pages(){
+    var b=document.getElementById('ssb');
+    if(!b){ return 0; }
+    return b.getElementsByClassName('page').length;
+  }
+
+  function write(){
+    var t=null;
+    try{ t=performance.getEntriesByType('navigation')[0]; }catch(e){ t=null; }
+
+    var out='\n브라우저에서 ─────────────────────────\n';
+    if(t){
+      out+='     서버가 첫 글자 보낼 때까지  '+s(t.responseStart-t.startTime)+'\n';
+      out+='     글이 다 오는 데            '+s(t.responseEnd-t.responseStart)+'\n';
+      out+='     읽을 수 있게 될 때까지     '+s(t.domContentLoadedEventEnd-t.startTime)+'\n';
+      out+='     창이 다 뜰 때까지         '+s(t.loadEventEnd-t.startTime)+'\n';
+      out+='     오간 글의 크기            '+mb(t.encodedBodySize)+'\n';
+      out+='     펼친 글의 크기            '+mb(t.decodedBodySize)+'\n';
+      var zip='안 눌러 보냈습니다';
+      if(t.encodedBodySize){
+        if(t.decodedBodySize){
+          if(t.encodedBodySize < t.decodedBodySize*0.9){ zip='눌러 보냈습니다'; }
+        }
+      }
+      out+='     눌러 보내기               '+zip+'\n';
+    } else {
+      out+='     (이 브라우저는 시간을 안 알려줍니다)\n';
+    }
+    out+='     지금까지                  '+s(performance.now())+'\n';
+    out+='     그린 쪽                   '+pages()+'쪽\n';
+    out+='     ★ 쪽 수가 더 안 늘면 다 그린 것입니다';
+    box.textContent=head+out;
+  }
+
+  /* 창이 다 뜨면 바로 한 번, 그 뒤로 2초마다 스무 번 더 */
+  var n=0;
+  function tick(){
+    n+=1;
+    try{ write(); }catch(e){ box.textContent=head+'\n브라우저 시계가 탈났습니다 : '+e; return; }
+    if(n>20){ return; }
+    setTimeout(tick, 2000);
+  }
+  if(document.readyState==='complete'){ setTimeout(tick, 300); }
+  else { window.addEventListener('load', function(){ setTimeout(tick, 300); }); }
+})();
+</script>
+STELLAWATCH;
+}

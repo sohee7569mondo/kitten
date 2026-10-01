@@ -1,0 +1,195 @@
+// 홈 아래에 「친구와 나누는 것」 구역 — 유앤미 · 스텔라 랩
+// 2026-09-27 · 자세한 것은 notes 의 2026-09-27-홈-친구배너.md
+//
+// 랩 로고는 이름에 lab 과 logo 가 들어가게 미디어에 올려주세요.
+// 이를테면 stellalab-logo.png 입니다. 못 찾으면 그 카드만 로고가 빕니다.
+//
+// 위치는 「어디서나 실행 / Run Everywhere」로. 크롬 번역을 끄고 붙여넣으세요.
+
+add_action( 'wp_enqueue_scripts', function () {
+
+	if ( ! is_front_page() ) { return; }
+
+	// 로고 — 미디어에서 파일 이름으로 찾습니다
+	$logo = get_transient( 'stella_fun_logo' );
+
+	if ( ! is_array( $logo ) ) {
+
+		$logo = array( 'um' => '', 'lab' => '' );
+
+		$ids = get_posts( array(
+			'post_type'      => 'attachment',
+			'post_mime_type' => 'image',
+			'post_status'    => 'inherit',
+			'posts_per_page' => 300,
+			'orderby'        => 'ID',
+			'order'          => 'DESC',
+			'fields'         => 'ids',
+		) );
+
+		foreach ( $ids as $id ) {
+
+			$f = strtolower( (string) get_post_meta( $id, '_wp_attached_file', true ) );
+			if ( false === strpos( $f, 'logo' ) ) { continue; }
+
+			if ( '' === $logo['um'] ) {
+				if ( false !== strpos( $f, 'uandme' ) ) {
+					$logo['um'] = wp_get_attachment_url( $id );
+				}
+			}
+			if ( '' === $logo['lab'] ) {
+				if ( false !== strpos( $f, 'lab' ) ) {
+					$logo['lab'] = wp_get_attachment_url( $id );
+				}
+			}
+		}
+
+		// 큰 그림을 그대로 쓰면 화면이 느립니다. CDN 으로 줄여 씁니다
+		foreach ( $logo as $k => $v ) {
+			if ( '' === $v ) { continue; }
+			$logo[ $k ] = 'https://i0.wp.com/'
+				. str_replace( array( 'https://', 'http://' ), '', $v ) . '?w=160';
+		}
+
+		set_transient( 'stella_fun_logo', $logo, 12 * HOUR_IN_SECONDS );
+	}
+
+
+
+	$css = '';
+	$css .= "#stellar-home #steps{ display:none !important; }\n";
+	$css .= "#stellar-home .banner-wrap{ max-width:1120px; margin:0 auto; box-sizing:border-box; }\n";
+	$css .= "@media(max-width:700px){ body #stellar-home .banner-wrap{\n";
+	$css .= "  padding-left:20px !important; padding-right:20px !important; } }\n";
+	$css .= "#stellar-home .sfhead{ margin-bottom:22px; }\n";
+	$css .= "#stellar-home .sfkick{ font-size:.72rem; letter-spacing:.18em;\n";
+	$css .= "  font-weight:700; color:var(--gold); }\n";
+	$css .= "#stellar-home .sfbig{ margin-top:8px; font-family:Noto Serif KR,serif;\n";
+	$css .= "  font-weight:700; font-size:clamp(1.3rem,3.2vw,1.7rem);\n";
+	$css .= "  line-height:1.5; color:var(--ink); }\n";
+	$css .= "#stellar-home .sfdek{ margin-top:8px; font-size:.9rem; color:var(--ink-dim); }\n";
+	$css .= "#stellar-home .sfgrid{ display:grid !important;\n";
+	$css .= "  grid-template-columns:repeat(2,1fr); gap:16px; }\n";
+	$css .= "@media(max-width:760px){ #stellar-home .sfgrid{ grid-template-columns:1fr; } }\n";
+	$css .= "#stellar-home a.sfc{ display:block !important; padding:24px 24px 22px;\n";
+	$css .= "  border-radius:16px; border:1px solid var(--line);\n";
+	$css .= "  background:var(--card); box-shadow:var(--shadow);\n";
+	$css .= "  color:var(--ink); text-decoration:none;\n";
+	$css .= "  transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease; }\n";
+	$css .= "#stellar-home a.sfc:hover{ transform:translateY(-3px);\n";
+	$css .= "  box-shadow:var(--shadow-up); border-color:var(--line-2); }\n";
+	$css .= "#stellar-home .sftop{ display:flex !important; align-items:center;\n";
+	$css .= "  gap:12px; margin-bottom:14px; min-height:48px; }\n";
+	$css .= "#stellar-home .sfbadge{ flex:0 0 auto; width:48px; height:48px;\n";
+	$css .= "  border-radius:13px; display:flex !important; align-items:center;\n";
+	$css .= "  justify-content:center; overflow:hidden;\n";
+	$css .= "  background:var(--paper-2); border:1px solid var(--line); }\n";
+	$css .= "#stellar-home .sfbadge img{ display:block; width:32px; height:32px;\n";
+	$css .= "  object-fit:contain; }\n";
+	$css .= "#stellar-home .sfbrand{ font-size:.78rem; letter-spacing:.06em;\n";
+	$css .= "  font-weight:700; color:var(--ink-dim); }\n";
+	$css .= "#stellar-home .sfhook{ font-family:Noto Serif KR,serif; font-weight:700;\n";
+	$css .= "  font-size:1.12rem; line-height:1.55; color:var(--ink); }\n";
+	$css .= "#stellar-home .sfsay{ margin-top:8px; font-size:.9rem; color:var(--ink-soft); }\n";
+	$css .= "#stellar-home .sfgo{ margin-top:16px; font-size:.86rem;\n";
+	$css .= "  font-weight:700; color:var(--plum); }\n";
+	$css .= "#stellar-home .sffree{ margin-top:18px; text-align:center;\n";
+	$css .= "  font-size:.84rem; color:var(--ink-dim); }\n";
+
+
+	$js = '';
+	$js .= "(function(){\n";
+	$js .= "  if(window.StellaHomeFun){ return; }\n";
+	$js .= "  window.StellaHomeFun = 1;\n";
+
+	$q = chr( 39 );
+	$js .= '  var LOGO_UM = ' . $q . str_replace( $q, '', $logo['um'] ) . $q . ";\n";
+	$js .= '  var LOGO_LAB = ' . $q . str_replace( $q, '', $logo['lab'] ) . $q . ";\n";
+	// 카피는 소희 님 판입니다. 이름보다 후킹 문구가 큽니다.
+	$js .= "  var CARDS = [\n";
+	$js .= "    ['sfc1','/uandme/','유앤미',\n";
+	$js .= "     '그 사람과 나, 정말 잘 맞을까?',\n";
+	$js .= "     '이름과 생일만 넣으면 바로 나옵니다',\n";
+	$js .= "     '연인 · 가족 · 직장 · 스타 궁합보기', LOGO_UM],\n";
+	$js .= "    ['sfc2','/lab/','스텔라 랩',\n";
+	$js .= "     '내가 이런 성격이라고?',\n";
+	$js .= "     '행동으로 알아보는 진짜 나',\n";
+	$js .= "     '성격 · 취향 · 여행 테스트', LOGO_LAB]\n";
+	$js .= "  ];\n";
+
+	$js .= "  function esc(s){\n";
+	$js .= "    var d = document.createElement('div');\n";
+	$js .= "    d.textContent = s;\n";
+	$js .= "    return d.innerHTML;\n";
+	$js .= "  }\n";
+
+	$js .= "  function build(){\n";
+	$js .= "    var home = document.getElementById('stellar-home');\n";
+	$js .= "    if(!home){ return false; }\n";
+	$js .= "    if(document.getElementById('sfun')){ return true; }\n";
+	$js .= "    var i, c, h = '';\n";
+	$js .= "    for(i = 0; i < CARDS.length; i++){\n";
+	$js .= "      c = CARDS[i];\n";
+	$js .= "      var badge = '';\n";
+	$js .= "      if(c[6]){\n";
+	$js .= "        badge = '<span class=sfbadge><img role=presentation src='\n";
+	$js .= "              + c[6] + '></span>';\n";
+	$js .= "      }\n";
+	$js .= "      h += '<a class=sfc id=' + c[0] + ' href=' + c[1] + '>'\n";
+	$js .= "         + '<div class=sftop>' + badge\n";
+	$js .= "         + '<span class=sfbrand>' + esc(c[2]) + '</span></div>'\n";
+	$js .= "         + '<div class=sfhook>' + esc(c[3]) + '</div>'\n";
+	$js .= "         + '<div class=sfsay>' + esc(c[4]) + '</div>'\n";
+	$js .= "         + '<div class=sfgo>' + esc(c[5]) + ' →</div></a>';\n";
+	$js .= "    }\n";
+	$js .= "    var sec = document.createElement('section');\n";
+	$js .= "    sec.id = 'sfun';\n";
+	$js .= "    sec.className = 'sh-section';\n";
+	$js .= "    sec.innerHTML = '<div class=wrap>'\n";
+	$js .= "      + '<div class=sfhead>'\n";
+	$js .= "      + '<div class=sfkick>ALSO FROM STELLA</div>'\n";
+	$js .= "      + '<div class=sfbig>친구와 나누는 것</div>'\n";
+	$js .= "      + '<div class=sfdek>사주와는 조금 다른 자리입니다. '\n";
+	$js .= "      + '가볍게 보고 결과를 그대로 보내보세요.</div>'\n";
+	$js .= "      + '</div>'\n";
+	$js .= "      + '<div class=sfgrid>' + h + '</div>'\n";
+	$js .= "      + '<div class=sffree>둘 다 값 없이 보실 수 있습니다.</div>'\n";
+	$js .= "      + '</div>';\n";
+	$js .= "    var fin = home.querySelector('section.final');\n";
+	$js .= "    if(fin){ home.insertBefore(sec, fin); }\n";
+	$js .= "    if(!fin){ home.appendChild(sec); }\n";
+	$js .= "    return true;\n";
+	$js .= "  }\n";
+
+	// 옛 조각 patch_homeviral 이 무료 줄에 넣은 카드를 치웁니다
+
+	$js .= "  function sweep(){\n";
+	$js .= "    var old = document.querySelectorAll('a.free-card[data-viral=on]');\n";
+	$js .= "    var i;\n";
+	$js .= "    for(i = 0; i < old.length; i++){\n";
+	$js .= "      if(old[i].parentNode){ old[i].parentNode.removeChild(old[i]); }\n";
+	$js .= "    }\n";
+	$js .= "  }\n";
+
+	$js .= "  var tries = 0;\n";
+	$js .= "  function tick(){\n";
+	$js .= "    tries++;\n";
+	$js .= "    build();\n";
+	$js .= "    sweep();\n";
+	$js .= "    if(tries < 12){ setTimeout(tick, 400); }\n";
+	$js .= "  }\n";
+
+	$js .= "  if(document.readyState === 'loading'){\n";
+	$js .= "    document.addEventListener('DOMContentLoaded', tick);\n";
+	$js .= "  }\n";
+	$js .= "  if(document.readyState !== 'loading'){ tick(); }\n";
+	$js .= "})();\n";
+
+	wp_register_style( 'stella-fun', false );
+	wp_enqueue_style( 'stella-fun' );
+	wp_add_inline_style( 'stella-fun', $css );
+
+	wp_register_script( 'stella-fun', false, array(), null, true );
+	wp_enqueue_script( 'stella-fun' );
+	wp_add_inline_script( 'stella-fun', $js );
+} );

@@ -1,0 +1,161 @@
+/* ════════════════════════════════════════════════════════════
+   전자책 · 문장이 끝나면 줄을 바꿉니다
+
+   한 문단 안에서 문장이 어중간하게 이어져 붙어 보였습니다.
+   마침표 뒤에서 줄을 바꿔 문장 하나가 한 줄로 서게 합니다.
+   글자는 하나도 바꾸지 않고 줄만 바꿉니다.
+
+   기존 코드에 손대는 곳이 한 군데도 없습니다. 맨 뒤에 덧붙이기만 합니다.
+   두 번 돌아도 안전합니다 — 이미 바꾼 자리는 마침표 뒤가 여백이 아니라
+   태그라서 다시 잡히지 않습니다.
+   링크가 든 문단과 1. 2. 같은 번호 매김은 건드리지 않습니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   ★ 저장 직후 먼저  https://stellasaju.com/wp-json/stella/v1/me
+   ① 미리보기  https://stellasaju.com/?stella_break=1
+   ② 적용      https://stellasaju.com/?stella_break=1&go=1
+   되돌리기    https://stellasaju.com/?stella_break=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_break'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">';
+	echo '<body class="notranslate" translate="no" style="font:15px/1.9 -apple-system,system-ui,sans-serif;background:#111;color:#eee;padding:24px;max-width:900px">';
+
+	if ( ! current_user_can( 'manage_options' ) ) {
+		echo '<h1 style="color:#ff7b7b">관리자만 볼 수 있습니다.</h1>';
+		exit;
+	}
+
+	global $wpdb;
+
+	$pid  = 160;
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	$block = <<<'STELLABREAK'
+
+<!-- wp:html -->
+<script>
+/* ═══ 문장이 끝나면 줄을 바꿉니다 (2026-08-31) ═══
+   한 문단 안에서 문장이 어중간하게 이어져 붙어 보였습니다.
+   마침표 뒤에서 줄을 바꿔 문장 하나가 한 줄로 서게 합니다.
+   글자는 하나도 바꾸지 않고 줄만 바꿉니다.
+   두 번 돌아도 안전합니다 — 이미 바꾼 자리는 마침표 뒤가 여백이 아니라
+   태그라서 다시 잡히지 않습니다.
+   주의 · 이 안에서 앰퍼샌드를 쓰지 않습니다. */
+(function(){
+  var stellaSentenceBreak=1;
+  var root=null;
+
+  function fix(){
+    if(!root){ return; }
+    var ps=root.getElementsByTagName('p');
+    var i, h, n;
+    for(i=0;i<ps.length;i++){
+      h=ps[i].innerHTML;
+      if(!h){ continue; }
+      /* 링크가 든 문단은 건드리지 않습니다 */
+      if(h.indexOf('<a ')>=0){ continue; }
+      /* 마침표 뒤에 여백이 있고 그다음에 글자가 오면 줄을 바꿉니다.
+         마침표 앞이 여백이나 마침표나 닫는 꺾쇠면 건너뜁니다 (1. 2. 같은 번호 매김 보호) */
+      n=h.replace(/([^\s.>0-9][.])\s+(?=[^\s<])/g, '$1<br>');
+      if(n!==h){ ps[i].innerHTML=n; }
+    }
+  }
+
+  function start(){
+    root=document.getElementById('bkBook');
+    if(!root){ setTimeout(start, 300); return; }
+    fix();
+    if(window.MutationObserver){
+      var mo=new MutationObserver(function(){
+        mo.disconnect();
+        fix();
+        mo.observe(root, {childList:true, subtree:true});
+      });
+      mo.observe(root, {childList:true, subtree:true});
+    }
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+</script>
+<!-- /wp:html -->
+STELLABREAK;
+
+	printf(
+		'<h1 style="color:#ffd76a">문장별 줄바꿈 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	$now = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( null === $now ) {
+		echo '<h2 style="color:#ff7b7b">160 을 못 읽었습니다.</h2>';
+		exit;
+	}
+
+	if ( $undo ) {
+		$bak = get_post_meta( $pid, '_stella_break_backup', true );
+		if ( $bak ) {
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $pid ) );
+			delete_post_meta( $pid, '_stella_break_backup' );
+			clean_post_cache( $pid );
+			if ( function_exists( 'wp_cache_flush' ) ) {
+				wp_cache_flush();
+			}
+			echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2>';
+		} else {
+			echo '<h2 style="color:#888">사본이 없습니다.</h2>';
+		}
+		exit;
+	}
+
+	$has = substr_count( $now, 'stellaSentenceBreak' );
+
+	echo '<table cellpadding="8" style="border-collapse:collapse">';
+	printf( '<tr><td>페이지 크기</td><td><b>%d</b> 바이트</td></tr>', strlen( $now ) );
+	printf( '<tr><td>덧붙일 글 크기</td><td>%d 바이트</td></tr>', strlen( $block ) );
+	printf( '<tr><td>이미 들어감</td><td>%d</td></tr>', $has );
+	echo '<tr><td>기존 코드 고침</td><td style="color:#7bff9b">없음 — 뒤에 붙이기만 합니다</td></tr>';
+	echo '</table>';
+
+	if ( $has > 0 ) {
+		echo '<h2 style="color:#7bff9b">이미 들어가 있습니다.</h2>'
+			. '<p style="color:#888">되돌리려면 ?stella_break=1&undo=1</p>';
+		exit;
+	}
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다.</h2>'
+			. '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_break=1&go=1">→ 이대로 넣기</a></p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, '_stella_break_backup', true ) ) {
+		update_post_meta( $pid, '_stella_break_backup', $now );
+	}
+
+	$out = $now . $block;
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $out ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	printf( '<h2 style="color:#7bff9b">넣었습니다 — %d → %d 바이트</h2>', strlen( $now ), strlen( $out ) );
+	echo '<p><a style="color:#ffd76a" href="/reading-book/">→ 전자책에서 확인</a></p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_break=1&undo=1</p>';
+	exit;
+} );

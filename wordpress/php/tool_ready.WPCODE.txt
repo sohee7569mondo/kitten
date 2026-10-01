@@ -1,0 +1,184 @@
+/* ════════════════════════════════════════════════════════════
+   자료 쪽(reading-ready) 안을 그대로 들여다봅니다 (읽기만)
+   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다. 세어보기만 합니다.
+
+   접을 자리, 핑크 글씨 자리, 아래쪽 단추를 정확히 찾으려고
+   만든 자입니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   보기   https://stellasaju.com/?stella_ready=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_ready'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:28px 18px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.25rem;margin:0 0 12px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.7 monospace;border-left:3px solid #D4AF6A}'
+	   . '</style>';
+
+	$slug = 'reading-ready';
+	if ( isset( $_GET['slug'] ) ) { $slug = sanitize_title( wp_unslash( $_GET['slug'] ) ); }
+
+	echo '<h1>자료 쪽 안을 들여다봅니다 &mdash; ' . esc_html( $slug ) . '</h1>';
+
+	$p = get_page_by_path( $slug );
+	if ( ! $p ) { echo '<p class="no">쪽이 없습니다.</p>'; exit; }
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+
+	echo '<p class="dim">쪽 번호 ' . (int) $p->ID
+	   . ' &middot; 크기 ' . number_format( strlen( $c ) ) . ' 바이트</p>';
+
+	/* ── 이미 들어간 표시들 ───────────────────────────── */
+	$marks = array(
+		'stella-ready-v'   => '이 쪽에 넣은 내 덩어리',
+		'<script'          => '스크립트',
+		'stella-fold'      => '접기 표시',
+		'D2909E'           => '핑크 색 코드 D2909E',
+		'#e' 	           => '(참고) 소문자 색코드',
+	);
+	$out = '';
+	foreach ( $marks as $needle => $label ) {
+		$n = substr_count( $c, $needle );
+		$out .= str_pad( $label, 34 ) . ( $n ? '있음  ' . $n . '개' : '없음' ) . "\n";
+	}
+	echo '<h2>이미 들어 있는 것</h2><pre>' . esc_html( $out ) . '</pre>';
+
+	/* ── HTML 을 뜯어봅니다 ──────────────────────────── */
+	$doc = new DOMDocument();
+	$prev = libxml_use_internal_errors( true );
+	$doc->loadHTML( '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
+		. '<div id="stellaroot">' . $c . '</div>' );
+	libxml_clear_errors();
+	libxml_use_internal_errors( $prev );
+
+	$root = $doc->getElementById( 'stellaroot' );
+	if ( ! $root ) { echo '<p class="no">뜯어보기 실패</p>'; exit; }
+
+	$desc = function ( $el ) {
+		$t = $el->tagName;
+		$cl = $el->getAttribute( 'class' );
+		$id = $el->getAttribute( 'id' );
+		if ( '' !== $id ) { $t .= '#' . $id; }
+		if ( '' !== $cl ) { $t .= '.' . str_replace( ' ', '.', trim( $cl ) ); }
+		return $t;
+	};
+
+	$cut = function ( $s, $n ) {
+		$s = preg_replace( '/\s+/', ' ', $s );
+		$s = trim( $s );
+		if ( function_exists( 'mb_substr' ) ) {
+			if ( mb_strlen( $s, 'UTF-8' ) > $n ) {
+				return mb_substr( $s, 0, $n, 'UTF-8' ) . ' …';
+			}
+			return $s;
+		}
+		return substr( $s, 0, $n * 3 );
+	};
+
+	$len = function ( $s ) {
+		$s = trim( preg_replace( '/\s+/', ' ', $s ) );
+		if ( function_exists( 'mb_strlen' ) ) { return mb_strlen( $s, 'UTF-8' ); }
+		return strlen( $s );
+	};
+
+	$all = $root->getElementsByTagName( '*' );
+
+	/* ── 제목들 ──────────────────────────────────────── */
+	$out = '';
+	foreach ( $all as $el ) {
+		$t = strtolower( $el->tagName );
+		$isH = ( 'h1' === $t || 'h2' === $t || 'h3' === $t || 'h4' === $t
+			|| 'h5' === $t || 'summary' === $t );
+		if ( ! $isH ) { continue; }
+		$out .= str_pad( $desc( $el ), 26 ) . $cut( $el->textContent, 60 ) . "\n";
+	}
+	if ( '' === $out ) { $out = '(제목이 하나도 없습니다)'; }
+	echo '<h2>제목 · 접힘 제목</h2><pre>' . esc_html( $out ) . '</pre>';
+
+	/* ── 글이 들어 있는 제일 작은 칸들 ────────────────── */
+	$out  = '';
+	$i    = 0;
+	$long = 0;
+	foreach ( $all as $el ) {
+		$mine = $len( $el->textContent );
+		if ( $mine < 20 ) { continue; }
+		/* 자식 중에 20자 넘는 칸이 또 있으면 이건 껍데기입니다 */
+		$husk = false;
+		foreach ( $el->childNodes as $ch ) {
+			if ( 1 !== $ch->nodeType ) { continue; }
+			if ( $len( $ch->textContent ) >= 20 ) { $husk = true; break; }
+		}
+		if ( $husk ) { continue; }
+		$i++;
+		if ( $mine >= 100 ) { $long++; }
+		$out .= str_pad( (string) $i, 4 ) . str_pad( $mine . '자', 7 )
+			. str_pad( $desc( $el ), 24 ) . $cut( $el->textContent, 70 ) . "\n";
+	}
+	echo '<h2>글이 들어 있는 칸 (' . (int) $i . '칸 · 그 중 100자 넘는 것 '
+	   . (int) $long . '칸)</h2><pre>' . esc_html( $out ) . '</pre>';
+
+	/* ── 색을 직접 칠한 자리 ──────────────────────────── */
+	$out = '';
+	foreach ( $all as $el ) {
+		$st = $el->getAttribute( 'style' );
+		if ( '' === $st ) { continue; }
+		if ( false === stripos( $st, 'color' ) ) { continue; }
+		$out .= str_pad( $desc( $el ), 22 ) . $cut( $st, 46 ) . "\n";
+		$out .= '        ' . $cut( $el->textContent, 60 ) . "\n";
+	}
+	if ( '' === $out ) { $out = '(칸에 직접 칠한 색은 없습니다 — 스타일표에서 옵니다)'; }
+	echo '<h2>색을 직접 칠한 자리</h2><pre>' . esc_html( $out ) . '</pre>';
+
+	/* ── 스타일표 안의 색 ─────────────────────────────── */
+	$out = '';
+	$sty = $root->getElementsByTagName( 'style' );
+	foreach ( $sty as $s ) {
+		$txt = $s->textContent;
+		$lines = preg_split( '/[\r\n]+/', $txt );
+		foreach ( $lines as $ln ) {
+			if ( false === stripos( $ln, 'color' ) ) { continue; }
+			$ln = trim( $ln );
+			if ( '' === $ln ) { continue; }
+			$out .= $cut( $ln, 96 ) . "\n";
+		}
+	}
+	if ( '' === $out ) { $out = '(스타일표 없음)'; }
+	echo '<h2>스타일표 안에서 색을 정한 줄</h2><pre>' . esc_html( $out ) . '</pre>';
+
+	/* ── 단추와 링크 ──────────────────────────────────── */
+	$out = '';
+	foreach ( array( 'a', 'button' ) as $tag ) {
+		$ns = $root->getElementsByTagName( $tag );
+		foreach ( $ns as $n ) {
+			$label = $cut( $n->textContent, 40 );
+			if ( '' === $label ) { $label = '(글씨 없음)'; }
+			$href = $n->getAttribute( 'href' );
+			if ( '' === $href ) { $href = $n->getAttribute( 'id' ); }
+			$out .= str_pad( $tag, 8 ) . str_pad( $label, 34 ) . $cut( $href, 50 ) . "\n";
+		}
+	}
+	if ( '' === $out ) { $out = '(단추도 링크도 없습니다)'; }
+	echo '<h2>단추와 링크</h2><pre>' . esc_html( $out ) . '</pre>';
+
+	echo '<p class="dim">다른 쪽을 보시려면 뒤에 &amp;slug=reading-start 처럼 붙이세요.</p>';
+	exit;
+} );

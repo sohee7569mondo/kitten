@@ -1,0 +1,82 @@
+/* ══════════════════════════════════════════════════════════
+   메모리 한도를 올립니다
+   ★ 2026-09-12 · 소희 님께
+
+   ── 알아낸 것 ─────────────────────────────────────────
+   본문은 깨끗합니다. 1,334,526자, TAIL 덩어리 0개.
+   조각을 전부 꺼도 책 쪽이 죽습니다.
+   → 본문 탓도 조각 탓도 아닙니다. 한도가 모자란 것입니다.
+
+       허용된 메모리 크기 536870912바이트 (512MB)
+
+   책 한 쪽을 그리려면 워드프레스가 1.3MB 짜리 본문을
+   블록 파서에 넣고, 문장부호를 다듬고, 그림 태그를 손보고,
+   목차를 세고… 그때마다 본문이 통째로 복사됩니다.
+   512MB 로는 빠듯합니다.
+
+   ── 이 조각이 하는 일 ─────────────────────────────────
+   한도를 1024MB 로 올립니다. 단 한 줄입니다.
+   호스팅이 막아두었으면 안 올라갑니다. 그때는 아래
+   주소로 지금 값을 확인하고 다른 길을 찾습니다.
+
+   ★ 아무것도 안 바꿉니다. 본문도 조각도 그대로입니다.
+     끄면 원래대로 돌아갑니다.
+
+   재보기  https://stellasaju.com/?stella_mem=1
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 우선순위(Priority)를 1 로 낮춰주세요. 다른 조각보다
+     먼저 돌아야 합니다.
+   ══════════════════════════════════════════════════════════ */
+
+/* ── 한도 올리기 · 이 한 줄이 전부입니다 ───────────────── */
+if ( function_exists( 'ini_set' ) ) {
+	@ini_set( 'memory_limit', '1024M' );
+}
+
+/* ── 재보기 ───────────────────────────────────────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_mem'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	echo "═══ 메모리 ═══════════════════════════════\n";
+	echo '  지금 한도        ' . ini_get( 'memory_limit' ) . "\n";
+	echo '  WP_MEMORY_LIMIT  ' . ( defined( 'WP_MEMORY_LIMIT' ) ? WP_MEMORY_LIMIT : '없음' ) . "\n";
+	echo '  WP_MAX_MEMORY    ' . ( defined( 'WP_MAX_MEMORY_LIMIT' ) ? WP_MAX_MEMORY_LIMIT : '없음' ) . "\n\n";
+	echo '  지금 쓰는 중      ' . size_format( memory_get_usage( true ) ) . "\n";
+	echo '  여기까지 최대     ' . size_format( memory_get_peak_usage( true ) ) . "\n\n";
+
+	global $wpdb;
+	$page = get_page_by_path( 'reading-book' );
+	if ( $page ) {
+		$n = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT LENGTH(post_content) FROM {$wpdb->posts} WHERE ID = %d", (int) $page->ID ) );
+		echo '  책 쪽 본문       ' . number_format( $n ) . "자\n\n";
+	}
+
+	echo "═══ 켜져 있는 조각 ═══════════════════════\n";
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, LENGTH(post_content) AS n
+		   FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode'
+		    AND post_status = 'publish'
+		  ORDER BY n DESC
+		  LIMIT 12" );
+	if ( $rows ) {
+		foreach ( $rows as $r ) {
+			echo '  ' . str_pad( number_format( (int) $r->n ) . '자', 12, ' ', STR_PAD_LEFT )
+				. '  #' . $r->ID . '  ' . $r->post_title . "\n";
+		}
+	} else {
+		echo "  못 읽었습니다.\n";
+	}
+
+	echo "\n★ 지금 한도가 1024M 이면 올라간 것입니다.\n";
+	echo "  512M 그대로면 호스팅이 막아둔 것입니다.\n";
+	echo "  이 화면을 그대로 저에게 보내주세요.\n";
+	exit;
+}, 1 );

@@ -1,0 +1,110 @@
+// 오픈기념 한 줄 띠를 홈 쪽 글에 넣습니다
+// 2026-10-01
+//
+// ★ 이 조각은 한 번 쓰고 지우는 도구입니다.
+//   주소를 열면 띠가 쪽 글 안으로 들어갑니다. 그 뒤에는 이 조각을
+//   지우셔도 띠가 그대로 남습니다. 켜 둘 이유가 없습니다.
+//
+//   살펴보기   https://stellasaju.com/?stella_homeband=1
+//   넣기       https://stellasaju.com/?stella_homeband=apply
+//   빼기       https://stellasaju.com/?stella_homeband=undo
+//
+// 들어가는 자리는 맨 위 배너 바로 아래입니다.
+// 글은 두 마디뿐입니다 — 오픈기념 / 모든 사주풀이가 무료입니다.
+//
+// 위치는 어디서나 실행. 크롬 번역을 끄고 붙여넣으세요.
+// 맨 아랫줄이  } );  인지 확인하세요.
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_homeband'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_homeband'] ) );
+	$pid  = 62;
+
+	$p = get_post( $pid );
+	if ( ! $p ) { echo '홈 쪽 62 를 못 찾았습니다'; exit; }
+
+	$c = (string) $p->post_content;
+
+	// 넣을 자리 — 히어로 바로 다음, 폼 앞
+	$AN = '  <!-- ══ 폼 ═';
+	$MK = 'id=' . chr(34) . 'hp-open' . chr(34);
+
+	// 넣을 글
+	$S = '  <!-- STELLA-BAND-START -->';
+	$E = '  <!-- STELLA-BAND-END -->';
+	$H = '';
+	$H .= $S . chr(10);
+	$H .= '  <!-- ══ 오픈기념 한 줄 ══════════════════' . chr(10);
+	$H .= '       2026-10-01 · 히어로 바로 아래. 글은 두 마디만 둡니다.' . chr(10);
+	$H .= '       고치실 것은 아래 hp-line 한 줄뿐입니다. -->' . chr(10);
+	$H .= '  <style>' . chr(10);
+	$H .= '  #stellar-home #hp-open{ padding:18px 0 0; }' . chr(10);
+	$H .= '  #hp-band{ display:flex; flex-wrap:wrap; align-items:center; gap:9px 14px;' . chr(10);
+	$H .= '    padding:14px 22px; border-radius:14px;' . chr(10);
+	$H .= '    background:linear-gradient(120deg,#F3EEFC 0%,#FFFFFF 62%);' . chr(10);
+	$H .= '    border:1px solid #D9CFF2; }' . chr(10);
+	$H .= '  #hp-band .hp-kick{ display:inline-block; padding:4px 11px; border-radius:30px;' . chr(10);
+	$H .= '    background:#6B4FB0; color:#FFFDF9;' . chr(10);
+	$H .= '    font-size:.68rem; font-weight:700; letter-spacing:.1em; }' . chr(10);
+	$H .= '  #hp-band .hp-line{ font-family:Noto Serif KR,serif; font-weight:700;' . chr(10);
+	$H .= '    font-size:1.05rem; line-height:1.5; color:#221C33; }' . chr(10);
+	$H .= '  @media(max-width:700px){' . chr(10);
+	$H .= '    #stellar-home #hp-open{ padding:14px 0 0; }' . chr(10);
+	$H .= '    #hp-band{ padding:13px 16px; border-radius:12px; gap:8px 11px; }' . chr(10);
+	$H .= '    #hp-band .hp-line{ font-size:.98rem; } }' . chr(10);
+	$H .= '  </style>' . chr(10);
+	$H .= '  <section class="sh-section" id="hp-open">' . chr(10);
+	$H .= '    <div class="wrap">' . chr(10);
+	$H .= '      <div id="hp-band">' . chr(10);
+	$H .= '        <span class="hp-kick">오픈기념</span>' . chr(10);
+	$H .= '        <span class="hp-line">모든 사주풀이가 무료입니다</span>' . chr(10);
+	$H .= '      </div>' . chr(10);
+	$H .= '    </div>' . chr(10);
+	$H .= '  </section>' . chr(10);
+	$H .= $E . chr(10);
+
+	echo "오픈기념 띠 - 홈 쪽 글에 넣기\n\n";
+	echo '지금 쪽 ' . number_format( strlen( $c ) ) . "자\n";
+	echo '넣을 자리 ' . substr_count( $c, $AN ) . "군데\n";
+	echo '이미 들어감 ' . substr_count( $c, $MK ) . "군데\n\n";
+
+	if ( 'undo' === $mode ) {
+		$a = strpos( $c, $S );
+		if ( false === $a ) { echo '뺄 것이 없습니다'; exit; }
+		$b = strpos( $c, $E, $a );
+		if ( false === $b ) { echo '끝 표지를 못 찾았습니다'; exit; }
+		$new = substr( $c, 0, $a ) . substr( $c, $b + strlen( $E ) + 1 );
+	} else {
+		if ( substr_count( $c, $MK ) > 0 ) { echo '이미 들어가 있습니다.'; exit; }
+		if ( 1 !== substr_count( $c, $AN ) ) { echo '넣을 자리를 못 찾았거나 여럿입니다.'; exit; }
+		if ( 'apply' !== $mode ) {
+			echo "넣으려면  ?stella_homeband=apply\n";
+			echo "빼려면    ?stella_homeband=undo\n";
+			exit;
+		}
+		$new = str_replace( $AN, $H . $AN, $c );
+	}
+
+	$b1 = substr_count( $c, chr(92) );
+	wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $new ) ) );
+	clean_post_cache( $pid );
+	$saved = (string) get_post( $pid )->post_content;
+	$b2 = substr_count( $saved, chr(92) );
+
+	if ( $b2 !== $b1 ) {
+		wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $c ) ) );
+		clean_post_cache( $pid );
+		echo '되돌렸습니다 - 역빗금 ' . $b1 . ' 에서 ' . $b2;
+		exit;
+	}
+
+	echo '됐습니다 · 지금 ' . number_format( strlen( $saved ) ) . '자 · 띠 '
+		. substr_count( $saved, $MK ) . '군데 · 역빗금 ' . $b2 . "개 그대로\n\n";
+	echo "이제 이 조각은 지우셔도 됩니다. 띠는 쪽 글에 남습니다.\n";
+	exit;
+} );

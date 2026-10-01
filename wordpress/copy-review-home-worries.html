@@ -1,0 +1,274 @@
+<title>고민이 먼저 오는 홈</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{
+  --paper:#F7F5EE; --paper-2:#ECEFE6; --paper-3:#DCE2D6;
+  --ink:#1F2620; --ink-2:#4A5450; --ink-3:#5C6862;
+  --jade:#1F6B52; --red:#A83232;
+  /* 스텔라사주 홈 실제 색 */
+  --void:#100B22; --nebula:#251C48; --purple:#7A5CC0; --lilac:#B9A2F2;
+  --gold:#E0BC7C; --gold-lite:#F0D9A8; --star:#F6F1E7;
+  --c-rose:#E8836F; --c-sun:#E8B45C; --c-jade:#5FBFA0;
+  --c-blue:#7BA4F0; --c-violet:#A98CF5; --c-sand:#CBB775;
+  --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --disp:"Nanum Myeongjo",serif;
+}
+*{box-sizing:border-box}
+body{background:#101613; color:var(--ink); font-family:var(--sans);
+  font-size:17px; line-height:1.86; letter-spacing:-.005em; margin:0; padding:0 16px 72px;
+  word-break:keep-all;}
+.wrap{max-width:760px; margin:0 auto; background:var(--paper); padding:44px 38px 52px;
+  box-shadow:0 24px 70px rgba(0,0,0,.55)}
+.top{border-bottom:2px solid var(--jade); padding-bottom:22px}
+.eyebrow{font-family:var(--disp); font-weight:700; font-size:.84rem; letter-spacing:.18em;
+  color:var(--jade); margin:0 0 10px}
+h1{font-family:var(--disp); font-weight:800; font-size:1.62rem; line-height:1.45; margin:0 0 14px;
+  text-wrap:balance}
+.top p{font-size:.95rem; color:var(--ink-2); margin:0 0 .7em}
+.said{border-left:3px solid var(--red); background:#F4EEEA; padding:14px 16px;
+  margin:18px 0 0; font-size:.95rem; color:var(--ink-2)}
+.said b{color:var(--ink)}
+h2.sec{font-family:var(--disp); font-weight:700; font-size:1.12rem; color:var(--jade);
+  margin:46px 0 0; padding-bottom:7px; border-bottom:1px solid var(--paper-3)}
+h2.sec span{display:block; font-family:var(--sans); font-weight:400; font-size:.85rem;
+  color:var(--ink-3); margin-top:5px; letter-spacing:0}
+p{margin:14px 0 0}
+
+/* ── 화면 두 개 나란히 ── */
+.mocks{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:24px 0 0}
+@media(max-width:620px){ .mocks{grid-template-columns:1fr} }
+.mockcol{min-width:0}
+.mocklb{font-family:var(--disp); font-weight:700; font-size:.8rem; letter-spacing:.06em;
+  margin:0 0 8px; display:flex; align-items:baseline; gap:7px}
+.mocklb.now{color:var(--red)} .mocklb.new{color:var(--jade)}
+.mocklb em{font-style:normal; font-family:var(--sans); font-weight:400; font-size:.78rem;
+  color:var(--ink-3); letter-spacing:0}
+.phone{background:var(--void); border:1px solid rgba(224,188,124,.28); border-radius:14px;
+  padding:16px 14px 18px; color:var(--star); overflow:hidden}
+.ph-eye{font-family:var(--disp); font-size:.56rem; letter-spacing:.26em; color:var(--gold);
+  text-align:center; margin:0 0 10px}
+.figure{height:104px; border-radius:9px; margin:0 0 12px;
+  background:radial-gradient(60% 70% at 50% 34%, rgba(163,124,246,.42), rgba(37,28,72,0) 70%),
+             linear-gradient(158deg,#2E2358 0%,#221A42 100%);
+  border:1px solid rgba(224,188,124,.22); display:flex; align-items:center; justify-content:center}
+.figure span{font-family:var(--disp); font-size:.72rem; color:var(--lilac); opacity:.85}
+.ph-h1{font-family:var(--disp); font-weight:700; font-size:.92rem; line-height:1.55;
+  text-align:center; margin:0; color:var(--star)}
+.ph-h1 em{font-style:normal; color:var(--gold)}
+.ph-sub{font-size:.7rem; line-height:1.7; text-align:center; margin:9px 0 0;
+  color:rgba(246,241,231,.72)}
+.ph-scroll{font-family:var(--disp); font-size:.54rem; letter-spacing:.2em; text-align:center;
+  color:rgba(246,241,231,.42); margin:12px 0 0}
+.ph-rule{height:1px; background:rgba(224,188,124,.20); margin:15px -14px}
+.ph-cap{font-family:var(--disp); font-size:.72rem; color:var(--gold-lite); margin:0 0 9px}
+.wor{display:flex; flex-direction:column; gap:7px; margin:0}
+.wor a{display:block; text-decoration:none; padding:9px 11px; border-radius:8px;
+  background:linear-gradient(158deg,#2E2358 0%,#221A42 100%);
+  border:1px solid rgba(224,188,124,.22); border-left:3px solid var(--tone,var(--gold));
+  font-size:.74rem; line-height:1.5; color:var(--star)}
+.wor a i{font-style:normal; display:block; font-size:.6rem; margin-top:3px;
+  color:rgba(246,241,231,.5)}
+.doors{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:0}
+.doors div{aspect-ratio:2/3; border-radius:6px; border:1px solid rgba(224,188,124,.22);
+  background:linear-gradient(158deg,#2E2358 0%,#221A42 100%);
+  display:flex; align-items:flex-end; justify-content:center; padding-bottom:5px;
+  font-size:.54rem; color:rgba(246,241,231,.6)}
+
+
+/* ── 카드 두 가지 ── */
+.cards{display:grid; grid-template-columns:1fr 1fr; gap:22px; margin:24px 0 0}
+@media(max-width:620px){ .cards{grid-template-columns:1fr} }
+.dcard{background:var(--void); border:1px solid rgba(224,188,124,.28); border-radius:12px;
+  overflow:hidden; color:var(--star)}
+.dcard .art{aspect-ratio:2/3; position:relative; display:flex; align-items:flex-end;
+  background:radial-gradient(58% 62% at 50% 30%, rgba(163,124,246,.40), rgba(37,28,72,0) 72%),
+             linear-gradient(158deg,#2E2358 0%,#221A42 100%)}
+.dcard .art:after{content:''; position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(20,14,42,.94) 0%, rgba(20,14,42,.14) 56%, transparent 80%)}
+.dcard .art b{position:absolute; top:42%; left:0; right:0; text-align:center;
+  font-family:var(--disp); font-size:.74rem; color:var(--lilac); opacity:.8; font-weight:400}
+.dcard .info{position:relative; z-index:2; padding:14px 14px 16px; width:100%}
+.big{font-family:var(--disp); font-weight:700; font-size:1.5rem; line-height:1.25; margin:0}
+.small{font-family:var(--disp); font-weight:700; font-size:1.02rem; margin:0}
+.who{display:flex; align-items:center; gap:7px; margin:9px 0 0}
+.who .av{width:26px; height:26px; border-radius:50%; flex:0 0 auto;
+  background:linear-gradient(158deg,#3B2D70,#2B2054); border:1px solid rgba(224,188,124,.45);
+  display:flex; align-items:center; justify-content:center; font-size:.5rem; color:var(--gold-lite)}
+.who .txt{font-size:.7rem; line-height:1.5; color:rgba(246,241,231,.66)}
+.who .txt em{font-style:normal; color:var(--gold-lite)}
+.pills{display:flex; flex-wrap:wrap; gap:5px; margin:10px 0 0}
+.pills span{font-size:.64rem; color:var(--gold-lite); background:rgba(163,124,246,.16);
+  border:1px solid rgba(212,175,106,.4); border-radius:20px; padding:2px 8px}
+.pills span.soon{color:rgba(246,241,231,.45); border-color:rgba(246,241,231,.2);
+  background:rgba(246,241,231,.05)}
+.tag{position:absolute; top:10px; right:10px; z-index:3; font-family:var(--disp);
+  font-size:.6rem; letter-spacing:.08em; padding:3px 8px; border-radius:20px;
+  background:rgba(224,188,124,.92); color:#211836}
+.tag.soon{background:rgba(246,241,231,.16); color:rgba(246,241,231,.7)}
+
+/* ── 배너 문구표 ── */
+table{border-collapse:collapse; width:100%; font-size:.93rem; margin:16px 0 0}
+td,th{border-bottom:1px solid var(--paper-3); padding:9px 6px; text-align:left; color:var(--ink-2);
+  vertical-align:top}
+th{font-family:var(--disp); font-weight:700; font-size:.82rem; color:var(--jade)}
+td.q{color:var(--ink); font-weight:500}
+td.g{font-size:.84rem; color:var(--ink-3); white-space:nowrap}
+.warn{background:var(--paper-2); border-left:3px solid var(--c-sun); padding:16px 18px;
+  margin:20px 0 0; font-size:.94rem; color:var(--ink-2)}
+.warn b{color:var(--ink)}
+.foot{margin-top:46px; padding-top:22px; border-top:2px solid var(--jade);
+  font-size:.93rem; color:var(--ink-2)}
+.foot b{color:var(--ink)}
+.foot h3{font-family:var(--disp); font-size:.98rem; color:var(--jade); margin:22px 0 6px}
+ol{margin:10px 0 0; padding-left:20px} li{margin:6px 0}
+@media(max-width:520px){ body{padding:0 0 56px} .wrap{padding:32px 20px 40px} h1{font-size:1.34rem} }
+@media print{ body{background:#fff;padding:0} .wrap{box-shadow:none;max-width:none} }
+</style>
+<div class="wrap"><div class="top">
+<p class="eyebrow">홈 화면 · 고침 제안</p>
+<h1>친구분들이 게임 사이트로<br>본 이유가 있습니다</h1>
+<div class="said">「예전에 친구들이 사주 사이트라는 걸 모르고 들어갔는데 <b>뭔 사이트인지 몰랐다고, 게임 사이트였다고</b> 한 적이 있어서」</div>
+<p>지금 첫 화면에 있는 것은 <b>가디언 그림 한 장</b>과 <b>「사주는 흙의 언어로, 별자리는 빛의 언어로 당신을 비춥니다」</b> 한 줄, 그리고 <b>SCROLL</b>입니다.</p>
+<p>글은 아름다운데 <b>여기서 무엇을 파는지가 없습니다.</b> 판타지 인물 그림 + 시 한 줄 + 스크롤 안내 — 게임 소개 페이지의 생김새가 정확히 그겁니다. 친구분들이 틀린 게 아니라 화면이 그렇게 말하고 있었어요.</p>
+</div>
+
+<h2 class="sec">지금 화면과 바꾼 화면
+<span>첫 한 눈에 무엇이 보이는지가 전부입니다</span></h2>
+
+<div class="mocks">
+  <div class="mockcol">
+    <p class="mocklb now">지금 <em>· 무엇을 파는지 없음</em></p>
+    <div class="phone">
+      <p class="ph-eye">STELLA SAJU</p>
+      <div class="figure"><span>가디언 그림</span></div>
+      <p class="ph-h1">사주는 <em>흙의 언어</em>로,<br>별자리는 <em>빛의 언어</em>로<br>당신을 비춥니다.</p>
+      <p class="ph-scroll">SCROLL ↓</p>
+      <div class="ph-rule"></div>
+      <p class="ph-cap">궁금한 문, 주제를 열어보세요</p>
+      <div class="doors"><div>일</div><div>사랑</div><div>건강</div><div>시기</div><div>별</div><div>카드</div></div>
+    </div>
+  </div>
+
+  <div class="mockcol">
+    <p class="mocklb new">바꾸면 <em>· 위는 신비, 아래는 고민</em></p>
+    <div class="phone">
+      <p class="ph-eye">STELLA SAJU</p>
+      <div class="figure"><span>가디언 그림</span></div>
+      <p class="ph-h1">사주는 <em>흙의 언어</em>로,<br>별자리는 <em>빛의 언어</em>로<br>당신을 비춥니다.</p>
+      <p class="ph-sub">태어난 시각 여덟 글자로<br><b>서른 쪽짜리 풀이</b>를 써드립니다</p>
+      <div class="ph-rule"></div>
+      <p class="ph-cap">지금 무엇이 걸리시나요</p>
+      <div class="wor">
+        <a href="#" style="--tone:var(--c-rose)">그 사람과 헤어져야 할까요?<i>이별운 · 인연을 잇는 신</i></a>
+        <a href="#" style="--tone:var(--c-violet)">헤어진 그 사람, 다시 만날 수 있을까요?<i>재회운 · 인연을 잇는 신</i></a>
+        <a href="#" style="--tone:var(--c-blue)">지금 회사, 계속 다녀야 할까요?<i>직장운 · 일을 짓는 신</i></a>
+        <a href="#" style="--tone:var(--c-sand)">돈이 붙는 때는 언제일까요?<i>재물운 · 일을 짓는 신</i></a>
+      </div>
+      <div class="ph-rule"></div>
+      <p class="ph-cap">궁금한 문, 주제를 열어보세요</p>
+      <div class="doors"><div>일</div><div>사랑</div><div>건강</div><div>시기</div><div>별</div><div>카드</div></div>
+    </div>
+  </div>
+</div>
+
+<p>가디언 그림은 <b>그대로 둡니다.</b> 그게 이 사이트의 얼굴이니까요. 다만 그 밑에 <b>한 줄</b>과 <b>고민 배너</b>가 들어가면, 스크롤을 내리기 전에 이미 「여기는 사주 보는 곳이고, 내 고민을 물어보는 곳이구나」가 전해집니다.</p>
+
+
+<h2 class="sec">문 카드 — 담당을 밑으로
+<span>손님이 사는 건 「벼리」가 아니라 「애정운」입니다</span></h2>
+
+<p>지금 카드는 <b>「인연을 잇는 신」</b>이 제일 큰 글씨입니다. 처음 온 사람은 그게 사랑이라는 걸 모릅니다. 순서를 뒤집으면 됩니다 — <b>주제가 크고, 담당이 밑에.</b></p>
+
+<div class="cards">
+  <div>
+    <p class="mocklb now">지금 <em>· 담당이 제일 큼</em></p>
+    <div class="dcard"><div class="art"><b>가디언 그림</b>
+      <div class="info">
+        <p class="big">인연을 잇는 신</p>
+        <div class="pills"><span>연애</span><span>결혼</span><span>재회</span><span>이별</span><span>짝사랑</span></div>
+      </div></div></div>
+  </div>
+  <div>
+    <p class="mocklb new">바꾸면 <em>· 주제가 크고 담당은 밑에</em></p>
+    <div class="dcard"><div class="art"><b>가디언 그림</b>
+      <div class="info">
+        <p class="big">애정운</p>
+        <div class="who"><span class="av">벼리</span>
+          <span class="txt">담당 · 사랑을 잇는 신 <em>벼리</em></span></div>
+        <div class="pills"><span>연애</span><span>결혼</span><span>재회</span><span>이별</span><span class="soon">이혼 준비 중</span></div>
+      </div></div></div>
+  </div>
+</div>
+
+<p>담당 자리의 동그라미에 <b>벼리 얼굴</b>이 들어갑니다. 26px짜리 작은 원이라 초상 하나를 잘라 쓰면 됩니다. 속표지 동그라미하고 같은 그림을 쓰면 <b>책을 펼쳤을 때 같은 얼굴이 다시 나와서</b> 이어집니다.</p>
+
+<h2 class="sec">그럼 카드 한 장이 문일까, 책일까
+<span>「책별로 오픈」을 하시려면 여기서 갈립니다</span></h2>
+
+<div class="cards">
+  <div>
+    <p class="mocklb now">문이 한 장 <em>· 여섯 장</em></p>
+    <div class="dcard"><div class="art"><span class="tag soon">준비 중</span><b>가디언 그림</b>
+      <div class="info">
+        <p class="big">건강운</p>
+        <div class="who"><span class="av">담당</span>
+          <span class="txt">담당 · 몸을 지키는 신</span></div>
+      </div></div></div>
+    <p style="font-size:.88rem;color:var(--ink-3);margin-top:10px">지금은 사랑 하나만 열려서 <b>여섯 장 중 다섯 장에 「준비 중」</b>이 붙습니다. 가게가 비어 보입니다.</p>
+  </div>
+  <div>
+    <p class="mocklb new">책이 한 장 <em>· 열린 것만 · 권함</em></p>
+    <div class="dcard"><div class="art"><span class="tag">지금 열림</span><b>가디언 그림</b>
+      <div class="info">
+        <p class="big">재회운</p>
+        <div class="who"><span class="av">벼리</span>
+          <span class="txt">담당 · 사랑을 잇는 신 <em>벼리</em><br>39쪽</span></div>
+      </div></div></div>
+    <p style="font-size:.88rem;color:var(--ink-3);margin-top:10px">사랑 문 여섯 권만 깔아도 <b>여섯 장이 다 찹니다.</b> 일 문을 채우면 여섯 권이 더 붙고요. 늘어나는 게 보입니다.</p>
+  </div>
+</div>
+
+<p><b>지금은 오른쪽을 권합니다.</b> 왼쪽은 문이 다 채워진 뒤에 쓰면 좋은 구조인데, 지금 쓰면 「다섯 개가 준비 중인 가게」로 보입니다. 오른쪽은 같은 사실을 「여섯 권이 나와 있는 가게」로 보여줍니다. <b>거짓말이 아니라 진열을 바꾸는 것</b>입니다.</p>
+
+<p>그리고 책별 카드는 소희 님이 말씀하신 <b>책별 오픈</b>하고 그대로 맞습니다. 한 권 다 쓰면 카드 한 장이 늘어요. 문 단위면 여섯 권을 다 써야 카드 하나가 켜집니다.</p>
+
+<h2 class="sec">배너에 넣을 고민 열둘
+<span>누르면 그 문의 질문 화면으로, 주제까지 골라진 채로 들어갑니다</span></h2>
+
+<table>
+<tr><th>고민</th><th>가는 곳</th></tr>
+<tr><td class="q">그 사람과 헤어져야 할까요?</td><td class="g">사랑 · 이별운</td></tr>
+<tr><td class="q">헤어진 그 사람, 다시 만날 수 있을까요?</td><td class="g">사랑 · 재회운</td></tr>
+<tr><td class="q">이 사람과 결혼해도 될까요?</td><td class="g">사랑 · 결혼운</td></tr>
+<tr><td class="q">말도 못 하고 좋아만 하고 있어요</td><td class="g">사랑 · 짝사랑</td></tr>
+<tr><td class="q">우리 둘, 잘 맞는 걸까요?</td><td class="g">사랑 · 궁합</td></tr>
+<tr><td class="q">이 결혼, 끝내야 할까요?</td><td class="g">사랑 · 이혼운</td></tr>
+<tr><td class="q">지금 회사, 계속 다녀야 할까요?</td><td class="g">일 · 직장운</td></tr>
+<tr><td class="q">옮겨도 괜찮을까요?</td><td class="g">일 · 이직운</td></tr>
+<tr><td class="q">가게를 열어도 될까요?</td><td class="g">일 · 사업운</td></tr>
+<tr><td class="q">돈이 붙는 때는 언제일까요?</td><td class="g">일 · 재물운</td></tr>
+<tr><td class="q">요즘 몸이 예전 같지가 않아요</td><td class="g">건강 · 건강운</td></tr>
+<tr><td class="q">지금 움직여야 할까요, 기다려야 할까요?</td><td class="g">시기 · 시기운</td></tr>
+</table>
+
+<p>열둘을 다 한 화면에 깔면 다시 복잡해집니다. <b>넷만 보여주고 옆으로 넘기게</b> 하거나, <b>들어올 때마다 넷이 바뀌게</b> 하는 쪽이 낫습니다. 지금 문 카드가 옆으로 넘어가는 구조(rail)라 같은 방식을 쓰면 됩니다.</p>
+
+<div class="warn">
+<b>「주식으로 돈을 벌 수 있을까요?」 는 빼는 게 좋겠습니다.</b><br>
+책 맨 뒤에 「본 콘텐츠는 오락적 콘텐츠이며, 의료 · 법률 · <b>투자</b>에 관한 조언이 아닙니다」라고 적어두었습니다. 그런데 홈 첫 화면에서 주식으로 돈을 벌 수 있냐고 물으면 <b>앞뒤가 안 맞습니다.</b> 나중에 문제가 되면 그 한 줄로는 못 막아요.<br>
+대신 <b>「돈이 붙는 때는 언제일까요?」</b>로 두었습니다. 같은 사람을 잡으면서 책이 실제로 해주는 말(재물운 · 시기)에 정직합니다.
+</div>
+
+<div class="foot">
+<h3>만들려면 필요한 것</h3>
+<ol>
+<li><b>배너 칸</b> — 첫 화면 바로 아래, 문 여섯 개 위. 새 섹션 하나입니다.</li>
+<li><b>주소로 주제 넘기기</b> — 지금은 <code>/door-love/</code> 로 들어가면 주제를 손님이 다시 골라야 합니다. <code>/door-love/?topic=재회운</code> 처럼 들어오면 그 주제가 미리 골라져 있게 해야 배너를 누른 보람이 있습니다. 질문 화면에 열 줄쯤 붙이면 됩니다.</li>
+<li><b>첫 화면 한 줄</b> — 「태어난 시각 여덟 글자로 서른 쪽짜리 풀이를 써드립니다」. 이 문구는 소희 님이 고쳐주세요.</li>
+</ol>
+<h3>정해주실 것</h3>
+<p><b>하나 ·</b> 고민 문구 열두 개를 보시고 말투를 잡아주세요. 지금은 존댓말 물음표로 통일했습니다.</p>
+<p><b>둘 ·</b> 넷씩 넘기기 / 들어올 때마다 바뀌기 / 열둘 다 깔기 — 어느 쪽으로 할까요.</p>
+<p><b>셋 ·</b> 이혼운은 아직 글이 없습니다. 배너에 넣는 건 문이 다 만들어진 다음입니다.</p>
+</div>
+</div>

@@ -1,0 +1,188 @@
+/* ══════════════════════════════════════════════════════════
+   이혼운 렌즈를 옳은 자리로 옮깁니다  ★ 2026-09-13 · 소희 님께
+                                      판 LENSFIX-1
+
+   제 잘못을 고칩니다.
+
+   책에는 LENS_TOPIC(1부 렌즈 표)이 **두 번** 있습니다.
+
+       앞의 것   if(slug!=='door-career') return;   직성의 신
+       뒤의 것   if(slug!=='door-love')   return;   연성의 신
+
+   patch160_divorce 판 1 이 이혼운 렌즈를 **앞의 것**에 넣었습니다.
+   이혼운은 연성의 신이라 뒤의 것에 있어야 합니다. 지금 상태로는
+   손님이 이혼운을 골라도 그 다섯 자리가 안 나오고 기본 글이 나옵니다.
+   탈은 안 나지만 쓴 글이 묻혀 있습니다.
+
+   이 조각이 앞에서 떼어 뒤에 붙입니다. 글은 한 글자도 안 바뀝니다.
+
+   ── 어떻게 떼나 ───────────────────────────────────────
+   글자를 그대로 맞추지 않습니다. 표시 주석을 찾고 중괄호를 세어
+   블록 끝을 스스로 찾습니다. 그래서 책이 손질되어도 잡습니다.
+
+       찾는 표시   이혼운 · 1부 렌즈 (DIVORCE-1)
+       떼는 끝     그 뒤 '이혼운': { 의 짝 } 과 쉼표까지
+
+   ── ★ 순서가 있습니다 ─────────────────────────────────
+   patch160_wedsplit 를 **먼저** 넣으세요. 그 조각은 뒤의 LENS_TOPIC
+   바로 다음 줄이 「'결혼운': {」인 것을 보고 자리를 찾습니다. 이 조각이
+   먼저 돌면 그 자리에 이혼운이 앉아 wedsplit 이 길을 잃습니다.
+
+       1  ?stella_wedsplit=apply    결혼운 미혼·기혼
+       2  ?stella_lensfix=apply     ← 이 조각
+       3  ?stella_doorlove=apply    문 단추 여덟 개
+
+   ── 하는 법 ───────────────────────────────────────────
+   ① 먼저 보기   https://stellasaju.com/?stella_lensfix=preview
+   ② 정말 옮기기 https://stellasaju.com/?stella_lensfix=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_lensfix=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_lensfix'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_lensfix'] ) );
+	$META = '_stella_lensfix_bak';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽을 못 찾았습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	if ( 'undo' === $mode ) {
+		$back = get_post_meta( $id, $META, true );
+		if ( '' === $back ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $back ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다. ' . number_format( strlen( $back ) ) . "바이트\n";
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
+
+	echo "이혼운 렌즈를 옳은 자리로 옮깁니다   판 LENSFIX-1\n";
+	echo '책 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "바이트\n\n";
+
+	/* ── LENS_TOPIC 선언이 몇 개인지 ───────────────────── */
+	$cnt = preg_match_all( '/var\s+LENS_TOPIC\s*=\s*\{/u', $c, $decl, PREG_OFFSET_CAPTURE );
+	echo 'LENS_TOPIC 선언 : ' . $cnt . "개\n";
+	if ( 2 !== $cnt ) {
+		echo "★ 두 개여야 합니다. 책의 짜임이 제 짐작과 다릅니다.\n";
+		echo "  손대지 않고 그만둡니다. 이 글을 그대로 주세요.\n";
+		exit;
+	}
+	$first  = (int) $decl[0][0][1];
+	$second = (int) $decl[0][1][1];
+	$firstEnd  = $first  + strlen( $decl[0][0][0] );
+	$secondEnd = $second + strlen( $decl[0][1][0] );
+	echo '  앞의 것 ' . number_format( $first ) . ' · 뒤의 것 '
+		. number_format( $second ) . "\n\n";
+
+	/* ── 떼어낼 블록을 찾습니다 ─────────────────────────── */
+	$tag = '이혼운 · 1부 렌즈';
+	$at  = strpos( $c, $tag );
+	if ( false === $at ) {
+		echo "★ 「" . $tag . "」라는 표시를 못 찾았습니다.\n";
+		echo "  patch160_divorce 를 안 넣으셨거나 이미 옮기셨습니다.\n";
+		exit;
+	}
+
+	/* 표시가 어느 선언 쪽에 있나 */
+	if ( $at > $second ) {
+		echo "이미 뒤의 것(연성의 신) 안에 있습니다. 옮길 것이 없습니다.\n";
+		exit;
+	}
+	if ( $at < $firstEnd ) {
+		echo "★ 표시가 선언보다 앞에 있습니다. 짐작과 다릅니다. 그만둡니다.\n";
+		exit;
+	}
+	echo "떼어낼 자리를 찾았습니다 — 앞의 것(직성의 신) 안입니다.\n";
+
+	/* 주석 줄머리부터 잡습니다 */
+	$lineStart = strrpos( substr( $c, 0, $at ), "\n" );
+	if ( false === $lineStart ) { $lineStart = $at; }
+	else { $lineStart = $lineStart + 1; }
+
+	/* 그 뒤 첫 { 를 찾고 중괄호를 세어 짝을 찾습니다 */
+	$ob = strpos( $c, '{', $at );
+	if ( false === $ob ) { echo "★ 블록의 여는 중괄호를 못 찾았습니다.\n"; exit; }
+	$d = 0; $i = $ob; $len = strlen( $c ); $ce = -1;
+	while ( $i < $len ) {
+		$ch = $c[ $i ];
+		if ( '{' === $ch ) { $d++; }
+		if ( '}' === $ch ) {
+			$d--;
+			if ( 0 === $d ) { $ce = $i; break; }
+		}
+		$i++;
+	}
+	if ( $ce < 0 ) { echo "★ 블록의 닫는 중괄호를 못 찾았습니다.\n"; exit; }
+
+	/* 쉼표와 줄바꿈까지 함께 떼어냅니다 */
+	$cut = $ce + 1;
+	while ( $cut < $len ) {
+		$ch = $c[ $cut ];
+		if ( ',' === $ch ) { $cut++; continue; }
+		if ( "\r" === $ch ) { $cut++; continue; }
+		if ( "\n" === $ch ) { $cut++; break; }
+		break;
+	}
+
+	$block = substr( $c, $lineStart, $cut - $lineStart );
+	echo '떼어낼 크기 : ' . number_format( strlen( $block ) ) . "바이트\n\n";
+	echo "──── 떼어낼 것의 앞머리 ────\n";
+	echo substr( $block, 0, 260 ) . " …\n";
+	echo "──── 떼어낼 것의 끝 ────\n";
+	echo "… " . substr( $block, -160 ) . "\n";
+	echo "────────────────────────\n\n";
+
+	if ( false === strpos( $block, "'이혼운'" ) ) {
+		echo "★ 떼어낼 것 안에 '이혼운' 이 없습니다. 짐작과 다릅니다. 그만둡니다.\n";
+		exit;
+	}
+	if ( substr_count( $block, "'이혼운'" ) > 1 ) {
+		echo "★ 떼어낼 것 안에 '이혼운' 이 두 번 이상입니다. 그만둡니다.\n";
+		exit;
+	}
+
+	/* ── 옮깁니다 : 앞에서 떼고 뒤에 붙임 ───────────────── */
+	$without = substr( $c, 0, $lineStart ) . substr( $c, $cut );
+	/* 떼어낸 뒤라 뒤의 선언 자리가 앞으로 당겨집니다. 다시 찾습니다. */
+	$cnt2 = preg_match_all( '/var\s+LENS_TOPIC\s*=\s*\{/u', $without, $d2, PREG_OFFSET_CAPTURE );
+	if ( 2 !== $cnt2 ) {
+		echo "★ 떼어낸 뒤 선언이 " . $cnt2 . "개입니다. 그만둡니다.\n";
+		exit;
+	}
+	$to  = (int) $d2[0][1][1] + strlen( $d2[0][1][0] );
+	$made = substr( $without, 0, $to ) . "\n" . rtrim( $block, "\r\n" ) . substr( $without, $to );
+
+	echo number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $made ) ) . '바이트';
+	echo ' (차이 ' . number_format( strlen( $made ) - strlen( $c ) ) . ")\n";
+	echo "  글은 한 글자도 안 바뀝니다 — 자리만 옮깁니다.\n";
+
+	if ( 'apply' !== $mode ) {
+		echo "\n아직 안 옮겼습니다. 정말 옮기시려면 ?stella_lensfix=apply\n";
+		exit;
+	}
+
+	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
+		update_post_meta( $id, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $made ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n옮겼습니다. 이제 이혼운으로 뽑으면 1부 렌즈 다섯 자리가 나옵니다.\n";
+	echo "되돌리기 : ?stella_lensfix=undo\n";
+	exit;
+}, 1 );

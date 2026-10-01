@@ -1,0 +1,293 @@
+// 문 단추 정리 — 빼고 · 가르고 · 넣습니다        판 2026-09-23
+//
+// 소희 님
+//   「부모운 형제 자녀운은 가족운으로 한권에 다 넣기로 했고
+//     대운은 없애고 2026신년운세 2027신년운세 이렇게 하기로 했고
+//     이혼운 퇴사운은 배너를 만들라는거지?」
+//   「ㅇㅇ 이혼운 퇴사운 갈라서 썼어」
+//
+// 하는 일
+//   door-fortune   대운을 감춥니다
+//                  신년운세를 2026년 운세 · 2027년 운세 둘로 가릅니다
+//   door-health    부모운 · 형제운 · 자녀운을 감춥니다 (가족운 한 권에 듭니다)
+//   door-love      이혼운을 넣습니다 (이별운 뒤)
+//   door-career    퇴사운을 넣습니다 (이직운 뒤)
+//
+// 왜 지우지 않고 감추나
+//   지우면 되돌리기 어렵고, 그 줄의 셈이 틀어질 수 있습니다.
+//   감추면 스니펫을 끄는 것만으로 그대로 돌아옵니다.
+//
+// 넣는 주제는 책이 이미 압니다
+//   이혼운  patch160_divorce 가 새 주제로 붙였습니다
+//   퇴사운  주제별 표 조각 여럿에 이미 들어 있습니다
+//   ★ 투자운은 아직 전용 글이 없어 건드리지 않았습니다 (원고를 쓰는 중)
+//
+// patch160_nydoor 와 부딪히지 않습니다
+//   그 조각도 신년운세를 둘로 가릅니다. 이미 갈라져 있으면 물러납니다.
+//
+// 앵커를 안 잡습니다 — 쪽 원본은 한 글자도 안 고칩니다.
+//
+// 살펴보기  https://stellasaju.com/?stella_doortopics=1
+//
+// ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+// ★ 크롬 번역을 끄고 붙여넣으세요.
+
+add_action( 'wp_head', function () {
+
+	$doors = array( 'door-love', 'door-career', 'door-health',
+		'door-fortune', 'door-astro', 'door-tarot' );
+	if ( ! is_page( $doors ) ) { return; }
+	$b  = '';
+	$b .= "<script>\n";
+	$b .= "(function(){\n";
+	$b .= "  if(window.StellaDoorTopics){ return; }\n";
+	$b .= "  window.StellaDoorTopics = 1;\n";
+	$b .= "\n";
+	$b .= "  // 감출 주제 — 문마다\n";
+	$b .= "  var HIDE = {};\n";
+	$b .= "  HIDE['door-fortune'] = ['대운'];\n";
+	$b .= "  HIDE['door-health']  = ['부모운', '형제운', '자녀운'];\n";
+	$b .= "\n";
+	$b .= "  // 둘로 가를 주제 — [ 문, 본디 값, 새 값 둘 ]\n";
+	$b .= "  var SPLIT = ['door-fortune', '신년운세', ['2026년 운세', '2027년 운세']];\n";
+	$b .= "\n";
+	$b .= "  // 넣을 주제 — [ 문, 새 값, 이 주제 뒤에 ]\n";
+	$b .= "  var ADD = [\n";
+	$b .= "    ['door-love',   '이혼운', '이별운'],\n";
+	$b .= "    ['door-career', '퇴사운', '이직운']\n";
+	$b .= "  ];\n";
+	$b .= "\n";
+	$b .= "  function slug(){\n";
+	$b .= "    var p = String(location.pathname).split('/');\n";
+	$b .= "    var i;\n";
+	$b .= "    for(i = p.length - 1; i >= 0; i--){\n";
+	$b .= "      if(p[i]){ return p[i]; }\n";
+	$b .= "    }\n";
+	$b .= "    return '';\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function inputs(){\n";
+	$b .= "    return document.querySelectorAll('input[name=ssg-topic]');\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function labelOf(inp){\n";
+	$b .= "    var el = inp.parentNode;\n";
+	$b .= "    var up = 0;\n";
+	$b .= "    while(el){\n";
+	$b .= "      if(String(el.tagName).toLowerCase() === 'label'){ return el; }\n";
+	$b .= "      el = el.parentNode;\n";
+	$b .= "      up++;\n";
+	$b .= "      if(up > 4){ return null; }\n";
+	$b .= "    }\n";
+	$b .= "    return null;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function find(v){\n";
+	$b .= "    var r = inputs(), i;\n";
+	$b .= "    for(i = 0; i < r.length; i++){\n";
+	$b .= "      if(r[i].value === v){ return r[i]; }\n";
+	$b .= "    }\n";
+	$b .= "    return null;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  var here = slug();\n";
+	$b .= "  var did = 0;\n";
+	$b .= "\n";
+	$b .= "  // ① 감추기\n";
+	$b .= "  function hide(){\n";
+	$b .= "    var list = HIDE[here];\n";
+	$b .= "    if(!list){ return 0; }\n";
+	$b .= "    var n = 0, i, inp, lab;\n";
+	$b .= "    for(i = 0; i < list.length; i++){\n";
+	$b .= "      inp = find(list[i]);\n";
+	$b .= "      if(!inp){ continue; }\n";
+	$b .= "      lab = labelOf(inp);\n";
+	$b .= "      if(!lab){ continue; }\n";
+	$b .= "      if(lab.getAttribute('data-dt-hide') === '1'){ continue; }\n";
+	$b .= "      lab.setAttribute('data-dt-hide', '1');\n";
+	$b .= "      lab.style.display = 'none';\n";
+	$b .= "      inp.disabled = true;\n";
+	$b .= "      n++;\n";
+	$b .= "    }\n";
+	$b .= "    return n;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  // ② 가르기 — 이미 갈라져 있으면 물러납니다\n";
+	$b .= "  function split(){\n";
+	$b .= "    if(here !== SPLIT[0]){ return 0; }\n";
+	$b .= "    if(find(SPLIT[2][0])){ return 0; }   // nydoor 가 이미 했습니다\n";
+	$b .= "    var old = find(SPLIT[1]);\n";
+	$b .= "    if(!old){ return 0; }\n";
+	$b .= "    var lab = labelOf(old);\n";
+	$b .= "    if(!lab){ return 0; }\n";
+	$b .= "    if(!lab.parentNode){ return 0; }\n";
+	$b .= "\n";
+	$b .= "    var made = [], j, clone, node, span;\n";
+	$b .= "    for(j = 0; j < SPLIT[2].length; j++){\n";
+	$b .= "      clone = lab.cloneNode(true);\n";
+	$b .= "      node  = clone.querySelector('input[name=ssg-topic]');\n";
+	$b .= "      span  = clone.querySelector('span');\n";
+	$b .= "      if(!node){ continue; }\n";
+	$b .= "      node.value = SPLIT[2][j];\n";
+	$b .= "      node.checked = false;\n";
+	$b .= "      node.disabled = false;\n";
+	$b .= "      if(span){ span.textContent = SPLIT[2][j]; }\n";
+	$b .= "      clone.style.display = '';\n";
+	$b .= "      clone.setAttribute('data-dt-new', '1');\n";
+	$b .= "      made.push(clone);\n";
+	$b .= "    }\n";
+	$b .= "    if(!made.length){ return 0; }\n";
+	$b .= "    for(j = 0; j < made.length; j++){\n";
+	$b .= "      lab.parentNode.insertBefore(made[j], lab);\n";
+	$b .= "    }\n";
+	$b .= "    lab.parentNode.removeChild(lab);\n";
+	$b .= "    return made.length;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  // ③ 넣기\n";
+	$b .= "  function add(){\n";
+	$b .= "    var n = 0, i;\n";
+	$b .= "    for(i = 0; i < ADD.length; i++){\n";
+	$b .= "      if(ADD[i][0] !== here){ continue; }\n";
+	$b .= "      if(find(ADD[i][1])){ continue; }      // 이미 있습니다\n";
+	$b .= "      var after = find(ADD[i][2]);\n";
+	$b .= "      if(!after){ continue; }\n";
+	$b .= "      var lab = labelOf(after);\n";
+	$b .= "      if(!lab){ continue; }\n";
+	$b .= "      if(!lab.parentNode){ continue; }\n";
+	$b .= "\n";
+	$b .= "      var clone = lab.cloneNode(true);\n";
+	$b .= "      var node  = clone.querySelector('input[name=ssg-topic]');\n";
+	$b .= "      var span  = clone.querySelector('span');\n";
+	$b .= "      if(!node){ continue; }\n";
+	$b .= "      node.value = ADD[i][1];\n";
+	$b .= "      node.checked = false;\n";
+	$b .= "      node.disabled = false;\n";
+	$b .= "      if(span){ span.textContent = ADD[i][1]; }\n";
+	$b .= "      clone.style.display = '';\n";
+	$b .= "      clone.setAttribute('data-dt-new', '1');\n";
+	$b .= "      if(lab.nextSibling){ lab.parentNode.insertBefore(clone, lab.nextSibling); }\n";
+	$b .= "      else { lab.parentNode.appendChild(clone); }\n";
+	$b .= "      n++;\n";
+	$b .= "    }\n";
+	$b .= "    return n;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  // ④ 골라진 것이 감춰졌으면 첫 보이는 것으로 옮깁니다\n";
+	$b .= "  //    안 그러면 손님 눈에는 아무것도 안 골라진 것처럼 보입니다.\n";
+	$b .= "  function refix(){\n";
+	$b .= "    var r = inputs(), i, first = null, ok = false;\n";
+	$b .= "    for(i = 0; i < r.length; i++){\n";
+	$b .= "      var lab = labelOf(r[i]);\n";
+	$b .= "      var shown = true;\n";
+	$b .= "      if(lab){ if(lab.style.display === 'none'){ shown = false; } }\n";
+	$b .= "      if(!shown){ continue; }\n";
+	$b .= "      if(!first){ first = r[i]; }\n";
+	$b .= "      if(r[i].checked){ ok = true; }\n";
+	$b .= "    }\n";
+	$b .= "    if(ok){ return; }\n";
+	$b .= "    if(!first){ return; }\n";
+	$b .= "    first.checked = true;\n";
+	$b .= "    try {\n";
+	$b .= "      var ev = document.createEvent('HTMLEvents');\n";
+	$b .= "      ev.initEvent('change', true, true);\n";
+	$b .= "      first.dispatchEvent(ev);\n";
+	$b .= "    } catch(e){}\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  function run(){\n";
+	$b .= "    if(!inputs().length){ return false; }\n";
+	$b .= "    hide();\n";
+	$b .= "    split();\n";
+	$b .= "    add();\n";
+	$b .= "    refix();\n";
+	$b .= "    did = 1;\n";
+	$b .= "    return true;\n";
+	$b .= "  }\n";
+	$b .= "\n";
+	$b .= "  run();\n";
+	$b .= "  var n = 0;\n";
+	$b .= "  var t = setInterval(function(){\n";
+	$b .= "    n++;\n";
+	$b .= "    run();\n";
+	$b .= "    if(n > 25){ clearInterval(t); }\n";
+	$b .= "  }, 300);\n";
+	$b .= "})();\n";
+	$b .= "</script>\n";
+	echo $b;
+} );
+
+// ── 살펴보기 ──────────────────────────────────────────
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_doortopics'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+	echo "문 단추 정리 — 살펴보기\n";
+	echo "═══════════════════════════════════════════\n\n";
+
+	$plan = array(
+		'door-fortune' => array( 'hide' => array( '대운' ),
+			'split' => array( '신년운세', '2026년 운세 · 2027년 운세' ), 'add' => array() ),
+		'door-health'  => array( 'hide' => array( '부모운', '형제운', '자녀운' ),
+			'split' => null, 'add' => array() ),
+		'door-love'    => array( 'hide' => array(), 'split' => null,
+			'add' => array( array( '이혼운', '이별운' ) ) ),
+		'door-career'  => array( 'hide' => array(), 'split' => null,
+			'add' => array( array( '퇴사운', '이직운' ) ) ),
+	);
+
+	foreach ( $plan as $slug => $p ) {
+		$page = get_page_by_path( $slug );
+		echo $slug . "\n";
+		if ( ! $page ) { echo "   쪽이 없습니다\n\n"; continue; }
+		$c = (string) $page->post_content;
+
+		// 쪽에 든 주제 값을 그대로 읽습니다 (정규식을 안 씁니다)
+		$vs = array(); $at = 0;
+		while ( true ) {
+			$a = strpos( $c, 'name="ssg-topic" value="', $at );
+			if ( false === $a ) { break; }
+			$a = $a + strlen( 'name="ssg-topic" value="' );
+			$b = strpos( $c, '"', $a );
+			if ( false === $b ) { break; }
+			$vs[] = substr( $c, $a, $b - $a );
+			$at = $b;
+		}
+		echo '   지금  ' . implode( ' · ', $vs ) . "\n";
+
+		foreach ( $p['hide'] as $h ) {
+			echo '   감춤  ' . $h
+				. ( in_array( $h, $vs, true ) ? '' : '   (쪽에 없습니다)' ) . "\n";
+		}
+		if ( $p['split'] ) {
+			echo '   가름  ' . $p['split'][0] . '  →  ' . $p['split'][1];
+			echo in_array( $p['split'][0], $vs, true ) ? '' : '   (쪽에 없습니다)';
+			echo "\n";
+		}
+		foreach ( $p['add'] as $a2 ) {
+			echo '   넣음  ' . $a2[0] . '  (' . $a2[1] . ' 뒤)';
+			echo in_array( $a2[1], $vs, true ) ? '' : '   ★ 기댈 주제가 없습니다';
+			echo "\n";
+		}
+		echo "\n";
+	}
+
+	echo "책이 새 주제를 아는지는 여기서 봅니다\n";
+	echo '   ' . home_url( '/?stella_audit=1' ) . "\n";
+	echo "   표마다 어느 주제가 들어 있는지 찍어 줍니다.\n\n";
+
+	echo "눌러서 확인해 보세요\n";
+	foreach ( array(
+		'door-fortune' => array( '2026년 운세', '2027년 운세' ),
+		'door-health'  => array( '가족운' ),
+		'door-love'    => array( '이혼운' ),
+		'door-career'  => array( '퇴사운' ),
+	) as $slug => $ts ) {
+		foreach ( $ts as $t ) {
+			echo '   ' . home_url( '/' . $slug . '/?topic=' . $t ) . "\n";
+		}
+	}
+	exit;
+} );

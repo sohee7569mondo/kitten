@@ -1,0 +1,267 @@
+/* ════════════════════════════════════════════════════════════
+   홈 메인 배너 그림 고르기   tool_banner
+   ★ 2026-09-15 · 소희 님께
+
+   소희 님 : 「메인 배너라서 리스트에 없어」 — 맞습니다.
+   메인 배너는 <img> 가 아니라 CSS 배경 그림이라 tool_cards 가
+   못 잡습니다. 그래서 따로 만듭니다.
+
+   무엇을 하나
+     미디어에 올려두신 그림을 늘어놓고, 고르시면 홈 배너가 바뀝니다.
+     넓은 화면용과 폰용 두 군데를 같이 갈아 끼웁니다.
+
+   ★ 쪽을 안 고칩니다. 고르신 것을 따로 적어두고 화면에서만 덮습니다.
+     스위치를 끄면 그 즉시 옛 그림으로 돌아옵니다.
+   ★ 붙이기만 하면 새 배너(2026/09/jEnvE.jpg)로 바로 바뀝니다.
+     덮개도 「없이」로 두었습니다 — 그 그림은 왼쪽이 비어 있어
+     보라를 덧씌울 까닭이 없습니다.
+   ★ 옛 그림 : 2026/09/GVx48.jpg (쪽에 박혀 있습니다)
+
+        고르기   https://stellasaju.com/?stella_banner=1
+        되돌리기 그 화면 맨 아래 단추
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+/* 새 배너 그림 — 2026-09-15 소희 님이 주신 주소입니다 */
+if ( ! defined( 'STELLA_BANNER_NEW' ) ) {
+	define( 'STELLA_BANNER_NEW',
+		'https://stellasaju.com/wp-content/uploads/2026/09/jEnvE.jpg' );
+}
+
+/* ── 고른 그림을 홈에 씌웁니다 ────────────────────────── */
+add_action( 'wp_head', function () {
+	if ( ! is_front_page() ) { return; }
+	/* ★ 2026-09-15 · 소희 님이 새 배너를 올리고 주소를 주셨습니다.
+	   붙이기만 하면 바로 바뀌도록 이것을 기본값으로 둡니다.
+	   화면에서 다른 그림으로 바꾸실 수 있고, 「원래대로」를 누르면
+	   쪽에 박힌 옛 그림(GVx48)으로 돌아갑니다. */
+	$u = get_option( 'stella_banner_img', STELLA_BANNER_NEW );
+	if ( ! $u ) { return; }
+	if ( 'off' === $u ) { return; }
+	$u = esc_url( $u );
+
+	/* 덮개 세기 — 그림 위에 보라를 얼마나 씌울까
+	   진하게 : 지금 홈과 같음 (왼쪽 36% 를 아주 덮습니다)
+	   옅게   : 글씨 자리만 살짝
+	   없이   : 그림 그대로 (왼쪽이 이미 비어 있는 그림에 맞습니다) */
+	$veil = get_option( 'stella_banner_veil', 'none' );
+	if ( 'none' === $veil ) {
+		$wide = 'none';
+		$thin = 'none';
+	} elseif ( 'thin' === $veil ) {
+		$wide = 'linear-gradient(100deg, rgba(42,26,86,.72) 0%, rgba(42,26,86,.55) 40%, rgba(42,26,86,.15) 62%, rgba(42,26,86,0) 80%)';
+		$thin = 'linear-gradient(170deg, rgba(42,26,86,.78) 0%, rgba(42,26,86,.62) 46%, rgba(42,26,86,.28) 74%, rgba(42,26,86,.08) 100%)';
+	} else {
+		$wide = 'linear-gradient(100deg, #2A1A56 0%, #2A1A56 36%, rgba(42,26,86,.88) 50%, rgba(42,26,86,.35) 68%, rgba(42,26,86,0) 86%)';
+		$thin = 'linear-gradient(170deg, rgba(42,26,86,.92) 0%, rgba(42,26,86,.86) 46%, rgba(42,26,86,.55) 74%, rgba(42,26,86,.25) 100%)';
+	}
+	$img  = "url('" . $u . "')";
+	$bgw  = ( 'none' === $wide ) ? $img : ( $wide . ', ' . $img );
+	$bgt  = ( 'none' === $thin ) ? $img : ( $thin . ', ' . $img );
+	$repw = ( 'none' === $wide ) ? 'no-repeat' : 'no-repeat, no-repeat';
+	$posw = ( 'none' === $wide ) ? 'right center' : 'center, right center';
+	$szw  = ( 'none' === $wide ) ? 'cover' : 'cover, cover';
+	$post = ( 'none' === $thin ) ? '82% center' : 'center, 82% center';
+	$szt  = ( 'none' === $thin ) ? 'auto 116%' : 'cover, auto 116%';
+
+	/* ── 폰에서는 사진을 끕니다 ────────────────────────
+	   2026-09-15 · 소희 님 「모바일에선 사진 안보이게....」
+
+	   폰은 가로가 좁아 그림과 글이 같은 자리를 다툽니다. 덮개를
+	   「없이」로 두면 가디언 얼굴 위에 글이 겹쳐 안 읽힙니다.
+	   좁은 화면에서는 그림을 아예 끄고 보라 바탕만 둡니다.
+
+	   ?stella_banner=1 화면에서 「보이기」로 되돌릴 수 있습니다. */
+	$mob = get_option( 'stella_banner_mobile', 'hide' );
+	?>
+<!-- stella 홈 배너 그림 · 판 2026-09-15 -->
+<style id="stella-banner-img">
+#stellar-home .banner{
+  background-image: <?php echo $bgw; ?> !important;
+  background-repeat: <?php echo $repw; ?> !important;
+  background-position: <?php echo $posw; ?> !important;
+  background-size: <?php echo $szw; ?> !important; }
+@media(max-width:820px){
+  #stellar-home .banner{
+<?php if ( 'hide' === $mob ) { ?>
+    /* 폰에서는 사진을 끄고 보라 바탕만 — 글이 읽히게 */
+    background-image: none !important;
+    background-color: #2A1A56 !important;
+    min-height: 0 !important;
+<?php } else { ?>
+    background-image: <?php echo $bgt; ?> !important;
+    background-repeat: <?php echo $repw; ?> !important;
+    background-position: <?php echo $post; ?> !important;
+    background-size: <?php echo $szt; ?> !important;
+<?php } ?>
+  }
+}
+</style>
+	<?php
+} );
+
+/* ── 고르는 화면 ──────────────────────────────────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_banner'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	if ( isset( $_GET['mob'] ) ) {
+		check_admin_referer( 'stella_banner' );
+		$v = ( 'show' === $_GET['mob'] ) ? 'show' : 'hide';
+		update_option( 'stella_banner_mobile', $v );
+		wp_safe_redirect( add_query_arg( 'stella_banner', '1', home_url( '/' ) ) );
+		exit;
+	}
+
+	$now = get_option( 'stella_banner_img', STELLA_BANNER_NEW );
+
+	/* 고르기 · 되돌리기 */
+	if ( isset( $_GET['set'] ) ) {
+		check_admin_referer( 'stella_banner' );
+		$v = esc_url_raw( wp_unslash( $_GET['set'] ) );
+		/* 되돌리기는 'off' 로 적어둡니다. 옵션을 지우면 기본값(새 그림)
+		   으로 돌아가버려서 「원래대로」가 안 됩니다. */
+		if ( $v ) { update_option( 'stella_banner_img', $v ); }
+		else      { update_option( 'stella_banner_img', 'off' ); }
+		wp_safe_redirect( add_query_arg( 'stella_banner', '1', home_url( '/' ) ) );
+		exit;
+	}
+	if ( isset( $_GET['veil'] ) ) {
+		check_admin_referer( 'stella_banner' );
+		$w = sanitize_text_field( wp_unslash( $_GET['veil'] ) );
+		if ( ! in_array( $w, array( 'thick', 'thin', 'none' ), true ) ) { $w = 'thick'; }
+		update_option( 'stella_banner_veil', $w );
+		wp_safe_redirect( add_query_arg( 'stella_banner', '1', home_url( '/' ) ) );
+		exit;
+	}
+
+	$q = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '';
+	$imgs = get_posts( array(
+		'post_type'      => 'attachment',
+		'post_mime_type' => 'image',
+		'post_status'    => 'inherit',
+		'posts_per_page' => 80,
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+		's'              => $q,
+	) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!doctype html><meta charset="utf-8">';
+	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
+	echo '<title>홈 배너 그림 고르기</title>';
+	echo '<style>
+	 body{font:15px/1.7 system-ui,-apple-system,sans-serif; margin:0;
+	      background:#14112b; color:#F6F1E7; padding:20px;}
+	 h1{font-size:19px; margin:0 0 6px;}
+	 .dim{opacity:.7; font-size:13px;}
+	 .now{margin:16px 0; padding:14px; border:1px solid #4b3f82;
+	      border-radius:10px; background:#1d1840;}
+	 .now img{max-width:100%; border-radius:8px; display:block; margin-top:8px;}
+	 .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+	       gap:12px; margin-top:16px;}
+	 .cell{border:1px solid #3a3268; border-radius:10px; overflow:hidden;
+	       background:#1d1840;}
+	 .cell img{width:100%; height:110px; object-fit:cover; display:block;}
+	 .cell .nm{font-size:11px; padding:6px 8px; opacity:.8; word-break:break-all;}
+	 .cell a{color:inherit; text-decoration:none; display:block;}
+	 .cell:hover{border-color:#C79A4A;}
+	 .bar{margin:18px 0; display:flex; gap:10px; flex-wrap:wrap;}
+	 .btn{display:inline-block; padding:9px 16px; border-radius:8px;
+	      background:#C79A4A; color:#231a08; text-decoration:none; font-weight:700;}
+	 .btn.gray{background:#3a3268; color:#F6F1E7;}
+	 input[type=text]{padding:8px 10px; border-radius:8px; border:1px solid #4b3f82;
+	      background:#1d1840; color:#F6F1E7;}
+	</style>';
+
+	echo '<h1>홈 메인 배너 그림 고르기</h1>';
+	echo '<p class="dim">그림을 누르면 바로 바뀝니다. 쪽은 안 건드리므로 '
+	   . '언제든 되돌릴 수 있습니다.</p>';
+
+	echo '<div class="now"><b>지금 배너</b><br>';
+	if ( $now ) { if ( 'off' !== $now ) {
+		echo '<span class="dim">' . esc_html( $now ) . '</span>';
+		echo '<img src="' . esc_url( $now ) . '" alt="">';
+	} }
+	if ( ! $now || 'off' === $now ) {
+		echo '<span class="dim">되돌려 두셨습니다 — 쪽에 박힌 '
+		   . 'GVx48.jpg 가 그대로 나옵니다.</span>';
+	}
+	echo '</div>';
+
+	/* 덮개 세기 고르기 */
+	$veil = get_option( 'stella_banner_veil', 'none' );
+	$VN = array( 'thick' => '진하게 (지금 홈과 같음)',
+	             'thin'  => '옅게 (글씨 자리만)',
+	             'none'  => '없이 (그림 그대로)' );
+	echo '<div class="now"><b>글씨 뒤 보라 덮개</b><br>';
+	echo '<span class="dim">왼쪽이 비어 있는 그림이면 「없이」가 깔끔합니다. '
+	   . '글씨가 안 읽히면 「옅게」로 올리세요.</span><br>';
+	foreach ( $VN as $k => $label ) {
+		$go = wp_nonce_url( add_query_arg(
+			array( 'stella_banner' => '1', 'veil' => $k ), home_url( '/' ) ),
+			'stella_banner' );
+		$on = ( $veil === $k );
+		echo '<a class="btn' . ( $on ? '' : ' gray' ) . '" style="margin:8px 8px 0 0" href="'
+		   . esc_url( $go ) . '">' . esc_html( $label ) . ( $on ? ' ✓' : '' ) . '</a>';
+	}
+	echo '</div>';
+
+	/* 폰에서 사진을 보일까 말까 */
+	$mob = get_option( 'stella_banner_mobile', 'hide' );
+	echo '<div class="now"><b>폰에서 사진</b><br>';
+	echo '<span class="dim">폰은 가로가 좁아 그림과 글이 같은 자리를 다툽니다. '
+	   . '가디언 얼굴 위에 글이 겹쳐 안 읽히면 「안 보이기」로 두세요. '
+	   . '넓은 화면은 그대로입니다.</span><br>';
+	foreach ( array( 'hide' => '안 보이기 (보라 바탕만)',
+	                 'show' => '보이기' ) as $k3 => $lb3 ) {
+		$go3 = wp_nonce_url( add_query_arg(
+			array( 'stella_banner' => '1', 'mob' => $k3 ), home_url( '/' ) ),
+			'stella_banner' );
+		$on3 = ( $mob === $k3 );
+		echo '<a class="btn' . ( $on3 ? '' : ' gray' ) . '" style="margin:8px 8px 0 0" href="'
+		   . esc_url( $go3 ) . '">' . esc_html( $lb3 ) . ( $on3 ? ' ✓' : '' ) . '</a>';
+	}
+	echo '</div>';
+
+	$undo = wp_nonce_url( add_query_arg(
+		array( 'stella_banner' => '1', 'set' => '' ), home_url( '/' ) ), 'stella_banner' );
+	echo '<div class="bar">';
+	echo '<form method="get" action="' . esc_url( home_url( '/' ) ) . '">';
+	echo '<input type="hidden" name="stella_banner" value="1">';
+	echo '<input type="text" name="q" value="' . esc_attr( $q ) . '" '
+	   . 'placeholder="이름으로 찾기 (예: banner)"> ';
+	echo '<button class="btn" type="submit">찾기</button>';
+	echo '</form>';
+	echo '<a class="btn gray" href="' . esc_url( $undo ) . '">원래대로 되돌리기</a>';
+	echo '<a class="btn gray" href="' . esc_url( home_url( '/' ) ) . '">홈 보기</a>';
+	echo '</div>';
+
+	if ( ! $imgs ) {
+		echo '<p>그림을 못 찾았습니다.</p>';
+		exit;
+	}
+
+	echo '<p class="dim">최근 올리신 그림 ' . count( $imgs ) . '장입니다.</p>';
+	echo '<div class="grid">';
+	foreach ( $imgs as $im ) {
+		$full  = wp_get_attachment_url( $im->ID );
+		$thumb = wp_get_attachment_image_url( $im->ID, 'medium' );
+		if ( ! $thumb ) { $thumb = $full; }
+		$go = wp_nonce_url( add_query_arg(
+			array( 'stella_banner' => '1', 'set' => $full ), home_url( '/' ) ),
+			'stella_banner' );
+		echo '<div class="cell"><a href="' . esc_url( $go ) . '">';
+		echo '<img src="' . esc_url( $thumb ) . '" alt="" loading="lazy">';
+		echo '<div class="nm">' . esc_html( basename( $full ) ) . '</div>';
+		echo '</a></div>';
+	}
+	echo '</div>';
+	exit;
+} );

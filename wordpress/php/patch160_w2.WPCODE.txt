@@ -1,0 +1,116 @@
+/* ════════════════════════════════════════════════════════════
+   별자리로 가는 문구 빼기   ★ 2026-09-09 · 소희 님께
+
+   책 가운데에서 점성술 쪽을 가리키던 문장을 없앱니다.        (24)
+
+     한 줄로 줄여도 여전히 딴 데를 가리킵니다.
+     값을 낸 사람이 읽는 한가운데라 통째로 뺍니다.
+
+   ── 없애는 것 ─────────────────────────────────────────
+     여기까지 읽고 사주보다 별자리의 해설이 더 맞다고
+     생각하시면, 점성술에서 더 자세히 볼 수 있습니다.
+
+   ── 아직 안 바꾸셨을 때를 대비해 옛 문장도 같이 찾습니다 ──
+     사주는 태어난 때를 흙의 언어로 읽고, 별자리는 같은 때를
+     빛의 언어로 읽습니다. 여기서는 세 자리만 짚었어요.
+     더 보고 싶으시면 그 이야기가 따로 있습니다.
+
+   ★ 「여기까지가 맛보기입니다」는 그대로 둡니다. 그건
+     파는 말이 아니라 어디까지인지 알려주는 말입니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_w2=1
+   ② 정말 고치기 https://stellasaju.com/?stella_w2=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_w2=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_w2'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_w2_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_w2'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.85;'
+	   . 'padding:34px 24px;max-width:940px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.35rem;margin:0 0 18px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.88rem}a{color:#D4AF6A}'
+	   . 'table{border-collapse:collapse;width:100%}'
+	   . 'td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.09);font-size:.9rem}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	$swap = array(
+		'<p>여기까지 읽고 사주보다 별자리의 해설이 더 맞다고 생각하시면, ' => '',
+		'점성술에서 더 자세히 볼 수 있습니다.</p>'                        => '',
+		'<p>사주는 태어난 때를 흙의 언어로 읽고, 별자리는 같은 때를 빛의 언어로 읽습니다. ' => '',
+		'여기서는 세 자리만 짚었어요. 더 보고 싶으시면 그 이야기가 따로 있습니다.</p>'      => '',
+	);
+
+	$rows  = '';
+	$total = 0;
+	foreach ( $swap as $from => $to ) {
+		$n = substr_count( $c, $from );
+		$total += $n;
+		$rows .= '<tr><td>' . ( $n ? '<b>' . $n . '</b>' : '<span class="no">0</span>' )
+		       . '</td><td>' . esc_html( mb_substr( $from, 0, 70 ) ) . '</td>'
+		       . '<td>-> 없앰</td></tr>';
+	}
+
+	echo '<h1>' . ( 'apply' === $mode ? '없앴습니다' : '이렇게 없앱니다 (아직 안 고쳤습니다)' ) . '</h1>';
+	echo '<table>' . $rows . '</table>';
+
+	if ( 0 === $total ) {
+		echo '<h1 class="no">없앨 문장을 못 찾았습니다.</h1>';
+		echo '<p>아무것도 안 바꿨습니다. 이미 없앴을 수도 있습니다.</p>';
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 없애시려면 <code>/?stella_w2=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+
+	$new = strtr( $c, $swap );
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<p class="ok">없앴습니다. ' . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p><a href="/reading-book/?demo=door-love&v=' . time() . '">책 열어보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_w2=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

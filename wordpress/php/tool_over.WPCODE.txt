@@ -1,0 +1,168 @@
+/* ════════════════════════════════════════════════════════════
+   덮어쓰기 점검표 — 보기만 하는 도구        판 2026-09-16
+
+   소희 님 : 「덮어쓰는건 용량이 너무 많아 지는것 같아
+              페이지로 만들자고 했던거 같은데 자꾸 덮어쓰네」
+
+   「같아」를 숫자로 바꿔 드립니다. 아무것도 안 바꿉니다.
+
+       https://stellasaju.com/?stella_over=1        전체
+       https://stellasaju.com/?stella_over=uandme   그 쪽만
+       https://stellasaju.com/?stella_over=star-saju
+       https://stellasaju.com/?stella_over=home     홈
+
+   무엇을 보여드리나
+       · 그 쪽을 열 때 **실제로 실리는 조각**과 그 크기 합
+       · 울타리가 없어 **모든 쪽에 실리는** 조각
+       · 쪽에 이미 있는 글을 **덮어쓰는** 조각 (innerHTML 따위)
+
+   ★ 보안 — 조각 **이름과 크기만** 찍습니다. 안에 든 글은 한 자도
+     안 찍습니다. 열쇠가 든 조각이 있어 그렇습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_over'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$want = trim( (string) wp_unslash( $_GET['stella_over'] ) );
+	if ( '1' === $want ) { $want = ''; }
+
+	global $wpdb;
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_status, post_content FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode' ORDER BY post_title ASC" );
+
+	if ( ! $rows ) { echo '조각을 하나도 못 읽었습니다.'; exit; }
+
+	/* ── 한 조각을 뜯어봅니다 ───────────────────────────── */
+	$look = function ( $code ) {
+
+		$o = array( 'fence' => '', 'hook' => '', 'over' => '', 'pages' => array() );
+
+		/* 울타리 — 어느 쪽에서만 도는가 */
+		if ( false !== strpos( $code, 'is_front_page' ) ) { $o['fence'] = '있음'; }
+		if ( false !== strpos( $code, 'REQUEST_URI' ) )   { $o['fence'] = '있음'; }
+		if ( preg_match_all( "#is_page\\(\\s*'([^']+)'#", $code, $m ) ) {
+			$o['fence'] = '있음';
+			$o['pages'] = array_unique( $m[1] );
+		}
+		if ( false !== strpos( $code, 'stella_um_here' ) ) {
+			$o['fence']   = '있음';
+			$o['pages'][] = 'uandme';
+		}
+		if ( '' === $o['fence'] ) { $o['fence'] = '없음'; }
+
+		/* 거는 곳 */
+		$hk = array();
+		if ( false !== strpos( $code, "'wp_head'" ) )           { $hk[] = '머리'; }
+		if ( false !== strpos( $code, "'wp_footer'" ) )         { $hk[] = '발치'; }
+		if ( false !== strpos( $code, "'the_content'" ) )       { $hk[] = '본문'; }
+		if ( false !== strpos( $code, "'template_redirect'" ) ) { $hk[] = '가로채기'; }
+		$o['hook'] = $hk ? implode( '+', $hk ) : '—';
+
+		/* ★ 도구 조각 — 주소에 ?stella_xxx 를 넣어야만 도는 것.
+		   손님 화면에는 한 자도 안 실리므로 「실리는 양」에서 뺍니다. */
+		$o['tool'] = 0;
+		if ( false !== strpos( $code, "\$_GET['stella" ) ) {
+			if ( ! $hk ) { $o['tool'] = 1; }
+		}
+
+		/* 쪽에 이미 있는 글을 덮어쓰나 */
+		$ov = array();
+		if ( false !== strpos( $code, '.innerHTML' ) )  { $ov[] = 'innerHTML'; }
+		if ( false !== strpos( $code, '.outerHTML' ) )  { $ov[] = 'outerHTML'; }
+		if ( false !== strpos( $code, 'document.write' ) ) { $ov[] = 'write'; }
+		if ( false !== strpos( $code, '.textContent' ) ) { $ov[] = 'textContent'; }
+		$o['over'] = $ov ? implode( ' ', $ov ) : '';
+
+		return $o;
+	};
+
+	/* ── 이 쪽에 실리나 ─────────────────────────────────── */
+	$hits = function ( $o, $slug ) {
+		if ( '' === $slug ) { return true; }
+		if ( '없음' === $o['fence'] ) { return true; }
+		if ( ! $o['pages'] ) { return true; }   /* 울타리는 있는데 쪽 이름을 못 읽음 */
+		return in_array( $slug, $o['pages'], true );
+	};
+
+	$onAll = array();   /* 울타리 없음 — 모든 쪽에 */
+	$onHere = array();  /* 이 쪽에 */
+	$overs = array();   /* 덮어쓰는 것 */
+	$on = 0;
+	$off = 0;
+	$tools = 0;
+	$sumAll = 0;
+	$sumHere = 0;
+
+	foreach ( $rows as $r ) {
+
+		if ( 'publish' !== $r->post_status ) { $off++; continue; }
+		$on++;
+
+		$code = (string) $r->post_content;
+		$len  = strlen( $code );
+		$o    = $look( $code );
+
+		if ( $o['tool'] ) { $tools++; continue; }
+
+		$line = sprintf( '%6d  %-34s %7s자  %-10s 울타리 %s',
+			$r->ID, mb_substr( $r->post_title, 0, 34 ), number_format( $len ),
+			$o['hook'], $o['fence'] );
+
+		if ( '없음' === $o['fence'] ) {
+			$onAll[] = $line;
+			$sumAll += $len;
+		}
+
+		if ( $hits( $o, $want ) ) {
+			$onHere[] = $line;
+			$sumHere += $len;
+		}
+
+		if ( '' !== $o['over'] ) {
+			if ( $hits( $o, $want ) ) {
+				$overs[] = sprintf( '%6d  %-34s %-24s %s',
+					$r->ID, mb_substr( $r->post_title, 0, 34 ),
+					$o['over'], ( '없음' === $o['fence'] ? '★ 울타리 없음' : '' ) );
+			}
+		}
+	}
+
+	echo "═══ 덮어쓰기 점검표 ═══\n";
+	echo '조각 ' . count( $rows ) . '개  ·  켜짐 ' . $on . '  ·  꺼짐 ' . $off . "\n";
+	echo '그 가운데 ' . $tools . "개는 주소를 넣어야만 도는 도구라 뺐습니다.\n";
+	if ( '' !== $want ) { echo '보는 쪽 : ' . $want . "\n"; }
+	echo "\n";
+
+	echo "── ① 울타리가 없어 **모든 쪽**에 실리는 조각 ──\n";
+	echo '   ' . count( $onAll ) . '개  ·  합쳐서 ' . number_format( $sumAll ) . "자\n\n";
+	foreach ( $onAll as $l ) { echo $l . "\n"; }
+
+	if ( '' !== $want ) {
+		echo "\n── ② 「" . $want . "」 쪽을 열 때 실리는 조각 ──\n";
+		echo '   ' . count( $onHere ) . '개  ·  합쳐서 ' . number_format( $sumHere ) . "자\n\n";
+		foreach ( $onHere as $l ) { echo $l . "\n"; }
+	}
+
+	echo "\n── ③ 쪽에 이미 있는 글을 **덮어쓰는** 조각 ──\n";
+	echo "   (옛 모습이 한 번 보였다가 바뀌는 까닭입니다)\n";
+	echo '   ' . count( $overs ) . "개\n\n";
+	foreach ( $overs as $l ) { echo $l . "\n"; }
+
+	echo "\n────────────────────────────────────────────\n";
+	echo "고치는 자리로 가려면 조각 번호를 여기에 넣으세요 —\n";
+	echo admin_url( 'admin.php?page=wpcode-snippet-manager' ) . "\n";
+	echo "  ...?page=wpcode-snippet-manager" . chr( 38 ) . "snippet_id=조각번호\n";
+	echo "\n★ 조각 이름과 크기만 찍었습니다. 안에 든 글은 안 찍습니다.\n";
+
+	exit;
+
+}, 1 );

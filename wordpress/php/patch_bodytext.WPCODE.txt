@@ -1,0 +1,242 @@
+/* ════════════════════════════════════════════════════════════
+   본문 글씨 — 조금 크게 · 더 진하게   patch_bodytext
+   ★ 2026-09-15 · 소희 님께
+
+   소희 님 : 「지금 보는다 전체적으로 본문글씨가 작어...
+              조금 크고 검정색으로」
+
+   재 보니 까닭이 있었습니다 (크로미움으로 실제로 그려 잼) —
+
+       홈 본문   16px · rgb(34,28,51)          진한 편
+       책 본문   18.5px · 크림색 **72% 투명**  ← 흐린 까닭
+
+   책 본문은 어두운 바탕에 쓰려고 만든 크림색이라 불투명도가 72%
+   입니다. 종이색(밝은 바탕)으로 바뀐 지금은 그래서 흐립니다.
+
+   ── 무엇을 하나 ──
+     ① 글씨 크기 — **본문 요소만** 조금 키웁니다 (p · li · dd · td).
+        제목은 그대로 둡니다. 소희 님이 말씀하신 것이 본문이고,
+        뿌리 글씨를 키우는 길은 안 통합니다 — 본문이 px 로 박혀 있어
+        하나도 안 커지고 배너 제목만 커집니다 (재 보고 알았습니다).
+     ② 글씨 색 — **밝은 바탕 위의 본문만** 진하게 합니다.
+        어두운 배너·머리글의 흰 글씨는 건드리지 않습니다.
+        밝은지 어두운지는 **실제로 그려진 배경색을 재서** 정합니다.
+
+   ── 조절 ──
+     https://stellasaju.com/?stella_text=1
+       크기(100~120%)와 글씨색을 고르고, 「원래대로」 단추 하나로
+       되돌립니다. 쪽도 테마도 안 고칩니다.
+
+   ★ 유앤미(/uandme/)는 건드리지 않습니다 — 제 결이 따로 있습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+
+	/* 유앤미는 빼 둡니다 */
+	if ( function_exists( 'stella_um_here' ) ) {
+		if ( stella_um_here() ) { return; }
+	}
+
+	$on = get_option( 'stella_text_on', 'on' );
+	if ( 'off' === $on ) { return; }
+
+	$pct = (int) get_option( 'stella_text_pct', 107 );
+	if ( $pct < 100 ) { $pct = 100; }
+	if ( $pct > 120 ) { $pct = 120; }
+
+	$ink = (string) get_option( 'stella_text_ink', '#1E1B2A' );
+	if ( ! preg_match( '/^#[0-9A-Fa-f]{6}$/', $ink ) ) { $ink = '#1E1B2A'; }
+	?>
+<!-- stella 본문 글씨 · 판 2026-09-15 -->
+<style id="stella-bodytext">
+/* ★★ 뿌리 글씨(html font-size)를 키우는 길은 **안 통했습니다.**
+   크로미움으로 재 보니 본문이 px 로 박혀 있어 하나도 안 커졌습니다
+   (홈 16px · 책 18.5px 그대로). 커진 것은 clamp 를 쓴 배너 제목뿐이라
+   오히려 균형만 깨졌습니다. 그래서 **본문 요소를 직접** 키웁니다.
+   소희 님이 말씀하신 것도 「본문글씨」입니다 — 제목은 그대로 둡니다. */
+.stella-ink p,
+.stella-ink li,
+.stella-ink dd,
+.stella-ink td{
+  font-size: <?php echo number_format( $pct / 100, 3 ); ?>em !important;
+  color: <?php echo $ink; ?> !important;
+  opacity: 1 !important; }
+/* 굵은 글씨도 같은 빛깔로 — 흐린 회색으로 남지 않게 */
+.stella-ink p strong,
+.stella-ink li strong{ color: <?php echo $ink; ?> !important; }
+/* ★ 글씨가 커지면 줄 사이도 같이 벌어져야 답답하지 않습니다 */
+.stella-ink p{ line-height: 1.85 !important; }
+</style>
+<script>
+(function(){
+  if(window.StellaBodyText){ return; }
+  window.StellaBodyText = 1;
+
+  /* ── 배경색 읽기 ────────────────────────────────────
+     patch_paper 와 같은 그물입니다. 투명한 것은 제 색이 아니므로
+     위로 올라가며 진짜 바탕을 찾습니다. */
+  function rgb(v){
+    var m = String(v || '').match(/rgba?\(([^)]+)\)/);
+    if(!m){ return null; }
+    var p = m[1].split(',');
+    if(p.length < 3){ return null; }
+    return { r: parseFloat(p[0]), g: parseFloat(p[1]), b: parseFloat(p[2]),
+             a: (p.length > 3) ? parseFloat(p[3]) : 1 };
+  }
+  function isLight(v){
+    var c = rgb(v);
+    if(!c){ return false; }
+    if(c.a < 0.5){ return false; }
+    /* 밝기 — 종이색(#CECDBD) 도 밝은 쪽으로 봅니다 */
+    var y = (c.r * 299 + c.g * 587 + c.b * 114) / 1000;
+    return y >= 150;
+  }
+  function bgOf(el){
+    try{ return window.getComputedStyle(el).backgroundColor; }catch(e){ return ''; }
+  }
+  /* 이 자리의 진짜 바탕이 밝은가 — 위로 열 겹까지 올라갑니다 */
+  function lightHere(el){
+    var n = el, deep = 0;
+    while(n){
+      if(!n.tagName){ break; }
+      var v = bgOf(n);
+      var c = rgb(v);
+      if(c){ if(c.a >= 0.5){ return isLight(v); } }
+      deep++;
+      if(deep > 10){ break; }
+      n = n.parentNode;
+    }
+    /* 아무 바탕도 못 찾으면 흰 종이로 봅니다 */
+    return true;
+  }
+
+  /* ── 본문이 들어 있는 덩어리마다 표를 답니다 ────────
+     글자 하나하나를 재면 느립니다. 덩어리 단위로 한 번만 잽니다. */
+  var BOX = '#ssb .page, article, .entry-content, .wp-block-post-content, '
+          + 'main section, #stellar-home section, .sscard, .sswrap';
+
+  function mark(){
+    var els = document.querySelectorAll(BOX), i, el, n = 0;
+    for(i = 0; i < els.length; i++){
+      el = els[i];
+      if(el.getAttribute('data-ink')){ continue; }
+      el.setAttribute('data-ink', '1');
+      if(!lightHere(el)){ continue; }
+      el.className = String(el.className || '') + ' stella-ink';
+      n++;
+    }
+    return n;
+  }
+
+  var tries = 0;
+  function tick(){
+    tries++;
+    try{ mark(); }catch(e){ return; }
+    /* 책은 나중에 그려집니다. 한동안 지켜봅니다. */
+    if(tries < 30){ setTimeout(tick, 400); }
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', tick);
+  } else { tick(); }
+})();
+</script>
+	<?php
+} );
+
+/* ── 조절 화면 ────────────────────────────────────────── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_text'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	if ( isset( $_GET['pct'] ) ) {
+		check_admin_referer( 'stella_text' );
+		update_option( 'stella_text_pct', (int) $_GET['pct'] );
+		update_option( 'stella_text_on', 'on' );
+		wp_safe_redirect( add_query_arg( 'stella_text', '1', home_url( '/' ) ) );
+		exit;
+	}
+	if ( isset( $_GET['ink'] ) ) {
+		check_admin_referer( 'stella_text' );
+		$v = sanitize_text_field( wp_unslash( $_GET['ink'] ) );
+		if ( preg_match( '/^#[0-9A-Fa-f]{6}$/', $v ) ) {
+			update_option( 'stella_text_ink', $v );
+			update_option( 'stella_text_on', 'on' );
+		}
+		wp_safe_redirect( add_query_arg( 'stella_text', '1', home_url( '/' ) ) );
+		exit;
+	}
+	if ( isset( $_GET['off'] ) ) {
+		check_admin_referer( 'stella_text' );
+		update_option( 'stella_text_on', 'off' );
+		wp_safe_redirect( add_query_arg( 'stella_text', '1', home_url( '/' ) ) );
+		exit;
+	}
+
+	$on  = get_option( 'stella_text_on', 'on' );
+	$pct = (int) get_option( 'stella_text_pct', 107 );
+	$ink = (string) get_option( 'stella_text_ink', '#1E1B2A' );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<!doctype html><meta charset="utf-8">';
+	echo '<meta name="viewport" content="width=device-width,initial-scale=1">';
+	echo '<title>본문 글씨</title>';
+	echo '<style>
+	 body{font:15px/1.7 system-ui,-apple-system,sans-serif; margin:0;
+	      background:#F3EFE6; color:#221C33; padding:20px;}
+	 h1{font-size:19px; margin:0 0 6px;}
+	 .dim{opacity:.72; font-size:13px;}
+	 .now{margin:16px 0; padding:14px; border:1px solid #cfc6b4;
+	      border-radius:10px; background:#FBF8F1;}
+	 .btn{display:inline-block; padding:9px 16px; border-radius:8px;
+	      background:#3F3A52; color:#fff; text-decoration:none; font-weight:700;
+	      margin:8px 8px 0 0;}
+	 .btn.gray{background:#ded6c6; color:#3F3A52;}
+	 .sample{margin-top:14px; padding:16px; border-radius:10px; background:#CECDBD;}
+	</style>';
+
+	echo '<h1>본문 글씨</h1>';
+	echo '<p class="dim">지금 ' . ( 'off' === $on ? '<b>꺼져 있습니다</b>' : '켜져 있습니다' )
+	   . ' · 크기 ' . $pct . '% · 색 ' . esc_html( $ink ) . '</p>';
+
+	echo '<div class="now"><b>크기</b><br>';
+	echo '<span class="dim">본문 글씨만 키웁니다. 제목은 그대로라 균형이 '
+	   . '안 깨집니다. 107% 쯤이 무난합니다.</span><br>';
+	foreach ( array( 100, 104, 107, 110, 114, 118 ) as $k ) {
+		$go = wp_nonce_url( add_query_arg(
+			array( 'stella_text' => '1', 'pct' => $k ), home_url( '/' ) ), 'stella_text' );
+		$sel = ( $pct === $k );
+		echo '<a class="btn' . ( $sel ? '' : ' gray' ) . '" href="' . esc_url( $go ) . '">'
+		   . $k . '%' . ( $sel ? ' ✓' : '' ) . '</a>';
+	}
+	echo '</div>';
+
+	echo '<div class="now"><b>글씨 색</b><br>';
+	echo '<span class="dim">밝은 바탕 위의 본문에만 씁니다. 어두운 배너나 '
+	   . '머리글의 흰 글씨는 안 건드립니다.</span><br>';
+	$INK = array( '#000000' => '완전 검정', '#141220' => '먹빛',
+	              '#1E1B2A' => '진한 남색빛 (권함)', '#332C4A' => '조금 옅게' );
+	foreach ( $INK as $v => $lbl ) {
+		$go = wp_nonce_url( add_query_arg(
+			array( 'stella_text' => '1', 'ink' => $v ), home_url( '/' ) ), 'stella_text' );
+		$sel = ( strtolower( $ink ) === strtolower( $v ) );
+		echo '<a class="btn' . ( $sel ? '' : ' gray' ) . '" href="' . esc_url( $go ) . '">'
+		   . esc_html( $lbl ) . ( $sel ? ' ✓' : '' ) . '</a>';
+	}
+	echo '<div class="sample" style="color:' . esc_attr( $ink ) . '">'
+	   . '<p style="margin:0">종이색 위에서 이렇게 보입니다. 삼재는 세 해에 걸친 '
+	   . '흐름이고, 올해 운은 한 해의 흐름입니다. 둘은 따로 움직이지 않습니다.</p></div>';
+	echo '</div>';
+
+	$off = wp_nonce_url( add_query_arg(
+		array( 'stella_text' => '1', 'off' => '1' ), home_url( '/' ) ), 'stella_text' );
+	echo '<a class="btn gray" href="' . esc_url( $off ) . '">원래대로 (이 조각 끄기)</a> ';
+	echo '<a class="btn" href="' . esc_url( home_url( '/' ) ) . '">홈에서 보기</a>';
+	exit;
+}, 1 );

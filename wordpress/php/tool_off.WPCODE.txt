@@ -1,0 +1,129 @@
+/* ══════════════════════════════════════════════════════════
+   다 쓴 스니펫 한꺼번에 끄기 · 소희 님께        2026-09-11
+   ── 판 : OFF-1 (2026-09-11) ──
+
+   ★ 지우지 않습니다. 「끄기」만 합니다.
+   ★ 한 번에 전부 되돌릴 수 있습니다.  ?stella_off911=undo
+
+   끄는 것 : 이미 책과 쪽에 붙여버린 패치, 그리고 확인 도구들.
+             끈다고 사이트가 달라지지 않습니다.
+             나중에 되돌릴 일이 생기면 그때 한 개만 다시 켜면 됩니다.
+
+   안 끄는 것 (일부러 뺐습니다) :
+       203 회원가입 · 265 포트원 백엔드 · 824 비밀번호 로그인
+       761 762 770 771 유앤미 · 772 주소 열어주기 · 773 소셜 카드
+       810 811 이상형 · 1048 Book_BK · 1102 러브카드
+       1155 tool_snip · 1192 patch_find  (쓸모가 남은 도구)
+       그리고 오늘 만든 것 전부 (되돌리기가 아직 살아 있어야 하니까요)
+
+   주소
+     해보기   https://stellasaju.com/?stella_off911=preview
+     끄기     https://stellasaju.com/?stella_off911=apply
+     되돌리기 https://stellasaju.com/?stella_off911=undo
+
+   ★ 스니펫 이름 「STELLA - 한꺼번에 끄기」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_off911'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_off911'] ) );
+	$SAVE = '_stella_off911_prev';
+
+	$IDS = array(
+		692, 695, 699, 701, 702, 712, 719,
+		736, 737, 738, 739, 740, 741, 742, 743, 744, 745, 746, 747, 748, 749, 750,
+		756, 757, 758, 759,
+		881, 885, 886, 887, 888, 889, 891, 892, 893, 894, 895, 896, 897, 898,
+		913, 916, 917, 918, 919, 920, 921, 922, 923, 924, 925, 926,
+		927, 928, 929, 931, 932, 933, 934, 935, 936, 937, 938, 939,
+		940, 941, 942, 943, 944, 953, 991,
+		1014, 1016, 1017, 1018, 1021, 1022, 1023, 1025, 1026, 1027, 1028,
+		1029, 1030, 1031, 1032, 1033, 1034, 1035, 1036, 1037, 1038, 1039,
+		1040, 1041, 1042, 1043, 1044, 1049, 1050,
+		1060, 1061, 1067, 1068, 1069, 1071, 1072, 1073, 1074, 1075, 1076,
+		1081, 1082, 1083, 1084, 1093, 1094, 1095, 1096, 1097, 1098,
+		1100, 1101, 1103, 1104, 1105, 1106, 1107, 1108, 1109,
+		1110, 1111, 1112, 1113, 1114, 1115, 1116, 1117, 1118, 1119,
+		1120, 1121, 1123, 1124, 1125, 1126, 1127, 1128, 1129,
+		1131, 1132, 1133,
+		1148, 1149, 1150, 1151, 1152, 1153, 1154, 1156, 1157, 1158,
+		1166, 1167, 1168, 1169, 1171, 1172, 1173, 1174, 1177, 1178,
+		1183, 1184, 1191, 1193,
+	);
+
+	/* 절대로 안 건드리는 것 — 실수로 목록에 들어가도 막습니다 */
+	$NEVER = array( 203, 265, 266, 761, 762, 770, 771, 772, 773, 810, 811, 824,
+	                1019, 1048, 1085, 1086, 1087, 1088, 1089, 1090, 1092, 1102,
+	                1122, 1130, 1155, 1170, 1192,
+	                1194, 1195, 1197, 1198, 1199, 1200, 1201, 1202, 1203, 1204,
+	                1205, 1206, 1207, 1208, 1209, 1210, 1211, 1212 );
+
+	echo "═══ 한꺼번에 끄기 · 판 OFF-1 (2026-09-11) ═══\n\n";
+
+	if ( 'undo' === $mode ) {
+		$prev = get_option( $SAVE );
+		if ( ! is_array( $prev ) || ! count( $prev ) ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$n = 0;
+		foreach ( $prev as $pid => $st ) {
+			$p = get_post( (int) $pid );
+			if ( ! $p || 'wpcode' !== $p->post_type ) { continue; }
+			wp_update_post( array( 'ID' => (int) $pid, 'post_status' => $st ) );
+			$n++;
+		}
+		delete_option( $SAVE );
+		echo $n . "개를 도로 켰습니다.\n";
+		exit;
+	}
+
+	$todo = array();
+	$skip = array();
+	foreach ( $IDS as $pid ) {
+		if ( in_array( $pid, $NEVER, true ) ) { $skip[] = $pid . ' (안 건드림 목록)'; continue; }
+		$p = get_post( $pid );
+		if ( ! $p ) { $skip[] = $pid . ' (없음)'; continue; }
+		if ( 'wpcode' !== $p->post_type ) { $skip[] = $pid . ' (스니펫이 아님)'; continue; }
+		if ( 'publish' !== $p->post_status ) { $skip[] = $pid . ' (이미 꺼짐)'; continue; }
+		$todo[ $pid ] = $p->post_title;
+	}
+
+	echo '끌 것 ' . count( $todo ) . "개\n";
+	echo '건너뛸 것 ' . count( $skip ) . "개\n\n";
+
+	if ( 'preview' === $mode ) {
+		echo "─── 끌 목록 ───\n";
+		foreach ( $todo as $pid => $t ) {
+			echo '  ' . $pid . '  ' . mb_substr( (string) $t, 0, 40, 'UTF-8' ) . "\n";
+		}
+		echo "\n─── 건너뛴 것 ───\n";
+		foreach ( $skip as $s ) { echo '  ' . $s . "\n"; }
+		echo "\n괜찮으시면 ?stella_off911=apply\n";
+		echo "끄고 나서 사이트를 한 바퀴 둘러봐 주세요.\n";
+		echo "이상하면 ?stella_off911=undo 한 번이면 전부 돌아옵니다.\n";
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) { echo 'preview - apply - undo 중에 골라주세요.'; exit; }
+
+	if ( ! count( $todo ) ) { echo '끌 것이 없습니다.'; exit; }
+
+	$prev = array();
+	$n    = 0;
+	foreach ( $todo as $pid => $t ) {
+		$prev[ $pid ] = 'publish';
+		wp_update_post( array( 'ID' => (int) $pid, 'post_status' => 'draft' ) );
+		$n++;
+	}
+	update_option( $SAVE, $prev, false );
+
+	echo $n . "개를 껐습니다.\n\n";
+	echo "이제 사이트를 한 바퀴 둘러봐 주세요.\n";
+	echo "  홈 · 로그인 · 마이페이지 · 결제 · 문 여섯 · 책\n\n";
+	echo "하나라도 이상하면 ?stella_off911=undo — 한 번에 전부 돌아옵니다.\n";
+	exit;
+}, 1 );

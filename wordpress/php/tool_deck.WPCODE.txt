@@ -1,0 +1,110 @@
+/* ════════════════════════════════════════════════════════════
+   쪽에 적힌 말 전부 보기 (읽기만)   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   그 쪽에 적힌 우리말 문장을 순서대로 다 뽑아서 보여줍니다.
+   글이 어디서 길어지는지, 어떤 말이 실제로 적혀 있는지
+   이걸로 봅니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 벼리가 묻는 쪽   https://stellasaju.com/?stella_deck=reading-start
+   ② 다 세웠습니다 쪽 https://stellasaju.com/?stella_deck=reading-ready
+   ③ 문 첫 화면       https://stellasaju.com/?stella_deck=door-love
+
+   너무 길면 뒤가 잘립니다. 그때는 뒤쪽을 이렇게 보세요.
+      https://stellasaju.com/?stella_deck=reading-start%26p=2
+
+   ★ 브라우저 번역을 끄고 여세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_deck'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$slug = sanitize_title( wp_unslash( $_GET['stella_deck'] ) );
+	$part = isset( $_GET['p'] ) ? absint( $_GET['p'] ) : 1;
+	if ( $part < 1 ) { $part = 1; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.6;'
+	   . 'padding:26px 18px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.25rem;margin:0 0 14px}'
+	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.85rem}'
+	   . 'ol{padding-left:2.4em;margin:10px 0}'
+	   . 'li{margin:3px 0;font-size:.9rem}'
+	   . '.len{color:#8B849C;font-size:.76rem}'
+	   . '.big{color:#F0D9A8}'
+	   . 'code{background:rgba(212,175,106,.12);padding:2px 5px;border-radius:3px}'
+	   . '</style>';
+
+	$page = get_page_by_path( $slug );
+	if ( ! $page ) { echo '<h1 class="no">' . esc_html( $slug ) . ' 쪽을 못 찾았습니다.</h1>'; exit; }
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $page->ID ) );
+
+	echo '<h1>' . esc_html( $slug ) . ' · ' . esc_html( $page->post_title )
+	   . ' · ' . number_format( strlen( $c ) ) . ' 바이트</h1>';
+
+	if ( ! mb_check_encoding( $c, 'UTF-8' ) ) {
+		echo '<p class="no">글자가 깨져 있어서 뽑을 수 없습니다.</p>';
+		exit;
+	}
+
+	$out = array();
+	$ok  = preg_match_all(
+		'/[가-힣][가-힣0-9A-Za-z ,.\-·…?!%()\x{2018}\x{2019}\x{201C}\x{201D}\x{300C}\x{300D}]{7,}/u',
+		$c, $m );
+
+	if ( false === $ok ) {
+		echo '<p class="no">글을 뽑는 데 실패했습니다.</p>';
+		exit;
+	}
+	if ( ! empty( $m[0] ) ) { $out = $m[0]; }
+
+	/* 같은 말이 이어서 두 번 나오면 한 번만 */
+	$list = array();
+	$prev = '';
+	foreach ( $out as $s ) {
+		$s = trim( $s );
+		if ( '' === $s ) { continue; }
+		if ( $s === $prev ) { continue; }
+		$prev   = $s;
+		$list[] = $s;
+	}
+
+	$per   = 260;
+	$total = count( $list );
+	$pages = (int) ceil( $total / $per );
+	if ( $pages < 1 ) { $pages = 1; }
+	$from  = ( $part - 1 ) * $per;
+	$slice = array_slice( $list, $from, $per );
+
+	echo '<p class="dim">문장 ' . number_format( $total ) . '개 가운데 '
+	   . ( $from + 1 ) . ' ~ ' . ( $from + count( $slice ) ) . '번. '
+	   . '모두 ' . $pages . '쪽입니다.</p>';
+
+	echo '<ol start="' . ( $from + 1 ) . '">';
+	foreach ( $slice as $s ) {
+		$n   = mb_strlen( $s );
+		$cls = ( $n > 70 ) ? ' class="big"' : '';
+		echo '<li' . $cls . '>' . esc_html( $s )
+		   . ' <span class="len">' . $n . '</span></li>';
+	}
+	echo '</ol>';
+
+	if ( $part < $pages ) {
+		echo '<p>다음 쪽 — 주소 끝을 <code>%26p=' . ( $part + 1 ) . '</code> 로 바꿔 여세요.</p>';
+	}
+	echo '<p class="dim">노란 글씨는 70자가 넘는 문장입니다. 긴 글은 대개 여기 있습니다.</p>';
+
+	exit;
+}, 0 );

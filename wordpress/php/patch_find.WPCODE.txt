@@ -1,0 +1,117 @@
+/* ════════════════════════════════════════════════════════════
+   글 찾기 (읽기만 합니다)   ★ 2026-09-08
+
+   사이트의 모든 쪽에서 찾는 말이 어디에 몇 군데 있는지,
+   앞뒤 글까지 같이 보여줍니다. 아무것도 바꾸지 않습니다.
+
+   왜 만들었나 —
+   제 저장소 사본이 사이트의 진짜 글보다 뒤처져 있을 때가 많습니다.
+   그래서 「어디를 고쳐야 하나」를 사본으로 짐작하면 자꾸 틀립니다.
+   이 스니펫은 사이트에서 곧장 읽어옵니다.
+
+   쓰는 법 — 찾을 말을 주소 뒤에 붙이세요.
+
+     https://stellasaju.com/?stella_look=수비학
+     https://stellasaju.com/?stella_look=라이프패스
+     https://stellasaju.com/?stella_look=명성의 신
+
+   여러 말을 한 번에 보시려면 세로줄로 나눠 적으세요.
+
+     https://stellasaju.com/?stella_look=수비학|라이프패스
+
+   ★ 이 스니펫은 켜두셔도 안전합니다. 읽기만 하고,
+     관리자로 들어오신 분에게만 보입니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_look'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$raw = wp_unslash( $_GET['stella_look'] );
+	$raw = wp_strip_all_tags( $raw );
+	$words = array();
+	foreach ( explode( '|', $raw ) as $w ) {
+		$w = trim( $w );
+		if ( '' !== $w ) { $words[] = $w; }
+	}
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:960px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:24px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'mark{background:#D4AF6A;color:#12101B;padding:0 3px;border-radius:2px}'
+	   . 'pre{white-space:pre-wrap;word-break:break-all;background:rgba(255,255,255,.04);'
+	   . 'padding:10px 12px;border-radius:6px;font-size:.84rem;line-height:1.7;margin:6px 0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	if ( ! $words ) {
+		echo '<h1>찾을 말을 적어주세요</h1>';
+		echo '<p>예 : <code>/?stella_look=수비학</code></p>';
+		exit;
+	}
+
+	echo '<h1>「' . esc_html( implode( '」 「', $words ) ) . '」 찾기</h1>';
+
+	$ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} "
+		. "WHERE post_type = 'page' AND post_status IN ('publish','draft','private') ORDER BY ID" );
+
+	$pages = 0; $total = 0;
+
+	foreach ( $ids as $id ) {
+
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT ID, post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		if ( ! $row ) { continue; }
+
+		$c = $row->post_content;
+		$t = $row->post_title;
+
+		$sum = 0;
+		foreach ( $words as $w ) { $sum += substr_count( $c, $w ) + substr_count( $t, $w ); }
+		if ( ! $sum ) { continue; }
+
+		$pages++; $total += $sum;
+
+		echo '<h2>' . esc_html( $t ) . ' <span class="dim">(' . intval( $id )
+		   . ' &middot; ' . intval( $sum ) . '군데)</span></h2>';
+
+		foreach ( $words as $w ) {
+			$at = 0; $shown = 0;
+			while ( true ) {
+				$at = strpos( $c, $w, $at );
+				if ( false === $at ) { break; }
+				if ( $shown < 6 ) {
+					$from = max( 0, $at - 90 );
+					$len  = strlen( $w ) + 180;
+					$bit  = substr( $c, $from, $len );
+					$bit  = esc_html( $bit );
+					$bit  = str_replace( esc_html( $w ), '<mark>' . esc_html( $w ) . '</mark>', $bit );
+					echo '<pre>…' . $bit . '…</pre>';
+				}
+				$shown++;
+				$at += strlen( $w );
+			}
+			if ( $shown > 6 ) {
+				echo '<p class="dim">「' . esc_html( $w ) . '」는 ' . intval( $shown )
+				   . '군데인데 여섯 군데만 보여드렸습니다.</p>';
+			}
+		}
+	}
+
+	echo '<h2>정리</h2>';
+	if ( $pages ) {
+		echo '<p class="ok">' . intval( $pages ) . '쪽에서 ' . intval( $total ) . '군데 찾았습니다.</p>';
+	} else {
+		echo '<p class="no">한 군데도 없습니다.</p>';
+	}
+	echo '<p class="dim">이 화면은 읽기만 했습니다. 아무것도 바꾸지 않았습니다.</p>';
+	exit;
+}, 0 );

@@ -1,0 +1,155 @@
+/* ════════════════════════════════════════════════════════════
+   장 속표지를 넣고, 근거는 뒤로 옮깁니다
+
+   지금 손님은 자기 이야기를 만나기까지 근거 여섯 쪽(4,134자)을
+   먼저 읽어야 합니다. 연애운을 사신 분이 연애 이야기를 보기 전에
+   진태양시하고 오행하고 충·합을 다 읽고 있는 겁니다.
+
+   여덟 글자(근거 둘)만 앞에 남기고 나머지 다섯을 맺음말 앞으로
+   옮깁니다. 여덟 글자는 손님이 보고 싶어 하는 것이라서 남깁니다.
+   나머지는 없애는 게 아니라 자리만 옮기는 것이라, 보고 싶은 분은
+   보고 안 보는 분은 안 봅니다. 지금은 모두가 읽어야 합니다.
+
+   그리고 장이 바뀌는 자리마다 속표지를 한 쪽씩 넣습니다.
+
+     제 1 장 · 사주가 말하는 소희님 모습
+              여덟 글자를 보고 전해드립니다.
+     제 2 장 · 답이 말하는 소희님 모습
+              처음에 여쭤본 일곱 가지를 보고 전해드립니다.
+     제 3 장 · 현재의 모습
+              사주 속 타고난 결하고 지금 살고 계신 모습을 살펴봅니다.
+     제 4 장 · (고르신 주제)
+              여기서부터가 소희님이 처음에 물어보신 것입니다.
+     제 5 장 · 마지막에 놓는 세 장
+              사주는 태어날 때 정해진 것이지만, 카드는 지금과 그다음을 읽습니다.
+
+     뒤에 붙이는 것 · 제가 계산한 자리
+              앞의 풀이가 어디서 나온 셈인지 궁금하시면 여기를 보세요.
+
+   가운데 동그라미에는 가디언 이름을 넣어두었습니다. 벼리 그림이
+   나오면 그 자리에 그대로 갈아 끼우면 됩니다. 크기는 잡아뒀습니다.
+
+   색은 지금 책을 그대로 따릅니다 — 제1장은 금색, 제2장부터는 보라색.
+   손님이 「여기서부터는 내가 답한 걸 읽는구나」를 색으로 압니다.
+
+   장 번호는 실제로 들어간 순서대로 다시 셉니다. 카드를 안 뽑으셨거나
+   그 주제 글이 아직 없으면 장 하나가 통째로 빠지는데, 그때 「제3장
+   다음이 제5장」이 되면 빠뜨린 것처럼 보이기 때문입니다.
+
+   쪽번호도 처음부터 다시 매깁니다.
+
+   재본 것 (문 여섯 × 카드 있음/없음)
+     짝사랑 34 → 38쪽 · 직장운 28 → 32쪽 · 별자리 23 → 27쪽
+     모든 경우에서 속표지 자리와 쪽번호가 맞는 것을 확인했습니다.
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로 바꾸세요.
+     기본값인 「사이트 전체 헤더」로 두면 아래 주소가 그냥 홈으로 넘어갑니다.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_div=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_div=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_div=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_div'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_div_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_div'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		echo '<p><a href="/reading-book/">책 보기</a></p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	$jobs = array();
+	$jobs[] = array(
+		'name' => '① 속표지 모양 (CSS)',
+		'find' => '/\\/\\*\\s+──\\s+가디언\\s+육성\\s+─────────────────────────\\s+\\*\\//u',
+		'to'   => "/* ── 장 속표지 ─────────────────────────── */\n#ssb .divider{\n  text-align:center; padding:96px 56px 104px;\n  display:flex; flex-direction:column; justify-content:center;\n}\n#ssb .divider .dvmark{\n  width:118px; height:118px; margin:0 auto 42px;\n  border:1px solid var(--rule); border-radius:50%;\n  display:flex; align-items:center; justify-content:center;\n}\n#ssb .divider .dvmark span{\n  font-family:var(--serif); font-size:1.05rem; color:var(--gold);\n}\n#ssb .divider[data-part=\"two\"] .dvmark{border-color:rgba(154,134,216,.28);}\n#ssb .divider[data-part=\"two\"] .dvmark span{color:var(--speak-lite);}\n#ssb .divider .dvno{\n  font-family:var(--mono); font-size:.72rem; letter-spacing:.22em;\n  color:var(--gold); margin:0 0 16px;\n}\n#ssb .divider[data-part=\"two\"] .dvno{color:var(--speak-lite);}\n#ssb .divider h2{font-size:1.72rem; margin:0;}\n#ssb .divider .dvrule{width:44px; height:1px; background:var(--rule); margin:32px auto;}\n#ssb .divider .dvwhat{\n  margin:0; color:var(--dim); font-size:.95rem; line-height:1.9; text-wrap:balance;\n}\n@media(max-width:640px){\n  #ssb .divider{display:block; padding:62px 26px 70px;}\n  #ssb .divider .dvmark{width:96px; height:96px; margin-bottom:32px;}\n  #ssb .divider h2{font-size:1.34rem;}\n}\n\n/* ── 가디언 육성 ───────────────────────── */",
+	);
+
+	$jobs[] = array(
+		'name' => '② 장 속표지 넣기 · 근거 뒤로 · 쪽번호 다시',
+		'find' => '/\\s+\\$\\(\'bkBook\'\\)\\.innerHTML\\s+=\\s+pages\\.join\\(\'\'\\);\\s+\\$\\(\'bkTitle\'\\)\\.textContent\\s+=\\s+g\\.name\\s+\\+\\s+\'\\s+·\\s+\'\\s+\\+\\s+topic;/u',
+		'to'   => "  /* ══ 2026-09-07 · 장 속표지 · 근거는 뒤로 ═══════════════════\n     지금까지는 손님이 자기 이야기를 만나기까지 근거 여섯 쪽(4,134자)을\n     먼저 읽어야 했습니다. 여덟 글자(근거 둘)만 앞에 남기고 나머지 다섯은\n     맺음말 앞으로 옮깁니다. 없애는 게 아니라 자리만 옮기는 것이라,\n     보고 싶은 분은 보고 안 보는 분은 안 봅니다.\n     그리고 장이 바뀌는 자리마다 속표지를 한 쪽씩 넣습니다.\n     쪽을 다 옮기고 나서 쪽번호를 처음부터 다시 매깁니다. */\n  (function(){\n    var EB='<p class=\"eyebrow\">';\n\n    function findMark(mark){\n      var i;\n      for(i=0; i<pages.length; i++){ if(pages[i].indexOf(mark)>=0){ return i; } }\n      return -1;\n    }\n    function lastMark(mark){\n      var i, r=-1;\n      for(i=0; i<pages.length; i++){ if(pages[i].indexOf(mark)>=0){ r=i; } }\n      return r;\n    }\n    function sheet(no, title, what, part, isCh){\n      var attr = part ? ' data-part=\"'+part+'\"' : '';\n      var cls  = isCh ? 'dvno dvch' : 'dvno';\n      return '<div class=\"page divider\"'+attr+'>'+\n             '<div class=\"dvmark\"><span>'+esc(g.name)+'</span></div>'+\n             '<p class=\"'+cls+'\">'+no+'</p>'+\n             '<h2>'+title+'</h2>'+\n             '<div class=\"dvrule\"></div>'+\n             '<p class=\"dvwhat\">'+what+'</p>'+\n             '<div class=\"folio\"></div></div>';\n    }\n    function put(at, html){\n      if(at < 0){ return; }\n      if(at > pages.length){ return; }\n      pages.splice(at, 0, html);\n    }\n\n    /* ── 근거 다섯 쪽을 맺음말 앞으로 ── */\n    var BACK=['근거 하나','근거 셋','근거 넷','근거 다섯','근거 여섯'];\n    var moved=[], bi, at;\n    for(bi=0; bi<BACK.length; bi++){\n      at=findMark(EB+BACK[bi]+'</p>');\n      if(at>=0){ moved.push(pages[at]); pages.splice(at,1); }\n    }\n    if(moved.length>0){\n      var end=findMark(EB+'맺음말</p>');\n      if(end<0){ end=pages.length; }\n      pages.splice.apply(pages, [end,0].concat(\n        [sheet('뒤에 붙이는 것','제가 계산한 자리',\n          '앞의 풀이가 어디서 나온 셈인지 궁금하시면 여기를 보세요. 안 보셔도 풀이는 그대로입니다.','')],\n        moved));\n    }\n\n    /* ── 속표지 · 뒤에서부터 끼웁니다(앞자리가 안 밀리도록) ── */\n    var t5=findMark(EB+'마지막에 놓는 세 장</p>');\n    if(t5>=0){\n      put(t5, sheet('제 5 장','마지막에 놓는 세 장',\n        '사주는 태어날 때 정해진 것이지만, 카드는 지금과 그다음을 읽습니다.','two',1));\n    }\n\n    var gapLast=lastMark(EB+'어긋나는 자리</p>');\n    if(gapLast>=0){\n      var door=gapLast+1, okDoor=true;\n      if(door>=pages.length){ okDoor=false; }\n      else {\n        var nx=pages[door];\n        if(nx.indexOf(EB+'맺음말</p>')>=0){ okDoor=false; }\n        if(nx.indexOf(EB+'뒤에 붙이는 것')>=0){ okDoor=false; }\n        if(nx.indexOf('class=\"dvno\">뒤에 붙이는 것')>=0){ okDoor=false; }\n        if(nx.indexOf('class=\"page divider\"')>=0){ okDoor=false; }\n        if(nx.indexOf('class=\"page close')>=0){ okDoor=false; }\n        if(nx.indexOf('class=\"page farewell')>=0){ okDoor=false; }\n      }\n      if(okDoor){\n        put(door, sheet('제 4 장', esc(topic),\n          '여기서부터가 '+esc(name)+'님이 처음에 물어보신 것입니다.','two',1));\n      }\n      put(findMark(EB+'어긋나는 자리</p>'),\n        sheet('제 3 장','현재의 모습',\n          '사주 속 타고난 결하고 지금 살고 계신 모습을 살펴봅니다.','two',1));\n    }\n\n    var p2=findMark(EB+'2부 · 답을 듣고 다시 읽은 것</p>');\n    if(p2>=0){\n      put(p2, sheet('제 2 장','답이 말하는 '+esc(name)+'님 모습',\n        '처음에 여쭤본 일곱 가지를 보고 전해드립니다.','two',1));\n    }\n\n    var p1=findMark(EB+'1부 · 묻기 전에 읽은 것</p>');\n    if(p1>=0){\n      put(p1, sheet('제 1 장','사주가 말하는 '+esc(name)+'님 모습',\n        '여덟 글자를 보고 전해드립니다.','one',1));\n    }\n\n    /* ── 장 번호는 실제로 들어간 순서대로 ──\n       카드를 안 뽑으셨거나 그 주제 글이 아직 없으면 장 하나가 통째로 빠집니다.\n       그때 「제3장 다음이 제5장」이 되면 빠뜨린 것처럼 보이므로 다시 셉니다. */\n    var ch=0, ci;\n    for(ci=0; ci<pages.length; ci++){\n      if(pages[ci].indexOf('class=\"dvno dvch\"') < 0){ continue; }\n      ch++;\n      pages[ci]=pages[ci].replace(/<p class=\"dvno dvch\">[^<]*<\\/p>/,\n        '<p class=\"dvno dvch\">제 '+ch+' 장</p>');\n    }\n\n    /* ── 쪽번호를 처음부터 다시 ── */\n    var i;\n    for(i=0; i<pages.length; i++){\n      pages[i]=pages[i].replace(/<div class=\"folio\">[^<]*<\\/div>/,\n        '<div class=\"folio\">'+two(i+1)+'</div>');\n    }\n    n=pages.length;\n  })();\n\n  \$('bkBook').innerHTML = pages.join('');\n  \$('bkTitle').textContent = g.name + ' · ' + topic;",
+	);
+
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">한 자리가 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], $j['to'], $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_div=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_div=undo</code></p>';
+	echo '<p><a href="/reading-book/">책 보기</a></p>';
+	exit;
+} );

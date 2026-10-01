@@ -1,0 +1,169 @@
+<title>비어 있는 자리 열</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+:root{
+  --paper:#F7F5EE; --paper-2:#ECEFE6; --paper-3:#DCE2D6;
+  --ink:#1F2620; --ink-2:#4A5450; --ink-3:#5C6862;
+  --jade:#1F6B52; --jade-2:#2E8B6B; --red:#A83232;
+  --sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --disp:"Nanum Myeongjo",serif;
+}
+*{box-sizing:border-box}
+body{background:#101613; color:var(--ink); font-family:var(--sans);
+  font-size:17px; line-height:1.86; letter-spacing:-.005em; margin:0; padding:0 16px 72px;
+  word-break:keep-all;}
+.wrap{max-width:720px; margin:0 auto; background:var(--paper); padding:44px 38px 52px;
+  box-shadow:0 24px 70px rgba(0,0,0,.55)}
+.top{border-bottom:2px solid var(--jade); padding-bottom:22px}
+.eyebrow{font-family:var(--disp); font-weight:700; font-size:.84rem; letter-spacing:.18em;
+  color:var(--jade); margin:0 0 10px}
+h1{font-family:var(--disp); font-weight:800; font-size:1.58rem; line-height:1.45; margin:0 0 14px;
+  text-wrap:balance}
+.top p{font-size:.95rem; color:var(--ink-2); margin:0 0 .7em}
+.why{background:var(--paper-2); padding:16px 18px; margin:18px 0 0; font-size:.92rem; color:var(--ink-2)}
+.why b{color:var(--ink)}
+.old{border-left:3px solid var(--red); background:#F4EEEA; padding:14px 16px;
+  margin:20px 0 0; font-size:.93rem; color:var(--ink-3)}
+.old .lb{font-family:var(--disp); font-weight:700; font-size:.74rem; letter-spacing:.06em;
+  color:var(--red); display:block; margin-bottom:6px}
+h2.ax{font-family:var(--disp); font-weight:700; font-size:1.06rem; color:var(--jade);
+  margin:44px 0 0; padding-bottom:7px; border-bottom:1px solid var(--paper-3)}
+h2.ax span{display:block; font-family:var(--sans); font-weight:400; font-size:.84rem;
+  color:var(--ink-3); margin-top:5px; letter-spacing:0}
+.cell{padding:18px 0 4px; border-top:1px solid var(--paper-3)}
+.hd{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:9px}
+.n{font-family:var(--disp); font-weight:700; font-size:.72rem; letter-spacing:.1em;
+  color:var(--jade); background:rgba(31,107,82,.10); padding:3px 8px}
+.sit{font-size:.82rem; color:var(--ink-3)}
+.cell p{margin:0 0 .8em}
+em{font-style:normal; font-weight:700; color:var(--jade)}
+.foot{margin-top:46px; padding-top:22px; border-top:2px solid var(--jade);
+  font-size:.93rem; color:var(--ink-2)}
+.foot b{color:var(--ink)}
+.foot h3{font-family:var(--disp); font-size:.95rem; color:var(--jade); margin:20px 0 8px}
+@media(max-width:520px){ body{padding:0 0 56px} .wrap{padding:32px 22px 40px} h1{font-size:1.32rem} }
+@media print{ body{background:#fff;padding:0} .wrap{box-shadow:none;max-width:none} .cell{break-inside:avoid} }
+</style>
+
+<style>
+.num-red{color:#C0392B;font-weight:700}
+.num-pill{display:inline-block;min-width:22px;text-align:center;background:#1F6B52;color:#fff;
+  border-radius:999px;padding:1px 7px;font-size:.82em;font-weight:700;vertical-align:2%}
+.num-thin{display:inline-block;min-width:22px;text-align:center;border:1px solid var(--paper-3);
+  color:var(--ink-3);border-radius:999px;padding:1px 7px;font-size:.82em;vertical-align:2%}
+.swatch{background:var(--paper-2);padding:14px 16px;margin:12px 0 0;font-size:1rem}
+.swatch b{display:block;font-size:.74rem;letter-spacing:.06em;color:var(--ink-3);
+  font-family:var(--disp);margin-bottom:8px;font-weight:700}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--paper-3)}
+.pair>div{padding:13px 14px}
+.pair>div:first-child{background:#F4EEEA}
+.pair .lb{font-family:var(--disp);font-weight:700;font-size:.7rem;letter-spacing:.06em;
+  display:block;margin-bottom:5px}
+.pair>div:first-child .lb{color:var(--red)}
+.pair>div:last-child .lb{color:var(--jade)}
+@media(max-width:560px){ .pair{grid-template-columns:1fr} }
+</style>
+<div class="wrap"><div class="top">
+<p class="eyebrow">여덟 글자에서 제일 센 것 · 그 쪽 전체</p>
+<h1>있는 자리와<br>비어 있는 자리</h1>
+<p>소희님이 견본을 읽다가 짚으신 것 둘을 고치고, 그 자리에 <b>비어 있는 자리</b>를 새로 넣습니다.</p>
+<div class="old"><span class="lb">거짓 · 지금 나가고 있는 문장</span>
+일곱 글자를 일간과의 관계로 세어보니, <b>상관과 편관</b>이 가장 강합니다. 이 상관과 편관이 도윤님의 <b>뼈대</b>입니다.</div>
+<p><b>편관은 한 자뿐입니다.</b> 일곱 중 하나짜리를 「가장 강하다」 「뼈대」라고 부르고 있어요. 개수 순으로 앞에서 둘을 자르기 때문에, 2개짜리 하나와 1개짜리 하나가 나란히 섭니다.</p>
+<div class="why"><b>바꾸면 이렇게 됩니다</b><br>
+십성 자리는 모두 <b>열 개</b>입니다. 일곱 글자가 그 열 자리 중 어딘가에 하나씩 들어갑니다.<br>
+도윤님은 그중 <b>여섯 자리</b>가 채워져 있고, <b>네 자리가 비어 있습니다.</b><br>
+겹친 것은 <b>상관 하나</b>뿐이에요.<br><br>
+「몇 개를 보여줄까」가 아니라 <b>「몇 자리에 흩어져 있나」</b>가 됩니다. 그리고 그 자체가 풀이가 됩니다 — 견본을 세어보니 <b>3/10에 몰린 분</b>부터 <b>6/10에 퍼진 분</b>까지 있었습니다.</div>
+</div>
+
+<h2 class="ax">그 쪽의 새 차례
+<span>①④⑤는 세는 말이라 제가 씁니다 · ②③은 이미 있는 글 · ⑥이 이 문서입니다</span></h2>
+<div class="cell">
+<p>① 십성 자리는 모두 열 개입니다. 도윤님의 일곱 글자는 그중 <em>여섯 자리</em>에 흩어져 있습니다.</p>
+<p>② 겹친 것은 <em>상관 하나</em>뿐입니다 &nbsp;→&nbsp; <b>상관 · 판을 흔드는 재능 · 2개</b> + 지금 있는 설명</p>
+<p>③ 나머지 다섯은 한 자씩입니다 — 비견 · 겁재 · 편재 · 정재 · 편관</p>
+<p>④ <em>네 자리가 비어 있습니다</em> — 식신 · 정관 · 편인 · 정인</p>
+<p>⑤ 비어 있다는 건 못 한다는 뜻이 아닙니다. <em>타고난 것으로는 안 나온다</em>는 뜻이에요…</p>
+<p>⑥ <em>비어 있는 자리 하나하나</em> — 아래 열 줄</p>
+<p>⑦ 그리고 여기가 「나는 안 그런데」가 제일 자주 나오는 자리입니다 + 지금 있는 글</p>
+</div>
+
+<h2 class="ax">숫자를 어떻게 세울까
+<span>이제 숫자가 뼈대라서, 2개와 1개가 눈에 바로 갈려야 합니다</span></h2>
+<div class="cell">
+<div class="pair">
+<div><span class="lb">가 · 빨간 숫자 (말씀하신 것)</span>
+상관 <span class="num-red">2개</span> · 비견 <span class="num-red">1개</span> · 겁재 <span class="num-red">1개</span> · 편재 <span class="num-red">1개</span></div>
+<div><span class="lb">나 · 채운 알약</span>
+상관 <span class="num-pill">2</span> · 비견 <span class="num-thin">1</span> · 겁재 <span class="num-thin">1</span> · 편재 <span class="num-thin">1</span></div>
+</div>
+<p class="note"><b>가</b>는 숫자가 다 같은 빨강이라 <b>2와 1이 여전히 같은 무게</b>로 보입니다. 그리고 빨강은 책에서 이미 <b>화(火)</b>입니다 — 바로 위 여덟 글자 표에 빨간 네모가 있어서 부딪힙니다.</p>
+<p class="note"><b>나</b>는 <b>2개 이상만 채우고</b> 1개는 테두리만 둡니다. 색이 아니라 <b>채웠나 비었나</b>로 갈려서, 스치듯 봐도 「진한 게 몇 개구나」가 보입니다. 저는 이쪽을 권합니다.</p>
+</div>
+
+<h2 class="ax">비어 있는 자리 열 줄
+<span>왼쪽은 이미 책에 있는 글(있을 때) · 오른쪽이 제가 쓴 초안(없을 때)</span></h2>
+
+<div class="cell"><div class="hd"><span class="n">01</span><span class="sit">비견 · 나와 같은 자리</span></div>
+<div class="old"><span class="lb">있을 때 (지금 책)</span>나와 같은 무게의 사람이 곁에 있는 자리입니다. 동료가 되기도 하고 경쟁자가 되기도 합니다. 남 밑에 오래 있기 어렵습니다.</div>
+<p>나와 같은 높이에 설 사람이 없는 자리입니다. 혼자 정하고 혼자 짊어지는 데 익숙해서 편하기는 한데, <em>기댈 어깨도 같이 없습니다.</em> 나와 같은 자리에서 말해줄 사람 하나는 일부러 만들어두셔야 합니다.</p>
+</div>
+
+<div class="cell"><div class="hd"><span class="n">02</span><span class="sit">겁재 · 나를 밀어내는 같은 편</span></div>
+<div class="old"><span class="lb">있을 때</span>같은 것을 두고 다투는 자리입니다. 추진력이 세지만, 손에 쥔 것이 남에게 새어나가기도 쉽습니다.</div>
+<p>겨루면서 미는 힘이 없는 자리입니다. 손에 쥔 것이 잘 안 새는 대신, <em>남과 부딪혀야 하는 자리에서 한 발 물러섭니다.</em> 이기실 필요는 없어요. 다만 물러선 자리를 나중에 아까워하지만 않으시면 됩니다.</p>
+</div>
+
+<div class="cell"><div class="hd"><span class="n">03</span><span class="sit">식신 · 내가 내놓는 것</span></div>
+<div class="old"><span class="lb">있을 때</span>가진 것을 밖으로 풀어내는 자리입니다. 먹고사는 재주가 여기서 나옵니다. 서두르지 않고 오래 하는 쪽에 복이 붙습니다.</div>
+<p>밖으로 풀어내고 즐기는 자리가 없습니다. 잘 쉬지 못하고, 쉬면서도 뭔가 해야 할 것 같습니다. 즐거운 일이 저절로 굴러오지 않으니 <em>미리 정해두고 하시는 편</em>이 낫습니다. 정해두면 그때는 마음 놓고 쉬어집니다.</p>
+</div>
+
+<div class="cell"><div class="hd"><span class="n">04</span><span class="sit">상관 · 판을 흔드는 재능</span></div>
+<div class="old"><span class="lb">있을 때</span>남이 안 하던 방식을 찾아내는 자리입니다. 재능이 크지만 규칙과 자주 부딪칩니다. 윗사람과의 마찰이 늘 과제로 남습니다.</div>
+<p>하던 방식을 뒤집는 자리가 없습니다. 부딪히는 일이 적어 편한데, 「이건 좀 이상한데」 싶어도 말이 잘 안 나옵니다. <em>뒤집는 것은 남에게 맡기고, 다듬는 쪽에서 값을 받으시면 됩니다.</em> 뒤집은 것을 쓸 만하게 만드는 사람이 더 귀합니다.</p>
+</div>
+
+<div class="cell"><div class="hd"><span class="n">05</span><span class="sit">편재 · 크게 들어오고 크게 나가는 돈</span></div>
+<div class="old"><span class="lb">있을 때</span>움직이는 돈의 자리입니다. 기회를 알아보는 눈이 밝고, 씀씀이도 그만큼 큽니다.</div>
+<p>크게 움직이는 돈의 자리가 없습니다. 한 번에 크게 버는 일은 잘 안 생기는 대신 <em>크게 잃는 일도 잘 안 생깁니다.</em> 남이 크게 벌었다는 말을 들은 날만 조심하시면 됩니다. 그 말에 흔들려 들어가시면 대개 그때가 꼭대기예요.</p>
+</div>
+
+<div class="cell"><div class="hd"><span class="n">06</span><span class="sit">정재 · 꼬박꼬박 쌓이는 돈</span></div>
+<div class="old"><span class="lb">있을 때</span>정해진 몫이 정해진 때에 들어오는 자리입니다. 크게 터지지는 않아도 새지 않습니다.</div>
+<p>정해진 때에 정해진 몫이 들어오는 자리가 없습니다. 들어오는 때가 고르지 않아 계획을 세우기가 어렵습니다. <em>버는 쪽보다 새는 쪽을 먼저 막는 편</em>이 빠릅니다. 이 결은 수입이 아니라 지출에서 판가름 납니다.</p>
+</div>
+
+<div class="cell"><div class="hd"><span class="n">07</span><span class="sit">편관 · 나를 몰아붙이는 힘</span></div>
+<div class="old"><span class="lb">있을 때</span>압박과 책임의 자리입니다. 궁지에 몰릴수록 오히려 일이 됩니다. 다만 몸이 먼저 상하기 쉽습니다.</div>
+<p>밖에서 몰아붙이는 힘이 없습니다. 급한 일이 없어 몸은 편한데, <em>마감이 없으면 끝까지 안 갑니다.</em> 스스로 날짜를 하나 박아두는 것이 이 자리를 대신합니다. 남이 정해준 날짜보다 내가 정한 날짜가 이 결에는 더 잘 듣습니다.</p>
+</div>
+
+<div class="cell"><div class="hd"><span class="n">08</span><span class="sit">정관 · 지켜야 할 자리</span></div>
+<div class="old"><span class="lb">있을 때</span>규범과 직책의 자리입니다. 맡기면 끝까지 합니다. 조직 안에서 신뢰를 얻지만, 틀을 벗어나야 할 때 한 박자 늦습니다.</div>
+<p>지켜야 할 틀이 안에 없습니다. 남이 정해주지 않으면 자유로운 대신 늦어집니다. 규칙이 싫어서가 아니에요. <em>기댈 규칙이 없어서 매번 처음부터 정하게 되는 것</em>입니다. 한 번 정한 방식을 적어두시면 다음부터 그게 틀이 됩니다.</p>
+</div>
+
+<div class="cell"><div class="hd"><span class="n">09</span><span class="sit">편인 · 한쪽으로 깊은 공부</span></div>
+<div class="old"><span class="lb">있을 때</span>남들이 안 파는 데를 파고드는 자리입니다. 독특한 전문성이 생기지만, 시작한 것을 끝맺지 않고 넘어가기도 합니다.</div>
+<p>한쪽으로 깊이 파고드는 자리가 없습니다. 넓게 보는 대신 <em>남들이 안 가는 데까지는 잘 안 갑니다.</em> 깊이가 필요한 일에는 시간을 남보다 넉넉히 잡아두시면 됩니다. 늦게 도착할 뿐, 못 가는 자리는 아니에요.</p>
+</div>
+
+<div class="cell"><div class="hd"><span class="n">10</span><span class="sit">정인 · 받아들이고 배우는 힘</span></div>
+<div class="old"><span class="lb">있을 때</span>배우고 기대는 자리입니다. 귀인이 붙고 문서운이 좋습니다. 다만 받는 데 익숙해지면 스스로 벌어야 할 때를 미룹니다.</div>
+<p>받아들이고 기대는 자리가 없습니다. 남에게 묻기보다 스스로 알아내려 해서 <em>아는 데까지 오래 걸립니다.</em> 물어보는 것은 실력이 모자란 표시가 아니라 시간을 아끼는 방법입니다. 이 결은 물어본 만큼 빨라집니다.</p>
+</div>
+
+<div class="foot">
+<h3>고쳐주실 것</h3>
+<p>번호 붙여서 다시 써 보내주시면 됩니다. 「07 마지막 문장」처럼요.</p>
+<h3>제가 맞춘 것</h3>
+<p><b>하나 ·</b> 책에 이미 있는 <b>오행 「없을 때」 표</b>의 말투를 그대로 따랐습니다 — 「~가 없습니다 → 그래서 이런 일이 생깁니다 → 그래서 이렇게 하시면 됩니다」 세 걸음.</p>
+<p><b>둘 ·</b> 없는 것을 <b>흠으로 만들지 않았습니다.</b> 열 줄 모두 「대신 이건 없다」나 「이렇게 하면 된다」로 끝납니다.</p>
+<p><b>셋 ·</b> 왼쪽에 <b>있을 때 글</b>을 붙여뒀습니다. 같은 말을 두 번 하지 않는지 견줘보실 수 있게요.</p>
+<h3>정해주실 것 둘</h3>
+<p><b>하나 ·</b> 숫자를 <b>가</b>(빨강)로 할지 <b>나</b>(채운 알약)로 할지.</p>
+<p><b>둘 ·</b> 몰림/가운데/퍼짐 세 줄. 이건 아직 안 썼습니다 — 앞의 물음이 정리되면 그때 쓰겠습니다.</p>
+</div>
+</div>

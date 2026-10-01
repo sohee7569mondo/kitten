@@ -1,0 +1,166 @@
+/* ════════════════════════════════════════════════════════════
+   어긋난 자리와 맞는 자리에 스무 개를 넣습니다
+
+   지금은 다섯 줄다리기 전부에 같은 문장 하나가 나갑니다.
+   손님이 다섯 줄에 다 답하면 어긋난 자리에서 한 문장이 최대
+   다섯 번, 맞는 자리에서 또 한 문장이 다섯 번 반복됩니다.
+
+   바꾸는 것 여섯
+
+     ① 덮어쓰기를 한 칸 아래로
+        주제별 글이 칸(혼자·함께·flat)을 통째로 갈아치우고 있어서,
+        사랑 문 밑에 적어둔 mean·cost·tiny·gap·match 3,216자가
+        손님에게 한 글자도 안 갔습니다. 항목만 갈아치우게 고칩니다.
+
+     ② {{이름}} 장치
+        글 안에 {{이름}} 이라고 적어두면 손님 이름으로 갈아 끼웁니다.
+        para 함수 한 군데입니다.
+
+     ③ 몸통 스무 개
+        줄다리기 다섯 × 양쪽 둘, 어긋날 때와 맞을 때.
+        사랑 문 밑에 한 번만 적어둡니다. 주제가 달라도
+        「혼자 쪽인데 함께로 살고 있다」는 같은 일이라서요.
+
+     ④ 꼬리 자리
+        gapTail · matchTail 을 gap · match 뒤에 붙여 그립니다.
+        지금은 비어 있고, 나중에 주제별 한 줄을 여기 채웁니다.
+
+     ⑥ mean 은 what 이 없을 때만
+        mean 은 what 의 짧은 판이라 같이 내면 같은 말을 두 번 합니다.
+        「여럿 사이에서 풀기보다 혼자 정리하고 나서 이야기하는 쪽」(mean)과
+        「마음이 복잡할 때 만나서 푸는 것보다 혼자 정리한 뒤에 만나는 쪽」(what).
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   ① 먼저 보기   https://stellasaju.com/?stella_body=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_body=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_body=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_body'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_body_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_body'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		echo '<p><a href="/reading-book/">책 보기</a></p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	$jobs = array();
+	$jobs[] = array(
+		'name' => '① 덮어쓰기를 한 칸 아래로',
+		'find' => '/var\\s+__over\\s+=\\s+AXIS_WARM_TOPIC\\[__lt\\]\\[key\\],\\s+__merged\\s+=\\s+\\{\\},\\s+__k;\\s+if\\(W\\)\\{\\s+for\\(__k\\s+in\\s+W\\)\\{\\s+if\\(Object\\.prototype\\.hasOwnProperty\\.call\\(W,__k\\)\\)\\{\\s+__merged\\[__k\\]=W\\[__k\\];\\s+\\}\\s+\\}\\s+\\}\\s+for\\(__k\\s+in\\s+__over\\)\\{\\s+if\\(Object\\.prototype\\.hasOwnProperty\\.call\\(__over,__k\\)\\)\\{\\s+__merged\\[__k\\]=__over\\[__k\\];\\s+\\}\\s+\\}\\s+W\\s+=\\s+__merged;/u',
+		'to'   => "/* 2026-09-07 · 덮어쓰기를 한 칸 아래로.\n         전에는 주제별 글이 칸(혼자·함께·flat)을 통째로 갈아치워서, 문 밑에\n         적어둔 mean·cost·tiny·gap·match 가 손님에게 한 글자도 안 갔습니다. */\n      var __over = AXIS_WARM_TOPIC[__lt][key], __merged = {}, __k, __j;\n      if(W){ for(__k in W){ if(Object.prototype.hasOwnProperty.call(W,__k)){ __merged[__k]=W[__k]; } } }\n      for(__k in __over){\n        if(!Object.prototype.hasOwnProperty.call(__over,__k)){ continue; }\n        var __b=__merged[__k], __o=__over[__k], __deep=true;\n        if(!__b){ __deep=false; }\n        else if(typeof __b !== 'object'){ __deep=false; }\n        else if(Object.prototype.toString.call(__b)==='[object Array]'){ __deep=false; }\n        if(!__o){ __deep=false; }\n        else if(typeof __o !== 'object'){ __deep=false; }\n        else if(Object.prototype.toString.call(__o)==='[object Array]'){ __deep=false; }\n        if(__deep){\n          var __m2={};\n          for(__j in __b){ if(Object.prototype.hasOwnProperty.call(__b,__j)){ __m2[__j]=__b[__j]; } }\n          for(__j in __o){ if(Object.prototype.hasOwnProperty.call(__o,__j)){ __m2[__j]=__o[__j]; } }\n          __merged[__k]=__m2;\n        } else {\n          __merged[__k]=__o;\n        }\n      }\n      W = __merged;",
+	);
+
+	$jobs[] = array(
+		'name' => '② {{이름}} 장치',
+		'find' => '/function\\s+para\\(v\\)\\{\\s+if\\(!v\\)\\{\\s+return\\s+\'\';\\s+\\}\\s+if\\(typeof\\s+v\\s+===\\s+\'string\'\\)\\{\\s+return\\s+\'<p>\'\\+v\\+\'<\\/p>\';\\s+\\}\\s+var\\s+o=\'\',\\s+pi;\\s+for\\(pi=0;\\s+pi<v\\.length;\\s+pi\\+\\+\\)\\{\\s+o\\+=\'<p>\'\\+v\\[pi\\]\\+\'<\\/p>\';\\s+\\}\\s+return\\s+o;\\s+\\}/u',
+		'to'   => "function para(v){\n      if(!v){ return ''; }\n      /* 2026-09-07 · 글 안에 {{이름}} 이라고 적어두면 손님 이름으로 갈아 끼웁니다 */\n      function nm(t){ return String(t).split('{{이름}}').join(esc(name)+'님'); }\n      if(typeof v === 'string'){ return '<p>'+nm(v)+'</p>'; }\n      var o='', pi;\n      for(pi=0; pi<v.length; pi++){ o+='<p>'+nm(v[pi])+'</p>'; }\n      return o;\n    }",
+	);
+
+	$jobs[] = array(
+		'name' => '③ 몸통 스무 개를 사랑 문 밑에',
+		'find' => '/\\s+\\}\\s+\\};\\s+\\/\\*\\s+2026\\-08\\-28\\s+·\\s+「그렇다고\\s+못한다는\\s+뜻은\\s+아닙니다」\\s+한\\s+문단\\./u',
+		'to'   => "    }\n  };\n\n  /* 2026-09-07 · 어긋난 자리와 맞는 자리 몸통 스무 개 (사랑 문).\n     줄다리기 다섯 × 양쪽 둘. 주제가 달라도 「혼자 쪽인데 함께로 살고 있다」는\n     같은 일이라 문 밑에 한 번만 적어둡니다. 주제마다 달라지는 한 줄은\n     gapTail · matchTail 로 따로 붙습니다. */\n  (function(){\n    var B={\n    solo: {\n      '혼자': {\n        gap: ['그런데 답해주실 때는 <em>함께</em> 쪽을 고르셨습니다.', '힘든 일이 생기면 일단 사람을 찾으셨을 거예요. 그런데 다 털어놓고 나서도 개운해지기보다 뭔가 덜 정리된 느낌이 남으셨을 겁니다. 원래 <em>혼자 생각해서 답이 나온 다음에 말하는 결</em>이라, 답이 나오기 전에 말하면 남의 답을 받아 오게 되거든요. {{이름}}이 내린 답이 아니라서, 고민이 풀린 느낌이 안 드셨을 거예요.', '혼자 있는 건 도망이 아닙니다. <em>내 생각을 정리해서 내 답을 찾는 시간</em>이에요.'],\n        match: ['답해주신 것도 <em>혼자</em> 쪽이었습니다.', '다투고 나면 바로 말하기보다 일단 혼자 삭이셨을 거예요. <em>이 결에는 그게 맞습니다.</em> 혼자 굴리는 동안 생각이 정리되고, 그 안에서 답이 만들어지니까요.', '다만 상대는 그 시간을 <em>벌 받는 시간</em>처럼 느낄 수 있습니다. 「화난 게 아니라 생각 중이야. 정리되면 말할게.」 한마디만 남겨도, 같은 시간이 상대에게는 기다림이 됩니다.']\n      },\n      '함께': {\n        gap: ['그런데 답해주실 때는 <em>혼자</em> 쪽을 고르셨습니다.', '힘들어도 말 안 하고 삭이셨을 거예요. 폐 끼치기 싫어서, 또는 말해봐야 달라질 게 없다는 생각에서요. 그런데 {{이름}}은 <em>말하면서 생각이 정리되는 쪽</em>이라, 안에 두면 정리가 되는 게 아니라 그냥 쌓입니다. 그러다 한참 뒤에 엉뚱한 데서 터져요.', '꼭 답을 구하려 하지 않아도 됩니다. <em>털어놓을 곳 하나만 있어도 생각은 훨씬 가벼워집니다.</em>'],\n        match: ['답해주신 것도 <em>함께</em> 쪽이었습니다.', '다투면 그날 안에 풀어야 잠이 오셨을 거예요. <em>이 결에는 그게 맞습니다.</em> 말하면서 생각이 정리되는 쪽이니까요.', '다만 상대가 혼자 삭이는 쪽이라면, 붙잡는 게 몰아붙이는 것처럼 느껴질 수 있습니다. <em>상대가 입을 닫는 건 마음이 식어서가 아니라, 그쪽은 그때 정리 중인 거예요.</em>']\n      }\n    },\n    form: {\n      '실물': {\n        gap: ['그런데 답해주실 때는 <em>무형</em> 쪽을 고르셨습니다.', '사랑은 말과 표현이라고 하셨을 거예요. 그런데 이 결은 <em>말보다 해주는 것으로 마음을 표현하는 쪽</em>입니다. 상대방에게 필요한 걸 챙겨주고, 부족한 걸 채워주면서 마음을 전하는 사람이에요.', '좋은 것 보면 사주고 싶고, 맛있는 거 보면 같이 먹고 싶고, 필요한 게 보이면 먼저 챙겨주고 싶은 마음. <em>그렇게 마음을 쓰고 있었다면, 그게 {{이름}}의 사랑이었을 거예요.</em>', '상대가 말로 표현해달라고 하면 <em>이렇게 말해보세요.</em><br>「핸드폰 망가질까 봐 케이스 사주고, 맛있는 거 있으면 같이 먹으러 가고 — 이런 게 내 방식이야.」'],\n        match: ['답해주신 것도 <em>실물</em> 쪽이었습니다.', '마음은 해주는 것으로 오간다고 하셨고, 이 결도 같은 쪽입니다. 챙기고, 사주고, 대신 해주면서 사랑하는 사람이에요. <em>말보다 손이 먼저 나가는 사람은 곁에 두면 든든합니다.</em>', '다만 해준 것이 쌓이면 계산이 됩니다. <em>「나는 이만큼 했는데」가 마음에 올라오기 시작하면, 그때가 잠깐 쉬어야 할 때예요.</em>']\n      },\n      '무형': {\n        gap: ['그런데 답해주실 때는 <em>실물</em> 쪽을 고르셨습니다.', '챙겨주는 것으로 마음을 표현하셨을 거예요. 밥을 사고, 필요한 걸 사다 주고, 일을 대신 해주고요. 그런데 이 결은 <em>말과 분위기로 오가는 쪽</em>이라, 다 해주고도 상대방의 고마운 말 한마디가 없으면 서운함이 남으셨을 겁니다.', '준 게 모자라서가 아니에요. <em>주실 때는 물건으로 주면서, 받고 싶은 건 말이었던 겁니다.</em>', '상대가 먼저 안 해준다면, <em>듣고 싶은 말을 먼저 해보세요.</em><br>「이거 챙겨줘서 고마워. 나 좋아하는구나 싶어서 기분 좋았어.」 말로 주면 말로 돌아옵니다.'],\n        match: ['답해주신 것도 <em>무형</em> 쪽이었습니다.', '사랑은 말과 분위기로 오간다고 하셨고, 이 결도 같은 쪽입니다. 같이 있는 시간의 공기가 좋으면 그걸로 채워지는 사람이에요. <em>분위기를 읽는 사람은 상대가 말하지 않아도 먼저 알아챕니다.</em>', '다만 말은 손에 잡히지 않습니다. 좋았던 순간이 지나고 나면 <em>내가 정말 사랑받고 있는 건지</em> 스스로 헷갈릴 때가 있으실 거예요. <em>그건 사이가 얕아서가 아니라, 이 결은 마음을 확인할 흔적이 적기 때문입니다.</em>']\n      }\n    },\n    many: {\n      '하나': {\n        gap: ['그런데 답해주실 때는 <em>여럿</em> 쪽을 고르셨습니다.', '마음을 여러 곳에 나눠 두려고 하셨을 거예요. 한 사람에게 다 걸면 위험하니까요. 그런데 이 결은 <em>마음속 방이 하나라서</em>, 나눠 둔 것 같아도 결국 한 방에 다 들어와 있습니다. 그래서 여러 사람을 만나면서도 마음은 가벼워지지 않고, 오히려 피곤하기만 하셨을 거예요.', '방이 하나인 게 흠은 아닙니다. <em>그 방에 들어온 사람은 다른 사람에게서는 받지 못하는 마음을 받게 되니까요.</em>'],\n        match: ['답해주신 것도 <em>하나</em> 쪽이었습니다.', '한 사람에게 마음을 다 쓰는 쪽이라고 하셨고, 이 결도 같습니다. 마음속 방이 하나라 <em>들어온 사람이 하루의 전부가 되는 사람</em>이에요. <em>한 사람에게 그만큼 마음을 쓰는 사람은 흔하지 않습니다.</em>', '다만 그 방이 비면 크게 빕니다. <em>헤어지고 나서 남들보다 오래 걸리는 건 마음이 약해서가 아니라, 채웠던 크기가 달라서예요.</em>']\n      },\n      '여럿': {\n        gap: ['그런데 답해주실 때는 <em>하나</em> 쪽을 고르셨습니다.', '한 사람만 보는 게 옳다고 여기셔서 그렇게 하셨을 거예요. 그런데 이 결은 <em>마음속 방이 여럿이라</em>, 한 방만 열어두고 나머지를 닫아두면 닫아둔 방이 조용히 답답해집니다. 연애가 잘되고 있는데도 이유 없이 갑갑한 때가 있으셨다면, 아마 그 방들 때문일 거예요.', '딴마음이 아닙니다. <em>연애 말고도 마음을 쓸 곳이 있어야, 오히려 연애방이 편해지는 결이에요.</em>'],\n        match: ['답해주신 것도 <em>여럿</em> 쪽이었습니다.', '마음이 여러 갈래라고 하셨고, 이 결도 같습니다. 연애 말고도 마음 쓸 데가 있어야 숨이 쉬어지는 사람이에요. <em>마음이 여러 갈래인 사람은 한 사람에게 무게를 다 지우지 않습니다.</em>', '다만 상대는 그 방들을 못 봅니다. <em>마음이 나뉜 게 아니라 방이 여럿이라는 걸 말해주지 않으면, 덜 좋아하는 걸로 읽힙니다.</em>']\n      }\n    },\n    risk: {\n      '안정': {\n        gap: ['그런데 답해주실 때는 <em>변화</em> 쪽을 고르셨습니다.', '뻔한 건 재미없다고 생각하셨을 거예요. 그런데 이 결은 <em>다음이 예측되어야 마음이 놓이는 쪽</em>입니다. 설레는 사람을 만나 놓고도 연락이 들쭉날쭉하면, 설렘보다 불안이 먼저 커지셨을 겁니다.', '재미를 모르시는 게 아닙니다. <em>안심이 먼저 되어야 그다음에 재미가 보이는 순서</em>인 거예요.', '연락이 들쭉날쭉해서 힘드실 때는 <em>이렇게 말해보세요.</em><br>「집착하는 게 아니라, 언제 연락되는지만 알면 나는 편해져.」 이 한마디면 상대도 알아듣습니다.'],\n        match: ['답해주신 것도 <em>안정</em> 쪽이었습니다.', '편안한 사이가 좋다고 하셨고, 이 결도 같습니다. 다음이 예측되어야 마음이 놓이는 쪽이에요. <em>예측할 수 있게 해주는 사람 곁에서는 마음이 먼저 편안해집니다.</em>', '다만 편안한 걸 오래 두면 구분이 흐려집니다. <em>싸울 일이 없어서 조용한 건지, 할 말이 없어서 조용한 건지는 다른 일이에요.</em>']\n      },\n      '변화': {\n        gap: ['그런데 답해주실 때는 <em>안정</em> 쪽을 고르셨습니다.', '무난하고 편안한 쪽을 고르셨을 거예요. 그게 어른스러운 선택이라고 배우셨을 테고요. 그런데 이 결은 <em>새로 벌어지는 게 있어야 힘이 도는 쪽</em>이라, 아무 일도 일어나지 않는 사이에서는 편안한 게 아니라 그냥 가라앉습니다.', '사고를 치라는 말이 아닙니다. <em>둘이 같이 처음 해보는 일 하나만 있어도 이 결은 다시 살아납니다.</em>', '지루하다고 하면 상처가 되니, <em>이렇게 말해보세요.</em><br>「우리 이번 달에 둘 다 안 해본 거 하나만 해볼까?」'],\n        match: ['답해주신 것도 <em>변화</em> 쪽이었습니다.', '긴장이 도는 사이가 좋다고 하셨고, 이 결도 같습니다. 새로 벌어지는 게 있어야 힘이 도는 쪽이에요. <em>새로운 일을 벌이는 사람 곁에서는 지루할 틈이 없습니다.</em>', '다만 긴장을 만들려다 없던 문제를 만들 때가 있습니다. 잠잠하면 불안해서 괜히 건드려보게 되는 것 — <em>사이가 나빠서가 아니라, 이 결이 심심한 겁니다.</em>']\n      }\n    },\n    make: {\n      '정답': {\n        gap: ['그런데 답해주실 때는 <em>창조</em> 쪽을 고르셨습니다.', '남들 하는 대로는 싫다고 하셨을 거예요. 그런데 이 결은 <em>기준이 있어야 편한 쪽</em>입니다. 기준 없이 「우리 사이는 우리가 정하자」로 가면, 정해진 게 없어서 매번 처음부터 다시 생각하게 되고 그게 은근히 지칩니다.', '유연하지 못한 게 아니에요. <em>기준이 잡히고 나면, 그 안에서 훨씬 자유로워지는 쪽</em>입니다.'],\n        match: ['답해주신 것도 <em>정답</em> 쪽이었습니다.', '남들 하는 대로가 편하다고 하셨고, 이 결도 같습니다. 기준이 있어야 마음이 놓이는 쪽이에요. <em>기준을 지키는 사람은 약속을 가볍게 여기지 않습니다.</em>', '다만 그 기준은 남이 만든 겁니다. <em>「이쯤이면 결혼해야 하는데」가 마음에서 나온 게 아니라 달력에서 나온 거라면, 그건 이 결이 기준을 따라간 것뿐이에요.</em>']\n      },\n      '창조': {\n        gap: ['그런데 답해주실 때는 <em>정답</em> 쪽을 고르셨습니다.', '연애는 이래야 한다는 틀을 두고 거기에 맞추려 하셨을 거예요. 기념일은 이렇게, 연락은 하루 몇 번, 이쯤 되면 만나야 하고요. 그런데 이 결은 <em>없던 걸 만들어내야 힘이 나는 쪽</em>이라, 남의 틀을 지키는 동안 정작 이 사람하고만 되는 것이 생기지 않습니다.', '틀이 잘못된 게 아니에요. <em>틀을 다 지키고도 허전한 게 그래서예요.</em> 둘만 아는 게 하나 생기면, 그때부터 달라집니다.'],\n        match: ['답해주신 것도 <em>창조</em> 쪽이었습니다.', '우리끼리 정하는 게 좋다고 하셨고, 이 결도 같습니다. 없던 걸 만들어야 힘이 나는 쪽이에요. <em>우리끼리 만든 게 있는 사이는 남들과 비교되지 않습니다.</em>', '다만 둘 다 처음이면 기준이 아예 없습니다. 매번 새로 정하다 보면 상대가 먼저 지칩니다. <em>한두 개만 남들 하는 대로 두셔도, 나머지는 다 우리 것이 될 수 있어요.</em>']\n      }\n    }\n    };\n    var T=AXIS_WARM[\"door-love\"], k, sd, f;\n    if(!T){ return; }\n    for(k in B){\n      if(!Object.prototype.hasOwnProperty.call(B,k)){ continue; }\n      if(!T[k]){ T[k]={}; }\n      for(sd in B[k]){\n        if(!Object.prototype.hasOwnProperty.call(B[k],sd)){ continue; }\n        if(!T[k][sd]){ T[k][sd]={}; }\n        for(f in B[k][sd]){\n          if(Object.prototype.hasOwnProperty.call(B[k][sd],f)){ T[k][sd][f]=B[k][sd][f]; }\n        }\n      }\n    }\n  })();\n\n  /* 2026-08-28 · 「그렇다고 못한다는 뜻은 아닙니다」 한 문단.",
+	);
+
+	$jobs[] = array(
+		'name' => '④ 꼬리 자리 · 맞을 때',
+		'find' => '/if\\(ww\\)\\{\\s+if\\(ww\\.match\\)\\{\\s+hasMatch=true;\\s+out\\+=para\\(ww\\.match\\);\\s+\\}\\s+\\}/u',
+		'to'   => "if(ww){ if(ww.match){ hasMatch=true; out+=para(ww.match)+para(ww.matchTail); } }",
+	);
+
+	$jobs[] = array(
+		'name' => '⑤ 꼬리 자리 · 어깋날 때',
+		'find' => '/if\\(ww\\)\\{\\s+if\\(ww\\.gap\\)\\{\\s+hasGap=true;\\s+out\\+=para\\(ww\\.gap\\);\\s+\\}\\s+\\}/u',
+		'to'   => "if(ww){ if(ww.gap){ hasGap=true; out+=para(ww.gap)+para(ww.gapTail); } }",
+	);
+
+
+	$jobs[] = array(
+		'name' => '⑥ mean 이 what 과 같은 말을 두 번 하지 않게',
+		'find' => '/\\s+para\\(ww\\.mean\\)\\+\\s+para\\(ww\\.what\\)\\+/u',
+		'to'   => "             /* 2026-09-07 · mean 은 what 의 짧은 판이라 같이 내면 같은 말을\n                두 번 합니다. what 이 없는 칸에서만 mean 을 씁니다. */\n             (ww.what ? '' : para(ww.mean))+\n             para(ww.what)+",
+	);
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">여섯 자리가 모두 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], $j['to'], $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_body=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_body=undo</code></p>';
+	echo '<p><a href="/reading-book/">책 보기</a></p>';
+	exit;
+} );

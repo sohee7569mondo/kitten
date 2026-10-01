@@ -1,0 +1,63 @@
+/* ══════════════════════════════════════════════════════════
+   책 맨 위 단추 — 목차를 앞세우기
+   ★ 2026-09-10 · 소희 님께
+
+   소희 님 : 「PDF 다운로드 말고 목차가 더 잘 보이게. 목차를 진한
+   남색 버튼으로, PDF 로 저장은 진한 파랑 글씨에 투명 박스에
+   진한 파랑 테두리로」
+
+   지금은 거꾸로입니다.
+
+     PDF 로 저장   군청으로 꽉 찬 단추   ← 눈이 먼저 갑니다
+     목차          흐린 테두리만
+
+   손님이 훨씬 자주 누르는 것은 목차입니다. 뒤바꿉니다.
+
+     목차          군청 바탕 · 흰 글씨          11.76 : 1
+     PDF 로 저장   투명 바탕 · 군청 글씨·테두리 11.09 : 1
+
+   둘 다 아주 잘 읽힙니다.
+
+   ★ 쪽을 한 글자도 안 고칩니다. 글이 다 그려진 뒤에 빛깔만
+     덧입힙니다. 스위치를 끄면 그 즉시 원래대로입니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_footer', function () {
+
+	if ( ! is_page( 'reading-book' ) ) { return; }
+
+	/* 책 안에 있는 style 이 wp_head 보다 뒤에 오기 때문에,
+	   여기(wp_footer)에서 덧입혀야 이깁니다. */
+	echo '<style id="stella-book-btn">'
+
+	   /* ── 목차 : 꽉 찬 군청 ── */
+	   . '#ssb #bkTocBtn, body #bkTocBtn{'
+	   . '  background:#26346B !important;'
+	   . '  color:#FFFFFF !important;'
+	   . '  border:1px solid #26346B !important;'
+	   . '  font-weight:700 !important;'
+	   . '}'
+	   . '#ssb #bkTocBtn:hover, body #bkTocBtn:hover{'
+	   . '  background:#1B2650 !important;'
+	   . '  border-color:#1B2650 !important;'
+	   . '  color:#FFFFFF !important;'
+	   . '}'
+
+	   /* ── PDF 로 저장 : 투명 바탕에 군청 테두리 ── */
+	   . '#ssb #bkPrint, body #bkPrint{'
+	   . '  background:transparent !important;'
+	   . '  color:#26346B !important;'
+	   . '  border:1px solid #26346B !important;'
+	   . '  font-weight:600 !important;'
+	   . '}'
+	   . '#ssb #bkPrint:hover, body #bkPrint:hover{'
+	   . '  background:rgba(38,52,107,.08) !important;'
+	   . '  color:#26346B !important;'
+	   . '  border-color:#26346B !important;'
+	   . '}'
+
+	   . '</style>' . "\n";
+}, 99 );

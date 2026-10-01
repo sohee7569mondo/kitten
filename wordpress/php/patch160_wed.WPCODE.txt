@@ -1,0 +1,134 @@
+/* ══════════════════════════════════════════════════════════
+   결혼운은 먼저 여쭙니다 — 미혼인지 기혼인지
+   ★ 2026-09-13 · 소희 님께      판 WED-1
+
+   소희 님 : 「결혼운은 미혼과 기혼을 다르게 써야 할 거 같아.
+             결혼운을 선택하면 기혼과 미혼을 꼭 선택해야 하는 걸 넣어서」
+
+   ── 왜 필요한가 ───────────────────────────────────────
+   지금 질문 화면이 묻는 다섯 가지 어디에도 **결혼했는지가 없습니다.**
+
+       spark 마음이 생기는 건       fight 다툰 뒤에
+       together 같이 있을 때        type 더 끌리는 쪽
+       say 표현은
+
+   그래서 결혼을 앞둔 분과 십오 년 사신 분이 **같은 책**을 받습니다.
+   같은 「결혼운」인데 읽을 것이 아예 다릅니다.
+
+       미혼  누구와 언제 할까 · 조건 · 부모님
+       기혼  살림 · 생활비 · 양가 · 각자 시간이 없어지는 일
+
+   ── 하는 일 ───────────────────────────────────────────
+   **결혼운을 고르신 분께만** 맨 앞에 한 줄 더 여쭙니다.
+
+       지금 어느 쪽이신가요?
+         ○ 아직 결혼 전이에요      ○ 이미 결혼했어요
+
+   다른 주제를 고르신 분께는 아무것도 안 보입니다. 질문 개수도 그대로고요.
+   받은 답은 answers.wed 로 담겨 책으로 넘어갑니다.
+
+   ★ 짝 조각 patch160_against 가 이 답을 읽어 글을 가릅니다.
+     이 조각만 붙이면 질문만 늘고 글은 그대로입니다. 둘 다 붙이세요.
+
+   ── 하는 법 ───────────────────────────────────────────
+   ① 먼저 보기   https://stellasaju.com/?stella_wed=preview
+   ② 정말 넣기   https://stellasaju.com/?stella_wed=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_wed=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_wed'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_wed'] ) );
+	$META = '_stella_wed_bak';
+
+	$page = get_page_by_path( 'reading-start' );
+	if ( ! $page ) { echo '질문 쪽(reading-start)을 못 찾았습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	if ( 'undo' === $mode ) {
+		$back = get_post_meta( $id, $META, true );
+		if ( '' === $back ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $back ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다. ' . number_format( strlen( $back ) ) . "바이트\n";
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
+
+	echo "═══ 결혼운 · 미혼인지 기혼인지 ═══\n";
+	echo '질문 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "바이트\n\n";
+
+	if ( false !== strpos( $c, "k:'wed'" ) ) {
+		echo "이미 들어가 있습니다.\n";
+		echo "다시 넣으시려면 ?stella_wed=undo 로 걷어낸 뒤 하세요.\n";
+		exit;
+	}
+
+	$A = 'var QS=QSETS[SLUG];';
+	$n = substr_count( $c, $A );
+	if ( 1 !== $n ) {
+		echo '★ 붙일 자리가 ' . $n . "군데입니다. 한 군데여야 합니다.\n";
+		echo '  찾는 것 : ' . $A . "\n";
+		exit;
+	}
+	echo "붙일 자리를 찾았습니다 — 한 군데.\n";
+
+	$made = str_replace( $A, $A . stella_wed_new(), $c );
+	echo number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $made ) ) . '바이트 (+'
+	   . number_format( strlen( $made ) - strlen( $c ) ) . ")\n\n";
+
+	if ( 'apply' !== $mode ) {
+		echo "아직 안 바꿨습니다. 정말 넣으시려면 ?stella_wed=apply\n";
+		exit;
+	}
+
+	if ( '' === (string) get_post_meta( $id, $META, true ) ) {
+		update_post_meta( $id, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $made ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "넣었습니다.\n";
+	echo "확인 : 연성의 신에서 결혼운을 고르고 질문 화면을 여세요.\n";
+	echo "       맨 앞에 「지금 어느 쪽이신가요?」가 나와야 합니다.\n";
+	echo "되돌리려면 ?stella_wed=undo\n";
+	exit;
+}, 1 );
+
+function stella_wed_new() {
+	return <<<'WEDNEW'
+
+
+  /* ══ 2026-09-13 · 결혼운은 먼저 여쭙니다 ═══════════════════
+     같은 결혼운이라도 미혼과 기혼은 읽을 것이 아예 다릅니다.
+     결혼운을 고르신 분께만 맨 앞에 한 줄 더 여쭙니다.
+     다른 주제에는 아무것도 안 보입니다. */
+  (function(){
+    var t='';
+    if(ORDER){ if(ORDER.topic){ t=String(ORDER.topic).replace(/^\s+/,'').replace(/\s+$/,''); } }
+    if(t!=='결혼운'){ return; }
+    QS = QS.slice(0);
+    QS.unshift({
+      t:'지금 어느 쪽이신가요?',
+      s:'먼저 여쭐 것',
+      k:'wed',
+      a:'아직 결혼 전이에요',
+      b:'이미 결혼했어요'
+    });
+  })();
+WEDNEW;
+}

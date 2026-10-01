@@ -1,0 +1,107 @@
+// 오픈기념 무료 — 쪽에 박힌 「구슬 3개, 3,000원」 지우기
+// 2026-09-27 · 쓰는 법은 notes/2026-09-27-무료말-조각.md 에 있습니다
+//
+//   살펴보기   https://stellasaju.com/?stella_freetext=1
+//   바꾸기     https://stellasaju.com/?stella_freetext=apply
+//   되돌리기   https://stellasaju.com/?stella_freetext=paid
+//
+// 위치(Location)는 「어디서나 실행 / Run Everywhere」로.
+// 크롬 번역을 끄고 붙여넣으세요.
+// 맨 아랫줄이  } );  인지 확인하세요. 아니면 붙여넣기가 잘린 것입니다.
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_freetext'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_freetext'] ) );
+	$WON  = '문 하나를 여는 데 구슬 3개, 3,000원을 씁니다.';
+	$FRE  = '오픈기념으로 여섯 문이 모두 무료입니다.';
+
+	$P = array(
+		array( 'mypage', '마이페이지 · 박힌 글', '>' . $WON . '<', '>' . $FRE . '<' ),
+		array( 'mypage', '마이페이지 · 셈틀 글', "'" . $WON . "'", "'" . $FRE . "'" ),
+		array( 'reading-ready', '자료 쪽 · 쓰는 구슬',
+			"od.push(['쓰는 구슬', orbs===0 ? '없음' : orbs+'구슬']);",
+			"od.push(['쓰는 구슬', orbs===0 ? '무료' : orbs+'구슬']);" ),
+	);
+
+	$free = ( 'apply' === $mode );
+	$paid = ( 'paid' === $mode );
+
+	echo "오픈기념 무료 — 쪽에 박힌 값 이야기\n\n";
+
+	$pages = array();
+	$todo  = array();
+
+	foreach ( $P as $r ) {
+		if ( ! isset( $pages[ $r[0] ] ) ) {
+			$pg = get_page_by_path( $r[0] );
+			if ( ! $pg ) { echo '쪽을 못 찾음 — ' . $r[0] . "\n"; continue; }
+			$pages[ $r[0] ] = $pg;
+		}
+		$c = (string) $pages[ $r[0] ]->post_content;
+		$a = substr_count( $c, $r[2] );
+		$b = substr_count( $c, $r[3] );
+		echo '   ' . $r[1] . ' — 값 받는 말 ' . $a . '곳 · 무료 말 ' . $b . "곳\n";
+		if ( $paid ) { if ( $b > 0 ) { $todo[] = array( $r[0], $r[3], $r[2] ); } }
+		if ( ! $paid ) { if ( $a > 0 ) { $todo[] = array( $r[0], $r[2], $r[3] ); } }
+	}
+
+	echo "\n";
+
+	if ( ! count( $todo ) ) { echo '바꿀 것이 없습니다. 이미 다 되어 있습니다.'; exit; }
+
+	if ( ! $free ) {
+		if ( ! $paid ) {
+			echo "무료로   ?stella_freetext=apply\n";
+			echo "값 받게  ?stella_freetext=paid\n";
+			exit;
+		}
+	}
+
+	$jobs = array();
+	foreach ( $todo as $t ) {
+		if ( ! isset( $jobs[ $t[0] ] ) ) { $jobs[ $t[0] ] = array(); }
+		$jobs[ $t[0] ][] = $t;
+	}
+
+	$done = 0;
+
+	foreach ( $jobs as $slug => $list ) {
+
+		$pid = (int) $pages[ $slug ]->ID;
+		$old = (string) $pages[ $slug ]->post_content;
+		$new = $old;
+		$hit = 0;
+
+		foreach ( $list as $j ) {
+			$k = substr_count( $new, $j[1] );
+			if ( $k < 1 ) { continue; }
+			$new = str_replace( $j[1], $j[2], $new );
+			$hit = $hit + $k;
+		}
+
+		if ( $hit < 1 ) { continue; }
+
+		$b1 = substr_count( $old, chr( 92 ) );
+		wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $new ) ) );
+		clean_post_cache( $pid );
+		$b2 = substr_count( (string) get_post( $pid )->post_content, chr( 92 ) );
+
+		if ( $b2 !== $b1 ) {
+			wp_update_post( array( 'ID' => $pid, 'post_content' => wp_slash( $old ) ) );
+			clean_post_cache( $pid );
+			echo '   ' . $slug . ' — 되돌림 · 역빗금 ' . $b1 . ' → ' . $b2 . "\n";
+			continue;
+		}
+
+		echo '   ' . $slug . ' — 됐습니다 · ' . $hit . '곳 · 역빗금 ' . $b2 . "개 그대로\n";
+		$done++;
+	}
+
+	echo "\n" . $done . "쪽을 고쳤습니다.\n";
+	exit;
+} );

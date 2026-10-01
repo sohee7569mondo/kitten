@@ -1,0 +1,85 @@
+/* ════════════════════════════════════════════════════════════
+   사이트가 값과 분량에 대해 뭐라고 적어 두었나 — 보기만 하는 도구
+   ★ 2026-09-09 · 소희 님께
+
+   광고로 사람을 부르기 전에, 사이트가 스스로 하는 말이
+   사실인지부터 봐야 합니다. 아무것도 안 바꿉니다.
+
+   보기   https://stellasaju.com/?stella_truth=1
+   더 넓게 https://stellasaju.com/?stella_truth=1&w=200
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_truth'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$W = isset( $_GET['w'] ) ? max( 60, min( 400, (int) $_GET['w'] ) ) : 110;
+
+	$SLUGS = array(
+		'door-love', 'door-career', 'door-health', 'door-fortune',
+		'door-astro', 'door-tarot',
+		'reading-start', 'reading-ready', 'reading-book',
+		'star-saju', 'lab', 'mypage', 'guide',
+	);
+
+	/* 찾을 말 — 사실이 아닐 수 있는 것들 */
+	$WORDS = array(
+		'시험판', '베타', '아직 결제',
+		'스무 쪽', '20쪽', '스무쪽',
+		'값을 받지 않', '무료', '공짜',
+		'정가', '할인', '원래',
+		'구슬', '원 ', '결제',
+	);
+
+	echo "═══ 사이트가 하는 말 ═══\n";
+	echo "찾는 말 : " . implode( ' · ', $WORDS ) . "\n\n";
+
+	$grand = 0;
+
+	foreach ( $SLUGS as $slug ) {
+
+		$p = get_page_by_path( $slug );
+		if ( ! $p ) { continue; }
+
+		$c = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+
+		$lines = array();
+
+		foreach ( $WORDS as $w ) {
+			$from = 0;
+			$n    = 0;
+			while ( $n < 6 ) {
+				$at = strpos( $c, $w, $from );
+				if ( false === $at ) { break; }
+				$s   = max( 0, $at - (int) ( $W / 2 ) );
+				$cut = substr( $c, $s, $W );
+				$cut = preg_replace( '/\s+/u', ' ', $cut );
+				$lines[] = sprintf( "    [%-10s] …%s…", $w, $cut );
+				$from = $at + strlen( $w );
+				$n++;
+				$grand++;
+			}
+		}
+
+		if ( ! $lines ) { continue; }
+
+		echo '── ' . $slug . ' (쪽 ' . $p->ID . ') — ' . count( $lines ) . "군데 ──\n";
+		echo implode( "\n", $lines ) . "\n\n";
+	}
+
+	echo "═══ 모두 " . $grand . "군데 ═══\n";
+	echo "\n읽는 법\n";
+	echo "  · 「시험판」「아직 결제」 — 이미 돈을 받고 있으니 거짓말입니다\n";
+	echo "  · 「스무 쪽」 — 실제 책은 마흔 쪽이 넘습니다. 스스로 값을 깎는 말입니다\n";
+	echo "  · 「정가」「할인」 — 판 적 없는 값을 정가로 적으면 표시광고법에 걸립니다\n";
+	echo "  · 「무료」「값을 받지 않」 — 지금도 맞는 말인지 하나씩 봐야 합니다\n";
+	exit;
+}, 1 );

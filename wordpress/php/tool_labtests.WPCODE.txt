@@ -1,0 +1,130 @@
+/* ════════════════════════════════════════════════════════════
+   랩 검사 목록 뽑기 (읽기만)   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   랩 스니펫 안에 들어 있는 검사(TESTS)를 전부 뽑아서
+   이름 · 갈래 · 문항 수 · 주소를 표로 보여줍니다.
+
+   그리고 목록 화면이 가리키는 주소와 맞춰봅니다.
+   가리키는데 검사가 없으면 그 자리는 빈 쪽입니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   보기   https://stellasaju.com/?stella_labtests=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_labtests'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:28px 18px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.3rem;margin:0 0 14px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:24px 0 8px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.no{color:#E5A0A0}.ok{color:#9AD1A5}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'table{border-collapse:collapse;width:100%}'
+	   . 'td{padding:6px 9px;border-bottom:1px solid rgba(255,255,255,.08);'
+	   . 'font-size:.88rem}b{color:#F0D9A8}'
+	   . 'pre{background:#000;padding:11px;white-space:pre-wrap;'
+	   . 'font:11.5px/1.6 monospace;border-left:3px solid #D4AF6A}'
+	   . '</style>';
+
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_status, post_content
+		   FROM {$wpdb->posts}
+		  WHERE post_type = 'wpcode'
+		  ORDER BY ID ASC
+		  LIMIT 400" );
+
+	if ( ! $rows ) { echo '<h1 class="no">스니펫을 못 읽었습니다.</h1>'; exit; }
+
+	$all = array();
+
+	foreach ( $rows as $r ) {
+		$c = (string) $r->post_content;
+		if ( false === strpos( $c, 'TESTS.' ) ) { continue; }
+
+		$out  = '';
+		$from = 0;
+		$n    = 0;
+		while ( $n < 60 ) {
+			$at = strpos( $c, 'TESTS.', $from );
+			if ( false === $at ) { break; }
+			$cut = substr( $c, $at, 460 );
+
+			/* 열쇠말 */
+			$key = '';
+			$i   = 6;
+			$len = strlen( $cut );
+			while ( $i < $len ) {
+				$ch = $cut[ $i ];
+				if ( false === strpos( 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_', $ch ) ) { break; }
+				$key .= $ch;
+				$i++;
+			}
+			$from = $at + 6;
+			if ( '' === $key ) { continue; }
+			if ( isset( $all[ $key ] ) ) { continue; }
+
+			/* 이름 · 갈래 · 딱지 */
+			$name = '';
+			$cat  = '';
+			$tag  = '';
+			$pick = array( "name:'" => 'name', "cat:'" => 'cat', "tag:'" => 'tag' );
+			foreach ( $pick as $mark => $slot ) {
+				$p = strpos( $cut, $mark );
+				if ( false === $p ) { continue; }
+				$p = $p + strlen( $mark );
+				$q = strpos( $cut, "'", $p );
+				if ( false === $q ) { continue; }
+				$v = substr( $cut, $p, $q - $p );
+				if ( 'name' === $slot ) { $name = $v; }
+				if ( 'cat'  === $slot ) { $cat  = $v; }
+				if ( 'tag'  === $slot ) { $tag  = $v; }
+			}
+
+			$all[ $key ] = array( $name, $cat, $tag, (int) $r->ID, $r->post_title );
+			$out .= str_pad( $key, 16 ) . $name . '   ' . $cat . '   ' . $tag . "\n";
+			$n++;
+		}
+
+		if ( '' !== $out ) {
+			echo '<h2>' . (int) $r->ID . ' · ' . esc_html( $r->post_title )
+			   . ' · ' . ( 'publish' === $r->post_status ? '<span class="ok">켜짐</span>' : '<span class="dim">꺼짐</span>' )
+			   . '</h2>';
+			echo '<pre>' . esc_html( $out ) . '</pre>';
+		}
+	}
+
+	echo '<h1>검사 ' . count( $all ) . '개 · 주소</h1>';
+	ksort( $all );
+	$t = '';
+	foreach ( $all as $k => $v ) {
+		$t .= str_pad( '/lab/' . $k . '/', 22 ) . $v[0] . "\n";
+	}
+	echo '<pre>' . esc_html( $t ) . '</pre>';
+
+	/* 목록 화면이 가리키는 주소와 맞춰보기 */
+	echo '<h2>목록 화면이 가리키는 주소</h2>';
+	$want = array( 'tokyo', 'breakup', 'cafe', 'camping', 'grocery', 'money', 'night-snack', 'mbti' );
+	$t = '';
+	foreach ( $want as $w ) {
+		$key = str_replace( '-', '', $w );
+		$has = isset( $all[ $w ] );
+		if ( ! $has ) { $has = isset( $all[ $key ] ); }
+		$t .= str_pad( '/lab/' . $w . '/', 22 ) . ( $has ? '있음' : '없음  <- 빈 쪽' ) . "\n";
+	}
+	echo '<pre>' . esc_html( $t ) . '</pre>';
+	echo '<p class="dim">「없음」이 붙은 주소는 목록에서 눌러도 아무것도 안 나옵니다.</p>';
+
+	exit;
+}, 0 );

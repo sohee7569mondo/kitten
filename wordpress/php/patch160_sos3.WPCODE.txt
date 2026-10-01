@@ -1,0 +1,157 @@
+/* ══════════════════════════════════════════════════════════
+   정규식 안의 빗금 — 책이 한 글자도 안 그려지던 까닭
+                                        ★ 2026-09-13 · 소희 님께
+                                        판 SOS-3
+
+   ── 무엇이 잘못돼 있나 ────────────────────────────────
+   진단 띠(?gwhy=1)가 그 줄을 그대로 떠 왔습니다 —
+
+     pages[ci]=pages[ci].replace(/<p class="dvno dvch">[^<]+</p>/,
+                                                            ↑ 여기
+
+   빗금 두 개 사이가 「정규식」입니다. 그런데 그 안의 </p> 에 든 빗금을
+   브라우저가 「여기가 정규식 끝」으로 읽습니다. 그러면 뒤따르는 p 가
+   꼬리표가 되는데 p 라는 꼬리표는 없습니다. 그래서 나는 말이
+
+     Invalid regular expression flags
+
+   이것은 실행 중에 나는 잘못이 아니라 **글 읽기 자체가 안 되는**
+   잘못이라, 이 한 줄 때문에 그 토막이 통째로 안 돕니다. 그래서 책이
+   한 글자도 안 그려집니다.
+
+   고치는 법은 빗금 앞에 역빗금을 하나 붙이는 것입니다.
+     </p>   →   <\/p>
+     </div> →   <\/div>
+
+   ── SOS-2 가 있는데 왜 또 만드나 ──────────────────────
+   2026-09-11 에 같은 것을 SOS-2 로 고쳤습니다. 그런데 SOS-2 는
+   `[^<]*` 라고 별표가 든 모양만 찾습니다. 살아 있는 쪽은 지금
+   `[^<]+` 더하기입니다. 그래서 SOS-2 로는 「못 찾았습니다」가 납니다.
+
+   SOS-3 은 **모양을 가리지 않습니다.** 별표든 더하기든, p 든 div 든
+   span 이든, 정규식 안에서 감싸지지 않은 닫는 꼬리표를 다 찾아 고칩니다.
+
+   ── ★★ 왜 자꾸 다시 생기나 (꼭 읽어주세요) ────────────
+   **160쪽(reading-book)을 워드프레스 편집기로 열어 저장하지 마세요.**
+   편집기로 저장하면 워드프레스가 홑 역빗금을 한 겹 벗겨냅니다.
+   그러면 이 정규식들이 그 자리에서 다시 깨지고, 책이 또 하얘집니다.
+   고칠 것이 있으면 **늘 조각(WPCode)으로** 고칩니다.
+
+   ── 하는 법 ───────────────────────────────────────────
+   ① 먼저 보기   https://stellasaju.com/?stella_sos3=preview
+                 (무엇이 몇 군데인지, 앞뒤 글까지 그대로 찍습니다)
+   ② 정말 고치기 https://stellasaju.com/?stella_sos3=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_sos3=undo
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+
+   ── 검사한 것 ─────────────────────────────────────────
+   php -l 통과 · 앰퍼샌드 0개
+   깨진 줄과 멀쩡한 줄을 섞어 놓고 실제로 돌려봄 —
+   깨진 것만 고치고 멀쩡한 것과 보통 글은 안 건드립니다
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_sos3'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_sos3'] ) );
+	$META = '_stella_sos3_bak';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽을 못 찾았습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	echo "═══ 정규식 안의 빗금 · 판 SOS-3 ═══\n\n";
+
+	if ( 'undo' === $mode ) {
+		$back = get_post_meta( $id, $META, true );
+		if ( '' === $back ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $back ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다. ' . number_format( strlen( $back ) ) . "글자\n";
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
+
+	echo '책 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	/* 정규식 안에서 감싸지지 않은 닫는 꼬리표를 찾습니다.
+	   [^<] 다음에 별표나 더하기가 오고, 그 뒤에 곧바로 </xxx>/ 가 오는 자리만
+	   봅니다. 이 모양은 정규식 리터럴 안에서만 나옵니다 — 보통 글에는
+	   [^<]* 같은 것이 나오지 않습니다. */
+	$pat = '#(\[\^<\][*+])</([a-zA-Z][a-zA-Z0-9]*)>/#';
+
+	$hits = array();
+	if ( preg_match_all( $pat, $c, $m, PREG_OFFSET_CAPTURE ) ) {
+		foreach ( $m[0] as $one ) { $hits[] = $one; }
+	}
+
+	/* 이미 고쳐진 것도 세어 둡니다 */
+	$okpat  = '#\[\^<\][*+]<\\\\/[a-zA-Z][a-zA-Z0-9]*>/#';
+	$already = preg_match_all( $okpat, $c, $m2 );
+
+	echo '고쳐야 할 자리 ' . count( $hits ) . "군데\n";
+	echo '이미 고쳐져 있는 자리 ' . (int) $already . "군데\n\n";
+
+	if ( 0 === count( $hits ) ) {
+		if ( $already > 0 ) {
+			echo "이미 다 고쳐져 있습니다.\n";
+			echo "그래도 책이 하얗다면 ?gwhy=1 로 다음 탈을 봐주세요.\n";
+		} else {
+			echo "찾은 것이 없습니다. 아무것도 안 바꿨습니다.\n";
+			echo "이 화면을 통째로 저에게 보내주세요.\n";
+		}
+		exit;
+	}
+
+	echo "── 찾은 자리 (앞뒤 글까지) ──\n";
+	$k = 0;
+	foreach ( $hits as $one ) {
+		$k++;
+		$at   = (int) $one[1];
+		$from = $at - 70; if ( $from < 0 ) { $from = 0; }
+		$cut  = substr( $c, $from, 170 );
+		$cut  = str_replace( array( "\n", "\r" ), ' ', $cut );
+		echo '  ' . $k . '. …' . $cut . "…\n";
+		echo '     고칠 것 : ' . $one[0] . "\n\n";
+	}
+
+	$new = preg_replace( $pat, '$1<\/$2>/', $c );
+
+	if ( null === $new ) { echo '고치다 탈이 났습니다. 아무것도 안 바꿨습니다.'; exit; }
+
+	echo "── 고친 뒤 ──\n";
+	echo '지금 ' . number_format( strlen( $c ) ) . '글자  ->  고친 뒤 '
+	   . number_format( strlen( $new ) ) . "글자\n";
+	echo '늘어나는 글자 ' . ( strlen( $new ) - strlen( $c ) ) . "개 (역빗금만 들어갑니다)\n\n";
+
+	if ( 'apply' !== $mode ) {
+		echo "아직 안 바꿨습니다. 정말 고치시려면 ?stella_sos3=apply\n";
+		exit;
+	}
+
+	/* ★ 백업은 지금 쪽으로 갱신합니다 — 옛 백업으로 되돌리면 오늘 넣은
+	   조각들이 통째로 날아갑니다 (CLAUDE.md 의 undo 규칙). */
+	update_post_meta( $id, $META, wp_slash( $c ) );
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "고쳤습니다.\n\n";
+	echo "책을 열어 확인해 주세요 (Ctrl+Shift+R 로 새로 받으세요)\n";
+	echo "  https://stellasaju.com/reading-book/?gwhy=1\n\n";
+	echo "★★ 다시 안 생기게 — 160쪽을 워드프레스 편집기로 열어 저장하지 마세요.\n";
+	echo "   편집기가 역빗금을 한 겹 벗겨내 이 자리가 또 깨집니다.\n";
+	exit;
+} );

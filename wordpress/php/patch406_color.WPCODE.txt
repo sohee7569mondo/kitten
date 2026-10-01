@@ -1,0 +1,164 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주(406) 글씨색 고치기   ★ 2026-09-09 · 소희 님께
+
+   소희 님 : 「스타 사주는 아직도 글씨 안 보여, 바탕색이랑 비슷해서」
+
+   ── 재보니 이랬습니다 (?stella_contrast=star-saju) ──
+   글씨색 51개 가운데 20개가 안 읽히는 상태였습니다.
+   원인은 이름표 딱 두 개입니다.
+
+     --soft  ->  #F2ECE1   바탕(#F1EDE3)과 한 끗 차이   1.01 : 1
+     --dim   ->  #F1EDE2   바탕과 거의 같은 색           1.00 : 1
+
+   밤하늘 판에서는 맞는 색이었습니다. 종이빛으로 바꾸면서 바탕만
+   바꾸고 이 두 이름표를 안 고쳐서, 흰 종이에 흰 글씨가 됐어요.
+   이 둘이 열여덟 군데에 쓰이고 있습니다.
+
+   ── 바꾸는 색 (바탕 #F1EDE3 위에서 잰 값) ──
+     --soft        #F2ECE1 -> #4E4763    1.01 -> 7.47 : 1
+     --dim         #F1EDE2 -> #6B6577    1.00 -> 4.79 : 1
+     --speak-lite  #8A6FD0 -> #5E45A6    3.41 -> 6.24 : 1
+     --gold        #A9791F -> #7E5A18    3.30 -> 5.34 : 1
+     ::placeholder #B7B0C4 -> #767084    1.79 -> 4.06 : 1
+     button.doit   글자 #0B0817 -> 흰색   3.18 -> 6.13 : 1
+
+   4.5 : 1 이 「본문으로 읽힌다」는 국제 기준입니다.
+   예시 글(placeholder)만 4.06 에서 멈춥니다 — 본문만큼 진하면
+   이미 적어둔 글로 착각하시게 됩니다.
+
+   --gold 을 진하게 하면 금빛 딱지 바탕도 같이 진해져서, 그 위의 흰
+   글씨가 3.86 에서 6.24 로 좋아집니다. 두 가지가 한 번에 풀립니다.
+
+   ★ 원래 색표는 한 줄도 안 지웁니다. 뒤에 덮어쓰기만 더합니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   미리보기   https://stellasaju.com/?stella_starcol=1
+   고치기     https://stellasaju.com/?stella_starcol=apply
+   되돌리기   https://stellasaju.com/?stella_starcol=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_starcol'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_starcol'] ) );
+	$META = '_stella_starcol_bak_0909';
+	$SLUG = 'star-saju';
+	$MARK = 'stella-star-color-v1';
+
+	$CSS  = "\n<!-- " . $MARK . " -->\n<style>\n";
+	$CSS .= "/* 2026-09-09 · 종이빛 바탕에서 안 보이던 글씨색\n";
+	$CSS .= "   밤하늘 판에 맞춘 이름표 둘이 안 따라와서 흰 종이에 흰 글씨가\n";
+	$CSS .= "   되어 있었습니다. 원래 색표는 그대로 두고 여기서 덮어씁니다. */\n";
+	$CSS .= "#ssv{\n";
+	$CSS .= "  --soft:#4E4763 !important;       /* 1.01 -> 7.47 : 1 */\n";
+	$CSS .= "  --dim:#6B6577 !important;        /* 1.00 -> 4.79 : 1 */\n";
+	$CSS .= "  --speak-lite:#5E45A6 !important; /* 3.41 -> 6.24 : 1 */\n";
+	$CSS .= "  --gold:#7E5A18 !important;       /* 3.30 -> 5.34 : 1 */\n";
+	$CSS .= "}\n";
+	$CSS .= "/* 예시 글은 본문만큼 진하면 이미 적은 글로 보입니다 */\n";
+	$CSS .= "#ssv ::placeholder{ color:#767084 !important; }\n";
+	$CSS .= "/* 보라 단추 위의 검은 글씨 — 흰 글씨가 두 배 잘 읽힙니다 */\n";
+	$CSS .= "#ssv button.doit{ color:#FFFDF9 !important; }\n";
+	$CSS .= "</style>\n";
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:28px 18px;max-width:960px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 10px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.7 monospace;border-left:3px solid #D4AF6A}'
+	   . '.demo{background:#F1EDE3;padding:16px 18px;border-radius:10px;'
+	   . 'margin:10px 0 0;font-size:15px;line-height:1.9}'
+	   . '</style>';
+
+	$p = get_page_by_path( $SLUG );
+	if ( ! $p ) { echo '<p class="no">스타 사주 쪽이 없습니다.</p>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌립니다</h1>';
+		$bak = get_post_meta( $p->ID, $META, true );
+		if ( '' === $bak ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ),
+			array( 'ID' => $p->ID ) );
+		clean_post_cache( $p->ID );
+		delete_post_meta( $p->ID, $META );
+		if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+		echo '<p class="ok">되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c  = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+	$go = ( 'apply' === $mode );
+
+	echo '<h1>스타 사주 글씨색 — '
+	   . ( $go ? '고칩니다' : '미리보기 (아직 안 고침)' ) . '</h1>';
+	echo '<p class="dim">쪽 번호 ' . (int) $p->ID
+	   . ' &middot; ' . number_format( strlen( $c ) ) . ' 바이트</p>';
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<p class="ok">이미 고쳐져 있습니다.</p>';
+		echo '<p class="dim">되돌리시려면 /?stella_starcol=undo 를 여세요.</p>';
+		exit;
+	}
+
+	$need = array( '#ssv', '--soft', '--dim' );
+	$miss = array();
+	foreach ( $need as $n ) {
+		if ( false === strpos( $c, $n ) ) { $miss[] = $n; }
+	}
+	if ( count( $miss ) ) {
+		echo '<p class="no">이 쪽에서 ' . esc_html( implode( ' · ', $miss ) )
+		   . ' 를 못 찾았습니다. 고치지 않았습니다.</p>';
+		exit;
+	}
+
+	echo '<h2>눈으로 보기 (진짜 바탕색 위)</h2>';
+	echo '<div class="demo">'
+	   . '<div style="color:#F2ECE1">지금 · 본문 — 이 줄이 안 보이시죠</div>'
+	   . '<div style="color:#F1EDE2">지금 · 흐린 글씨 — 이 줄도 안 보입니다</div>'
+	   . '<div style="color:#4E4763;margin-top:10px">바꾼 뒤 · 본문 — 이제 읽힙니다</div>'
+	   . '<div style="color:#6B6577">바꾼 뒤 · 흐린 글씨 — 이제 읽힙니다</div>'
+	   . '<div style="color:#5E45A6">바꾼 뒤 · 가디언 말</div>'
+	   . '<div style="color:#7E5A18">바꾼 뒤 · 금빛 글씨</div>'
+	   . '<div style="color:#767084">바꾼 뒤 · 예시 글 (일부러 조금 연하게)</div>'
+	   . '</div>';
+
+	echo '<h2>더할 스타일</h2><pre>' . esc_html( $CSS ) . '</pre>';
+
+	if ( ! $go ) {
+		echo '<h2>끝</h2><p class="dim">이대로 괜찮으시면 '
+		   . '/?stella_starcol=apply 를 여세요. 고친 뒤에 '
+		   . '/?stella_contrast=star-saju 로 다시 재보시면 확인됩니다.</p>';
+		exit;
+	}
+
+	$new = $c . $CSS;
+
+	if ( '' === get_post_meta( $p->ID, $META, true ) ) {
+		update_post_meta( $p->ID, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ),
+		array( 'ID' => $p->ID ) );
+	clean_post_cache( $p->ID );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<h2>끝</h2><p class="ok">고쳤습니다. '
+	   . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p class="dim">/?stella_contrast=star-saju 로 다시 재보세요. '
+	   . '되돌리시려면 /?stella_starcol=undo 를 여세요.</p>';
+	exit;
+} );

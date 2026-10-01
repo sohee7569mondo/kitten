@@ -1,0 +1,203 @@
+/* ════════════════════════════════════════════════════════════
+   가디언 넷에게 이름을 줍니다   ★ 2026-09-08
+
+   소희 님이 정하신 이름 —
+
+     직성의 신  일 · 돈       →  마루    (산마루)
+     연성의 신  연애 · 결혼   →  벼리    (이미 쓰던 이름)
+     강성의 신  건강 · 가족   →  아람    (잘 여문 열매)
+     세성의 신  흐름 · 시기   →  미르    (용 · 물의 흐름)
+     성좌의 신  점성술        →  아라    (하늘과 바다의 옛말)
+                타로          →  아르카나 (이미 이름만 씁니다)
+
+   ── 어디를 바꾸나 ──────────────────────────────
+   사이트의 모든 쪽을 돌면서 제목과 글에서 다섯 칭호를 이름으로
+   바꿉니다. 문 여섯 · 책 · 견본 책 일곱 · 내 자리 · 결제 · 가격 ·
+   소개 · 홈까지 한 번에 갑니다.
+
+   ── 건드리지 않는 쪽 ───────────────────────────
+   칭호를 「코드가 알아보는 열쇠」로 쓰는 쪽은 건너뜁니다.
+   그런 쪽에서 글자만 바꾸면 예전에 받으신 풀이가 안 열립니다.
+   찾는 모양 넷 —
+
+     === '직성의 신'        같은지 비교하는 곳
+     == '직성의 신'
+     indexOf('직성의 신')
+     '직성의 신':           표의 열쇠로 쓰는 곳
+
+   책(reading-book)은 미리 살펴봤습니다. 넷 다 없고, 문을 알아볼
+   때는 이름이 아니라 slug(door-love 같은 것)를 씁니다. 그래서
+   안전합니다.
+
+   ★ 「명성의 신」(무료 한마디 · 로또)은 아직 이름이 없어서
+     그대로 둡니다.
+
+   ── 다시 넣어도 됩니다 ─────────────────────────
+   두 번째부터는 바꿀 것이 없어서 0군데로 나옵니다. 되돌리기는
+   맨 처음 글로 한 번에 돌아갑니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_guardian=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_guardian=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_guardian=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_guardian'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_guardian_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_guardian'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	/* 이름과, 그 이름에 받침이 있는지.
+	   「직성의 신이」를 그냥 「마루이」로 바꾸면 말이 안 됩니다.
+	   받침이 없는 이름은 조사도 같이 바꿔줘야 합니다.
+	     마루 벼리 미르 아라 — 받침 없음 → 가 · 는 · 를 · 와 · 로
+	     아람            — 받침 있음 → 이 · 은 · 을 · 과 · 으로  (그대로) */
+	$names = array(
+		'직성의 신' => array( '마루', false ),
+		'연성의 신' => array( '벼리', false ),
+		'강성의 신' => array( '아람', true  ),
+		'세성의 신' => array( '미르', false ),
+		'성좌의 신' => array( '아라', false ),
+	);
+
+	/* 조사까지 붙여서 먼저 바꿉니다. 순서가 중요합니다 —
+	   「직성의 신」을 먼저 바꿔버리면 조사를 못 잡습니다. */
+	$josa = array(
+		'이'   => array( '이', '가' ),
+		'은'   => array( '은', '는' ),
+		'을'   => array( '을', '를' ),
+		'과'   => array( '과', '와' ),
+		'으로' => array( '으로', '로' ),
+	);
+
+	$ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} "
+		. "WHERE post_type = 'page' AND post_status IN ('publish','draft','private') ORDER BY ID" );
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$back = 0;
+		foreach ( $ids as $id ) {
+			$old = get_post_meta( $id, $META, true );
+			if ( ! $old ) { continue; }
+			$wpdb->update( $wpdb->posts,
+				array( 'post_content' => $old['c'], 'post_title' => $old['t'] ),
+				array( 'ID' => $id ) );
+			clean_post_cache( $id );
+			delete_post_meta( $id, $META );
+			echo '<p class="ok">' . esc_html( $old['t'] ) . ' — 되돌렸습니다.</p>';
+			$back++;
+		}
+		echo '<h2>정리</h2><p>' . intval( $back ) . '쪽 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$hit = 0; $skip = 0; $quiet = 0; $total = 0;
+
+	foreach ( $ids as $id ) {
+
+		$row = $wpdb->get_row( $wpdb->prepare(
+			"SELECT ID, post_title, post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+		if ( ! $row ) { continue; }
+
+		$c = $row->post_content;
+		$t = $row->post_title;
+
+		/* 이 쪽에 칭호가 있나 */
+		$has = false;
+		foreach ( $names as $old => $nn ) {
+			if ( false !== strpos( $c, $old ) || false !== strpos( $t, $old ) ) { $has = true; break; }
+		}
+		if ( ! $has ) { $quiet++; continue; }
+
+		/* 코드가 열쇠로 쓰고 있으면 건드리지 않습니다 */
+		$danger = array();
+		foreach ( $names as $old => $nn ) {
+			$o = preg_quote( $old, '/' );
+			if ( preg_match( '/===?\s*[\'"]' . $o . '[\'"]/u', $c ) )      { $danger[] = $old . ' (비교)'; }
+			if ( preg_match( '/indexOf\(\s*[\'"]' . $o . '[\'"]/u', $c ) ) { $danger[] = $old . ' (찾기)'; }
+			if ( preg_match( '/[\'"]' . $o . '[\'"]\s*:/u', $c ) )         { $danger[] = $old . ' (표의 열쇠)'; }
+		}
+
+		echo '<h2>' . esc_html( $row->post_title ) . ' <span class="dim">(' . intval( $id ) . ')</span></h2>';
+
+		if ( $danger ) {
+			echo '<p class="no">코드가 칭호를 열쇠로 쓰고 있습니다. 건드리지 않습니다 — '
+			   . esc_html( implode( ' · ', array_unique( $danger ) ) ) . '</p>';
+			$skip++; continue;
+		}
+
+		$parts = array(); $sum = 0;
+		foreach ( $names as $old => $nn ) {
+			$new  = $nn[0];
+			$batc = $nn[1];
+			$cnt  = 0;
+
+			/* ① 조사가 붙은 꼴부터 */
+			foreach ( $josa as $j => $pair ) {
+				$to = $new . ( $batc ? $pair[0] : $pair[1] );
+				$a = 0; $b = 0;
+				$c = str_replace( $old . $j, $to, $c, $a );
+				$t = str_replace( $old . $j, $to, $t, $b );
+				$cnt += $a + $b;
+			}
+
+			/* ② 나머지 */
+			$a = 0; $b = 0;
+			$c = str_replace( $old, $new, $c, $a );
+			$t = str_replace( $old, $new, $t, $b );
+			$cnt += $a + $b;
+
+			if ( $cnt ) {
+				$parts[] = $old . ' → ' . $new . ' ' . $cnt . '군데';
+				$sum += $cnt;
+			}
+		}
+
+		echo '<p class="ok">' . esc_html( implode( ' &middot; ', $parts ) ) . '</p>';
+		if ( $t !== $row->post_title ) {
+			echo '<p class="dim">제목 : ' . esc_html( $row->post_title ) . ' → <b>' . esc_html( $t ) . '</b></p>';
+		}
+		$hit++; $total += $sum;
+
+		if ( ! $apply ) { continue; }
+
+		if ( ! get_post_meta( $id, $META, true ) ) {
+			update_post_meta( $id, $META, array( 'c' => $row->post_content, 't' => $row->post_title ) );
+		}
+		$wpdb->update( $wpdb->posts,
+			array( 'post_content' => $c, 'post_title' => $t ),
+			array( 'ID' => $id ) );
+		clean_post_cache( $id );
+	}
+
+	echo '<h2>정리</h2>';
+	echo '<p>' . intval( $hit ) . '쪽에서 ' . intval( $total ) . '군데 '
+	   . ( $apply ? '바꿨습니다' : '바꿉니다' )
+	   . ' &middot; ' . intval( $skip ) . '쪽 건너뜀 &middot; '
+	   . intval( $quiet ) . '쪽은 칭호가 없습니다</p>';
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_guardian=apply</code> 를 여세요.</p>';
+	} else {
+		echo '<p><a href="/door-career/">일 문 열어보기</a> &middot; <a href="/mypage/">내 자리</a></p>';
+		echo '<p class="ok">되돌리시려면 <code>/?stella_guardian=undo</code> 를 여세요.</p>';
+	}
+	exit;
+}, 0 );

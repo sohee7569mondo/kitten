@@ -1,0 +1,54 @@
+/* 유앤미 · 스니펫 점검  (관리자만 · 다 보고 나면 지우셔도 됩니다)
+
+   WPCode → 새 스니펫 → PHP Snippet → Auto Insert →
+   Run Everywhere → 저장 → Active
+
+   보는 곳 : https://stellasaju.com/um-diag/
+
+   스니펫이 몇 글자로 들어가 있는지, 끝이 제대로 닫혔는지 봅니다.
+   붙여넣다 잘린 것이 있으면 여기서 바로 드러납니다. */
+
+add_action( 'init', function () {
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	if ( false === strpos( $uri, '/um-diag' ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.7 system-ui;background:#111;color:#eee;padding:20px">';
+	echo '<h1 style="color:#ffd76a;font-size:19px">유앤미 스니펫 점검</h1>';
+
+	echo '<p>계산기(stella_um_here) : ';
+	echo function_exists( 'stella_um_here' ) ? '<b style="color:#9f9">살아 있음</b>' : '<b style="color:#f88">없음 — 1번이나 2번이 깨졌습니다</b>';
+	echo '</p>';
+
+	$rows = get_posts( array(
+		'post_type'   => 'wpcode',
+		'post_status' => 'any',
+		'numberposts' => 200,
+		'orderby'     => 'modified',
+		'order'       => 'DESC',
+	) );
+
+	echo '<table style="border-collapse:collapse;font-size:13px">';
+	echo '<tr style="color:#ffd76a"><td style="padding:5px 14px 5px 0">이름</td><td style="padding:5px 14px 5px 0">글자수</td><td style="padding:5px 14px 5px 0">끝맺음</td><td style="padding:5px 14px 5px 0">고친 때</td></tr>';
+
+	foreach ( $rows as $r ) {
+		$code = (string) $r->post_content;
+		$len  = strlen( $code );
+		if ( $len < 40 ) { continue; }
+		$tail = trim( substr( $code, -14 ) );
+		$ok   = ( substr( $tail, -1 ) === ';' || substr( $tail, -1 ) === '}' );
+		$hit  = ( false !== stripos( $r->post_title, 'uandme' ) || false !== stripos( $r->post_title, '유앤미' ) );
+		$col  = $hit ? '#9fd' : '#999';
+		echo '<tr>';
+		echo '<td style="padding:4px 14px 4px 0;color:' . $col . '">' . esc_html( $r->ID . ' · ' . $r->post_title ) . '</td>';
+		echo '<td style="padding:4px 14px 4px 0">' . number_format( $len ) . '</td>';
+		echo '<td style="padding:4px 14px 4px 0;color:' . ( $ok ? '#9f9' : '#f88' ) . '">' . esc_html( $ok ? $tail : '잘림 → ' . $tail ) . '</td>';
+		echo '<td style="padding:4px 14px 4px 0;color:#888">' . esc_html( $r->post_modified ) . '</td>';
+		echo '</tr>';
+	}
+	echo '</table>';
+	echo '<p style="color:#888;margin-top:18px">파란 이름이 유앤미 것입니다. 끝맺음 칸이 빨갛거나, 글자수가 유난히 적으면 그 스니펫이 잘린 것입니다.</p>';
+	exit;
+} );

@@ -1,0 +1,184 @@
+/* ════════════════════════════════════════════════════════════
+   메뉴에서 줄 빼기 · 이름 바꾸기   ★ 2026-09-09 · 소희 님께
+
+   소희 님 : 「로또 · 운명의 책 빼야 하는데」
+
+   메뉴는 하나뿐입니다 (wp_navigation · 4). 모바일도 같은 것을 씁니다.
+   ★ 로또는 이 메뉴에 없습니다. 그래서 지금은 「운명의 책」만 뺍니다.
+
+   빼는 것과 이름 바꾸는 것을 아래 표에서 정합니다. 표만 고치면
+   다른 줄도 같은 방식으로 손볼 수 있습니다.
+
+   ※ 페이지 자체는 그대로 둡니다. 메뉴에서만 내립니다.
+     /oracle/ 로 바로 들어가면 여전히 열립니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   미리보기   https://stellasaju.com/?stella_menu6=1
+   고치기     https://stellasaju.com/?stella_menu6=apply
+   되돌리기   https://stellasaju.com/?stella_menu6=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_menu6'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_menu6'] ) );
+	$META = '_stella_menu6_bak_0909';
+
+	/* ── 여기만 고치면 됩니다 ───────────────────────── */
+	$DROP   = array( '운명의 책' );          /* 메뉴에서 내릴 줄 */
+	$RENAME = array();                        /* '옛 이름' => '새 이름' */
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:28px 18px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 10px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.7 monospace;border-left:3px solid #D4AF6A}'
+	   . '</style>';
+
+	/* 메뉴 덩어리를 찾습니다 — 이름표가 제일 많이 든 것이 본 메뉴입니다 */
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_type, post_content
+		   FROM {$wpdb->posts}
+		  WHERE post_type IN ('wp_navigation','wp_template_part','wp_block')
+		    AND post_status NOT IN ('trash','auto-draft')" );
+
+	$best = null; $bestN = 0;
+	foreach ( (array) $rows as $r ) {
+		$n = substr_count( (string) $r->post_content, '"label":"' );
+		if ( $n > $bestN ) { $bestN = $n; $best = $r; }
+	}
+	if ( ! $best ) { echo '<p class="no">메뉴를 못 찾았습니다.</p>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌립니다</h1>';
+		$bak = get_post_meta( $best->ID, $META, true );
+		if ( '' === $bak ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ),
+			array( 'ID' => $best->ID ) );
+		clean_post_cache( $best->ID );
+		delete_post_meta( $best->ID, $META );
+		if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+		echo '<p class="ok">메뉴를 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c   = (string) $best->post_content;
+	$go  = ( 'apply' === $mode );
+
+	echo '<h1>메뉴 손보기 — ' . ( $go ? '고칩니다' : '미리보기 (아직 안 고침)' ) . '</h1>';
+	echo '<p class="dim">' . esc_html( $best->post_type ) . ' · ' . (int) $best->ID
+	   . ' · 줄 ' . (int) $bestN . '개 · '
+	   . number_format( strlen( $c ) ) . ' 바이트</p>';
+
+	/* 이름표 목록 */
+	$list = function ( $c ) {
+		$out = array(); $from = 0;
+		while ( true ) {
+			$at = strpos( $c, '"label":"', $from );
+			if ( false === $at ) { break; }
+			$s = $at + 9; $e = strpos( $c, '"', $s );
+			if ( false === $e ) { break; }
+			$from = $e + 1;
+			$out[] = substr( $c, $s, $e - $s );
+		}
+		return $out;
+	};
+
+	/* 그 이름표가 든 블록 한 덩어리를 통째로 지웁니다.
+	   블록은 <!-- wp:navigation-link ... /--> 한 줄짜리입니다. */
+	$dropOne = function ( $c, $label ) {
+		$at = strpos( $c, '"label":"' . $label . '"' );
+		if ( false === $at ) { return false; }
+		$s = strrpos( substr( $c, 0, $at ), '<!-- wp:' );
+		if ( false === $s ) { return false; }
+		$e = strpos( $c, '/-->', $at );
+		if ( false === $e ) { return false; }
+		$e = $e + 4;
+		/* 뒤에 붙은 줄바꿈과 빈칸까지 같이 걷습니다 */
+		while ( $e < strlen( $c ) ) {
+			$ch = substr( $c, $e, 1 );
+			if ( "\n" === $ch ) { $e++; continue; }
+			if ( "\r" === $ch ) { $e++; continue; }
+			if ( ' '  === $ch ) { $e++; continue; }
+			if ( "\t" === $ch ) { $e++; continue; }
+			break;
+		}
+		return substr( $c, 0, $s ) . substr( $c, $e );
+	};
+
+	$before = $list( $c );
+	$new    = $c;
+	$log    = '';
+
+	foreach ( $DROP as $d ) {
+		$r = $dropOne( $new, $d );
+		if ( false === $r ) {
+			$log .= '빼기  ' . str_pad( $d, 20 ) . "못 찾았습니다\n";
+			continue;
+		}
+		$new  = $r;
+		$log .= '빼기  ' . str_pad( $d, 20 ) . "찾았습니다\n";
+	}
+
+	foreach ( $RENAME as $old => $nw ) {
+		$k = substr_count( $new, '"label":"' . $old . '"' );
+		if ( 1 !== $k ) {
+			$log .= '이름  ' . str_pad( $old, 20 ) . $k . "개 — 건드리지 않습니다\n";
+			continue;
+		}
+		$new  = str_replace( '"label":"' . $old . '"', '"label":"' . $nw . '"', $new );
+		$log .= '이름  ' . str_pad( $old, 20 ) . '-> ' . $nw . "\n";
+	}
+
+	echo '<h2>한 일</h2><pre>' . esc_html( $log ? $log : '(할 일이 없습니다)' ) . '</pre>';
+
+	$after = $list( $new );
+	$out   = '';
+	$m     = max( count( $before ), count( $after ) );
+	for ( $i = 0; $i < $m; $i++ ) {
+		$b = isset( $before[ $i ] ) ? $before[ $i ] : '';
+		$a = isset( $after[ $i ] )  ? $after[ $i ]  : '';
+		$mark = ( $b === $a ) ? '  ' : '★ ';
+		$out .= $mark . str_pad( (string) ( $i + 1 ), 4 )
+		     . str_pad( $b, 28 ) . '|  ' . $a . "\n";
+	}
+	echo '<h2>전  |  후</h2><pre>' . esc_html( $out ) . '</pre>';
+
+	if ( ! $go ) {
+		echo '<h2>끝</h2><p class="dim">이대로 괜찮으시면 '
+		   . '/?stella_menu6=apply 를 여세요.</p>';
+		exit;
+	}
+
+	if ( $new === $c ) {
+		echo '<p class="no">바뀐 것이 없어 저장하지 않았습니다.</p>';
+		exit;
+	}
+
+	if ( '' === get_post_meta( $best->ID, $META, true ) ) {
+		update_post_meta( $best->ID, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ),
+		array( 'ID' => $best->ID ) );
+	clean_post_cache( $best->ID );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<h2>끝</h2><p class="ok">고쳤습니다. '
+	   . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p class="dim">되돌리시려면 /?stella_menu6=undo 를 여세요.</p>';
+	exit;
+} );

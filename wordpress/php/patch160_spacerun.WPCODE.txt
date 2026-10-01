@@ -1,0 +1,186 @@
+/* ══════════════════════════════════════════════════════════
+   여백 — 본문을 건드리지 않는 판      BUILD: SPACE-RUN-1
+   ★ 2026-09-12 · 소희 님께
+
+   ── 왜 바꾸나 ─────────────────────────────────────────
+   여태 여백 조각은 본문에 스타일을 써넣었습니다. 그래서
+   붙이기(apply)와 되돌리기(undo)가 필요했고, 판이 바뀔 때마다
+   본문이 늘었다 줄었다 했습니다. 오늘 사고가 거기서 났습니다.
+
+   이제 책 쪽을 우리가 직접 그리므로(SERVE-1) 스타일도
+   머리글로 바로 내보내면 됩니다.
+
+   ★ 붙이는 주소가 없습니다. 저장하고 Active 만 하세요.
+     끄면 곧바로 원래 여백으로 돌아옵니다.
+
+   ── 들어 있는 것 ──────────────────────────────────────
+   · 문단 20px · 설명 줄 26px · 소제목 위 48px
+   · 쪽과 쪽 사이 200px, 실선 없음, 그늘 없음
+   · 좌우 78px (휴대폰 22px) — 소희 님이 「딱 좋다」 하신 그 폭
+   · 종이를 흰 쪽으로, 바깥을 한 단 내려 쪽이 떠 보이게
+   · 그림자 없음
+   · 편지·맺음말·맨 끝 쪽 아래 190px — 여운
+   · 아르카나 말상자 줄 간격, 덤 상자 금색 5.5%
+   · 「세 가지만 기억하세요」의 넷째 덩어리는 번호 빼고 육성 상자
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ★★ 옛 여백 조각(space2~space6)은 전부 꺼주세요.
+      본문에 남은 판은 그대로 두어도 됩니다 — 나중 것이 이깁니다.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+
+	if ( is_admin() ) { return; }
+	if ( ! is_singular() ) { return; }
+	$p = get_post();
+	if ( ! $p ) { return; }
+	if ( 'reading-book' !== $p->post_name ) { return; }
+
+	echo "\n<style>\n";
+	echo stella_space_run_css();
+	echo "\n</style>\n";
+}, 99 );
+
+function stella_space_run_css() {
+	return <<<'STELLASPACERUN'
+/* ═══ 읽기 좋게   BUILD: SPACE-6   2026-09-12 ═══════════════════
+   여백만 바꿉니다. 자바스크립트가 없습니다.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 하나 · 글 안의 여백 ─────────────────────────────── */
+#ssb p{ margin:20px 0 0 !important; }        /* 같은 이야기 안의 숨 */
+#ssb h2{ margin:0 0 12px !important; }       /* 제목 → 설명 줄은 붙여 둡니다 */
+#ssb .dek{ margin:0 0 26px !important; }     /* 설명 줄 → 본문은 넉넉히 */
+#ssb h3{ margin:48px 0 12px !important; }    /* 주제가 바뀌는 자리 */
+#ssb h3:first-of-type{ margin-top:34px !important; }
+#ssb .voice{ margin-top:42px !important; padding:28px 30px !important; }
+#ssb .voice p + p{ margin-top:18px !important; }
+#ssb .alert{ margin-top:36px !important; }
+
+/* ── 하나의 반 · 아르카나 말상자 ─────────────────────
+   소희 님이 캡처로 보여주신 자리입니다. 여섯 줄이 서로
+   너무 벌어져 있어서 한 덩어리로 안 읽혔습니다.
+   줄 사이를 좁히고 문단 사이만 벌립니다. */
+#ssb .arcv-say{ line-height:1.85 !important; }
+#ssb .arcv-say p{ margin:0 0 15px !important; }
+#ssb .arcv-say p:last-child{ margin-bottom:0 !important; }
+
+/* ── 하나의 셋 · 카드 세 장의 자리 ───────────────────
+   「I · 지금 서 있는 자리」 위가 아래와 비슷해서 층이
+   안 보였습니다. 자리 이름 위를 크게 벌리고, 카드 이름
+   줄과 그 아래 풀이는 한 덩어리로 붙입니다. */
+#ssb h3 + p{ margin-top:12px !important; }
+
+/* ── 둘 · 쪽과 쪽 사이 ───────────────────────────────
+   실선을 없애고 여백으로만 나눕니다.
+   장은 속표지가 알려주므로 실선을 겹치지 않습니다. */
+#ssb .page + .page{ border-top:0 !important; }
+#ssb .page{ padding-top:200px !important; padding-bottom:10px !important; }
+#ssb .page[data-part="cover"]{ padding-top:6px !important; }
+#ssb .page.divider{ padding-top:200px !important; padding-bottom:70px !important; }
+#ssb .page.divider + .page{ padding-top:56px !important; }
+
+/* ── 둘의 반 · 종이를 흰 쪽으로 ───────────────────────
+   소희 님 — 「배경색은 흰색인 줄 아는 정도의 밝기. 흰색하고
+   비교해야 색이 있는 정도로 밝게. 그라데이션 안 했으면 해.」
+
+   재보니 쪽 바탕이 #FCFAF4, 바깥 바탕이 #E9E5DA 였습니다.
+   둘이 너무 가까워서 종이 전체가 누렇게 보였습니다.
+   쪽은 흰 쪽으로 올리고 바깥은 한 단 내립니다. 두 색이
+   벌어지면 쪽이 종이처럼 떠 보입니다.
+
+   ★ 그늘(그라데이션)은 통째로 들어냈습니다.
+     띠와 별자리 상자 아래가 눌려 보이고, 상자 밑 여백이
+     없는 것처럼 보였습니다. 쪽은 여백 200px 과 옅은
+     테두리만으로 나눕니다. */
+#ssb{
+  --page:#FDFCFA !important;       /* 흰색(#FFF) 옆에 놓아야 색이 보입니다 */
+  --page-edge:#F4F1EA !important;
+  --void:#E4DFD2 !important;       /* 바깥을 한 단 내려 쪽이 떠 보이게 */
+}
+/* 소희 님 — 「그쪽에 그림자 주는 것도 빼고」.
+   그림자를 걷어내면 쪽이 종이 한 장처럼 평평해집니다.
+   나누는 일은 여백 200px 과 실낱같은 테두리가 맡습니다. */
+#ssb .page{
+  border-color:rgba(138,106,36,.20) !important;
+  box-shadow:none !important;
+}
+
+/* 덤 두 쪽의 금색 상자도 한 단 옅게. 흰 종이 위에서는
+   같은 9% 도 훨씬 진해 보입니다. */
+#ssb .tailbox{ background:rgba(212,175,106,.055) !important; }
+
+
+/* ── 둘의 둘반 · 책의 폭 ─────────────────────────────
+   ★ 2026-09-12 소희 님 : 「전체 글의 폭을 줄여야 하는 건데
+   별자리 띠 부분이 아니고」
+
+   맞습니다. 넓은 화면에서는 글줄이 화면 끝까지 뻗어서
+   눈이 줄 끝에서 다음 줄 앞으로 돌아오기 힘듭니다.
+   책은 한 줄에 마흔에서 쉰 글자쯤일 때 가장 편하게 읽힙니다.
+
+   쪽 전체를 900px 로 묶고 가운데에 놓습니다.
+   좌우 78px 을 빼면 글줄이 744px — 한 줄에 마흔 자 안팎입니다.
+   창이 좁으면 여태처럼 화면을 다 씁니다.
+
+   ★ 이 숫자 하나만 고치면 책 전체 폭이 바뀝니다. */
+#ssb .page{
+  max-width:900px !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+
+/* ── 둘의 셋 · 좌우 여백 ─────────────────────────────
+   소희 님 — 「좌우 여백이 좀 있어야 하지 않을까? 답답해 보여」.
+   맞습니다. 글이 쪽 가장자리에 바짝 붙어 있었습니다.
+   쪽 안쪽 좌우를 62px 에서 78px 로 넓히고, 덤 상자는
+   쪽 안에서 한 번 더 들여 씁니다. 두 겹으로 숨을 줍니다.
+   휴대폰에서는 화면이 좁으니 22px 로 둡니다. */
+#ssb .page{ padding-left:78px !important; padding-right:78px !important; }
+#ssb .page[data-part="cover"]{ padding-left:56px !important; padding-right:56px !important; }
+#ssb .tailbox{ padding:30px 34px 28px !important; }
+@media(max-width:640px){
+  #ssb .page{ padding-left:22px !important; padding-right:22px !important; }
+  #ssb .page[data-part="cover"]{ padding-left:20px !important; padding-right:20px !important; }
+  #ssb .tailbox{ padding:22px 20px !important; }
+}
+
+/* ── 둘의 넷 · 마지막 쪽의 여운 ───────────────────────
+   소희 님 — 「편지 부분은 마지막이라서 아랫부분도 여백이
+   있어야 여운이 필요해」.
+
+   맞습니다. 여태 모든 쪽의 아래를 10px 로 깎아두어서,
+   마지막 쪽은 마지막 문장이 바닥에 붙은 채 끝났습니다.
+   책을 덮는 자리인데 숨 돌릴 데가 없었습니다.
+   편지와 맺음말, 그리고 맨 끝 쪽만 아래를 크게 엽니다. */
+#ssb .page.farewell,
+#ssb .page.close,
+#ssb .page:last-child{ padding-bottom:190px !important; }
+#ssb .book{ padding-bottom:200px !important; }
+
+/* ── 셋 · 「세 가지만 기억하세요」의 넷째 덩어리 ────────
+   「이 셋을 다 기억하지 않으셔도 됩니다」에 번호 4가 붙어 있었습니다.
+   셋을 기억하라 해놓고 넷이 되어 있으니 이상합니다.
+   넷째는 번호를 빼고 육성 상자 모양으로 바꿉니다. 가디언이 하는 말이니까요. */
+#ssb .keep .k:nth-of-type(4){
+  counter-increment:none !important;
+  padding:24px 26px !important;
+  margin-top:30px !important;
+  background:rgba(212,175,106,.075) !important;
+  border-left:2px solid var(--gold) !important;
+  border-radius:0 !important;
+}
+#ssb .keep .k:nth-of-type(4)::before{ display:none !important; }
+#ssb .keep .k:nth-of-type(4) .kt{ font-size:1.12rem !important; }
+
+@media(max-width:640px){
+  #ssb p{ margin:18px 0 0 !important; }
+  #ssb h3{ margin:40px 0 11px !important; }
+  #ssb .dek{ margin:0 0 22px !important; }
+  #ssb .page{ padding-top:140px !important; }
+  #ssb .page.divider{ padding-top:140px !important; padding-bottom:52px !important; }
+  #ssb .page.divider + .page{ padding-top:44px !important; }
+}
+STELLASPACERUN;
+}

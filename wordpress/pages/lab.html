@@ -1,0 +1,166 @@
+<!--
+  STELLA SAJU — 스텔라 랩  (/lab/)   BUILD: L1
+
+  가입도 로그인도 없이 바로 되는 짧은 검사 모음입니다.
+  서버를 쓰지 않습니다. 고른 답은 화면 안에서만 셈하고 끝냅니다.
+
+  [규칙]
+    · 스크립트 안에 앰퍼샌드를 절대 쓰지 않습니다. (워드프레스가 스크립트를 깨뜨립니다)
+    · 스크립트 안에 여는 꺾쇠도 쓰지 않습니다. 화면은 createElement 로만 그립니다.
+    · 검사 결과는 재미를 위한 것이며, 사주 풀이를 대신하지 않습니다.
+-->
+<style>
+#slab{
+  --void:#0D0A1A; --nebula:#1C1533; --deep:#171130;
+  --gold:#D4AF6A; --gold-soft:#C9A66B; --gold-lite:#E8CD96;
+  --star:#F2ECE0; --ink-soft:rgba(242,236,224,.72); --ink-dim:rgba(242,236,224,.44);
+  --line:rgba(212,175,106,.20); --line-hi:rgba(212,175,106,.46);
+  --serif:'Gowun Batang','Noto Serif KR',serif;
+  --latin:'Cinzel',serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  max-width:none !important; width:auto !important;
+  margin-left:calc(50% - 50vw) !important; margin-right:calc(50% - 50vw) !important;
+  padding:0 !important;
+  position:relative; z-index:0; overflow-x:clip;
+  background:var(--void); color:var(--star);
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-weight:400; line-height:1.85; font-size:17px;
+  word-break:keep-all; overflow-wrap:break-word; min-height:90vh;
+}
+#slab *{margin:0; padding:0; box-sizing:border-box;}
+#slab [hidden]{display:none !important;}
+#slab .wrap{max-width:720px; margin:0 auto; padding:58px 22px 120px;}
+@media(max-width:700px){ #slab .wrap{padding:40px 17px 90px;} }
+
+#slab .mark{font-family:var(--latin); font-size:.68rem; letter-spacing:.34em; color:var(--gold); margin-bottom:16px;}
+#slab h1{font-family:var(--serif); font-weight:700; font-size:clamp(1.8rem,5.2vw,2.35rem); line-height:1.42; margin-bottom:14px;}
+#slab .dek{color:var(--ink-soft); font-size:.98rem; margin-bottom:8px;}
+#slab .dek2{color:var(--ink-dim); font-size:.88rem; margin-bottom:46px;}
+
+/* ── 검사 목록 ── */
+#slab .cards{display:grid; gap:14px;}
+#slab .card{display:block; width:100%; text-align:left; cursor:pointer;
+  background:var(--nebula); border:1px solid var(--line); border-radius:14px;
+  padding:24px 24px 22px; color:inherit; font:inherit;
+  transition:border-color .18s ease, transform .18s ease, background .18s ease;}
+#slab .card:hover{border-color:var(--line-hi); background:var(--deep); transform:translateY(-2px);}
+#slab .card .no{font-family:var(--mono); font-size:.7rem; letter-spacing:.16em; color:var(--gold); display:block; margin-bottom:9px;}
+#slab .card .nm{font-family:var(--serif); font-weight:700; font-size:1.24rem; line-height:1.45; margin-bottom:7px;}
+#slab .card .sb{color:var(--ink-soft); font-size:.92rem; line-height:1.7;}
+#slab .card .mt{margin-top:13px; font-family:var(--mono); font-size:.72rem; color:var(--ink-dim); letter-spacing:.05em;}
+
+/* ── 문항 화면 ── */
+#slab .stage{padding-top:4px;}
+#slab .bar{height:3px; background:rgba(212,175,106,.14); border-radius:3px; overflow:hidden; margin-bottom:14px;}
+#slab .bar i{display:block; height:100%; background:linear-gradient(90deg,var(--gold-soft),var(--gold-lite)); width:0; transition:width .3s ease;}
+#slab .cnt{font-family:var(--mono); font-size:.73rem; color:var(--ink-dim); letter-spacing:.1em; margin-bottom:30px;}
+#slab .qt{font-family:var(--serif); font-weight:700; font-size:clamp(1.25rem,4vw,1.55rem); line-height:1.55; margin-bottom:26px;}
+#slab .opts{display:grid; gap:10px;}
+#slab .opt{display:block; width:100%; text-align:left; cursor:pointer;
+  background:transparent; border:1px solid var(--line); border-radius:11px;
+  padding:16px 18px; color:var(--star); font:inherit; font-size:.97rem; line-height:1.65;
+  transition:border-color .16s ease, background .16s ease, padding-left .16s ease;}
+#slab .opt:hover{border-color:var(--line-hi); background:rgba(212,175,106,.06); padding-left:22px;}
+#slab .nav{margin-top:26px; display:flex; gap:12px;}
+#slab .lnk{background:none; border:0; cursor:pointer; font:inherit; font-size:.86rem;
+  color:var(--ink-dim); padding:6px 0; border-bottom:1px solid transparent;}
+#slab .lnk:hover{color:var(--gold-lite); border-bottom-color:var(--line);}
+
+/* ── 결과 화면 ── */
+#slab .rtag{font-family:var(--latin); font-size:.68rem; letter-spacing:.3em; color:var(--gold); margin-bottom:14px;}
+#slab .rname{font-family:var(--serif); font-weight:700; font-size:clamp(1.9rem,5.6vw,2.5rem); line-height:1.35; margin-bottom:10px;}
+#slab .rsub{color:var(--gold-lite); font-size:1rem; margin-bottom:30px; font-family:var(--serif);}
+#slab .rbody p{color:var(--ink-soft); font-size:.98rem; margin-bottom:15px;}
+#slab .rbox{margin-top:28px; padding:22px 22px 20px; border-radius:12px;
+  background:rgba(140,101,214,.09); border:1px solid rgba(140,101,214,.28);}
+#slab .rbox h3{font-family:var(--serif); font-weight:700; font-size:1.02rem; margin-bottom:12px; color:var(--star);}
+#slab .rbox ul{list-style:none;}
+#slab .rbox li{position:relative; padding-left:15px; margin-top:9px; color:var(--ink-soft); font-size:.94rem; line-height:1.72;}
+#slab .rbox li:before{content:'\00B7'; position:absolute; left:3px; color:var(--gold-soft);}
+#slab .rgo{margin-top:30px; border-top:1px solid var(--line); padding-top:26px;}
+#slab .rgo h3{font-family:var(--serif); font-weight:700; font-size:1.05rem; margin-bottom:6px;}
+#slab .rgo .rg-d{color:var(--ink-dim); font-size:.88rem; margin-bottom:16px;}
+#slab .rgo a{display:flex; justify-content:space-between; align-items:center; gap:14px;
+  text-decoration:none; color:var(--star); background:var(--nebula);
+  border:1px solid var(--line); border-radius:11px; padding:16px 18px; margin-top:9px;
+  transition:border-color .16s ease, background .16s ease;}
+#slab .rgo a:hover{border-color:var(--line-hi); background:var(--deep);}
+#slab .rgo a b{font-weight:500; font-size:.98rem;}
+#slab .rgo a span{color:var(--ink-dim); font-size:.85rem; text-align:right; flex:1;}
+#slab .rgo a i{font-style:normal; color:var(--gold); font-size:.95rem;}
+#slab .fin{margin-top:34px; display:flex; gap:16px; flex-wrap:wrap;}
+#slab .foot{margin-top:52px; border-top:1px solid var(--line); padding-top:24px;
+  color:var(--ink-dim); font-size:.85rem; line-height:1.8;}
+#slab .foot a{color:var(--gold-soft); text-decoration:none; border-bottom:1px solid var(--line);}
+@media(max-width:700px){
+  #slab .rgo a{flex-direction:column; align-items:flex-start; gap:5px;}
+  #slab .rgo a span{text-align:left;}
+  #slab .rgo a i{display:none;}
+}
+</style>
+
+<div id="slab">
+  <div class="wrap">
+    <div id="lab-home">
+      <div class="mark">STELLA LAB</div>
+      <h1>스텔라 랩</h1>
+      <p class="dek">일이 분이면 끝나는 짧은 검사들입니다. 가입도, 로그인도 없습니다.</p>
+      <p class="dek2">답은 어디에도 저장되지 않습니다. 화면을 닫으면 그걸로 끝이에요.</p>
+      <div class="cards" id="lab-cards"></div>
+      <div class="foot">
+        가벼운 마음으로 봐주세요. 사람은 검사 결과보다 넓습니다.<br>
+        조금 더 촘촘하게 보고 싶으시면 <a href="/saju/">나의 사주풀이</a>나
+        <a href="/uandme/">사주 궁합</a>도 무료로 열려 있습니다.
+      </div>
+    </div>
+
+    <div id="lab-stage" class="stage" hidden>
+      <div class="bar"><i id="lab-fill"></i></div>
+      <div class="cnt" id="lab-cnt"></div>
+      <div class="qt" id="lab-q"></div>
+      <div class="opts" id="lab-opts"></div>
+      <div class="nav">
+        <button type="button" class="lnk" id="lab-back">&larr; 이전 문항</button>
+        <button type="button" class="lnk" id="lab-quit">그만두고 목록으로</button>
+      </div>
+    </div>
+
+    <div id="lab-result" hidden>
+      <div class="rtag" id="lab-rtag"></div>
+      <div class="rname" id="lab-rname"></div>
+      <div class="rsub" id="lab-rsub"></div>
+      <div class="rbody" id="lab-rbody"></div>
+      <div class="rbox">
+        <h3 id="lab-rcareh">이럴 때 조심하세요</h3>
+        <ul id="lab-rcare"></ul>
+      </div>
+      <div class="rgo">
+        <h3>더 보고 싶으시면</h3>
+        <p class="rg-d">이어서 보시면 좋은 것들입니다.</p>
+        <div id="lab-rgo"></div>
+      </div>
+      <div class="fin">
+        <button type="button" class="lnk" id="lab-again">이 검사 다시 하기</button>
+        <button type="button" class="lnk" id="lab-other">다른 검사 해보기</button>
+      </div>
+      <div class="foot">
+        재미로 보는 검사입니다. 의료나 심리 진단이 아닙니다.
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+/* 스니펫(stella_lab)이 아직 없을 때만 안내를 보여줍니다. */
+(function(){
+  var box = document.getElementById('lab-cards');
+  if(!box){ return; }
+  setTimeout(function(){
+    if(box.children.length){ return; }
+    var p = document.createElement('p');
+    p.style.color = 'rgba(242,236,224,.44)';
+    p.style.fontSize = '.9rem';
+    p.textContent = '검사를 준비하고 있습니다. 곧 열립니다.';
+    box.appendChild(p);
+  }, 1200);
+})();
+</script>

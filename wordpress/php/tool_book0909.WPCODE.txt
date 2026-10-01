@@ -1,0 +1,148 @@
+/* ════════════════════════════════════════════════════════════
+   책 속 글자 찾기 (읽기만)   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다. 보기만 합니다.
+
+   고쳐야 할 말들이 실제로 어떻게 적혀 있는지 찾아서 보여줍니다.
+   이걸 봐야 나머지를 정확히 고칠 수 있습니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   책 보기        https://stellasaju.com/?stella_bk9=book
+   연애 문 보기   https://stellasaju.com/?stella_bk9=door-love
+
+   ★ 브라우저 번역을 끄고 여세요. 켜져 있으면 글자가 바뀝니다.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_bk9'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	$which = sanitize_text_field( wp_unslash( $_GET['stella_bk9'] ) );
+	$slug  = ( 'book' === $which || '1' === $which ) ? 'reading-book' : $which;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.8;'
+	   . 'padding:30px 20px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.3rem;margin:0 0 14px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 8px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:16px}'
+	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:11px;white-space:pre-wrap;word-break:break-all;'
+	   . 'font:11.5px/1.65 monospace;border-left:3px solid #D4AF6A;margin:8px 0}'
+	   . 'mark{background:#D4AF6A;color:#000}</style>';
+
+	$page = get_page_by_path( $slug );
+	if ( ! $page ) { echo '<h1 class="no">' . esc_html( $slug ) . ' 쪽을 못 찾았습니다.</h1>'; exit; }
+
+	global $wpdb;
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $page->ID ) );
+	$c = $row ? $row->post_content : '';
+
+	echo '<h1>' . esc_html( $slug ) . ' · ' . number_format( strlen( $c ) ) . ' 바이트</h1>';
+
+	$keys = array(
+		'네 자리가 한 사람이 되면',
+		'네 개의 별',
+		'흙의 언어',
+		'만지는 카드',
+		'맞고 틀리는',
+		'세 장을',
+		'보내기',
+		'다섯 저울',
+		'마음에 남',
+		'후기',
+		'일간',
+		'제일 센',
+		'전자책',
+		'미리보기',
+		'차 례',
+		'목차',
+	);
+
+	foreach ( $keys as $k ) {
+		$n = substr_count( $c, $k );
+		echo '<h2>' . esc_html( $k ) . ' — ' . $n . ' 군데</h2>';
+		if ( 0 === $n ) { echo '<p class="dim">없습니다.</p>'; continue; }
+		$from = 0;
+		$show = 0;
+		while ( $show < 4 ) {
+			$at = strpos( $c, $k, $from );
+			if ( false === $at ) { break; }
+			$a = max( 0, $at - 150 );
+			$b = min( strlen( $c ), $at + strlen( $k ) + 190 );
+			$cut = substr( $c, $a, $b - $a );
+			echo '<pre>' . esc_html( $cut ) . '</pre>';
+			$from = $at + strlen( $k );
+			$show++;
+		}
+		if ( $n > 4 ) { echo '<p class="dim">... 나머지 ' . ( $n - 4 ) . ' 군데는 생략</p>'; }
+	}
+
+	/* 이름 뒤에 님 을 붙이는 자리 */
+	echo '<h2>이름 + 님 을 만드는 자리</h2>';
+	$nm = 0;
+	$from = 0;
+	while ( $nm < 8 ) {
+		$at = strpos( $c, '님', $from );
+		if ( false === $at ) { break; }
+		$a = max( 0, $at - 90 );
+		$cut = substr( $c, $a, 150 );
+		if ( false !== strpos( $cut, '+' ) || false !== strpos( $cut, '$' )
+			|| false !== strpos( $cut, 'name' ) || false !== strpos( $cut, 'NAME' ) ) {
+			echo '<pre>' . esc_html( $cut ) . '</pre>';
+			$nm++;
+		}
+		$from = $at + 3;
+	}
+	if ( 0 === $nm ) { echo '<p class="dim">못 찾았습니다.</p>'; }
+
+	/* 소제목 목록 */
+	echo '<h2>소제목 (h3) 목록</h2>';
+	$h = array();
+	$from = 0;
+	while ( true ) {
+		$a = strpos( $c, '<h3', $from );
+		if ( false === $a ) { break; }
+		$b = strpos( $c, '</h3>', $a );
+		if ( false === $b ) { break; }
+		$t = wp_strip_all_tags( substr( $c, $a, $b - $a ) );
+		$t = trim( preg_replace( '/\s+/', ' ', $t ) );
+		if ( '' !== $t ) { $h[] = $t; }
+		$from = $b + 5;
+		if ( count( $h ) > 120 ) { break; }
+	}
+	echo '<pre>' . esc_html( implode( "\n", $h ) ) . '</pre>';
+
+	echo '<h2>큰제목 (h2) 목록</h2>';
+	$h2 = array();
+	$from = 0;
+	while ( true ) {
+		$a = strpos( $c, '<h2', $from );
+		if ( false === $a ) { break; }
+		$b = strpos( $c, '</h2>', $a );
+		if ( false === $b ) { break; }
+		$t = wp_strip_all_tags( substr( $c, $a, $b - $a ) );
+		$t = trim( preg_replace( '/\s+/', ' ', $t ) );
+		if ( '' !== $t ) { $h2[] = $t; }
+		$from = $b + 5;
+		if ( count( $h2 ) > 120 ) { break; }
+	}
+	echo '<pre>' . esc_html( implode( "\n", $h2 ) ) . '</pre>';
+
+	echo '<h2>들어가 있는 표</h2>';
+	$marks = array( 'stella-look-0909', 'stella-coverpic', 'coverpic',
+		'tocpage', 'min-height:82vh', 'dvbig' );
+	$out = '';
+	foreach ( $marks as $m ) {
+		$out .= str_pad( $m, 24 ) . ( false !== strpos( $c, $m ) ? '있음' : '없음' ) . "\n";
+	}
+	echo '<pre>' . esc_html( $out ) . '</pre>';
+
+	exit;
+}, 0 );

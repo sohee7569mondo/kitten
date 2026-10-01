@@ -1,0 +1,182 @@
+/* ════════════════════════════════════════════════════════════
+   머리글 속을 그대로 들여다봅니다 (읽기만)   tool_header
+   ★ 2026-09-15 · 소희 님께
+
+   왜 만드나
+     로고를 바꾸는 조각이 「머리글 안에 그림이 하나도 없습니다」
+     라고 했습니다. 로고가 <img> 가 아니라는 뜻입니다 —
+     CSS 배경 그림이거나 SVG 이거나, 제가 잡은 것이 진짜 머리글이
+     아니거나. 짐작하지 말고 그대로 봅니다.
+
+        https://stellasaju.com/?stella_header=1
+
+   ★ 아무것도 안 바꿉니다. 화면에 표를 띄우기만 합니다.
+   ★ 관리자에게만 보입니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'wp_footer', function () {
+	if ( ! isset( $_GET['stella_header'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+	?>
+<style id="stella-header-say">
+#stella-hd{ position:relative; z-index:999999; margin:10px;
+  padding:12px 14px; border:2px solid #2F7D4A; background:#F3F8F4;
+  border-radius:8px; font:12px/1.7 ui-monospace,monospace; color:#1d3a27;
+  white-space:pre-wrap; word-break:break-all; }
+</style>
+<script>
+(function(){
+  var NL = String.fromCharCode(10);
+  var out = [];
+
+  function add(s){ out.push(s); }
+
+  /* 잇단 빈칸을 하나로 — 정규식을 안 쓰는 까닭은 집 규칙(역빗금 0) 입니다 */
+  function squash(v){
+    var a = String(v === undefined ? '' : v).split(' ');
+    var b = [], i, t;
+    for(i = 0; i < a.length; i++){
+      t = a[i].split(String.fromCharCode(10)).join('')
+              .split(String.fromCharCode(9)).join('')
+              .split(String.fromCharCode(13)).join('');
+      if(t){ b.push(t); }
+    }
+    return b.join(' ');
+  }
+
+  function bg(el){
+    try{
+      var v = window.getComputedStyle(el).backgroundImage;
+      if(!v){ return ''; }
+      if(v === 'none'){ return ''; }
+      return v;
+    }catch(e){ return ''; }
+  }
+
+  function walk(root, depth, max){
+    var kids = root.children, i, el, t, c, b, line;
+    for(i = 0; i < kids.length; i++){
+      el = kids[i];
+      t = el.tagName.toLowerCase();
+      c = String(el.className || '');
+      if(typeof c !== 'string'){ c = ''; }
+      b = bg(el);
+      line = new Array(depth + 1).join('  ') + t;
+      if(c){ line += ' .' + c.split(' ').slice(0, 3).join('.'); }
+      if(t === 'img'){ line += '  [IMG ' + String(el.getAttribute('src')).slice(-44) + ']'; }
+      if(t === 'svg'){ line += '  [SVG]'; }
+      if(t === 'a'){ line += '  [-> ' + String(el.getAttribute('href') || '').slice(-30) + ']'; }
+      if(b){ line += '  [배경 ' + b.slice(0, 80) + ']'; }
+      var txt = squash(el.textContent);
+      if(txt){ if(txt.length < 24){ if(el.children.length === 0){ line += '  「' + txt + '」'; } } }
+      add(line);
+      if(depth < max){ walk(el, depth + 1, max); }
+    }
+  }
+
+  function go(){
+    add('═══ 머리글 속 ═══');
+    add('');
+    var alls = document.querySelectorAll('header');
+    add('header 태그 ' + alls.length + '개');
+    var i;
+    for(i = 0; i < alls.length; i++){
+      add('  [' + i + '] .' + String(alls[i].className || '(이름없음)').slice(0, 50)
+        + ' · 그림 ' + alls[i].querySelectorAll('img').length + '개'
+        + ' · svg ' + alls[i].querySelectorAll('svg').length + '개');
+    }
+    add('');
+    add('쪽 전체 그림 ' + document.querySelectorAll('img').length + '개 · '
+      + 'svg ' + document.querySelectorAll('svg').length + '개');
+    add('');
+
+    var tp = document.querySelectorAll('.wp-block-template-part');
+    add('template-part ' + tp.length + '개');
+    for(i = 0; i < tp.length; i++){
+      add('  [' + i + '] .' + String(tp[i].className || '').slice(0, 60)
+        + ' · 그림 ' + tp[i].querySelectorAll('img').length + '개');
+    }
+    add('');
+
+    /* 로고일 만한 것 — 이름에 logo 가 든 것 모두 */
+    var lg = document.querySelectorAll('[class*="logo"], [class*="Logo"], '
+      + '[class*="brand"], [class*="site-title"]');
+    add('이름에 logo · brand · site-title 이 든 것 ' + lg.length + '개');
+    for(i = 0; i < lg.length; i++){
+      if(i > 11){ add('  …'); break; }
+      add('  ' + lg[i].tagName.toLowerCase() + ' .'
+        + String(lg[i].className || '').slice(0, 50)
+        + (bg(lg[i]) ? '  [배경 ' + bg(lg[i]).slice(0, 60) + ']' : '')
+        + '  「' + squash(lg[i].textContent).slice(0, 20) + '」');
+    }
+    add('');
+
+    /* ── 바닥글 ──────────────────────────────────────────
+       2026-09-15 · 소희 님 : 「풋터가 어떨떈 아이보리바탕으로
+       어떨떈 진한 바탕으로 나오던데」
+       바닥글에 제 배경색이 없으면 뒤의 body 색이 그대로 비칩니다.
+       쪽마다 body 색이 달라서 그렇게 보일 수 있습니다.
+       그래서 바닥글과 그 위 상자들의 배경색을 차례로 찍습니다. */
+    function bgc(el){
+      try{
+        var v = window.getComputedStyle(el).backgroundColor;
+        if(!v){ return '(없음)'; }
+        return v;
+      }catch(e){ return '(못봄)'; }
+    }
+    add('── 바닥글 ──');
+    add('  body 배경 : ' + bgc(document.body));
+    var html0 = document.documentElement;
+    add('  html 배경 : ' + bgc(html0));
+    var fts = document.querySelectorAll('footer');
+    add('  footer 태그 ' + fts.length + '개');
+    for(i = 0; i < fts.length; i++){
+      add('    [' + i + '] .' + String(fts[i].className || '(이름없음)').slice(0, 44));
+      add('        배경색 ' + bgc(fts[i]) + (bg(fts[i]) ? ' · 배경그림 있음' : ''));
+      /* 위로 세 겹 올라가며 — 어디서 색이 오는지 */
+      var n = fts[i].parentNode, k = 0;
+      while(n){
+        if(!n.tagName){ break; }
+        if(n.tagName.toLowerCase() === 'body'){ break; }
+        add('        위 ' + n.tagName.toLowerCase() + ' .'
+          + String(n.className || '').slice(0, 36) + ' → ' + bgc(n));
+        k++;
+        if(k > 2){ break; }
+        n = n.parentNode;
+      }
+      /* 바닥글 안 첫 상자들 */
+      var kids = fts[i].children, j;
+      for(j = 0; j < kids.length; j++){
+        if(j > 3){ break; }
+        add('        안 ' + kids[j].tagName.toLowerCase() + ' .'
+          + String(kids[j].className || '').slice(0, 36) + ' → ' + bgc(kids[j]));
+      }
+    }
+    add('');
+
+    /* 첫 머리글 속을 세 겹까지 그대로 */
+    var h = alls.length ? alls[0] : (tp.length ? tp[0] : null);
+    if(h){
+      add('── 첫 머리글 속 (세 겹) ──');
+      walk(h, 0, 3);
+    } else {
+      add('★ header 도 template-part 도 없습니다');
+    }
+
+    var d = document.createElement('div');
+    d.id = 'stella-hd';
+    d.textContent = out.join(NL);
+    if(document.body){ document.body.insertBefore(d, document.body.firstChild); }
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(go, 600); });
+  } else { setTimeout(go, 600); }
+})();
+</script>
+	<?php
+}, 99 );

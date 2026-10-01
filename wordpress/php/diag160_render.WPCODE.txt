@@ -1,0 +1,171 @@
+/* ═══════════════════════════════════════════════════════════════
+   붙여넣기 안내 · 소희 님께
+
+   1) WPCode → 새 스니펫 → 「Add Your Custom Code (New Snippet)」
+   2) 종류(Code Type)는 반드시  PHP Snippet
+   3) 편집창 첫 줄에 이미 PHP 여는 태그가 한 줄 들어 있습니다. 그건 그대로 두시고,
+      그 아래에 이 파일 내용을 통째로 붙여넣어 주세요.
+      (이 파일에는 여는 태그가 없습니다 — 두 번 들어가면 스니펫이 죽습니다)
+   4) 저장 → 활성(Active) → 아래 주소를 주소창에 넣습니다
+
+        https://stellasaju.com/?stella_patch=diag160
+
+   ※ 이 스니펫은 아무것도 고치지 않습니다. 보기만 합니다.
+   ═══════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_patch'] ) || 'diag160' !== $_GET['stella_patch'] ) {
+		return;
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	global $wpdb;
+	$pid = 160;
+	$raw = $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:14px/1.7 monospace;background:#111;color:#eee;padding:24px">';
+	echo '<h2 style="color:#ffd76a">페이지 160 · 저장된 글 대 화면에 뿌려진 글</h2>';
+
+	if ( ! $raw ) {
+		echo '<p style="color:#ff7b7b">글을 못 읽었습니다.</p></body>';
+		exit;
+	}
+
+	$rendered = apply_filters( 'the_content', $raw );
+
+	printf( '<p>저장된 글 : <b>%d</b> 바이트 · sha1 <b>%s</b></p>', strlen( $raw ), substr( sha1( $raw ), 0, 12 ) );
+	printf( '<p>뿌려진 글 : <b>%d</b> 바이트 (차이 %+d)</p>', strlen( $rendered ), strlen( $rendered ) - strlen( $raw ) );
+
+	/* ── 1. 책이 담길 그릇이 살아 있는지 ───────────────────── */
+	echo '<h3 style="color:#9fd">1. 책이 담길 그릇</h3><ul>';
+	foreach ( array( 'id="ssb"', 'id="bkBook"', 'id="bkEmpty"', 'id="bkN"', 'id="bkTitle"' ) as $needle ) {
+		printf(
+			'<li>%s — 저장 %d개 · 화면 <b style="color:%s">%d개</b></li>',
+			esc_html( $needle ),
+			substr_count( $raw, $needle ),
+			substr_count( $rendered, $needle ) === substr_count( $raw, $needle ) ? '#7bff9b' : '#ff7b7b',
+			substr_count( $rendered, $needle )
+		);
+	}
+	echo '</ul>';
+
+	/* ── 2. script 덩어리를 하나씩 맞대어 봅니다 ──────────── */
+	$re = '#<script\b[^>]*>(.*?)</script>#s';
+	preg_match_all( $re, $raw, $mr );
+	preg_match_all( $re, $rendered, $mv );
+	$nr = count( $mr[1] );
+	$nv = count( $mv[1] );
+
+	echo '<h3 style="color:#9fd">2. script 덩어리</h3>';
+	printf(
+		'<p>저장 <b>%d</b>덩어리 · 화면 <b style="color:%s">%d</b>덩어리</p>',
+		$nr,
+		$nr === $nv ? '#7bff9b' : '#ff7b7b',
+		$nv
+	);
+
+	/* 스크립트 안에서 절대 나오면 안 되는 것들 */
+	$bad = array(
+		'&#038;'  => '앰퍼샌드가 실체참조로',
+		'&amp;'   => '앰퍼샌드가 실체참조로',
+		'&#8217;' => '홑따옴표가 둥근따옴표로',
+		'&#8216;' => '홑따옴표가 둥근따옴표로',
+		'&#8220;' => '겹따옴표가 둥근따옴표로',
+		'&#8221;' => '겹따옴표가 둥근따옴표로',
+		'&#8230;' => '점셋이 줄임표로',
+		'&#8211;' => '붙임표가 대시로',
+		'&#8212;' => '붙임표가 대시로',
+		'&lt;'    => '부등호가 실체참조로',
+		'&gt;'    => '부등호가 실체참조로',
+		'<br />'  => '줄바꿈 태그가 끼어듦',
+		'<br>'    => '줄바꿈 태그가 끼어듦',
+		'</p>'    => '문단 태그가 끼어듦',
+		'<p>'     => '문단 태그가 끼어듦',
+	);
+
+	echo '<table cellpadding="6" style="border-collapse:collapse;margin-top:10px">';
+	echo '<tr style="color:#ffd76a"><td>덩어리</td><td>저장 길이</td><td>화면 길이</td><td>차이</td><td>망가진 것</td></tr>';
+
+	$worst = array();
+
+	for ( $i = 0; $i < min( $nr, $nv ); $i++ ) {
+		$a   = $mr[1][ $i ];
+		$b   = $mv[1][ $i ];
+		$hit = array();
+		foreach ( $bad as $needle => $label ) {
+			$ca = substr_count( $a, $needle );
+			$cb = substr_count( $b, $needle );
+			if ( $cb > $ca ) {
+				$hit[] = $needle . ' ' . ( $cb - $ca ) . '개';
+				if ( ! isset( $worst[ $i ] ) ) {
+					$worst[ $i ] = $needle;
+				}
+			}
+		}
+		$same = ( $a === $b );
+		printf(
+			'<tr style="border-top:1px solid #333"><td>%d</td><td>%d</td><td>%d</td><td style="color:%s">%+d</td><td style="color:%s">%s</td></tr>',
+			$i,
+			strlen( $a ),
+			strlen( $b ),
+			$same ? '#7bff9b' : '#ff7b7b',
+			strlen( $b ) - strlen( $a ),
+			$hit ? '#ff7b7b' : '#7bff9b',
+			$hit ? esc_html( implode( ' · ', $hit ) ) : ( $same ? '없음 (그대로)' : '길이는 같은데 내용이 다름' )
+		);
+	}
+	echo '</table>';
+
+	/* ── 3. 망가진 자리를 실제로 보여줍니다 ──────────────── */
+	echo '<h3 style="color:#9fd">3. 망가진 자리 (앞에서 최대 6곳)</h3>';
+	$shown = 0;
+	for ( $i = 0; $i < min( $nr, $nv ) && $shown < 6; $i++ ) {
+		if ( ! isset( $worst[ $i ] ) ) {
+			continue;
+		}
+		$needle = $worst[ $i ];
+		$b      = $mv[1][ $i ];
+		$pos    = strpos( $b, $needle );
+		if ( false === $pos ) {
+			continue;
+		}
+		$ctx = substr( $b, max( 0, $pos - 120 ), 260 );
+		printf(
+			'<p style="margin-top:14px;color:#ffd76a">덩어리 %d — <b>%s</b></p><pre style="white-space:pre-wrap;background:#000;padding:10px;border-left:3px solid #ff7b7b">%s</pre>',
+			$i,
+			esc_html( $needle ),
+			esc_html( $ctx )
+		);
+		$shown++;
+	}
+	if ( 0 === $shown ) {
+		echo '<p style="color:#7bff9b">script 안에서 망가진 곳을 못 찾았습니다.</p>';
+	}
+
+	/* ── 4. 어떤 필터들이 the_content 에 걸려 있는지 ──────── */
+	echo '<h3 style="color:#9fd">4. the_content 에 걸린 것들</h3><pre style="white-space:pre-wrap">';
+	global $wp_filter;
+	if ( isset( $wp_filter['the_content'] ) ) {
+		foreach ( $wp_filter['the_content']->callbacks as $prio => $cbs ) {
+			foreach ( $cbs as $key => $cb ) {
+				$nm = $key;
+				if ( is_array( $cb['function'] ) ) {
+					$nm = ( is_object( $cb['function'][0] ) ? get_class( $cb['function'][0] ) : (string) $cb['function'][0] ) . '::' . $cb['function'][1];
+				} elseif ( is_string( $cb['function'] ) ) {
+					$nm = $cb['function'];
+				} elseif ( $cb['function'] instanceof Closure ) {
+					$nm = '(이름 없는 함수)';
+				}
+				printf( "%4d  %s\n", $prio, esc_html( $nm ) );
+			}
+		}
+	}
+	echo '</pre>';
+
+	echo '</body>';
+	exit;
+} );

@@ -1,0 +1,166 @@
+/* ══════════════════════════════════════════════════════════
+   급한 수리 · 소희 님께                              2026-09-11
+   ── 판 : SOS-1 (2026-09-11) ──
+
+   책이 안 나오던 까닭을 찾았습니다. 제 잘못입니다.
+
+   셋째 패치에서 05장 제목을 이렇게 바꿨습니다.
+     '<h2>'+(it.emptyEls.length? … )+'</h2>'
+   그런데 그 자리에는 「it」이라는 것이 없습니다.
+   그래서 책을 그리다가 그 줄에서 멈췄고,
+   그 뒤 장이 하나도 안 그려진 것입니다.
+   (보내주신 「it is not defined」가 바로 이것입니다.)
+
+   ① 그 줄을 원래대로 돌립니다  →  '<h2>기운의 저울</h2>'
+      제목을 「글자에는 없는데 저울에는 있는 것」으로 바꾸는 일은
+      책이 다시 나온 뒤에, 그 자리에 맞는 방법으로 따로 하겠습니다.
+
+   주소
+     해보기   https://stellasaju.com/?stella_sos911=preview
+     붙이기   https://stellasaju.com/?stella_sos911=apply
+     되돌리기 https://stellasaju.com/?stella_sos911=undo
+
+   ★ 스니펫 이름 「STELLA - 급한 수리 SOS1」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 붙이신 뒤 https://stellasaju.com/reading-book/?demo=door-love 를
+     새로고침(Ctrl+Shift+R) 해서 책이 나오는지 봐주세요.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_sos911'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode  = sanitize_text_field( wp_unslash( $_GET['stella_sos911'] ) );
+	$STACK = '_stella_sos911_stack';
+	$ROUND = '급한 수리 SOS-1 2026-09-11';
+
+	$OLD = <<<'TAG'
+'<h2>'+(it.emptyEls.length?'글자에는 없는데 저울에는 있는 것':'기운의 저울')+'</h2>'
+TAG;
+	$NEW = <<<'TAG'
+'<h2>기운의 저울</h2>'
+TAG;
+
+	$FIX = array(
+		array( '05장 제목 되돌리기', $OLD, $NEW ),
+	);
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$stack = get_post_meta( $id, $STACK, true );
+	if ( ! is_array( $stack ) ) { $stack = array(); }
+
+	echo "═══ 급한 수리 · 판 SOS-1 (2026-09-11) ═══\n\n";
+
+	if ( 'list' === $mode ) {
+		echo "─── 되돌릴 수 있는 판 ───\n";
+		if ( ! count( $stack ) ) { echo '쌓인 것이 없습니다.'; exit; }
+		$i = count( $stack );
+		foreach ( array_reverse( $stack ) as $s ) {
+			echo '  ' . $i . '. ' . $s['when'] . ' - ' . $s['name'] . ' - '
+			   . number_format( strlen( $s['body'] ) ) . "글자\n";
+			$i--;
+		}
+		exit;
+	}
+
+	if ( 'undo' === $mode ) {
+		if ( ! count( $stack ) ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$last = array_pop( $stack );
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $last['body'] ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		update_post_meta( $id, $STACK, $stack );
+		echo '되돌렸습니다 — ' . $last['when'] . ' - ' . $last['name'] . "\n";
+		echo '남은 판 ' . count( $stack ) . '개';
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo '쪽 ' . $id . ' - ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	/* ── 먼저 진단 ── 「it.」 을 잘못 쓴 데가 또 있는지 셉니다 */
+	$n1 = substr_count( $c, 'it.emptyEls' );
+	$n2 = substr_count( $c, 'it.sipNone' );
+	$n3 = substr_count( $c, 'it.elCount' );
+	echo "─── 진단 ───\n";
+	echo '  it.emptyEls  ' . $n1 . "군데\n";
+	echo '  it.sipNone   ' . $n2 . "군데\n";
+	echo '  it.elCount   ' . $n3 . "군데\n\n";
+
+	$todo = array();
+	$done = 0;
+	$miss = 0;
+	foreach ( $FIX as $r ) {
+		list( $nm, $old, $new ) = $r;
+		$got = substr_count( $c, $old );
+		if ( $got > 0 ) {
+			echo sprintf( "  %-22s 찾음 %d군데\n", $nm, $got );
+			$todo[] = $r;
+			continue;
+		}
+		if ( substr_count( $c, $new ) > 0 ) {
+			echo sprintf( "  %-22s 이미 고쳐져 있습니다\n", $nm );
+			$done++;
+			continue;
+		}
+		echo sprintf( "  %-22s ★ 못 찾았습니다 — 건너뜁니다\n", $nm );
+		$miss++;
+	}
+
+	if ( ! count( $todo ) ) {
+		if ( $done ) {
+			echo "\n이미 고쳐져 있습니다.\n";
+			if ( $n1 ) {
+				echo "★ 그런데 it.emptyEls 가 아직 " . $n1 . "군데 남아 있습니다.\n";
+				echo "  이 화면을 통째로 저에게 붙여주세요.\n";
+			} else {
+				echo "책을 열어 확인해 주세요.\n";
+				echo "  https://stellasaju.com/reading-book/?demo=door-love\n";
+			}
+		} else {
+			echo "\n하나도 못 찾았습니다. 아무것도 안 바꿨습니다.\n";
+			echo "이 화면을 통째로 저에게 붙여주세요.\n";
+		}
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $todo as $r ) { $new = str_replace( $r[1], $r[2], $new ); }
+
+	if ( 'preview' === $mode ) {
+		$pos = mb_strpos( $c, 'it.emptyEls', 0, 'UTF-8' );
+		if ( false !== $pos ) {
+			$blk = mb_substr( $c, max( 0, $pos - 160 ), 420, 'UTF-8' );
+			$blk = preg_replace( '/\s+/u', ' ', $blk );
+			echo "\n─── 멈춘 자리 둘레 ───\n";
+			echo '…' . $blk . "…\n";
+		}
+		echo "\n" . count( $todo ) . "자리를 고칩니다.\n";
+		echo number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
+		echo "\n괜찮으시면 ?stella_sos911=apply\n";
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) { echo 'preview - apply - undo - list 중에 골라주세요.'; exit; }
+
+	$stack[] = array( 'when' => current_time( 'Y-m-d H:i' ), 'name' => $ROUND, 'body' => $c );
+	while ( count( $stack ) > 5 ) { array_shift( $stack ); }
+	update_post_meta( $id, $STACK, $stack );
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "\n고쳤습니다. " . count( $todo ) . "자리.\n\n";
+	echo "이제 책을 열어봐 주세요 (Ctrl+Shift+R 로 새로고침)\n";
+	echo "  https://stellasaju.com/reading-book/?demo=door-love\n\n";
+	echo "되돌리려면 ?stella_sos911=undo\n";
+	exit;
+}, 1 );

@@ -1,0 +1,257 @@
+/* ════════════════════════════════════════════════════════════
+   여덟 글자를 넷씩 두 줄로   ★ 2026-09-08
+
+   소희 님 :「넷씩 두 줄이라 표시되어 있어서 넷씩 두 줄로 바꿔야
+   할 듯... 이 부분은 색도 들어가서 커도 이쁠 듯」
+
+   맞습니다. 바로 위 문장이 이렇게 말하고 있습니다 —
+
+     「위칸을 천간, 아래칸을 지지라고 부릅니다. 넷씩 두 줄, 모두
+      여덟 자예요. 이 가운데 일주의 위칸 한 글자가 ○○님 자신이고…」
+
+   그런데 그림은 위아래가 아니라 왼오른쪽으로 놓여 있었습니다.
+   「위칸」이라고 읽고 눈은 왼칸을 봅니다. 글과 그림이 어긋납니다.
+
+   ── 바뀌는 모습 ────────────────────────────────
+              연주    월주    일주    시주
+     천간     [丙]    [乙]    [庚]    [庚]
+              편관    정재   나 자신   비견
+     지지     [子]    [未]    [申]    [辰]
+              식신    정인    비견    편인
+
+   · 천간 · 지지라는 이름을 왼쪽에 세워둡니다. 글에 나오는 말이
+     그림에도 있어야 합니다.
+   · 일주의 위칸 — 「나 자신」인 그 한 글자에 금빛 테를 두릅니다.
+     문장이 가리키는 자리를 눈이 바로 찾습니다.
+   · 네모를 키웁니다 (74 → 92). 색이 들어가는 자리라 클수록 예쁩니다.
+   · 오행 이름 · 한자 · 한글 음 세 줄은 그대로입니다.
+     색을 못 가리는 분도 글자로 읽을 수 있어야 하니까요.
+
+   ★ 옛 그림(.chart)은 색표까지 그대로 둡니다. 되돌리면 그대로
+     돌아옵니다.
+
+   ── 같이 바꾸는 것 하나 ────────────────────────
+   소희 님이 주신 말로 그림 바로 아래 제목을 바꿉니다 —
+
+     네 자리가 뜻하는 것
+       ↓
+     네 자리가 한 사람이 되면
+     네 개의 별이 ○○님을 바라보는 모습
+
+   ★ 주신 글에는 「당신」이었는데 손님 이름으로 넣습니다.
+     바로 위 문단이 이미 「일주의 위칸 한 글자가 하은님 자신」이라고
+     이름으로 부르고 있어서, 두 줄 사이에서 말이 갈리면 안 됩니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_chart8=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_chart8=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_chart8=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_chart8'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_chart8_backup';
+	$MARK = '2026-09-08 · 넷씩 두 줄';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_chart8'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:880px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{white-space:pre-wrap;background:rgba(255,255,255,.04);padding:10px 12px;'
+	   . 'border-radius:6px;font-size:.8rem;line-height:1.6}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<h1 class="no">이미 들어가 있습니다.</h1>';
+		echo '<p><code>/?stella_chart8=undo</code> 로 걷어낸 뒤 다시 넣으세요.</p>';
+		exit;
+	}
+
+	/* ── 갈아끼울 자리 : '<div class="chart">'+ 부터 그 다음 '</div>'+ 까지 ── */
+	$S1 = "'<div class=\"chart\">'+";
+	$S2 = "      }).join('')+\n    '</div>'+";
+
+	$a = strpos( $c, $S1 );
+	$b = ( false === $a ) ? false : strpos( $c, $S2, $a );
+
+	echo '<h1>' . ( 'apply' === $mode ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+	echo '<h2>① 그림 그리는 자리</h2>';
+
+	if ( false === $a || false === $b ) {
+		echo '<p class="no">자리를 못 찾았습니다. '
+		   . '(여는 자리 ' . ( false === $a ? '없음' : intval( $a ) )
+		   . ' · 닫는 자리 ' . ( false === $b ? '없음' : intval( $b ) ) . ')</p>';
+		exit;
+	}
+	echo '<p class="ok">찾았습니다 — ' . intval( $a ) . ' ~ ' . intval( $b + strlen( $S2 ) )
+	   . ' (' . number_format( $b + strlen( $S2 ) - $a ) . ' 바이트)</p>';
+	echo '<p class="dim">지금 들어 있는 것 —</p><pre>'
+	   . esc_html( substr( $c, $a, $b + strlen( $S2 ) - $a ) ) . '</pre>';
+
+	$NEW = <<<'JSX'
+/* ══ 2026-09-08 · 넷씩 두 줄 ══════════════════════════════
+   바로 위 문장이 「위칸을 천간, 아래칸을 지지」라고 말합니다.
+   그림도 그렇게 놓습니다. 일주의 위칸에는 금빛 테를 둘러서
+   「이 한 글자가 ○○님 자신」이 눈에 바로 걸리게 합니다. */
+'<div class="chart8">'+
+  '<div class="c8-corner"></div>'+
+  heads.map(function(h){ return '<div class="c8-h">'+h+'</div>'; }).join('')+
+
+  '<div class="c8-side">천간</div>'+
+  cols.map(function(c,i){
+    if(!c){ return '<div class="c8 c8-none"><span class="c8-x">—</span><em>시간 모름</em></div>'; }
+    var ring = '';
+    if(i === 2){ ring = ' c8-mine'; }
+    return '<div class="c8'+ring+'">'+
+      elSpan(c.han.charAt(0), c.kor.charAt(0))+
+      '<em>'+(sipTop[i]||'')+'</em></div>';
+  }).join('')+
+
+  '<div class="c8-side">지지</div>'+
+  cols.map(function(c,i){
+    if(!c){ return '<div class="c8 c8-none"><span class="c8-x">—</span><em></em></div>'; }
+    return '<div class="c8">'+
+      elSpan(c.han.charAt(1), c.kor.charAt(1))+
+      '<em>'+(sipBot[i]||'')+'</em></div>';
+  }).join('')+
+'</div>'+
+JSX;
+
+	$CSS = <<<'CSSX'
+
+<style>
+/* ══ 2026-09-08 · 넷씩 두 줄 ═══════════════════════════════
+   옛 그림(.chart)은 색표까지 그대로 둡니다. 되돌리면 돌아옵니다. */
+#ssb .chart8{
+  display:grid;
+  grid-template-columns:3.1rem repeat(4,1fr);
+  gap:10px 10px;
+  margin:26px 0 4px;
+  align-items:center;
+}
+#ssb .chart8 .c8-h{
+  text-align:center; font-family:var(--mono); font-size:.72rem;
+  letter-spacing:.12em; color:var(--dim);
+}
+#ssb .chart8 .c8-side{
+  text-align:right; font-family:var(--mono); font-size:.72rem;
+  letter-spacing:.12em; color:var(--gold); padding-right:2px;
+}
+#ssb .chart8 .c8{
+  display:flex; flex-direction:column; align-items:center; gap:9px;
+  padding:6px 2px;
+}
+#ssb .chart8 .c8 span[data-el], #ssb .chart8 .c8 .c8-x{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  width:92px; height:92px; border-radius:21px;
+  font-family:var(--han); font-size:2.15rem; font-weight:700; line-height:1;
+  color:#FFFFFF; background:rgba(23,20,32,.30);
+}
+#ssb .chart8 .c8 span[data-el] i{
+  font-style:normal; font-family:var(--serif); font-weight:500;
+  font-size:.62rem; letter-spacing:.06em; opacity:.82; margin-bottom:5px;
+}
+#ssb .chart8 .c8 span[data-el] b{
+  font-family:var(--serif); font-weight:500;
+  font-size:.68rem; letter-spacing:.02em; opacity:.88; margin-top:6px;
+}
+#ssb .chart8 .c8 span[data-el="목"]{ background:var(--e-mok); }
+#ssb .chart8 .c8 span[data-el="화"]{ background:var(--e-hwa); }
+#ssb .chart8 .c8 span[data-el="토"]{ background:var(--e-to); }
+#ssb .chart8 .c8 span[data-el="금"]{ background:var(--e-geum); }
+#ssb .chart8 .c8 span[data-el="수"]{ background:var(--e-su); }
+#ssb .chart8 .c8 em{
+  font-style:normal; font-family:var(--serif); font-size:.8rem;
+  color:var(--dim); line-height:1.5; text-align:center;
+}
+/* 일주의 위칸 — 이 한 글자가 손님 자신입니다 */
+#ssb .chart8 .c8-mine span[data-el]{
+  box-shadow:0 0 0 3px var(--page), 0 0 0 6px var(--gold);
+}
+#ssb .chart8 .c8-mine em{ color:var(--gold); font-weight:700; }
+#ssb .chart8 .c8-none{ opacity:.4; }
+#ssb .chart8 .c8-none .c8-x{ background:rgba(23,20,32,.16); }
+@media(max-width:640px){
+  #ssb .chart8{ grid-template-columns:2.1rem repeat(4,1fr); gap:7px 5px; }
+  #ssb .chart8 .c8{ gap:6px; padding:4px 0; }
+  #ssb .chart8 .c8 span[data-el], #ssb .chart8 .c8 .c8-x{
+    width:60px; height:60px; border-radius:14px; font-size:1.35rem; }
+  #ssb .chart8 .c8 span[data-el] i{ font-size:.5rem; margin-bottom:3px; }
+  #ssb .chart8 .c8 span[data-el] b{ font-size:.54rem; margin-top:3px; }
+  #ssb .chart8 .c8 em{ font-size:.66rem; }
+  #ssb .chart8 .c8-side, #ssb .chart8 .c8-h{ font-size:.6rem; letter-spacing:.06em; }
+  #ssb .chart8 .c8-mine span[data-el]{ box-shadow:0 0 0 2px var(--page), 0 0 0 4px var(--gold); }
+}
+</style>
+CSSX;
+
+	$new = substr( $c, 0, $a ) . $NEW . substr( $c, $b + strlen( $S2 ) ) . $CSS;
+
+	/* ── ② 그림 아래 제목 (소희 님이 주신 말) ── */
+	$H1 = "'<h3>네 자리가 뜻하는 것</h3>'+";
+	$H2 = "'<h3>네 자리가 한 사람이 되면</h3>'+\n"
+	    . "    '<p class=\"dek\">네 개의 별이 '+esc(name)+'님을 바라보는 모습</p>'+";
+
+	echo '<h2>② 그림 아래 제목</h2>';
+	$hn = substr_count( $new, $H1 );
+	if ( 1 === $hn ) {
+		$new = str_replace( $H1, $H2, $new );
+		echo '<p class="ok">네 자리가 뜻하는 것 → <b>네 자리가 한 사람이 되면</b><br>'
+		   . '<span class="dim">네 개의 별이 ○○님을 바라보는 모습</span></p>';
+	} else {
+		echo '<p class="no">제목을 못 찾았습니다 (' . intval( $hn ) . '군데). '
+		   . '그림만 바꾸고 제목은 그대로 둡니다.</p>';
+	}
+
+	echo '<h2>③ 색표</h2>';
+	echo '<p class="ok">쪽 맨 뒤에 붙입니다. ' . number_format( strlen( $CSS ) ) . ' 바이트</p>';
+	echo '<h2>정리</h2>';
+	echo '<p class="dim">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_chart8=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p><a href="/reading-book/?demo=door-love">샘플 책으로 확인해보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_chart8=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

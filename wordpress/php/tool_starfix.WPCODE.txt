@@ -1,0 +1,149 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주 — 왜 목록이 안 감춰지나 · 「191명」이 어디 있나
+   ★ 2026-09-15 · 소희 님께
+
+   소희 님 : 「스타운세도 이름 리스트 가리기로 햇는데 안된거 같고
+              스타 사주 메뉴에 191명이라고 되어 있는데 이거 수정해야 할거 같아」
+
+   짐작으로 고치면 또 어긋납니다. 제 사본이 낡아서 선택자(#cRoster)가
+   살아 있는 쪽과 다를 수 있습니다. 그래서 **실제 쪽을 열어 찍습니다.**
+   아무것도 안 바꿉니다.
+
+   보기   https://stellasaju.com/?stella_starfix=1
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_starfix'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	/* ── 스타 사주 쪽 찾기 ───────────────────────────── */
+	$p = null;
+	foreach ( array( 'star-saju', 'celeb', 'star', 'star-fortune' ) as $slug ) {
+		$one = get_page_by_path( $slug );
+		if ( $one ) { $p = $one; break; }
+	}
+	if ( ! $p ) {
+		$hit = $wpdb->get_results(
+			"SELECT ID, post_title, post_name FROM {$wpdb->posts}
+			  WHERE post_type = 'page' AND post_status = 'publish'
+			    AND post_title LIKE '%스타%' LIMIT 5" );
+		echo "슬러그로 못 찾았습니다. 제목에 「스타」가 든 쪽 —\n";
+		foreach ( (array) $hit as $one ) {
+			echo '  ' . $one->ID . '  ' . $one->post_title . '  (' . $one->post_name . ")\n";
+		}
+		exit;
+	}
+
+	$c = (string) $p->post_content;
+	echo "═══ 스타 사주 ═══\n";
+	echo '쪽 ' . $p->ID . ' · ' . $p->post_title . ' · /' . $p->post_name . "/\n";
+	echo '글자 수 ' . number_format( mb_strlen( $c ) ) . "\n\n";
+
+	/* ── 1. 목록 칸의 진짜 이름 ──────────────────────── */
+	echo "── 1. 쪽 안의 id 들 (목록 칸을 여기서 찾습니다) ──\n";
+	if ( preg_match_all( '/id=["\']([A-Za-z0-9_-]{2,40})["\']/', $c, $m ) ) {
+		$seen = array();
+		foreach ( $m[1] as $one ) {
+			if ( isset( $seen[ $one ] ) ) { continue; }
+			$seen[ $one ] = 1;
+			echo '  #' . $one . "\n";
+		}
+	} else {
+		echo "  id 가 하나도 없습니다.\n";
+	}
+	echo "\n";
+
+	echo "── 2. 우리 조각이 찾는 이름이 있나 ──\n";
+	foreach ( array( 'ssc', 'cRoster', 'find', 'celeb-hint' ) as $want ) {
+		$has = ( false !== strpos( $c, $want ) );
+		echo sprintf( "  %-12s %s\n", $want, $has ? '있습니다' : '★ 없습니다' );
+	}
+	echo "  ★ 「없습니다」가 있으면 그래서 목록이 안 감춰집니다.\n\n";
+
+	/* ── 3. 「명」 앞에 숫자가 붙은 자리 ─────────────── */
+	echo "── 3. 사람 수가 글로 박힌 자리 ──\n";
+	$found = 0;
+	if ( preg_match_all( '/[0-9]{2,5}\s*명/u', $c, $m2, PREG_OFFSET_CAPTURE ) ) {
+		foreach ( $m2[0] as $one ) {
+			$at = $one[1];
+			$s  = max( 0, $at - 60 );
+			echo '  [' . $at . '] …' . str_replace( array( "\n", "\r" ), ' ', substr( $c, $s, 150 ) ) . "…\n";
+			$found++;
+		}
+	}
+	if ( ! $found ) { echo "  쪽 글에는 없습니다. 메뉴나 다른 조각에 있습니다.\n"; }
+	echo "\n";
+
+	/* ── 4. 메뉴에 있나 ──────────────────────────────── */
+	echo "── 4. 차림표(메뉴)에서 「스타」가 든 것 ──\n";
+	$rows = $wpdb->get_results(
+		"SELECT p.ID, p.post_title, p.post_excerpt
+		   FROM {$wpdb->posts} p
+		  WHERE p.post_type = 'nav_menu_item' LIMIT 300" );
+	$hit = 0;
+	foreach ( (array) $rows as $one ) {
+		$t = (string) $one->post_title . ' ' . (string) $one->post_excerpt;
+		if ( false === strpos( $t, '스타' ) ) {
+			if ( ! preg_match( '/[0-9]{2,5}\s*명/u', $t ) ) { continue; }
+		}
+		echo '  ' . $one->ID . '  「' . trim( $t ) . "」\n";
+		$hit++;
+	}
+	/* 메뉴 이름은 딸림값에 있을 때가 많습니다 */
+	$metas = $wpdb->get_results(
+		"SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta}
+		  WHERE meta_key LIKE '_menu_item%' LIMIT 2000" );
+	foreach ( (array) $metas as $one ) {
+		$v = (string) $one->meta_value;
+		if ( ! preg_match( '/[0-9]{2,5}\s*명/u', $v ) ) { continue; }
+		echo '  딸림값  ' . $one->post_id . '  ' . $one->meta_key . ' = ' . $v . "\n";
+		$hit++;
+	}
+	if ( ! $hit ) { echo "  메뉴에는 없습니다.\n"; }
+	echo "\n";
+
+	/* ── 5. 어느 조각이 그 숫자를 넣나 (이름만) ─────── */
+	echo "── 5. 「명」 앞 숫자가 든 WPCode 조각 (이름만 찍습니다) ──\n";
+	$snips = get_posts( array(
+		'post_type'      => 'wpcode',
+		'post_status'    => 'any',
+		'posts_per_page' => 300,
+	) );
+	$hit2 = 0;
+	foreach ( $snips as $sn ) {
+		$code = (string) $sn->post_content;
+		if ( '' === $code ) {
+			foreach ( (array) get_post_meta( $sn->ID ) as $mv ) {
+				$v = is_array( $mv ) ? reset( $mv ) : $mv;
+				if ( ! is_string( $v ) ) { continue; }
+				if ( preg_match( '/[0-9]{2,5}\s*명/u', $v ) ) { $code = $v; break; }
+			}
+		}
+		if ( ! preg_match( '/([0-9]{2,5})\s*명/u', $code, $mm ) ) { continue; }
+		echo '  · ' . $sn->post_title . '  (' . $sn->post_status . ')  → 「'
+		   . $mm[0] . "」\n";
+		$hit2++;
+	}
+	if ( ! $hit2 ) { echo "  조각에는 없습니다.\n"; }
+	echo "\n";
+
+	/* ── 6. 지금 사람이 몇 명인가 ────────────────────── */
+	echo "── 6. 지금 올라와 있는 사람 수 ──\n";
+	$n = preg_match_all( '/\{"n":"/', $c, $m3 );
+	echo '  쪽 글 안의 자료  ' . $n . "명\n";
+	$rows2 = apply_filters( 'stella_star_rows', array() );
+	echo '  조각이 보태는 것  ' . ( is_array( $rows2 ) ? count( $rows2 ) : 0 ) . "명\n";
+	echo "  ★ 둘을 더한 수가 메뉴에 적혀야 할 수입니다.\n\n";
+
+	echo "═══ 끝 ═══\n";
+	echo "이 글을 그대로 벼리에게 붙여넣어 주세요. 정확히 고치겠습니다.\n";
+	exit;
+}, 1 );

@@ -1,0 +1,94 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주(406) 속을 봅니다 — 보기만 하는 도구
+   ★ 2026-09-09 · 소희 님께
+
+   「너무 짧아서 재미가 없다」를 고치려면 지금 무엇을 어떻게
+   보여주고 있는지부터 정확히 봐야 합니다. 아무것도 안 바꿉니다.
+
+   보기   https://stellasaju.com/?stella_star406=1
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_star406'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$p = get_page_by_path( 'star-saju' );
+	if ( ! $p ) { echo '스타 사주 쪽이 없습니다.'; exit; }
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+
+	echo "═══ 스타 사주 (쪽 " . $p->ID . ") ═══\n";
+	echo '글자 수  ' . number_format( strlen( $c ) ) . "\n\n";
+
+	/* ── 1. 함수 이름들 ─────────────────────────────── */
+	echo "── 1. 안에 있는 함수 ──\n";
+	if ( preg_match_all( '/function\s+([A-Za-z0-9_$]+)\s*\(([^)]{0,80})\)/', $c, $m, PREG_OFFSET_CAPTURE ) ) {
+		foreach ( $m[1] as $i => $one ) {
+			echo sprintf( "  %7d  %s( %s )\n", $one[1], $one[0], trim( $m[2][ $i ][0] ) );
+		}
+	}
+	echo "\n";
+
+	/* ── 2. 사람 한 명 자료 생김새 ──────────────────── */
+	echo "── 2. 사람 한 명 자료 ──\n";
+	$at = strpos( $c, '{"n":"' );
+	if ( false !== $at ) {
+		echo '  ' . substr( $c, $at, 700 ) . "\n";
+	} else {
+		echo "  {\"n\":\" 로 시작하는 자료를 못 찾았습니다.\n";
+	}
+	echo "\n";
+
+	/* ── 3. 화면을 그리는 자리들 ────────────────────── */
+	echo "── 3. innerHTML 을 쓰는 자리 ──\n";
+	$from = 0;
+	$n = 0;
+	while ( $n < 40 ) {
+		$at = strpos( $c, 'innerHTML', $from );
+		if ( false === $at ) { break; }
+		$s = max( 0, $at - 90 );
+		echo sprintf( "  [%d] %s\n", $at, str_replace( "\n", ' ⏎ ', substr( $c, $s, 200 ) ) );
+		$from = $at + 9;
+		$n++;
+	}
+	echo "\n";
+
+	/* ── 4. 제목(h2·h3)으로 쓰는 말들 ───────────────── */
+	echo "── 4. 화면에 쓰는 제목말 ──\n";
+	if ( preg_match_all( '/<h([23])[^>]*>([^<+]{1,60})/u', $c, $m2 ) ) {
+		$seen = array();
+		foreach ( $m2[2] as $i => $t ) {
+			$t = trim( $t );
+			if ( $t === '' ) { continue; }
+			if ( isset( $seen[ $t ] ) ) { continue; }
+			$seen[ $t ] = 1;
+			echo '  h' . $m2[1][ $i ] . '  ' . $t . "\n";
+		}
+	}
+	echo "\n";
+
+	/* ── 5. 원하시는 자리 주변 보기 ─────────────────── */
+	echo "── 5. 어느 자리든 주변 보기 ──\n";
+	$want = isset( $_GET['at'] ) ? (int) $_GET['at'] : -1;
+	$len  = isset( $_GET['len'] ) ? max( 200, min( 12000, (int) $_GET['len'] ) ) : 3000;
+	if ( $want < 0 ) {
+		echo "  위 [숫자] 를 골라 주소 끝에 붙이시면 그 자리를 보여드립니다.\n";
+		echo '  ' . home_url( '/?stella_star406=1' ) . '&at=' . '숫자' . '&len=3000' . "\n";
+	} else {
+		echo '  ' . $want . ' 부터 ' . $len . "글자\n";
+		echo "  ────────────────────────────────\n";
+		echo substr( $c, $want, $len ) . "\n";
+		echo "  ────────────────────────────────\n";
+	}
+
+	echo "\n═══ 끝 ═══\n";
+	exit;
+}, 1 );

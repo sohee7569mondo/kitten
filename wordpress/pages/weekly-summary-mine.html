@@ -6,7 +6,7 @@
   가입할 때 넣으신 생년월일로 일간(日干)을 세워, 그 사람의 자리를
   맨 위로 올리고 표시해 드립니다.
 
-  '나'는 일간입니다. 오행이 많은 쪽이 아니라, 일주의 위 글자예요.
+  나를 나타내는 것은 일간입니다. 오행이 많은 쪽이 아니라, 일주의 위 글자예요.
   그래서 여기서도 일간만 봅니다.
 
   음력으로 넣으신 분은 건너뜁니다. 여기에는 음력 변환표가 없어서
@@ -14,17 +14,31 @@
   (그런 분께는 /saju/ 로 가시라고 안내만 답니다)
 -->
 <style>
-#wsMine{max-width:760px; margin:0 auto 6px; padding:18px 22px; border-radius:11px;
-  background:rgba(212,175,106,.09); border:1px solid rgba(212,175,106,.34);
-  font-size:.96rem; line-height:1.9; color:#F2ECE0; text-align:left; display:none;}
+/* 2026-09-29 · 쪽 84 는 2026-09-08 에 종이빛으로 바뀌었습니다.
+   이 칸의 색은 밤하늘 판 그대로여서 글씨가 안 보였습니다.
+   첫째 블록의 밝은 색표와 같은 값으로 맞춥니다. */
+#wsMine{
+  max-width:none; margin:22px auto 6px; padding:20px 24px; border-radius:12px;
+  background:linear-gradient(120deg,#F5F1FC 0%,#FFFFFF 70%);
+  border:1px solid #D9CFF2;
+  box-shadow:0 12px 30px -18px rgba(59,44,120,.35);
+  font-size:.96rem; line-height:1.9; color:#221C33; text-align:left; display:none;}
 #wsMine.on{display:block;}
-#wsMine b{color:#D4AF6A;}
-#wsMine .sub{display:block; margin-top:6px; font-size:.84rem; color:rgba(242,236,224,.6);}
-#wsMine a{color:#D4AF6A; border-bottom:1px solid rgba(212,175,106,.5);}
-.el-card.ws-mine{box-shadow:0 0 0 2px #D4AF6A, 0 24px 46px -24px rgba(140,101,214,.5);}
-.el-card .ws-badge{display:inline-block; margin-left:8px; padding:3px 10px; border-radius:20px;
-  background:#D4AF6A; color:#0D0A1A; font-size:.62rem; font-weight:700;
-  font-family:'IBM Plex Mono',monospace; vertical-align:middle;}
+#wsMine b{color:#6B4FB0; font-weight:700;}
+#wsMine .sub{display:block; margin-top:8px; font-size:.84rem; color:#6E6784;}
+#wsMine a{color:#6B4FB0; border-bottom:1px solid rgba(107,79,176,.45);}
+
+/* 내 자리 카드 — 첫째 블록이 .el-card 의 그림자를 !important 로 눌러서
+   힘이 같으면 그쪽이 이깁니다. #ssp 를 앞에 붙여 힘을 더 줍니다. */
+#ssp .el-card.ws-mine{
+  border:1px solid #6B4FB0 !important;
+  box-shadow:0 0 0 2px rgba(107,79,176,.32),
+             0 14px 34px -18px rgba(59,44,120,.45) !important;}
+#ssp .el-card .ws-badge{
+  display:inline-block; margin-left:8px; padding:3px 10px; border-radius:20px;
+  background:#6B4FB0; color:#FFFDF9; font-size:.66rem; font-weight:700;
+  letter-spacing:.02em; white-space:nowrap; vertical-align:middle;
+  font-family:'IBM Plex Mono',monospace;}
 </style>
 <script>
 (function(){

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스텔라 랩 — 가볍게 해보는 테스트</title>
+<meta name="description" content="1분이면 끝나는 가벼운 성향 테스트 모음. 도쿄 여행 MBTI, 한 달 머니 스타일, 카페에서 나는, 편의점 야식 유형.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="스텔라 랩 — 가볍게 해보는 테스트">
+<meta property="og:description" content="오늘은 뭐 해볼까? 1분이면 끝나는 테스트 모음">
+<meta property="og:image" content="https://stellasaju.com/wp-content/uploads/2026/09/tokyo.jpg">
+<meta property="og:url" content="https://stellasaju.com/lab/">
+<link rel="canonical" href="https://stellasaju.com/lab/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F8F4EC;
+    --paper:#FFFDF8;
+    --ink:#3F3830;
+    --ink-soft:#8A7F70;
+    --line:#E4DACA;
+    --tokyo:#C15F6C;
+    --money:#C08F36;
+    --cafe:#8A6247;
+    --snack:#5E8C73;
+    --grocery:#A5412D;
+    --camp:#A85C1E;
+    --breakup:#A94E68;
+    --plain:#6E6A8C;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 10% 4%, rgba(193,95,108,0.09), transparent 34%),
+      radial-gradient(circle at 92% 40%, rgba(192,143,54,0.09), transparent 30%),
+      radial-gradient(circle at 6% 88%, rgba(94,140,115,0.09), transparent 32%),
+      var(--cream);
+    font-family:'Noto Sans KR', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    display:flex; justify-content:center;
+    padding:0 16px 56px;
+  }
+  .wrap{ width:100%; max-width:540px; }
+
+  .nav{ display:flex; gap:16px; padding:18px 4px 0; font-size:13px; }
+  .nav a{ color:var(--ink-soft); text-decoration:none; }
+  .nav a.on{ color:var(--ink); font-weight:700; }
+  .nav a:hover{ color:var(--ink); }
+
+  /* 인사 */
+  .hello{ padding:26px 4px 20px; display:flex; align-items:flex-end; gap:12px; }
+  .hello .beaker{ font-size:40px; line-height:1; }
+  .bubble{
+    position:relative; background:var(--paper);
+    border:2px solid var(--ink); border-radius:18px;
+    padding:11px 16px; box-shadow:3px 3px 0 rgba(63,56,48,.12);
+  }
+  .bubble:after{
+    content:''; position:absolute; left:-9px; bottom:14px;
+    width:12px; height:12px; background:var(--paper);
+    border-left:2px solid var(--ink); border-bottom:2px solid var(--ink);
+    transform:rotate(45deg);
+  }
+  .bubble h1{
+    font-family:'Gaegu', sans-serif; font-weight:700;
+    font-size:22px; margin:0; line-height:1.3;
+  }
+  .bubble p{ margin:2px 0 0; font-size:12.5px; color:var(--ink-soft); }
+
+  /* 카드 그리드 */
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .card{
+    display:block; text-decoration:none; color:inherit;
+    background:var(--paper); border-radius:22px; padding:8px 8px 14px;
+    box-shadow:0 8px 20px rgba(100,85,60,0.10);
+    transition:transform .16s ease, box-shadow .16s ease;
+  }
+  .card:hover{ transform:translateY(-4px) rotate(-.6deg); box-shadow:0 14px 28px rgba(100,85,60,0.17); }
+  .card:focus-visible{ outline:3px solid var(--accent); outline-offset:3px; }
+
+  .thumb{
+    position:relative; border-radius:16px; overflow:hidden;
+    aspect-ratio:4/3; background:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .thumb .big{ font-size:52px; line-height:1; filter:drop-shadow(0 3px 0 rgba(0,0,0,.08)); }
+  .thumb.tint{ background:color-mix(in srgb, var(--accent) 16%, #fff); }
+  .badge{
+    position:absolute; top:8px; left:8px;
+    font-family:'Gaegu', sans-serif; font-weight:700; font-size:12px;
+    background:var(--paper); color:var(--accent);
+    border-radius:100px; padding:2px 10px;
+    box-shadow:0 2px 6px rgba(0,0,0,.12);
+  }
+  .card h2{
+    font-family:'Gaegu', sans-serif; font-weight:700;
+    font-size:19px; margin:11px 4px 0; line-height:1.25; color:var(--accent);
+    word-break:keep-all;
+  }
+  .card p{ margin:3px 4px 0; font-size:12.5px; line-height:1.5; color:var(--ink);
+    word-break:keep-all; }
+  .card .meta{ display:block; margin:7px 4px 0; font-size:11px; color:var(--ink-soft); }
+
+  /* 준비 중 */
+  .soon{ margin-top:30px; }
+  .soon-label{
+    font-family:'Gaegu', sans-serif; font-size:17px; color:var(--ink-soft); margin:0 4px 12px;
+  }
+  .soon .card{ background:transparent; box-shadow:none; pointer-events:none; opacity:.65; }
+  .soon .card[href]{ background:var(--paper); box-shadow:0 8px 20px rgba(100,85,60,0.10);
+    pointer-events:auto; opacity:1; }
+  .soon .card[href] .thumb{ border:0; }
+  .soon .card[href] h2{ color:var(--accent); }
+  .soon .thumb{ background:transparent; border:2px dashed var(--line); }
+  .soon .card h2{ color:var(--ink-soft); }
+
+
+  /* 갈래 딱지 · 검색 */
+  .tools{ margin:0 4px 16px; }
+  .find{
+    display:flex; align-items:center; gap:8px;
+    background:var(--paper); border:2px solid var(--ink);
+    border-radius:100px; padding:9px 14px;
+    box-shadow:3px 3px 0 rgba(63,56,48,.10);
+  }
+  .find span{ font-size:15px; line-height:1; }
+  .find input{
+    flex:1; border:0; outline:0; background:transparent;
+    font-family:'Noto Sans KR', sans-serif; font-size:14px; color:var(--ink);
+  }
+  .find input::placeholder{ color:var(--ink-soft); }
+  .cats{ display:flex; gap:7px; flex-wrap:wrap; margin:11px 0 0; }
+  .cat{
+    font-family:'Gaegu', sans-serif; font-weight:700; font-size:15px;
+    border:2px solid var(--line); background:var(--paper); color:var(--ink-soft);
+    border-radius:100px; padding:4px 13px 5px; cursor:pointer;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .cat:hover{ border-color:var(--ink-soft); color:var(--ink); }
+  .cat.on{ border-color:var(--ink); color:var(--ink); background:var(--cream-deep); }
+  .card.off{ display:none; }
+  .empty{
+    display:none; margin:24px 4px; text-align:center;
+    font-family:'Gaegu', sans-serif; font-size:17px; color:var(--ink-soft);
+  }
+  .empty.on{ display:block; }
+  .soon.off{ display:none; }
+
+  .foot{
+    margin-top:38px; text-align:center;
+    font-size:11.5px; line-height:2; color:var(--ink-soft);
+  }
+  .foot a{ color:inherit; text-decoration:none; }
+  .foot a:hover{ text-decoration:underline; }
+  .foot .disclaimer{ margin-top:8px; opacity:.8; }
+
+  @media (max-width:370px){
+    .card h2{ font-size:17px; }
+    .card p{ font-size:11.5px; }
+    .thumb .big{ font-size:42px; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .card{ transition:none; }
+    .card:hover{ transform:none; }
+  }
+
+  /* 아이콘형 썸네일 — 흰 바탕에 작게 가운데 배치 */
+  .thumb.icon{ background:#FFFFFF; display:flex; align-items:center; justify-content:center; }
+  .thumb.icon:before{ content:''; position:absolute; inset:0; background:var(--accent); opacity:.14; }
+  .thumb.icon img{ position:relative; z-index:1; width:auto; height:auto; max-width:62%; max-height:72%; object-fit:contain; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="on" href="/lab/">스텔라 랩</a>
+    <a href="/">스텔라사주</a>
+    <a href="/uandme/">유앤미</a>
+  </nav>
+
+  <header class="hello">
+    <span class="beaker">🧪</span>
+    <div class="bubble">
+      <h1>오늘은 뭐 해볼까?</h1>
+      <p>하나 골라서 1분이면 끝나요</p>
+    </div>
+  </header>
+
+  <div class="tools">
+    <label class="find">
+      <span>🔍</span>
+      <input type="search" id="labFind" placeholder="테스트 찾기 — 연애, 카톡, 캠핑…" autocomplete="off">
+    </label>
+    <div class="cats" id="labCats">
+      <button type="button" class="cat on" data-cat="">전체</button>
+      <button type="button" class="cat" data-cat="성격">성격</button>
+      <button type="button" class="cat" data-cat="마음">마음</button>
+      <button type="button" class="cat" data-cat="연애">연애</button>
+      <button type="button" class="cat" data-cat="돈">돈</button>
+      <button type="button" class="cat" data-cat="사주">사주</button>
+    </div>
+  </div>
+
+  <p class="empty" id="labEmpty">그런 이름의 테스트는 아직 없어요</p>
+
+  <div class="grid">
+
+    <a class="card" data-cat="성격" href="/lab/tokyo/" style="--accent:var(--tokyo)">
+      <span class="thumb">
+        <img src="https://stellasaju.com/wp-content/uploads/2026/09/tokyo.jpg" alt="센소지 앞에서 단체 사진을 찍는 여행자들" loading="lazy">
+      </span>
+      <h2>여행하면서 테스트해보는 MBTI</h2>
+      <p>도쿄 3박 4일을 따라가는 여덟 번의 선택</p>
+      <span class="meta">8문항 · 16유형</span>
+    </a>
+
+    <a class="card" data-cat="연애" href="/lab/breakup/" style="--accent:var(--breakup)">
+      <span class="thumb tint">
+        <span class="big">💔</span>
+        <span class="badge">NEW</span>
+      </span>
+      <h2>헤어지고 나서 나는</h2>
+      <p>끝난 뒤 한 달, 여덟 번의 선택</p>
+      <span class="meta">8문항 · 6유형</span>
+    </a>
+
+    <a class="card" data-cat="성격" href="/lab/cafe/" style="--accent:var(--cafe)">
+      <span class="thumb icon">
+        <img src="https://stellasaju.com/wp-content/uploads/2026/09/H9YyW.png" alt="카페 테이블 위의 커피" loading="lazy">
+      </span>
+      <h2>카페에서 나는</h2>
+      <p>들어선 순간부터 나가는 순간까지</p>
+      <span class="meta">8문항 · 4유형</span>
+    </a>
+
+    <a class="card" data-cat="성격" href="/lab/camping/" style="--accent:var(--camp)">
+      <span class="thumb icon">
+        <img src="https://stellasaju.com/wp-content/uploads/2026/09/camping.png" alt="텐트와 모닥불이 있는 캠핑장" loading="lazy">
+        <span class="badge">NEW</span>
+      </span>
+      <h2>캠핑 갔을 때</h2>
+      <p>텐트 자리 잡는 순간부터 철수까지</p>
+      <span class="meta">8문항 · 4유형</span>
+    </a>
+
+    <a class="card" data-cat="돈" href="/lab/grocery/" style="--accent:var(--grocery)">
+      <span class="thumb icon">
+        <img src="https://stellasaju.com/wp-content/uploads/2026/09/grocery.png" alt="장바구니에 담긴 식료품" loading="lazy">
+      </span>
+      <h2>장보기 스타일</h2>
+      <p>코스트코 입구부터 집에 와서 정리할 때까지</p>
+      <span class="meta">8문항 · 4유형</span>
+    </a>
+
+    <a class="card" data-cat="돈" href="/lab/money/" style="--accent:var(--money)">
+      <span class="thumb">
+        <img src="https://stellasaju.com/wp-content/uploads/2026/09/Day-15_Risky-Person_unboxing_items_during_sale.jpeg" alt="세일 기간에 산 물건을 뜯어보는 사람" loading="lazy">
+      </span>
+      <h2>나의 돈 씀씀이 스타일</h2>
+      <p>월급날 아침부터 월말 잔고 확인까지</p>
+      <span class="meta">8문항 · 4유형</span>
+    </a>
+
+
+    <a class="card" data-cat="마음" href="/lab/night-snack/" style="--accent:var(--snack)">
+      <span class="thumb icon">
+        <img src="https://stellasaju.com/wp-content/uploads/2026/09/night-snack.png" alt="밤 편의점 진열대와 컵라면" loading="lazy">
+        <span class="badge">짧아요</span>
+      </span>
+      <h2>편의점 야식</h2>
+      <p>밤 11시 42분, 계산대까지 다섯 걸음</p>
+      <span class="meta">5문항 · 6유형</span>
+    </a>
+
+  </div>
+
+  <div class="soon">
+    <p class="soon-label">글로 보는 검사</p>
+    <div class="grid">
+
+    <a class="card" data-cat="연애" href="/lab/love/" style="--accent:var(--plain)">
+      <span class="thumb tint"><span class="big">💗</span></span>
+      <h2>연애할 때 나는 어떤 사람인가</h2>
+      <p>만나는 동안 내가 어떤 사람이 되는지</p>
+      <span class="meta">12문항 · 1분 · 연애</span>
+    </a>
+
+    <a class="card" data-cat="연애" href="/lab/agegap/" style="--accent:var(--plain)">
+      <span class="thumb tint"><span class="big">🎂</span></span>
+      <h2>나에게 맞는 나이 차이는?</h2>
+      <p>연상이냐 연하냐 동갑이냐</p>
+      <span class="meta">12문항 · 1분 · 연애</span>
+    </a>
+
+    <a class="card" data-cat="연애" href="/lab/drama/" style="--accent:var(--plain)">
+      <span class="thumb tint"><span class="big">📺</span></span>
+      <h2>내게 맞는 드라마 남자주인공</h2>
+      <p>끌리는 얼굴에는 이유가 있습니다</p>
+      <span class="meta">12문항 · 1분 · 연애</span>
+    </a>
+
+    <a class="card" data-cat="성격" href="/lab/katok/" style="--accent:var(--plain)">
+      <span class="thumb tint"><span class="big">💬</span></span>
+      <h2>내 카톡 대화 스타일</h2>
+      <p>대화창을 열어보면 다 나옵니다</p>
+      <span class="meta">12문항 · 1분 · 성격</span>
+    </a>
+
+    <a class="card" data-cat="마음" href="/lab/stress/" style="--accent:var(--plain)">
+      <span class="thumb tint"><span class="big">🌊</span></span>
+      <h2>스트레스가 오면 나는</h2>
+      <p>힘들 때 내가 어디로 가는지</p>
+      <span class="meta">12문항 · 1분 · 마음</span>
+    </a>
+
+    <a class="card" data-cat="마음" href="/lab/color/" style="--accent:var(--plain)">
+      <span class="thumb tint"><span class="big">🎨</span></span>
+      <h2>내 마음의 색</h2>
+      <p>지금 내 안에 깔린 빛깔</p>
+      <span class="meta">12문항 · 1분 · 마음</span>
+    </a>
+
+    <a class="card" data-cat="마음" href="/lab/mouse/" style="--accent:var(--plain)">
+      <span class="thumb tint"><span class="big">🐁</span></span>
+      <h2>내 손톱을 먹은 들쥐는</h2>
+      <p>밖에 나갈 때 내가 쓰는 얼굴이요</p>
+      <span class="meta">12문항 · 2분 · 마음</span>
+    </a>
+
+    <a class="card" data-cat="사주" href="/lab/ohaeng/" style="--accent:var(--plain)">
+      <span class="thumb tint"><span class="big">🌿</span></span>
+      <h2>나는 어떤 기운의 사람인가</h2>
+      <p>나무 · 불 · 흙 · 쇠 · 물 가운데</p>
+      <span class="meta">15문항 · 2분 · 사주</span>
+    </a>
+
+    <a class="card" data-cat="사주" href="/lab/sipseong/" style="--accent:var(--plain)">
+      <span class="thumb tint"><span class="big">⭐</span></span>
+      <h2>내 안에서 제일 센 자리</h2>
+      <p>열 자리 가운데 어디가 두꺼운지</p>
+      <span class="meta">15문항 · 2분 · 사주</span>
+    </a>
+
+    <a class="card" data-cat="성격" href="/lab/mbti/" style="--accent:var(--plain)">
+      <span class="thumb tint"><span class="big">🧭</span></span>
+      <h2>MBTI 간이 검사</h2>
+      <p>글로만 짧게 보는 판</p>
+      <span class="meta">16문항 · 2분 · 성격</span>
+    </a>
+
+    </div>
+  </div>
+
+  <div class="soon">
+    <p class="soon-label">곧 나와요</p>
+    <div class="grid">
+      <span class="card" style="--accent:var(--line)">
+        <span class="thumb"><span class="big">✈️</span></span>
+        <h2>이민 n년차</h2>
+        <p>도착한 첫날부터 지금까지</p>
+      </span>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <a href="/privacy/">개인정보처리방침</a> ·
+    <a href="/terms/">이용약관</a> ·
+    <a href="/">스텔라사주</a> ·
+    <a href="/uandme/">유앤미</a>
+    <div class="disclaimer">스텔라사주에서 만든 서비스입니다. 검사 결과는 재미로 봐주세요.</div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var find  = document.getElementById('labFind');
+  var cats  = document.getElementById('labCats');
+  var empty = document.getElementById('labEmpty');
+  var cards = document.querySelectorAll('a.card');
+  var soons = document.querySelectorAll('.soon');
+  var pick  = '';
+
+  function run(){
+    var word = (find.value || '').trim().toLowerCase();
+    var seen = 0;
+    var i, c, txt, ok;
+    for(i = 0; i < cards.length; i++){
+      c   = cards[i];
+      txt = (c.textContent || '').toLowerCase();
+      ok  = true;
+      if(pick){ if(c.getAttribute('data-cat') !== pick){ ok = false; } }
+      if(ok){ if(word){ if(txt.indexOf(word) < 0){ ok = false; } } }
+      if(ok){ c.classList.remove('off'); seen = seen + 1; }
+      else { c.classList.add('off'); }
+    }
+    /* 묶음 안이 다 숨으면 묶음 이름도 숨깁니다 */
+    for(i = 0; i < soons.length; i++){
+      var live = soons[i].querySelectorAll('a.card:not(.off)').length;
+      var has  = soons[i].querySelectorAll('a.card').length;
+      if(has === 0){
+        if(word){ soons[i].classList.add('off'); }
+        else if(pick){ soons[i].classList.add('off'); }
+        else { soons[i].classList.remove('off'); }
+      }
+      else if(live === 0){ soons[i].classList.add('off'); }
+      else { soons[i].classList.remove('off'); }
+    }
+    if(seen === 0){ empty.classList.add('on'); }
+    else { empty.classList.remove('on'); }
+  }
+
+  find.addEventListener('input', run);
+  cats.addEventListener('click', function(e){
+    var b = e.target.closest('.cat');
+    if(!b){ return; }
+    pick = b.getAttribute('data-cat') || '';
+    var all = cats.querySelectorAll('.cat');
+    for(var i = 0; i < all.length; i++){ all[i].classList.remove('on'); }
+    b.classList.add('on');
+    run();
+  });
+})();
+</script>
+</body>
+</html>

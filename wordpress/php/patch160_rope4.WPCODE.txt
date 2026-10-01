@@ -1,0 +1,145 @@
+/* ════════════════════════════════════════════════════════════
+   한 글자 차이로 단정하던 것을 고칩니다 (네 자리)
+
+   여덟 글자 중 4 대 3이면 한 글자 차이입니다. 태어난 시각을 한
+   시간만 다르게 넣어도 뒤집히는 차이예요. 그런데 지금 엔진은
+   이것을 「하나 쪽으로 기울어 있습니다」라고 단정하고, 손님이
+   고른 답과 다르면 「여기가 어긋나는 자리입니다」라고까지
+   말합니다. 한 글자로 손님에게 자기를 잘못 알고 있다고 하는 셈입니다.
+
+   바꾸는 것 넷
+
+     ① 기우는 기준   차이 1 → 기울지 않은 것으로 봅니다 (2부터 기욺)
+     ② 기울기의 말   차이 2·3 은 「조금」, 4 이상은 「크게」
+                     (「뚜렷하게」「아주 크게」는 뺍니다)
+     ③ 하는 일의 표  한쪽 이름 열 개마다 「그쪽으로 가면 무엇을
+                     하시는 것인지」를 한 마디씩 적어둡니다
+     ④ 기울지 않았을 때  「어느 쪽으로도 기울지 않았습니다」 대신
+                     0 대 0 · 팽팽 · 한쪽에 한 글자 · 한 글자 차이를
+                     갈라서, 숫자를 그대로 읽어줍니다
+
+   주제별 글(AXIS_WARM_TOPIC)은 건드리지 않습니다. 있으면 그대로
+   나가고, 없을 때만 새 문장이 나갑니다.
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   ① 먼저 보기   https://stellasaju.com/?stella_rope=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_rope=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_rope=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_rope'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$PAGE = 160;
+	$META = '_stella_rope_backup';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_rope'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:820px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $PAGE ) );
+	if ( ! $row ) { echo '<h1>160쪽을 못 찾았습니다.</h1>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		$old = get_post_meta( $PAGE, $META, true );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $old ) { echo '<p>되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $PAGE ) );
+		clean_post_cache( $PAGE );
+		delete_post_meta( $PAGE, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		echo '<p><a href="/reading-book/">책 보기</a></p>';
+		exit;
+	}
+
+	$c = $row->post_content;
+	$before = strlen( $c );
+
+	$jobs = array();
+
+	$jobs[] = array(
+		'name' => '① 기우는 기준을 차이 2 이상으로',
+		'find' => '/if\(\s*sa\s*>\s*sb\s*\)\s*lean\s*=\s*\'A\';\s*if\(\s*sb\s*>\s*sa\s*\)\s*lean\s*=\s*\'B\';/u',
+		'to'   => "if(sa-sb>=2) lean='A';\n      if(sb-sa>=2) lean='B';",
+	);
+
+	$jobs[] = array(
+		'name' => '② 기울기를 말로 옮기는 곳',
+		'find' => '/if\(d>=4\)\{\s*return\s*\'아주 크게\';\s*\}\s*if\(d===3\)\{\s*return\s*\'크게\';\s*\}\s*if\(d===2\)\{\s*return\s*\'뚜렷하게\';\s*\}\s*return\s*\'조금\';/u',
+		'to'   => "if(d>=4){ return '크게'; }\n    return '조금';",
+	);
+
+	$jobs[] = array(
+		'name' => '③ 「하시는 일」 표를 넣고 밖으로 내보냅니다',
+		'find' => '/root\\.StellaRead=\\{\\s+interpret:interpret,\\s+SIP:SIP,\\s+DAY:DAY,\\s+AXES:AXES,/u',
+		'to'   => "/* 한쪽 이름 → 그쪽으로 갈 때 하시는 일 */\n  var AXACT={\n    '안정':'하던 대로 가시는 것이',\n    '변화':'새로운 쪽을 고르시는 것이',\n    '정답':'있는 답을 따라가시는 것이',\n    '창조':'새로운 변화를 선택하시는 것이',\n    '혼자':'혼자 파고드시는 것이',\n    '함께':'사람들과 나누면서 푸시는 것이',\n    '실물':'눈에 보이는 것을 선택하시는 것이',\n    '무형':'눈에 안 보이는 것을 선택하시는 것이',\n    '하나':'하나를 골라 깊이 가시는 것이',\n    '여럿':'여러 개를 같이 굴리시는 것이'\n  };\n\n  root.StellaRead={ interpret:interpret, SIP:SIP, DAY:DAY, AXES:AXES, AXACT:AXACT,",
+	);
+
+	$jobs[] = array(
+		'name' => '④ 기울지 않았을 때 하는 말',
+		'find' => '/if\\(!A\\.lean\\)\\{\\s+if\\(W\\)\\{\\s+if\\(W\\.flat\\)\\{\\s+out\\+=\'<p>이\\s+저울은\\s+<em>어느\\s+한쪽으로도\\s+기울지\\s+않았습니다<\\/em>\\s+—\\s+\'\\+A\\.a\\+\'\\s+대\\s+\'\\+A\\.b\\+\'\\.<\\/p>\'\\+\\s+para\\(W\\.flat\\);\\s+\\}\\s+\\}\\s+if\\(out\\.indexOf\\(\'기울지\\s+않았습니다\'\\)<0\\)\\{\\s+out\\+=\'<p>사주는\\s+이\\s+저울에서\\s+<em>어느\\s+쪽으로도\\s+기울지\\s+않았습니다<\\/em>\\s+—\\s+\'\\+A\\.a\\+\'\\s+대\\s+\'\\+A\\.b\\+\'\\.\\s+\'\\+\\s+\'이\\s+축은\\s+그때그때\\s+상황에\\s+맞추셔도\\s+크게\\s+무리가\\s+없습니다\\.\\s+\'\\+\\s+\'반대로\\s+말하면,\\s+여기서는\\s+남들이\\s+부러워할\\s+만큼\\s+유연하실\\s+수\\s+있어요\\.<\\/p>\';\\s+\\}\\s+\\}\\s+else\\s+\\{\\s+var\\s+ww=null;/u',
+		'to'   => "if(!A.lean){\n      var sum=A.a+A.b;\n      var hi=(A.a>=A.b)?'A':'B', lo=(A.a>=A.b)?'B':'A';\n      var hn=Math.max(A.a,A.b), ln=Math.min(A.a,A.b);\n      var hName=otherName(key,hi), lName=otherName(key,lo);\n      var ro=(hn===0||hn===3||hn===6)?'으로':'로';\n      var hasFlat=false;\n      if(W){ if(W.flat){ hasFlat=true; } }\n      if(sum===0){\n        out+='<p>여덟 글자 가운데 <em>이 줄다리기를 하는 글자가 하나도 없습니다</em> — 0 대 0. '+\n             '타고나기를 어느 쪽으로도 정해두지 않았다는 뜻이라, 이 자리는 살면서 스스로 정하시게 됩니다.</p>';\n      } else if(d===0){\n        out+='<p>이 줄다리기는 <em>팽팽합니다</em> — '+A.a+' 대 '+A.b+'. '+\n             '상황에 따라 '+hName+' 쪽일 때도 있고 '+lName+' 쪽일 때도 있다는 뜻이에요.</p>';\n      } else if(ln===0){\n        out+='<p>이 줄다리기는 <em>한쪽에 한 글자</em>뿐입니다 — '+A.a+' 대 '+A.b+'. '+\n             '글자 하나로는 게임이 안 된다고 생각하시면 됩니다. '+\n             hName+' 쪽 기운이 조금 있으니 '+(R.AXACT[hName]||'그쪽으로 가시는 것이')+' 조금 편하실 거예요.</p>';\n      } else {\n        out+='<p><em>'+hName+'</em>'+(R.hasBatchim(hName)?'이':'가')+' '+hn+ro+' 조금 많지만 '+\n             lName+'도 '+ln+'입니다. 한 글자 차이면 거의 팽팽한 겁니다. '+\n             '경우에 따라 '+lName+' 쪽으로도 가시는 자리예요.</p>';\n      }\n      if(sum>0){ if(sum<=2){ if(ln>0){\n        out+='<p>다만 이 줄다리기는 여덟 글자 가운데 '+sum+'자만 말을 하고 있습니다. '+\n             '다른 줄다리기보다 약하게 읽어주세요.</p>';\n      } } }\n      if(hasFlat){ out+=para(W.flat); }\n      if(sum>0){ if(!hasFlat){\n        out+='<p>어느 것을 선택해도 힘들지 않으실 거예요. '+\n             '남들이 부러워할 만큼 유연하실 수 있는 자리입니다.</p>';\n      } }\n    } else {\n      var ww=null;",
+	);
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	$ok = true;
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['find'], $c );
+		echo '<h2>' . esc_html( $j['name'] ) . '</h2>';
+		if ( 1 === $n ) {
+			echo '<p class="ok">찾았습니다 — 한 군데.</p>';
+		} elseif ( 0 === $n ) {
+			echo '<p class="no">못 찾았습니다. 이미 바꿨거나 코드가 달라졌습니다.</p>';
+			$ok = false;
+		} else {
+			echo '<p class="no">' . intval( $n ) . '군데가 걸립니다. 한 군데여야 안전합니다.</p>';
+			$ok = false;
+		}
+	}
+
+	if ( ! $ok ) {
+		echo '<p class="no">네 자리가 모두 한 군데씩 걸릴 때만 바꿉니다. 아무것도 건드리지 않았습니다.</p>';
+		exit;
+	}
+
+	$new = $c;
+	foreach ( $jobs as $j ) {
+		$new = preg_replace( $j['find'], $j['to'], $new, 1 );
+		if ( null === $new ) { echo '<p class="no">바꾸다가 멈췄습니다. 아무것도 저장하지 않았습니다.</p>'; exit; }
+	}
+
+	echo '<p>' . number_format( $before ) . ' → ' . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( ! $apply ) {
+		echo '<p>정말 바꾸시려면 <code>/?stella_rope=apply</code> 를 여세요.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PAGE, $META, true ) ) {
+		update_post_meta( $PAGE, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $PAGE ) );
+	clean_post_cache( $PAGE );
+
+	echo '<p class="ok">바꿨습니다.</p>';
+	echo '<p>되돌리려면 <code>/?stella_rope=undo</code></p>';
+	echo '<p><a href="/reading-book/">책 보기</a></p>';
+	exit;
+} );

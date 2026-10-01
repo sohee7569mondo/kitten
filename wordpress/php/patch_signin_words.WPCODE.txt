@@ -1,0 +1,104 @@
+/* ══════════════════════════════════════════════════════════
+   /signin/ 문장 고치기 — 「정한 적이 없는」 분을 위해
+   ★ 2026-09-10 · 소희 님께
+
+   소희 님 : 「마이페이지 들어갔는데 다시 오셨네요 하면서 비번
+   물어봐. 한번도 입력한적 없는데」
+
+   /signin/ 에는 나갈 길이 이미 두 개 있었습니다.
+
+     · 비밀번호가 기억나지 않으시면 → 여기서 새로 정하실 수 있어요
+     · 예전처럼 메일 링크로 들어오고 싶으시면 → 이쪽
+
+   그런데 못 찾으시는 게 당연합니다. 「기억나지 않으시면」이라고
+   적혀 있으니, 애초에 정한 적이 없는 분은 자기 얘기로 안 읽습니다.
+   지금 회원 열두 분이 전부 그렇습니다 — 가입할 때 서버가 아무도
+   모르는 열여섯 자리를 대신 넣었으니까요.
+
+   ── 바꾸는 말 ──────────────────────────────────────────
+
+     전  비밀번호가 기억나지 않으시면
+     후  비밀번호를 정하신 적이 없거나 기억나지 않으시면
+
+     전  예전처럼 메일 링크로 들어오고 싶으시면
+     후  비밀번호 없이 메일 링크로 들어오시려면
+
+   ★ stella_pw 스니펫을 손대지 않습니다. 그 쪽이 다 그려진 뒤에
+     글자만 바꿔치기합니다. 스위치를 끄면 그 즉시 원래대로입니다.
+
+   살펴보기 https://stellasaju.com/?stella_signin=1
+            (/signin/ 을 한 번 열어보신 뒤에 누르세요)
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+function stella_signin_words() {
+	return array(
+		'비밀번호가 기억나지 않으시면'
+			=> '비밀번호를 <b>정하신 적이 없거나</b> 기억나지 않으시면',
+		'예전처럼 메일 링크로 들어오고 싶으시면'
+			=> '비밀번호 없이 메일 링크로 들어오시려면',
+	);
+}
+
+/** 다 그려진 글에서 문장만 갈아 끼웁니다. 잘못되면 손대지 않고 그대로 돌려줍니다. */
+function stella_signin_fix( $html ) {
+
+	if ( ! is_string( $html ) ) { return $html; }
+	if ( '' === $html ) { return $html; }
+
+	$hit = array();
+	foreach ( stella_signin_words() as $old => $new ) {
+		$n = substr_count( $html, $old );
+		$hit[ $old ] = $n;
+		if ( $n > 0 ) { $html = str_replace( $old, $new, $html ); }
+	}
+
+	/* 무엇이 걸렸는지 적어둡니다 — 살펴보기에서 읽습니다 */
+	set_transient( 'stella_signin_hit', $hit, HOUR_IN_SECONDS );
+
+	return $html;
+}
+
+/* stella_pw 는 init 우선순위 10 에서 화면을 그리고 exit 합니다.
+   그보다 먼저(1) 담아두면, exit 해도 담은 글이 이 손을 거쳐 나갑니다. */
+add_action( 'init', function () {
+
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	$path = parse_url( $uri, PHP_URL_PATH );
+	$path = is_string( $path ) ? $path : '';
+	if ( ! preg_match( '#^/signin/?$#', $path ) ) { return; }
+
+	ob_start( 'stella_signin_fix' );
+}, 1 );
+
+
+/* ── 살펴보기 ── */
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_signin'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	echo "═══ /signin/ 문장 고치기 ═══\n\n";
+
+	$hit = get_transient( 'stella_signin_hit' );
+	if ( ! is_array( $hit ) ) {
+		echo "아직 /signin/ 을 한 번도 안 여셨습니다.\n";
+		echo "먼저 " . home_url( '/signin/?stay=1' ) . " 를 여신 뒤에 다시 오세요.\n";
+		exit;
+	}
+
+	echo "마지막으로 /signin/ 을 열었을 때\n\n";
+	foreach ( $hit as $old => $n ) {
+		echo sprintf( "  %-32s %s\n", $old, $n > 0 ? ( $n . '군데 찾아 고쳤습니다' ) : '★ 못 찾았습니다' );
+	}
+
+	echo "\n못 찾았다고 나오면 stella_pw 스니펫의 글이 제 사본과\n";
+	echo "다른 것입니다. 그 문장을 그대로 알려주시면 맞춰 넣겠습니다.\n";
+
+	echo "\n되돌리려면 이 스니펫 스위치를 끄시면 됩니다.\n";
+	exit;
+}, 2 );

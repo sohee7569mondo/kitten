@@ -1,6 +1,6 @@
 <!-- wp:html -->
 <!--
-  STELLA SAJU — 강성의 신 (THE NURTURER) · 건강과 가족
+  STELLA SAJU — 몸을 지키는 신 (THE NURTURER) · 건강과 가족
   이 파일은 자동 생성됩니다. 여기서 직접 고치지 마세요.
   고칠 일이 있으면 door-career.html(틀) 이나 build/guardians.py(내용) 를
   고친 뒤 build/build_doors.py 를 다시 돌리면 여섯 장이 한꺼번에 맞춰집니다.
@@ -231,17 +231,17 @@
       <aside class="g-card">
         <div class="g-portrait">
           <img src="https://stellasaju.com/wp-content/uploads/2026/08/stellardoornurturer.webp"
-               alt="강성의 신" width="640" height="953">
+               alt="몸을 지키는 신" width="640" height="953">
         </div>
         <div class="g-body">
           <div class="g-theme">The Nurturer</div>
-          <div class="g-name">강성의 신</div>
+          <div class="g-name">몸을 지키는 신</div>
           <div class="g-en">Health and Family</div>
           <p class="g-greet">몸이 먼저 아는 것들이 있어요.<br>그 신호를 같이 읽어볼까요.</p>
-          <p class="g-intro">강성의 신은 타고난 체질과 가족의 자리를 읽어 몸과 관계의 흐름을 짚어내는 가디언이에요. 병을 진단하지는 않습니다. 다만 당신이 어느 계절에 약해지고 어느 자리에서 무리하는지, 누구를 짊어지고 있는지를 알려줘요. 지쳐 누운 밤, 부모님을 걱정하는 아침, 그 무게마다 강성의 신이 함께해요.</p>
+          <p class="g-intro">몸을 지키는 신은 타고난 체질과 가족의 자리를 읽어 몸과 관계의 흐름을 짚어내는 가디언이에요. 병을 진단하지는 않습니다. 다만 당신이 어느 계절에 약해지고 어느 자리에서 무리하는지, 누구를 짊어지고 있는지를 알려줘요. 지쳐 누운 밤, 부모님을 걱정하는 아침, 그 무게마다 몸을 지키는 신이 함께해요.</p>
           <div class="g-method">
             <div class="g-method-t">이렇게 읽습니다</div>
-            <p>강성의 신은 <b>전통 사주명리학</b>으로 타고난 체질과 육친의 자리를 읽고, <b>서양점성술</b>로 몸과 마음이 어느 쪽으로 기우는지를, <b>수비학</b>으로 당신이 가족 안에서 맡은 자리를 함께 봅니다. 세 체계가 같은 곳을 가리키는 지점 — 거기가 풀이의 뼈대가 됩니다.</p>
+            <p>몸을 지키는 신은 <b>전통 사주명리학</b>으로 타고난 체질과 육친의 자리를 읽고, <b>서양점성술</b>로 몸과 마음이 어느 쪽으로 기우는지를, <b>수비학</b>으로 당신이 가족 안에서 맡은 자리를 함께 봅니다. 세 체계가 같은 곳을 가리키는 지점 — 거기가 풀이의 뼈대가 됩니다.</p>
           </div>
         </div>
       </aside>
@@ -341,7 +341,7 @@
             <div class="f"><label for="gWant">가장 걱정되는 것</label>
               <input type="text" id="gWant" maxlength="40" placeholder="예: 올해는 큰 병 없이 지나갔으면 해요"></div>
           </div>
-          <p class="hint">강성의 신은 <b>의사가 아닙니다.</b> 병을 진단하거나 치료를 권하지 않아요. 타고난 기운이 어느 계절에 약해지는지를 알려드릴 뿐이니, 몸이 보내는 신호는 반드시 병원에서 확인해주세요. 비워두셔도 풀이는 그대로 나옵니다.</p>
+          <p class="hint">몸을 지키는 신은 <b>의사가 아닙니다.</b> 병을 진단하거나 치료를 권하지 않아요. 타고난 기운이 어느 계절에 약해지는지를 알려드릴 뿐이니, 몸이 보내는 신호는 반드시 병원에서 확인해주세요. 비워두셔도 풀이는 그대로 나옵니다.</p>
         </section>
 
         <section class="step">
@@ -404,7 +404,7 @@
           </div>
           <div class="balance only-member">내 잔액 <span id="balance">—</span>구슬</div>
 
-          <button type="button" class="go" id="goBtn">강성의 신에게 물어보기 →</button>
+          <button type="button" class="go" id="goBtn">몸을 지키는 신에게 물어보기 →</button>
           <div class="lack" id="lack"></div>
           <div class="msg" id="msg"></div>
           <div class="trial-note">지금은 <b>체험판 기간</b>이라 구슬을 받지 않습니다.
@@ -591,7 +591,7 @@
     var topic = topicEl ? topicEl.value : '';
     var deeps = chosenDeeps().map(function(c){ return c.value; });
 
-    var payload={ guardian:'강성의 신', guardian_slug:'door-health',
+    var payload={ guardian:'몸을 지키는 신', guardian_slug:'door-health',
                   topic:topic, oneline:oneline.value.trim(), memo:$('memo').value.trim(),
                   deeps:deeps, orbs:total,
                   work:{ job:$('gJob').value.trim(), years:$('gYears').value,

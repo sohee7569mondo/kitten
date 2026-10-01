@@ -1,0 +1,145 @@
+/* ════════════════════════════════════════════════════════════
+   책 · 맺음말에 편지봉투   ★ 2026-09-09 · 소희 님께
+
+   소희 님 : 「이소희님께를 소희님께 하고 편지봉투그림이나 아이콘이
+   있었으면」
+
+   이름은 이미 patch160_name 이 「소희님께」로 줄이고 있습니다.
+   여기서는 봉투만 얹습니다.
+
+   그림 파일을 쓰지 않고 선으로 그립니다(SVG).
+     · 크기를 키워도 안 흐려집니다
+     · 종이로 뽑아도 또렷합니다
+     · 불러오는 데 시간이 안 걸립니다
+   색은 책의 대제목 색(군청)을 그대로 씁니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   미리보기   https://stellasaju.com/?stella_env=1
+   넣기       https://stellasaju.com/?stella_env=apply
+   되돌리기   https://stellasaju.com/?stella_env=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_env'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_env'] ) );
+	$META = '_stella_env_bak_0909';
+	$SLUG = 'reading-book';
+	$MARK = 'STELLA-ENV-v1';
+
+	$A = <<<'STELLA_A'
+'<h2>'+esc(name)+'님께</h2>'+
+STELLA_A;
+
+	$B = <<<'STELLA_B'
+''
+      + '<style> '
+      + '/* 2026-09-09 · 맺음말 편지봉투 — STELLA-ENV-v1 */ '
+      + '#ssb .envq{ margin:2px 0 14px; line-height:1; } '
+      + '#ssb .envq svg{ '
+      + '  display:inline-block; width:58px; height:auto; '
+      + '  color:var(--gold); vertical-align:middle; '
+      + '} '
+      + '@media(max-width:640px){ #ssb .envq svg{ width:48px; } } '
+      + '@media print{ #ssb .envq{ break-after:avoid; page-break-after:avoid; } } '
+      + '</style> '
+      + '<div class="envq"><!-- STELLA-ENV-v1 --> '
+      + '<svg viewBox="0 0 64 44" role="img" aria-label="편지"> '
+      + '<rect x="1.6" y="1.6" width="60.8" height="40.8" rx="4.5" fill="none" stroke="currentColor" stroke-width="2"></rect> '
+      + '<path d="M3.2 4.6 L32 24.4 L60.8 4.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> '
+      + '<path d="M3.4 40.6 L24.6 21.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"></path> '
+      + '<path d="M60.6 40.6 L39.4 21.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"></path> '
+      + '</svg> '
+      + '</div> '
+      + '<h2>'+esc(name)+'님께</h2>'+
+STELLA_B;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.75;'
+	   . 'padding:28px 18px;max-width:960px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 10px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.7 monospace;border-left:3px solid #D4AF6A;'
+	   . 'word-break:break-all}'
+	   . '</style>';
+
+	$p = get_page_by_path( $SLUG );
+	if ( ! $p ) { echo '<p class="no">책 쪽이 없습니다.</p>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌립니다</h1>';
+		$bak = get_post_meta( $p->ID, $META, true );
+		if ( '' === $bak ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ),
+			array( 'ID' => $p->ID ) );
+		clean_post_cache( $p->ID );
+		delete_post_meta( $p->ID, $META );
+		if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+		echo '<p class="ok">되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c  = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+	$go = ( 'apply' === $mode );
+
+	echo '<h1>맺음말 편지봉투 — '
+	   . ( $go ? '넣습니다' : '미리보기 (아직 안 넣음)' ) . '</h1>';
+	echo '<p class="dim">크기 ' . number_format( strlen( $c ) ) . ' 바이트</p>';
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<p class="ok">이미 들어 있습니다.</p>';
+		echo '<p class="dim">되돌리시려면 /?stella_env=undo 를 여세요.</p>';
+		exit;
+	}
+
+	$n = substr_count( $c, $A );
+	echo '<h2>넣을 자리 (이 줄 바로 앞)</h2><pre>'
+	   . esc_html( $A ) . "\n\n" . '찾은 개수  ' . (int) $n . '</pre>';
+
+	if ( 1 !== $n ) {
+		echo '<p class="no">자리가 하나가 아닙니다. 넣지 않았습니다.</p>';
+		exit;
+	}
+
+	echo '<h2>넣을 봉투</h2><pre>' . esc_html( $B ) . '</pre>';
+
+	if ( false !== strpos( $B, '&' ) ) {
+		echo '<p class="no">앰퍼샌드가 들어 있습니다. 넣지 않았습니다.</p>';
+		exit;
+	}
+
+	if ( ! $go ) {
+		echo '<h2>끝</h2><p class="dim">이대로 괜찮으시면 '
+		   . '/?stella_env=apply 를 여세요.</p>';
+		exit;
+	}
+
+	$new = str_replace( $A, $B, $c );
+
+	if ( '' === get_post_meta( $p->ID, $META, true ) ) {
+		update_post_meta( $p->ID, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ),
+		array( 'ID' => $p->ID ) );
+	clean_post_cache( $p->ID );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<h2>끝</h2><p class="ok">넣었습니다. '
+	   . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p class="dim">되돌리시려면 /?stella_env=undo 를 여세요.</p>';
+	exit;
+} );

@@ -1,0 +1,110 @@
+/* ══════════════════════════════════════════════════════════
+   지금 책의 장 제목을 통째로 뽑기 · 소희 님께        2026-09-11
+
+   제가 가진 사본이 낡아서 고칠 자리를 자꾸 못 찾습니다.
+   이 스니펫은 지금 책 안에 있는 제목을 있는 그대로 보여줍니다.
+   아무것도 바꾸지 않습니다.
+
+   쓰는 법
+     WPCode → 새 스니펫 → PHP Snippet → 「어디서나 실행」 → 저장 → 활성
+        https://stellasaju.com/?stella_h2=1
+     나온 글을 통째로 저에게 붙여주세요.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_h2'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+	$c  = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo "═══ 지금 책의 제목들 ═══\n";
+	echo '쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "글자\n";
+
+	echo "\n─── 1. h2 제목 ───\n";
+	if ( preg_match_all( '/<h2>(.{1,120}?)<\/h2>/u', $c, $m ) ) {
+		$seen = array();
+		foreach ( $m[1] as $t ) {
+			if ( isset( $seen[ $t ] ) ) { continue; }
+			$seen[ $t ] = 1;
+			echo '  ' . $t . "\n";
+		}
+	}
+
+	echo "\n─── 2. var h = '…' (주제별 장) ───\n";
+	if ( preg_match_all( '/var h\s*=\s*\'([^\']{1,80})\'/u', $c, $m2 ) ) {
+		$seen2 = array();
+		foreach ( $m2[1] as $t ) {
+			if ( isset( $seen2[ $t ] ) ) { continue; }
+			$seen2[ $t ] = 1;
+			echo '  ' . $t . "\n";
+		}
+	}
+
+	echo "\n─── 3. 가디언 이름 표 ───\n";
+	if ( preg_match_all( '/name:\'([^\']{1,30})\',\s*en:\'([^\']{1,30})\'/u', $c, $m3, PREG_SET_ORDER ) ) {
+		foreach ( $m3 as $r ) { echo '  ' . $r[1] . '  /  ' . $r[2] . "\n"; }
+	}
+
+	echo "\n─── 4. 말풍선 화자 줄 ───\n";
+	if ( preg_match_all( '/.{0,40}class="who".{0,40}/u', $c, $m4 ) ) {
+		$seen4 = array();
+		foreach ( $m4[0] as $t ) {
+			$t = preg_replace( '/\s+/u', ' ', $t );
+			if ( isset( $seen4[ $t ] ) ) { continue; }
+			$seen4[ $t ] = 1;
+			echo '  …' . $t . "…\n";
+		}
+	}
+
+	echo "\n─── 5. 접기 열쇠 (var SIP='…') ───\n";
+	if ( preg_match_all( '/var SIP\s*=\s*\'([^\']{0,60})\'/u', $c, $m5 ) ) {
+		foreach ( $m5[1] as $t ) { echo '  ' . $t . "\n"; }
+	} else {
+		echo "  없습니다 (var SIP={ … } 표만 있습니다)\n";
+	}
+
+	echo "\n─── 6. 제목으로 장을 찾는 자리 (findMark) ───\n";
+	if ( preg_match_all( '/findMark\(\s*\'([^\']{1,90})\'/u', $c, $m6 ) ) {
+		foreach ( $m6[1] as $t ) { echo '  ' . $t . "\n"; }
+	} else {
+		echo "  없습니다\n";
+	}
+
+	echo "\n─── 7. 제목 글자로 무언가 찾는 다른 자리 ───\n";
+	$keys = array( 'indexOf(\'<h2>', 'h===SIP', 'SIP)', 'markAt(', 'anchor(' );
+	foreach ( $keys as $k ) {
+		$n = substr_count( $c, $k );
+		echo '  ' . $k . '  ' . $n . "군데\n";
+	}
+
+	echo "\n─── 8. 「비어 있는 자리」 장이 무엇을 세나 ───\n";
+	$pos = mb_strpos( $c, '<h2>비어 있는 자리</h2>', 0, 'UTF-8' );
+	if ( false === $pos ) {
+		echo "  그 제목이 없습니다\n";
+	} else {
+		$cut = mb_substr( $c, max( 0, $pos - 260 ), 620, 'UTF-8' );
+		$cut = preg_replace( '/\s+/u', ' ', $cut );
+		echo '  …' . $cut . "…\n";
+	}
+
+	echo "\n─── 9. 「여덟 글자에서 제일 많은 것」 장 ───\n";
+	$pos2 = mb_strpos( $c, '<h2>여덟 글자에서 제일 많은 것</h2>', 0, 'UTF-8' );
+	if ( false === $pos2 ) {
+		echo "  그 제목이 없습니다\n";
+	} else {
+		$cut2 = mb_substr( $c, max( 0, $pos2 - 120 ), 520, 'UTF-8' );
+		$cut2 = preg_replace( '/\s+/u', ' ', $cut2 );
+		echo '  …' . $cut2 . "…\n";
+	}
+
+	echo "\n═══ 여기까지 · 위를 통째로 붙여주세요 ═══";
+	exit;
+}, 1 );

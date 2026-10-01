@@ -1,0 +1,135 @@
+/* ════════════════════════════════════════════════════════════
+   메뉴 안을 그대로 들여다봅니다 (읽기만)   ★ 2026-09-09 · 소희 님께
+
+   아무것도 안 바꿉니다.
+
+   소희 님 : 「모바일에서 보이는 메뉴는 아직 수정 안 됐어.
+             로또 · 운명의 책 빼야 하는데, 이름도 스텔라 타로로 바꾸고」
+
+   메뉴가 여러 군데 있을 수 있어서(위쪽 · 모바일 · 바닥) 먼저 전부
+   찾아 목록을 냅니다. 어디를 고칠지 정한 뒤에 손댑니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   보기   https://stellasaju.com/?stella_menu5=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_menu5'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:28px 18px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 10px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.7 monospace;border-left:3px solid #D4AF6A}'
+	   . '</style>';
+
+	echo '<h1>메뉴가 어디에 몇 개나 있나</h1>';
+
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_title, post_name, post_type, post_status, post_content
+		   FROM {$wpdb->posts}
+		  WHERE post_type IN ('wp_navigation','wp_template_part','wp_block','nav_menu_item')
+		    AND post_status NOT IN ('trash','auto-draft')
+		  ORDER BY post_type, ID" );
+
+	if ( ! $rows ) { echo '<p class="no">메뉴로 쓸 만한 것이 하나도 없습니다.</p>'; exit; }
+
+	/* 블록 안에서 이름표를 뽑습니다 — 정규식 대신 글자 찾기만 씁니다 */
+	$labels = function ( $c ) {
+		$out  = array();
+		$from = 0;
+		while ( true ) {
+			$at = strpos( $c, '"label":"', $from );
+			if ( false === $at ) { break; }
+			$s  = $at + 9;
+			$e  = strpos( $c, '"', $s );
+			if ( false === $e ) { break; }
+			$from = $e + 1;
+			$v = substr( $c, $s, $e - $s );
+			$v = str_replace( array( '\\u003c', '\\u003e', '\\u0026', '\\/' ),
+				array( '<', '>', '+', '/' ), $v );
+			$v = trim( $v );
+			if ( '' === $v ) { continue; }
+			$out[] = $v;
+			if ( count( $out ) > 80 ) { break; }
+		}
+		return $out;
+	};
+
+	$urls = function ( $c ) {
+		$out  = array();
+		$from = 0;
+		while ( true ) {
+			$at = strpos( $c, '"url":"', $from );
+			if ( false === $at ) { break; }
+			$s  = $at + 7;
+			$e  = strpos( $c, '"', $s );
+			if ( false === $e ) { break; }
+			$from = $e + 1;
+			$out[] = str_replace( '\\/', '/', substr( $c, $s, $e - $s ) );
+			if ( count( $out ) > 80 ) { break; }
+		}
+		return $out;
+	};
+
+	$look = array( '로또', '운명의 책', '운명', '타로', '스텔라 타로',
+		'스타 사주', '스타사주', '스타운세', '여섯 개의 문', '가격' );
+
+	foreach ( $rows as $r ) {
+
+		$c = (string) $r->post_content;
+
+		if ( 'nav_menu_item' === $r->post_type ) {
+			echo '<h2>' . esc_html( $r->post_type ) . ' · ' . (int) $r->ID . '</h2>';
+			echo '<pre>' . esc_html( $r->post_title ) . '</pre>';
+			continue;
+		}
+
+		$ls = $labels( $c );
+		$us = $urls( $c );
+
+		/* 메뉴가 아닌 것은 건너뜁니다 */
+		if ( ! count( $ls ) ) {
+			if ( false === strpos( $c, 'wp:navigation' ) ) { continue; }
+		}
+
+		echo '<h2>' . esc_html( $r->post_type ) . ' · ' . (int) $r->ID
+		   . ' · ' . esc_html( $r->post_title ? $r->post_title : $r->post_name )
+		   . ' <span class="dim">(' . esc_html( $r->post_status ) . ' · '
+		   . number_format( strlen( $c ) ) . '바이트)</span></h2>';
+
+		$out = '';
+		$n   = count( $ls );
+		if ( ! $n ) { $out .= "(이름표를 못 찾았습니다)\n"; }
+		for ( $i = 0; $i < $n; $i++ ) {
+			$u = isset( $us[ $i ] ) ? $us[ $i ] : '';
+			$out .= str_pad( (string) ( $i + 1 ), 4 )
+			     . str_pad( $ls[ $i ], 34 ) . $u . "\n";
+		}
+
+		/* 찾아볼 말이 들어 있나 */
+		$hit = '';
+		foreach ( $look as $w ) {
+			$k = substr_count( $c, $w );
+			if ( $k ) { $hit .= $w . '(' . $k . ') '; }
+		}
+		if ( '' !== $hit ) { $out .= "\n들어 있는 말 : " . $hit . "\n"; }
+
+		echo '<pre>' . esc_html( $out ) . '</pre>';
+	}
+
+	echo '<p class="dim">이 자는 읽기만 합니다.</p>';
+	exit;
+} );

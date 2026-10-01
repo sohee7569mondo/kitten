@@ -1,0 +1,155 @@
+/* ══════════════════════════════════════════════════════════
+   미르 문 저울이 「모름」으로 떨어지는 것을 고칩니다
+                                        ★ 2026-09-13 · 소희 님께
+                                        판 PICKFIX-1
+
+   ── 무엇이 어긋나 있나 ────────────────────────────────
+   patch_q_fortune 이 신년운세 문 질문을 다시 썼습니다. 답 문장까지
+   같이 바뀌었습니다. 그런데 그 조각은 **질문 쪽(137)만** 고칩니다.
+   책 쪽(160)의 대조표는 옛 문장 그대로입니다.
+
+       질문 쪽에서 손님이 고른 답   집을 여러 곳 다 보고 정한다
+       책의 대조표가 찾는 답        천천히 준비해서 옮긴다
+
+   책은 손님 답을 **글자 그대로** 견줍니다 —
+
+       if(v===m.a){ return 'A'; }
+       if(v===m.b){ return 'B'; }
+       return '';          ← 둘 다 아니면 모름
+
+   그래서 지금 **미르 문 손님은 저울 세 축이 전부 「모름」**입니다.
+   사주와 답을 대조하는 자리가 통째로 비어 나갑니다.
+
+   ── 무엇을 고치나 ─────────────────────────────────────
+   책의 PICKS 표에서 door-fortune 세 줄의 답만 새 문장으로 바꿉니다.
+
+       risk  q:'change'  천천히 준비해서 옮긴다   → 집을 여러 곳 다 보고 정한다
+                         일단 저지르고 맞춰간다   → 마음에 들면 그 자리에서 정한다
+       make  q:'decide'  따져보고 숫자로 정한다   → 적어놓고 하나씩 따져본다
+                         느낌이 오는 쪽으로 간다  → 사람을 만나보고 느낌으로 정한다
+       many  q:'plan'    몇 년 앞을 그려두는 편   → 내년에 뭘 할지 계획을 세워뒀다
+                         그때그때 정하는 편이다   → 내년도 올해와 비슷하지 않을까 싶다
+
+   열쇠말(q)과 축 이름은 안 바꿉니다. **답 문장만** 바꿉니다.
+   a 는 A 쪽(안정·정답), b 는 B 쪽입니다 — 앞뒤가 안 뒤집혔습니다.
+
+   ── 앵커 ──────────────────────────────────────────────
+   세 줄을 각각 **한 줄 정규식**으로 잡습니다. 공백을 다 흡수하고,
+   답 문장은 `'[^']*'` 로 받아 지금 무엇이 적혀 있든 걸립니다.
+
+       /risk:\{\s*q:'change'\s*,\s*a:'[^']*'\s*,\s*b:'[^']*'\s*\}/u
+
+   ★ 세 줄 중 하나라도 못 찾으면 **아무것도 안 바꿉니다.**
+     한 줄만 고치면 저울이 반쪽만 맞아 더 헷갈립니다.
+
+   ── 하는 법 ───────────────────────────────────────────
+   ① 먼저 보기   https://stellasaju.com/?stella_pickfix=preview
+   ② 정말 넣기   https://stellasaju.com/?stella_pickfix=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_pickfix=undo
+
+   ★ 이 조각은 **새로 만드셔야 합니다** — 지금까지 없던 것입니다.
+   WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+
+   ── 검사한 것 ─────────────────────────────────────────
+   php -l 통과 · 앰퍼샌드 0개
+   사본에 실제로 걸어 세 줄 다 잡히는 것 확인 · 바뀐 뒤 글자수 확인
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_pickfix'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_pickfix'] ) );
+	$META = '_stella_pickfix_bak';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽을 못 찾았습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	echo "═══ 미르 문 저울 대조표 맞추기 · PICKFIX-1 ═══\n\n";
+
+	if ( 'undo' === $mode ) {
+		$back = get_post_meta( $id, $META, true );
+		if ( '' === $back ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $back ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		delete_post_meta( $id, $META );
+		echo '되돌렸습니다. ' . number_format( strlen( $back ) ) . "글자\n";
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+	if ( '' === $c ) { echo '내용을 못 읽었습니다.'; exit; }
+
+	echo '책 쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	$jobs = array(
+		array(
+			'name' => '하나 · risk (옮기는 방식)',
+			'pat'  => '/risk:\{\s*q:\'change\'\s*,\s*a:\'[^\']*\'\s*,\s*b:\'[^\']*\'\s*\}/u',
+			'to'   => 'risk:{q:\'change\', a:\'집을 여러 곳 다 보고 정한다\', b:\'마음에 들면 그 자리에서 정한다\'}',
+		),
+		array(
+			'name' => '둘 · make (정하는 방식)',
+			'pat'  => '/make:\{\s*q:\'decide\'\s*,\s*a:\'[^\']*\'\s*,\s*b:\'[^\']*\'\s*\}/u',
+			'to'   => 'make:{q:\'decide\', a:\'적어놓고 하나씩 따져본다\', b:\'사람을 만나보고 느낌으로 정한다\'}',
+		),
+		array(
+			'name' => '셋 · many (앞을 그리는 방식)',
+			'pat'  => '/many:\{\s*q:\'plan\'\s*,\s*a:\'[^\']*\'\s*,\s*b:\'[^\']*\'\s*\}/u',
+			'to'   => 'many:{q:\'plan\', a:\'내년에 뭘 할지 계획을 세워뒀다\', b:\'내년도 올해와 비슷하지 않을까 싶다\'}',
+		),
+	);
+
+	$bad = 0;
+	echo "── 찾기 ──\n";
+	foreach ( $jobs as $j ) {
+		$n = preg_match_all( $j['pat'], $c, $m );
+		if ( 1 === $n ) {
+			echo '  ○ ' . $j['name'] . "\n";
+			echo '      지금 : ' . $m[0][0] . "\n";
+			echo '      바꿈 : ' . $j['to'] . "\n\n";
+			continue;
+		}
+		echo '  ✗ ' . $j['name'] . ' — ' . $n . "군데\n\n";
+		$bad++;
+	}
+
+	if ( $bad ) {
+		echo "한 군데가 아닌 자리가 있어 아무것도 안 바꿨습니다.\n";
+		echo "이 화면을 그대로 주세요.\n";
+		$at = strpos( $c, "'door-fortune':{" );
+		if ( false !== $at ) {
+			echo "\n── 지금 그 자리 글 ──\n";
+			echo substr( $c, $at, 500 ) . "\n";
+		}
+		exit;
+	}
+
+	$made = $c;
+	foreach ( $jobs as $j ) { $made = preg_replace( $j['pat'], $j['to'], $made, 1 ); }
+	if ( null === $made ) { echo '바꾸다 탈이 났습니다. 아무것도 안 바꿨습니다.'; exit; }
+
+	echo '지금 ' . number_format( strlen( $c ) ) . '글자  ->  바꾼 뒤 '
+	   . number_format( strlen( $made ) ) . "글자\n\n";
+
+	if ( 'apply' !== $mode ) {
+		echo "아직 안 바꿨습니다. 정말 넣으시려면 ?stella_pickfix=apply\n";
+		exit;
+	}
+
+	update_post_meta( $id, $META, wp_slash( $c ) );
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $made ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+
+	echo "고쳤습니다.\n";
+	echo "미르 문으로 책을 한 번 뽑아 저울 세 축에 답이 들어오는지 봐주세요.\n";
+	exit;
+} );

@@ -1,0 +1,66 @@
+/* ════════════════════════════════════════════════════════════
+   스니펫이 도는지 확인하기 · 소희 님께
+
+   로그인이 필요 없습니다. 시크릿 창에서도 됩니다.
+   비밀도 개인정보도 아무것도 안 보여줍니다. 살아 있는지만 말합니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 Run Everywhere →
+              첫 줄 PHP 태그 아래에 붙여넣기 → 저장 → 활성
+
+   두 주소를 다 열어보세요.
+
+     ① https://stellasaju.com/?stella_ping=1
+     ② https://stellasaju.com/wp-json/stellaping/v1/hi
+
+   ════════════════════════════════════════════════════════════ */
+
+/* 회원가입 엔진이 실제로 메모리에 올라와 있는지 봅니다 */
+if ( ! function_exists( 'stella_ping_report' ) ) {
+	function stella_ping_report() {
+		return array(
+			'구슬 엔진'        => function_exists( 'stella_orb_balance' ),
+			'값 계산'          => function_exists( 'stella_price' ),
+			'주문'             => function_exists( 'stella_place_order' ),
+			'포트원 백엔드'    => function_exists( 'stella_po_ready' ),
+			'결제 휴대폰번호'  => function_exists( 'stella_pay_pick_phone' ),
+			'체험판 값 정해짐' => defined( 'STELLA_TRIAL' ),
+		);
+	}
+}
+
+/* ── ① 보통 화면에서 도는가 ───────────────────────────── */
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_ping'] ) ) {
+		return;
+	}
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+	echo "보통 화면 : 스니펫이 돌고 있습니다.\n";
+	echo "-----------------------------------\n";
+	foreach ( stella_ping_report() as $label => $ok ) {
+		printf( "%-18s %s\n", $label, $ok ? '있음' : '없음' );
+	}
+	echo "-----------------------------------\n";
+	echo "끝\n";
+	exit;
+} );
+
+/* ── ② 통로(REST)에서 도는가 ──────────────────────────── */
+add_action( 'rest_api_init', function () {
+
+	register_rest_route( 'stellaping/v1', '/hi', array(
+		'methods'             => 'GET',
+		'permission_callback' => '__return_true',
+		'callback'            => function () {
+			$out = array( '통로' => '스니펫이 돌고 있습니다' );
+			foreach ( stella_ping_report() as $label => $ok ) {
+				$out[ $label ] = $ok ? '있음' : '없음';
+			}
+			$routes = rest_get_server()->get_routes();
+			$out['stella/v1 me 통로'] = isset( $routes['/stella/v1/me'] ) ? '있음' : '없음';
+			return $out;
+		},
+	) );
+} );

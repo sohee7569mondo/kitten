@@ -1,0 +1,116 @@
+/* ══════════════════════════════════════════════════════════
+   메뉴 이름 바꾸기 · 소희 님께                   2026-09-11
+   ── 판 : MENU-1 (2026-09-11) ──
+
+   머리글 메뉴의 「여섯 개의 문」을 「사주 풀이」로 바꿉니다.
+
+   메뉴는 테마의 머리글 틀(header 템플릿 파트) 안에 있습니다.
+   그 틀은 2만 글자라, 통째로 다시 쓰면 실수 한 번에
+   모든 쪽의 머리가 깨집니다. 그래서 그 낱말 하나만 바꿉니다.
+
+   ★ 「문」이 무슨 뜻인지 손님은 모릅니다.
+     「사주 풀이」면 무엇을 파는지 한눈에 보입니다.
+
+   주소
+     해보기   https://stellasaju.com/?stella_menu911=preview
+     바꾸기   https://stellasaju.com/?stella_menu911=apply
+     되돌리기 https://stellasaju.com/?stella_menu911=undo
+
+   ★ 스니펫 이름 「STELLA - 메뉴 이름」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_menu911'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$mode  = sanitize_text_field( wp_unslash( $_GET['stella_menu911'] ) );
+	$STACK = '_stella_menu911_stack';
+	$OLD   = '여섯 개의 문';
+	$NEW   = '사주 풀이';
+
+	echo "═══ 메뉴 이름 · 판 MENU-1 (2026-09-11) ═══\n\n";
+
+	/* 머리글 틀 찾기 */
+	$rows = $wpdb->get_results(
+		"SELECT ID, post_name, post_title, post_status
+		   FROM {$wpdb->posts}
+		  WHERE post_type = 'wp_template_part'
+		    AND post_status IN ('publish','draft','auto-draft')
+		  ORDER BY ID DESC" );
+
+	$id = 0;
+	foreach ( (array) $rows as $r ) {
+		$c = (string) $wpdb->get_var( $wpdb->prepare(
+			"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", (int) $r->ID ) );
+		if ( false !== strpos( $c, $OLD ) ) { $id = (int) $r->ID; break; }
+	}
+
+	if ( ! $id ) {
+		echo "머리글 틀에서 「" . $OLD . "」 을 못 찾았습니다.\n\n";
+		echo "─── 이 사이트의 틀 목록 ───\n";
+		foreach ( (array) $rows as $r ) {
+			echo '  ' . $r->ID . '  ' . $r->post_name . '  (' . $r->post_status . ")\n";
+		}
+		echo "\n이 화면을 저에게 붙여주세요.\n";
+		exit;
+	}
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo '머리글 틀 ' . $id . ' - ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	$stack = get_post_meta( $id, $STACK, true );
+	if ( ! is_array( $stack ) ) { $stack = array(); }
+
+	if ( 'undo' === $mode ) {
+		if ( ! count( $stack ) ) { echo '되돌릴 것이 없습니다.'; exit; }
+		$last = array_pop( $stack );
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $last['body'] ), array( 'ID' => $id ) );
+		clean_post_cache( $id );
+		update_post_meta( $id, $STACK, $stack );
+		echo '되돌렸습니다 — ' . $last['when'] . "\n";
+		exit;
+	}
+
+	$got = substr_count( $c, $OLD );
+	echo '「' . $OLD . '」 ' . $got . "군데\n";
+	if ( ! $got ) {
+		if ( substr_count( $c, $NEW ) ) { echo "이미 「" . $NEW . "」 로 바뀌어 있습니다.\n"; }
+		else { echo "못 찾았습니다. 아무것도 안 바꿨습니다.\n"; }
+		exit;
+	}
+
+	$new = str_replace( $OLD, $NEW, $c );
+
+	if ( 'preview' === $mode ) {
+		$p   = mb_strpos( $c, $OLD, 0, 'UTF-8' );
+		$ctx = mb_substr( $c, max( 0, $p - 160 ), 380, 'UTF-8' );
+		$ctx = preg_replace( '/\s+/u', ' ', $ctx );
+		echo "\n─── 그 자리 둘레 ───\n…" . $ctx . "…\n";
+		echo "\n" . $got . "군데를 「" . $NEW . "」 로 바꿉니다.\n";
+		echo number_format( strlen( $c ) ) . ' → ' . number_format( strlen( $new ) ) . "글자\n";
+		echo "\n괜찮으시면 ?stella_menu911=apply\n";
+		exit;
+	}
+
+	if ( 'apply' !== $mode ) { echo 'preview - apply - undo 중에 골라주세요.'; exit; }
+
+	$stack[] = array( 'when' => current_time( 'Y-m-d H:i' ), 'body' => $c );
+	while ( count( $stack ) > 5 ) { array_shift( $stack ); }
+	update_post_meta( $id, $STACK, $stack );
+
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $id ) );
+	clean_post_cache( $id );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo "\n바꿨습니다. " . $got . "군데.\n\n";
+	echo "아무 쪽이나 열어 메뉴를 봐주세요 (Ctrl+Shift+R)\n";
+	echo "되돌리려면 ?stella_menu911=undo\n";
+	exit;
+}, 1 );

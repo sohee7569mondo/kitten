@@ -1,0 +1,218 @@
+/* ════════════════════════════════════════════════════════════
+   머리글 로고를 글씨로 (2판)   patch_logotext2
+   ★ 2026-09-15 · 소희 님께
+
+   소희 님 : 「로고는 안바뀜」
+
+   1판은 워드프레스 표준 이름(.custom-logo · .wp-block-site-logo)만
+   찾았습니다. 테마가 다른 이름을 쓰면 못 잡습니다. 그래서 2판은 —
+
+     · 머리글 안의 **모든 그림**을 봅니다
+     · 그 가운데 홈으로 가는 고리 안에 있거나, 주소·alt 에 logo 가
+       들어 있거나, 높이가 작은 것(140px 이하)을 로고로 봅니다
+     · 배경 그림으로 된 로고도 찾습니다 (a[rel=home] 의 background)
+     · 못 찾으면 사이트 제목(.wp-block-site-title) 자리에 넣습니다
+
+   ★ 무엇을 찾았는지 관리자에게 찍어 줍니다
+       https://stellasaju.com/?stella_logo2=1
+     머리글 안의 그림과 고리를 모두 늘어놓습니다. 그것을 보여주시면
+     못 잡는 까닭을 바로 알 수 있습니다.
+
+   ★ 옛 조각을 끄세요 — patch_logo (그림 로고로 바꾸는 것)와
+     patch_logotext (1판)가 켜져 있으면 서로 덮습니다.
+
+   ★ 그림을 지우지 않고 감춥니다. 끄면 그 즉시 옛 로고로 돌아옵니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+	$stella_admin = current_user_can( 'manage_options' ) ? '1' : '';
+	$stella_show  = isset( $_GET['stella_logo2'] ) ? '1' : '';
+	?>
+<!-- stella 로고 글씨 2판 · 판 2026-09-15 -->
+<style id="stella-logotext2-css">
+.stella-logotext{
+  display:inline-block; line-height:1.15; text-align:left;
+  white-space:nowrap; text-decoration:none; vertical-align:middle; }
+.stella-logotext .lt-ko{
+  display:block;
+  font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-size:1.34rem; font-weight:800; letter-spacing:-.02em;
+  color:#F2ECE0; }
+.stella-logotext .lt-en{
+  display:block; margin-top:3px;
+  font-family:'Cinzel',serif;
+  font-size:.6rem; letter-spacing:.34em;
+  color:#D4AF6A; }
+.stella-logotext:hover .lt-ko{ color:#FFFFFF; }
+.stella-logohide{ display:none !important; }
+@media(max-width:600px){
+  .stella-logotext .lt-ko{ font-size:1.16rem; }
+  .stella-logotext .lt-en{ font-size:.54rem; letter-spacing:.28em; }
+}
+#stella-logo-say{ position:relative; z-index:99999; margin:8px;
+  padding:10px 14px; border:2px solid #2F7D4A; background:#F3F8F4;
+  border-radius:8px; font:12px/1.7 system-ui; color:#1d3a27;
+  white-space:pre-wrap; }
+</style>
+<script>
+(function(){
+  if(window.StellaLogoText2){ return; }
+  window.StellaLogoText2 = 1;
+
+  var ADMIN = '<?php echo esc_js( $stella_admin ); ?>';
+  var SHOW  = '<?php echo esc_js( $stella_show ); ?>';
+  var FOOT  = 0;   /* 1 로 두면 바닥글 로고도 바꿉니다 */
+
+  function make(){
+    var a = document.createElement('span');
+    a.className = 'stella-logotext';
+    a.innerHTML = '<span class="lt-ko">스텔라사주</span>'
+      + '<span class="lt-en">STELLA SAJU</span>';
+    return a;
+  }
+
+  function head(){
+    var h = document.querySelector('header');
+    if(h){ return h; }
+    h = document.querySelector('.wp-block-template-part');
+    if(h){ return h; }
+    return document.body;
+  }
+
+  function inFooter(el){
+    var n = el;
+    while(n){
+      if(!n.tagName){ break; }
+      var t = n.tagName.toLowerCase();
+      if(t === 'footer'){ return 1; }
+      if(t === 'header'){ return 0; }
+      if(t === 'body'){ break; }
+      n = n.parentNode;
+    }
+    return 0;
+  }
+
+  /* 로고일 만한 그림을 넓게 찾습니다 */
+  function looksLogo(im){
+    var cls = String(im.className || '');
+    var src = String(im.getAttribute('src') || '');
+    var alt = String(im.getAttribute('alt') || '');
+    if(cls.indexOf('logo') >= 0){ return 1; }
+    if(src.toLowerCase().indexOf('logo') >= 0){ return 1; }
+    if(alt.indexOf('logo') >= 0){ return 1; }
+    if(alt.indexOf('스텔라') >= 0){ return 1; }
+    if(src.indexOf('%EB%A1%9C%EA%B3%A0') >= 0){ return 1; }  /* 로고 */
+    /* 위로 올라가며 봅니다 — 감싼 상자 이름에 logo 가 있거나,
+       홈으로 가는 고리 안이면 로고입니다.
+       ★ 고리가 홈인지는 pathname 으로 봅니다. href 는 '/' 일 수도
+         'https://stellasaju.com/' 일 수도 있어 글자로 견주면 놓칩니다. */
+    var n = im.parentNode, deep = 0;
+    while(n){
+      if(!n.tagName){ break; }
+      var tg = n.tagName.toLowerCase();
+      var nc = String(n.className || '');
+      if(nc.indexOf('logo') >= 0){ return 1; }
+      if(nc.indexOf('site-title') >= 0){ return 1; }
+      if(nc.indexOf('brand') >= 0){ return 1; }
+      if(tg === 'a'){
+        var rl = String(n.getAttribute('rel') || '');
+        if(rl.indexOf('home') >= 0){ return 1; }
+        var pn = '';
+        try{ pn = String(n.pathname || ''); }catch(e){}
+        if(pn === '/'){ return 1; }
+        var hf = String(n.getAttribute('href') || '');
+        if(hf === '/'){ return 1; }
+      }
+      deep++;
+      if(deep > 5){ break; }
+      n = n.parentNode;
+    }
+    var hgt = im.offsetHeight;
+    if(hgt > 0){ if(hgt <= 140){ return 2; } }   /* 작으면 로고일 수 있음 */
+    return 0;
+  }
+
+  function run(){
+    var h = head();
+    var imgs = h.querySelectorAll('img');
+    var i, im, box, done = 0, why = [];
+    for(i = 0; i < imgs.length; i++){
+      im = imgs[i];
+      if(im.getAttribute('data-logotext') === '1'){ continue; }
+      if(!FOOT){ if(inFooter(im)){ continue; } }
+      var k = looksLogo(im);
+      why.push('  그림 ' + i + ' · ' + (im.getAttribute('src') || '(주소없음)').slice(-40)
+        + ' · 높이 ' + im.offsetHeight + ' · 로고인가 ' + k);
+      if(!k){ continue; }
+      box = im.parentNode;
+      if(!box){ continue; }
+      box.insertBefore(make(), im);
+      im.className = im.className + ' stella-logohide';
+      im.setAttribute('data-logotext', '1');
+      done++;
+    }
+
+    /* 그림이 없으면 사이트 제목 자리에 */
+    if(!done){
+      var t = h.querySelector('.wp-block-site-title a, .site-title a, h1.site-title a');
+      if(t){
+        if(t.getAttribute('data-logotext') !== '1'){
+          t.textContent = '';
+          t.appendChild(make());
+          t.setAttribute('data-logotext', '1');
+          done++;
+          why.push('  그림을 못 찾아 사이트 제목 자리에 넣었습니다');
+        }
+      }
+    }
+    window.__stellaLogoWhy = why;
+    return done;
+  }
+
+  function say(n){
+    if(!ADMIN){ return; }
+    if(!SHOW){ return; }
+    try{
+      var d = document.getElementById('stella-logo-say');
+      if(!d){
+        d = document.createElement('div');
+        d.id = 'stella-logo-say';
+        if(document.body){ document.body.insertBefore(d, document.body.firstChild); }
+      }
+      var h = head();
+      var NL = String.fromCharCode(10);
+      var txt = '관리자에게만 보입니다 · 로고 글씨 2판' + NL;
+      txt += '머리글 그릇 : ' + h.tagName + ' ' + String(h.className).slice(0, 60) + NL;
+      txt += '바꾼 곳 : ' + n + '군데' + NL;
+      var w = window.__stellaLogoWhy || [];
+      txt += w.join(NL);
+      if(!w.length){ txt += '  머리글 안에 그림이 하나도 없습니다'; }
+      d.textContent = txt;
+    }catch(e){}
+  }
+
+  function watch(){
+    var n = run();
+    if(n){ say(n); return; }
+    var k = 0;
+    var t = setInterval(function(){
+      k++;
+      var m = run();
+      if(m){ clearInterval(t); say(m); return; }
+      if(k > 30){ clearInterval(t); say(0); }
+    }, 300);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', watch);
+  } else {
+    watch();
+  }
+})();
+</script>
+	<?php
+} );

@@ -1,0 +1,36 @@
+<!-- wp:html -->
+<!-- STELLA SAJU · 오픈기념 한 줄 띠 + 300x250 광고 자리 + 옛 유앤미/랩 숨김 · 2026-10-01
+     쪽 글입니다(조각 아님). 맨 뒤에 두어야 아래 스크립트가 돌 때 홈이 다 그려져
+     있어서 띠는 맨 위 배너 밑으로, 광고 자리는 맨 아래 구역 앞으로 옮겨집니다.
+     안 돌아도 둘 다 보입니다(자리만 맨 아래). 띠 글은 opline 한 줄. -->
+<style id="stella-openstrip-css">
+#opBand{padding:18px 0 0}
+#opBand .opw{max-width:1120px;margin:0 auto;padding:0 28px;box-sizing:border-box}
+#opBand .opcard{display:flex;flex-wrap:wrap;align-items:center;gap:9px 14px;padding:14px 22px;border-radius:14px;background:linear-gradient(120deg,#F3EEFC 0%,#FFFFFF 62%);border:1px solid #D9CFF2}
+#opBand .opkick{display:inline-block;padding:4px 11px;border-radius:30px;background:#6B4FB0;color:#FFFDF9;font-size:.68rem;font-weight:700;letter-spacing:.1em;font-family:'Noto Sans KR',sans-serif}
+#opBand .opline{font-family:'Noto Serif KR',serif;font-weight:700;font-size:1.05rem;line-height:1.5;color:#221C33}
+@media(max-width:700px){#opBand{padding:14px 0 0}#opBand .opw{padding:0 20px}#opBand .opcard{padding:13px 16px;border-radius:12px;gap:8px 11px}#opBand .opline{font-size:.98rem}}
+#adSlot{padding:30px 0 44px}
+#adSlot .adlab{font-size:.6rem;letter-spacing:.2em;color:#A9A2B5;text-align:center;margin-bottom:10px;font-family:'Noto Sans KR',sans-serif}
+#adSlot .adw{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;padding:0 20px;box-sizing:border-box}
+#adSlot .adbox{display:block;width:300px;max-width:100%;border:1px solid #E7E1D6;border-radius:10px;overflow:hidden;background:#FFFFFF;line-height:0}
+#adSlot .adbox img{display:block;width:100%;height:auto}
+#adSlot .adread{margin-top:22px;text-align:center}
+#adSlot .adread a{color:#6B4FB0;font-weight:700;font-size:.92rem;text-decoration:none;border-bottom:1px solid rgba(107,79,176,.4);padding-bottom:2px;font-family:'Noto Sans KR',sans-serif}
+#stellar-home #sfun{display:none !important}
+#stellar-home a.free-card[data-viral="on"]{display:none !important}
+</style>
+<section id="opBand"><div class="opw"><div class="opcard"><span class="opkick">오픈기념</span><span class="opline">모든 사주풀이가 무료입니다</span></div></div></section>
+<section id="adSlot"><div class="adlab">AD</div><div class="adw">
+<div class="adbox"><img src="https://stellasaju.com/wp-content/uploads/2026/10/stella-lab-banner03.jpg" width="300" height="250" loading="lazy" alt="스텔라사주 · 오늘 한 번, 내일 저녁에 한 번 더"></div>
+<a class="adbox" href="/uandme/"><img src="https://stellasaju.com/wp-content/uploads/2026/10/stella-lab-banner02.jpg" width="300" height="250" loading="lazy" alt="유앤미 · 그 사람과 나, 궁합은?"></a>
+<a class="adbox" href="/lab/"><img src="https://stellasaju.com/wp-content/uploads/2026/10/stella-lab-banner01.jpg" width="300" height="250" loading="lazy" alt="스텔라 랩 · 내가 이런 성격이라고?"></a>
+</div><div class="adread"><a href="/read/">읽을거리 · 성격 유형으로 본 두 사람 사이 ›</a></div></section>
+<script>
+(function(){
+var h=document.querySelector('#stellar-home .banner-wrap'),b=document.getElementById('opBand');
+if(h){if(b){var n=h.nextSibling;if(n){h.parentNode.insertBefore(b,n);}else{h.parentNode.appendChild(b);}}}
+var f=document.querySelector('#stellar-home section.final'),a=document.getElementById('adSlot');
+if(f){if(a){f.parentNode.insertBefore(a,f);}}})();
+</script>
+<!-- /wp:html -->

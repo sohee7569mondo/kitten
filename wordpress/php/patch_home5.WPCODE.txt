@@ -1,0 +1,362 @@
+/* ════════════════════════════════════════════════════════════
+   홈 · 겹치는 줄 걷어내고 · 문마다 자기 색 · 소희 님께
+
+   ① 「스텔라사주보기 / 궁금한 것 하나를 골라…」 두 줄을 걷어냅니다
+        바로 아래 가디언 줄이 같은 말을 합니다. 겹칩니다.
+        스텔라사주보기 칸(#saju) 안의 것만 지웁니다.
+
+   ② 문마다 표를 달아둡니다
+        <div class="rowhead reveal">  →  <div class="rowhead reveal d-love">
+        뒤에 붙은 「모두 보기」 주소로 어느 문인지 알아냅니다.
+
+   ③ 문마다 자기 색
+        가디언 이름 줄        진한 색 · 볼드
+        미리보기 단추         그 색의 파스텔
+
+        벼리   연애        진한 핑크   #B72C5E
+        마루   일과 돈      진한 하늘   #1B6592
+        아람   건강 가족    깊은 초록   #2F6B4A
+        미르   흐름 시기    보라        #5E4390
+        아라   별자리      남색        #33468C
+        아르카나 타로       구리빛      #8F5518
+
+        여섯 색 모두 흰 바탕에서 대비 4.5 : 1 을 넘습니다.
+        금색은 물러납니다 — 흰 바탕에서 안 보입니다.
+
+   ⑤ 한 줄 설명 글씨
+        크기를 못박지 않고 화면 폭에 따라 자라게 합니다 (16~20px).
+        「직장/사업/재물에 관한 궁금증을…」은 열여덟 자라
+        19px 로 못박으면 어떤 폰에서도 두 줄이 됩니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Location 은 「어디서나 실행」 → 저장 → 활성
+
+   ① 미리보기
+        https://stellasaju.com/?stella_home5=1
+   ② 적용
+        https://stellasaju.com/?stella_home5=1&go=1
+   되돌리기
+        https://stellasaju.com/?stella_home5=1&undo=1
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'init', function () {
+
+	if ( ! isset( $_GET['stella_home5'] ) ) {
+		return;
+	}
+	if ( ! is_user_logged_in() ) {
+		wp_die( '로그인이 안 되어 있습니다. 관리자로 로그인한 창에서 열어주세요.', '스텔라', array( 'response' => 200 ) );
+	}
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( '관리자만 볼 수 있습니다.', '스텔라', array( 'response' => 200 ) );
+	}
+
+	global $wpdb;
+
+	$PID  = 62;
+	$META = '_stella_home5_backup';
+	$MARK = 'stella-home5-css';
+	$go   = isset( $_GET['go'] );
+	$undo = isset( $_GET['undo'] );
+
+	$safe = function ( $s ) {
+		if ( function_exists( 'mb_convert_encoding' ) ) {
+			$s = mb_convert_encoding( $s, 'UTF-8', 'UTF-8' );
+		}
+		return esc_html( $s );
+	};
+
+	$div_end = function ( $c, $from ) {
+		$i = $from; $depth = 0; $len = strlen( $c );
+		while ( $i < $len ) {
+			if ( '<' === $c[ $i ] ) {
+				if ( 0 === substr_compare( $c, '<div', $i, 4, true ) ) {
+					$depth++; $i += 4; continue;
+				}
+				if ( 0 === substr_compare( $c, '</div>', $i, 6, true ) ) {
+					$depth--; $i += 6;
+					if ( 0 === $depth ) { return $i; }
+					continue;
+				}
+			}
+			$i++;
+		}
+		return false;
+	};
+
+	/* 문 여섯 — 열쇠말 · 진한색 · 단추바탕 · 단추테두리 · 단추글자 */
+	$DOORS = array(
+		'door-love'    => array( 'love',    '#B72C5E', '#F9EEF2', '#EBD6DF', '#8A4762' ),
+		'door-career'  => array( 'career',  '#1B6592', '#ECF3F8', '#D4E4EF', '#35637F' ),
+		'door-health'  => array( 'health',  '#2F6B4A', '#EDF4EF', '#D6E6DC', '#3A6350' ),
+		'door-fortune' => array( 'fortune', '#5E4390', '#F1EEF8', '#DED6EE', '#5B4A86' ),
+		'door-astro'   => array( 'astro',   '#33468C', '#EDF0F8', '#D6DDEF', '#414E85' ),
+		'door-tarot'   => array( 'tarot',   '#8F5518', '#F7F0E8', '#EADCC9', '#75552E' ),
+	);
+
+	/* 한 줄 설명 — 좁은 폰에서도 한 줄에 들어가도록 「에 관한」을 뺐습니다 */
+	$LINES = array(
+		'door-love'    => '연애 궁금증을 풀어드립니다.',
+		'door-career'  => '직장/사업/재물 궁금증을 풀어드립니다.',
+		'door-health'  => '건강/가족 궁금증을 풀어드립니다.',
+		'door-fortune' => '대운/올해 흐름을 풀어드립니다.',
+		'door-astro'   => '별자리 궁금증을 풀어드립니다.',
+		'door-tarot'   => '타로 한 장으로 풀어드립니다.',
+	);
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><body style="font:15px/1.8 -apple-system,system-ui,sans-serif;'
+		. 'background:#111;color:#eee;padding:24px;max-width:980px">';
+	printf(
+		'<h1 style="color:#ffd76a">홈 · 문마다 자기 색 — %s</h1>',
+		$undo ? '되돌리기' : ( $go ? '적용' : '<span style="color:#9fd">미리보기 (아무것도 안 바뀝니다)</span>' )
+	);
+
+	if ( $undo ) {
+		$bak = get_post_meta( $PID, $META, true );
+		if ( $bak ) {
+			$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ), array( 'ID' => $PID ) );
+			delete_post_meta( $PID, $META );
+			clean_post_cache( $PID );
+			if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+			echo '<h2 style="color:#7bff9b">되돌렸습니다.</h2></body>';
+		} else {
+			echo '<h2 style="color:#888">사본이 없습니다.</h2></body>';
+		}
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $PID ) );
+	if ( ! $row ) {
+		echo '<h2 style="color:#ff7b7b">62번 페이지를 못 읽었습니다.</h2></body>';
+		exit;
+	}
+	$c     = $row->post_content;
+	$new_c = $c;
+	$fail  = array();
+
+	/* ── ① 겹치는 줄 ── */
+	echo '<h2 style="color:#9fd">① 걷어낼 줄</h2>';
+	$saju = strpos( $new_c, 'id="saju"' );
+	if ( false === $saju ) {
+		$fail[] = '스텔라사주보기 칸(id="saju")을 못 찾았습니다';
+	} else {
+		$sh = strpos( $new_c, '<div class="secthead', $saju );
+		if ( false === $sh ) {
+			echo '<p style="color:#888">이미 걷어냈습니다.</p>';
+		} else {
+			$end = $div_end( $new_c, $sh );
+			if ( false === $end ) {
+				$fail[] = '상자의 끝을 못 찾았습니다';
+			} else {
+				printf(
+					'<pre style="white-space:pre-wrap;background:#000;padding:12px;'
+					. 'border-left:3px solid #ff7b7b;font:12.5px/1.6 monospace">%s</pre>',
+					$safe( substr( $new_c, $sh, $end - $sh ) )
+				);
+				$b = $sh;
+				while ( $b > 0 && ( ' ' === $new_c[ $b - 1 ] || "\t" === $new_c[ $b - 1 ] ) ) { $b--; }
+				$a = $end;
+				while ( $a < strlen( $new_c ) && ( "\n" === $new_c[ $a ] || "\r" === $new_c[ $a ] ) ) { $a++; }
+				$new_c = substr( $new_c, 0, $b ) . substr( $new_c, $a );
+			}
+		}
+	}
+
+	/* ── ② 문마다 표 달기 ── */
+	echo '<h2 style="color:#9fd">② 문마다 표 달기</h2>';
+	$TAG   = '<div class="rowhead';
+	$edits = array();
+	$found = array();
+	$pos   = 0;
+
+	while ( ( $p = strpos( $new_c, $TAG, $pos ) ) !== false ) {
+		$q = strpos( $new_c, '"', $p + strlen( '<div class=' ) + 1 );
+		if ( false === $q ) { break; }
+		$cls = substr( $new_c, $p + strlen( '<div class="' ), $q - $p - strlen( '<div class="' ) );
+
+		$gp   = strpos( $new_c, '<a class="rh-go" href="/', $p );
+		$slug = '';
+		if ( false !== $gp ) {
+			$s1 = $gp + strlen( '<a class="rh-go" href="/' );
+			$s2 = strpos( $new_c, '/', $s1 );
+			if ( false !== $s2 ) { $slug = substr( $new_c, $s1, $s2 - $s1 ); }
+		}
+
+		if ( isset( $DOORS[ $slug ] ) ) {
+			$key = 'd-' . $DOORS[ $slug ][0];
+			$found[] = array( $slug, $key, false !== strpos( ' ' . $cls . ' ', ' ' . $key . ' ' ) );
+			if ( false === strpos( ' ' . $cls . ' ', ' ' . $key . ' ' ) ) {
+				$edits[] = array( $q, ' ' . $key );
+			}
+		} else {
+			$found[] = array( $slug, '', null );
+		}
+		$pos = $p + strlen( $TAG );
+	}
+
+	for ( $i = count( $edits ) - 1; $i >= 0; $i-- ) {
+		list( $at, $txt ) = $edits[ $i ];
+		$new_c = substr( $new_c, 0, $at ) . $txt . substr( $new_c, $at );
+	}
+
+	echo '<table cellpadding="7" style="border-collapse:collapse">';
+	echo '<tr style="color:#ffd76a"><td>문</td><td>표</td><td></td></tr>';
+	foreach ( $found as $f ) {
+		printf(
+			'<tr style="border-top:1px solid #333"><td><code>%s</code></td><td><code>%s</code></td>'
+			. '<td style="color:%s">%s</td></tr>',
+			$safe( $f[0] ),
+			$safe( $f[1] ),
+			null === $f[2] ? '#ff7b7b' : ( $f[2] ? '#888' : '#7bff9b' ),
+			null === $f[2] ? '모르는 문 — 손대지 않습니다' : ( $f[2] ? '이미 달려 있음' : '답니다' )
+		);
+	}
+	echo '</table>';
+
+	/* ── ③ 문구를 짧게 ── */
+	echo '<h2 style="color:#9fd">③ 한 줄 설명 문구</h2>';
+	$TAG2 = '<h2 class="rh-d">';
+	$te   = array();
+	$ts   = array();
+	$pos  = 0;
+	while ( ( $h = strpos( $new_c, $TAG2, $pos ) ) !== false ) {
+		$st = $h + strlen( $TAG2 );
+		$en = strpos( $new_c, '</h2>', $st );
+		if ( false === $en ) { break; }
+		$inner = substr( $new_c, $st, $en - $st );
+		$cut = strlen( $inner );
+		$p1  = strpos( $inner, '<!--' );
+		$p2  = strpos( $inner, '<a ' );
+		if ( false !== $p1 ) { $cut = min( $cut, $p1 ); }
+		if ( false !== $p2 ) { $cut = min( $cut, $p2 ); }
+		$old = substr( $inner, 0, $cut );
+
+		$slug = '';
+		$g2   = strpos( $new_c, '<a class="rh-go" href="/', $en );
+		if ( false !== $g2 ) {
+			$a1 = $g2 + strlen( '<a class="rh-go" href="/' );
+			$a2 = strpos( $new_c, '/', $a1 );
+			if ( false !== $a2 ) { $slug = substr( $new_c, $a1, $a2 - $a1 ); }
+		}
+		$nw = isset( $LINES[ $slug ] ) ? $LINES[ $slug ] : '';
+		$ts[] = array( $slug, trim( $old ), $nw );
+		if ( '' !== $nw && trim( $old ) !== $nw ) {
+			$te[] = array( $st, $cut, $nw );
+		}
+		$pos = $en + 5;
+	}
+	for ( $i = count( $te ) - 1; $i >= 0; $i-- ) {
+		list( $st, $ln, $tx ) = $te[ $i ];
+		$new_c = substr( $new_c, 0, $st ) . $tx . substr( $new_c, $st + $ln );
+	}
+	echo '<table cellpadding="7" style="border-collapse:collapse;width:100%">';
+	echo '<tr style="color:#ffd76a"><td>문</td><td>지금</td><td>바꿀 말</td></tr>';
+	foreach ( $ts as $t ) {
+		printf(
+			'<tr style="border-top:1px solid #333"><td><code>%s</code></td>'
+			. '<td style="color:#888">%s</td><td style="color:%s">%s</td></tr>',
+			$safe( $t[0] ), $safe( $t[1] ),
+			'' === $t[2] ? '#ff7b7b' : '#7bff9b',
+			'' === $t[2] ? '모르는 문 — 손대지 않습니다' : $safe( $t[2] )
+		);
+	}
+	echo '</table>';
+
+	/* ── ④ 글씨 크기 ── */
+	echo '<h2 style="color:#9fd">④ 한 줄 설명 글씨</h2>';
+	$OLD_FS = 'font-size:1.06rem !important';
+	$NEW_FS = 'font-size:clamp(1rem,4.3vw,1.25rem) !important';
+	if ( false !== strpos( $new_c, $NEW_FS ) ) {
+		echo '<p style="color:#888">이미 되어 있습니다.</p>';
+	} elseif ( false !== strpos( $new_c, $OLD_FS ) ) {
+		$new_c = str_replace( $OLD_FS, $NEW_FS, $new_c );
+		echo '<p style="color:#7bff9b">화면 폭에 따라 16px ~ 20px 로 자라게 합니다 (휴대폰에서만).</p>';
+	} else {
+		echo '<p style="color:#ffd76a">앞서 넣은 덩어리를 못 찾았습니다 — 아래 덩어리에 같이 넣습니다.</p>';
+	}
+	$need_size = ( false === strpos( $new_c, $NEW_FS ) );
+
+	/* ── ④ 색 ── */
+	$css  = "\n\n<!-- wp:html -->\n<style id=\"" . $MARK . "\">\n";
+	$css .= "/* 2026-09-08 · 문마다 자기 색. 흰 바탕이라 금색은 물러납니다. */\n";
+	$css .= "#stellar-home .rowhead .kick{font-weight:700;}\n";
+	$css .= "#stellar-home .sbtn{border:1px solid; border-radius:30px;\n";
+	$css .= "  padding:7px 15px; font-weight:500; text-decoration:none;}\n";
+	foreach ( $DOORS as $slug => $d ) {
+		$k = '#stellar-home .rowhead.d-' . $d[0] . ' ';
+		$css .= $k . ".kick,\n" . $k . ".rh-go{color:" . $d[1] . ";}\n";
+		$css .= $k . ".sbtn{background:" . $d[2] . "; border-color:" . $d[3] . "; color:" . $d[4] . ";}\n";
+	}
+	/* 「모두 보기」를 첫 줄 오른쪽에만 두고, 설명은 폭을 다 씁니다.
+	   이렇게 안 하면 설명 칸이 「모두 보기」만큼 좁아져 전부 두 줄이 됩니다. */
+	$css .= "@media(max-width:700px){\n";
+	$css .= "  #stellar-home .rowhead{\n";
+	$css .= "    grid-template-columns:1fr auto;\n";
+	$css .= "    grid-template-areas:\"kick go\" \"line line\";}\n";
+	$css .= "  #stellar-home .rowhead .rh-l{display:contents;}\n";
+	$css .= "  #stellar-home .rowhead .kick{grid-area:kick;}\n";
+	$css .= "  #stellar-home .rowhead .rh-d{grid-area:line;}\n";
+	$css .= "  #stellar-home .rowhead .rh-go{grid-area:go;}\n";
+	if ( $need_size ) {
+		$css .= "  #stellar-home .rowhead .rh-d{\n";
+		$css .= "    " . $NEW_FS . "; line-height:1.58; margin:0;\n";
+		$css .= "    word-break:keep-all; text-wrap:balance;}\n";
+	}
+	$css .= "}\n";
+	$css .= "</style>\n<!-- /wp:html -->\n";
+
+	echo '<h2 style="color:#9fd">⑤ 색</h2>';
+	if ( false !== strpos( $new_c, $MARK ) ) {
+		echo '<p style="color:#888">이미 들어가 있습니다. 다시 넣지 않습니다.</p>';
+	} else {
+		$new_c .= $css;
+		echo '<table cellpadding="7" style="border-collapse:collapse">';
+		foreach ( $DOORS as $slug => $d ) {
+			printf(
+				'<tr><td><code>%s</code></td>'
+				. '<td style="background:%s;color:#fff;padding:6px 14px">이름 줄 %s</td>'
+				. '<td style="background:%s;color:%s;border:1px solid %s;padding:6px 14px">미리보기</td></tr>',
+				esc_html( $slug ), $d[1], $d[1], $d[2], $d[4], $d[3]
+			);
+		}
+		echo '</table>';
+	}
+
+	if ( $fail ) {
+		echo '<div style="background:#2a1010;border-left:4px solid #ff7b7b;padding:16px;margin-top:18px">';
+		echo '<h2 style="color:#ff7b7b;margin:0 0 10px">멈췄습니다 — 아무것도 바꾸지 않았습니다</h2><ul>';
+		foreach ( $fail as $f ) { printf( '<li>%s</li>', esc_html( $f ) ); }
+		echo '</ul></div></body>';
+		exit;
+	}
+
+	printf(
+		'<p style="margin-top:16px">글자 수 %s → <b style="color:#ffd76a">%s</b></p>',
+		number_format( strlen( $c ) ), number_format( strlen( $new_c ) )
+	);
+
+	if ( $new_c === $c ) {
+		echo '<h2 style="color:#7bff9b">이미 다 되어 있습니다.</h2></body>';
+		exit;
+	}
+
+	if ( ! $go ) {
+		echo '<h2 style="color:#ffd76a">여기까지가 미리보기입니다. 아무것도 바뀌지 않았습니다.</h2>';
+		echo '<p style="font-size:17px"><a style="color:#ffd76a" href="?stella_home5=1&go=1">'
+			. '→ 이대로 바꾸기</a></p></body>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $PID, $META, true ) ) {
+		update_post_meta( $PID, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new_c ), array( 'ID' => $PID ) );
+	clean_post_cache( $PID );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<h2 style="color:#7bff9b">바꿨습니다</h2>';
+	echo '<p style="font-size:17px">휴대폰으로 <a style="color:#ffd76a" href="/">홈</a>을 열어봐 주세요.</p>';
+	echo '<p style="color:#888">되돌리려면 ?stella_home5=1&undo=1</p></body>';
+	exit;
+} );

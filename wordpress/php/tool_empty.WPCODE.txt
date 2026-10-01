@@ -1,0 +1,59 @@
+/* ══════════════════════════════════════════════════════════
+   확인 도구 · emptyEls 가 어디에 쓰이는지          2026-09-11
+   ── 판 : EMPTY-1 (2026-09-11) ──
+
+   책 안에서 「emptyEls」 라는 글자가 나오는 데를 전부 찾아
+   그 둘레 글을 보여줍니다.
+   05장 제목을 제대로 바꾸려면 이게 어디서 만들어지는지 알아야 합니다.
+
+   주소  https://stellasaju.com/?stella_empty911=1
+
+   ★ 스니펫 이름 「STELLA - 확인 emptyEls」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ★ 아무것도 안 바꿉니다. 보기만 합니다.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_empty911'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+
+	$c = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo "═══ 확인 도구 · 판 EMPTY-1 (2026-09-11) ═══\n";
+	echo '쪽 ' . $id . ' - ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	$WORDS = array( 'emptyEls', 'sipNone', 'it.day.care' );
+
+	foreach ( $WORDS as $w ) {
+		$n = mb_substr_count( $c, $w );
+		echo "───────────────────────────────────────\n";
+		echo '「' . $w . '」 ' . $n . "군데\n";
+		echo "───────────────────────────────────────\n";
+		if ( ! $n ) { echo "\n"; continue; }
+
+		$from = 0;
+		$k    = 0;
+		while ( $k < 12 ) {
+			$p = mb_strpos( $c, $w, $from, 'UTF-8' );
+			if ( false === $p ) { break; }
+			$k++;
+			$blk = mb_substr( $c, max( 0, $p - 220 ), 560, 'UTF-8' );
+			$blk = preg_replace( '/\s+/u', ' ', $blk );
+			echo '  [' . $k . '] …' . $blk . "…\n\n";
+			$from = $p + mb_strlen( $w, 'UTF-8' );
+		}
+	}
+
+	echo "═══ 여기까지 ═══\n";
+	echo "이 화면을 통째로 붙여주세요.\n";
+	exit;
+}, 1 );

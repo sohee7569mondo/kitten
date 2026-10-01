@@ -1,0 +1,109 @@
+/* ══════════════════════════════════════════════════════════
+   1분 30초가 어디서 가는지 재기 · 소희 님께     2026-09-11
+   ── 판 : SPEED-1 (2026-09-11) ──
+
+   느린 데는 세 군데가 있고, 고치는 법이 셋 다 다릅니다.
+
+     ① 서버가 글을 만들어 첫 글자를 보내기까지
+        → 스니펫이 많아서 느린 것. 더 꺼야 합니다.
+     ② 그 글을 다 내려받기까지
+        → 책이 1,317,333글자라 그런 것. 쪽을 쪼개야 합니다.
+     ③ 브라우저가 41쪽을 그리기까지
+        → 책 그리는 코드가 무거운 것. 한 번에 다 안 그리게 해야 합니다.
+
+   이 도구는 셋을 따로 재서 화면 아래에 보여줍니다.
+
+   쓰는 법 : 주소 끝에 아래를 붙여서 여세요.
+     https://stellasaju.com/reading-book/?demo=door-love
+     여기에  &stella_speed=1  을 붙입니다.
+
+   ★ 시크릿 창(로그아웃)에서도 됩니다. 손님이 겪는 속도를 그대로 잽니다.
+   ★ 주소에 stella_speed 를 안 붙이면 아무에게도 안 보입니다.
+   ★ 스니펫 이름 「STELLA - 속도 재기」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+
+	if ( ! isset( $_GET['stella_speed'] ) ) { return; }
+
+	?>
+<script>
+(function(){
+  var t0 = Date.now();
+  var drawn = 0;
+  var firstH2 = 0;
+
+  function poll(){
+    var b = document.getElementById('ssb');
+    if(b){
+      var n = b.querySelectorAll('h2').length;
+      if(n > 0 && !firstH2){ firstH2 = Date.now() - t0; }
+      if(n > drawn){ drawn = n; }
+    }
+    if(!firstH2 || Date.now() - t0 < 120000){ setTimeout(poll, 200); }
+  }
+  poll();
+
+  function ms(v){ return (v === undefined || v === null) ? '?' : (Math.round(v) + 'ms'); }
+  function kb(v){ return v ? (Math.round(v / 1024) + 'KB') : '?'; }
+
+  function show(){
+    var L = [];
+    L.push('판 SPEED-1 · ' + location.pathname);
+    var nav = null;
+    try { nav = performance.getEntriesByType('navigation')[0]; } catch(e){}
+    if(nav){
+      L.push('');
+      L.push('① 서버가 첫 글자 보내기까지  ' + ms(nav.responseStart - nav.requestStart));
+      L.push('② 글을 다 내려받기까지       ' + ms(nav.responseEnd - nav.responseStart));
+      L.push('③ 화면 뼈대 다 읽기까지      ' + ms(nav.domInteractive));
+      L.push('④ 다 읽고 script 다 돌기까지  ' + ms(nav.domContentLoadedEventEnd));
+      L.push('⑤ 그림까지 전부 끝          ' + ms(nav.loadEventEnd));
+      L.push('');
+      L.push('받은 크기 : ' + kb(nav.transferSize) + '  (푼 크기 ' + kb(nav.decodedBodySize) + ')');
+    } else {
+      L.push('(브라우저가 시간을 안 알려줍니다)');
+    }
+    L.push('');
+    L.push('책 첫 장이 그려진 때 : ' + (firstH2 ? (firstH2 + 'ms') : '아직'));
+    L.push('그려진 장 수 : ' + drawn);
+
+    var res = [];
+    try {
+      performance.getEntriesByType('resource').forEach(function(r){
+        if(r.duration > 400){ res.push([Math.round(r.duration), r.name]); }
+      });
+    } catch(e){}
+    res.sort(function(a, b){ return b[0] - a[0]; });
+    if(res.length){
+      L.push('');
+      L.push('─ 400ms 넘게 걸린 것 ─');
+      res.slice(0, 8).forEach(function(r){
+        L.push('  ' + r[0] + 'ms  ' + String(r[1]).replace(location.origin, '').slice(0, 80));
+      });
+    }
+
+    var d = document.getElementById('stella-speed');
+    if(!d){
+      d = document.createElement('div');
+      d.id = 'stella-speed';
+      d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:2147483647;'
+        + 'background:#221033;color:#f0e3ff;padding:12px 16px;font:12px/1.6 ui-monospace,monospace;'
+        + 'white-space:pre-wrap;max-height:60vh;overflow:auto;'
+        + 'box-shadow:0 -2px 16px rgba(0,0,0,.5)';
+      document.body.appendChild(d);
+    }
+    d.textContent = L.join('\n');
+  }
+
+  window.addEventListener('load', function(){
+    setTimeout(show, 500);
+    setTimeout(show, 5000);
+    setTimeout(show, 15000);
+    setTimeout(show, 40000);
+  });
+})();
+</script>
+	<?php
+}, 1 );

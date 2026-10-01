@@ -1,0 +1,124 @@
+/* ════════════════════════════════════════════════════════════
+   종이색 통일 — 아이보리를 연한 회색으로   patch_paper
+   ★ 2026-09-15 · 소희 님께
+
+   소희 님 : 「전부 아이보리보단 연한 회색 CECDBD 이 색으로 통일하자」
+
+   무엇을 하나
+     쪽 바탕이 **밝은 색일 때만** #CECDBD 로 바꿉니다.
+     문 쪽처럼 원래 어두운(밤하늘) 데는 안 건드립니다.
+
+   어떻게 가리나
+     화면에 그려진 body 배경색을 읽어, 빨강·초록·파랑이 모두 230 을
+     넘으면 「밝은 종이」로 봅니다. 아이보리(#FFFDF9)도 흰색도 걸립니다.
+     짐작으로 쪽 이름을 적어두지 않으므로 새 쪽이 생겨도 맞습니다.
+
+     바닥글이 왜 오락가락했나 — 바닥글에 제 배경색이 없으면(투명)
+     뒤의 body 색이 그대로 비칩니다. body 를 한 색으로 맞추면
+     바닥글도 저절로 같아집니다.
+
+   ★ 색을 바꾸시려면 아래 PAPER 한 줄만 고치시면 됩니다.
+   ★ 끄면 그 즉시 옛 색으로 돌아옵니다. 쪽을 안 고칩니다.
+
+        살펴보기 https://stellasaju.com/?stella_paper=1
+                 (지금 쪽 바탕이 무슨 색이고 바꿨는지 찍어 줍니다)
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 크롬 번역을 끄고 붙여넣으세요.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'wp_head', function () {
+	$stella_show = isset( $_GET['stella_paper'] ) ? '1' : '';
+	$admin = current_user_can( 'manage_options' ) ? '1' : '';
+	?>
+<!-- stella 종이색 · 판 2026-09-15 -->
+<style id="stella-paper-css">
+:root{ --stella-paper:#CECDBD; }
+html.stella-paper,
+html.stella-paper body{ background-color:var(--stella-paper) !important; }
+/* 바닥글이 투명이면 body 색이 비칩니다. 제 색을 가진 바닥글은
+   그대로 두되, 밝은 색이면 같이 맞춥니다 (아래 JS 가 표를 답니다) */
+html.stella-paper .stella-paper-on{ background-color:var(--stella-paper) !important; }
+#stella-paper-say{ position:relative; z-index:999999; margin:10px;
+  padding:10px 14px; border:2px solid #2F7D4A; background:#F3F8F4;
+  border-radius:8px; font:12px/1.7 ui-monospace,monospace; color:#1d3a27;
+  white-space:pre-wrap; }
+</style>
+<script>
+(function(){
+  if(window.StellaPaper){ return; }
+  window.StellaPaper = 1;
+
+  var SHOW  = '<?php echo esc_js( $stella_show ); ?>';
+  var ADMIN = '<?php echo esc_js( $admin ); ?>';
+  var NL = String.fromCharCode(10);
+  var log = [];
+
+  /* 'rgb(255, 253, 249)' 같은 글을 숫자 셋으로 — 정규식을 안 씁니다 */
+  function rgb(v){
+    var s = String(v === undefined ? '' : v);
+    var a = s.split('(');
+    if(a.length < 2){ return null; }
+    var b = a[1].split(')')[0].split(',');
+    if(b.length < 3){ return null; }
+    var r = parseInt(b[0], 10), g = parseInt(b[1], 10), t = parseInt(b[2], 10);
+    if(isNaN(r)){ return null; }
+    var al = 1;
+    if(b.length > 3){ al = parseFloat(b[3]); }
+    return { r:r, g:g, b:t, a:al };
+  }
+  function isLight(v){
+    var c = rgb(v);
+    if(!c){ return false; }
+    if(c.a < 0.5){ return false; }        /* 투명한 것은 제 색이 아닙니다 */
+    if(c.r < 230){ return false; }
+    if(c.g < 230){ return false; }
+    if(c.b < 225){ return false; }
+    return true;
+  }
+  function bgOf(el){
+    try{ return window.getComputedStyle(el).backgroundColor; }catch(e){ return ''; }
+  }
+
+  function go(){
+    var b = document.body;
+    if(!b){ return; }
+    var was = bgOf(b);
+    log.push('지금 쪽 바탕 : ' + was);
+    if(!isLight(was)){
+      log.push('→ 어두운 쪽입니다. 안 건드립니다.');
+      say();
+      return;
+    }
+    document.documentElement.className += ' stella-paper';
+    log.push('→ 밝은 쪽이라 연한 회색으로 바꿨습니다.');
+
+    /* 바닥글이 제 색을 가지고 있고 그것도 밝으면 같이 맞춥니다 */
+    var fts = document.querySelectorAll('footer'), i, c, n = 0;
+    for(i = 0; i < fts.length; i++){
+      c = bgOf(fts[i]);
+      if(isLight(c)){ fts[i].className += ' stella-paper-on'; n++; }
+    }
+    log.push('바닥글 ' + fts.length + '개 · 그중 밝아서 같이 맞춘 것 ' + n + '개');
+    say();
+  }
+
+  function say(){
+    if(!ADMIN){ return; }
+    if(!SHOW){ return; }
+    try{
+      var d = document.createElement('div');
+      d.id = 'stella-paper-say';
+      d.textContent = '관리자에게만 보입니다 · 종이색' + NL + log.join(NL);
+      if(document.body){ document.body.insertBefore(d, document.body.firstChild); }
+    }catch(e){}
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(go, 120); });
+  } else { setTimeout(go, 120); }
+})();
+</script>
+	<?php
+} );

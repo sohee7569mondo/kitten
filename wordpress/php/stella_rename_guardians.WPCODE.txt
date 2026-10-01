@@ -1,0 +1,159 @@
+/* ════════════════════════════════════════════════════════════
+   가디언 다섯의 이름을 한 번에 바꿉니다
+
+   직성의 신 → 일을 짓는 신
+   연성의 신 → 인연을 잇는 신
+   강성의 신 → 몸을 지키는 신
+   세성의 신 → 때를 아는 신
+   성좌의 신 → 별을 읽는 신
+
+   다섯 다 「신」으로 끝나서 뒤에 붙는 조사가 그대로 살아 있습니다.
+   「직성의 신은」 → 「일을 짓는 신은」 처럼요.
+
+   페이지 내용을 wp_update_post 로 저장하면 워드프레스가 <script> 를
+   지워버립니다. 그래서 데이터베이스에 바로 씁니다. 홈과 160쪽처럼
+   스크립트가 든 페이지도 안전합니다.
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet →
+              Auto Insert → Run Everywhere → 저장 → Active
+
+   ① 먼저 보기   https://stellasaju.com/?stella_rename=1
+   ② 정말 바꾸기 https://stellasaju.com/?stella_rename=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_rename=undo
+
+   바꾸기 전 내용을 글마다 따로 보관해 둡니다. 되돌리기를 누르면
+   한 글자도 안 틀리게 그대로 돌아갑니다.
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_rename'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$mode = sanitize_key( wp_unslash( $_GET['stella_rename'] ) );
+
+	$MAP = array(
+		'직성의 신' => '일을 짓는 신',
+		'연성의 신' => '인연을 잇는 신',
+		'강성의 신' => '몸을 지키는 신',
+		'세성의 신' => '때를 아는 신',
+		'성좌의 신' => '별을 읽는 신',
+	);
+
+	$META = '_stella_rename_backup';
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8">';
+	echo '<style>body{background:#12101B;color:#F2ECE0;font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;';
+	echo 'line-height:1.8;padding:34px 24px;max-width:760px;margin:0 auto}';
+	echo 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}';
+	echo 'table{border-collapse:collapse;width:100%;margin:16px 0;font-size:.92rem}';
+	echo 'td,th{border-bottom:1px solid rgba(212,175,106,.22);padding:7px 9px;text-align:left}';
+	echo 'th{color:#D4AF6A;font-weight:400}b{color:#F0D9A8}';
+	echo 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	/* ── 되돌리기 ───────────────────────────────────────── */
+	if ( 'undo' === $mode ) {
+		$rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s", $META
+		) );
+		echo '<h1>되돌리기</h1>';
+		if ( ! $rows ) {
+			echo '<p>되돌릴 것이 없습니다. 아직 안 바꾸셨거나 이미 되돌리셨어요.</p>';
+			exit;
+		}
+		$n = 0;
+		foreach ( $rows as $r ) {
+			$old = maybe_unserialize( $r->meta_value );
+			if ( ! is_array( $old ) ) { continue; }
+			$wpdb->update( $wpdb->posts, array(
+				'post_content' => $old['content'],
+				'post_title'   => $old['title'],
+				'post_excerpt' => $old['excerpt'],
+			), array( 'ID' => intval( $r->post_id ) ) );
+			clean_post_cache( intval( $r->post_id ) );
+			delete_post_meta( intval( $r->post_id ), $META );
+			$n++;
+		}
+		echo '<p><b>' . intval( $n ) . '</b>개 글을 옛 이름으로 되돌렸습니다.</p>';
+		echo '<p><a href="/">홈으로</a></p>';
+		exit;
+	}
+
+	/* ── 바꿀 글 찾기 ───────────────────────────────────── */
+	$like = array();
+	foreach ( $MAP as $from => $to ) {
+		$like[] = $wpdb->prepare( 'post_content LIKE %s', '%' . $wpdb->esc_like( $from ) . '%' );
+		$like[] = $wpdb->prepare( 'post_title   LIKE %s', '%' . $wpdb->esc_like( $from ) . '%' );
+	}
+	$sql = "SELECT ID, post_title, post_content, post_excerpt FROM {$wpdb->posts}
+	        WHERE post_status IN ('publish','draft','private')
+	          AND post_type   IN ('page','post')
+	          AND ( " . implode( ' OR ', $like ) . " )
+	        ORDER BY ID";
+	$posts = $wpdb->get_results( $sql );
+
+	$apply = ( 'apply' === $mode );
+	echo '<h1>' . ( $apply ? '가디언 이름을 바꿨습니다' : '바꾸면 이렇게 됩니다 (아직 안 바꿨습니다)' ) . '</h1>';
+
+	if ( ! $posts ) {
+		echo '<p>옛 이름이 남은 글이 없습니다. 이미 다 바꾸셨네요.</p>';
+		exit;
+	}
+
+	echo '<table><tr><th>번호</th><th>제목</th><th>바뀌는 자리</th></tr>';
+	$total = 0;
+
+	foreach ( $posts as $p ) {
+
+		$c = $p->post_content;
+		$t = $p->post_title;
+		$e = $p->post_excerpt;
+
+		$hits = 0;
+		foreach ( $MAP as $from => $to ) {
+			$hits += substr_count( $c, $from ) + substr_count( $t, $from ) + substr_count( $e, $from );
+		}
+		if ( ! $hits ) { continue; }
+		$total += $hits;
+
+		echo '<tr><td>' . intval( $p->ID ) . '</td><td>' . esc_html( $t ) . '</td><td><b>' . intval( $hits ) . '</b>군데</td></tr>';
+
+		if ( ! $apply ) { continue; }
+
+		/* 바꾸기 전 내용을 딱 한 번만 보관합니다.
+		   두 번 눌러도 처음 것이 덮이지 않습니다. */
+		if ( ! get_post_meta( $p->ID, $META, true ) ) {
+			update_post_meta( $p->ID, $META, array(
+				'content' => $c, 'title' => $t, 'excerpt' => $e,
+			) );
+		}
+
+		foreach ( $MAP as $from => $to ) {
+			$c = str_replace( $from, $to, $c );
+			$t = str_replace( $from, $to, $t );
+			$e = str_replace( $from, $to, $e );
+		}
+
+		$wpdb->update( $wpdb->posts, array(
+			'post_content' => $c,
+			'post_title'   => $t,
+			'post_excerpt' => $e,
+		), array( 'ID' => intval( $p->ID ) ) );
+		clean_post_cache( intval( $p->ID ) );
+	}
+
+	echo '</table>';
+	echo '<p>모두 <b>' . intval( $total ) . '</b>군데입니다.</p>';
+
+	if ( $apply ) {
+		echo '<p>바꿨습니다. 홈과 문 여섯 개를 열어 확인해 보세요.</p>';
+		echo '<p>되돌리려면 <code>/?stella_rename=undo</code></p>';
+	} else {
+		echo '<p>정말 바꾸시려면 <code>/?stella_rename=apply</code> 를 여세요.</p>';
+	}
+	echo '<p><a href="/">홈으로</a></p>';
+	exit;
+} );

@@ -1,0 +1,303 @@
+/* ════════════════════════════════════════════════════════════
+   책을 다 읽은 자리에 후기 상자   ★ 2026-09-08
+
+   소희 님 :「책 마지막 보고 닫기 같은 거 누르면 리뷰하는 플로우」
+
+   마지막 장(배웅)의 맨 아래, 면책 문구 바로 앞에 놓습니다.
+   따로 단추를 눌러 창을 띄우지 않습니다 — 다 읽고 내려오면
+   거기 있는 자리가 제일 자연스럽습니다. 창을 띄우면 광고처럼
+   느껴지고, 그 자리에서 닫아버립니다.
+
+   ── 무엇을 묻나 ────────────────────────────────
+     별 다섯 · 한 줄(100자) · 이름(빈칸이면 익명)
+   어느 문 · 어느 주제였는지는 손님이 안 적어도 저절로 붙습니다.
+
+   ── 어디로 가나 ────────────────────────────────
+   POST /wp-json/stella/v1/review
+   ★ 먼저 stella_review_api 스니펫을 넣으셔야 합니다.
+     그게 없으면 「보내지 못했어요」가 뜹니다.
+
+   ── 한 번만 ────────────────────────────────────
+   보내고 나면 이 기기에 표시를 남겨서, 다시 열어도 상자 대신
+   고맙다는 말이 나옵니다.
+
+   ★ 이 쪽에는 홑 앰퍼샌드를 절대 넣지 않습니다 (사이트 규칙).
+
+   붙여넣기 : WPCode → 새 스니펫 → PHP Snippet → 저장 → Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   ① 먼저 보기   https://stellasaju.com/?stella_rv=1
+   ② 정말 넣기   https://stellasaju.com/?stella_rv=apply
+   ③ 되돌리기    https://stellasaju.com/?stella_rv=undo
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_rv'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$META = '_stella_rv_backup';
+	$MARK = '2026-09-08 · 후기 상자';
+	$mode = sanitize_key( wp_unslash( $_GET['stella_rv'] ) );
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;'
+	   . 'line-height:1.8;padding:34px 24px;max-width:880px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.4rem;margin:0 0 18px}h2{color:#D4AF6A;font-size:1rem;margin:22px 0 6px}'
+	   . 'b{color:#F0D9A8}.ok{color:#9AD1A5}.no{color:#E5A0A0}.dim{color:#8B849C;font-size:.86rem}'
+	   . 'a{color:#D4AF6A}code{background:rgba(212,175,106,.12);padding:2px 6px;border-radius:3px}</style>';
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '<h1 class="no">reading-book 쪽을 못 찾았습니다.</h1>'; exit; }
+	$pid = $page->ID;
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌리기</h1>';
+		$old = get_post_meta( $pid, $META, true );
+		if ( ! $old ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $old ), array( 'ID' => $pid ) );
+		clean_post_cache( $pid );
+		delete_post_meta( $pid, $META );
+		echo '<p class="ok">' . number_format( strlen( $old ) ) . ' 바이트로 되돌렸습니다.</p>';
+		exit;
+	}
+
+	$row = $wpdb->get_row( $wpdb->prepare(
+		"SELECT ID, post_content FROM {$wpdb->posts} WHERE ID = %d", $pid ) );
+	if ( ! $row ) { echo '<h1 class="no">내용을 못 읽었습니다.</h1>'; exit; }
+	$c = $row->post_content;
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<h1 class="no">이미 들어가 있습니다.</h1>';
+		echo '<p>다시 넣으시려면 <code>/?stella_rv=undo</code> 로 걷어낸 뒤 넣으세요.</p>';
+		exit;
+	}
+
+	/* ── ① 마지막 장 안에 들어갈 상자 ─────────────────── */
+	$ANCHOR = "'<p class=\"fine\">본 콘텐츠는 전통 사주명리학과 서양점성술에 기반한 오락적 콘텐츠이며,<br>'+";
+
+	$BOX = <<<'JSX'
+/* ══ 2026-09-08 · 후기 상자 ══════════════════════════════
+   다 읽고 내려온 자리입니다. 창을 띄우지 않고 여기 놓습니다. */
+'<div class="rv" id="rvBox">'+
+  '<div class="rv-k">한 줄만</div>'+
+  '<h3 class="rv-h">이 책, 어떠셨어요?</h3>'+
+  '<p class="rv-d">다음에 오시는 분들이 고르실 때 이 한 줄을 보고 정합니다. '+
+    '이름은 안 적으셔도 됩니다.</p>'+
+  '<div class="rv-stars" id="rvStars">'+
+    '<button type="button">★</button>'+
+    '<button type="button">★</button>'+
+    '<button type="button">★</button>'+
+    '<button type="button">★</button>'+
+    '<button type="button">★</button>'+
+  '</div>'+
+  '<input class="rv-in" type="text" id="rvText" maxlength="100" '+
+    'placeholder="어느 자리가 마음에 남으셨나요">'+
+  '<div class="rv-row">'+
+    '<input class="rv-in" type="text" id="rvName" maxlength="12" placeholder="이름 (빈칸이면 익명)">'+
+    '<button type="button" class="rv-go" id="rvSend">후기 보내기</button>'+
+  '</div>'+
+  '<p class="rv-msg" id="rvMsg"></p>'+
+'</div>'+
+JSX;
+
+	/* ── ② 색표와 움직임 — 쪽 맨 뒤에 붙입니다 ─────────── */
+	$TAIL = <<<'TAILX'
+
+<style>
+/* ══ 2026-09-08 · 후기 상자 ═══════════════════════════════ */
+#ssb .rv{
+  margin:34px auto 0; max-width:34em; padding:26px 26px 22px;
+  border:1px solid var(--rule); border-radius:12px;
+  background:rgba(138,106,36,.055); text-align:left;
+}
+#ssb .rv-k{
+  font-family:var(--mono,'IBM Plex Mono',monospace); font-size:.64rem;
+  letter-spacing:.2em; color:var(--gold); margin-bottom:8px;
+}
+#ssb .rv-h{ font-size:1.12rem; font-weight:700; margin:0 0 6px; }
+#ssb .rv-d{ font-size:.88rem; color:var(--dim); line-height:1.75; margin:0 0 16px; }
+#ssb .rv-stars{ display:flex; gap:4px; margin-bottom:14px; }
+#ssb .rv-stars button{
+  font:inherit; font-size:1.9rem; line-height:1; padding:2px 3px;
+  background:none; border:0; cursor:pointer; color:rgba(23,20,32,.18);
+  transition:color .15s ease, transform .15s ease;
+}
+#ssb .rv-stars button:hover{ transform:translateY(-2px); }
+#ssb .rv-stars button.on{ color:var(--gold); }
+#ssb .rv-in{
+  width:100%; padding:13px 14px; border-radius:7px;
+  border:1px solid rgba(138,106,36,.28); background:#FFFDF8;
+  color:var(--star); font:inherit; font-size:.96rem;
+}
+#ssb .rv-in::placeholder{ color:rgba(23,20,32,.34); }
+#ssb .rv-row{ display:flex; gap:9px; margin-top:10px; }
+#ssb .rv-row .rv-in{ flex:1 1 auto; min-width:0; }
+#ssb .rv-go{
+  flex:0 0 auto; padding:13px 20px; border:0; border-radius:7px; cursor:pointer;
+  font:inherit; font-weight:700; font-size:.94rem;
+  color:#FCFAF4; background:linear-gradient(120deg,#3A2E77,#241C4E);
+}
+#ssb .rv-go:disabled{ opacity:.5; cursor:default; }
+#ssb .rv-msg{ margin:12px 0 0; font-size:.88rem; color:var(--dim); min-height:1.2em; }
+#ssb .rv-msg.err{ color:#B03A2E; }
+#ssb .rv-done{ font-size:.98rem; color:var(--star); line-height:1.9; margin:0; }
+@media print{ #ssb .rv{ display:none !important; } }
+@media(max-width:520px){
+  #ssb .rv-row{ flex-direction:column; }
+  #ssb .rv-go{ width:100%; }
+}
+</style>
+<script>
+/* ══ 2026-09-08 · 후기 상자 ═══════════════════════════════
+   책은 자바스크립트가 다 그린 뒤에야 상자가 생깁니다.
+   그래서 생길 때까지 잠깐씩 살펴보다가 한 번만 붙듭니다.
+   ★ 이 쪽에는 홑 앰퍼샌드를 쓰지 않습니다 (사이트 규칙). */
+(function(){
+  var picked = 0;
+  var tries  = 0;
+
+  function el(id){ return document.getElementById(id); }
+
+  function done(words){
+    var box = el('rvBox');
+    if(!box){ return; }
+    box.innerHTML = '<div class="rv-k">고맙습니다</div>'
+      + '<p class="rv-done">' + words + '</p>';
+  }
+
+  function send(){
+    var msg = el('rvMsg');
+    msg.className = 'rv-msg';
+    if(picked < 1){
+      msg.className = 'rv-msg err';
+      msg.textContent = '별을 하나 눌러주세요.';
+      return;
+    }
+    var body = { stars: picked, text: '', name: '', door: '', topic: '' };
+    var t = el('rvText');
+    var n = el('rvName');
+    if(t){ body.text = t.value; }
+    if(n){ body.name = n.value; }
+    try{
+      var raw = localStorage.getItem('stella_demo');
+      if(raw){
+        var o = JSON.parse(raw);
+        if(o.guardian_slug){ body.door = o.guardian_slug; }
+        if(o.topic){ body.topic = o.topic; }
+      }
+    }catch(e){}
+
+    var btn = el('rvSend');
+    btn.disabled = true;
+    msg.textContent = '보내는 중…';
+
+    var h = { 'Content-Type': 'application/json' };
+    if(window.STELLA_NONCE){ h['X-WP-Nonce'] = window.STELLA_NONCE; }
+
+    fetch('/wp-json/stella/v1/review', {
+      method: 'POST', headers: h, credentials: 'same-origin',
+      body: JSON.stringify(body)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(j.ok){
+        try{ localStorage.setItem('stella_review_sent','1'); }catch(e){}
+        done('잘 받았습니다. 하나하나 다 읽습니다.');
+        return;
+      }
+      btn.disabled = false;
+      msg.className = 'rv-msg err';
+      msg.textContent = j.message ? j.message : '보내지 못했어요. 잠시 뒤에 다시 해주세요.';
+    })
+    .catch(function(){
+      btn.disabled = false;
+      msg.className = 'rv-msg err';
+      msg.textContent = '보내지 못했어요. 잠시 뒤에 다시 해주세요.';
+    });
+  }
+
+  function bind(){
+    var box = el('rvBox');
+    if(!box){ return false; }
+    if(box.getAttribute('data-on') === '1'){ return true; }
+    box.setAttribute('data-on','1');
+
+    var sent = false;
+    try{ if(localStorage.getItem('stella_review_sent') === '1'){ sent = true; } }catch(e){}
+    if(sent){
+      done('이미 후기를 보내주셨어요. 고맙습니다.');
+      return true;
+    }
+
+    var stars = box.querySelectorAll('.rv-stars button');
+    function paint(){
+      var k;
+      for(k = 0; k < stars.length; k++){
+        if(k < picked){ stars[k].className = 'on'; }
+        else { stars[k].className = ''; }
+      }
+    }
+    var i;
+    for(i = 0; i < stars.length; i++){
+      (function(n){
+        stars[n].addEventListener('click', function(){
+          picked = n + 1;
+          paint();
+        });
+      })(i);
+    }
+    el('rvSend').addEventListener('click', send);
+    return true;
+  }
+
+  var timer = setInterval(function(){
+    tries = tries + 1;
+    if(bind()){ clearInterval(timer); return; }
+    if(tries > 80){ clearInterval(timer); }
+  }, 300);
+})();
+</script>
+TAILX;
+
+	$n = substr_count( $c, $ANCHOR );
+	echo '<h1>' . ( 'apply' === $mode ? '넣었습니다' : '넣으면 이렇게 됩니다 (아직 안 넣었습니다)' ) . '</h1>';
+	echo '<h2>① 마지막 장에 상자 놓을 자리</h2>';
+
+	if ( 1 !== $n ) {
+		echo '<p class="no">자리가 ' . intval( $n ) . '군데입니다. 한 군데여야 합니다.</p>';
+		echo '<p class="dim">찾던 글자 —</p><pre style="white-space:pre-wrap;color:#C9C2D8;'
+		   . 'font-size:.82rem;background:rgba(255,255,255,.04);padding:10px 12px;border-radius:6px">'
+		   . esc_html( $ANCHOR ) . '</pre>';
+		exit;
+	}
+	echo '<p class="ok">찾았습니다 — 한 군데. 면책 문구 바로 앞에 놓습니다.</p>';
+	echo '<h2>② 색표와 움직임</h2>';
+	echo '<p class="ok">쪽 맨 뒤에 붙입니다. ' . number_format( strlen( $TAIL ) ) . ' 바이트</p>';
+
+	$new = str_replace( $ANCHOR, $BOX . "\n    " . $ANCHOR, $c ) . $TAIL;
+
+	echo '<h2>정리</h2>';
+	echo '<p class="dim">' . number_format( strlen( $c ) ) . ' → '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+
+	if ( 'apply' !== $mode ) {
+		echo '<p>정말 넣으시려면 <code>/?stella_rv=apply</code> 를 여세요.</p>';
+		echo '<p class="dim">★ 먼저 <b>stella_review_api</b> 스니펫을 넣으셔야 후기가 저장됩니다.</p>';
+		exit;
+	}
+
+	if ( ! get_post_meta( $pid, $META, true ) ) {
+		update_post_meta( $pid, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ), array( 'ID' => $pid ) );
+	clean_post_cache( $pid );
+
+	echo '<p class="ok">넣었습니다.</p>';
+	echo '<p><a href="/reading-book/?demo=door-love">샘플 책으로 확인해보기</a></p>';
+	echo '<p class="ok">되돌리시려면 <code>/?stella_rv=undo</code> 를 여세요.</p>';
+	exit;
+}, 0 );

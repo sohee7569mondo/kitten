@@ -1,0 +1,66 @@
+/* ══════════════════════════════════════════════════════════
+   지금 책에 무엇이 들어 있나 물어보기 · 소희 님께   2026-09-11
+
+   제가 가진 책 사본이 낡아서, 고칠 자리를 못 찾는 일이 생깁니다.
+   이 스니펫은 아무것도 바꾸지 않습니다. 그냥 보여주기만 합니다.
+   (2026-09-11 · b2 확인과 「비어 있는 자리」 확인용으로 물어볼 것을 바꿨습니다)
+
+   쓰는 법
+     WPCode → 새 스니펫 → PHP Snippet → 「어디서나 실행」 → 저장 → 활성
+     그리고 주소창에
+        https://stellasaju.com/?stella_probe=1
+     나온 글을 통째로 저에게 붙여주시면 됩니다.
+
+   ★ 이 스니펫은 읽기만 합니다. 되돌릴 것도 없습니다.
+   ══════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_probe'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	$page = get_page_by_path( 'reading-book' );
+	if ( ! $page ) { echo '책 쪽이 없습니다.'; exit; }
+	$id = (int) $page->ID;
+	$c  = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $id ) );
+
+	echo "═══ 지금 책에 무엇이 있나 ═══\n";
+	echo '쪽 ' . $id . ' · ' . number_format( strlen( $c ) ) . "글자\n\n";
+
+	/* 찾아볼 조각들 — 이름, 찾을 글자 */
+	$Q = array(
+		array( 'b3 찾기고침', 'findMark(\'<h2>타고난 나와' ),
+		array( 'b3 한 줄',    '앞의 저울은 기운을 재었고' ),
+	);
+
+	/* 05장 저울에서 「없습니다」라고 말하는 대목 — 여기에 새 글이 들어갑니다 */
+	$pos = mb_strpos( $c, '가장 강합니다', 0, 'UTF-8' );
+	if ( false !== $pos ) {
+		$cut = mb_substr( $c, max( 0, $pos - 60 ), 1200, 'UTF-8' );
+		$cut = preg_replace( '/\s+/u', ' ', $cut );
+		echo "─── 05장 저울 뒷부분 (새 글이 들어갈 자리) ───\n  …" . $cut . "…\n\n";
+	}
+
+
+	foreach ( $Q as $q ) {
+		list( $nm, $needle ) = $q;
+		$n = substr_count( $c, $needle );
+		echo sprintf( "%-13s %d군데", $nm, $n );
+		if ( $n > 0 ) {
+			$p = mb_strpos( $c, $needle, 0, 'UTF-8' );
+			$s = max( 0, $p - 55 );
+			$cut = mb_substr( $c, $s, mb_strlen( $needle, 'UTF-8' ) + 110, 'UTF-8' );
+			$cut = preg_replace( '/\s+/u', ' ', $cut );
+			if ( null === $cut ) { $cut = '(글자를 옮기지 못했습니다)'; }
+			echo "\n    …" . $cut . "…";
+		}
+		echo "\n";
+	}
+
+	echo "\n═══ 여기까지 · 위를 통째로 붙여주세요 ═══";
+	exit;
+}, 1 );

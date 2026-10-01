@@ -1,0 +1,163 @@
+/* ══════════════════════════════════════════════════════════
+   메일로 자꾸 돌려보내는 것 줄이기
+   ★ 2026-09-10 · 소희 님께
+
+   소희 님 : 「첫화면에 소희님....그러는데 신년운세 정보 입력을
+   하면 이미 쓰고 싶은 이메일이라고 이메일로 돌려보네 이게 귀찮아」
+
+   두 가지가 겹쳐 있었습니다.
+
+   하나. 화면의 「소희님」은 로그인이 아닙니다
+     patch59_saju_prefill 이 브라우저에 남은 것을 채워 넣은
+     것입니다. 그래서 이름은 아는데 들어와 있진 않습니다.
+     그 상태로 진행하면 서버가 이렇게 답합니다.
+
+       if ( $existing ) {
+           if ( ! is_user_logged_in() ) {     ← 여기 걸립니다
+               stella_login_send( ... );
+
+   둘. 들어온 상태가 오래 안 갑니다
+     워드프레스 기본이 14일입니다. 그 사이 브라우저를 지우거나
+     시크릿 모드로 보시면 매번 처음이 됩니다.
+
+   ── 고치는 것 둘 ────────────────────────────────────────
+
+   1. 들어온 상태를 90일로 늘립니다
+      메일 링크로 한 번 들어오시면 석 달 동안 그대로입니다.
+      값을 치르는 정보를 담아두지 않으니 늘려도 괜찮습니다.
+
+   2. 문에서 미리 알려줍니다
+      이름은 채워져 있는데 로그인은 아닌 상태일 때, 단추 위에
+      상자가 하나 뜹니다.
+
+        소희님, 지난번 정보를 이 기기가 기억하고 있습니다.
+        다만 지금은 들어와 계신 상태가 아니에요.
+         [ 먼저 들어오기 → ]
+        이대로 진행하시면 들어오는 링크를 메일로 다시 보내드립니다.
+
+      메일을 받고 나서야 아는 것보다, 누르기 전에 아는 편이
+      낫습니다.
+
+   3. 동의 문구를 상황에 맞게 고칩니다
+      들어와 계신 분께 「회원가입에 동의합니다」는 틀린 말입니다.
+
+        안 들어와 계실 때  생년월일시·출생지 저장 및 회원가입에 동의합니다
+        들어와 계실 때     생년월일시·출생지를 내 계정에 저장하는 데 동의합니다
+
+      ★ 동의 칸이 보인다는 것은 들어와 계시지 않다는 뜻입니다.
+
+   ★ 진짜 해결은 비밀번호입니다. 그건 가입 쪽을 건드리는 일이라
+     여신 다음에 하시는 것이 안전합니다.
+
+   ★ 쪽을 한 글자도 안 고칩니다. 스위치를 끄면 그 즉시 원래대로.
+
+   살펴보기 https://stellasaju.com/?stella_stay=1
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ══════════════════════════════════════════════════════════ */
+
+/* ── 하나. 들어온 상태를 90일로 ── */
+add_filter( 'auth_cookie_expiration', function ( $length, $uid, $remember ) {
+	if ( ! $remember ) { return $length; }
+	if ( user_can( $uid, 'edit_posts' ) ) { return $length; }   /* 관리자는 그대로 둡니다 */
+	return 90 * DAY_IN_SECONDS;
+}, 10, 3 );
+
+
+/* ── 둘. 문에서 미리 알려주기 ── */
+add_action( 'wp_footer', function () {
+
+	$doors = array( 'door-love', 'door-career', 'door-health',
+	                'door-fortune', 'door-astro', 'door-tarot' );
+	if ( ! is_page( $doors ) ) { return; }
+
+	echo "<script>\n";
+	echo <<<'STELLA_STAY_JS'
+
+(function(){
+
+  /* ── 동의 문구 ─ 들어와 계신 분께 「회원가입」은 틀린 말입니다 ── */
+  (function(){
+    if(!window.STELLA_USER){ return; }
+    var box = document.getElementById('gAgree');
+    if(!box){ return; }
+    var lab = box.parentNode;
+    if(!lab){ return; }
+    var i, n;
+    for(i = 0; i < lab.childNodes.length; i++){
+      n = lab.childNodes[i];
+      if(n.nodeType !== 3){ continue; }
+      if(n.nodeValue.indexOf('회원가입') < 0){ continue; }
+      n.nodeValue = ' 생년월일시·출생지를 내 계정에 저장하는 데 동의합니다. ';
+      break;
+    }
+  })();
+
+  if(window.STELLA_USER){ return; }              /* 아래는 안 들어와 계실 때만 */
+
+  var name = document.getElementById('gName');
+  if(!name){ return; }
+  if(!name.value){ return; }                     /* 기억해 둔 것이 없으면 조용히 */
+
+  var go = document.getElementById('goBtn');
+  if(!go){ return; }
+
+  var css = document.createElement('style');
+  css.textContent =
+    '#ssg .stlog{ margin:0 0 14px; padding:15px 17px; border:0; border-radius:12px;' +
+    '  background:#1B1636; color:#F5F1E8; font-size:.93rem; line-height:1.7;' +
+    '  box-shadow:0 8px 22px -14px rgba(27,22,54,.65); }' +
+    '#ssg .stlog b{ color:#F0D9A8; }' +
+    '#ssg .stlog a.in{ display:inline-block; margin-top:9px; padding:9px 17px;' +
+    '  border-radius:999px; background:#F0D9A8; color:#1B1636;' +
+    '  font-weight:800; text-decoration:none; font-size:.9rem; }' +
+    '#ssg .stlog .no{ display:block; margin-top:9px; font-size:.83rem;' +
+    '  color:rgba(245,241,232,.78); }';
+  document.head.appendChild(css);
+
+  var box = document.createElement('div');
+  box.className = 'stlog';
+  box.innerHTML =
+    '<b>' + name.value + '님, 지난번 정보를 이 기기가 기억하고 있습니다.</b>' +
+    '<br>다만 <b>지금은 들어와 계신 상태가 아니에요.</b>' +
+    '<a class="in" href="/login/">먼저 들어오기 →</a>' +
+    '<span class="no">이대로 진행하시면 들어오는 링크를 메일로 다시 보내드립니다. ' +
+    '먼저 들어오시면 그동안 받으신 구슬과 지난 풀이를 그대로 이어서 보실 수 있어요.</span>';
+  go.parentNode.insertBefore(box, go);
+})();
+
+STELLA_STAY_JS;
+	echo "\n</script>\n";
+}, 99 );
+
+
+/* ── 살펴보기 ── */
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_stay'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	header( 'Content-Type: text/plain; charset=utf-8' );
+
+	echo "═══ 메일로 돌려보내는 것 줄이기 ═══\n\n";
+	echo "1. 들어온 상태 유지\n";
+	echo "   워드프레스 기본  14일\n";
+	echo "   이 스니펫이 켜지면  90일 (관리자 계정은 그대로)\n\n";
+	echo "2. 문에 뜨는 안내\n";
+	echo "   이름 칸은 채워져 있는데 로그인은 아닐 때만 뜹니다.\n";
+	echo "   들어와 계시면 안 뜹니다.\n\n";
+
+	echo "── 지금 이 창은 ──\n";
+	echo '   ' . ( is_user_logged_in() ? '들어와 계십니다 (' . wp_get_current_user()->user_email . ')' : '들어와 계시지 않습니다' ) . "\n\n";
+
+	echo "── 로그인 링크가 나가는 자리 ──\n";
+	echo "   stella_rest_signup() 안에서, 이미 있는 이메일인데\n";
+	echo "   로그인 상태가 아닐 때만 나갑니다.\n";
+	echo "   같은 사람에게 2분 안에 두 번은 안 갑니다.\n\n";
+
+	echo "★ 진짜 해결은 비밀번호입니다. 가입 쪽을 건드리는 일이라\n";
+	echo "  여신 다음에 하시는 편이 안전합니다.\n";
+	echo "\n되돌리려면 이 스니펫 스위치를 끄시면 됩니다.\n";
+	exit;
+}, 1 );

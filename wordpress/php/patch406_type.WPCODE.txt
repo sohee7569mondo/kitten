@@ -1,0 +1,365 @@
+/* ════════════════════════════════════════════════════════════
+   스타 사주(406) 글꼴 · 글씨 크기 · 어두운 바탕   ★ 2026-09-09
+
+   소희 님 : 「그래도 가독성이 떨어져. 고딕으로 수정하고
+             글씨 크기가 작은 부분이 있어」
+
+   소희 님 : 「배경을 없앨까?」  ← 네, 없애는 게 맞습니다.
+             명단 칸이 아직 밤하늘 바탕(#14102A)인데 글씨는 종이빛에
+             맞춰 어두워져서, 어두운 바탕에 어두운 글씨가 됐습니다.
+
+   세 가지를 합니다.
+
+   1) 글꼴을 고딕으로
+      지금은 명조(Noto Serif KR)와 등폭(IBM Plex Mono)이 섞여
+      있습니다. 등폭 글꼴에 자간까지 넓혀 놓은 라벨
+      (「하는 일」 「세대」 「띠」)이 특히 안 읽힙니다.
+
+   2) 작은 글씨를 키웁니다
+      ★ 제가 눈으로 고르지 않습니다. 쪽 안의 모든 font-size 를
+        읽어서 14px(0.875rem) 보다 작은 것만 골라 키웁니다.
+        빠뜨릴 수가 없습니다.
+
+      규칙 : 새 크기 = 14px 와 (지금 크기 × 1.15) 중 큰 쪽
+             지금보다 작아지는 일은 없습니다.
+
+   3) 어두운 바탕을 종이빛으로
+      ★ 이것도 눈으로 고르지 않습니다. 쪽 안의 모든 배경색을 읽어
+        밝기를 재고, 어두운 것만 골라 흰 종이로 바꿉니다.
+        바꾼 자리에는 글씨색도 같이 어둡게 못 박습니다 —
+        흰 바탕에 흰 글씨가 되는 일이 없게요.
+
+   ★ 원래 스타일표는 한 줄도 안 지웁니다. 뒤에 덮어쓰기만 더합니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+
+   미리보기   https://stellasaju.com/?stella_startype=1
+   고치기     https://stellasaju.com/?stella_startype=apply
+   되돌리기   https://stellasaju.com/?stella_startype=undo
+
+   다른 쪽에도 쓰시려면  ...&slug=reading-ready&root=ssr
+   ════════════════════════════════════════════════════════════ */
+
+add_action( 'template_redirect', function () {
+
+	if ( ! isset( $_GET['stella_startype'] ) ) { return; }
+	if ( ! current_user_can( 'manage_options' ) ) { return; }
+
+	global $wpdb;
+
+	$mode = sanitize_text_field( wp_unslash( $_GET['stella_startype'] ) );
+	$META = '_stella_startype_bak_0909';
+	$MARK = 'stella-star-type-v1';
+
+	$SLUG = 'star-saju';
+	if ( isset( $_GET['slug'] ) ) { $SLUG = sanitize_title( wp_unslash( $_GET['slug'] ) ); }
+	$ROOT = 'ssv';
+	if ( isset( $_GET['root'] ) ) {
+		$ROOT = preg_replace( '/[^A-Za-z0-9_-]/', '', wp_unslash( $_GET['root'] ) );
+	}
+
+	$GOTHIC = "'Pretendard','Noto Sans KR','Apple SD Gothic Neo',"
+	        . "'Malgun Gothic',system-ui,-apple-system,sans-serif";
+	$MIN    = 14.0;   /* px */
+
+	header( 'Content-Type: text/html; charset=utf-8' );
+	echo '<meta charset="utf-8"><meta name="google" content="notranslate">'
+	   . '<style>body{background:#12101B;color:#F2ECE0;'
+	   . 'font-family:-apple-system,sans-serif;line-height:1.7;'
+	   . 'padding:28px 18px;max-width:1000px;margin:0 auto}'
+	   . 'h1{color:#D4AF6A;font-size:1.2rem;margin:0 0 10px}'
+	   . 'h2{color:#9AD1A5;font-size:1rem;margin:26px 0 6px;'
+	   . 'border-top:1px solid rgba(255,255,255,.12);padding-top:14px}'
+	   . '.ok{color:#9AD1A5}.no{color:#E5A0A0}'
+	   . '.dim{color:#8B849C;font-size:.86rem}'
+	   . 'pre{background:#000;padding:12px;white-space:pre-wrap;'
+	   . 'font:12px/1.7 monospace;border-left:3px solid #D4AF6A}'
+	   . 'table{border-collapse:collapse;width:100%;font-size:.86rem}'
+	   . 'td,th{padding:6px 9px;border-bottom:1px solid rgba(255,255,255,.1);'
+	   . 'text-align:left;vertical-align:top}'
+	   . 'th{color:#8B849C;font-weight:400;font-size:.78rem}'
+	   . 'code{font:12px monospace;color:#F2ECE0}'
+	   . '</style>';
+
+	$p = get_page_by_path( $SLUG );
+	if ( ! $p ) { echo '<p class="no">「' . esc_html( $SLUG ) . '」 쪽이 없습니다.</p>'; exit; }
+
+	if ( 'undo' === $mode ) {
+		echo '<h1>되돌립니다</h1>';
+		$bak = get_post_meta( $p->ID, $META, true );
+		if ( '' === $bak ) { echo '<p class="no">되돌릴 것이 없습니다.</p>'; exit; }
+		$wpdb->update( $wpdb->posts, array( 'post_content' => $bak ),
+			array( 'ID' => $p->ID ) );
+		clean_post_cache( $p->ID );
+		delete_post_meta( $p->ID, $META );
+		if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+		echo '<p class="ok">되돌렸습니다.</p>';
+		exit;
+	}
+
+	$c  = (string) $wpdb->get_var( $wpdb->prepare(
+		"SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $p->ID ) );
+	$go = ( 'apply' === $mode );
+
+	echo '<h1>글꼴과 글씨 크기 — ' . esc_html( $SLUG ) . ' · '
+	   . ( $go ? '고칩니다' : '미리보기 (아직 안 고침)' ) . '</h1>';
+	echo '<p class="dim">쪽 번호 ' . (int) $p->ID . ' &middot; 뿌리 #'
+	   . esc_html( $ROOT ) . ' &middot; ' . number_format( strlen( $c ) )
+	   . ' 바이트</p>';
+
+	if ( false !== strpos( $c, $MARK ) ) {
+		echo '<p class="ok">이미 고쳐져 있습니다.</p>';
+		echo '<p class="dim">되돌리시려면 /?stella_startype=undo 를 여세요.</p>';
+		exit;
+	}
+
+	/* 이름표(선택자) 찾기 — 앞의 } 다음부터 { 까지 */
+	$selOf = function ( $c, $at ) {
+		$b0 = strrpos( substr( $c, 0, $at ), '}' );
+		if ( false === $b0 ) { $b0 = -1; }
+		$seg = substr( $c, $b0 + 1, $at - $b0 - 1 );
+		$br  = strpos( $seg, '{' );
+		$sel = ( false !== $br ) ? trim( substr( $seg, 0, $br ) ) : '';
+		$sel = trim( preg_replace( '/\s+/', ' ', $sel ) );
+		/* 스타일표 첫 규칙은 앞에 <style> 이 붙어 옵니다 — 떼어냅니다 */
+		$gt = strrpos( $sel, '>' );
+		if ( false !== $gt ) { $sel = trim( substr( $sel, $gt + 1 ) ); }
+		return $sel;
+	};
+
+	/* ── 1. 글씨 크기 모으기 ─────────────────────────── */
+	$sizes = array();
+	$from  = 0;
+	while ( true ) {
+		$at = stripos( $c, 'font-size:', $from );
+		if ( false === $at ) { break; }
+		$from = $at + 1;
+
+		$len = strcspn( substr( $c, $at + 10, 40 ), ';}' );
+		$val = trim( substr( $c, $at + 10, $len ) );
+		if ( '' === $val ) { continue; }
+		if ( false !== stripos( $val, 'clamp' ) ) { continue; }
+		if ( false !== stripos( $val, 'calc' ) ) { continue; }
+		if ( false !== stripos( $val, 'var(' ) ) { continue; }
+
+		$px = 0.0;
+		if ( substr( $val, -2 ) === 'px' ) {
+			$px = (float) $val;
+		} elseif ( substr( $val, -3 ) === 'rem' ) {
+			$px = (float) $val * 16.0;
+		} else {
+			continue;   /* em · % 는 부모에 따라 달라져 못 셉니다 */
+		}
+		if ( $px <= 0 ) { continue; }
+		if ( $px >= $MIN ) { continue; }
+
+		$sel = $selOf( $c, $at );
+		if ( '' === $sel ) { continue; }
+		if ( false !== strpos( $sel, '@' ) ) { continue; }   /* @media 줄 */
+
+		$want = $px * 1.15;
+		if ( $want < $MIN ) { $want = $MIN; }
+		$want = round( $want * 2 ) / 2;   /* 0.5px 단위 */
+
+		$key = $sel . '||' . $val;
+		if ( isset( $sizes[ $key ] ) ) { continue; }
+		$sizes[ $key ] = array( 'sel' => $sel, 'old' => $val,
+			'px' => $px, 'new' => $want );
+	}
+
+	/* ── 2. 글꼴 모으기 (무엇이 명조·등폭인지 보여드리려고) ── */
+	$fonts = array();
+	$from  = 0;
+	while ( true ) {
+		$at = stripos( $c, 'font-family:', $from );
+		if ( false === $at ) { break; }
+		$from = $at + 1;
+		$len  = strcspn( substr( $c, $at + 12, 160 ), ';}' );
+		$val  = trim( substr( $c, $at + 12, $len ) );
+		$sel  = $selOf( $c, $at );
+		if ( '' === $sel ) { continue; }
+		if ( false !== strpos( $sel, '@' ) ) { continue; }
+		$fonts[] = array( 'sel' => $sel, 'val' => $val );
+	}
+
+	/* ── 3. 어두운 바탕 찾기 ─────────────────────────── */
+	$hex2rgb = function ( $h ) {
+		$h = ltrim( trim( $h ), '#' );
+		if ( 3 === strlen( $h ) ) { $h = $h[0].$h[0].$h[1].$h[1].$h[2].$h[2]; }
+		if ( 6 !== strlen( $h ) ) { return false; }
+		if ( ! ctype_xdigit( $h ) ) { return false; }
+		return array( hexdec( substr( $h, 0, 2 ) ),
+		              hexdec( substr( $h, 2, 2 ) ),
+		              hexdec( substr( $h, 4, 2 ) ) );
+	};
+	$lum = function ( $rgb ) {
+		$o = array();
+		foreach ( $rgb as $v ) {
+			$v = $v / 255;
+			$o[] = ( $v <= 0.03928 ) ? ( $v / 12.92 )
+			                         : pow( ( $v + 0.055 ) / 1.055, 2.4 );
+		}
+		return 0.2126 * $o[0] + 0.7152 * $o[1] + 0.0722 * $o[2];
+	};
+
+	/* 색 이름표 표 (--void:#0D0A1A 같은 것) */
+	$VARS = array();
+	$vf   = 0;
+	while ( true ) {
+		$at = strpos( $c, '--', $vf );
+		if ( false === $at ) { break; }
+		$vf = $at + 2;
+		$co = strpos( $c, ':', $at );
+		if ( false === $co ) { break; }
+		if ( $co - $at > 40 ) { continue; }
+		$nm = substr( $c, $at, $co - $at );
+		if ( preg_match( '/[^A-Za-z0-9_-]/', $nm ) ) { continue; }
+		$ln = strcspn( substr( $c, $co + 1, 90 ), ';}' );
+		$vv = trim( substr( $c, $co + 1, $ln ) );
+		if ( '' === $vv ) { continue; }
+		$VARS[ $nm ] = $vv;
+	}
+	$unvar = function ( $v ) use ( &$VARS ) {
+		$hop = 0;
+		while ( $hop < 6 ) {
+			$hop++;
+			$at = stripos( $v, 'var(' );
+			if ( false === $at ) { return $v; }
+			$en = strpos( $v, ')', $at );
+			if ( false === $en ) { return $v; }
+			$in = substr( $v, $at + 4, $en - $at - 4 );
+			$cm = strpos( $in, ',' );
+			$nm = trim( ( false === $cm ) ? $in : substr( $in, 0, $cm ) );
+			$fb = ( false === $cm ) ? '' : trim( substr( $in, $cm + 1 ) );
+			$rp = isset( $VARS[ $nm ] ) ? $VARS[ $nm ] : $fb;
+			if ( '' === $rp ) { return $v; }
+			$v = substr( $v, 0, $at ) . $rp . substr( $v, $en + 1 );
+		}
+		return $v;
+	};
+
+	$darks = array();
+	$from  = 0;
+	while ( true ) {
+		$at = stripos( $c, 'background', $from );
+		if ( false === $at ) { break; }
+		$from = $at + 1;
+
+		/* 이름표를 정하는 줄(--x:...)은 건너뜁니다 */
+		$pre = substr( $c, max( 0, $at - 2 ), 2 );
+		if ( '--' === $pre ) { continue; }
+
+		$ln  = strcspn( substr( $c, $at, 220 ), ';}' );
+		$val = $unvar( substr( $c, $at, $ln ) );
+		$hx  = strpos( $val, '#' );
+		if ( false === $hx ) { continue; }
+		$rgb = $hex2rgb( substr( $val, $hx, 7 ) );
+		if ( ! $rgb ) { continue; }
+		if ( $lum( $rgb ) > 0.2 ) { continue; }   /* 어둡지 않으면 그냥 둡니다 */
+
+		$sel = $selOf( $c, $at );
+		if ( '' === $sel ) { continue; }
+		if ( false !== strpos( $sel, '@' ) ) { continue; }
+		if ( isset( $darks[ $sel ] ) ) { continue; }
+		$darks[ $sel ] = strtoupper( substr( $val, $hx, 7 ) );
+	}
+
+	/* ── 4. 덮어쓸 스타일 ────────────────────────────── */
+	$CSS  = "\n<!-- " . $MARK . " -->\n<style>\n";
+	$CSS .= "/* 2026-09-09 · 글꼴을 고딕으로, 작은 글씨를 키웁니다\n";
+	$CSS .= "   작은 글씨는 눈으로 고르지 않고 쪽 안의 모든 font-size 를\n";
+	$CSS .= "   읽어서 " . $MIN . "px 보다 작은 것만 골랐습니다. */\n";
+	$CSS .= "#" . $ROOT . ", #" . $ROOT . " *{ font-family:" . $GOTHIC . " !important; }\n";
+	$CSS .= "#" . $ROOT . " h1, #" . $ROOT . " h2, #" . $ROOT . " h3{\n";
+	$CSS .= "  font-weight:700 !important; letter-spacing:-.01em !important; }\n";
+	$CSS .= "/* 등폭 글꼴에 넓혀둔 자간은 고딕에서는 읽기를 방해합니다 */\n";
+	$CSS .= "#" . $ROOT . " .kicker, #" . $ROOT . " .tag, #" . $ROOT . " label,\n";
+	$CSS .= "#" . $ROOT . " th, #" . $ROOT . " .st-k, #" . $ROOT . " .num{\n";
+	$CSS .= "  letter-spacing:0 !important; }\n";
+
+	if ( count( $sizes ) ) {
+		$CSS .= "/* 작은 글씨 " . count( $sizes ) . "군데 */\n";
+		foreach ( $sizes as $s ) {
+			$CSS .= $s['sel'] . "{ font-size:" . $s['new'] . "px !important; }\n";
+		}
+	}
+	if ( count( $darks ) ) {
+		$CSS .= "/* 어두운 바탕 " . count( $darks ) . "군데 — 종이빛으로 */\n";
+		foreach ( $darks as $sel => $was ) {
+			$CSS .= $sel . "{ background:#FFFFFF !important;\n";
+			$CSS .= "  color:#221C33 !important;\n";
+			$CSS .= "  border-color:#E2DACB !important; } /* was " . $was . " */\n";
+		}
+	}
+	$CSS .= "</style>\n";
+
+	/* ── 보여드리기 ─────────────────────────────────── */
+	echo '<h2>지금 쓰는 글꼴 ' . count( $fonts ) . '군데</h2>';
+	$out = '';
+	foreach ( $fonts as $f ) {
+		$kind = '고딕';
+		if ( false !== stripos( $f['val'], 'serif' ) ) {
+			if ( false === stripos( $f['val'], 'sans-serif' ) ) { $kind = '명조'; }
+		}
+		if ( false !== stripos( $f['val'], 'mono' ) ) { $kind = '등폭'; }
+		$out .= str_pad( $kind, 6 ) . str_pad( $f['sel'], 40 )
+		     . mb_substr( $f['val'], 0, 46 ) . "\n";
+	}
+	echo '<pre>' . esc_html( $out ? $out : '(없음)' ) . '</pre>';
+
+	echo '<h2>키울 글씨 ' . count( $sizes ) . '군데 (' . $MIN . 'px 보다 작은 것)</h2>';
+	if ( ! count( $sizes ) ) {
+		echo '<p class="dim">작은 글씨는 없습니다.</p>';
+	} else {
+		echo '<table><tr><th>지금</th><th>바꾼 뒤</th><th>어디</th></tr>';
+		foreach ( $sizes as $s ) {
+			echo '<tr><td><span style="font-size:' . esc_attr( $s['px'] )
+			   . 'px">가나다</span> <code>' . esc_html( $s['old'] ) . '</code></td>'
+			   . '<td><span style="font-size:' . esc_attr( $s['new'] )
+			   . 'px">가나다</span> <code>' . esc_html( $s['new'] ) . 'px</code></td>'
+			   . '<td><code>' . esc_html( $s['sel'] ) . '</code></td></tr>';
+		}
+		echo '</table>';
+	}
+
+	echo '<h2>어두운 바탕 ' . count( $darks ) . '군데</h2>';
+	if ( ! count( $darks ) ) {
+		echo '<p class="dim">어두운 바탕은 없습니다.</p>';
+	} else {
+		echo '<table><tr><th>지금</th><th>바꾼 뒤</th><th>어디</th></tr>';
+		foreach ( $darks as $sel => $was ) {
+			echo '<tr><td><span style="background:' . esc_attr( $was )
+			   . ';color:#2A2438;padding:3px 10px;border-radius:4px">가나다</span> '
+			   . '<code>' . esc_html( $was ) . '</code></td>'
+			   . '<td><span style="background:#FFFFFF;color:#221C33;'
+			   . 'padding:3px 10px;border-radius:4px">가나다</span></td>'
+			   . '<td><code>' . esc_html( $sel ) . '</code></td></tr>';
+		}
+		echo '</table>';
+	}
+
+	echo '<h2>더할 스타일</h2><pre>' . esc_html( $CSS ) . '</pre>';
+
+	if ( ! $go ) {
+		echo '<h2>끝</h2><p class="dim">이대로 괜찮으시면 '
+		   . '/?stella_startype=apply 를 여세요.</p>';
+		exit;
+	}
+
+	$new = $c . $CSS;
+
+	if ( '' === get_post_meta( $p->ID, $META, true ) ) {
+		update_post_meta( $p->ID, $META, $c );
+	}
+	$wpdb->update( $wpdb->posts, array( 'post_content' => $new ),
+		array( 'ID' => $p->ID ) );
+	clean_post_cache( $p->ID );
+	if ( function_exists( 'wp_cache_flush' ) ) { wp_cache_flush(); }
+
+	echo '<h2>끝</h2><p class="ok">고쳤습니다. '
+	   . number_format( strlen( $c ) ) . ' -> '
+	   . number_format( strlen( $new ) ) . ' 바이트</p>';
+	echo '<p class="dim">되돌리시려면 /?stella_startype=undo 를 여세요.</p>';
+	exit;
+} );

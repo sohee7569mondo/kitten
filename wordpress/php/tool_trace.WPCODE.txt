@@ -1,0 +1,99 @@
+/* ══════════════════════════════════════════════════════════
+   73초가 어느 구간에서 가는지 · 소희 님께       2026-09-11
+   ── 판 : TRACE-1 (2026-09-11) ──
+
+   앞서 잰 값 :
+     시크릿 창(손님)에서도 서버가 73초.
+     그런데 시늉으로 재보니 부팅 4.6초 + 본문 손질 6.5초 = 11초뿐.
+     나머지 62초가 어디 있는지 모릅니다.
+
+   그래서 이번엔 진짜 요청을 따라가면서
+   구간마다 시계를 찍습니다. 어느 칸에서 62초가 사라지는지 보입니다.
+
+   쓰는 법 : 아무 주소 끝에 &stella_trace911=1 을 붙입니다.
+     https://stellasaju.com/reading-book/?demo=door-love&stella_trace911=1
+
+   ★ 시크릿 창에서도 됩니다. 주소에 안 붙이면 아무에게도 안 보입니다.
+   ★ 아무것도 안 바꿉니다.
+
+   ★ 스니펫 이름 「STELLA - 구간 시계」
+   ★ 위치(Location)는 「어디서나 실행 / Run Everywhere」
+   ══════════════════════════════════════════════════════════ */
+
+if ( isset( $_GET['stella_trace911'] ) ) {
+
+	$GLOBALS['stella_marks'] = array();
+
+	if ( ! function_exists( 'stella_mark' ) ) {
+		function stella_mark( $name ) {
+			$t0 = isset( $GLOBALS['timestart'] ) ? (float) $GLOBALS['timestart'] : microtime( true );
+			$GLOBALS['stella_marks'][] = array( $name, ( microtime( true ) - $t0 ) * 1000 );
+		}
+	}
+
+	stella_mark( '스니펫이 켜진 때' );
+
+	$STELLA_HOOKS = array(
+		'plugins_loaded', 'setup_theme', 'after_setup_theme', 'init', 'wp_loaded',
+		'parse_request', 'send_headers', 'wp', 'template_redirect',
+		'get_header', 'wp_head', 'wp_body_open', 'get_footer', 'wp_footer',
+	);
+	foreach ( $STELLA_HOOKS as $h ) {
+		add_action( $h, function () use ( $h ) { stella_mark( $h . ' 들어감' ); }, -999999 );
+		add_action( $h, function () use ( $h ) { stella_mark( $h . ' 나옴' ); }, 999999 );
+	}
+
+	add_filter( 'template_include', function ( $t ) {
+		stella_mark( 'template_include (' . basename( (string) $t ) . ')' );
+		return $t;
+	}, 999999 );
+
+	add_filter( 'the_content', function ( $c ) {
+		stella_mark( 'the_content 들어감 (' . number_format( strlen( (string) $c ) ) . '글자)' );
+		return $c;
+	}, -999999 );
+	add_filter( 'the_content', function ( $c ) {
+		stella_mark( 'the_content 나옴 (' . number_format( strlen( (string) $c ) ) . '글자)' );
+		return $c;
+	}, 999999 );
+
+	add_filter( 'get_the_excerpt', function ( $e ) {
+		stella_mark( '요약글 만듦' );
+		return $e;
+	}, 999999 );
+
+	add_action( 'wp_footer', function () {
+		$m = $GLOBALS['stella_marks'];
+		if ( ! is_array( $m ) || ! count( $m ) ) { return; }
+
+		$out  = "판 TRACE-1 (2026-09-11)\n";
+		$out .= "구간마다 걸린 시간 — 오른쪽이 그 칸에서 쓴 시간입니다\n\n";
+		$prev = 0;
+		$top  = array();
+		foreach ( $m as $i => $row ) {
+			list( $nm, $ms ) = $row;
+			$gap  = $ms - $prev;
+			$prev = $ms;
+			$top[] = array( $gap, $nm );
+			$out .= sprintf( "%9s   %9s   %s\n",
+				number_format( $ms, 0 ) . 'ms',
+				( $gap > 200 ? ( '+' . number_format( $gap, 0 ) . 'ms' ) : '' ),
+				$nm );
+		}
+
+		usort( $top, function ( $a, $b ) {
+			if ( $a[0] === $b[0] ) { return 0; }
+			return ( $a[0] < $b[0] ) ? 1 : -1;
+		} );
+		$out .= "\n─ 오래 걸린 칸 다섯 ─\n";
+		foreach ( array_slice( $top, 0, 5 ) as $r ) {
+			$out .= sprintf( "  %9s   %s\n", number_format( $r[0], 0 ) . 'ms', $r[1] );
+		}
+
+		echo '<pre id="stella-trace" style="position:fixed;left:0;right:0;bottom:0;'
+		   . 'z-index:2147483647;background:#0b2a1f;color:#d7ffe9;margin:0;padding:12px 16px;'
+		   . 'font:11px/1.5 ui-monospace,monospace;white-space:pre-wrap;max-height:70vh;'
+		   . 'overflow:auto;box-shadow:0 -2px 16px rgba(0,0,0,.5)">'
+		   . esc_html( $out ) . '</pre>';
+	}, 999998 );
+}

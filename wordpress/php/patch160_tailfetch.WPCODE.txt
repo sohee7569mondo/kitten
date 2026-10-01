@@ -1,0 +1,603 @@
+/* ══════════════════════════════════════════════════════════
+   맺음말 앞 두 쪽 — 가벼운 판 (둘 중 하나)
+   ★ 2026-09-12 · 소희 님께      BUILD: TAIL-FETCH-9
+
+   ── 왜 다시 만들었나 ──────────────────────────────────
+   앞의 판은 글 504칸을 조각 안에 통째로 담아 책 쪽에 내보냈습니다.
+   300KB 입니다. 책 본문이 이미 1.44MB 인데 그 위에 얹었습니다.
+   그래서 책 쪽만 하얗게 죽었습니다. 다른 쪽은 멀쩡했고요 —
+   이 조각이 책 쪽에서만 도니까요.
+
+   ★ 책 쪽에는 더 얹을 자리가 없습니다. 글을 다른 곳에 두어야 합니다.
+
+   ── 이제 어떻게 도나 ──────────────────────────────────
+   조각을 둘로 나눕니다.
+
+       이 조각 (A · 14KB)   책 쪽에 나갑니다. 글은 없습니다.
+                            손님의 띠와 별자리를 알아낸 뒤
+                            필요한 두 칸만 물어봅니다.
+
+       짝 조각 (B · 300KB)  글 504칸을 가지고 있습니다.
+                            책 쪽에서는 한 글자도 안 나갑니다.
+                            물어볼 때만 그 두 칸을 돌려줍니다.
+
+   책 쪽이 무거워지지 않습니다. 오가는 글은 두 칸, 2KB 남짓입니다.
+
+   ── 하실 일 ───────────────────────────────────────────
+   ① 앞에 드린 큰 조각(TAIL-RUN-2)을 Inactive 로 끕니다
+   ② 짝 조각 B(patch160_taildata)를 새로 만들고 Active
+   ③ 이 조각 A 를 새로 만들고 Active
+     A 만 있으면 두 쪽이 안 나옵니다. B 만 있으면 아무 일도 없습니다.
+     둘 다 Active 여야 합니다.
+
+   ── 2026-09-12 · 목차에도 두 줄 ───────────────────────
+   소희 님 : 「덤으로 드리는 이야기가 목차에 빠졌어」
+
+   목차는 두 군데 있습니다.
+       표지 뒤 「차 례」 쪽      인쇄하실 때 같이 나갑니다
+       맨 위 띠의 「목차」 단추   읽는 중에 건너뛰는 용도
+
+   둘 다 「책이 다 그려진 뒤에 그 책을 읽어서」 만듭니다.
+   그리고 한 번만 만듭니다. 덤 두 쪽은 그보다 늦게 들어가니
+   목록에 안 들어갑니다. 쪽번호도 두 칸씩 어긋납니다.
+
+   그래서 두 쪽을 넣은 뒤에 두 목록을 다시 읽습니다.
+   쪽번호를 먼저 다시 세고, 그 번호를 그대로 가져갑니다.
+   목록에 들 이름은 쪽마다 적어 둡니다 — data-toc 입니다.
+   제목(h2)을 쓰면 「올해 연애운은 어떤가요?」가 들어가니까요.
+
+   ── 안 보일 때 ────────────────────────────────────────
+   책 주소 뒤에 표시를 붙이면 어디서 멈췄는지 글자로 보여줍니다.
+
+       https://stellasaju.com/reading-book/?stella_tailsay=1
+
+   오른쪽 아래에 작은 상자가 생깁니다. 그 글을 그대로 주세요.
+   ★ 표시를 안 붙이면 아무것도 안 나옵니다. 손님에게는 안 보입니다.
+
+   붙여넣기 : WPCode -> 새 스니펫 -> PHP Snippet -> 저장 -> Active
+   ★ 위치(Location)를 반드시 「어디서나 실행 / Run Everywhere」로.
+   ★ 두 번 붙여도 안전합니다. 같은 이름이 이미 있으면 물러납니다.
+   ══════════════════════════════════════════════════════════ */
+
+if ( ! function_exists( 'stella_tailfetch_html' ) ) {
+
+add_action( 'wp_footer', function () {
+
+	/* 책 쪽에서만 나갑니다. 다른 쪽에서는 한 글자도 안 나갑니다. */
+	if ( ! is_singular() ) { return; }
+	$p = get_post();
+	if ( ! $p ) { return; }
+	if ( 'reading-book' !== $p->post_name ) { return; }
+
+	/* 어쩌다 두 번 불려도 한 번만 내보냅니다. */
+	if ( defined( 'STELLA_TAILFETCH_OUT' ) ) { return; }
+	define( 'STELLA_TAILFETCH_OUT', 1 );
+
+	echo "\n";
+	/* 진단 표시가 붙어 있으면 「조각이 나갔다」는 것부터 눈에 보이게 합니다. */
+	if ( isset( $_GET['stella_tailsay'] ) ) {
+		echo '<div id="tailsayout" style="position:fixed;right:8px;bottom:8px;z-index:99999;'
+		   . 'max-width:340px;max-height:60vh;overflow:auto;background:#1d1a16;color:#f0e7d4;'
+		   . 'font:12px/1.5 monospace;padding:10px 12px;border-radius:8px;white-space:pre-wrap">'
+		   . 'A 조각이 나갔습니다 (TAIL-FETCH-9)' . "</div>\n";
+	}
+	echo stella_tailfetch_html();
+	echo "\n";
+}, 99 );
+
+function stella_tailfetch_html() {
+	return <<<'STELLATAILFETCH'
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   STELLA SAJU — 맺음말 앞 두 장 (가벼운 판)   BUILD: TAIL-FETCH-9
+   ───────────────────────────────────────────────────────────────
+   글을 담고 있지 않습니다. 짝 조각에게 두 칸만 물어봅니다.
+   두 글자짜리 논리기호를 쓰지 않고 if 를 겹쳐 썼습니다.
+   주소에 붙이는 「그리고」 기호도 글자로 직접 쓰지 않습니다.
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+  'use strict';
+
+  var AMP=String.fromCharCode(38);
+  var ASKAT='/?stella_tailx=1';
+
+  /* ══ 어디서 멈췄나 ═══════════════════════════════════
+     주소에 stella_tailsay 가 붙어 있을 때만 글자로 보여줍니다.
+     붙지 않았으면 한 글자도 안 나옵니다. */
+  var SAY = false;
+  if(String(location.search).indexOf('stella_tailsay')>=0){ SAY=true; }
+  var LOG=[];
+  function say(t){
+    LOG.push(t);
+    if(!SAY){ return; }
+    var box=document.getElementById('tailsayout');
+    if(!box){ return; }
+    box.textContent='A 조각이 나갔습니다 (TAIL-FETCH-9)\n'+LOG.join('\n');
+  }
+
+  var ANIMAL=['쥐','소','호랑이','토끼','용','뱀','말','양','원숭이','닭','개','돼지'];
+
+  /* 짝 조각에서 받아온 두 칸이 여기 담깁니다. */
+  var DATA=null, asked=0, dead=0;
+
+  function ask(topic, sign, animal){
+    asked=1;
+    var u=ASKAT+AMP+'tp='+encodeURIComponent(topic)+
+               AMP+'sg='+encodeURIComponent(sign)+
+               AMP+'ji='+encodeURIComponent(animal);
+    say('물어봅니다 : '+u);
+    try{
+      fetch(u, {credentials:'same-origin'}).then(function(r){
+        say('답이 왔습니다 : ' + r.status);
+        if(!r.ok){ dead=1; return null; }
+        return r.json();
+      }).then(function(j){
+        if(!j){ dead=1; say('글이 비었습니다'); return; }
+        DATA=j;
+        var z='없음', d='없음';
+        if(j.zo){ z=j.zo[0]; }
+        if(j.dd){ d=j.dd[0]; }
+        say('받은 주제 : '+j.topic);
+        say('별자리 칸 : '+z);
+        say('띠 칸 : '+d);
+      }).catch(function(e){ dead=1; say('물어보다 탈났습니다 : '+e); });
+    }catch(e){ dead=1; say('물어볼 수가 없습니다 : '+e); }
+  }
+
+  function two(n){ if(n<10){ return '0'+n; } return ''+n; }
+
+  function renumber(){
+    var box=document.getElementById('ssb');
+    if(!box){ return; }
+    var pages=box.getElementsByClassName('page'), i, f, n=0;
+    for(i=0;i<pages.length;i++){
+      n+=1;
+      f=pages[i].getElementsByClassName('folio')[0];
+      if(f){ f.textContent=two(n); }
+    }
+    var bkN=document.getElementById('bkN');
+    if(bkN){ bkN.textContent=n+'쪽'; }
+  }
+
+  /* ══ 목차에도 두 줄 ═══════════════════════════════════
+     차례는 두 군데 있습니다. 둘 다 「책을 읽어서」 만들고
+     한 번만 만듭니다 — 덤 두 쪽이 들어오기 전에요.
+     그래서 두 쪽을 넣은 뒤에 두 목록을 다시 읽습니다.
+
+       ① 표지 뒤 「차 례」 쪽   #ssTocPage .tocp-list
+       ② 맨 위 띠 「목차」 단추  .tocback .toclist
+
+     지우고 새로 쓰는 것이 아니라, 지금 책을 그대로 다시 읽습니다.
+     그러니 덤 두 쪽도, 맨 뒤로 보낸 근거 묶음도 저절로 맞습니다.
+     ★ 홑 앰퍼샌드를 쓰지 않습니다 — 글자는 textContent 로만. */
+
+  var TOCP=0, TOCB=0;
+
+  function trim(t){ return String(t).replace(/^\s+/,'').replace(/\s+$/,''); }
+
+  function folio(pg){
+    var f=pg.getElementsByClassName('folio')[0];
+    if(!f){ return ''; }
+    return trim(f.textContent);
+  }
+
+  /* 이 쪽이 목차에서 어떤 줄이 되는가.
+       data-toc 이 있으면 그것       ← 덤 두 쪽
+       속표지(.dvno)면 굵은 줄
+       제목(h2)이면 들여쓴 줄
+       눈썹줄(.eyebrow)이면 들여쓴 줄 */
+  function tocLabel(pg, withCover){
+    var t=pg.getAttribute('data-toc');
+    if(t){ return { head:'', txt:t, ch:false }; }
+    var dv=pg.getElementsByClassName('dvno')[0];
+    var h2=pg.getElementsByTagName('h2')[0];
+    var ht='';
+    if(h2){ ht=trim(h2.textContent); }
+    if(dv){ return { head:trim(dv.textContent), txt:ht, ch:true }; }
+    if(ht){ return { head:'', txt:ht, ch:false }; }
+    if(withCover){
+      if(pg.getElementsByTagName('h1')[0]){ return { head:'', txt:'표지', ch:true }; }
+    }
+    var ey=pg.getElementsByClassName('eyebrow')[0];
+    if(ey){ return { head:'', txt:trim(ey.textContent), ch:false }; }
+    return null;
+  }
+
+  function coverOf(box){
+    var c=box.querySelector('.page.cover');
+    if(c){ return c; }
+    var pages=box.getElementsByClassName('page'), i;
+    for(i=0;i<pages.length;i++){
+      if(pages[i].getElementsByTagName('h1')[0]){ return pages[i]; }
+    }
+    return null;
+  }
+
+  /* ── ① 표지 뒤 「차 례」 쪽 ── */
+  function tocpLine(L, no){
+    var d=document.createElement('div');
+    d.className = L.ch ? 'tocp-ch' : 'tocp-sub';
+
+    var t=document.createElement('span');
+    t.className='t';
+    if(L.head){
+      var b=document.createElement('b');
+      b.textContent=L.head;
+      t.appendChild(b);
+      t.appendChild(document.createTextNode(' '+L.txt));
+    } else {
+      t.textContent=L.txt;
+    }
+
+    var dot=document.createElement('i');
+    dot.className='d';
+
+    var n=document.createElement('span');
+    n.className='n';
+    n.textContent=no;
+
+    d.appendChild(t); d.appendChild(dot); d.appendChild(n);
+    return d;
+  }
+
+  function tocpFix(){
+    var pg=document.getElementById('ssTocPage');
+    if(!pg){ return false; }
+    var list=pg.getElementsByClassName('tocp-list')[0];
+    if(!list){ return false; }
+    var box=document.getElementById('ssb');
+    if(!box){ return false; }
+
+    /* 차례 쪽이 우리보다 늦게 들어왔을 수 있으니 번호부터 다시 셉니다. */
+    renumber();
+
+    var pages=[].slice.call(box.getElementsByClassName('page'));
+    var cover=coverOf(box);
+    var hold=document.createDocumentFragment(), made=0, i, L;
+    for(i=0;i<pages.length;i++){
+      if(pages[i]===pg){ continue; }
+      if(pages[i]===cover){ continue; }
+      L=tocLabel(pages[i], 0);
+      if(!L){ continue; }
+      hold.appendChild(tocpLine(L, folio(pages[i])));
+      made+=1;
+    }
+    if(made<4){ return false; }
+
+    list.textContent='';
+    list.appendChild(hold);
+    return true;
+  }
+
+  /* ── ② 맨 위 띠 「목차」 단추 ── */
+  function paneFix(){
+    var back=document.getElementsByClassName('tocback')[0];
+    if(!back){ return false; }
+    var list=back.getElementsByClassName('toclist')[0];
+    if(!list){ return false; }
+    var box=document.getElementById('ssb');
+    if(!box){ return false; }
+
+    var pages=[].slice.call(box.getElementsByClassName('page'));
+    var hold=document.createDocumentFragment(), made=0, i, L, b, sn, st, txt;
+    for(i=0;i<pages.length;i++){
+      L=tocLabel(pages[i], 1);
+      if(!L){ continue; }
+
+      b=document.createElement('button');
+      b.type='button';
+      b.className = L.ch ? 'ch' : 'sub';
+      b.setAttribute('data-i', i);
+
+      sn=document.createElement('span');
+      sn.className='no';
+      sn.textContent=folio(pages[i]);
+
+      txt=L.txt;
+      if(L.head){
+        txt=L.head;
+        if(L.txt){ txt=L.head+' · '+L.txt; }
+      }
+      st=document.createElement('span');
+      st.textContent=txt;
+
+      b.appendChild(sn); b.appendChild(st);
+      (function(target){
+        b.addEventListener('click', function(){
+          back.classList.remove('on');
+          target.scrollIntoView({ behavior:'smooth', block:'start' });
+        });
+      })(pages[i]);
+
+      hold.appendChild(b);
+      made+=1;
+    }
+    if(made<4){ return false; }
+
+    list.textContent='';
+    list.appendChild(hold);
+
+    var hd=back.getElementsByClassName('tochead')[0];
+    if(hd){
+      var sp=hd.getElementsByTagName('span')[0];
+      if(sp){ sp.textContent=pages.length+'쪽'; }
+    }
+    return true;
+  }
+
+  /* 두 목록이 아직 안 만들어졌을 수 있습니다. 생길 때까지 기다립니다. */
+  var tocTries=0;
+  function tocTick(){
+    tocTries+=1;
+    if(!TOCP){ try{ if(tocpFix()){ TOCP=1; say('차례 쪽을 다시 읽었습니다'); } }catch(e){ TOCP=2; } }
+    if(!TOCB){ try{ if(paneFix()){ TOCB=1; say('목차 단추를 다시 읽었습니다'); } }catch(e){ TOCB=2; } }
+    if(TOCP){ if(TOCB){ return; } }
+    if(tocTries>60){ say('차례를 다 못 고쳤습니다 — 차례쪽 '+TOCP+' · 목차단추 '+TOCB); return; }
+    setTimeout(tocTick, 400);
+  }
+
+  /* ══ 그림 스물넷 ══════════════════════════════════════
+     소희 님이 별자리 열둘, 띠 열둘을 그려 올리셨습니다.
+     올리실 때 이름에 .webp 가 들어가고 실제 파일은 png/jpg 라
+     확장자가 두 번 붙어 있습니다. 주소는 그대로 맞춰 씁니다. */
+  var PICUP='https://stellasaju.com/wp-content/uploads/2026/09/';
+  var SIGNPIC={
+    '양자리':'aries',      '황소자리':'taurus',   '쌍둥이자리':'gemini',
+    '게자리':'cancer',     '사자자리':'leo',      '처녀자리':'virgo',
+    '천칭자리':'libra',    '전갈자리':'scorpio',  '사수자리':'sagittarius',
+    '염소자리':'capricorn','물병자리':'aquarius', '물고기자리':'pisces'
+  };
+  var JIPIC={
+    '쥐띠':'rat',    '소띠':'ox',      '호랑이띠':'tiger', '토끼띠':'rabbit',
+    '용띠':'dragon', '뱀띠':'snake',   '말띠':'horse',     '양띠':'goat',
+    '원숭이띠':'monkey','닭띠':'rooster','개띠':'dog',     '돼지띠':'pig'
+  };
+  function pic(file, name){
+    if(!file){ return ''; }
+    return '<p class="tailpic"><img loading="lazy" decoding="async" '+
+           'src="'+PICUP+file+'" alt="'+name+'"></p>';
+  }
+  function signPic(sign){
+    var e=SIGNPIC[sign];
+    if(!e){ return ''; }
+    return pic('sign-'+e+'.webp.png', sign);
+  }
+  function jiPic(animal){
+    var e=JIPIC[animal];
+    if(!e){ return ''; }
+    return pic('ji-'+e+'.webp.jpg', animal);
+  }
+
+  function sheet(html, tocname){
+    /* data-toc — 목차에 들어갈 이름입니다. 제목(h2)은 질문이라
+       목차에 그대로 넣으면 「올해 연애운은…」이 됩니다. */
+    return '<div class="page" data-part="tail" data-toc="'+tocname+'">'+
+           '<div class="tailbox">'+html+'</div>'+
+           '<div class="folio"></div></div>';
+  }
+
+  /* ── 폭 ──────────────────────────────────────────────
+     ★ 2026-09-12 — 여기서 폭을 재던 것을 뺐습니다.
+     책의 첫 문단을 재어 따라가게 했더니, 좁은 문단 하나를 잡아
+     덤 쪽이 290px 로 쪼그라들었습니다. 재는 방식이 잘못이었습니다.
+
+     책 전체 폭은 여백 조각(patch_spacerun)이 쪽마다 900px 로 잡습니다.
+     덤 두 쪽도 같은 「쪽」이라 그 폭을 저절로 따릅니다.
+     여기서는 아무것도 건드리지 않습니다. */
+
+  function ttl(head, sub){
+    if(!sub){ return head; }
+    return head+' · '+sub;
+  }
+
+  function build(d, sign, animal){
+    var made=[];
+    /* ★ 2026-09-12 소희 님 : 「덤으로 드리는 이야기」보다
+       「태어난 띠로 다시 보면」을 노란 딱지에 넣었으면 좋겠어.
+       그래서 딱지가 그 쪽의 이름을 답니다. 눈썹줄은 딱지가 대신합니다. */
+    function badge(name){
+      return '<p class="bonus">'+name+'</p>';
+    }
+
+    /* 하나 · 별자리 */
+    if(d.zo){
+      made.push(sheet(
+        badge('별자리로 다시 보면')+
+        signPic(sign)+
+        '<h2>'+d.q+'</h2>'+
+        '<p class="dek">여덟 글자로 보신 것을 하늘로 한 번 더 겹쳐 봅니다. '+
+        '여기서는 누구나 아는 태양 자리로만 봅니다</p>'+
+        '<h3>'+ttl(sign, d.zo[0])+'</h3>'+
+        d.zo[1], '별자리로 다시 보면'));
+    }
+
+    /* 둘 · 띠 */
+    if(d.dd){
+      made.push(sheet(
+        badge('태어난 띠로 다시 보면')+
+        jiPic(animal)+
+        '<h2>'+ttl(animal, d.dd[0])+'</h2>'+
+        '<p class="dek">여덟 글자의 맨 앞 글자가 곧 띠입니다. '+
+        '어릴 때부터 알고 계셨던 그 한 글자가 사실은 사주의 첫 칸이에요</p>'+
+        d.dd[1]+
+        '<p class="mini">앞에서 본 여덟 글자가 세밀한 결이라면, 띠는 그 아래 깔린 바탕색입니다. '+
+        '겹치는 데가 있다면 그 자리가 그만큼 분명하다는 뜻입니다.</p>',
+        '태어난 띠로 다시 보면'));
+    }
+    return made;
+  }
+
+  function start(){
+    var box=document.getElementById('ssb');
+    if(!box){ say('책 상자(#ssb)가 아직 없습니다'); return false; }
+    if(box.getAttribute('data-tail')==='1'){
+      say('빗장이 이미 걸려 있습니다 — 옛 조각이 먼저 넣었습니다');
+      return true;
+    }
+
+    var order=null;
+    try{ order=JSON.parse(localStorage.getItem('stella_demo')); }catch(e){ order=null; }
+    if(!order){ say('주문(stella_demo)이 없습니다 — 받으신 풀이에서 열어야 합니다'); return false; }
+
+    var S=window.StellaSaju;
+    if(!S){ say('엔진(StellaSaju)이 아직 없습니다'); return false; }
+    if(!S.lastChart){ say('엔진에 lastChart 가 없습니다'); return false; }
+    var chart=S.lastChart();
+    if(!chart){ say('여덟 글자(chart)가 아직 없습니다'); return false; }
+
+    var topic=order.topic;
+    if(!topic){ say('주문에 주제가 없습니다'); return true; }
+
+    var sign='';
+    if(chart.stars){ if(chart.stars.sun){ sign=chart.stars.sun.name; } }
+    var animal='';
+    if(chart.pillars){ if(chart.pillars.year){
+      var jz=chart.pillars.year.ji;
+      if(typeof jz==='number'){ animal=ANIMAL[jz]+'띠'; }
+    } }
+
+    /* 짝 조각에게 두 칸을 물어봅니다. 아직 안 왔으면 다음에 다시 옵니다. */
+    if(dead){ say('짝 조각(B)에게 물어보지 못했습니다'); return true; }
+    if(!asked){ say('주제 '+topic+' · '+sign+' · '+animal); ask(topic, sign, animal); return false; }
+    if(!DATA){ return false; }
+    if(!DATA.zo){ if(!DATA.dd){ say('두 칸이 다 비었습니다 — 주제 이름이 안 맞습니다'); return true; } }
+
+    var made=build(DATA, sign, animal);
+    if(!made.length){ return true; }
+
+    var pages=box.getElementsByClassName('page');
+    if(!pages.length){ return false; }
+
+    /* ── 맺음말 쪽을 찾습니다. 아직 없으면 다음에 다시 옵니다. ── */
+    var anchor=null, i, eb;
+    for(i=0;i<pages.length;i++){
+      eb=pages[i].getElementsByClassName('eyebrow')[0];
+      if(!eb){ continue; }
+      if(eb.textContent==='맺음말'){ anchor=pages[i]; break; }
+    }
+    if(!anchor){
+      var names=[], q;
+      for(q=0;q<pages.length;q++){
+        var e3=pages[q].getElementsByClassName('eyebrow')[0];
+        if(e3){ names.push(e3.textContent); }
+      }
+      say('맺음말 쪽을 못 찾았습니다. 쪽 '+pages.length+'개, 눈썹줄 : '+names.slice(-12).join(' / '));
+      return false;
+    }
+
+    /* ── 근거 묶음을 맨 뒤로 옮깁니다 ──────────────────────
+       계산 자료가 맺음말과 편지 사이를 막지 않게 진짜 뒤로 보냅니다.
+         … 마지막에 놓는 세 장
+         별자리로 다시 보면 · 띠로 보면
+         맺음말 · ○○님께
+         뒤에 붙이는 것 · 근거 하나~여섯             */
+    var all=[].slice.call(pages);
+    var backs=[], k, p, cls, ebt;
+    for(k=0;k<all.length;k++){
+      p=all[k];
+      cls=p.className;
+      if(cls.indexOf('divider')>=0){
+        if(p.innerHTML.indexOf('뒤에 붙이는 것')>=0){ backs.push(p); continue; }
+      }
+      ebt='';
+      var e2=p.getElementsByClassName('eyebrow')[0];
+      if(e2){ ebt=e2.textContent; }
+      if(ebt){ if(ebt.indexOf('근거')===0){ backs.push(p); } }
+    }
+
+    if(backs.length>0){
+      var tail=null;
+      for(k=all.length-1;k>=0;k--){
+        if(all[k].className.indexOf('farewell')>=0){ tail=all[k]; break; }
+      }
+      if(!tail){
+        for(k=all.length-1;k>=0;k--){
+          if(backs.indexOf(all[k])>=0){ continue; }
+          tail=all[k]; break;
+        }
+      }
+      if(tail){
+        var host=tail.parentNode;
+        for(k=0;k<backs.length;k++){
+          if(tail.nextSibling){ host.insertBefore(backs[k], tail.nextSibling); }
+          else { host.appendChild(backs[k]); }
+          tail=backs[k];
+        }
+      }
+    }
+
+    /* ── 덤 두 쪽을 맺음말 앞에 ── */
+    var hold=document.createElement('div');
+    hold.innerHTML=made.join('');
+    while(hold.firstChild){ anchor.parentNode.insertBefore(hold.firstChild, anchor); }
+
+    box.setAttribute('data-tail','1');
+    renumber();
+    say('두 쪽을 넣었습니다');
+    setTimeout(tocTick, 200);
+    return true;
+  }
+
+  /* 다른 조각들이 쪽을 다 넣을 때까지 기다립니다. 최대 20초. */
+  var tries=0;
+  function tick(){
+    tries+=1;
+    var done=false;
+    try{ done=start(); }catch(e){ done=true; }
+    if(done){ return; }
+    if(tries>60){ say('스무 초를 기다렸지만 안 됐습니다'); return; }
+    setTimeout(tick, 330);
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(tick, 400); });
+  } else { setTimeout(tick, 400); }
+})();
+</script>
+<style>
+/* ── 덤으로 드리는 이야기 ────────────────────────────────
+   소희 님 : 「배경색은 흰색인줄 아는정도의 밝기」
+     육성 상자(.voice)   금색 5.5%
+     덤 두 쪽            금색 5.5%
+   그라데이션·그림자·실선은 쓰지 않습니다. */
+#ssb .tailbox{
+  margin:0; padding:26px 28px;
+  background:rgba(212,175,106,.055);
+  border-left:3px solid #C09A52;
+}
+#ssb .page[data-part="tail"]{ border-top:0; }
+#ssb .page[data-part="tail"]::before{ background:#C09A52; }
+
+/* 딱지 — 그 쪽의 이름을 답니다. 노란 바탕에 검은 글씨.
+   이름을 담으니 조금 키웁니다. */
+#ssb .tailbox .bonus{
+  display:inline-block; margin:0 0 20px;
+  font-size:.82rem; letter-spacing:.01em; font-weight:700;
+  color:#1A1713; background:#E2BE72;
+  border-radius:999px; padding:7px 18px;
+}
+#ssb .tailbox .eyebrow{ letter-spacing:.08em; margin-top:0; }
+/* 그림 — 상자 맨 위, ★ 왼쪽 맞춤 (2026-09-12 · 소희 님).
+   글이 왼쪽에서 시작하니 그림도 같은 선에서 시작합니다.
+   그림에 이미 금색 테두리가 있어 덧테두리는 두르지 않습니다. */
+#ssb .tailbox .tailpic{ margin:18px 0 24px; text-align:left; }
+#ssb .tailbox .tailpic img{
+  width:210px; max-width:64%; height:auto;
+  display:inline-block; border-radius:6px;
+}
+#ssb .tailbox .cl{
+  border-top:1px solid rgba(192,154,82,.34);
+  padding-top:1em; margin-top:1.5em;
+}
+#ssb .tailbox .mini{
+  border-left:3px solid rgba(192,154,82,.4);
+  padding-left:14px; margin-top:1.8em;
+}
+@media(max-width:640px){
+  #ssb .tailbox{ padding:20px 18px; border-left-width:3px; }
+  #ssb .tailbox .tailpic img{ width:168px; }
+}
+</style>
+STELLATAILFETCH;
+}
+
+}
