@@ -1,15 +1,19 @@
-// 오픈기념 띠를 홈 쪽 글에 직접 넣습니다
-// 2026-09-27 · 자세한 것은 notes 의 2026-09-27-띠를-쪽글로.md
+// 오픈기념 한 줄 띠를 홈 쪽 글에 넣습니다
+// 2026-10-01
 //
-// 그동안 띠는 자바스크립트가 만들어 끼워넣었습니다. 그래서 여백이
-// 덮이고 자리가 흔들렸습니다. 이제 쪽 글에 박아 CSS 한 줄이 여백을 정합니다.
+// ★ 이 조각은 한 번 쓰고 지우는 도구입니다.
+//   주소를 열면 띠가 쪽 글 안으로 들어갑니다. 그 뒤에는 이 조각을
+//   지우셔도 띠가 그대로 남습니다. 켜 둘 이유가 없습니다.
 //
 //   살펴보기   https://stellasaju.com/?stella_homeband=1
 //   넣기       https://stellasaju.com/?stella_homeband=apply
 //   빼기       https://stellasaju.com/?stella_homeband=undo
 //
-// 넣으신 뒤 patch_homeprice 를 꺼 주세요 - 켜 두면 띠가 둘이 됩니다.
+// 들어가는 자리는 맨 위 배너 바로 아래입니다.
+// 글은 두 마디뿐입니다 — 오픈기념 / 모든 사주풀이가 무료입니다.
+//
 // 위치는 어디서나 실행. 크롬 번역을 끄고 붙여넣으세요.
+// 맨 아랫줄이  } );  인지 확인하세요.
 
 add_action( 'template_redirect', function () {
 
@@ -35,65 +39,30 @@ add_action( 'template_redirect', function () {
 	$E = '  <!-- STELLA-BAND-END -->';
 	$H = '';
 	$H .= $S . chr(10);
-	$H .= '  <!-- ══ 오픈기념 배너 ════════════════════' . chr(10);
-	$H .= '       2026-09-29 · 조각이 자바스크립트로 끼워넣던 것을 쪽 글로 옮겼습니다.' . chr(10);
-	$H .= '       여백은 #hp-open 의 padding 한 줄이 정합니다.' . chr(10);
-	$H .= '       ★ patch_homeprice 는 꺼야 합니다 — 켜 두면 띄가 둘이 됩니다. -->' . chr(10);
+	$H .= '  <!-- ══ 오픈기념 한 줄 ══════════════════' . chr(10);
+	$H .= '       2026-10-01 · 히어로 바로 아래. 글은 두 마디만 둡니다.' . chr(10);
+	$H .= '       고치실 것은 아래 hp-line 한 줄뿐입니다. -->' . chr(10);
 	$H .= '  <style>' . chr(10);
-	$H .= '  #stellar-home #hp-open{ padding:56px 0 76px; }' . chr(10);
-	$H .= '  @media(max-width:700px){ #stellar-home #hp-open{ padding:38px 0 52px; } }' . chr(10);
-	$H .= '  #hp-band{ position:relative; overflow:hidden;' . chr(10);
-	$H .= '    padding:32px 36px; border-radius:20px;' . chr(10);
-	$H .= '    display:flex; flex-wrap:wrap; align-items:center; gap:22px 34px;' . chr(10);
+	$H .= '  #stellar-home #hp-open{ padding:18px 0 0; }' . chr(10);
+	$H .= '  #hp-band{ display:flex; flex-wrap:wrap; align-items:center; gap:9px 14px;' . chr(10);
+	$H .= '    padding:14px 22px; border-radius:14px;' . chr(10);
 	$H .= '    background:linear-gradient(120deg,#F3EEFC 0%,#FFFFFF 62%);' . chr(10);
-	$H .= '    border:1px solid #D9CFF2;' . chr(10);
-	$H .= '    box-shadow:0 18px 44px -26px rgba(59,44,120,.45); }' . chr(10);
-	$H .= '  #hp-band .hp-kick{ display:inline-block; padding:5px 13px; border-radius:30px;' . chr(10);
+	$H .= '    border:1px solid #D9CFF2; }' . chr(10);
+	$H .= '  #hp-band .hp-kick{ display:inline-block; padding:4px 11px; border-radius:30px;' . chr(10);
 	$H .= '    background:#6B4FB0; color:#FFFDF9;' . chr(10);
-	$H .= '    font-size:.72rem; font-weight:700; letter-spacing:.12em; }' . chr(10);
-	$H .= '  #hp-band .hp-main{ flex:1 1 400px; min-width:0; }' . chr(10);
-	$H .= '  #hp-band .hp-row{ display:flex; flex-wrap:wrap; align-items:flex-end;' . chr(10);
-	$H .= '    gap:8px 18px; margin-top:16px; }' . chr(10);
-	$H .= '  #hp-band .hp-big{ font-family:Noto Serif KR,serif; font-weight:700;' . chr(10);
-	$H .= '    font-size:clamp(1.5rem,4vw,2.1rem); line-height:1.3; color:var(--ink,#221C33); }' . chr(10);
-	$H .= '  #hp-band .hp-price{ display:flex; align-items:baseline; gap:8px; padding-bottom:5px; }' . chr(10);
-	$H .= '  #hp-band .hp-was{ color:var(--ink-dim,#8B849C); text-decoration:line-through;' . chr(10);
-	$H .= '    font-size:.98rem; }' . chr(10);
-	$H .= '  #hp-band .hp-arrow{ color:var(--ink-dim,#8B849C); font-size:.9rem; }' . chr(10);
-	$H .= '  #hp-band .hp-now{ color:#C4453A; font-weight:800; font-size:1.34rem; }' . chr(10);
-	$H .= '  #hp-band .hp-topics{ margin-top:12px; color:var(--plum,#6B4FB0);' . chr(10);
-	$H .= '    font-size:.92rem; font-weight:700; line-height:1.75; }' . chr(10);
-	$H .= '  #hp-band .hp-say{ margin-top:9px; max-width:660px;' . chr(10);
-	$H .= '    color:var(--ink-soft,#4E4763); font-size:.94rem; line-height:1.85; }' . chr(10);
-	$H .= '  #hp-band .hp-go{ flex:0 0 auto; text-decoration:none;' . chr(10);
-	$H .= '    padding:13px 26px; border-radius:30px; font-weight:700; font-size:.95rem;' . chr(10);
-	$H .= '    color:#FFFDF9; background:linear-gradient(120deg,#3A2E77,#241C4E);' . chr(10);
-	$H .= '    box-shadow:0 16px 34px -16px rgba(36,28,78,.7); }' . chr(10);
-	$H .= '  #hp-band .hp-go:hover{ background:#2A2158; }' . chr(10);
+	$H .= '    font-size:.68rem; font-weight:700; letter-spacing:.1em; }' . chr(10);
+	$H .= '  #hp-band .hp-line{ font-family:Noto Serif KR,serif; font-weight:700;' . chr(10);
+	$H .= '    font-size:1.05rem; line-height:1.5; color:#221C33; }' . chr(10);
 	$H .= '  @media(max-width:700px){' . chr(10);
-	$H .= '    #hp-band{ border-radius:16px; }' . chr(10);
-	$H .= '    #hp-band .hp-now{ font-size:1.2rem; }' . chr(10);
-	$H .= '    #hp-band{ padding:26px 20px; gap:18px; }' . chr(10);
-	$H .= '    #hp-band .hp-main{ flex:1 1 100%; }' . chr(10);
-	$H .= '    #hp-band .hp-go{ flex:1 1 100%; text-align:center; } }' . chr(10);
+	$H .= '    #stellar-home #hp-open{ padding:14px 0 0; }' . chr(10);
+	$H .= '    #hp-band{ padding:13px 16px; border-radius:12px; gap:8px 11px; }' . chr(10);
+	$H .= '    #hp-band .hp-line{ font-size:.98rem; } }' . chr(10);
 	$H .= '  </style>' . chr(10);
 	$H .= '  <section class="sh-section" id="hp-open">' . chr(10);
 	$H .= '    <div class="wrap">' . chr(10);
 	$H .= '      <div id="hp-band">' . chr(10);
-	$H .= '        <div class="hp-main">' . chr(10);
 	$H .= '        <span class="hp-kick">오픈기념</span>' . chr(10);
-	$H .= '        <div class="hp-row">' . chr(10);
-	$H .= '          <div class="hp-big">모든 사주풀이가 무료입니다</div>' . chr(10);
-	$H .= '          <div class="hp-price">' . chr(10);
-	$H .= '            <span class="hp-was">9,000원</span>' . chr(10);
-	$H .= '            <span class="hp-arrow">›</span>' . chr(10);
-	$H .= '            <span class="hp-now">0원</span>' . chr(10);
-	$H .= '          </div>' . chr(10);
-	$H .= '        </div>' . chr(10);
-	$H .= '        <div class="hp-topics">연애운 · 결혼운 · 재회운 · 직장운 · 재물운 · 건강운 · 가족운 · 신년운세 · 별자리 · 타로</div>' . chr(10);
-	$H .= '        <div class="hp-say">오픈 기간에는 값을 받지 않습니다. 가입도, 카드도 필요 없습니다. 글은 한 줄도 줄이지 않아서, 풀이 한 편이 책 한 권 그대로입니다.</div>' . chr(10);
-	$H .= '        </div>' . chr(10);
-	$H .= '        <a class="hp-go" href="/door-fortune/?topic=2026%EB%85%84%20%EC%9A%B4%EC%84%B8">2026년 운세부터 보기 ›</a>' . chr(10);
+	$H .= '        <span class="hp-line">모든 사주풀이가 무료입니다</span>' . chr(10);
 	$H .= '      </div>' . chr(10);
 	$H .= '    </div>' . chr(10);
 	$H .= '  </section>' . chr(10);
@@ -136,6 +105,6 @@ add_action( 'template_redirect', function () {
 
 	echo '됐습니다 · 지금 ' . number_format( strlen( $saved ) ) . '자 · 띠 '
 		. substr_count( $saved, $MK ) . '군데 · 역빗금 ' . $b2 . "개 그대로\n\n";
-	echo "이제 patch_homeprice 를 꺼 주세요.\n";
+	echo "이제 이 조각은 지우셔도 됩니다. 띠는 쪽 글에 남습니다.\n";
 	exit;
 } );
